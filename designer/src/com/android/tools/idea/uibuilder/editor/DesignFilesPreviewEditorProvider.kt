@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.DesignerEditorProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
+import com.android.tools.idea.uibuilder.type.AnimatedImageFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
@@ -35,6 +36,7 @@ val DESIGNER_PREVIEW_FILE_TYPES =
     AdaptiveIconFileType,
     StateListFileType,
     AnimationListFileType,
+    AnimatedImageFileType,
     AnimatedStateListFileType,
     AnimatedStateListTempFileType,
     AnimatedVectorFileType,

@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
+import com.android.tools.idea.uibuilder.type.AnimatedImageFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
@@ -172,11 +173,11 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
           16,
           0L,
         )
-      } else if (model?.type is AnimatedVectorFileType) {
-        // If opening an animated vector, add an unlimited animation bar
+      } else if (model?.type is AnimatedVectorFileType || model?.type is AnimatedImageFileType) {
+        // If opening an animated vector or image, add an unlimited animation bar
         AnimationToolbar.createUnlimitedAnimationToolbar(
           this,
-          AnimatedVectorListener(surface),
+          AnimatedDrawableListener(surface),
           16,
           0L,
         )
@@ -250,6 +251,7 @@ class PreviewEditorActionManagerProvider(
 ) : NlActionManager(surface) {
   override fun getSceneViewContextToolbarActions(): List<AnAction> {
     return when (fileType) {
+      is AnimatedImageFileType,
       is AnimatedStateListFileType,
       is AnimatedStateListTempFileType,
       is AnimatedVectorFileType,
@@ -259,8 +261,8 @@ class PreviewEditorActionManagerProvider(
   }
 }
 
-/** Animation listener for <animated-vector>. */
-private class AnimatedVectorListener(val surface: DesignSurface<*>) : AnimationListener {
+/** Animation listener for <animated-vector> or <animated-image>. */
+private class AnimatedDrawableListener(val surface: DesignSurface<*>) : AnimationListener {
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {
     (surface.model?.let { surface.getSceneManager(it) } as? LayoutlibSceneManager)?.let {
       // Some frames may be dropped as consequence of the queueing/scheduling logic in the render
@@ -350,7 +352,7 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
  * <animated-vector> and/or <animation-list>.
  */
 private class AnimatedSelectorListener(val surface: DesignSurface<*>) : AnimationListener {
-  private val animatedVectorDelegate = AnimatedVectorListener(surface)
+  private val animatedVectorDelegate = AnimatedDrawableListener(surface)
   private val animationListDelegate = AnimationListListener(surface)
 
   override fun animateTo(controller: AnimationController, framePositionMs: Long) {

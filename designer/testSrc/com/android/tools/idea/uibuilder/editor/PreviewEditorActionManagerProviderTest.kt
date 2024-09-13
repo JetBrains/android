@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.type.AnimatedImageFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
@@ -28,6 +29,7 @@ import org.mockito.Mockito
 
 val ANIMATION_TYPES =
   listOf(
+    AnimatedImageFileType,
     AnimatedStateListFileType,
     AnimatedStateListTempFileType,
     AnimatedVectorFileType,
