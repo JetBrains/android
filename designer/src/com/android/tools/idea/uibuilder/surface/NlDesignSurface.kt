@@ -105,8 +105,6 @@ internal constructor(
       >,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
-  @SurfaceScale minScale: Double,
-  @SurfaceScale maxScale: Double,
   actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler,
   private val delegateDataProvider: DataProvider?,
   selectionModel: SelectionModel,
@@ -200,8 +198,6 @@ internal constructor(
         }
         // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
-        this@apply.maxScale = maxScale
-        this@apply.minScale = minScale
         screenScalingFactor = sysScale(this@NlDesignSurface).toDouble()
       }
 

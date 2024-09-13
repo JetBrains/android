@@ -24,18 +24,14 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import java.awt.Point
 import javax.swing.JViewport
 import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
-
-/** The min allowed scale that could be set in [DesignSurface]s */
-@SurfaceScale private const val MIN_SCALE: Double = 0.03
-
-/** The max allowed scale that could be set in [DesignSurface]s */
-@SurfaceScale const val MAX_SCALE: Double = 10.0
 
 /**
  * If the difference between old and new scaling values is less than threshold, the scaling will be
@@ -73,9 +69,11 @@ abstract class DesignSurfaceZoomController(
 
   override var storeId: String? = null
 
-  override val minScale: Double = MIN_SCALE
+  /** The minimum scale allowed. */
+  override val minScale: Double = DEFAULT_MIN_SCALE
 
-  override val maxScale: Double = MAX_SCALE
+  /** The maximum scale allowed. */
+  override val maxScale: Double = DEFAULT_MAX_SCALE
 
   open val shouldShowZoomAnimation: Boolean = false
 
@@ -260,7 +258,7 @@ abstract class DesignSurfaceZoomController(
 
   override fun canZoomIn(): Boolean = currentScale < maxScale && !isScaleSame(scale, maxScale)
 
-  override fun canZoomOut(): Boolean = minScale < currentScale && !isScaleSame(minScale, scale)
+  override fun canZoomOut(): Boolean = currentScale > minScale && !isScaleSame(minScale, scale)
 
   override fun canZoomToFit(): Boolean {
     @SurfaceScale val zoomToFitScale = getFitScale()

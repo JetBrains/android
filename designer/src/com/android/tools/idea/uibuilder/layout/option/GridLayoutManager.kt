@@ -21,8 +21,8 @@ import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffs
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
-import com.android.tools.idea.common.surface.MAX_SCALE
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
@@ -172,7 +172,7 @@ class GridLayoutManager(
 
     // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level, to
     // calculate this number we get the max scale, and we multiply by the screen scaling factor
-    val upperBound = MAX_SCALE * JBUIScale.sysScale()
+    val upperBound = ZoomConstants.DEFAULT_MAX_SCALE * JBUIScale.sysScale()
 
     // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
     // This scale can fit all the content in a single row or a single column, which is the worst

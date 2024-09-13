@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
 import com.android.tools.adtui.actions.ZoomType;
@@ -560,9 +559,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.removeModel(model);
 
     // Create another surface which the minimum scale is larger than fitScale.
-    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable())
-      .setMinScale(fitScale * 2)
-      .build();
+    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).build();
     surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
@@ -573,9 +570,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.removeModel(model);
 
     // Create another surface which the maximum scale is lower than fitScale.
-    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable())
-      .setMaxScale(fitScale / 2)
-      .build();
+    surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).build();
     surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();

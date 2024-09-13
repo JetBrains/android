@@ -21,8 +21,9 @@ import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffs
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
-import com.android.tools.idea.common.surface.MAX_SCALE
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import com.android.tools.idea.uibuilder.layout.option.GroupedSurfaceLayoutManager
@@ -180,9 +181,8 @@ open class GroupedGridSurfaceLayoutManager(
           (availableHeight - padding.canvasTopPadding).toDouble()
       // The zoom-to-fit value cannot be smaller than 1%.
       sqrt(availableArea / contentAreas)
-        // TODO(b/365967258): replace this hardcoded value with MIN_SCALE
-        .coerceAtLeast(0.01)
-        .coerceAtMost(MAX_SCALE)
+        .coerceAtLeast(DEFAULT_MIN_SCALE)
+        .coerceAtMost(DEFAULT_MAX_SCALE)
     }
 
     // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
@@ -200,9 +200,8 @@ open class GroupedGridSurfaceLayoutManager(
           (availableWidth - padding.canvasLeftPadding) / totalWidth,
           (availableHeight - padding.canvasTopPadding) / totalHeight,
         )
-        // TODO(b/365967258): replace this hardcoded value with MIN_SCALE
-        .coerceAtLeast(0.01)
-        .coerceAtMost(MAX_SCALE)
+        .coerceAtLeast(DEFAULT_MIN_SCALE)
+        .coerceAtMost(DEFAULT_MAX_SCALE)
     }
 
     if (upperBound <= lowerBound) {

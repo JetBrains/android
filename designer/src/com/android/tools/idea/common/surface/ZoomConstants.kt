@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview
+package com.android.tools.idea.common.surface
 
-import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
-
-/**
- * This object defines the constants to use for the Zoom controller in [CommonPreviewRepresentation]
- */
+/** This object defines the constants to use for the [DesignSurfaceZoomController] */
 object ZoomConstants {
-  const val MIN_SCALE = 0.01 // 1% zoom level
-  const val MAX_SCALE = 5.0 // 500% zoom level
+  const val DEFAULT_MIN_SCALE = 0.01
+  const val DEFAULT_MAX_SCALE = 10.0
 }
