@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.sdklib.getFullApiName
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.SortOrder
@@ -241,8 +240,8 @@ private fun SystemImageTable(
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
       TableTextColumn(
         "API",
-        TableColumnWidth.Fixed(250.dp),
-        { it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true) },
+        TableColumnWidth.Fixed(125.dp),
+        { it.androidVersion.apiStringWithExtension },
         Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )
