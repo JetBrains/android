@@ -446,7 +446,7 @@ class LayoutlibSceneRenderer(
             "Inflate returned unsuccessful RenderResult without an internal exception"
           )
       }
-      return result
+      return result!!
     } catch (throwable: Throwable) {
       // Do some logging and re-throw
       Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
