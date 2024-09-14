@@ -27,7 +27,6 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
-import com.android.tools.idea.ui.screenshot.ScreenshotAction.ScreenshotOptions
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking

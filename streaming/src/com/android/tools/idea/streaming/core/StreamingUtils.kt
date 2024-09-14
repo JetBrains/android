@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.actions.AbstractStreamingAction
 import com.google.common.util.concurrent.ListenableFuture
@@ -157,17 +158,7 @@ internal val AvdInfo.icon: Icon
   }
 
 /**
- * Returns this integer scaled and rounded to the closest integer.
- *
- * @param scale the scale factor
- */
-internal fun Int.scaled(scale: Double): Int =
-    (this * scale).roundToInt()
-
-/**
- * Returns this integer scaled and rounded down towards zero.
- *
- * @param scale the scale factor
+ * Returns this integer multiplied by [scale] and rounded down towards zero.
  */
 internal fun Int.scaledDown(scale: Double): Int =
     (this * scale).toInt()
@@ -179,30 +170,6 @@ internal fun Int.scaledDown(scale: Double): Int =
  */
 internal fun Int.scaledUp(scale: Double): Int =
     ceil(this * scale).roundToInt()
-
-/**
- * Returns this [Dimension] scaled by the given factor.
- */
-internal fun Dimension.scaled(scale: Double): Dimension =
-    if (scale == 1.0) this else Dimension(width.scaled(scale), height.scaled(scale))
-
-/**
- * Returns this [Dimension] scaled independently along X and Y axes.
- */
-internal fun Dimension.scaled(scaleX: Double, scaleY: Double): Dimension =
-    if (scaleX == 1.0 && scaleY == 1.0) this else Dimension(width.scaled(scaleX), height.scaled(scaleY))
-
-/**
- * Returns this [Rectangle] scaled independently along X and Y axes.
- */
-internal fun Rectangle.scaled(scaleX: Double, scaleY: Double): Rectangle =
-    if (scaleX == 1.0 && scaleY == 1.0) this else Rectangle(x.scaled(scaleX), y.scaled(scaleY), width.scaled(scaleX), height.scaled(scaleY))
-
-/**
- * Returns this [Point] scaled by the given factor.
- */
-internal fun Point.scaled(scale: Double): Point =
-    if (scale == 1.0) this else Point(x.scaled(scale), y.scaled(scale))
 
 /**
  * Returns this integer scaled by multiplying by [numerator] and then dividing by [denominator].
@@ -233,27 +200,6 @@ internal fun isSameAspectRatio(width1: Int, height1: Int, width2: Int, height2: 
   val d = a - b
   return abs(d) <= tolerance * abs(a + b) / 2
 }
-
-/**
- * Returns this [Dimension] rotated by [numQuadrants] quadrants.
- */
-internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension =
-    if (numQuadrants % 2 == 0) this else Dimension(height, width)
-
-/**
- * Returns this [Point] rotated according to [rotation].
- */
-internal fun Point.rotatedByQuadrants(rotation: Int): Point {
-  return when (normalizedRotation(rotation)) {
-    1 -> Point(y, -x)
-    2 -> Point(-x, -y)
-    3 -> Point(-y, x)
-    else -> this
-  }
-}
-
-internal fun normalizedRotation(rotation: Int) =
-    rotation and 0x3
 
 /**
  * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise

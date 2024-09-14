@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device.screenshot
+package com.android.tools.idea.ui.screenshot
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager.DeviceFilter
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
-import com.android.tools.idea.streaming.device.DeviceConfiguration
-import com.android.tools.idea.streaming.device.DeviceView
-import com.android.tools.idea.ui.screenshot.FramingOption
-import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
-import com.android.tools.idea.ui.screenshot.ScreenshotImage
-import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.android.tools.sdk.DeviceManagers
 import java.awt.image.BufferedImage
 import java.nio.file.Files
@@ -46,33 +39,33 @@ import kotlin.math.log2
 private const val MAX_MATCH_DISTANCE_RATIO = 2.0
 private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 
-/**
- * Defines strategy for obtaining device screenshots.
- */
-internal class DeviceScreenshotOptions(
-  override val serialNumber: String,
-  deviceConfiguration: DeviceConfiguration,
-  private val deviceView: DeviceView,
-) : ScreenshotAction.ScreenshotOptions {
+class ScreenshotOptions(
+  val serialNumber: String,
+  private val deviceModel: String?,
+  private val orientationProvider: (() -> ScreenshotAction.ScreenshotRotation)?,
+) {
 
-  override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.noneOf(ScreenshotViewer.Option::class.java)
+  val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> =
+      orientationProvider?.let { EnumSet.noneOf(ScreenshotViewer.Option::class.java) } ?:
+      EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION)
+  val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
 
-  override val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
-  private val deviceModel: String? = deviceConfiguration.deviceModel
-  private val isWatch: Boolean = deviceConfiguration.isWatch
-  private val isAutomotive: Boolean = deviceConfiguration.isAutomotive
-  private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
   private var defaultFrameIndex: Int = 0
+  private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
 
-  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
-    val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayOrientationCorrectionQuadrants)
-    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, deviceType, displayInfo)
+  fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
+    val rotation = orientationProvider?.invoke()
+    val rotatedImage = ImageUtils.rotateByQuadrants(image, rotation?.imageRotationQuadrants ?: 0)
+    return ScreenshotImage(rotatedImage, rotation?.orientationQuadrants ?: 0, deviceType, displayInfo)
   }
 
-  override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
+  /** Returns the list of available framing options for the given image. */
+  fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
+    val deviceType = screenshotImage.deviceType
     val framingOptions = mutableListOf<DeviceFramingOption>()
     val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
-    val devices = deviceManager.getDevices(EnumSet.of(DeviceFilter.USER, DeviceFilter.DEFAULT, DeviceFilter.VENDOR))
+    val devices = deviceManager.getDevices(
+        EnumSet.of(DeviceManager.DeviceFilter.USER, DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
     val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }
     if (device != null) {
       val skinFolder = device.skinFolder
@@ -91,12 +84,12 @@ internal class DeviceScreenshotOptions(
         defaultFrameIndex = framingOptions.indexOfFirst { it.skinFolder == bestMatch.skinFolder }
       }
     }
-    if (!isWatch && !screenshotImage.isTv) {
+    if (deviceType != DeviceType.WEAR && deviceType != DeviceType.TV) {
       val displaySize = screenshotImage.displaySize
       val displayDensity = screenshotImage.displayDensity
       if (displaySize != null && displayDensity.isFinite()) {
         val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
-        if (isAutomotive) {
+        if (deviceType == DeviceType.AUTOMOTIVE) {
           val automotive = descriptors["automotive_1024"]
           val screenSize = automotive?.getScreenSize(ScreenOrientation.LANDSCAPE)
           if (screenSize != null &&
@@ -112,16 +105,22 @@ internal class DeviceScreenshotOptions(
     return framingOptions
   }
 
-  override fun getDefaultFramingOption(framingOptions: List<FramingOption>, screenshotImage: ScreenshotImage): Int =
-    defaultFrameIndex
+  /**
+   * Returns the index of the default framing option for the given image.
+   * The default framing option is ignored if [getFramingOptions] returned an empty list.
+   */
+  fun getDefaultFramingOption(): Int = defaultFrameIndex
 
   private fun findMatchingSkins(screenshotImage: ScreenshotImage, devices: Collection<Device>): List<MatchingSkin> {
     val displaySize = screenshotImage.displaySize ?: return listOf()
     val w = displaySize.width.toDouble()
     val h = displaySize.height.toDouble()
     val diagonalSize = hypot(w, h)
-    val isTv = screenshotImage.isTv
-    val isTablet = !isAutomotive && !isTv && !isWatch && diagonalSize >= MIN_TABLET_DIAGONAL_SIZE
+    val isHandheld = screenshotImage.deviceType == DeviceType.HANDHELD
+    val isTv = screenshotImage.deviceType == DeviceType.TV
+    val isAutomotive = screenshotImage.deviceType == DeviceType.AUTOMOTIVE
+    val isWatch = screenshotImage.deviceType == DeviceType.WEAR
+    val isTablet = isHandheld && diagonalSize >= MIN_TABLET_DIAGONAL_SIZE
     val aspectRatio = h / w
     val matches = mutableListOf<MatchingSkin>()
     for (device in devices) {
@@ -196,13 +195,13 @@ internal class DeviceScreenshotOptions(
     }
 
   private fun Device.isAutomotive() =
-    tagId?.contains("automotive") ?: false
+      tagId?.contains("automotive") ?: false
 
   private fun Device.isTv() =
-    tagId?.contains("android-tv") ?: false
+      tagId?.contains("android-tv") ?: false
 
   private fun Device.isWatch() =
-    tagId?.contains("wear") ?: false
+      tagId?.contains("wear") ?: false
 
   private fun Device.isTablet(): Boolean {
     if (isAutomotive() || isTv() || !isWatch()) {

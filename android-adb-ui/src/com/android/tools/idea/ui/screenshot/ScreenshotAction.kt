@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.io.writeImage
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -32,7 +31,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
-import java.awt.image.BufferedImage
 import java.io.IOException
 
 /**
@@ -110,7 +108,7 @@ class ScreenshotAction : DumbAwareAction(
         val framingOptions = screenshotOptions.getFramingOptions(screenshot)
         try {
           val defaultFrame =
-              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshot) else 0
+              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption() else 0
           val viewer = ScreenshotViewer(project,
                                         screenshot,
                                         backingFile,
@@ -135,19 +133,5 @@ class ScreenshotAction : DumbAwareAction(
     val SCREENSHOT_OPTIONS_KEY = DataKey.create<ScreenshotOptions>("ScreenshotOptions")
   }
 
-  interface ScreenshotOptions {
-    val serialNumber: String
-    val screenshotViewerOptions: Set<ScreenshotViewer.Option>
-    val screenshotDecorator: ScreenshotDecorator
-
-    fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage
-
-    /** Returns the list of available framing options for the given image. */
-    fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption>
-
-    /**
-     * Returns the index of the default framing option for the given image.
-     * The default framing option is ignored if [getFramingOptions] returned an empty list. */
-    fun getDefaultFramingOption(framingOptions: List<FramingOption>, screenshotImage: ScreenshotImage): Int
-  }
+  class ScreenshotRotation(val orientationQuadrants: Int, val imageRotationQuadrants: Int)
 }
