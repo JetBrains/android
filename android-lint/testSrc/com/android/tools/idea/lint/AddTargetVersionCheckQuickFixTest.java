@@ -60,7 +60,7 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     assertThat(expression).isNotNull();
 
     ModCommandLintQuickFix fix = new ModCommandLintQuickFix(
-      new AddTargetVersionCheckQuickFix(getProject(), expression, 9, ANDROID_SDK_ID, ApiConstraint.ALL));
+      new AddTargetVersionCheckQuickFix(getProject(), expression, 9, 0, ANDROID_SDK_ID, ApiConstraint.ALL));
 
     assertThat(AndroidFacet.getInstance(expression)).isNull();
     // Regression test for https://code.google.com/p/android/issues/detail?id=228481 :
