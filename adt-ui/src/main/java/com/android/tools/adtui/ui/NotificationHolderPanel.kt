@@ -130,8 +130,8 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
   private fun createFadeOutNotificationPopup(severity: EditorNotificationPanel.Status?): NotificationPopup {
     val notificationPanel = severity?.let { EditorNotificationPanel(it) } ?: EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
     val popup = NotificationPopup(notificationPanel)
-    addImpl(popup, null, 0)
     setLayer(popup, POPUP_LAYER)
+    addImpl(popup, null, 0)
     return popup
   }
 
