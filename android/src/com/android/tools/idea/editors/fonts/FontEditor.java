@@ -52,7 +52,7 @@ class FontEditor implements FileEditor {
 
   private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(30f);
   private static final float MIN_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.MINI);
-  private static final Border BORDER = JBUI.Borders.empty(50);
+  private static final Border BORDER = JBUI.Borders.empty(10);
   private static final Font DEFAULT_FONT = StartupUiUtil.getLabelFont();
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
@@ -112,7 +112,7 @@ class FontEditor implements FileEditor {
     myFontNameLabel = new JLabel();
     myTextArea = createTextArea();
 
-    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(15f);
+    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(10f);
 
     try {
       // Derive the font and set it to large
@@ -125,6 +125,7 @@ class FontEditor implements FileEditor {
       else {
         myFontNameLabel.setFont(DEFAULT_FONT.deriveFont(myCurrentFontSize));
       }
+      myFontNameLabel.setBorder(JBUI.Borders.emptyBottom(5));
 
       String displayableText = findDisplayableText(font);
       if (!displayableText.isEmpty()) {
@@ -156,13 +157,17 @@ class FontEditor implements FileEditor {
   }
 
   private void onMouseWheelEvent(MouseWheelEvent e) {
+    // On some systems (e.g. macOS), scrolling can result in a ton of getWheelRotation == 0 events.
+    if (e.getWheelRotation() == 0) {
+      return;
+    }
+
     float increment = (e.getWheelRotation() < 0) ? -1f : 1f;
 
     float newFontSize = Math.min(Math.max(MIN_FONT_SIZE, myCurrentFontSize + increment), MAX_FONT_SIZE);
     if (newFontSize != myCurrentFontSize) {
       myCurrentFontSize = newFontSize;
       myTextArea.setFont(myTextArea.getFont().deriveFont(myCurrentFontSize));
-      myFontNameLabel.setFont(myFontNameLabel.getFont().deriveFont(myCurrentFontSize));
     }
   }
 
