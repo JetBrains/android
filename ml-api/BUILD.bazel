@@ -35,6 +35,7 @@ iml_module(
     test_resources = ["src/testSrc/resources"],
     test_srcs = ["src/testSrc/kotlin"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",

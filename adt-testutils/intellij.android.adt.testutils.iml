@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.android.design-plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="opentest4j" level="project" />
+    <orderEntry type="module" module-name="studio-sdk-all-modules" scope="RUNTIME" />
   </component>
 </module>
