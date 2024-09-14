@@ -93,6 +93,17 @@ abstract class ModuleModel(
     multiTemplateRenderer.skipRender()
   }
 
+  open fun getParamsToLog(): String {
+    return """isLibrary: $isLibrary
+      |Application name: ${applicationName.get()}
+      |Module name: ${moduleName.get()}
+      |Package name: ${packageName.get()}
+      |Language: ${language.value}
+      |Minimum SDK: ${androidSdkInfo.valueOrNull?.minApiLevel ?: "N/A"}
+      |Kotlin DSL: ${useGradleKts.get()}
+    """.trimMargin()
+  }
+
   abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     /**
      * A [Recipe] which should be run from [render].
@@ -147,7 +158,8 @@ abstract class ModuleModel(
       val moduleModel = this@ModuleModel
       log.info("Rendering module with commandName \"${moduleModel.commandName}\" " +
                "for form factor \"${moduleModel.formFactor}\" " +
-               "and category \"${moduleModel.category}\"")
+               "and category \"${moduleModel.category}\". " +
+               "Parameters:\n${moduleModel.getParamsToLog()}")
     }
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {
