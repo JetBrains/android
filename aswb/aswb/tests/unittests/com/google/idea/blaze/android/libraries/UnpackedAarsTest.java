@@ -71,6 +71,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +129,7 @@ public class UnpackedAarsTest extends BlazeTestCase {
               File file = new File(workspaceRoot.directory(), artifact.getRelativePath());
               // when the remote artifact cannot be resolved, it will guess it as local artifact.
               return file.exists()
-                  ? new FakeRemoteOutputArtifact(file)
+                  ? new FakeRemoteOutputArtifact(file, Path.of(artifact.getRelativePath()))
                   : super.resolveOutput(artifact);
             }
 
@@ -164,9 +165,11 @@ public class UnpackedAarsTest extends BlazeTestCase {
 
   private static class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
     private final File file;
+    private final Path artifactPath;
 
-    FakeRemoteOutputArtifact(File file) {
+    FakeRemoteOutputArtifact(File file, Path artifactPath) {
       this.file = file;
+      this.artifactPath = artifactPath;
     }
 
     @Override
@@ -185,8 +188,8 @@ public class UnpackedAarsTest extends BlazeTestCase {
     }
 
     @Override
-    public String getBazelOutRelativePath() {
-      return file.getPath();
+    public Path getArtifactPath() {
+      return artifactPath;
     }
 
     @Nullable

@@ -22,6 +22,7 @@ import com.google.devtools.intellij.model.ProjectData.TargetData;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
+import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterfaceState;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import java.util.Objects;
@@ -48,13 +49,13 @@ public final class ProjectTargetData implements ProtoWrapper<ProjectData.TargetD
     return targetMap;
   }
 
-  public static ProjectTargetData fromProto(ProjectData.TargetData proto) {
+  public static ProjectTargetData fromProto(BuildSystemName buildSystemName, ProjectData.TargetData proto) {
     TargetMap targetMap = TargetMap.fromProto(proto.getTargetMap());
     BlazeIdeInterfaceState ideInterfaceState =
         proto.hasIdeInterfaceState()
             ? BlazeIdeInterfaceState.fromProto(proto.getIdeInterfaceState())
             : null;
-    RemoteOutputArtifacts remoteOutputs = RemoteOutputArtifacts.fromProto(proto.getRemoteOutputs());
+    RemoteOutputArtifacts remoteOutputs = RemoteOutputArtifacts.fromProto(buildSystemName, proto.getRemoteOutputs());
     return new ProjectTargetData(targetMap, ideInterfaceState, remoteOutputs);
   }
 

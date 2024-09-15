@@ -30,6 +30,7 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache.CleanRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
@@ -326,12 +327,12 @@ public class BuildArtifactCacheTest {
     OutputArtifact artifact1 =
         TestOutputArtifact.EMPTY.toBuilder()
             .setDigest("abc")
-            .setBazelOutRelativePath("path/to/first")
+            .setArtifactPath(Path.of("path/to/first"))
             .build();
     OutputArtifact artifact2 =
         TestOutputArtifact.EMPTY.toBuilder()
             .setDigest("abc")
-            .setBazelOutRelativePath("path/to/second")
+            .setArtifactPath(Path.of("path/to/second"))
             .build();
 
     ListenableFuture<?> fetch =
