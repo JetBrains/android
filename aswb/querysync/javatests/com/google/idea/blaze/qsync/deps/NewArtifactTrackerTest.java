@@ -81,11 +81,11 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build(),
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/anothertest.jar")
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
                             .setDigest("anotherjar_digest")
                             .build())
                     .build())
@@ -140,7 +140,7 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -192,7 +192,7 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/anothertest.jar")
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -256,7 +256,7 @@ public class NewArtifactTrackerTest {
                             .putAll(
                                 OutputGroup.JARS,
                                 TestOutputArtifact.builder()
-                                    .setBazelOutRelativePath("out/test.jar")
+                                    .setArtifactPath(Path.of("out/test.jar"))
                                     .setDigest("jar_digest")
                                     .build())
                             .build())
@@ -290,13 +290,13 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .putAll(
                         OutputGroup.GENSRCS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -325,17 +325,17 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .putAll(
                         OutputGroup.GENSRCS,
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/src/Class1.java")
+                            .setArtifactPath(Path.of("out/src/Class1.java"))
                             .setDigest("class1_digest")
                             .build(),
                         TestOutputArtifact.builder()
-                            .setBazelOutRelativePath("out/src/Class2.java")
+                            .setArtifactPath(Path.of("out/src/Class2.java"))
                             .setDigest("class2_digest")
                             .build())
                     .build())

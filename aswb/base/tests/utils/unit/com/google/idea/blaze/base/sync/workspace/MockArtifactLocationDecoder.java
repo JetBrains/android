@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.sync.FakeRemoteOutputArtifact;
 import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 /** Resolves all artifacts to local source files. */
@@ -55,9 +56,9 @@ public class MockArtifactLocationDecoder implements ArtifactLocationDecoder {
 
     File file = decode(artifact);
     if (isRemote && file.exists()) {
-      return new FakeRemoteOutputArtifact(file);
+      return new FakeRemoteOutputArtifact(file, workspaceRoot.toPath().relativize(file.toPath()));
     }
     return new LocalFileOutputArtifactWithoutDigest(
-        decode(artifact), artifact.getRelativePath(), artifact.getExecutionRootRelativePath());
+        decode(artifact), Path.of(artifact.getExecutionRootRelativePath()), artifact.getExecutionRootRelativePath());
   }
 }

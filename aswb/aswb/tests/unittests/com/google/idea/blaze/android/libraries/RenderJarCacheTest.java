@@ -192,7 +192,7 @@ public class RenderJarCacheTest {
     Collection<OutputArtifactWithoutDigest> passedArtifact = artifactsCaptor.getValue();
     assertThat(passedArtifact.stream().map(OutputArtifactWithoutDigest::getBazelOutRelativePath))
         .containsExactly(
-            "com/foo/bar/baz/baz_render_jar.jar", "com/foo/bar/qux/qux_render_jar.jar");
+            "k8-fast/bin/com/foo/bar/baz/baz_render_jar.jar", "k8-fast/bin/com/foo/bar/qux/qux_render_jar.jar");
   }
 
   /**
@@ -266,7 +266,7 @@ public class RenderJarCacheTest {
   /** Utility method to create an {@link ArtifactLocation} for the given relative path */
   private ArtifactLocation getArtifactLocation(String relativePath) {
     return ArtifactLocation.builder()
-        .setRootExecutionPathFragment(workspaceRoot.directory().getAbsolutePath())
+        .setRootExecutionPathFragment("bazel-out/k8-fast/bin")
         .setRelativePath(relativePath)
         .setIsSource(false)
         .build();
