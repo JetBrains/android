@@ -101,4 +101,5 @@ object FormFactors {
   const val WEAR = "Wear OS"
   const val TV = "TV"
   const val AUTO = "Automotive"
+  const val DESKTOP = "Desktop"
 }
