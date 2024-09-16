@@ -32,6 +32,8 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeList
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.util.ReformatUtil;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -52,6 +54,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -332,6 +335,67 @@ public class ResourceNotificationManagerTest {
     ApplicationManager.getApplication()
       .invokeAndWait(() -> new RenameDialog(myProject, javaFile, null, null).performRename("newFile.java"));
     ensureNotCalled(called1, called2);
+  }
+
+  @Test
+  // Regression test for b/362961808
+  public void testResourceImageChangedNotNotifiedWhenOtherFileIsReformatted() throws Exception {
+    @Language("XML") String xml;
+
+    // Setup sample project: a layout file and an animated vector file
+
+    String layoutContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+          "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+          "    android:layout_width=\"match_parent\"\n" +
+          "    android:layout_height=\"match_parent\">\n" +
+          "    <!-- My comment -->\n" +
+          "    <TextView\n" +
+          "        android:layout_width=\"match_parent\"\n" +
+          "        android:layout_height=\"match_parent\"\n" +
+          "        android:text=\"@string/hello\" />\n" +
+          "</FrameLayout>";
+    XmlFile layout = (XmlFile)projectRule.getFixture().addFileToProject("res/layout/my_layout1.xml", layoutContents);
+
+    String vectorXml = """
+        <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:aapt="http://schemas.android.com/aapt" >
+            <aapt:attr name="android:drawable">
+                <vector
+                    android:height="64dp"
+                    android:width="64dp"
+                    android:viewportHeight="600"
+                    android:viewportWidth="600" >
+                    <group
+                        android:name="rotationGroup"
+                        android:pivotX="300.0"
+                        android:pivotY="300.0"
+                        android:rotation="45.0" >
+                        <path
+                            android:name="v"
+                            android:fillColor="#000000"
+                            android:pathData="M300,70 l 0,-70 70,70 0,0 -70,70z" />
+                    </group>
+                </vector>
+            </aapt:attr>
+        </animated-vector>
+    """;
+
+    XmlFile animatedVector = (XmlFile)projectRule.getFixture().addFileToProject("res/drawable/my_animated_vector.xml", vectorXml);
+    WriteCommandAction.runWriteCommandAction(myProject, () -> {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector);
+    });
+
+    AtomicBoolean resourcesHaveChanged = new AtomicBoolean(false);
+    Configuration layoutConfiguration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
+    UIUtil.dispatchAllInvocationEvents(); // Dispatch any pending notifications
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(projectRule.getProject());
+    manager.addListener(reasons -> resourcesHaveChanged.set(true), myFacet, layout.getVirtualFile(), layoutConfiguration);
+    WriteCommandAction.runWriteCommandAction(myProject, () -> {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector);
+    });
+    waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
+    UIUtil.dispatchAllInvocationEvents(); // Dispatch notifications
+    assertFalse("Reformat of the vector should not have triggered a change", resourcesHaveChanged.get());
   }
 
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
