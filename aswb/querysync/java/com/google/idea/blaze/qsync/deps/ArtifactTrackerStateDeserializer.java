@@ -41,6 +41,10 @@ public class ArtifactTrackerStateDeserializer {
   private final Map<String, DependencyBuildContext> buildContexts = Maps.newHashMap();
 
   public void visit(ArtifactTrackerProto.ArtifactTrackerState proto) {
+    if (proto.getVersion() != ArtifactTrackerStateSerializer.VERSION) {
+      // Skip loading older versions.
+      return;
+    }
     proto.getBuildContextsList().forEach(this::visitBuildContext);
     proto.getBuiltDepsMap().entrySet().forEach(this::visitTargetBuildInfo);
     proto.getCcToolchainsMap().forEach(this::visitCcToolchain);
@@ -141,7 +145,7 @@ public class ArtifactTrackerStateDeserializer {
   private ImmutableList<BuildArtifact> toArtifactList(
       List<ArtifactTrackerProto.Artifact> protos, Label owner) {
     return protos.stream()
-        .map(a -> BuildArtifact.create(a.getDigest(), Path.of(a.getPath()), owner))
+      .map(a -> BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner))
         .collect(toImmutableList());
   }
 }

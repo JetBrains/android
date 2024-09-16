@@ -44,7 +44,9 @@ message Artifact {
   // Digest of the artifact as provided by bazel.
   string digest = 1;
   // build-out relative path that the artifact was written to.
-  string path = 2;
+  reserved 2;
+  // artifact path as returned by Bazel's File.path.
+  string artifact_path = 3;
 }
 
 message JavaArtifacts {

@@ -41,7 +41,7 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
         for (BuildArtifact jar : javaInfo.jars()) {
-          javaDepsDir.addIfNewer(jar.path(), jar, target.buildContext());
+          javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
         }
       }
     }

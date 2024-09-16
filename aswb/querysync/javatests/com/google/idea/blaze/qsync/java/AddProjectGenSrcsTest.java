@@ -386,7 +386,7 @@ public class AddProjectGenSrcsTest {
         }
       }
       throw new BuildException(
-        "Artifact" + buildArtifact.path() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
+        "Artifact" + buildArtifact.artifactPath() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
     };
   }
 }

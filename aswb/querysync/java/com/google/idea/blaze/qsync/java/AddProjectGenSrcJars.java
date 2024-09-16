@@ -74,7 +74,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
               update
                   .artifactDirectory(ArtifactDirectories.DEFAULT)
                   .addIfNewer(
-                      genSrc.path(),
+                      genSrc.artifactPath(),
                       genSrc,
                       target.buildContext(),
                       ArtifactTransform.STRIP_SUPPORTED_GENERATED_SOURCES)
@@ -92,7 +92,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
                 srcJarInnerPathFinder.findInnerJarPaths(
                     cachedArtifactProvider.apply(genSrc, ArtifactDirectories.DEFAULT),
                     ALLOW_NON_EMPTY_PACKAGE_PREFIXES,
-                    genSrc.path().toString())) {
+                    genSrc.artifactPath().toString())) {
 
               genSrcJarContentEntry.addSources(
                   ProjectProto.SourceFolder.newBuilder()
