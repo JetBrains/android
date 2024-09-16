@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.capture
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
@@ -48,10 +49,13 @@ import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.SelectedIssueChanged
+import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.intellij.testFramework.ProjectRule
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
@@ -316,6 +320,22 @@ class AppInsightsTrackerTest {
     issueChanged = SelectedIssueChanged(null, IssueSelectionSource.INSPECTION)
     issueChanged.transition(testState, controllerRule.tracker, TEST_KEY)
     verify(controllerRule.tracker, times(2)).logCrashListDetailView(any())
+  }
+
+  @Test
+  fun `track insight fetch`() = runBlocking {
+    val testState =
+      AppInsightsState(
+        Selection(CONNECTION1, listOf(CONNECTION1)),
+        TEST_FILTERS,
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+      )
+    val insight = AiInsight("", ExperimentType.CONTROL)
+    val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
+    insightFetch.transition(testState, controllerRule.tracker, TEST_KEY)
+
+    verify(controllerRule.tracker, times(1))
+      .logInsightFetch(any(), eq(ISSUE1.issueDetails.fatality), eq(InsightExperiment.CONTROL))
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {

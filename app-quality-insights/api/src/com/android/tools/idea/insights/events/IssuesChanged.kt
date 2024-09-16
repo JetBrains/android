@@ -81,6 +81,7 @@ data class IssuesChanged(
             numRetries = 0
             cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
+            // TODO(b/367365738): track AI insight opt-in status
           }
           .build(),
       )
