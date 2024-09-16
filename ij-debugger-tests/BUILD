@@ -1,7 +1,7 @@
 load("//tools/adt/idea/jps-build:idea.bzl", "jps_library")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load(":ij-debugger-tests.bzl", "debugger_test", "shard")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 jps_library(
     name = "kotlin.jvm-debugger.test_lib",
@@ -20,7 +20,11 @@ debugger_test(
     download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
     module = "kotlin.jvm-debugger.test",
     suite = "com.android.tools.test.ModuleTestSuite",
+    art_env = {
+        "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.ArtAttacher",
+    },
     tags = ["ci:studio-linux-large"],
+    runtime_deps = [":attacher"],
     deps = [
         ":kotlin.jvm-debugger.test_lib",
         ":test_repo.zip",
