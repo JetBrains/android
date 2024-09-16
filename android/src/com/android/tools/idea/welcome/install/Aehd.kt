@@ -50,6 +50,7 @@ import java.io.IOException
 
 private const val INSTALLER_EXIT_CODE_SUCCESS = 0
 private const val INSTALLER_EXIT_CODE_REBOOT_REQUIRED = 2
+private const val INSTALLER_EXIT_CODE_USER_CANCELLED = 1223
 private val LOG: Logger
   get() = logger<Aehd>()
 
@@ -279,6 +280,17 @@ class Aehd(
           installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT)
           AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.nonModal())
           isInstallerSuccessfullyCompleted = true
+          progressIndicator?.apply { fraction = 1.0 }
+          return
+        }
+        // The installer failed to run with administrator privilege
+        if (SystemInfo.isWindows && exitCode == INSTALLER_EXIT_CODE_USER_CANCELLED) {
+          installContext.print(
+            "Android Emulator hypervisor driver installation failed because the operation was cancelled. " +
+            "To install Android Emulator hypervisor driver, try the installer again. Make sure to click \"yes\" when " +
+            "the installer requests administrator privilege. This has to be done before the request times out.",
+            ConsoleViewContentType.ERROR_OUTPUT)
+          isInstallerSuccessfullyCompleted = false
           progressIndicator?.apply { fraction = 1.0 }
           return
         }
