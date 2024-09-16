@@ -220,6 +220,8 @@ androidLibrary {
       compilationName = "instrumentedTest"
       defaultSourceSetName = "androidInstrumentedTest"
       sourceSetTreeName = "test"
+  }.configure {
+    instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 }
 
@@ -362,7 +364,7 @@ package com.kmplib.packagename
     fun useAppContext() {
       // Context of the app under test.
       val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-      assertEquals("com.kmplib.packagename", appContext.packageName)
+      assertEquals("com.kmplib.packagename.test", appContext.packageName)
     }
   }
     """
