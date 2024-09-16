@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.NlEditor
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -31,7 +32,7 @@ private class DeprecationNotification() : EditorNotificationPanel(Status.Warning
   init {
     text = "Motion Editor will be deprecated in the next release, please update your usage accordingly."
     createActionLabel("Learn More", Runnable {
-      // TODO(356454306)
+      BrowserUtil.browse("https://developer.android.com/studio/preview/features#motion-editor-deprecation")
     })
   }
 }
