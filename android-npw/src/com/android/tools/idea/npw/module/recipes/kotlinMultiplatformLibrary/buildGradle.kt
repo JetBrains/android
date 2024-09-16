@@ -27,16 +27,18 @@ fun buildKmpGradle(
   compileApiString: String,
   minApi: String,
 ): String {
-  val androidTargetBlock = androidTargetConfig(
-    agpVersion = agpVersion,
-    compileApiString = compileApiString,
-    minApi = minApi,
-    packageName = packageName,
-  )
+  val androidTargetBlock =
+    androidTargetConfig(
+      agpVersion = agpVersion,
+      compileApiString = compileApiString,
+      minApi = minApi,
+      packageName = packageName,
+    )
 
   val iosTargetBlock = iosTargetConfig(name)
 
-  val sourceSetConfigurationsBlock = """
+  val sourceSetConfigurationsBlock =
+    """
     // Source set declarations.
     // Declaring a target automatically creates a source set with the same name. By default, the
     // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
@@ -79,13 +81,15 @@ fun buildKmpGradle(
     }
   """
 
-  val kotlinBlock = """
+  val kotlinBlock =
+    """
     kotlin {
       $androidTargetBlock
       $iosTargetBlock
       $sourceSetConfigurationsBlock
     }
-  """.trimIndent()
+  """
+      .trimIndent()
 
   val allBlocks =
     """
