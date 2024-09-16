@@ -656,8 +656,8 @@ class GradleModuleSystem(
   }
 
   override fun isValidForAndroidTestRunConfiguration() = when(type) {
-    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> module.isAndroidTestModule()
-    Type.TYPE_TEST -> module.isMainModule()
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> module.isHolderModule() && module.getAndroidTestModule() != null
+    Type.TYPE_TEST -> module.isHolderModule()
     else -> super.isValidForAndroidTestRunConfiguration()
   }
 

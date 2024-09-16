@@ -71,6 +71,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import kotlin.sequences.SequencesKt;
+import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,6 +84,24 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration for "Android Instrumented Tests"
  */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
+
+  /**
+   * This tracks changes to AndroidTestRunConfiguration which affect deserializing existing run configurations, for
+   * use in {@link #readExternal}. Previous states had differences such that:
+   * <ul>
+   * <li>0 (unset): the RunConfiguration would be given (under Gradle projects) a sourceSet module, rather than a holder module.</li>
+   * </ul>
+   * When incrementing this value, please also add to the implementation of {@link #readExternal}, and the list of previous states (above).
+   */
+  public static final int CURRENT_SCHEMA_VERSION = 1;
+
+  /**
+   * For internal use: {@link #readExternal} should test whether this is less than specific values in order to take
+   * whatever steps are necessary to convert run configurations serialized under older schema versions to the
+   * current version.  See {@link #CURRENT_SCHEMA_VERSION}.
+   */
+  public int ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
+
   public static final int TEST_ALL_IN_MODULE = 0;
   public static final int TEST_ALL_IN_PACKAGE = 1;
   public static final int TEST_CLASS = 2;
@@ -293,6 +312,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
+  @Override
+  public Module @NotNull [] getModules() {
+    Module module = getConfigurationModule().getAndroidTestModule();
+    return new Module[] { module };
+  }
+
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
@@ -307,6 +332,28 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       false,
       true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
+  }
+
+  @Override
+  public void readExternal(@NotNull Element element) {
+    super.readExternal(element);
+
+    boolean schemaVersionAbsent = element.getChildren("option").stream()
+      .noneMatch(it -> "ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION".equals(it.getAttributeValue("name")));
+    if (schemaVersionAbsent) {
+      // Treat the absence of serialized schema version as version 0
+      ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION = 0;
+    }
+    if (ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION < 1) {
+      // Migrate old-style sourceSet modules to the holder module
+      String moduleName = getConfigurationModule().getModuleName();
+      if (moduleName.endsWith(".main")) {
+        setModuleName(moduleName.substring(0, moduleName.length() - ".main".length()));
+      }
+      else if (moduleName.endsWith(".androidTest")) {
+        setModuleName(moduleName.substring(0, moduleName.length() - ".androidTest".length()));
+      }
+    }
   }
 
   /**
