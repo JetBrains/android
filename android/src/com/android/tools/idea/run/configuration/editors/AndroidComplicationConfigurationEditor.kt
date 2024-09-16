@@ -28,12 +28,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.android.util.AndroidBundle
 import javax.swing.BoxLayout
+import org.jetbrains.android.util.AndroidBundle
 
-class AndroidComplicationConfigurationEditor(private val project: Project,
-                                             configuration: AndroidComplicationConfiguration) : AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(
-  project, configuration) {
+class AndroidComplicationConfigurationEditor(
+  private val project: Project,
+  configuration: AndroidComplicationConfiguration,
+) : AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
 
   private val slotsPanel = SlotsPanel()
   private var allAvailableSlots: List<ComplicationSlot> = emptyList()
@@ -44,11 +45,7 @@ class AndroidComplicationConfigurationEditor(private val project: Project,
       getComponentComboBox()
       getInstallFlagsTextField()
     }
-    row {
-      cell(slotsPanel.apply {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      }).align(AlignX.FILL)
-    }
+    row { cell(slotsPanel.apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }).align(AlignX.FILL) }
   }
 
   init {
@@ -59,14 +56,16 @@ class AndroidComplicationConfigurationEditor(private val project: Project,
     super.resetEditorFrom(runConfiguration)
 
     allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
-    val chosenSlots = runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() }.toMutableList()
+    val chosenSlots =
+      runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() }.toMutableList()
     updateComplicationModel(chosenSlots, runConfiguration.componentLaunchOptions.componentName)
   }
 
   override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
     super.applyEditorTo(runConfiguration)
 
-    runConfiguration.componentLaunchOptions.chosenSlots = slotsPanel.getModel().currentChosenSlots.map { it.copy() }
+    runConfiguration.componentLaunchOptions.chosenSlots =
+      slotsPanel.getModel().currentChosenSlots.map { it.copy() }
   }
 
   override fun onComponentNameChanged(newComponent: String?) {
@@ -74,27 +73,38 @@ class AndroidComplicationConfigurationEditor(private val project: Project,
 
     if (newComponent == null) {
       slotsPanel.setModel(SlotsPanel.ComplicationsModel(allAvailableSlots = allAvailableSlots))
-    }
-    else {
+    } else {
       updateComplicationModel(arrayListOf(), newComponent)
     }
   }
 
-  private fun updateComplicationModel(chosenSlots: MutableList<AndroidComplicationConfiguration.ChosenSlot>, componentName: String?) {
-    // The following backgroundable task can be run before the configuration editor dialog is shown, for example when run from
-    // the gutter. When this happens, the ModalityState used by the backgroundable task will be registered with ModalityState.NON_MODAL.
-    // Once a dialog is showing, any EDT events run with ModalityState.NON_MODAL will be enqueued and only executed once the dialog is
-    // closed. This is because we enter a secondary loop (cf https://docs.oracle.com/javase/7/docs/api/java/awt/SecondaryLoop.html) when
-    // showing a dialog. In our case, we want to update the UI on the EDT thread when the dialog is open.
-    // When using ModalityState.any(), we ensure the event is pushed to the secondary queue and executed while the dialog is open.
+  private fun updateComplicationModel(
+    chosenSlots: MutableList<AndroidComplicationConfiguration.ChosenSlot>,
+    componentName: String?,
+  ) {
+    // The following backgroundable task can be run before the configuration editor dialog is shown,
+    // for example when run from
+    // the gutter. When this happens, the ModalityState used by the backgroundable task will be
+    // registered with ModalityState.NON_MODAL.
+    // Once a dialog is showing, any EDT events run with ModalityState.NON_MODAL will be enqueued
+    // and only executed once the dialog is
+    // closed. This is because we enter a secondary loop (cf
+    // https://docs.oracle.com/javase/7/docs/api/java/awt/SecondaryLoop.html) when
+    // showing a dialog. In our case, we want to update the UI on the EDT thread when the dialog is
+    // open.
+    // When using ModalityState.any(), we ensure the event is pushed to the secondary queue and
+    // executed while the dialog is open.
     val modalityState = ModalityState.any()
-    runBackgroundableTask(AndroidBundle.message("android.run.configuration.complication.slots.updating"), project) {
+    runBackgroundableTask(
+      AndroidBundle.message("android.run.configuration.complication.slots.updating"),
+      project,
+    ) {
       val supportedTypes = getSupportedTypes(componentName)
       runInEdt(modalityState) {
         if (project.isDisposed) return@runInEdt
-        slotsPanel.setModel(SlotsPanel.ComplicationsModel(
-          chosenSlots, allAvailableSlots, supportedTypes
-        ))
+        slotsPanel.setModel(
+          SlotsPanel.ComplicationsModel(chosenSlots, allAvailableSlots, supportedTypes)
+        )
       }
     }
   }
@@ -105,6 +115,8 @@ class AndroidComplicationConfigurationEditor(private val project: Project,
     if (componentName == null || module == null) {
       return emptyList()
     }
-    return parseRawComplicationTypes(getComplicationTypesFromManifest(module, componentName) ?: emptyList())
+    return parseRawComplicationTypes(
+      getComplicationTypesFromManifest(module, componentName) ?: emptyList()
+    )
   }
 }

@@ -26,15 +26,14 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.SimpleListCellRenderer
+import javax.swing.JList
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JList
 
 class AndroidWearConfigurationEditorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var runConfiguration: AndroidWatchFaceConfiguration
   private lateinit var settingsEditor: AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
@@ -43,17 +42,25 @@ class AndroidWearConfigurationEditorTest {
   fun setUp() {
     val runConfigurationFactory = AndroidWatchFaceConfigurationType().configurationFactories[0]
     runConfiguration = AndroidWatchFaceConfiguration(projectRule.project, runConfigurationFactory)
-    settingsEditor = runConfiguration.configurationEditor as AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
+    settingsEditor =
+      runConfiguration.configurationEditor
+        as AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
   }
 
   @Test
   fun testComponentComboBoxDisabled() {
     val editor = settingsEditor.component as DialogPanel
     val modulesComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>().first()
-    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
-    var comboBoxRenderer = componentComboBox.renderer
-      .getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false)
-      as SimpleListCellRenderer<String>
+    val componentComboBox =
+      TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
+    var comboBoxRenderer =
+      componentComboBox.renderer.getListCellRendererComponent(
+        JList(),
+        componentComboBox.item,
+        -1,
+        false,
+        false,
+      ) as SimpleListCellRenderer<String>
 
     assertThat(modulesComboBox.item).isNull()
     assertThat(componentComboBox.isEnabled).isFalse()
@@ -63,9 +70,14 @@ class AndroidWearConfigurationEditorTest {
     // To set myModule
     settingsEditor.resetFrom(runConfiguration)
     assertThat(componentComboBox.isEnabled).isFalse()
-    comboBoxRenderer = componentComboBox.renderer
-      .getListCellRendererComponent(JList(), componentComboBox.item, -1, false, false)
-      as SimpleListCellRenderer<String>
+    comboBoxRenderer =
+      componentComboBox.renderer.getListCellRendererComponent(
+        JList(),
+        componentComboBox.item,
+        -1,
+        false,
+        false,
+      ) as SimpleListCellRenderer<String>
     assertThat(comboBoxRenderer.text).isEqualTo("Watch Face not found")
   }
 
@@ -78,7 +90,9 @@ class AndroidWearConfigurationEditorTest {
     runConfiguration.componentLaunchOptions.componentName = watchFaceClass
     settingsEditor.resetFrom(runConfiguration)
 
-    val componentComboBox = TreeWalker(settingsEditor.component).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
+    val componentComboBox =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<ComboBox<*>>()[1]
+        as ComboBox<String>
     assertThat(componentComboBox.isEnabled).isTrue()
     assertThat(componentComboBox.item).isEqualTo(watchFaceClass)
   }

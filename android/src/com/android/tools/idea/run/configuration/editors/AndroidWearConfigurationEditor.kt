@@ -53,27 +53,30 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.selectedValueIs
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
 
-open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private val project: Project, private val configuration: T) :
-  SettingsEditor<T>() {
+open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
+  private val project: Project,
+  private val configuration: T,
+) : SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
 
-  val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
-    override fun isModuleAccepted(module: Module?): Boolean {
-      if (module == null || !super.isModuleAccepted(module)) {
-        return false
+  val moduleSelector =
+    object : ConfigurationModuleSelector(project, modulesComboBox) {
+      override fun isModuleAccepted(module: Module?): Boolean {
+        if (module == null || !super.isModuleAccepted(module)) {
+          return false
+        }
+        return AndroidWearConfigurationEditorToken.isModuleAccepted(module)
       }
-      return AndroidWearConfigurationEditorToken.isModuleAccepted(module)
     }
-  }
 
   private lateinit var wearComponentFqNameComboBox: ComboBox<String>
   protected var componentName: String? = null
@@ -83,35 +86,46 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
         onComponentNameChanged(value)
       }
     }
+
   private var installFlags: String = ""
 
   init {
     Disposer.register(project, this)
 
     modulesComboBox.addActionListener {
-      object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
-        var availableComponents: Set<String> = emptySet()
+      object :
+          Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
+          var availableComponents: Set<String> = emptySet()
 
-        override fun run(indicator: ProgressIndicator) {
-          val module = moduleSelector.module
-          if (module == null || DumbService.isDumb(project)) {
-            return
+          override fun run(indicator: ProgressIndicator) {
+            val module = moduleSelector.module
+            if (module == null || DumbService.isDumb(project)) {
+              return
+            }
+            availableComponents =
+              ApplicationManager.getApplication()
+                .runReadAction(Computable { findAvailableComponents(module) })
           }
-          availableComponents = ApplicationManager.getApplication().runReadAction(Computable { findAvailableComponents(module) })
-        }
 
-        override fun onFinished() {
-          wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
-          componentName = wearComponentFqNameComboBox.item
-          if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
-            component?.parent?.parent?.apply {
-              removeAll()
-              layout = BorderLayout()
-              add(JBPanelWithEmptyText().withEmptyText(AndroidBundle.message("android.run.configuration.synchronization.warning")))
+          override fun onFinished() {
+            wearComponentFqNameComboBox.model =
+              DefaultComboBoxModel(availableComponents.toTypedArray())
+            componentName = wearComponentFqNameComboBox.item
+            if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+              component?.parent?.parent?.apply {
+                removeAll()
+                layout = BorderLayout()
+                add(
+                  JBPanelWithEmptyText()
+                    .withEmptyText(
+                      AndroidBundle.message("android.run.configuration.synchronization.warning")
+                    )
+                )
+              }
             }
           }
         }
-      }.queue()
+        .queue()
     }
   }
 
@@ -127,7 +141,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     (component as DialogPanel).reset()
   }
 
-  private fun getComponentSearchScope(module: Module) = AndroidWearConfigurationEditorToken.getComponentSearchScope(module)
+  private fun getComponentSearchScope(module: Module) =
+    AndroidWearConfigurationEditorToken.getComponentSearchScope(module)
 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
@@ -136,12 +151,11 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     runConfiguration.deployOptions.pmInstallFlags = installFlags
   }
 
-  override fun createEditor() =
-    panel {
-      getModuleChooser()
-      getComponentComboBox()
-      getInstallFlagsTextField()
-    }
+  override fun createEditor() = panel {
+    getModuleChooser()
+    getComponentComboBox()
+    getInstallFlagsTextField()
+  }
 
   protected fun Panel.getInstallFlagsTextField() {
     row(AndroidBundle.message("android.run.configuration.wear.install.flags")) {
@@ -151,78 +165,106 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   protected fun Panel.getComponentComboBox() {
     row {
-      label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
-      wearComponentFqNameComboBox = comboBox(
-        DefaultComboBoxModel(emptyArray<String>()),
-        renderer = object : SimpleListCellRenderer<String>() {
-          override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
-            text = when {
-              value != null -> value
-              modulesComboBox.item == null -> AndroidBundle.message("android.run.configuration.wear.module.not.chosen")
-              list.selectionModel.maxSelectionIndex == -1 -> AndroidBundle.message("android.run.configuration.wear.component.not.found",
-                                                                                   configuration.componentLaunchOptions.userVisibleComponentTypeName)
-
-              else -> AndroidBundle.message("android.run.configuration.wear.component.not.chosen",
-                                            configuration.componentLaunchOptions.userVisibleComponentTypeName)
+        label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
+        wearComponentFqNameComboBox =
+          comboBox(
+              DefaultComboBoxModel(emptyArray<String>()),
+              renderer =
+                object : SimpleListCellRenderer<String>() {
+                  override fun customize(
+                    list: JList<out String>,
+                    value: String?,
+                    index: Int,
+                    selected: Boolean,
+                    hasFocus: Boolean,
+                  ) {
+                    text =
+                      when {
+                        value != null -> value
+                        modulesComboBox.item == null ->
+                          AndroidBundle.message("android.run.configuration.wear.module.not.chosen")
+                        list.selectionModel.maxSelectionIndex == -1 ->
+                          AndroidBundle.message(
+                            "android.run.configuration.wear.component.not.found",
+                            configuration.componentLaunchOptions.userVisibleComponentTypeName,
+                          )
+                        else ->
+                          AndroidBundle.message(
+                            "android.run.configuration.wear.component.not.chosen",
+                            configuration.componentLaunchOptions.userVisibleComponentTypeName,
+                          )
+                      }
+                  }
+                },
+            )
+            .bindItem(::componentName)
+            .enabledIf(modulesComboBox.selectedValueIs(null).not())
+            .align(AlignX.FILL)
+            .applyToComponent {
+              maximumSize = Dimension(400, maximumSize.height)
+              setMinLength(400)
+              addPropertyChangeListener("model") {
+                this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
+              }
             }
-          }
-        })
-        .bindItem(::componentName)
-        .enabledIf(modulesComboBox.selectedValueIs(null).not())
-        .align(AlignX.FILL)
-        .applyToComponent {
-          maximumSize = Dimension(400, maximumSize.height)
-          setMinLength(400)
-          addPropertyChangeListener("model") {
-            this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
-          }
-        }.component
-    }.layout(RowLayout.LABEL_ALIGNED)
+            .component
+      }
+      .layout(RowLayout.LABEL_ALIGNED)
   }
 
   protected fun Panel.getModuleChooser() {
     row {
-      label(AndroidBundle.message("android.run.configuration.module.label"))
-      cell(modulesComboBox)
-        .align(AlignX.FILL)
-        .applyToComponent {
+        label(AndroidBundle.message("android.run.configuration.module.label"))
+        cell(modulesComboBox).align(AlignX.FILL).applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
         }
-    }.layout(RowLayout.LABEL_ALIGNED)
+      }
+      .layout(RowLayout.LABEL_ALIGNED)
   }
 
   private fun findAvailableComponents(module: Module): Set<String> {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
     val projectAllScope = ProjectScope.getAllScope(project)
-    val surfaceBaseClasses = configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
-      facade.findClass(it, projectAllScope)
-    }
+    val surfaceBaseClasses =
+      configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
+        facade.findClass(it, projectAllScope)
+      }
     val resultScope = getComponentSearchScope(module)
-    return surfaceBaseClasses.flatMap { baseClass ->
-      ClassInheritorsSearch.search(baseClass, projectAllScope, true)
-        .filtering {
-          // TODO: filter base on manifest index.
-          // We use this to filter based on the scope applicable for the module since, using the scope returned by [getComponentSearchScope]
-          // does not currently work when using the ClassInheritorSearch with Kotlin classes. The inheritance index is broken and we are
-          // forced to use the ProjectScope to ensure the parent classes are found by the ClassInheritorsSearch.
-          !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
-          PsiSearchScopeUtil.isInScope(resultScope, it)
-        }
-        .findAll()
-        .mapNotNull { it.qualifiedName }
-    }.distinct()
+    return surfaceBaseClasses
+      .flatMap { baseClass ->
+        ClassInheritorsSearch.search(baseClass, projectAllScope, true)
+          .filtering {
+            // TODO: filter base on manifest index.
+            // We use this to filter based on the scope applicable for the module since, using the
+            // scope returned by [getComponentSearchScope]
+            // does not currently work when using the ClassInheritorSearch with Kotlin classes. The
+            // inheritance index is broken and we are
+            // forced to use the ProjectScope to ensure the parent classes are found by the
+            // ClassInheritorsSearch.
+            !(it.isInterface ||
+              it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
+              PsiSearchScopeUtil.isInScope(resultScope, it)
+          }
+          .findAll()
+          .mapNotNull { it.qualifiedName }
+      }
+      .distinct()
       .sorted()
       .toSet()
   }
 }
 
-interface AndroidWearConfigurationEditorToken<P : AndroidProjectSystem>: Token {
+interface AndroidWearConfigurationEditorToken<P : AndroidProjectSystem> : Token {
   fun isModuleAccepted(projectSystem: P, module: Module): Boolean = defaultIsModuleAccepted(module)
+
   fun getComponentSearchScope(projectSystem: P, module: Module): GlobalSearchScope
 
   companion object {
-    val EP_NAME = ExtensionPointName<AndroidWearConfigurationEditorToken<AndroidProjectSystem>>("com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken")
+    val EP_NAME =
+      ExtensionPointName<AndroidWearConfigurationEditorToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken"
+      )
 
     fun isModuleAccepted(module: Module): Boolean {
       val projectSystem = module.project.getProjectSystem()
