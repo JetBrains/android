@@ -29,6 +29,7 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
+import com.android.tools.idea.avdmanager.ui.NameComparator
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
@@ -94,7 +95,8 @@ internal class LocalVirtualDeviceSource(
 
         fun sendDevices() {
           val profiles =
-            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNull { device ->
+            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNullTo(mutableListOf()) {
+              device ->
               val androidVersions =
                 systemImages
                   .filter { DeviceSystemImageMatcher.matches(device, it) }
@@ -104,6 +106,7 @@ internal class LocalVirtualDeviceSource(
               if (androidVersions.isEmpty()) null
               else device.toVirtualDeviceProfile(androidVersions)
             }
+          profiles.sortWith(compareBy(NameComparator()) { it.device })
 
           // Cannot fail due to conflate() below
           trySend(LoadingState.Ready(profiles))
