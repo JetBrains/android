@@ -72,7 +72,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
         ProjectPath projectArtifact =
             update
                 .artifactDirectory(ArtifactDirectories.DEFAULT)
-                .addIfNewer(genSrc.path(), genSrc, target.buildContext())
+                .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
                 .orElse(null);
 
         if (projectArtifact != null) {
@@ -80,7 +80,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
               .findInnerJarPaths(
                   cachedArtifactProvider.apply(genSrc, ArtifactDirectories.DEFAULT),
                   EMPTY_PACKAGE_PREFIXES_ONLY,
-                  genSrc.path().toString())
+                  genSrc.artifactPath().toString())
               .stream()
               .map(JarPath::path)
               .map(projectArtifact::withInnerJarPath)

@@ -46,12 +46,12 @@ public abstract class BuildArtifact {
 
   public abstract String digest();
 
-  public abstract Path path();
+  public abstract Path artifactPath();
 
   public abstract Label target();
 
-  public static BuildArtifact create(String digest, Path path, Label target) {
-    return new AutoValue_BuildArtifact(digest, path, target);
+  public static BuildArtifact create(String digest, Path artifactPath, Label target) {
+    return new AutoValue_BuildArtifact(digest, artifactPath, target);
   }
 
   public CachedArtifact blockingGetFrom(BuildArtifactCache cache) throws BuildException {
@@ -66,7 +66,7 @@ public abstract class BuildArtifact {
   }
 
   public String getExtension() {
-    String fileName = path().getFileName().toString();
+    String fileName = artifactPath().getFileName().toString();
     int lastDot = fileName.lastIndexOf('.');
     if (lastDot == -1) {
       return "";

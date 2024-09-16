@@ -190,9 +190,9 @@ def _encode_file_list(files):
     r = []
     for f in files:
         if f.is_directory:
-            r.append(struct(directory = _output_relative_path(f.path)))
+            r.append(struct(directory = f.path))
         else:
-            r.append(struct(file = _output_relative_path(f.path)))
+            r.append(struct(file = f.path))
     return r
 
 def _encode_cc_info_proto(label, cc_info):
@@ -845,20 +845,6 @@ def _package_ide_aar(ctx, aar, file_map):
         outputs = [aar],
         arguments = ["c", aar.path] + files_map_args,
     )
-
-def _output_relative_path(path):
-    """Get file path relative to the output path.
-
-    Args:
-         path: path of artifact path = (../repo_name)? + (root_fragment)? + relative_path
-
-    Returns:
-         path relative to the output path
-    """
-    if (path.startswith("blaze-out/")) or (path.startswith("bazel-out/")):
-        # len("blaze-out/") or len("bazel-out/")
-        path = path[10:]
-    return path
 
 # List of tuples containing:
 #   1. An attribute for the aspect to traverse

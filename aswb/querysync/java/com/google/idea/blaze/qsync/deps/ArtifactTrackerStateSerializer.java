@@ -35,7 +35,7 @@ import java.util.Set;
 /** Serializes {@link NewArtifactTracker} state to a proto. */
 public class ArtifactTrackerStateSerializer {
 
-  public static final int VERSION = 1;
+  public static final int VERSION = 2;
 
   private final ArtifactTrackerProto.ArtifactTrackerState.Builder proto =
       ArtifactTrackerProto.ArtifactTrackerState.newBuilder().setVersion(VERSION);
@@ -99,7 +99,7 @@ public class ArtifactTrackerStateSerializer {
             artifact ->
                 ArtifactTrackerProto.Artifact.newBuilder()
                     .setDigest(artifact.digest())
-                    .setPath(artifact.path().toString())
+                    .setArtifactPath(artifact.artifactPath().toString())
                     .build())
         .collect(toImmutableList());
   }

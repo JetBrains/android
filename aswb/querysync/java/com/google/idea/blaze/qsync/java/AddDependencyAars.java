@@ -77,12 +77,12 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
         Optional<String> packageName = readPackageFromAarManifest(aar);
         ProjectPath dest =
             aarDir
-                .addIfNewer(aar.path(), aar, target.buildContext(), ArtifactTransform.UNZIP)
+                .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)
                 .orElse(null);
         if (dest != null) {
           ExternalAndroidLibrary.Builder lib =
               ExternalAndroidLibrary.newBuilder()
-                  .setName(aar.path().toString().replace('/', '_'))
+                  .setName(aar.artifactPath().toString().replace('/', '_'))
                   .setLocation(dest.toProto())
                   .setManifestFile(dest.resolveChild(Path.of("AndroidManifest.xml")).toProto())
                   .setResFolder(dest.resolveChild(Path.of("res")).toProto())
@@ -107,7 +107,7 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
           return Optional.ofNullable(manifestParser.readPackageNameFrom(Files.newInputStream(androidManifest)));
         }catch (IOException e) {
           throw new BuildException(
-            String.format("Failed to read aar file %s (built by %s)", aar.path(), aar.target()), e);
+            String.format("Failed to read aar file %s (built by %s)", aar.artifactPath(), aar.target()), e);
         }
       }
     }
@@ -120,10 +120,10 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
       }
     } catch (IOException e) {
       throw new BuildException(
-          String.format("Failed to read aar file %s (built by %s)", aar.path(), aar.target()), e);
+          String.format("Failed to read aar file %s (built by %s)", aar.artifactPath(), aar.target()), e);
     }
     throw new BuildException(
         String.format(
-            "Failed to find AndroidManifest.xml in  %s (built by %s)", aar.path(), aar.target()));
+            "Failed to find AndroidManifest.xml in  %s (built by %s)", aar.artifactPath(), aar.target()));
   }
 }
