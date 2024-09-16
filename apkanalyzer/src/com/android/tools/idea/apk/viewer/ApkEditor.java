@@ -161,7 +161,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
           myApkViewPanel = withChecksDisabledForSupplier(() ->
-              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault())));
+              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()), apkVirtualFile.getName()));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
@@ -437,7 +437,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       }
     }
 
-    VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
+    VirtualFile file = JarFileSystem.getInstance().findFileByPath(archive.getPath().toString());
     if (file != null) {
       return file.findFileByRelativePath(p.toString());
     }
