@@ -294,7 +294,7 @@ public final class StudioFlags {
     "motion.editor.deprecation.warning",
     "Shows the Motion Editor deprecation warning",
     "Shows the Motion Editor deprecation warning.",
-    false
+    true
   );
   //endregion
 
