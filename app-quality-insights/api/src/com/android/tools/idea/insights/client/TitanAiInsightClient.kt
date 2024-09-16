@@ -42,7 +42,7 @@ internal val DEFAULT_TASK_COMPLETION_INPUT =
 
 @VisibleForTesting
 internal val CRASHLYTICS_EXPERIENCE_CONTEXT =
-  ExperienceContext.newBuilder().setExperience("/appeco/crashlytics/insights").build()
+  ExperienceContext.newBuilder().setExperience("/appeco/crashlytics/ai-insights/studio").build()
 
 class TitanAiInsightClient
 @VisibleForTesting
@@ -51,7 +51,10 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
   private val taskCompletionService =
     TaskCompletionServiceGrpc.newBlockingStub(channel).withInterceptors(interceptor)
 
-  override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message): AiInsight {
+  override suspend fun fetchCrashInsight(
+    projectId: String,
+    additionalContextMsg: Message,
+  ): AiInsight {
     val request =
       TaskCompletionRequest.newBuilder()
         .apply {
@@ -59,7 +62,9 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
           experienceContext = CRASHLYTICS_EXPERIENCE_CONTEXT
           instance = String.format(INSTANCE_FORMAT, projectId)
           inputDataContext =
-            inputDataContextBuilder.apply { additionalContext = Any.pack(additionalContextMsg) }.build()
+            inputDataContextBuilder
+              .apply { additionalContext = Any.pack(additionalContextMsg) }
+              .build()
         }
         .build()
     val response = taskCompletionService.completeTask(request)
