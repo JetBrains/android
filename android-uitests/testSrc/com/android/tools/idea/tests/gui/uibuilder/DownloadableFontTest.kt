@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoreFontsDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
@@ -27,13 +26,17 @@ import com.google.common.truth.Truth.*
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
 import org.fest.swing.data.TableCell
+import org.fest.swing.fixture.JComboBoxFixture
+import org.fest.swing.query.ComponentSizeQuery
 import org.fest.swing.timing.Wait
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.Point
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
+import javax.swing.JComboBox
 
 @RunWith(GuiTestRemoteRunner::class)
 class DownloadableFontTest {
@@ -104,8 +107,7 @@ class DownloadableFontTest {
     guiTest.robot().typeText("fontFamily")
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
-    selectFontFamily(2) // Open the dropdown and select "Fonts" for a textview
-    selectFontFamily(15) // Open the dropdown and select "More Fonts..."
+    selectFontFamily("More Fonts...")
 
     MoreFontsDialogFixture.find(guiTest.robot())
       .selectFont("Aclonica")
@@ -159,16 +161,26 @@ class DownloadableFontTest {
     declaredAttributesTable = declaredAttributesSection.components.first() as PTableFixture
   }
 
-  private fun selectFontFamily(goDownClick: Int) {
+  private fun selectFontFamily(item: String) {
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     refreshDeclaredAttributesTable("textview")
     val row = declaredAttributesTable.findRowOf("fontFamily")
+
+    // Click on the cell will create the cell editor:
     declaredAttributesTable.click(TableCell.row(row).column(1), MouseButton.LEFT_BUTTON)
-    declaredAttributesTable.click(TableCell.row(row).column(1), MouseButton.LEFT_BUTTON) //To reduce flakiness
-    // Open the dropdown and select "font"
-    repeat(goDownClick) { guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN) }
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
-    refreshDeclaredAttributesTable("textview")
-    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    // The "fontFamily" attribute gives a comboBox editor:
+    val robot = guiTest.robot()
+    val comboBox = JComboBoxFixture(robot, robot.finder().findByType(declaredAttributesTable.target(), JComboBox::class.java))
+
+    // Click on the dropdown button of the comboBox:
+    val size = ComponentSizeQuery.sizeOf(comboBox.target())
+    robot.click(comboBox.target(), Point(size.width - 8, size.height / 2))
+
+    // The items are loaded on the background thread. Wait until the wanted item is shown:
+    Wait.seconds(20).expecting("$item to show").until { comboBox.contents().contains(item) }
+
+    // Open the dropdown and select font item requested:
+    comboBox.selectItem(item)
   }
 }
