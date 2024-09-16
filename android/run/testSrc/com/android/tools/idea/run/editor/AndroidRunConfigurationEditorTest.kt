@@ -105,11 +105,19 @@ class AndroidRunConfigurationEditorTest {
     val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector }
     assertThat(availableModules)
       .containsExactly(
-        module(":app").getAndroidTestModule(),
-        module(":lib").getAndroidTestModule(),
-        module(":feature").getAndroidTestModule(),
-        module(":test_only").getMainModule(),
+        module(":app").getHolderModule(),
+        module(":lib").getHolderModule(),
+        module(":feature").getHolderModule(),
+        module(":test_only").getHolderModule(),
       )
+    runConfiguration.setModule(module(":app").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":app").getAndroidTestModule())
+    runConfiguration.setModule(module(":lib").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":lib").getAndroidTestModule())
+    runConfiguration.setModule(module(":feature").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":feature").getAndroidTestModule())
+    runConfiguration.setModule(module(":test_only").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":test_only").getMainModule())
   }
 
   @Test
