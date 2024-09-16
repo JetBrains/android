@@ -480,7 +480,8 @@ public final class AndroidStudioSystemHealthMonitor {
       //noinspection UnstableApiUsage
       EventWatcher eventWatcher = ApplicationManager.getApplication().getService(EventWatcher.class);
       if (eventWatcher instanceof TypingEventWatcher) {
-        ((TypingEventWatcher)eventWatcher).collectTypingLatencyDumpsAndSendReport();
+        ((TypingEventWatcher)eventWatcher).collectTypingLatencyDumpsAndSendReport(true);
+        ((TypingEventWatcher)eventWatcher).enableTypingLatencyTracking();
         //noinspection UnstableApiUsage
         eventWatcher.reset();
       }
