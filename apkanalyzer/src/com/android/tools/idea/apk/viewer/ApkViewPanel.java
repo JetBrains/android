@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import android.annotation.SuppressLint;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.util.HumanReadableUtil;
@@ -103,7 +102,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     void selectApkAndCompare();
   }
 
-  @SuppressLint("CheckResult")
+  @SuppressWarnings("CheckResult")
   public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser, @NotNull String apkName) {
     myApkParser = apkParser;
     myProject = project;
