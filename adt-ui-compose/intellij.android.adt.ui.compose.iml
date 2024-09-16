@@ -104,6 +104,7 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-runtime-desktop/2.8.4/lifecycle-runtime-desktop-2.8.4-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-common-jvm/2.8.4/lifecycle-common-jvm-2.8.4-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.4/lifecycle-viewmodel-desktop-2.8.4-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta01/ui-desktop-1.7.0-beta01-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -129,6 +130,7 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta01/ui-test-junit4-desktop-1.7.0-beta01-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta01/ui-test-desktop-1.7.0-beta01-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
