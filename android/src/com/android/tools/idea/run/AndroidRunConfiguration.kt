@@ -80,8 +80,9 @@ import javax.swing.Icon
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-open class AndroidRunConfiguration(internal val project: Project, factory: ConfigurationFactory?) :
-  AndroidRunConfigurationBase(project, factory, false), RefactoringListenerProvider, RunnerIconProvider {
+open class AndroidRunConfiguration(internal val project: Project, factory: ConfigurationFactory?, isTestConfiguration: Boolean) :
+  AndroidRunConfigurationBase(project, factory, isTestConfiguration), RefactoringListenerProvider, RunnerIconProvider {
+  constructor(project: Project, factory: ConfigurationFactory?): this(project, factory, false)
 
   /**
    * For internal use: [readExternal] should test whether this is less than specific values in order to take

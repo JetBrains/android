@@ -383,7 +383,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return getProjectSystem(getProject()).getApkProvider(this);
   }
 
-  public boolean isTestConfiguration() {
+  public final boolean isTestConfiguration() {
     return myIsTestConfiguration;
   }
 
