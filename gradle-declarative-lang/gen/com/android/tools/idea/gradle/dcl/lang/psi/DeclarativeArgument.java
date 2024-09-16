@@ -21,12 +21,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeArgumentsList extends DeclarativeElement {
+public interface DeclarativeArgument extends DeclarativeElement {
+
+  @Nullable
+  DeclarativeIdentifier getIdentifier();
 
   @NotNull
-  List<DeclarativeArgument> getArgumentList();
-
-  @NotNull
-  List<DeclarativeValue> getArguments();
+  DeclarativeValue getValue();
 
 }

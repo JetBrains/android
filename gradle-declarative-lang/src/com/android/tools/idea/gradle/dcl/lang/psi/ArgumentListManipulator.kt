@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.gradle.dcl.lang.psi
 
-// ATTENTION: This file has been automatically generated from declarative.bnf. Do not edit it manually.
-package com.android.tools.idea.gradle.dcl.lang.psi;
+import com.intellij.psi.PsiElement
 
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface DeclarativeArgumentsList extends DeclarativeElement {
-
-  @NotNull
-  List<DeclarativeArgument> getArgumentList();
-
-  @NotNull
-  List<DeclarativeValue> getArguments();
-
+interface ArgumentListManipulator {
+  fun addArgument(value: DeclarativeValue, name: String? = null): PsiElement
 }
