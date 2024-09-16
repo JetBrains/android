@@ -24,7 +24,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation;
 import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
-import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
@@ -48,7 +48,6 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
   private final ImmutableList<ProjectProtoUpdateOperation> updateOperations;
 
   public DependenciesProjectProtoUpdater(
-      NewArtifactTracker<?> dependencyTracker,
       ProjectDefinition projectDefinition,
       BuildArtifactCache artifactCache,
       ProjectPath.Resolver pathResolver,
@@ -60,30 +59,18 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
 
     ImmutableList.Builder<ProjectProtoUpdateOperation> updateOperations =
         ImmutableList.<ProjectProtoUpdateOperation>builder()
-            .add(new AddCompiledJavaDeps(dependencyTracker::getBuiltDeps))
-            .add(
-                new AddProjectGenSrcJars(
-                    dependencyTracker::getBuiltDeps,
-                    projectDefinition,
-                    artifactCache,
-                    srcJarInnerPathFinder))
-            .add(
-                new AddProjectGenSrcs(
-                    dependencyTracker::getBuiltDeps,
-                    projectDefinition,
-                    artifactCache,
-                    packageReader))
-            .add(new ConfigureCcCompilation.UpdateOperation(dependencyTracker::getStateSnapshot));
+            .add(new AddCompiledJavaDeps())
+            .add(new AddProjectGenSrcJars(projectDefinition, artifactCache, srcJarInnerPathFinder))
+            .add(new AddProjectGenSrcs(projectDefinition, artifactCache, packageReader))
+            .add(new ConfigureCcCompilation.UpdateOperation());
     if (attachDepsSrcjarsExperiment.get()) {
       updateOperations.add(
           new AddDependencySrcJars(
-              dependencyTracker::getBuiltDeps,
               projectDefinition,
               pathResolver,
               srcJarInnerPathFinder));
       updateOperations.add(
           new AddDependencyGenSrcsJars(
-              dependencyTracker::getBuiltDeps,
               projectDefinition,
               artifactCache,
               srcJarInnerPathFinder));
@@ -102,12 +89,13 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
   }
 
   @Override
-  public Project apply(Project proto, BuildGraphData graph, Context<?> context)
+  public Project apply(
+      Project proto, BuildGraphData graph, ArtifactTracker.State artifactState, Context<?> context)
       throws BuildException {
 
     ProjectProtoUpdate protoUpdate = new ProjectProtoUpdate(proto, graph, context);
     for (ProjectProtoUpdateOperation op : updateOperations) {
-      op.update(protoUpdate);
+      op.update(protoUpdate, artifactState);
     }
     return protoUpdate.build();
   }

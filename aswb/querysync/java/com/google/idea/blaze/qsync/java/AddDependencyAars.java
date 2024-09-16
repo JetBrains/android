@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import com.google.common.base.Supplier;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
@@ -42,26 +41,24 @@ import java.util.zip.ZipFile;
  */
 public class AddDependencyAars implements ProjectProtoUpdateOperation {
 
-  private final Supplier<ArtifactTracker.State> artifactStateSupplier;
   private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
   private final AndroidManifestParser manifestParser;
 
   public AddDependencyAars(
-      Supplier<ArtifactTracker.State> artifactStateSupplier,
       BuildArtifactCache buildCache,
       ProjectDefinition projectDefinition,
       AndroidManifestParser manifestParser) {
-    this.artifactStateSupplier = artifactStateSupplier;
     this.buildCache = buildCache;
     this.projectDefinition = projectDefinition;
     this.manifestParser = manifestParser;
   }
 
   @Override
-  public void update(ProjectProtoUpdate update) throws BuildException {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+      throws BuildException {
     ArtifactDirectoryBuilder aarDir = null;
-    for (TargetBuildInfo target : artifactStateSupplier.get().depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
       if (target.javaInfo().isEmpty()) {
         continue;
       }

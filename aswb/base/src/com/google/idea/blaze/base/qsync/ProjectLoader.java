@@ -54,7 +54,6 @@ import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
-import com.google.idea.blaze.qsync.cc.CcDependenciesInfo;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
@@ -163,13 +162,11 @@ public class ProjectLoader {
             executor);
     projectTransformRegistry.add(
         new DependenciesProjectProtoUpdater(
-            tracker,
             latestProjectDef,
             artifactCache,
             projectPathResolver,
             QuerySync.ATTACH_DEP_SRCJARS::getValue));
-    projectTransformRegistry.add(
-        new CcProjectProtoTransform(() -> CcDependenciesInfo.create(tracker.getStateSnapshot())));
+    projectTransformRegistry.add(new CcProjectProtoTransform());
 
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();

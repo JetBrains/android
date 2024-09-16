@@ -17,9 +17,8 @@ package com.google.idea.blaze.qsync.java;
 
 import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableCollection;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -36,25 +35,23 @@ import java.nio.file.Path;
  */
 public class AddDependencySrcJars implements ProjectProtoUpdateOperation {
 
-  private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
   private final ProjectDefinition projectDefinition;
   private final ProjectPath.Resolver pathResolver;
   private final SrcJarInnerPathFinder srcJarInnerPathFinder;
 
   public AddDependencySrcJars(
-      Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
       ProjectDefinition projectDefinition,
       ProjectPath.Resolver pathResolver,
       SrcJarInnerPathFinder srcJarInnerPathFinder) {
-    this.builtTargetsSupplier = builtTargetsSupplier;
     this.projectDefinition = projectDefinition;
     this.pathResolver = pathResolver;
     this.srcJarInnerPathFinder = srcJarInnerPathFinder;
   }
 
   @Override
-  public void update(ProjectProtoUpdate update) throws BuildException {
-    for (TargetBuildInfo target : builtTargetsSupplier.get()) {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+      throws BuildException {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
       if (target.javaInfo().isEmpty()) {
         continue;
       }

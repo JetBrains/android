@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -31,6 +30,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.CcCompilationInfo;
 import com.google.idea.blaze.qsync.deps.CcToolchain;
@@ -61,15 +61,12 @@ public class ConfigureCcCompilation {
   /** An update operation to configure CC compilation. */
   public static class UpdateOperation implements ProjectProtoUpdateOperation {
 
-    private final Supplier<State> artifactStateSupplier;
-
-    public UpdateOperation(Supplier<State> artifactStateSupplier) {
-      this.artifactStateSupplier = artifactStateSupplier;
-    }
+    public UpdateOperation() {}
 
     @Override
-    public void update(ProjectProtoUpdate update) throws BuildException {
-      new ConfigureCcCompilation(artifactStateSupplier.get(), update).update();
+    public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+        throws BuildException {
+      new ConfigureCcCompilation(artifactState, update).update();
     }
   }
 

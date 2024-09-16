@@ -18,17 +18,16 @@ package com.google.idea.blaze.qsync.java;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
-import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.Library;
@@ -38,8 +37,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.Before;
@@ -73,7 +70,6 @@ public class AddDependencySrcJarsTest {
 
     AddDependencySrcJars addSrcJars =
         new AddDependencySrcJars(
-            ImmutableList::of,
             original.queryData().projectDefinition(),
             pathResolver,
             new SrcJarInnerPathFinder(new PackageStatementParser()));
@@ -81,7 +77,7 @@ public class AddDependencySrcJarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addSrcJars.update(update);
+    addSrcJars.update(update, State.EMPTY);
 
     ProjectProto.Project newProject = update.build();
 
@@ -104,16 +100,14 @@ public class AddDependencySrcJarsTest {
       zos.write("package com.pkg;\nclass Class {}".getBytes(UTF_8));
     }
 
-    TargetBuildInfo builtDep =
-        TargetBuildInfo.forJavaTarget(
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forJavaArtifacts(
             JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
                 .setSrcJars(ImmutableSet.of(Path.of("source/path/external.srcjar")))
-                .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+                .build());
 
     AddDependencySrcJars addSrcJars =
         new AddDependencySrcJars(
-            () -> ImmutableList.of(builtDep),
             original.queryData().projectDefinition(),
             pathResolver,
             new SrcJarInnerPathFinder(new PackageStatementParser()));
@@ -121,7 +115,7 @@ public class AddDependencySrcJarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addSrcJars.update(update);
+    addSrcJars.update(update, artifactState);
 
     ProjectProto.Project newProject = update.build();
 

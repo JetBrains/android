@@ -80,13 +80,12 @@ public class AddDependencyAarsTest {
     AndroidManifestParser manifestParser = in -> "com.google.idea.blaze.qsync.testdata.android";
 
     AddDependencyAars addAars =
-        new AddDependencyAars(
-            () -> State.EMPTY, cache, original.queryData().projectDefinition(), manifestParser);
+        new AddDependencyAars(cache, original.queryData().projectDefinition(), manifestParser);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(update, State.EMPTY);
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -100,17 +99,6 @@ public class AddDependencyAarsTest {
 
     AddDependencyAars addAars =
         new AddDependencyAars(
-            () ->
-                State.forJavaArtifacts(
-                    ImmutableList.of(
-                        JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-                            .setIdeAars(
-                                ImmutableList.of(
-                                    BuildArtifact.create(
-                                        "aardigest",
-                                        Path.of("path/to/dep.aar"),
-                                        Label.of("//path/to:dep"))))
-                            .build())),
             cache,
             original.queryData().projectDefinition(),
             in -> "com.google.idea.blaze.qsync.testdata.android");
@@ -121,7 +109,18 @@ public class AddDependencyAarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(
+        update,
+        State.forJavaArtifacts(
+            ImmutableList.of(
+                JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                    .setIdeAars(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "aardigest",
+                                Path.of("path/to/dep.aar"),
+                                Label.of("//path/to:dep"))))
+                    .build())));
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -184,17 +183,6 @@ public class AddDependencyAarsTest {
 
     AddDependencyAars addAars =
         new AddDependencyAars(
-            () ->
-                State.forJavaArtifacts(
-                    ImmutableList.of(
-                        JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-                            .setIdeAars(
-                                ImmutableList.of(
-                                    BuildArtifact.create(
-                                        "aardigest",
-                                        Path.of("path/to/dep.aar"),
-                                        Label.of("//path/to:dep"))))
-                            .build())),
             cache,
             original.queryData().projectDefinition(),
             noPackageNameParser);
@@ -205,7 +193,18 @@ public class AddDependencyAarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(
+        update,
+        State.forJavaArtifacts(
+            ImmutableList.of(
+                JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                    .setIdeAars(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "aardigest",
+                                Path.of("path/to/dep.aar"),
+                                Label.of("//path/to:dep"))))
+                    .build())));
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
