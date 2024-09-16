@@ -37,18 +37,40 @@ def _package_dependencies_impl(target, ctx):
         cc_info_file = cc_info_file + [target[DependenciesInfo].cc_toolchain_info.file] if target[DependenciesInfo].cc_toolchain_info else [],
     )]
 
-def _write_java_target_info(target, ctx):
+def _write_java_target_info(target, ctx, custom_prefix = ""):
     """Write java target info to a file in proto format.
 
     The proto format used is defined by proto bazel.intellij.JavaArtifacts.
     """
-    if not target[DependenciesInfo].target_to_artifacts:
+    target_to_artifacts = dict(target[DependenciesInfo].target_to_artifacts)
+
+    jar_map = {}
+    for jar in target[DependenciesInfo].compile_time_jars.to_list():
+        if jar.owner:
+            owner = str(jar.owner)
+            if not owner in jar_map:
+                jar_map[owner] = []
+            jar_map[owner].append(jar)
+        else:
+            # I don't believe this will ever happen; `owner` can be None for a source file, but all
+            # the jar files are build artifacts. If it does happen we probably need to handle the
+            # case inside `_collect_own_java_artifacts` where the depset is populated.
+            print("WARNING: ignoring unowned jar file", jar.path)
+    for (owner, jars) in jar_map.items():
+        if owner not in target_to_artifacts:
+            target_to_artifacts[owner] = _target_to_artifact_entry(jars = jars)
+        else:
+            target_to_artifacts[owner] = dict(target_to_artifacts[owner])
+            target_to_artifacts[owner]["jars"] = list(target_to_artifacts[owner]["jars"])
+            target_to_artifacts[owner]["jars"].extend(jars)
+
+    if not target_to_artifacts:
         return []
-    file_name = target.label.name + ".java-info.txt"
+    file_name = custom_prefix + target.label.name + ".java-info.txt"
     artifact_info_file = ctx.actions.declare_file(file_name)
     ctx.actions.write(
         artifact_info_file,
-        _encode_target_info_proto(target[DependenciesInfo].target_to_artifacts),
+        _encode_target_info_proto(target_to_artifacts),
     )
     return [artifact_info_file]
 
@@ -146,7 +168,7 @@ def _encode_target_info_proto(target_to_artifacts):
         contents.append(
             struct(
                 target = label,
-                jars = _encode_file_list(target_info["jars"]),
+                jars = _encode_file_list(target_info["jars"]) if "jars" in target_info else [],
                 ide_aars = _encode_file_list(target_info["ide_aars"]),
                 gen_srcs = _encode_file_list(target_info["gen_srcs"]),
                 srcs = target_info["srcs"],
@@ -268,6 +290,18 @@ def _collect_all_dependencies_for_tests_impl(target, ctx):
         generate_aidl_classes = None,
         use_generated_srcjars = True,
         test_mode = True,
+    )
+
+def collect_dependencies_for_test(target, ctx, include = []):
+    return _collect_dependencies_core_impl(
+        target,
+        ctx,
+        include = ",".join(include),
+        exclude = "",
+        always_build_rules = ALWAYS_BUILD_RULES,
+        generate_aidl_classes = None,
+        use_generated_srcjars = True,
+        test_mode = False,
     )
 
 def _package_prefix_match(package, prefix):
@@ -449,6 +483,22 @@ def _collect_own_java_artifacts(
         android_resources_package = resource_package,
     )
 
+def _target_to_artifact_entry(
+        jars = [],
+        ide_aars = [],
+        gen_srcs = [],
+        srcs = [],
+        srcjars = [],
+        android_resources_package = ""):
+    return {
+        "jars": jars,
+        "ide_aars": ide_aars,
+        "gen_srcs": gen_srcs,
+        "srcs": srcs,
+        "srcjars": srcjars,
+        "android_resources_package": android_resources_package,
+    }
+
 def _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
@@ -479,19 +529,18 @@ def _collect_own_and_dependency_java_artifacts(
 
     target_to_artifacts = {}
     if has_own_artifacts:
-        jars = depset(own_files.jars, transitive = own_files.jar_depsets).to_list()
-
-        # Pass the following lists through depset() too to remove any duplicates.
+        # Pass the following lists through depset() to to remove any duplicates.
         ide_aars = depset(own_files.ide_aars).to_list()
         gen_srcs = depset(own_files.gensrcs).to_list()
-        target_to_artifacts[str(target.label)] = {
-            "jars": jars,
-            "ide_aars": ide_aars,
-            "gen_srcs": gen_srcs,
-            "srcs": own_files.srcs,
-            "srcjars": own_files.srcjars,
-            "android_resources_package": own_files.android_resources_package,
-        }
+        target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
+            ide_aars = ide_aars,
+            gen_srcs = gen_srcs,
+            srcs = own_files.srcs,
+            srcjars = own_files.srcjars,
+            android_resources_package = own_files.android_resources_package,
+        )
+    elif target_is_within_project_scope:
+        target_to_artifacts[str(target.label)] = _target_to_artifact_entry()
 
     own_and_transitive_jar_depsets = list(own_files.jar_depsets)  # Copy to prevent changes to own_jar_depsets.
     own_and_transitive_ide_aar_depsets = []
@@ -886,3 +935,67 @@ collect_all_dependencies_for_tests = aspect(
     },
     fragments = ["cpp"],
 )
+
+def _write_java_info_txt_impl(ctx):
+    info_txt_files = []
+    for dep in ctx.attr.deps:
+        info_txt_files.extend(_write_java_target_info(dep, ctx, custom_prefix = ctx.label.name + "."))
+    return DefaultInfo(files = depset(info_txt_files))
+
+def collect_dependencies_aspect_for_tests(custom_aspect_impl):
+    """Creates a custom aspect for use in test code.
+
+    This is used to run the `collect_dependencies` aspect with a custom set of project includes.
+    It's necessary to create a custom aspect to do this, as when invoking as aspect from a build
+    rule it's not possible to give arbitrary values to their parameters.
+
+    This is necessary as bazel requires that all aspects are assigned to top level build vars.
+
+    Args:
+         custom_aspect_impl: A method that invokes `collect_dependencies_for_test` passing the
+         required set of project includes. This should be defined thus:
+
+         def custom_aspect_impl(target, ctx):
+             return collect_dependencies_for_test(target, ctx, include=[
+               "//package/path/to/include",
+             ])
+
+        The `includes` are bazel packages corresponding to the `directories` in a `.bazelproject`.
+
+    Returns:
+        An aspect for use with `write_java_info_txt_rule_for_tests`.
+    """
+    return aspect(
+        implementation = custom_aspect_impl,
+        attr_aspects = FOLLOW_ATTRIBUTES,
+        provides = [DependenciesInfo],
+    )
+
+def write_java_info_txt_rule_for_tests(aspect_name):
+    """Create a rule to run the aspect for use in test code.
+
+    This is used in conjunction with `collect_dependencies_aspect_for_tests` to run the collect
+    dependencies aspect and write the resulting `.java-info.txt` files to an artifact.
+
+    Args:
+        aspect_name: The name that the return value from  `write_java_info_txt_aspect_for_tests`
+        as written to.
+
+    Returns:
+        A custom run implementation that should be assigned to a variable inside a `.bzl` file
+        and them subsequently used thus:
+
+        custom_aspect_rule(
+            name = "java_info",
+            deps = [":my_target"],
+        )
+
+        This will run the aspect as if an "enable analysis" action was run from the IDE on the
+        targets given in `deps`.
+    """
+    return rule(
+        implementation = _write_java_info_txt_impl,
+        attrs = {
+            "deps": attr.label_list(aspects = [aspect_name]),
+        },
+    )
