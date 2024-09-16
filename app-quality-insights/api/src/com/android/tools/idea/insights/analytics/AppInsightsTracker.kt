@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.analytics
 
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
@@ -75,6 +77,12 @@ interface AppInsightsTracker {
 
   fun logInsightSentiment(sentiment: Sentiment, experiment: InsightExperiment, crashType: CrashType)
 
+  fun logInsightFetch(
+    unanonymizedAppId: String,
+    crashType: FailureType,
+    experiment: InsightExperiment,
+  )
+
   enum class ProductType {
     CRASHLYTICS,
     PLAY_VITALS;
@@ -86,3 +94,12 @@ interface AppInsightsTracker {
       }
   }
 }
+
+fun ExperimentType.toExperiment() =
+  when (this) {
+    ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> InsightExperiment.UNKNOWN_EXPERIMENT
+    ExperimentType.CONTROL -> InsightExperiment.CONTROL
+    ExperimentType.TOP_SOURCE -> InsightExperiment.TOP_SOURCE
+    ExperimentType.TOP_THREE_SOURCES -> InsightExperiment.TOP_THREE_SOURCES
+    ExperimentType.ALL_SOURCES -> InsightExperiment.ALL_SOURCES
+  }
