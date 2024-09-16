@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -44,7 +44,6 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -100,8 +99,12 @@ internal fun AdditionalSettingsPanel(
         additionalSettingsPanelState.storageGroupState,
         configureDevicePanelState.validity.isExpandedStorageValid,
         configureDevicePanelState::device::set,
-        configureDevicePanelState::setExpandedStorage,
       )
+      LaunchedEffect(Unit) {
+        additionalSettingsPanelState.storageGroupState.expandedStorageFlow.collect(
+          configureDevicePanelState::setExpandedStorage
+        )
+      }
 
       EmulatedPerformanceGroup(
         configureDevicePanelState.device,
@@ -274,7 +277,6 @@ private fun StorageGroup(
   storageGroupState: StorageGroupState,
   isExistingImageValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
-  onExpandedStorageChange: (ExpandedStorage) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
@@ -311,10 +313,7 @@ private fun StorageGroup(
       RadioButtonRow(
         RadioButton.CUSTOM,
         storageGroupState.selectedRadioButton,
-        onClick = {
-          storageGroupState.selectedRadioButton = RadioButton.CUSTOM
-          onExpandedStorageChange(Custom(storageGroupState.custom.withMaxUnit()))
-        },
+        onClick = { storageGroupState.selectedRadioButton = RadioButton.CUSTOM },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
       )
 
@@ -330,17 +329,10 @@ private fun StorageGroup(
     }
 
     Row {
-      val fileSystem = LocalFileSystem.current
-
       RadioButtonRow(
         RadioButton.EXISTING_IMAGE,
         storageGroupState.selectedRadioButton,
-        onClick = {
-          storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE
-
-          val image = fileSystem.getPath(storageGroupState.existingImage)
-          onExpandedStorageChange(ExistingImage(image))
-        },
+        onClick = { storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
       )
 
@@ -348,10 +340,6 @@ private fun StorageGroup(
         storageGroupState.existingImage,
         storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
         isExistingImageValid,
-        onExistingImageChange = {
-          storageGroupState.existingImage = it
-          onExpandedStorageChange(ExistingImage(fileSystem.getPath(it)))
-        },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
     }
@@ -359,10 +347,7 @@ private fun StorageGroup(
     RadioButtonRow(
       RadioButton.NONE,
       storageGroupState.selectedRadioButton,
-      onClick = {
-        storageGroupState.selectedRadioButton = RadioButton.NONE
-        onExpandedStorageChange(None)
-      },
+      onClick = { storageGroupState.selectedRadioButton = RadioButton.NONE },
     )
   }
 }
@@ -380,14 +365,12 @@ private fun <E : Enum<E>> RadioButtonRow(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ExistingImageField(
-  existingImage: String,
+  existingImage: TextFieldState,
   enabled: Boolean,
   isExistingImageValid: Boolean,
-  onExistingImageChange: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Row(modifier) {
-    val state = rememberTextFieldState(existingImage)
     @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
     val project = LocalProject.current
 
@@ -395,7 +378,7 @@ private fun ExistingImageField(
       "The specified image must be a valid file".takeIf { enabled && !isExistingImageValid }
     ErrorTooltip(errorText) {
       TextField(
-        state,
+        existingImage,
         Modifier.testTag("ExistingImageField"),
         enabled,
         outline = if (enabled && !isExistingImageValid) Outline.Error else Outline.None,
@@ -408,7 +391,7 @@ private fun ExistingImageField(
                 enabled,
                 onClick = {
                   val image = chooseFile(component, project)
-                  if (image != null) state.setTextAndPlaceCursorAtEnd(image.toString())
+                  if (image != null) existingImage.setTextAndPlaceCursorAtEnd(image.toString())
                 },
               )
               .pointerHoverIcon(PointerIcon.Default),
@@ -416,8 +399,6 @@ private fun ExistingImageField(
         },
       )
     }
-
-    LaunchedEffect(Unit) { snapshotFlow { state.text.toString() }.collect(onExistingImageChange) }
   }
 }
 
@@ -523,7 +504,15 @@ internal class AdditionalSettingsPanelState internal constructor(device: Virtual
 internal class StorageGroupState internal constructor(device: VirtualDevice) {
   internal var selectedRadioButton by mutableStateOf(RadioButton.valueOf(device.expandedStorage))
   internal var custom by mutableStateOf(customValue(device))
-  internal var existingImage by mutableStateOf(device.expandedStorage.toTextFieldValue())
+  internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
+
+  val expandedStorageFlow = snapshotFlow {
+    when (selectedRadioButton) {
+      RadioButton.CUSTOM -> Custom(custom.withMaxUnit())
+      RadioButton.EXISTING_IMAGE -> ExistingImage(existingImage.text.toString())
+      RadioButton.NONE -> None
+    }
+  }
 
   private companion object {
     private fun customValue(device: VirtualDevice) =
