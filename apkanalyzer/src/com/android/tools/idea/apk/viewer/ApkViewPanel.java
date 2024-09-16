@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import android.annotation.SuppressLint;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.util.HumanReadableUtil;
@@ -102,7 +103,8 @@ public class ApkViewPanel implements TreeSelectionListener {
     void selectApkAndCompare();
   }
 
-  public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser) {
+  @SuppressLint("CheckResult")
+  public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser, @NotNull String apkName) {
     myApkParser = apkParser;
     myProject = project;
     // construct the main tree along with the uncompressed sizes
@@ -148,34 +150,46 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
 
-    Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
     //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
     ListenableFuture<AndroidApplicationInfo> applicationInfo =
-      Futures.transformAsync(apkParser.constructTreeStructure(),
-                             input -> {
-                               assert input != null;
-                               ArchiveEntry entry = Archives.getFirstManifestArchiveEntry(input);
-                               return apkParser.getApplicationInfo(pathToAapt, entry);
-                             }, PooledThreadExecutor.INSTANCE);
+      Futures.transformAsync(
+        apkParser.constructTreeStructure(),
+        input -> {
+          assert input != null;
+          ArchiveEntry entry = Archives.getFirstManifestArchiveEntry(input);
+          if (entry == null) {
+            setToZipMode(apkName);
+            return Futures.immediateFailedFuture(new Exception("Regular .zip, not valid .apk file."));
+          } else {
+            try {
+              Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
+              return apkParser.getApplicationInfo(pathToAapt, entry);
+            } catch (Exception e) {
+              setToZipMode(apkName);
+              Logger.getInstance(ApkViewPanel.class).warn(e);
+              return Futures.immediateFailedFuture(e);
+            }
+          }
+        },
+        PooledThreadExecutor.INSTANCE);
 
-    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
+    ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
+    ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
+    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         setAppInfo(result);
       }
     }, EdtExecutorService.getInstance());
 
-
     // obtain and set the download size
     mySizeAsyncIcon.setVisible(true);
     mySizeComponent.append("Estimating download size..");
-    ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
-    ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
     Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
                         new FutureCallBackAdapter<>() {
                           @Override
@@ -192,31 +206,28 @@ public class ApkViewPanel implements TreeSelectionListener {
                           }
                         }, EdtExecutorService.getInstance());
 
-    Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
-                        new FutureCallBackAdapter<>() {
-                          @Override
-                          public void onSuccess(@Nullable List<Object> result) {
-                            if (result == null) {
-                              return;
-                            }
+    Futures.FutureCombiner<Object> combiner = Futures.whenAllComplete(uncompressedApkSize, compressedFullApkSize, applicationInfo);
+    combiner.call(() -> {
+      String applicationId = applicationInfo.get().packageId;
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                         .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                         .setRawProjectId(applicationId)
+                         .setApkAnalyzerStats(
+                           ApkAnalyzerStats.newBuilder().setCompressedSize(compressedFullApkSize.get())
+                             .setUncompressedSize(uncompressedApkSize.get())
+                             .build()));
+      return null;
+    }, MoreExecutors.directExecutor());
+  }
 
-                            int size = result.size();
-                            long uncompressed = size > 0 && result.get(0) instanceof Long ? (Long)result.get(0) : -1;
-                            long compressed = size > 1 && result.get(1) instanceof Long ? (Long)result.get(1) : -1;
-                            String applicationId =
-                              size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
-                                .get(2)).packageId : "unknown";
-
-                            UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                               .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                               .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                               .setRawProjectId(applicationId)
-                                               .setApkAnalyzerStats(
-                                                 ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                   .setUncompressedSize(uncompressed)
-                                                   .build()));
-                          }
-                        }, MoreExecutors.directExecutor());
+  private void setToZipMode(@NotNull String fileName) {
+    // Reset UI elements for .zip files (instead of .apk).
+    myCompareWithButton.setEnabled(false);
+    myCompareWithButton.setVisible(false);
+    myNameAsyncIcon.setVisible(false);
+    myNameComponent.clear();
+    myNameComponent.append(fileName);
   }
 
   private void createUIComponents() {
