@@ -16,7 +16,7 @@
 package com.google.idea.blaze.qsync.java;
 
 import com.google.common.base.Supplier;
-import com.google.idea.blaze.common.artifact.CachedArtifact;
+import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
@@ -31,7 +31,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.ExternalAndroidLibrary;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
@@ -44,17 +43,17 @@ import java.util.zip.ZipFile;
 public class AddDependencyAars implements ProjectProtoUpdateOperation {
 
   private final Supplier<ArtifactTracker.State> artifactStateSupplier;
+  private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
   private final AndroidManifestParser manifestParser;
-  private final CachedArtifactProvider cachedArtifactProvider;
 
   public AddDependencyAars(
       Supplier<ArtifactTracker.State> artifactStateSupplier,
-      CachedArtifactProvider cachedArtifactProvider,
+      BuildArtifactCache buildCache,
       ProjectDefinition projectDefinition,
       AndroidManifestParser manifestParser) {
     this.artifactStateSupplier = artifactStateSupplier;
-    this.cachedArtifactProvider = cachedArtifactProvider;
+    this.buildCache = buildCache;
     this.projectDefinition = projectDefinition;
     this.manifestParser = manifestParser;
   }
@@ -95,24 +94,7 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
   }
 
   public Optional<String> readPackageFromAarManifest(BuildArtifact aar) throws BuildException {
-    CachedArtifact cachedArtifact = cachedArtifactProvider.apply(aar, ArtifactDirectories.DEFAULT);
-
-    Path cachedArtifactPath = cachedArtifact.getPath();
-    // If we cannot find this aar from build cache, we will use the one in .bazel/buildout instead.
-    // But the on in that directory has been unzipped, so we cannot open it as a zip file.
-    if (Files.isDirectory(cachedArtifactPath)) {
-      Path androidManifest = cachedArtifactPath.resolve("AndroidManifest.xml");
-      if (Files.exists(androidManifest)) {
-        try {
-          return Optional.ofNullable(manifestParser.readPackageNameFrom(Files.newInputStream(androidManifest)));
-        }catch (IOException e) {
-          throw new BuildException(
-            String.format("Failed to read aar file %s (built by %s)", aar.artifactPath(), aar.target()), e);
-        }
-      }
-    }
-
-    try (ZipFile zip = cachedArtifactProvider.apply(aar, ArtifactDirectories.DEFAULT).openAsZipFile()) {
+    try (ZipFile zip = aar.blockingGetFrom(buildCache).openAsZipFile()) {
 
       ZipEntry entry = zip.getEntry("AndroidManifest.xml");
       if (entry != null) {
@@ -120,10 +102,13 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
       }
     } catch (IOException e) {
       throw new BuildException(
-          String.format("Failed to read aar file %s (built by %s)", aar.artifactPath(), aar.target()), e);
+          String.format(
+              "Failed to read aar file %s (built by %s)", aar.artifactPath(), aar.target()),
+          e);
     }
     throw new BuildException(
         String.format(
-            "Failed to find AndroidManifest.xml in  %s (built by %s)", aar.artifactPath(), aar.target()));
+            "Failed to find AndroidManifest.xml in  %s (built by %s)",
+            aar.artifactPath(), aar.target()));
   }
 }

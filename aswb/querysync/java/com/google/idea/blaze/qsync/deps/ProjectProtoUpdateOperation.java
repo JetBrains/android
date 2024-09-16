@@ -17,10 +17,8 @@ package com.google.idea.blaze.qsync.deps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.project.ProjectPath;
 
 /**
  * An update to the project proto that operates on a {@link ProjectProtoUpdate}. Also defines some
@@ -30,11 +28,6 @@ import com.google.idea.blaze.qsync.project.ProjectPath;
  * com.google.idea.blaze.qsync.project.ProjectDefinition}.
  */
 public interface ProjectProtoUpdateOperation {
-
-  @FunctionalInterface
-  interface CachedArtifactProvider {
-    CachedArtifact apply(BuildArtifact buildArtifact, ProjectPath artifactDirectory) throws BuildException;
-  }
 
   String JAVA_DEPS_LIB_NAME = ".dependencies";
   ImmutableSet<String> JAVA_ARCHIVE_EXTENSIONS = ImmutableSet.of("jar", "srcjar");
