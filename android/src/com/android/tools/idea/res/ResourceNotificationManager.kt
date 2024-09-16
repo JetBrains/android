@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiTreeChangeEvent
@@ -774,9 +775,20 @@ private class FileEventObserver(
           events
             .firstOrNull { event ->
               val parent = event.file?.parent ?: return@firstOrNull false
-
               val resType = ResourceFolderType.getFolderType(parent.name)
-              ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
+              val isImage =
+                ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
+
+              // If it's not an image, ignore the event
+              if (!isImage) return@firstOrNull false
+
+              if (event is VFilePropertyChangeEvent) {
+                // If it's a property modification event and the property has not changed (IntelliJ
+                // will sometimes do this), ignore.
+                if (event.oldValue == event.newValue) return@firstOrNull false
+              }
+
+              return@firstOrNull true
             }
             ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
         }
