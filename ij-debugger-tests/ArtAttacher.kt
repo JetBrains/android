@@ -38,148 +38,149 @@ private const val JDWP = "lib64/libjdwp.so"
 
 /** Attaches to an ART VM */
 internal class ArtAttacher : VmAttacher {
-    private val root by lazy(NONE) { getStudioRoot() }
-    private lateinit var steppingFilters: Array<ClassFilter>
+  private val root by lazy(NONE) { getStudioRoot() }
+  private lateinit var steppingFilters: Array<ClassFilter>
 
-    override fun setUp() {
-        steppingFilters = DebuggerSettings.getInstance().steppingFilters
-        DebuggerSettings.getInstance().steppingFilters += arrayOf(
-            ClassFilter("android.*"),
-            ClassFilter("com.android.*"),
-            ClassFilter("androidx.*"),
-            ClassFilter("libcore.*"),
-            ClassFilter("dalvik.*"),
-        )
+  override fun setUp() {
+    steppingFilters = DebuggerSettings.getInstance().steppingFilters
+    DebuggerSettings.getInstance().steppingFilters += arrayOf(
+      ClassFilter("android.*"),
+      ClassFilter("com.android.*"),
+      ClassFilter("androidx.*"),
+      ClassFilter("libcore.*"),
+      ClassFilter("dalvik.*"),
+    )
+  }
+
+  override fun tearDown() {
+    DebuggerSettings.getInstance().steppingFilters = steppingFilters
+  }
+
+  override fun attachVirtualMachine(
+    testCase: KotlinDescriptorTestCase,
+    javaParameters: JavaParameters,
+    environment: ExecutionEnvironment
+  ): DebuggerSession {
+    val remoteConnection = getRemoteConnection(testCase, javaParameters)
+    val remoteState = RemoteStateState(testCase.project, remoteConnection)
+    return testCase.attachVirtualMachine(remoteState, environment, remoteConnection, false)
+  }
+
+  private fun getRemoteConnection(testCase: KotlinDescriptorTestCase, javaParameters: JavaParameters): RemoteConnection {
+    println("Running on Google ART VM")
+    testCase.setTimeout(getTestTimeoutMillis())
+    val mainClass = javaParameters.mainClass
+    val dexFile = buildDexFile(javaParameters.classPath.pathList)
+    val command = buildCommandLine(dexFile.pathString, mainClass)
+    testCase.testRootDisposable.whenDisposed {
+      dexFile.delete()
     }
+    val art = ProcessBuilder()
+      .command(command)
+      .redirectOutput(PIPE)
+      .start()
 
-    override fun tearDown() {
-        DebuggerSettings.getInstance().steppingFilters = steppingFilters
-    }
-
-    override fun attachVirtualMachine(
-        testCase: KotlinDescriptorTestCase,
-        javaParameters: JavaParameters,
-        environment: ExecutionEnvironment
-    ): DebuggerSession {
-        val remoteConnection = getRemoteConnection(testCase, javaParameters)
-        val remoteState = RemoteStateState(testCase.project, remoteConnection)
-        return testCase.attachVirtualMachine(remoteState, environment, remoteConnection, false)
-    }
-
-    private fun getRemoteConnection(testCase: KotlinDescriptorTestCase, javaParameters: JavaParameters): RemoteConnection {
-        println("Running on ART VM")
-        testCase.setTimeout(getTestTimeoutMillis())
-        val mainClass = javaParameters.mainClass
-        val dexFile = buildDexFile(javaParameters.classPath.pathList)
-        val command = buildCommandLine(dexFile.pathString, mainClass)
-        testCase.testRootDisposable.whenDisposed {
-            dexFile.delete()
+    val port: String = art.inputStream.bufferedReader().use {
+      while (true) {
+        val line = it.readLine() ?: break
+        if (line.startsWith("Listening for transport")) {
+          val port = line.substringAfterLast(" ")
+          return@use port
         }
-        val art = ProcessBuilder()
-            .command(command)
-            .redirectOutput(PIPE)
-            .start()
-
-        val port: String = art.inputStream.bufferedReader().use {
-            while (true) {
-                val line = it.readLine() ?: break
-                if (line.startsWith("Listening for transport")) {
-                    val port = line.substringAfterLast(" ")
-                    return@use port
-                }
-            }
-            throw IllegalStateException("Failed to read listening port from ART")
-        }
-
-        return RemoteConnectionBuilder(false, DebuggerSettings.SOCKET_TRANSPORT, port)
-            .checkValidity(true)
-            .asyncAgent(true)
-            .create(javaParameters)
+      }
+      throw IllegalStateException("Failed to read listening port from ART")
     }
 
-    /**
-     * Builds a DEX file from a list of dependencies
-     */
-    private fun buildDexFile(deps: List<String>): Path {
-        val dexCompiler = root.resolve(DEX_COMPILER)
-        val tempFiles = mutableListOf<Path>()
-        val jarFiles = deps.map { Path.of(it) }.map { path ->
-            when {
-                path.isDirectory() -> {
-                    val jarFile = Files.createTempFile("", ".jar")
-                    Compressor.Jar(jarFile).use { jar ->
-                        jar.addDirectory("", path)
-                    }
-                    tempFiles.add(jarFile)
-                    jarFile
-                }
+    return RemoteConnectionBuilder(false, DebuggerSettings.SOCKET_TRANSPORT, port)
+      .checkValidity(true)
+      .asyncAgent(true)
+      .create(javaParameters)
+  }
 
-                else -> path
-            }.pathString
+  /**
+   * Builds a DEX file from a list of dependencies
+   */
+  private fun buildDexFile(deps: List<String>): Path {
+    val dexCompiler = root.resolve(DEX_COMPILER)
+    val tempFiles = mutableListOf<Path>()
+    val jarFiles = deps.map { Path.of(it) }.map { path ->
+      when {
+        path.isDirectory() -> {
+          val jarFile = Files.createTempFile("", ".jar")
+          Compressor.Jar(jarFile).use { jar ->
+            jar.addDirectory("", path)
+          }
+          tempFiles.add(jarFile)
+          jarFile
         }
-        try {
-            val dexFile = Files.createTempFile("", "-dex.jar")
-            val command = arrayOf(
-                "java",
-                "-cp",
-                dexCompiler.pathString,
-                "com.android.tools.r8.D8",
-                "--output",
-                dexFile.pathString,
-                "--min-api",
-                "30"
-            ) + jarFiles
-            Runtime.getRuntime().exec(command).waitFor()
-            return dexFile
-        } finally {
-            tempFiles.forEach { it.delete() }
-        }
-    }
 
-    /**
-     * Builds the command line to run the ART JVM
-     */
-    private fun buildCommandLine(dexFile: String, mainClass: String): List<String> {
-        val artDir = root.resolve(ART_ROOT)
-        val bootClasspath = listOf(
-            artDir.resolve(LIB_ART),
-            artDir.resolve(OJ),
-            artDir.resolve(ICU4J),
-        ).joinToString(":") { it.pathString }
-
-        val art = artDir.resolve(ART).pathString
-        val jvmti = artDir.resolve(JVMTI).pathString
-        val jdwp = artDir.resolve(JDWP).pathString
-        return listOf(
-            art,
-            "--64",
-            "-Xbootclasspath:$bootClasspath",
-            "-Xplugin:$jvmti",
-            "-agentpath:$jdwp=transport=dt_socket,server=y,suspend=y",
-            "-classpath",
-            dexFile,
-            mainClass,
-        )
+        else -> path
+      }.pathString
     }
+    try {
+      val dexFile = Files.createTempFile("", "-dex.jar")
+      val command = arrayOf(
+        "java",
+        "-cp",
+        dexCompiler.pathString,
+        "com.android.tools.r8.D8",
+        "--output",
+        dexFile.pathString,
+        "--min-api",
+        "30"
+      ) + jarFiles
+      Runtime.getRuntime().exec(command).waitFor()
+      return dexFile
+    }
+    finally {
+      tempFiles.forEach { it.delete() }
+    }
+  }
+
+  /**
+   * Builds the command line to run the ART JVM
+   */
+  private fun buildCommandLine(dexFile: String, mainClass: String): List<String> {
+    val artDir = root.resolve(ART_ROOT)
+    val bootClasspath = listOf(
+      artDir.resolve(LIB_ART),
+      artDir.resolve(OJ),
+      artDir.resolve(ICU4J),
+    ).joinToString(":") { it.pathString }
+
+    val art = artDir.resolve(ART).pathString
+    val jvmti = artDir.resolve(JVMTI).pathString
+    val jdwp = artDir.resolve(JDWP).pathString
+    return listOf(
+      art,
+      "--64",
+      "-Xbootclasspath:$bootClasspath",
+      "-Xplugin:$jvmti",
+      "-agentpath:$jdwp=transport=dt_socket,server=y,suspend=y",
+      "-classpath",
+      dexFile,
+      mainClass,
+    )
+  }
 
 }
 
 private fun getTestTimeoutMillis(): Int {
-    val property = System.getProperty(TIMEOUT_MILLIS_PROPERTY)
-    if (property != null) {
-        // Property overrides environment
-        return property.toInt()
-    }
-    return System.getenv(TIMEOUT_MILLIS_ENV)?.toInt() ?: 30.seconds.toInt(MILLISECONDS)
+  val property = System.getProperty(TIMEOUT_MILLIS_PROPERTY)
+  if (property != null) {
+    // Property overrides environment
+    return property.toInt()
+  }
+  return System.getenv(TIMEOUT_MILLIS_ENV)?.toInt() ?: 30.seconds.toInt(MILLISECONDS)
 }
 
 private fun getStudioRoot(): Path {
-    val property = System.getProperty(STUDIO_ROOT_PROPERTY)
-    val env = System.getenv(STUDIO_ROOT_ENV)
-    val path = property ?: env ?: throw IllegalStateException("Studio Root was not provided")
-    val root = Path.of(path)
-    if (root.isDirectory()) {
-        return root
-    }
-    throw IllegalStateException("'$path' is not a directory")
+  val property = System.getProperty(STUDIO_ROOT_PROPERTY)
+  val env = System.getenv(STUDIO_ROOT_ENV)
+  val path = property ?: env ?: throw IllegalStateException("Studio Root was not provided")
+  val root = Path.of(path)
+  if (root.isDirectory()) {
+    return root
+  }
+  throw IllegalStateException("'$path' is not a directory")
 }

@@ -9,6 +9,7 @@ def debugger_test(
         test_exclude_filter_jvm,
         split_tests_art,
         test_exclude_filter_art,
+        art_env = {},
         **kwargs):
     """Define a debugger test that runs on a ART and JVM.
 
@@ -21,6 +22,7 @@ def debugger_test(
         split_tests_art: Similar but for the ART tests.
         test_exclude_filter_jvm: A list of exclude filters for the jvm tests.
         test_exclude_filter_art: A list of exclude filters for the ART tests.
+        art_env: A dict with environment variables
         **kwargs: arguments to pass through to _debugger_test
 
     """
@@ -33,15 +35,18 @@ def debugger_test(
         **kwargs
     )
 
+    env = {
+        "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "art",
+        "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
+    }
+    env.update(art_env)
+
     jps_test(
         name = name + "_art",
         test_exclude_filter = test_exclude_filter_art,
         split_tests = _make_splits(split_tests_art),
         test_suite = suite,
-        env = {
-            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "art",
-            "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
-        },
+        env = env,
         data = [
             "//prebuilts/r8:r8-jar",
             "//prebuilts/tools/linux-x86_64/art:art",
