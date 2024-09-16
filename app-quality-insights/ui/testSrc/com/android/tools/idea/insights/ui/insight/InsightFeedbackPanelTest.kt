@@ -102,7 +102,7 @@ class InsightFeedbackPanelTest {
     verify(controllerRule.tracker)
       .logInsightSentiment(
         AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_UP,
-        AppQualityInsightsUsageEvent.InsightSentiment.Experiment.CONTROL,
+        AppQualityInsightsUsageEvent.InsightExperiment.CONTROL,
         AppQualityInsightsUsageEvent.CrashType.ANR,
       )
 
@@ -119,7 +119,7 @@ class InsightFeedbackPanelTest {
     verify(controllerRule.tracker)
       .logInsightSentiment(
         AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_DOWN,
-        AppQualityInsightsUsageEvent.InsightSentiment.Experiment.TOP_SOURCE,
+        AppQualityInsightsUsageEvent.InsightExperiment.TOP_SOURCE,
         AppQualityInsightsUsageEvent.CrashType.FATAL,
       )
   }
