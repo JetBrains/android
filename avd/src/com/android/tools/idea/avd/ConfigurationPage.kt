@@ -69,7 +69,7 @@ internal fun WizardPageScope.ConfigurationPage(
   device: VirtualDevice,
   image: ISystemImage?,
   skins: ImmutableCollection<Skin>,
-  deviceNameValidator: (String) -> String?,
+  deviceNameValidator: DeviceNameValidator,
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
   val allImages: LoadingState<List<ISystemImage>> by

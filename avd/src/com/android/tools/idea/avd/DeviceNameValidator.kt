@@ -18,11 +18,26 @@ package com.android.tools.idea.avd
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 
-internal class DeviceNameValidator(avdManager: AvdManager, val currentName: String? = null) :
-  (String) -> String? {
+internal interface DeviceNameValidator {
+  fun uniquify(name: String): String
+
+  fun validate(name: String): String?
+}
+
+internal class DeviceNameValidatorImpl(avdManager: AvdManager, val currentName: String? = null) :
+  DeviceNameValidator {
   private val currentDisplayNames = avdManager.allAvds.map { it.displayName }.toSet()
 
-  override fun invoke(name: String): String? =
+  override fun uniquify(name: String): String {
+    var suffix = 1
+    var candidate = name
+    while (candidate in currentDisplayNames) {
+      candidate = "$name (${++suffix})"
+    }
+    return candidate
+  }
+
+  override fun validate(name: String): String? =
     when {
       name == currentName -> null
       name in currentDisplayNames -> "An AVD with this name already exists."
