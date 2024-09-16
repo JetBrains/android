@@ -21,18 +21,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform;
 import com.google.idea.blaze.qsync.testdata.ProjectProtos;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -45,11 +43,11 @@ public class AddCompiledJavaDepsTest {
     ProjectProto.Project original =
         ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
 
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(ImmutableList::of);
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
-    javaDeps.update(update);
+    javaDeps.update(update, State.EMPTY);
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).isEqualTo(original.getLibraryList());
     assertThat(newProject.getModulesList()).isEqualTo(original.getModulesList());
@@ -69,8 +67,8 @@ public class AddCompiledJavaDepsTest {
     ProjectProto.Project original =
         ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
 
-    TargetBuildInfo builtDep =
-        TargetBuildInfo.forJavaTarget(
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forJavaArtifacts(
             JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
                 .setJars(
                     ImmutableList.of(
@@ -78,14 +76,13 @@ public class AddCompiledJavaDepsTest {
                             "jardigest",
                             Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
                             Label.of("//java/com/google/common/collect:collect"))))
-                .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+                .build());
 
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(() -> ImmutableList.of(builtDep));
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
-    javaDeps.update(update);
+    javaDeps.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
     assertThat(newProject.getLibraryList()).hasSize(1);
     assertThat(newProject.getLibrary(0).getName()).isEqualTo(".dependencies");

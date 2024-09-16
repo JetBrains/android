@@ -37,5 +37,5 @@ public interface ProjectProtoUpdateOperation {
     return ImmutableSetMultimap.of();
   }
 
-  void update(ProjectProtoUpdate update) throws BuildException;
+  void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) throws BuildException;
 }

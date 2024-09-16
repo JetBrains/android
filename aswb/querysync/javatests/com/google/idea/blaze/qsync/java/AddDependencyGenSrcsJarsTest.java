@@ -32,10 +32,10 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.Library;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath;
@@ -43,7 +43,6 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -73,7 +72,6 @@ public class AddDependencyGenSrcsJarsTest {
 
     AddDependencyGenSrcsJars addGenSrcJars =
         new AddDependencyGenSrcsJars(
-            ImmutableList::of,
             original.queryData().projectDefinition(),
             cache,
             new SrcJarInnerPathFinder(new PackageStatementParser()));
@@ -81,7 +79,7 @@ public class AddDependencyGenSrcsJarsTest {
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addGenSrcJars.update(update);
+    addGenSrcJars.update(update, State.EMPTY);
 
     ProjectProto.Project newProject = update.build();
 
@@ -97,8 +95,8 @@ public class AddDependencyGenSrcsJarsTest {
 
     QuerySyncProjectSnapshot original = syncer.sync(testProject);
 
-    TargetBuildInfo builtDep =
-        TargetBuildInfo.forJavaTarget(
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forJavaArtifacts(
             JavaArtifactInfo.empty(testProject.getAssumedOnlyLabel()).toBuilder()
                 .setGenSrcs(
                     ImmutableList.of(
@@ -106,19 +104,17 @@ public class AddDependencyGenSrcsJarsTest {
                             "srcjardigest",
                             Path.of("output/path/to/in_project.srcjar"),
                             testProject.getAssumedOnlyLabel())))
-                .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+                .build());
 
     AddDependencyGenSrcsJars addGenSrcJars =
         new AddDependencyGenSrcsJars(
-            () -> ImmutableList.of(builtDep),
             original.queryData().projectDefinition(),
             cache,
             new SrcJarInnerPathFinder(new PackageStatementParser()));
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update);
+    addGenSrcJars.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
     verify(cache, never()).get(ArgumentMatchers.any());
@@ -143,8 +139,8 @@ public class AddDependencyGenSrcsJarsTest {
             Optional.of(
                 Futures.immediateFuture(new MockArtifact(ByteSource.wrap(zipFile.toByteArray())))));
 
-    TargetBuildInfo builtDep =
-        TargetBuildInfo.forJavaTarget(
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forJavaArtifacts(
             JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
                 .setGenSrcs(
                     ImmutableList.of(
@@ -152,19 +148,17 @@ public class AddDependencyGenSrcsJarsTest {
                             "srcjardigest",
                             Path.of("output/path/to/external.srcjar"),
                             Label.of("//java/com/google/common/collect:collect"))))
-                .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+                .build());
 
     AddDependencyGenSrcsJars addGenSrcJars =
         new AddDependencyGenSrcsJars(
-            () -> ImmutableList.of(builtDep),
             original.queryData().projectDefinition(),
             cache,
             new SrcJarInnerPathFinder(new PackageStatementParser()));
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
-    addGenSrcJars.update(update);
+    addGenSrcJars.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).hasSize(1);

@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncProject;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.ProjectProtoTransform;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.java.AddAndroidResPackages;
@@ -50,19 +51,19 @@ public class AndroidProjectProtoTransform implements ProjectProtoTransform {
     updateOperations =
         ImmutableList.of(
             new AddDependencyAars(
-                project.getArtifactTracker()::getStateSnapshot,
                 project.getBuildArtifactCache(),
                 project.getProjectDefinition(),
                 in -> ManifestParser.parseManifestFromInputStream(in).packageName),
-            new AddAndroidResPackages(project.getArtifactTracker()::getStateSnapshot));
+            new AddAndroidResPackages());
   }
 
   @Override
-  public Project apply(Project proto, BuildGraphData graph, Context<?> context)
+  public Project apply(
+      Project proto, BuildGraphData graph, ArtifactTracker.State artifactState, Context<?> context)
       throws BuildException {
     ProjectProtoUpdate update = new ProjectProtoUpdate(proto, graph, context);
     for (var op : updateOperations) {
-      op.update(update);
+      op.update(update, artifactState);
     }
     return update.build();
   }

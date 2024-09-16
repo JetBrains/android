@@ -63,6 +63,17 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     @VisibleForTesting
+    public static State forJavaArtifacts(JavaArtifactInfo... infos) {
+      return create(
+          Stream.of(infos)
+              .collect(
+                  toImmutableMap(
+                      JavaArtifactInfo::label,
+                      j -> TargetBuildInfo.forJavaTarget(j, DependencyBuildContext.NONE))),
+          ImmutableMap.of());
+    }
+
+    @VisibleForTesting
     public static State forJavaLabels(Label... labels) {
       return forJavaArtifacts(
           Stream.of(labels).map(JavaArtifactInfo::empty).collect(ImmutableSet.toImmutableSet()));

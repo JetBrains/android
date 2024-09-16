@@ -18,9 +18,7 @@ package com.google.idea.blaze.qsync.java;
 import static java.util.stream.Collectors.joining;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.PrintOutput;
@@ -29,6 +27,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
@@ -55,18 +54,15 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
 
   private static final ImmutableSet<String> JAVA_SRC_EXTENSIONS = ImmutableSet.of("java", "kt");
 
-  private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
   private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
   private final PackageStatementParser packageReader;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcs(
-      Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
       ProjectDefinition projectDefinition,
       BuildArtifactCache buildCache,
       PackageStatementParser packageReader) {
-    this.builtTargetsSupplier = builtTargetsSupplier;
     this.projectDefinition = projectDefinition;
     this.buildCache = buildCache;
     this.packageReader = packageReader;
@@ -105,12 +101,13 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update) throws BuildException {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+      throws BuildException {
     ArtifactDirectoryBuilder javaSrc = update.artifactDirectory(ArtifactDirectories.JAVA_GEN_SRC);
     ArtifactDirectoryBuilder javatestsSrc =
         update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
     ArrayListMultimap<Path, ArtifactWithOrigin> srcsByJavaPath = ArrayListMultimap.create();
-    for (TargetBuildInfo target : builtTargetsSupplier.get()) {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
       if (target.javaInfo().isEmpty()) {
         continue;
       }
