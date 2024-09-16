@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElementInstance
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /** Preview elements implementation for a wear tile. */
@@ -35,7 +33,7 @@ data class WearTilePreviewElement<T>(
   override val instanceId: String = methodFqn,
 ) : MethodPreviewElement<T>, ConfigurablePreviewElement<T>, PreviewElementInstance<T> {
   /**
-   * Contains the link to the most recently inflated view. Should be instance of
+   * Contains the link to the most recently inflated view. Should be an instance of
    * TileServiceViewAdapter. see [CLASS_TILE_SERVICE_VIEW_ADAPTER] class
    */
   val tileServiceViewAdapter: MutableStateFlow<Any?> = MutableStateFlow(null)
@@ -46,5 +44,3 @@ data class WearTilePreviewElement<T>(
     config: PreviewConfiguration,
   ) = copy(displaySettings = displaySettings, configuration = config)
 }
-
-typealias PsiWearTilePreviewElement = WearTilePreviewElement<SmartPsiElementPointer<PsiElement>>

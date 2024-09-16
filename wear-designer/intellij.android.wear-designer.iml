@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="intellij.android.preview-elements" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.wear-preview-elements" />
   </component>
 </module>

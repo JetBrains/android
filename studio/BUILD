@@ -245,6 +245,7 @@ studio_plugin(
             "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
+            "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
             "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",

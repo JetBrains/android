@@ -15,52 +15,16 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.intellij.openapi.application.runReadAction
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewElementTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  private val fixture: CodeInsightTestFixture
-    get() = projectRule.fixture
-
-  private lateinit var psiFile: PsiFile
-
-  @Before
-  fun setup() {
-    psiFile =
-      fixture.addFileToProjectAndInvalidate(
-        "com/android/test/File.kt",
-        // language=kotlin
-        """
-        package com.android.test
-
-        import androidx.wear.tiles.tooling.preview.Preview
-        import androidx.wear.tiles.tooling.preview.TilePreviewData
-
-        @Preview
-        private fun tilePreview(): TilePreviewData {
-          return TilePreviewData()
-        }
-        """
-          .trimIndent(),
-      )
-  }
-
   @Test
   fun twoPreviewElementsWithTheSameValuesShouldBeEqual() {
     val previewElement1 =
-      WearTilePreviewElement(
+      WearTilePreviewElement<Int>(
         displaySettings =
           PreviewDisplaySettings(
             "some name",
@@ -71,10 +35,10 @@ class WearTilePreviewElementTest {
             false,
             "0xffabcd",
           ),
-        previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
-        previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
+        previewElementDefinition = 1,
+        previewBody = 2,
         methodFqn = "someMethodFqn",
-        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+        configuration = PreviewConfiguration.Companion.cleanAndGet(device = "id:wearos_small_round"),
       )
 
     val previewElement2 =
@@ -89,10 +53,10 @@ class WearTilePreviewElementTest {
             false,
             "0xffabcd",
           ),
-        previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
-        previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
+        previewElementDefinition = 1,
+        previewBody = 2,
         methodFqn = "someMethodFqn",
-        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+        configuration = PreviewConfiguration.Companion.cleanAndGet(device = "id:wearos_small_round"),
       )
 
     assertEquals(previewElement1, previewElement2)
@@ -112,10 +76,10 @@ class WearTilePreviewElementTest {
             false,
             "0xffabcd",
           ),
-        previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
-        previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
+        previewElementDefinition = 1,
+        previewBody = 2,
         methodFqn = "someMethodFqn",
-        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+        configuration = PreviewConfiguration.Companion.cleanAndGet(device = "id:wearos_small_round"),
       )
 
     val newPreviewDisplaySettings =
@@ -129,7 +93,7 @@ class WearTilePreviewElementTest {
         "0xffffff",
       )
     val newConfig =
-      PreviewConfiguration.cleanAndGet(
+      PreviewConfiguration.Companion.cleanAndGet(
         device = "id:wearos_square",
         fontScale = 3f,
         locale = "fr-FR",

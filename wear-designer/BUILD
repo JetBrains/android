@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements[module]",
     ],
 )
 
@@ -68,5 +69,6 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer.tests[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements[module, test]",
     ],
 )
