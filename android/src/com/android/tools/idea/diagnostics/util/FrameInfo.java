@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.util;
 
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import java.lang.management.ThreadInfo;
 import java.util.*;
@@ -137,6 +138,8 @@ public class FrameInfo {
   }
 
   private long myTimeSpent;
+  @Nullable
+  private List<String> leafInfo = null;
 
   FrameInfo(@Nullable StackTraceElement element) {
     myChildren = new TreeMap<>(STACK_TRACE_ELEMENT_COMPARATOR);
@@ -155,13 +158,17 @@ public class FrameInfo {
   }
 
   public void addThreadInfo(@NotNull ThreadInfo ti, long timeSpent) {
+    addThreadInfo(ti, timeSpent, null);
+  }
+
+  public void addThreadInfo(@NotNull ThreadInfo ti, long timeSpent, @Nullable final String leafInfo) {
     if (isIdleThread(ti)) {
       return;
     }
-    addStack(ti.getStackTrace(), timeSpent);
+    addStack(ti.getStackTrace(), timeSpent, leafInfo);
   }
 
-  public void addStack(@NotNull StackTraceElement[] stackTrace, long timeSpent) {
+  public void addStack(@NotNull StackTraceElement[] stackTrace, long timeSpent, @Nullable final String leafInfo) {
     FrameInfo currentFrameInfo = this;
     int index = stackTrace.length - 1;
     while (index >= 0) {
@@ -174,6 +181,12 @@ public class FrameInfo {
       }
       currentFrameInfo = fi;
       index--;
+    }
+    if (leafInfo != null) {
+      if (currentFrameInfo.leafInfo == null) {
+        currentFrameInfo.leafInfo = Lists.newArrayList();
+      }
+      currentFrameInfo.leafInfo.add(leafInfo);
     }
     currentFrameInfo.myTimeSpent += timeSpent;
   }
@@ -196,6 +209,9 @@ public class FrameInfo {
     appendStackTraceForCurrentFrame(sb);
     sb.append(" [").append(myTimeSpent).append("ms]");
     sb.append('\n');
+    if (leafInfo != null) {
+      sb.append(indentString).append("{").append(String.join(";", leafInfo)).append("}").append('\n');
+    }
 
     FrameInfo[] childFrames = myChildren.values().toArray(EMPTY_FRAME_INFOS);
     Arrays.sort(childFrames, FRAME_INFO_COMPARATOR);
