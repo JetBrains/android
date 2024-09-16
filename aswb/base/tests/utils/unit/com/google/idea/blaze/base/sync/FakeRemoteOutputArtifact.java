@@ -22,14 +22,20 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 /** Use local file to fake {@link RemoteOutputArtifact} that used by tests. */
 public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   private final File file;
+  private final Path artifactPath;
 
-  public FakeRemoteOutputArtifact(File file) {
+  public FakeRemoteOutputArtifact(File file, Path artifactPath) {
+    if (!file.toPath().endsWith(artifactPath)) {
+      throw new IllegalArgumentException(file + "must end with " + artifactPath);
+    }
     this.file = file;
+    this.artifactPath = artifactPath;
   }
 
   @Override
@@ -48,8 +54,8 @@ public class FakeRemoteOutputArtifact implements RemoteOutputArtifact {
   }
 
   @Override
-  public String getBazelOutRelativePath() {
-    return file.getPath();
+  public Path getArtifactPath() {
+    return artifactPath;
   }
 
   @Nullable

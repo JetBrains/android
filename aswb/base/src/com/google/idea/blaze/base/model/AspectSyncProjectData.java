@@ -77,7 +77,7 @@ public final class AspectSyncProjectData implements BlazeProjectData {
     BlazeInfo blazeInfo = BlazeInfo.fromProto(buildSystemName, proto.getBlazeInfo());
     WorkspacePathResolver workspacePathResolver =
         WorkspacePathResolver.fromProto(proto.getWorkspacePathResolver());
-    ProjectTargetData targetData = parseTargetData(proto);
+    ProjectTargetData targetData = parseTargetData(buildSystemName, proto);
     return new AspectSyncProjectData(
         targetData,
         blazeInfo,
@@ -88,9 +88,9 @@ public final class AspectSyncProjectData implements BlazeProjectData {
         SyncState.fromProto(proto.getSyncState()));
   }
 
-  private static ProjectTargetData parseTargetData(ProjectData.BlazeProjectData proto) {
+  private static ProjectTargetData parseTargetData(BuildSystemName buildSystemName, ProjectData.BlazeProjectData proto) {
     if (proto.hasTargetData()) {
-      return ProjectTargetData.fromProto(proto.getTargetData());
+      return ProjectTargetData.fromProto(buildSystemName, proto.getTargetData());
     }
     // handle older version of project data
     TargetMap map = TargetMap.fromProto(proto.getTargetMap());
@@ -98,7 +98,7 @@ public final class AspectSyncProjectData implements BlazeProjectData {
         BlazeIdeInterfaceState.fromProto(proto.getSyncState().getBlazeIdeInterfaceState());
     RemoteOutputArtifacts remoteOutputs =
         proto.getSyncState().hasRemoteOutputArtifacts()
-            ? RemoteOutputArtifacts.fromProto(proto.getSyncState().getRemoteOutputArtifacts())
+            ? RemoteOutputArtifacts.fromProto(buildSystemName, proto.getSyncState().getRemoteOutputArtifacts())
             : RemoteOutputArtifacts.EMPTY;
     return new ProjectTargetData(map, ideInterfaceState, remoteOutputs);
   }
