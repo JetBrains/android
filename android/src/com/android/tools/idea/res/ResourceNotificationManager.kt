@@ -773,11 +773,6 @@ private class FileEventObserver(
 
           events
             .firstOrNull { event ->
-              // When a file is edited, the content of the files in every other opened tab will
-              // likely be refreshed from the file system, but a file refresh should not be
-              // considered as a potential IMAGE_RESOURCE_CHANGED. Instead, only events associated
-              // with saving a file should be considered.
-              if (!event.isFromSave) return@firstOrNull false
               val parent = event.file?.parent ?: return@firstOrNull false
 
               val resType = ResourceFolderType.getFolderType(parent.name)

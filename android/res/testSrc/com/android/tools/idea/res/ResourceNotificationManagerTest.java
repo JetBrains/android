@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForResourceRepositoryUpdates;
-import static com.intellij.openapi.vfs.newvfs.VfsImplUtil.forceSyncRefresh;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -333,111 +332,6 @@ public class ResourceNotificationManagerTest {
     ApplicationManager.getApplication()
       .invokeAndWait(() -> new RenameDialog(myProject, javaFile, null, null).performRename("newFile.java"));
     ensureNotCalled(called1, called2);
-  }
-
-  @Test
-  // Regression test for b/362961808
-  public void testResourceImageChangedNotNotifiedWhenOtherFileIsModified() throws Exception {
-    @Language("XML") String xml;
-
-    // Setup sample project: a layout file and an animated vector file
-
-    xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-          "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-          "    android:layout_width=\"match_parent\"\n" +
-          "    android:layout_height=\"match_parent\">\n" +
-          "    <!-- My comment -->\n" +
-          "    <TextView\n" +
-          "        android:layout_width=\"match_parent\"\n" +
-          "        android:layout_height=\"match_parent\"\n" +
-          "        android:text=\"@string/hello\" />\n" +
-          "</FrameLayout>";
-    XmlFile layout = (XmlFile)projectRule.getFixture().addFileToProject("res/layout/my_layout1.xml", xml);
-
-    xml = """
-        <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:aapt="http://schemas.android.com/aapt" >
-            <aapt:attr name="android:drawable">
-                <vector
-                    android:height="64dp"
-                    android:width="64dp"
-                    android:viewportHeight="600"
-                    android:viewportWidth="600" >
-                    <group
-                        android:name="rotationGroup"
-                        android:pivotX="300.0"
-                        android:pivotY="300.0"
-                        android:rotation="45.0" >
-                        <path
-                            android:name="v"
-                            android:fillColor="#000000"
-                            android:pathData="M300,70 l 0,-70 70,70 0,0 -70,70z" />
-                    </group>
-                </vector>
-            </aapt:attr>
-            <target android:name="rotationGroup">
-                <aapt:attr name="android:animation">
-                    <objectAnimator
-                        android:duration="6000"
-                        android:propertyName="rotation"
-                        android:valueFrom="0"
-                        android:valueTo="360" />
-                </aapt:attr>
-            </target>
-            <target android:name="v" >
-                <aapt:attr name="android:animation">
-                    <set>
-                        <objectAnimator
-                            android:duration="3000"
-                            android:propertyName="pathData"
-                            android:valueFrom="M300,70 l 0,-70 70,70 0,0 -70,70z"
-                            android:valueTo="M300,70 l 0,-70 70,0  0,140 -70,0 z"
-                            android:valueType="pathType"/>
-                    </set>
-                </aapt:attr>
-            </target>
-        </animated-vector>
-    """;
-
-    XmlFile animatedVector = (XmlFile)projectRule.getFixture().addFileToProject("res/drawable/my_animated_vector.xml", xml);
-
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(projectRule.getProject());
-
-    // Listener 1: Listens for changes in layout.
-    Ref<Boolean> called1 = new Ref<>(false);
-    Ref<Set<Reason>> calledValue1 = new Ref<>();
-    ResourceChangeListener listener1 = reason -> {
-      called1.set(true);
-      calledValue1.set(reason);
-    };
-
-    // Listener 2: Listens for changes in animated vector.
-    Ref<Boolean> called2 = new Ref<>(false);
-    Ref<Set<Reason>> calledValue2 = new Ref<>();
-    ResourceChangeListener listener2 = reason -> {
-      called2.set(true);
-      calledValue2.set(reason);
-    };
-
-    Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
-    Configuration configuration2 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(animatedVector.getVirtualFile());
-    manager.addListener(listener1, myFacet, layout.getVirtualFile(), configuration1);
-    manager.addListener(listener2, myFacet, animatedVector.getVirtualFile(), configuration2);
-
-    // First check: Modify the layout by changing @string/hello to @string/hello_world
-    // and verify that our listeners are called.
-    ResourceVersion version1 = manager.getCurrentVersion(myFacet, layout, configuration1);
-    // Edit the layout, and simulate a refresh in the animated vector (simulating how, in
-    // production, opened tabs refresh their content with the file system when any file is edited).
-    addText(layout, "@string/hello^", "_world");
-    forceSyncRefresh(animatedVector.getVirtualFile());
-
-    // Now only an EDIT should be notified, and not IMAGE_RESOURCE_CHANGED, as the animated vector
-    // didn't change, it was only refreshed.
-    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
-
-    ResourceVersion version2 = manager.getCurrentVersion(myFacet, layout, configuration1);
-    assertNotEquals(version1.toString(), version1, version2);
   }
 
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
