@@ -21,7 +21,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
-class EnhanceInsight : ChangeEvent {
+class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -35,7 +35,7 @@ class EnhanceInsight : ChangeEvent {
     } else {
       StateTransition(
         state.copy(currentInsight = LoadingState.Loading),
-        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, true),
+        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, contextSharingOverride),
       )
     }
   }

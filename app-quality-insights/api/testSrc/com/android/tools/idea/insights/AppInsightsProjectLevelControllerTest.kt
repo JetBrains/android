@@ -1549,7 +1549,7 @@ class AppInsightsProjectLevelControllerTest {
       )
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
 
-    controllerRule.controller.refreshInsight()
+    controllerRule.controller.refreshInsight(true)
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
 
