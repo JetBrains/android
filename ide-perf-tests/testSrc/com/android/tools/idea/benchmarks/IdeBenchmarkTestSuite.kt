@@ -30,12 +30,12 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
 
     init {
       try {
-        // SantaTracker.
+        // JetNews
         setUpSourceZip(
-          "prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
-          "tools/adt/idea/ide-perf-tests/testData/SantaTracker",
-          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2))
-        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip")
+          "prebuilts/studio/buildbenchmarks/JetNews.49f1048b/src.zip",
+          "tools/adt/idea/ide-perf-tests/testData/JetNews",
+          DiffSpec("prebuilts/studio/buildbenchmarks/JetNews.49f1048b/setupForIdeTest.diff", 0))
+        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/JetNews.49f1048b/repo.zip")
 
         // Updated SantaTracker project with Kotlin sources
         setUpSourceZip(
