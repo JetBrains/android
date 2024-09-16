@@ -114,7 +114,7 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
         }
       }
       throw new BuildException(
-        "Artifact" + buildArtifact.path() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
+        "Artifact" + buildArtifact.artifactPath() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
     };
   }
 

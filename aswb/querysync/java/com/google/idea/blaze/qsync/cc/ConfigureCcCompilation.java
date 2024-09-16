@@ -218,7 +218,7 @@ public class ConfigureCcCompilation {
     ArtifactDirectoryBuilder headersDir =
         update.artifactDirectory(ArtifactDirectories.GEN_CC_HEADERS);
     for (BuildArtifact artifact : ccInfo.genHeaders()) {
-      headersDir.addIfNewer(artifact.path(), artifact, buildContext);
+      headersDir.addIfNewer(artifact.artifactPath(), artifact, buildContext);
     }
   }
 

@@ -74,7 +74,7 @@ public class AndroidProjectProtoTransform implements ProjectProtoTransform {
                   }
                 }
                 throw new BuildException(
-                  "Artifact" + buildArtifact.path() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
+                  "Artifact" + buildArtifact.artifactPath() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
               },
               project.getProjectDefinition(),
               in -> ManifestParser.parseManifestFromInputStream(in).packageName),

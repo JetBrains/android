@@ -117,7 +117,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     DigestMap digestMap =
         new DigestMapImpl(
             outputInfo.getOutputGroups().values().stream()
-                .map(a -> new SimpleEntry<>(Path.of(a.getBazelOutRelativePath()), a.getDigest()))
+                .map(a -> new SimpleEntry<>(a.getArtifactPath(), a.getDigest()))
                 .distinct()
                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
             outputInfo.getTargetsWithErrors());

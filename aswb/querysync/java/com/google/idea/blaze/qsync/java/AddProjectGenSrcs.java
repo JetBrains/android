@@ -124,7 +124,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
                                                        ? ArtifactDirectories.JAVA_GEN_TESTSRC
                                                        : ArtifactDirectories.JAVA_GEN_SRC);
           Path finalDest =
-            Path.of(javaPackage.replace('.', '/')).resolve(genSrc.path().getFileName());
+            Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().getFileName());
           srcsByJavaPath.put(finalDest, ArtifactWithOrigin.create(genSrc, target.buildContext()));
         }
       }
@@ -155,7 +155,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
                   a ->
                     String.format(
                       "%s (%s built %s ago)",
-                      a.artifact().path(),
+                      a.artifact().artifactPath(),
                       a.artifact().target(),
                       formatDuration(
                         Duration.between(a.origin().startTime(), Instant.now()))))
