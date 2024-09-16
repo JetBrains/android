@@ -22,7 +22,7 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.intellij.openapi.project.Project
 
@@ -249,7 +249,7 @@ class AppInsightsTrackerImpl(
 
   override fun logInsightSentiment(
     sentiment: Sentiment,
-    experiment: Experiment,
+    experiment: InsightExperiment,
     crashType: AppQualityInsightsUsageEvent.CrashType,
   ) {
     UsageTracker.log(

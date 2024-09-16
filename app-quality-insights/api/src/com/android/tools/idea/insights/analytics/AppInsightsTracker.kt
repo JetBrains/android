@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.analytics
 import com.android.tools.idea.insights.ConnectionMode
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Experiment
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 
 interface AppInsightsTracker {
@@ -73,7 +73,7 @@ interface AppInsightsTracker {
     isFetched: Boolean,
   )
 
-  fun logInsightSentiment(sentiment: Sentiment, experiment: Experiment, crashType: CrashType)
+  fun logInsightSentiment(sentiment: Sentiment, experiment: InsightExperiment, crashType: CrashType)
 
   enum class ProductType {
     CRASHLYTICS,
