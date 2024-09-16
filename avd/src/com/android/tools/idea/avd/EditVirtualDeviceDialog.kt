@@ -65,7 +65,7 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
             device,
             avdInfo.systemImage,
             skins,
-            DeviceNameValidator(avdManager, currentName = avdInfo.displayName),
+            DeviceNameValidatorImpl(avdManager, currentName = avdInfo.displayName),
           ) { device, image ->
             builder.copyFrom(device, image)
 
