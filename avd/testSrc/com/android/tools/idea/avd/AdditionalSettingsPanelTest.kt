@@ -31,11 +31,11 @@ import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -106,12 +106,14 @@ class AdditionalSettingsPanelTest {
     rule.waitForIdle()
 
     // Assert
-    assertEquals(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)), state.device)
+    assertThat(state.device)
+      .isEqualTo(device.copy(expandedStorage = ExistingImage(mySdCardFileImg.toString())))
 
     // Act
     rule.onNodeWithTag("CustomRadioButton").performClick()
+    rule.waitForIdle()
 
     // Assert
-    assertEquals(device, state.device)
+    assertThat(state.device).isEqualTo(device)
   }
 }
