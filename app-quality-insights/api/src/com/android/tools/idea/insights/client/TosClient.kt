@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.insights.client
 
-interface ToSClient {
+import com.intellij.openapi.project.Project
+
+interface TosClient {
 
   /**
-   * Gets the user setting for the provided [rootKey], [project] and [subKey]
+   * Check for ToS acceptance for [firebaseProject]
    *
-   * @param rootKey: Top level key of user setting
-   * @param project: Cloud project associated with the setting
-   * @param subKey: Sub level key of user setting
+   * @param firebaseProject: Project ID of the firebase project
    */
-  fun getUserSetting(rootKey: String, project: String? = null, subKey: String? = null): Boolean
+  fun isTosAccepted(firebaseProject: String): Boolean
+
+  /** Try to accept the ToS for [firebaseProject] */
+  fun tryAcceptTos(firebaseProject: String, project: Project): Boolean
 }
 
-/** Stub [ToSClient] that returns `true` for any requested setting */
-class StubToSClient(private val response: Boolean) : ToSClient {
-  override fun getUserSetting(rootKey: String, project: String?, subKey: String?) = response
+/** Stub [TosClient] that returns `true` for any requested setting */
+class StubTosClient(private val response: Boolean) : TosClient {
+  override fun isTosAccepted(firebaseProject: String) = response
+
+  override fun tryAcceptTos(firebaseProject: String, project: Project): Boolean = response
 }
