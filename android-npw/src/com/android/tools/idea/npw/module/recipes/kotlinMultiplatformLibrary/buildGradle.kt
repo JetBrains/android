@@ -124,6 +124,8 @@ private fun androidTargetConfig(
           compilationName = "instrumentedTest"
           defaultSourceSetName = "androidInstrumentedTest"
           sourceSetTreeName = "test"
+      }.configure {
+        instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
       }
     }
 """

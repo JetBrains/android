@@ -80,7 +80,7 @@ private fun RecipeExecutor.generateModule(
   data.iosSrcDir?.let { addIosMain(packageName, it, language) }
 
   addMultiplatformLocalTests(packageName, data.unitTestDir)
-  addInstrumentedTests(packageName, useAndroidX, false, data.testDir, language)
+  addInstrumentedTests(packageName, useAndroidX, isLibraryProject = true, data.testDir, language)
   addInstrumentedTestDependencies()
 }
 
