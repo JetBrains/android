@@ -40,6 +40,9 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.StudioBotBundle
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
@@ -357,5 +360,30 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
       service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
+  }
+}
+
+class OpenStudioBotBuildIssueQuickFix(private val queryContext: String) : DescribedBuildIssueQuickFix {
+  override val id: String = "open.plugin.studio.bot"
+  override val description: String = StudioBotBundle.message("studiobot.ask.text")
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val studioBot = StudioBot.getInstance()
+    studioBot.sendChatQueryIfContextAllowed(project, "Explain build error: $queryContext", StudioBot.RequestSource.BUILD)
+    return CompletableFuture.completedFuture(null)
+  }
+}
+
+/** Sends chat query if context is allowed, otherwise stages it. */
+fun StudioBot.sendChatQueryIfContextAllowed(
+  project: Project,
+  query: String,
+  requestSource: StudioBot.RequestSource,
+) {
+  if (isContextAllowed(project)) {
+    val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
+    chat(project).sendChatQuery(prompt, requestSource)
+  } else {
+    chat(project).stageChatQuery(query, requestSource)
   }
 }

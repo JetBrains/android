@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
-import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.studiobot.StudioBot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -97,9 +96,8 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
       assertThat(consoleManager).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
       var environment = new ExecutionEnvironment();
       var filters = consoleManager.getCustomExecutionFilters(getProject(), resolveProjectTask, environment);
-      assertThat(filters.length).isEqualTo(2);
+      assertThat(filters.length).isEqualTo(1);
       assertThat(filters[0]).isInstanceOf(ReRunSyncFilter.class);
-      assertThat(filters[1]).isInstanceOf(ExplainBuildErrorFilter.class);
       var actions = consoleManager.getCustomContextActions(getProject(), resolveProjectTask, environment);
       assertThat(actions.length).isEqualTo(1);
       assertThat(actions[0]).isInstanceOf(ExplainSyncOrBuildOutput.class);

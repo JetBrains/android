@@ -18,10 +18,8 @@ package com.android.tools.idea.gradle.filters;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
-import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.studiobot.StudioBot;
-import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
@@ -64,22 +62,6 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
       return executionConsole;
     }
     return super.attachExecutionConsole(project, task, env, processHandler);
-  }
-
-  /** Converts console output items injected by Studio Bot into hyperlinks. */
-  @Override
-  public Filter[] getCustomExecutionFilters(@NotNull Project project,
-                                            @NotNull ExternalSystemTask task,
-                                            @Nullable ExecutionEnvironment env) {
-    Filter[] filters = super.getCustomExecutionFilters(project, task, env);
-    StudioBot studioBot = StudioBot.Companion.getInstance();
-    if (studioBot == null || !studioBot.isAvailable()) {
-      return filters;
-    }
-    Filter[] customFilters = new Filter[filters.length + 1];
-    System.arraycopy(filters, 0, customFilters, 0, filters.length);
-    customFilters[filters.length] = new ExplainBuildErrorFilter();
-    return customFilters;
   }
 
   @SuppressWarnings("UnstableApiUsage")

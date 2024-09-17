@@ -36,27 +36,31 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
   private val descriptionBuilder = StringBuilder(baseMessage)
   val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
 
-  fun addDescription(message: String) {
+  fun addDescription(message: String): BuildIssueComposer {
     descriptionBuilder.appendLine()
     descriptionBuilder.appendLine(message)
+    return this
   }
 
-  fun addQuickFix(quickFix: DescribedBuildIssueQuickFix) {
+  fun addQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildIssueComposer {
     issueQuickFixes.add(quickFix)
     descriptionBuilder.appendLine()
     descriptionBuilder.append(quickFix.html)
+    return this
   }
 
-  fun addQuickFix(text: String, quickFix: BuildIssueQuickFix) {
+  fun addQuickFix(text: String, quickFix: BuildIssueQuickFix): BuildIssueComposer {
     issueQuickFixes.add(quickFix)
     descriptionBuilder.appendLine()
     descriptionBuilder.append("<a href=\"${quickFix.id}\">$text</a>")
+    return this
   }
 
-  fun addQuickFix(prefix: String, text: String, suffix: String, quickFix: BuildIssueQuickFix) {
+  fun addQuickFix(prefix: String, text: String, suffix: String, quickFix: BuildIssueQuickFix): BuildIssueComposer {
     issueQuickFixes.add(quickFix)
     descriptionBuilder.appendLine()
     descriptionBuilder.append("$prefix<a href=\"${quickFix.id}\">$text</a>$suffix")
+    return this
   }
 
   fun composeBuildIssue(): BuildIssue {
