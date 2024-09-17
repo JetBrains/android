@@ -20,8 +20,8 @@ import com.android.emulator.control.InputEvent
 import com.android.emulator.control.XrInputEvent
 import com.android.emulator.control.XrInputEvent.NavButtonPressEvent
 import com.android.emulator.control.XrInputEvent.RelativeMoveEvent
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
