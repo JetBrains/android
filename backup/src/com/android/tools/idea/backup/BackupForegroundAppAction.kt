@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.adblib.DeviceSelector
+import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_ACTION
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
@@ -47,7 +48,7 @@ internal class BackupForegroundAppAction : AnAction() {
       handle?.scope?.launch {
         val applicationId = backupManager.getForegroundApplicationId(serialNumber)
         withContext(uiThread) {
-          backupManager.showBackupDialog(serialNumber, applicationId, BackupManager.Source.RUN_MENU)
+          backupManager.showBackupDialog(serialNumber, applicationId, BACKUP_FOREGROUND_APP_ACTION)
         }
       }
     }

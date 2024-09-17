@@ -28,8 +28,12 @@ interface BackupManager {
   /** Where in the UI was the action invoked from */
   enum class Source {
     DEVICE_EXPLORER,
-    RUN_MENU,
     PROJECT_VIEW,
+    RUN_CONFIG,
+    /** Correlate with `BackupAppAction.place` */
+    BACKUP_APP_ACTION,
+    /** Correlate with `BackupForegroundAppAction.place` */
+    BACKUP_FOREGROUND_APP_ACTION,
   }
 
   /**

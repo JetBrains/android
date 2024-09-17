@@ -35,7 +35,6 @@ import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
@@ -194,7 +193,7 @@ internal constructor(private val project: Project, private val backupService: Ba
         if (result is Error) {
           logger.warn(message("notification.error", operation), result.throwable)
         }
-        BackupUsageTracker.logBackup(D2D, source, result)
+        BackupUsageTracker.logBackup(DEVICE_TO_DEVICE, source, result)
         result
       }
     }

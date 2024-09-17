@@ -19,6 +19,7 @@ import com.android.backup.BackupResult.Error
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.ExecutionException
@@ -59,7 +60,7 @@ fun clearAppStorage(project: Project, device: IDevice, packageName: String, stat
 suspend fun restoreAppFromFile(project: Project, device: IDevice, backupFile: String, stats: RunStats) {
   stats.track("RESTORE_APP") {
     val backupManager = BackupManager.getInstance(project)
-    val result = backupManager.restore(device.serialNumber, backupFile.asPath(), BackupManager.Source.RUN_MENU,  notify = false)
+    val result = backupManager.restore(device.serialNumber, backupFile.asPath(), RUN_CONFIG, notify = false)
     if (result is Error) {
       val message = "Failed to restore app from backup on device ${device.name}\n${result.throwable.message}"
       throw ExecutionException(message, result.throwable)
