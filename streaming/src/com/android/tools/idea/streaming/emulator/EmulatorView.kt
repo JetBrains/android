@@ -158,7 +158,6 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON2
 import java.awt.event.MouseEvent.BUTTON3
 import java.awt.event.MouseWheelEvent
-import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 import java.awt.geom.AffineTransform
 import java.awt.geom.Area
 import java.awt.geom.RoundRectangle2D
@@ -1107,11 +1106,12 @@ class EmulatorView(
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {
       mouseCoordinates = event.point
-      if (event.wheelRotation == 0 || event.scrollType != WHEEL_UNIT_SCROLL) {
+      // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
+      val dy = -(event.getNormalizedScrollAmount() * EMULATOR_SCROLL_ADJUSTMENT_FACTOR).roundToInt()
+      if (dy == 0) {
         return
       }
-      // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
-      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDy(-event.wheelRotation * 120)).build()
+      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDy(dy)).build()
       emulator.getOrCreateInputEventSender().onNext(inputEvent)
     }
 
@@ -1578,6 +1578,8 @@ private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS
 // The same as MTS_PRESSURE_RANGE_MAX defined in
 // https://android.googlesource.com/platform/external/qemu/+/refs/heads/emu-master-dev/android/android-emu/android/multitouch-screen.h
 private const val PRESSURE_RANGE_MAX = 0x400
+
+internal const val EMULATOR_SCROLL_ADJUSTMENT_FACTOR = 100f
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
 

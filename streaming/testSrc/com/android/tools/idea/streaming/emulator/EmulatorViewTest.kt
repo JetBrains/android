@@ -691,7 +691,7 @@ class EmulatorViewTest {
         call = fakeEmulator.getNextGrpcCall(2.seconds)
         assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
       }
-      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-rotation * 120} }")
+      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-rotation * 25} }")
     }
   }
 
