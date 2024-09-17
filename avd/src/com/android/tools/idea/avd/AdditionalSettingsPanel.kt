@@ -16,19 +16,13 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,6 +56,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
@@ -71,12 +66,8 @@ internal fun AdditionalSettingsPanel(
   onImportButtonClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val scrollState = rememberScrollState()
-  Box(modifier) {
-    Column(
-      Modifier.verticalScroll(scrollState),
-      verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
-    ) {
+  VerticallyScrollableContainer(modifier) {
+    Column(verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
       Row {
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
@@ -111,10 +102,6 @@ internal fun AdditionalSettingsPanel(
         configureDevicePanelState::device::set,
       )
     }
-    VerticalScrollbar(
-      rememberScrollbarAdapter(scrollState),
-      modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-    )
   }
 }
 
@@ -485,7 +472,7 @@ private fun EmulatedPerformanceGroup(
       StorageCapacityField(
         device.vmHeapSize,
         onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM, bottom = Padding.SMALL),
       )
 
       InfoOutlineIcon(
