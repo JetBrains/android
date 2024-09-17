@@ -38,9 +38,10 @@ fun actionsForSelectedIssue(
   id: IssueId,
   fatality: FailureType,
   event: Event,
+  forceFetch: Boolean,
 ) =
   Action.FetchDetails(id) and
-    Action.FetchInsight(id, fatality, event) and
+    Action.FetchInsight(id, fatality, event, forceFetch = forceFetch) and
     if (key == VITALS_KEY) {
       Action.NONE
     } else {

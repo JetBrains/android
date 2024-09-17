@@ -379,6 +379,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
+    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

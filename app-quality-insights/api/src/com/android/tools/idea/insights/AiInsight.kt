@@ -23,5 +23,8 @@ data class AiInsight(
   /** The experiment that was conducted to generate this insight. */
   val experimentType: ExperimentType = ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED,
 ) {
+  // This is so creators of AiInsight don't have to depend on server flags
+  constructor(rawInsight: String) : this(rawInsight, ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
+
   fun isEnhancedWithCodeContext() = experimentType.supportsContextSharing()
 }
