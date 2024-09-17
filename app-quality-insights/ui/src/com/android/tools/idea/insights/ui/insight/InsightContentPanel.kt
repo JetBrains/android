@@ -131,6 +131,7 @@ class InsightContentPanel(
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
+      setLoadingText("Generating insight...")
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
       add(insightBottomPanel, BorderLayout.SOUTH)
