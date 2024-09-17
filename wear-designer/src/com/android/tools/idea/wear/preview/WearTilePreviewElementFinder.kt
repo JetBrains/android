@@ -28,6 +28,11 @@ import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_NAME
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.lang.java.JavaLanguage
@@ -152,8 +157,8 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
 
   val displaySettings = runReadAction {
-    val name = annotation.findAttributeValue("name")?.evaluateString()?.nullize()
-    val group = annotation.findAttributeValue("group")?.evaluateString()?.nullize()
+    val name = annotation.findAttributeValue(PARAMETER_NAME)?.evaluateString()?.nullize()
+    val group = annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
     PreviewDisplaySettings(
       buildPreviewName(
         methodName = uMethod.name,
@@ -175,14 +180,14 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 
   val configuration = runReadAction {
     val device =
-      annotation.findAttributeValue("device")?.evaluateString()?.nullize()
-        ?: defaultValues["device"]
+      annotation.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
+        ?: defaultValues[PARAMETER_DEVICE]
     val locale =
-      (annotation.findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])
-        ?.nullize()
+      (annotation.findAttributeValue(PARAMETER_LOCALE)?.evaluateString()?.nullize()
+        ?: defaultValues[PARAMETER_LOCALE])
     val fontScale =
-      annotation.findAttributeValue("fontScale")?.evaluate() as? Float
-        ?: defaultValues["fontScale"]?.toFloatOrNull()
+      annotation.findAttributeValue(PARAMETER_FONT_SCALE)?.evaluate() as? Float
+        ?: defaultValues[PARAMETER_FONT_SCALE]?.toFloatOrNull()
 
     PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
   }
