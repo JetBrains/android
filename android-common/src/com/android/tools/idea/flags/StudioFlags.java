@@ -1720,7 +1720,7 @@ public final class StudioFlags {
     "device.catalog.enabled",
     "Enable the Device Catalog for virtual device creation",
     "Enable new UI for creating AVDs",
-    false
+    ChannelDefault.enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> DIRECT_ACCESS_DEVICE_CATALOG_ENABLED = new BooleanFlag(
