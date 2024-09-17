@@ -4,6 +4,7 @@
 # to make supporting other versions of bazel easier, by replacing build_dependencies_deps.bzl.
 load(
     ":build_dependencies_deps.bzl",
+    "ANDROID_IDE_INFO",
     "CPP_COMPILE_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
     "ZIP_TOOL_LABEL",
@@ -235,7 +236,9 @@ def declares_android_resources(target, ctx):
     return hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
 
 def _get_android_provider(target):
-    if hasattr(android_common, "AndroidIdeInfo"):
+    if ANDROID_IDE_INFO and ANDROID_IDE_INFO in target:
+        return target[ANDROID_IDE_INFO]
+    elif hasattr(android_common, "AndroidIdeInfo"):
         if android_common.AndroidIdeInfo in target:
             return target[android_common.AndroidIdeInfo]
         else:
