@@ -109,7 +109,6 @@ class ScreenshotOptionsTest {
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly(
       "Automotive (1080p landscape)",
       "Automotive Large Portrait",
-      "Automotive",
       "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
   }
