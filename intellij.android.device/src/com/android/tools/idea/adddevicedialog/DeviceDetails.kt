@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,41 +34,41 @@ import java.text.DecimalFormat
 import java.util.NavigableSet
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 
 @Composable
 fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
-  Column(
-    verticalArrangement = Arrangement.spacedBy(4.dp),
-    modifier = modifier.padding(4.dp).verticalScroll(rememberScrollState()),
-  ) {
-    Text(
-      device.name,
-      fontWeight = FontWeight.Bold,
-      fontSize = LocalTextStyle.current.fontSize * 1.2,
-    )
+  VerticallyScrollableContainer {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = modifier.padding(4.dp)) {
+      Text(
+        device.name,
+        fontWeight = FontWeight.Bold,
+        fontSize = LocalTextStyle.current.fontSize * 1.2,
+      )
 
-    DeviceScreenDiagram(
-      device.resolution.width,
-      device.resolution.height,
-      diagonalLength = device.diagonalLengthString(),
-      round = device.isRound,
-      modifier =
-        Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
-    )
+      DeviceScreenDiagram(
+        device.resolution.width,
+        device.resolution.height,
+        diagonalLength = device.diagonalLengthString(),
+        round = device.isRound,
+        modifier =
+          Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
+      )
 
-    Header("Device")
-    LabeledValue("OEM", device.manufacturer)
+      Header("Device")
+      LabeledValue("OEM", device.manufacturer)
 
-    Header("System Image")
-    if (device.apiLevels.size > 1) {
-      LabeledValue("Supported APIs", device.apiLevels.firstAndLastApiLevel())
-    } else {
-      LabeledValue("API", device.apiLevels.last().apiLevel.toString())
+      Header("System Image")
+      if (device.apiLevels.size > 1) {
+        LabeledValue("Supported APIs", device.apiLevels.firstAndLastApiLevel())
+      } else {
+        LabeledValue("API", device.apiLevels.last().apiLevel.toString())
+      }
+
+      Header("Screen")
+      LabeledValue("Resolution", device.resolution.toString())
+      LabeledValue("Density", "${device.displayDensity} dpi")
     }
-
-    Header("Screen")
-    LabeledValue("Resolution", device.resolution.toString())
-    LabeledValue("Density", "${device.displayDensity} dpi")
   }
 }
 
