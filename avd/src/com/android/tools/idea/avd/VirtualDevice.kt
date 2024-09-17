@@ -67,7 +67,6 @@ internal constructor(
         device = device,
         skin = NoSkin.INSTANCE,
         frontCamera = AvdCamera.EMULATED,
-        // TODO We're assuming the emulator supports this feature
         rearCamera = AvdCamera.VIRTUAL_SCENE,
         speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
