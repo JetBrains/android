@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
+import com.android.tools.analytics.AnalyticsPaths
 import com.android.tools.idea.stats.ConsentDialog
 import com.android.tools.idea.tests.gui.framework.fixture.ConsentDialogFixture.Companion.find
 import com.intellij.openapi.application.PathManager
-import kotlin.io.path.exists
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.WaitTimedOutError
 import java.lang.Boolean.getBoolean
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.io.path.exists
 
 private const val ENABLE_LOGGING_PROPERTY = "enable.android.analytics.logging.for.test"
 
@@ -31,7 +32,7 @@ private val consentFile
   get() = PathManager.getCommonDataPath().resolve("consentOptions/accepted")
 
 private val analyticsSettingsFile
-  get() = Paths.get(System.getProperty("user.home")).resolve(".android/analytics.settings")
+  get() = Paths.get(AnalyticsPaths.getAndEnsureAndroidSettingsHome()).resolve("analytics.settings")
 
 private val enableLogging
   get() = getBoolean(ENABLE_LOGGING_PROPERTY)
@@ -70,6 +71,16 @@ fun setupAnalyticsFile() {
     analyticsSettingsFile.toFile().writeText(
       "{\"userId\":\"e7048a7a-7bae-4093-85dc-c4c1f99190cd\",\"saltSkew\":-1,\"lastOptinPromptVersion\":\"9999.9999\"}")
   }
+}
+
+fun setupHomeDirectory() {
+  // Include the pid in the analytics file path to prevent a hanging test process from affecting another one
+  val homeDirectory = Paths.get(AnalyticsPaths.getAndEnsureAndroidSettingsHome()).resolve(ProcessHandle.current().pid().toString())
+  AnalyticsPaths.overrideAndroidSettingsHomeDirectory(homeDirectory.toString())
+}
+
+fun restoreHomeDirectory() {
+  AnalyticsPaths.restoreAndroidSettingsHomeDirectory()
 }
 
 fun consentFileExists(): Boolean {
