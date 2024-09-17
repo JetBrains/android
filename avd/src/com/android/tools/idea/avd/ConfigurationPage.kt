@@ -98,11 +98,23 @@ internal fun WizardPageScope.ConfigurationPage(
 
   val state =
     remember(device) {
-      configureDevicePanelState(
-        device,
-        skins,
-        image ?: images.sortedWith(SystemImageComparator).last().takeIf { it.isRecommended() },
-      )
+      if (image == null) {
+        // Adding a device
+        val state =
+          ConfigureDevicePanelState(
+            device,
+            skins,
+            images.sortedWith(SystemImageComparator).last().takeIf { it.isRecommended() },
+          )
+
+        val skin = device.device.defaultHardware.skinFile
+        state.setSkin(resolve(if (skin == null) SkinUtils.noSkin() else skin.toPath(), emptyList()))
+
+        state
+      } else {
+        // Editing a device
+        ConfigureDevicePanelState(device, skins, image)
+      }
     }
 
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
@@ -145,21 +157,6 @@ internal fun WizardPageScope.ConfigurationPage(
     } else {
       WizardAction.Disabled
     }
-}
-
-private fun configureDevicePanelState(
-  device: VirtualDevice,
-  skins: ImmutableCollection<Skin>,
-  image: ISystemImage?,
-): ConfigureDevicePanelState {
-  val state = ConfigureDevicePanelState(device, skins, image)
-
-  if (image == null) {
-    val skin = device.device.defaultHardware.skinFile
-    state.setSkin(resolve(if (skin == null) SkinUtils.noSkin() else skin.toPath(), emptyList()))
-  }
-
-  return state
 }
 
 private suspend fun WizardDialogScope.finish(
