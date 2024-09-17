@@ -2096,7 +2096,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
                     "Use AI to suggest a better identifier name",
                     "Enables AI rename suggestion functionality",
-                    false);
+                    ChannelDefault.enabledUpTo(CANARY));
 
 
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
