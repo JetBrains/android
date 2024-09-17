@@ -618,7 +618,6 @@
     <notificationGroup id="Gradle Initializer" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Emulator" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.emulator"/>
     <notificationGroup id="Android Autogeneration" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.autogeneration.notification.group"/>
-    <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <!-- Default settings should match with the values specified in ProjectUpgradeNotification.kt -->
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
