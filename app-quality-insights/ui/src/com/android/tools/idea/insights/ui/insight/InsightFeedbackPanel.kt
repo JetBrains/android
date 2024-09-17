@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.insights.analytics.toExperiment
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.serverflags.protos.ExperimentType
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
@@ -118,13 +118,4 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
         THUMBS_DOWN -> Sentiment.THUMBS_DOWN
       }
   }
-
-  private fun ExperimentType.toExperiment() =
-    when (this) {
-      ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> InsightExperiment.UNKNOWN_EXPERIMENT
-      ExperimentType.CONTROL -> InsightExperiment.CONTROL
-      ExperimentType.TOP_SOURCE -> InsightExperiment.TOP_SOURCE
-      ExperimentType.TOP_THREE_SOURCES -> InsightExperiment.TOP_THREE_SOURCES
-      ExperimentType.ALL_SOURCES -> InsightExperiment.ALL_SOURCES
-    }
 }
