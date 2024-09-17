@@ -250,39 +250,37 @@ public class AndroidUtils extends CommonAndroidUtil {
     properties.RES_OVERLAY_FOLDERS.replaceAll(overlayFolder -> '/' + s + overlayFolder);
   }
 
+  // Note to the reader: originally, this loop attempted to detect an existing run configuration of the same type
+  // and the same module, and would short-circuit with the target selection mode of that configuration if present.
+  // However, the detection was buggy, because it was an identity comparison between a Module and a
+  // RunConfigurationModule, so the short-circuit was never taken in 13 years of the code existing.  It's not clear
+  // that this routine has any value at all (it will tend to choose the target selection mode from the last
+  // current run configuration in some arbitrary order) and in any case I would expect that the vast majority of
+  // projects have exactly one TargetSelectionMode available.
   @Nullable
-  public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Module module,
+  public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Project project,
                                                                   @NotNull ConfigurationType type,
                                                                   @NonNls ConfigurationType alternativeType) {
-    RunManager runManager = RunManager.getInstance(module.getProject());
+    RunManager runManager = RunManager.getInstance(project);
     List<RunConfiguration> configurations = runManager.getConfigurationsList(type);
 
     TargetSelectionMode alternative = null;
 
     if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
-        if (configuration instanceof AndroidRunConfigurationBase) {
-          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
-          TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
-          if (runConfig.getConfigurationModule() == module) {
-            return targetMode;
-          }
-          else {
-            alternative = targetMode;
-          }
+        if (configuration instanceof AndroidRunConfigurationBase runConfig) {
+          alternative = runConfig.getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }
-
     if (alternative != null) {
       return alternative;
     }
     configurations = runManager.getConfigurationsList(alternativeType);
-
     if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
-        if (configuration instanceof AndroidRunConfigurationBase) {
-          return ((AndroidRunConfigurationBase)configuration).getDeployTargetContext().getTargetSelectionMode();
+        if (configuration instanceof AndroidRunConfigurationBase runConfig) {
+          return runConfig.getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }
