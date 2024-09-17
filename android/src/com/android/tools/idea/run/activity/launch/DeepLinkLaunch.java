@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   public static final DeepLinkLaunch INSTANCE = new DeepLinkLaunch();
@@ -67,6 +68,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
 
   public static final class State extends LaunchOptionState {
     public String DEEP_LINK = "";
+    public String ACTIVITY = "";
 
     @Override
     protected boolean doLaunch(@NotNull IDevice device,
@@ -74,11 +76,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
                             @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
                             @NotNull ConsoleView console) throws ExecutionException {
       IShellOutputReceiver receiver = new AndroidBackgroundTaskReceiver(console);
-      String quotedLink = "'" + DEEP_LINK.replace("'", "'\\''") + "'";
-      String command = "am start" +
-                       " -a android.intent.action.VIEW" +
-                       " -c android.intent.category.BROWSABLE" +
-                       " -d " + quotedLink + (extraFlags.isEmpty() ? "" : " " + extraFlags);
+      String command = getAdbCommand(app, extraFlags);
       printShellCommand(console, command);
       try {
         device.executeShellCommand(command, receiver, 15, TimeUnit.SECONDS);
@@ -121,6 +119,20 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
         }
       }
       return ImmutableList.of();
+    }
+
+    @VisibleForTesting
+    public String getAdbCommand(
+      @NotNull App app,
+      @NotNull String extraFlags
+    ) {
+      String activityIfSpecified = (ACTIVITY == null || ACTIVITY.isBlank()) ? "" : (" -n " + app.getAppId() + "/" + ACTIVITY);
+      String quotedLink = "'" + DEEP_LINK.replace("'", "'\\''") + "'";
+      return "am start" +
+             activityIfSpecified +
+             " -a android.intent.action.VIEW" +
+             " -c android.intent.category.BROWSABLE" +
+             " -d " + quotedLink + (extraFlags.isEmpty() ? "" : " " + extraFlags);
     }
 
     @NotNull
