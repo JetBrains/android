@@ -17,8 +17,10 @@ package com.intellij.testGuiFramework.impl
 
 import com.android.tools.idea.tests.gui.framework.deleteAnalyticsFile
 import com.android.tools.idea.tests.gui.framework.deleteConsentFile
+import com.android.tools.idea.tests.gui.framework.restoreHomeDirectory
 import com.android.tools.idea.tests.gui.framework.setupAnalyticsFile
 import com.android.tools.idea.tests.gui.framework.setupConsentFile
+import com.android.tools.idea.tests.gui.framework.setupHomeDirectory
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.JUnitClientListener
 import com.intellij.testGuiFramework.remote.client.ClientHandler
@@ -87,9 +89,11 @@ class GuiTestThread : Thread(GUI_TEST_THREAD_NAME) {
 
   private fun runTest(testContainer: JUnitTestContainer) {
     setupConsentFile()
+    setupHomeDirectory()
     setupAnalyticsFile()
     core.run(Request.method(testContainer.testClass, testContainer.methodName))
     deleteConsentFile()
     deleteAnalyticsFile()
+    restoreHomeDirectory()
   }
 }
