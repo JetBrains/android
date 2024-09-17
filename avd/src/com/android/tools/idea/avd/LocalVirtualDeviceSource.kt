@@ -65,7 +65,8 @@ internal class LocalVirtualDeviceSource(
       pushPage {
         val deviceNameValidator = DeviceNameValidatorImpl(avdManager)
         ConfigurationPage(
-          profile.toVirtualDevice().copy(name = deviceNameValidator.uniquify(profile.name)),
+          VirtualDevice.withDefaults(profile.device)
+            .copy(name = deviceNameValidator.uniquify(profile.name)),
           null,
           skins,
           deviceNameValidator,
@@ -129,6 +130,3 @@ internal fun Device.toVirtualDeviceProfile(
   VirtualDeviceProfile.Builder()
     .apply { initializeFromDevice(this@toVirtualDeviceProfile, androidVersions) }
     .build()
-
-internal fun VirtualDeviceProfile.toVirtualDevice() =
-  VirtualDevice.withDefaults(device).copy(androidVersion = apiLevels.last())
