@@ -50,7 +50,6 @@ class AdditionalSettingsPanelTest {
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
-    val version = AndroidVersion(34, null, 7, true)
     val fileSystem = createInMemoryFileSystem()
     val home = System.getProperty("user.home")
 
@@ -58,7 +57,6 @@ class AdditionalSettingsPanelTest {
       VirtualDevice(
         device = readTestDevices().first { it.id == "pixel_8" },
         name = "Pixel 8 API 34",
-        androidVersion = version,
         skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_8")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
@@ -75,7 +73,7 @@ class AdditionalSettingsPanelTest {
       )
 
     val image = mock<ISystemImage>()
-    whenever(image.androidVersion).thenReturn(version)
+    whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
 
     val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image)
 

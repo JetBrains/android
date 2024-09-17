@@ -62,7 +62,6 @@ class VirtualDeviceTest {
 
     with(VirtualDevice.withDefaults(pixel8).copyFrom(avdBuilder)) {
       assertThat(device).isEqualTo(pixel8)
-      assertThat(androidVersion).isEqualTo(AndroidVersion(34))
       assertThat(name).isEqualTo("My Pixel")
       assertThat(expandedStorage).isEqualTo(Custom(StorageCapacity(100, StorageCapacity.Unit.MB)))
       assertThat(skin.path().toString()).isEqualTo("pixel_8")
@@ -90,7 +89,6 @@ class VirtualDeviceTest {
     val device =
       VirtualDevice(
         device = pixel8,
-        androidVersion = AndroidVersion(34),
         name = "My Pixel",
         expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB)),
         skin = DefaultSkin(Paths.get("pixel_8")),
