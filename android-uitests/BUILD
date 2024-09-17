@@ -153,6 +153,7 @@ maven_repository(
         "@maven//:androidx.compose.animation.animation_1.5.0-beta01",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.6.0",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.6.6",  # Necessary for Compose for TV
+        "@maven//:androidx.compose.animation.animation_1.7.0-beta05",
         "@maven//:androidx.compose.compiler.compiler_1.3.2",
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
