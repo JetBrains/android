@@ -686,6 +686,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
           permission = Permission.FULL,
+          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
       )
     return@runBlocking
@@ -1015,7 +1016,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentInsight = LoadingState.Loading,
+          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
       )
 

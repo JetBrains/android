@@ -143,16 +143,16 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
+        if (resultState.selectedIssue?.issueDetails?.fatality == FailureType.FATAL) {
+          client.completeFetchInsightCallWith(insightState)
+        }
         if (key != VITALS_KEY) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
-          if ((eventsState as? LoadingState.Ready)?.value?.events?.isNotEmpty() == true) {
-            client.completeFetchInsightCallWith(insightState)
-            consumeNext()
-          }
         }
       }
       if (key != VITALS_KEY) {
+        consumeNext()
         consumeNext()
         consumeNext()
         consumeNext()
@@ -377,7 +377,6 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     connection: Connection,
     issueId: IssueId,
     event: Event,
-    variantId: String?,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()

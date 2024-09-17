@@ -470,7 +470,6 @@ class VitalsClientTest {
         TEST_CONNECTION_1,
         ISSUE1.id,
         ISSUE1.sampleEvent,
-        null,
         TimeIntervalFilter.ONE_DAY,
         CodeContextData.EMPTY,
       )

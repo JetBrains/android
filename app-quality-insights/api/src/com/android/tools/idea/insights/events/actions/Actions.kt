@@ -140,7 +140,6 @@ sealed class Action {
     override val id: IssueId,
     val issueFatality: FailureType,
     val event: Event,
-    val variantId: String?,
     val contextSharingOverride: Boolean = false,
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =

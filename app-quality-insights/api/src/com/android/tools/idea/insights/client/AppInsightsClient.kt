@@ -101,7 +101,6 @@ interface AppInsightsClient {
     connection: Connection,
     issueId: IssueId,
     event: Event,
-    variantId: String?,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
   ): LoadingState.Done<AiInsight>
