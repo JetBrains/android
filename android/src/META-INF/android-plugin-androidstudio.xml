@@ -97,8 +97,23 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
+    <group id="Internal.Android.FreezeTools" popup="true" internal="true" text="Freeze">
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithLocks" id="DeadlockUIThread"
+              text="Create UI thread deadlock with Locks" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithLocksTimeout" id="DeadlockUIThreadWithTimeout"
+              text="Create UI thread deadlock with Locks (10s timeout)" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithSynchronized" id="DeadlockUIThreadWithSynchronized"
+              text="Create UI thread deadlock with Synchronized" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithReadAction" id="DeadlockUIThreadWithReadAction"
+              text="Create UI thread deadlock with Read action" internal="true"/>
+      <add-to-group group-id="Internal.Android"/>
+    </group>
+
     <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
-            text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true">
+              text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true">
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
