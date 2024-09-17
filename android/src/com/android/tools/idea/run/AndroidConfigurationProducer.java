@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
+
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.JavaExecutionUtil;
@@ -102,6 +104,12 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     return true;
+  }
+
+  @Override
+  protected Module findModule(AndroidRunConfiguration configuration, Module contextModule) {
+    Module module = super.findModule(configuration, contextModule);
+    return (module == null) ? null : getHolderModule(module);
   }
 
   @Override
