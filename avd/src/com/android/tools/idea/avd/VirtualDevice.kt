@@ -40,7 +40,6 @@ import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 
 @Immutable
@@ -151,11 +150,11 @@ internal data class Custom internal constructor(internal val value: StorageCapac
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage internal constructor(private val value: Path) :
+internal data class ExistingImage internal constructor(private val path: String) :
   ExpandedStorage() {
-  override fun isValid() = Files.isRegularFile(value)
+  override fun isValid() = Files.isRegularFile(Paths.get(path))
 
-  override fun toString() = value.toString()
+  override fun toString() = path
 }
 
 internal object None : ExpandedStorage() {
@@ -176,7 +175,7 @@ internal fun ExpandedStorage.toSdCard(): SdCard? =
 internal fun SdCard?.toExpandedStorage() =
   when (this) {
     null -> None
-    is ExternalSdCard -> ExistingImage(Paths.get(path))
+    is ExternalSdCard -> ExistingImage(path)
     is InternalSdCard -> Custom(StorageCapacity(size, StorageCapacity.Unit.B).withMaxUnit())
   }
 
