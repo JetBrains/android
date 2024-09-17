@@ -69,7 +69,7 @@ internal fun DevicePanel(
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
   images: ImmutableList<ISystemImage>,
-  deviceNameValidator: (String) -> String?,
+  deviceNameValidator: DeviceNameValidator,
   onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -84,7 +84,7 @@ internal fun DevicePanel(
       snapshotFlow { nameState.text.toString() }
         .collect {
           configureDevicePanelState.setDeviceName(it)
-          nameError = deviceNameValidator(it)
+          nameError = deviceNameValidator.validate(it)
           configureDevicePanelState.setIsDeviceNameValid(nameError == null)
         }
     }
