@@ -58,7 +58,7 @@ import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.android.studio.gemini.GeminiInsightsRequest
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -91,7 +91,7 @@ class VitalsClient(
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
-    fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource?,
+    fetchSource: FetchSource?,
     mode: ConnectionMode,
     permission: Permission,
   ): LoadingState.Done<IssueResponse> = supervisorScope {
@@ -137,13 +137,7 @@ class VitalsClient(
           MetricType.ERROR_REPORT_COUNT,
         )
       }
-      val issues = async {
-        fetchIssues(
-          request,
-          fetchSource ==
-            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH,
-        )
-      }
+      val issues = async { fetchIssues(request, fetchSource == FetchSource.REFRESH) }
 
       LoadingState.Ready(
         IssueResponse(
@@ -233,8 +227,16 @@ class VitalsClient(
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
+    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
-    return LoadingState.Ready(aiInsightClient.fetchCrashInsight("", event.toGeminiInsightRequest()))
+    val cachedInsight = cache.getAiInsight(connection, issueId)
+    return if (cachedInsight == null || forceFetch) {
+      val insight = aiInsightClient.fetchCrashInsight("", event.toGeminiInsightRequest())
+      cache.putAiInsight(connection, issueId, insight)
+      LoadingState.Ready(insight)
+    } else {
+      LoadingState.Ready(cachedInsight)
+    }
   }
 
   private suspend fun fetchIssues(

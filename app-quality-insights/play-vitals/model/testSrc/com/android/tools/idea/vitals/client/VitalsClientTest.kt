@@ -16,8 +16,10 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DeviceType
@@ -38,6 +40,7 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.FakeAiInsightClient
@@ -46,6 +49,7 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.zeroCounts
+import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
@@ -484,5 +488,103 @@ class VitalsClientTest {
           "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)" +
           "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)"
       )
+  }
+
+  @Test
+  fun `fetch insight caches new insights`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(
+          projectId: String,
+          additionalContextMsg: Message,
+        ): AiInsight {
+          return DEFAULT_AI_INSIGHT
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    client.fetchInsight(
+      TEST_CONNECTION_1,
+      ISSUE1.id,
+      ISSUE1.sampleEvent,
+      TimeIntervalFilter.ONE_DAY,
+      CodeContextData.EMPTY,
+      false,
+    )
+    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id)).isEqualTo(DEFAULT_AI_INSIGHT)
+  }
+
+  @Test
+  fun `fetch insight uses cached insight when not forced to refetch`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    assertThat(
+        client.fetchInsight(
+          TEST_CONNECTION_1,
+          ISSUE1.id,
+          ISSUE1.sampleEvent,
+          TimeIntervalFilter.ONE_DAY,
+          CodeContextData.EMPTY,
+          false,
+        )
+      )
+      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+  }
+
+  @Test
+  fun `fetch insight is forced to call API when forceFetch is true`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
+
+    val newInsight = AiInsight("new")
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(
+          projectId: String,
+          additionalContextMsg: Message,
+        ): AiInsight {
+          return newInsight
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    assertThat(
+        client.fetchInsight(
+          TEST_CONNECTION_1,
+          ISSUE1.id,
+          ISSUE1.sampleEvent,
+          TimeIntervalFilter.ONE_DAY,
+          CodeContextData.EMPTY,
+          true,
+        )
+      )
+      .isEqualTo(LoadingState.Ready(newInsight))
   }
 }
