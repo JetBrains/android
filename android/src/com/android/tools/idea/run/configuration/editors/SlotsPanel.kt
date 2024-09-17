@@ -77,30 +77,26 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
     )
     boxWithSlotList = Box.createVerticalBox()
     boxWithSlotList.alignmentY = TOP_ALIGNMENT
-    populateSlotList()
     val mainBox = Box.createHorizontalBox().apply { preferredSize = Dimension(650, 300) }
     mainBox.add(boxWithSlotList)
     mainBox.add(Box.createGlue())
     imageBox = Box.createVerticalBox()
     imageBox.alignmentY = TOP_ALIGNMENT
-    image.updateCurrentModel(currentModel)
-    imageBox.add(image, BorderLayout.CENTER)
     mainBox.add(imageBox)
 
     slotsUiPanel.add(mainBox)
+    repaintSlotsComponent()
   }
 
   private fun repaintSlotsComponent() {
     boxWithSlotList.removeAll()
     populateSlotList()
-    boxWithSlotList.revalidate()
-    boxWithSlotList.repaint()
 
     imageBox.removeAll()
     image.updateCurrentModel(currentModel)
     imageBox.add(image, BorderLayout.CENTER)
-    imageBox.revalidate()
-    imageBox.repaint()
+
+    slotsUiPanel.revalidate()
   }
 
   private fun populateSlotList() {
@@ -328,6 +324,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
         null,
       )
       g?.color = JBColor.red
+
       // We first draw the LARGE_IMAGE complication, as other complications will overlap with it.
       val largeImageSlot =
         currentModel.currentChosenSlots.firstOrNull { it.type == ComplicationType.LARGE_IMAGE }

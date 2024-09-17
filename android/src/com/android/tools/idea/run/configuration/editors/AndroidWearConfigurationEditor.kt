@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ScopeType
@@ -29,14 +32,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.GlobalSearchScope
@@ -48,16 +49,18 @@ import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RowLayout
-import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.selectedValueIs
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.event.ActionListener
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
@@ -66,7 +69,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
   private val configuration: T,
 ) : SettingsEditor<T>() {
 
-  private val modulesComboBox = ModulesComboBox()
+  protected val modulesComboBox = ModulesComboBox()
 
   val moduleSelector =
     object : ConfigurationModuleSelector(project, modulesComboBox) {
@@ -78,67 +81,65 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
       }
     }
 
-  private lateinit var wearComponentFqNameComboBox: ComboBox<String>
-  protected var componentName: String? = null
-    private set(value) {
-      if (field != value) {
-        field = value
-        onComponentNameChanged(value)
-      }
-    }
-
+  protected lateinit var wearComponentFqNameComboBox: ComboBox<String>
   private var installFlags: String = ""
 
-  init {
-    Disposer.register(project, this)
+  val scope = AndroidCoroutineScope(this)
 
-    modulesComboBox.addActionListener {
-      object :
-          Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
-          var availableComponents: Set<String> = emptySet()
-
-          override fun run(indicator: ProgressIndicator) {
-            val module = moduleSelector.module
-            if (module == null || DumbService.isDumb(project)) {
-              return
-            }
-            availableComponents =
-              ApplicationManager.getApplication()
-                .runReadAction(Computable { findAvailableComponents(module) })
-          }
-
-          override fun onFinished() {
-            wearComponentFqNameComboBox.model =
-              DefaultComboBoxModel(availableComponents.toTypedArray())
-            componentName = wearComponentFqNameComboBox.item
-            if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
-              component?.parent?.parent?.apply {
-                removeAll()
-                layout = BorderLayout()
-                add(
-                  JBPanelWithEmptyText()
-                    .withEmptyText(
-                      AndroidBundle.message("android.run.configuration.synchronization.warning")
-                    )
+  private val moduleListener: ActionListener = ActionListener {
+    scope.launch(workerThread) {
+      if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
+        withContext(uiThread) {
+          component?.parent?.parent?.apply {
+            removeAll()
+            layout = BorderLayout()
+            add(
+              JBPanelWithEmptyText()
+                .withEmptyText(
+                  AndroidBundle.message("android.run.configuration.synchronization.warning")
                 )
-              }
-            }
+            )
           }
         }
-        .queue()
+        return@launch
+      }
+      updateComponents()
     }
   }
 
-  open fun onComponentNameChanged(newComponent: String?) {}
+  private suspend fun updateComponents() {
+    val module = moduleSelector.module
+    var availableComponents = emptySet<String>()
+    if (module == null || DumbService.isDumb(project)) {
+      wearComponentFqNameComboBox.model = DefaultComboBoxModel(emptyArray())
+    } else {
+      availableComponents = blockingContext {
+        ApplicationManager.getApplication()
+          .runReadAction(Computable { findAvailableComponents(module) })
+      }
+      wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
+    }
+    // to explicitly fire action event
+    wearComponentFqNameComboBox.item = availableComponents.firstOrNull()
+  }
+
+  init {
+    modulesComboBox.addActionListener(moduleListener)
+  }
 
   override fun resetEditorFrom(runConfiguration: T) {
+    scope.launch { reset(runConfiguration) }
+  }
+
+  protected suspend fun reset(runConfiguration: T) {
+    modulesComboBox.removeActionListener(moduleListener)
     moduleSelector.reset(runConfiguration)
-    val componentClass = moduleSelector.module?.let { getComponentSearchScope(it) }
-    if (componentClass != null) {
-      componentName = runConfiguration.componentLaunchOptions.componentName
-    }
     installFlags = runConfiguration.deployOptions.pmInstallFlags
+    updateComponents()
+
+    wearComponentFqNameComboBox.item = runConfiguration.componentLaunchOptions.componentName
     (component as DialogPanel).reset()
+    modulesComboBox.addActionListener(moduleListener)
   }
 
   private fun getComponentSearchScope(module: Module) =
@@ -147,7 +148,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
-    runConfiguration.componentLaunchOptions.componentName = componentName
+    runConfiguration.componentLaunchOptions.componentName = wearComponentFqNameComboBox.item
     runConfiguration.deployOptions.pmInstallFlags = installFlags
   }
 
@@ -194,10 +195,10 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(
                             configuration.componentLaunchOptions.userVisibleComponentTypeName,
                           )
                       }
+                    isEnabled = value != null
                   }
                 },
             )
-            .bindItem(::componentName)
             .enabledIf(modulesComboBox.selectedValueIs(null).not())
             .align(AlignX.FILL)
             .applyToComponent {
