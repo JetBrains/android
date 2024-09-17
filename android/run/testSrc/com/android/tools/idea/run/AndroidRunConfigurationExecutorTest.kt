@@ -31,10 +31,9 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.backup.BackupManager
-import com.android.tools.idea.backup.BackupManager.Source.RUN_MENU
+import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
-import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -192,7 +191,7 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_CONFIG, null, false)
     }
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
@@ -250,7 +249,7 @@ class AndroidRunConfigurationExecutorTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_CONFIG, null, false)
     }
 
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
