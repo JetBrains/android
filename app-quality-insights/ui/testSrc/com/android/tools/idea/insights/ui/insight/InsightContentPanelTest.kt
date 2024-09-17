@@ -26,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
 import javax.swing.JButton
@@ -81,6 +82,16 @@ class InsightContentPanelTest {
           }
         },
       ) {}
+  }
+
+  @Test
+  fun `test loading state`() = runBlocking {
+    currentInsightFlow.update { LoadingState.Loading }
+
+    val fakeUi = FakeUi(insightContentPanel)
+
+    val loadingPanel = fakeUi.findComponent<JBLoadingPanel>() ?: fail("Loading panel not found")
+    assertThat(loadingPanel.getLoadingText()).isEqualTo("Generating insight...")
   }
 
   @Test
