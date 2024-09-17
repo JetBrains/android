@@ -20,6 +20,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk;
 import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -41,12 +42,14 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
+import java.awt.event.ItemEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import org.jdesktop.swingx.sort.RowFilters.GeneralFilter;
 import org.jetbrains.annotations.NotNull;
@@ -72,41 +75,20 @@ public class ResourceTablePanel {
     }
 
     Collection<PackageChunk> packages = resourceTableChunk.getPackages();
-
+    StringPoolChunk stringPool = resourceTableChunk.getStringPool();
     myPackageCombo.setModel(new CollectionComboBoxModel<>(ImmutableList.copyOf(packages)));
     myPackageCombo.setRenderer(SimpleListCellRenderer.create("<No Resources>", PackageChunk::getPackageName));
     myPackageCombo.setMinimumAndPreferredWidth(JBUIScale.scale(250));
+    myPackageCombo.addItemListener(e -> {
+      if (e.getStateChange() == ItemEvent.SELECTED) {
+        PackageChunk packageChunk = myPackageCombo.getItem();
+        onPackageSelected(packageChunk, stringPool);
+      }
+    });
 
     if (!packages.isEmpty()) {
       PackageChunk packageChunk = packages.stream().findFirst().get();
-      myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
-      myTypesList.setCellRenderer(SimpleListCellRenderer.create("", TypeSpecChunk::getTypeName));
-      myTypesList.addListSelectionListener(e -> {
-        TypeSpecChunk selectedValue = myTypesList.getSelectedValue();
-        if (selectedValue == null) {
-          return;
-        }
-
-        ResourceTypeTableModel model = new ResourceTypeTableModel(resourceTableChunk.getStringPool(), packageChunk, selectedValue);
-        myResourceTypeTable.setModel(model);
-
-        TableRowSorter<ResourceTypeTableModel> rowSorter = new TableRowSorter<>(model);
-        myResourceTypeTable.setRowSorter(rowSorter);
-
-        myResourceTypeTable.getColumnModel().getColumn(0).setMinWidth(100); // resource id column
-        myResourceTypeTable.getColumnModel().getColumn(1).setMinWidth(250); // resource name column
-
-        int resourceCount = selectedValue.getResourceCount();
-        int configCount = packageChunk.getTypeChunks(selectedValue.getId()).size();
-
-        // Render a sentence like: "There [is|are] N layout resources across M configuration[s]."
-        myResourceTableHeader.clear();
-        myResourceTableHeader.append("There " + (resourceCount > 1 ? "are " : "is "));
-        myResourceTableHeader.append(Integer.toString(resourceCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        myResourceTableHeader.append(" " + selectedValue.getTypeName() + (resourceCount > 1 ? " resources" : " resource") + " across ");
-        myResourceTableHeader.append(Integer.toString(configCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        myResourceTableHeader.append(" configuration" + (configCount > 1 ? "s" : ""));
-      });
+      onPackageSelected(packageChunk, stringPool);
     }
 
     EditorTextField myFilter = new EditorTextField();
@@ -121,6 +103,38 @@ public class ResourceTablePanel {
           sorter.setRowFilter(new ResourceFilter(myFilter.getText()));
         }
       }
+    });
+  }
+
+  private void onPackageSelected(PackageChunk packageChunk, StringPoolChunk stringPool) {
+    myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
+    myTypesList.setCellRenderer(SimpleListCellRenderer.create("", TypeSpecChunk::getTypeName));
+    myTypesList.addListSelectionListener(e -> {
+      TypeSpecChunk selectedValue = myTypesList.getSelectedValue();
+      if (selectedValue == null) {
+        myResourceTypeTable.setModel(new DefaultTableModel());
+        myResourceTableHeader.clear();
+        return;
+      }
+      ResourceTypeTableModel model = new ResourceTypeTableModel(stringPool, packageChunk, selectedValue);
+      myResourceTypeTable.setModel(model);
+
+      TableRowSorter<ResourceTypeTableModel> rowSorter = new TableRowSorter<>(model);
+      myResourceTypeTable.setRowSorter(rowSorter);
+
+      myResourceTypeTable.getColumnModel().getColumn(0).setMinWidth(100); // resource id column
+      myResourceTypeTable.getColumnModel().getColumn(1).setMinWidth(250); // resource name column
+
+      int resourceCount = selectedValue.getResourceCount();
+      int configCount = packageChunk.getTypeChunks(selectedValue.getId()).size();
+
+      // Render a sentence like: "There [is|are] N layout resources across M configuration[s]."
+      myResourceTableHeader.clear();
+      myResourceTableHeader.append("There " + (resourceCount != 1 ? "are " : "is "));
+      myResourceTableHeader.append(Integer.toString(resourceCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      myResourceTableHeader.append(" " + selectedValue.getTypeName() + (resourceCount != 1 ? " resources" : " resource") + " across ");
+      myResourceTableHeader.append(Integer.toString(configCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      myResourceTableHeader.append(" configuration" + (configCount != 1 ? "s" : ""));
     });
   }
 
