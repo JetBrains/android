@@ -175,7 +175,7 @@ public class LocalResourceManager extends ResourceManager {
         items = leafRepository.getResources(namespace, resourceType, nameToLookFor);
       }
       else {
-        items = leafRepository.getResources(namespace, resourceType, item -> AndroidUtils.equal(nameToLookFor, item.getName(), false));
+        items = leafRepository.getResources(namespace, resourceType, item -> AndroidUtils.equalIgnoringDelimiters(nameToLookFor, item.getName()));
       }
 
       for (ResourceItem item : items) {
