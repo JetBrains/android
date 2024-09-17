@@ -138,6 +138,7 @@ private val Device.formFactor: String
       Device.isAutomotive(this) -> FormFactors.AUTO
       Device.isTv(this) -> FormFactors.TV
       Device.isTablet(this) -> FormFactors.TABLET
+      Device.isDesktop(this) -> FormFactors.DESKTOP
       else -> FormFactors.PHONE
     }
 
