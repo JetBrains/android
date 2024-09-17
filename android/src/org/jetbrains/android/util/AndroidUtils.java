@@ -117,29 +117,17 @@ public class AndroidUtils extends CommonAndroidUtil {
   @NonNls public static final String MANIFEST_CLASS_NAME = SdkConstants.FN_MANIFEST_BASE;
 
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
-  @NonNls public static final String WALLPAPER_SERVICE_ACTION_NAME = "android.service.wallpaper.WallpaperService";
 
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
   @NonNls public static final String LEANBACK_LAUNCH_CATEGORY_NAME = "android.intent.category.LEANBACK_LAUNCHER";
   @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
-  @NonNls public static final String WATCHFACE_CATEGORY_NAME = "com.google.android.wearable.watchface.category.WATCH_FACE";
 
   @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = SdkConstants.CLASS_INSTRUMENTATION;
   @NonNls public static final String SERVICE_CLASS_NAME = SdkConstants.CLASS_SERVICE;
   @NonNls public static final String RECEIVER_CLASS_NAME = SdkConstants.CLASS_BROADCASTRECEIVER;
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
-  // Properties
-  @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
-  @NonNls public static final String ANDROID_PROJECT_TYPE_PROPERTY = "project.type";
-  @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
-  @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
-  @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
-  @NonNls public static final String ANDROID_TARGET_PROPERTY = ProjectProperties.PROPERTY_TARGET;
-  @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
   @NonNls public static final String TAG_LINEAR_LAYOUT = SdkConstants.LINEAR_LAYOUT;
-  private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
-    SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
   private static class LazyHolder {
     static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
@@ -217,43 +205,6 @@ public class AndroidUtils extends CommonAndroidUtil {
   public static VirtualFile createChildDirectoryIfNotExist(Project project, VirtualFile parent, String name) throws IOException {
     VirtualFile child = parent.findChild(name);
     return child == null ? parent.createChildDirectory(project, name) : child;
-  }
-
-  @Nullable
-  public static PsiFile getContainingFile(@NotNull PsiElement element) {
-    return element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-  }
-
-  public static void navigateTo(@NotNull PsiElement[] targets, @Nullable RelativePoint pointToShowPopup) {
-    if (targets.length == 0) {
-      JComponent renderer = HintUtil.createErrorLabel("Empty text");
-      JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(renderer, renderer).createPopup();
-      if (pointToShowPopup != null) {
-        popup.show(pointToShowPopup);
-      }
-      return;
-    }
-    if (targets.length == 1 || pointToShowPopup == null) {
-      PsiNavigateUtil.navigate(targets[0]);
-    }
-    else {
-      DefaultPsiElementCellRenderer renderer = new DefaultPsiElementCellRenderer() {
-        @Override
-        public String getElementText(PsiElement element) {
-          PsiFile file = getContainingFile(element);
-          return file != null ? file.getName() : super.getElementText(element);
-        }
-
-        @Override
-        public String getContainerText(PsiElement element, String name) {
-          PsiFile file = getContainingFile(element);
-          PsiDirectory dir = file != null ? file.getContainingDirectory() : null;
-          return dir == null ? "" : '(' + dir.getName() + ')';
-        }
-      };
-      JBPopup popup = NavigationUtil.getPsiElementPopup(targets, renderer, null);
-      popup.show(pointToShowPopup);
-    }
   }
 
   @NotNull
@@ -350,30 +301,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       }
     }
     return true;
-  }
-
-  @NotNull
-  public static List<AndroidFacet> getAndroidLibraryDependencies(@NotNull Module module) {
-    List<AndroidFacet> depFacets = new ArrayList<>();
-
-    for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-      if (orderEntry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
-          Module depModule = moduleOrderEntry.getModule();
-
-          if (depModule != null) {
-            AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
-
-            if (depFacet != null && depFacet.getConfiguration().canBeDependency()) {
-              depFacets.add(depFacet);
-            }
-          }
-        }
-      }
-    }
-    return depFacets;
   }
 
   public static void checkNewPassword(JPasswordField passwordField, JPasswordField confirmedPasswordField) throws CommitStepException {
@@ -579,26 +506,8 @@ public class AndroidUtils extends CommonAndroidUtil {
     return StringUtil.isJavaIdentifier(candidate) && !PsiUtil.isKeyword(candidate, LanguageLevel.JDK_1_5);
   }
 
-  public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notification notification = new Notification(NotificationGroup.createIdWithTitle(
-      "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
-                                              AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, NotificationType.ERROR);
-    if (listener != null) notification.setListener(listener);
-    notification.notify(project);
-    LOG.debug(message);
-  }
-
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {
     return name.equals(prefix) || name.startsWith(prefix + ".");
-  }
-
-  @NotNull
-  public static Set<Module> getSetWithBackwardDependencies(@NotNull Module module) {
-    Graph<Module> graph = ModuleManager.getInstance(module.getProject()).moduleGraph();
-    Set<Module> set = new HashSet<>();
-    GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
-    return set;
   }
 
   @NotNull
@@ -615,30 +524,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
-  }
-
-  public static boolean isAndroidComponent(@NotNull PsiClass c) {
-    Project project = c.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-
-    for (String componentClassName : ANDROID_COMPONENT_CLASSES) {
-      PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
-      if (componentClass != null && c.isInheritor(componentClass, true)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Do not use. Use {@code CommonAndroidutil.getInstance().isAndroidProject()} to test whether
-   * a project is an Android project.
-   */
-  @Deprecated(forRemoval = true)
-  public static boolean hasAndroidFacets(@NotNull Project project) {
-    LOG.error("hasAndroidFacets is to be removed. Use CommonAndroidutil.getInstance().isAndroidProject().");
-    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.ID);
   }
 
   /**
