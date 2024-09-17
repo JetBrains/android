@@ -175,6 +175,7 @@ class StackTraceConsole(
     synchronized(CONSOLE_LOCK) {
       consoleView.flushDeferredText()
       consoleView.editor.document.setText("")
+      currentEvent = null
     }
 
   private fun clearResolvedInfoCacheAndRehighlight() {
