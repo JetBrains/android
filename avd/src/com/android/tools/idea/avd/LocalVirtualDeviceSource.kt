@@ -21,6 +21,7 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
@@ -46,8 +47,8 @@ import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
-  private val avdManager: AvdManager =
-    IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler()),
+  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
 ) : DeviceSource<VirtualDeviceProfile> {
 
   companion object {
@@ -70,6 +71,7 @@ internal class LocalVirtualDeviceSource(
           null,
           skins,
           deviceNameValidator,
+          sdkHandler,
           ::add,
         )
       }
@@ -89,11 +91,8 @@ internal class LocalVirtualDeviceSource(
         // Note that we don't care about systemImages being updated; the only way it changes is if
         // we download an image, thus converting an image from remote to local, and we only care
         // about API levels here.
-        val systemImages =
-          ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler()).first()
-
-        val deviceManager =
-          DeviceManagers.getDeviceManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
+        val systemImages = ISystemImages.systemImageFlow(sdkHandler).first()
+        val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
 
         fun sendDevices() {
           val profiles =
