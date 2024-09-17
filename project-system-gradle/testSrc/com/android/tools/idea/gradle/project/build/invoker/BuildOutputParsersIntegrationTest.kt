@@ -18,26 +18,29 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
+import com.android.tools.idea.studiobot.StudioBot
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.BuildProgressListener
 import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.internal.DummyBuildViewManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.DisposableWrapperList
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
@@ -51,7 +54,6 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
   private lateinit var myTracker: TestUsageTracker
   private lateinit var myRequest: GradleBuildInvoker.Request
   private val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
-
 
   val allBuildEventsProcessedLatch = CountDownLatch(1)
 
@@ -91,6 +93,7 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
   override fun tearDown() {
     myTracker.close()
     UsageTracker.cleanAfterTesting()
+    buildEvents.clear()
     super.tearDown()
   }
 
@@ -106,7 +109,6 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
     assertThat(sentMetricsData.lineLocationIncluded).isEqualTo(lineIncluded)
   }
 
-  @Test
   fun testAndroidGradlePluginErrors() {
     val buildListener =
       GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
@@ -115,64 +117,8 @@ class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
         myRequest,
         ""
       )
-    val path = tempDir.newPath("styles.xml")
-    val absolutePath = StringUtil.escapeBackSlashes(path.toAbsolutePath().toString())
-    val output = """
-Executing tasks: [clean, :app:assembleDebug]
-> Task :clean UP-TO-DATE
-> Task :app:clean
-> Task :app:preBuild UP-TO-DATE
-> Task :app:extractProguardFiles
-> Task :app:preDebugBuild
-> Task :app:checkDebugManifest
-> Task :app:generateDebugBuildConfig
-> Task :app:mainApkListPersistenceDebug
-> Task :app:generateDebugResValues
-> Task :app:createDebugCompatibleScreenManifests
-> Task :app:mergeDebugShaders
-> Task :app:compileDebugShaders
-> Task :app:compileDebugAidl NO-SOURCE
-> Task :app:compileDebugRenderscript NO-SOURCE
-> Task :app:generateDebugResources
-> Task :app:processDebugManifest
-> Task :app:generateDebugAssets
-> Task :app:mergeDebugAssets
-> Task :app:validateSigningDebug
-> Task :app:signingConfigWriterDebug
-> Task :app:mergeDebugResources
-
-> Task :app:processDebugResources FAILED
-AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
-AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
-AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
-AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:processDebugResources'.
-> A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
-   > Android resource linking failed
-     $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
-
-     $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
-
-     $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
-
-     $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
-
-
-* Try:
-Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
-
-* Get more help at https://help.gradle.org
-
-BUILD FAILED in 5s
-16 actionable tasks: 15 executed, 1 up-to-date
-"""
-
     buildListener.onStart(myTaskId, project.basePath)
-    buildListener.onTaskOutput(myTaskId, output, true)
+    buildListener.onTaskOutput(myTaskId, getOutputWithAndroidGradlePluginErrors(), true)
     buildListener.onFailure(myTaskId, RuntimeException("test"))
     buildListener.onEnd(myTaskId)
 
@@ -183,17 +129,55 @@ BUILD FAILED in 5s
     }
 
     assertThat(buildOutputWindowEvents).hasSize(1)
-
     val messages = buildOutputWindowEvents.first().studioEvent.buildOutputWindowStats.buildErrorMessagesList
     assertThat(messages).hasSize(4)
-
     messages.forEach {
       checkSentMetricsData(it, BuildErrorMessage.ErrorType.AAPT, BuildErrorMessage.FileType.PROJECT_FILE,
                            fileIncluded = true, lineIncluded = true)
     }
   }
 
-  @Test
+  fun testAndroidGradlePluginErrors_whenStudioBotIsEnabled_addsQuickFixLinks() {
+    // Given: StudioBot is enabled.
+    setStudioBotInstanceAvailability(true)
+
+    // When: BuildTaskListener listens to the Gradle task output.
+    val buildListener =
+      GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
+        project,
+        myFileDocumentManager,
+        myRequest,
+        ""
+      )
+    buildListener.onStart(myTaskId, project.basePath)
+    buildListener.onTaskOutput(myTaskId, getOutputWithAndroidGradlePluginErrors(), true)
+    buildListener.onFailure(myTaskId, RuntimeException("test"))
+    buildListener.onEnd(myTaskId)
+    allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
+
+    // Then: Assert that Ask Gemini quick fix links are added to FileMessageEvents.
+    assertThat(buildEvents.filterIsInstance<FileMessageEvent>()).isNotEmpty()
+    buildEvents.filterIsInstance<FileMessageEvent>(). forEach { fileMessageEvent ->
+      val buildIssueEvent = fileMessageEvent as? BuildIssueEvent
+      assertTrue(buildIssueEvent?.issue?.quickFixes?.any { it is OpenStudioBotBuildIssueQuickFix}?:false)
+    }
+    // And: Assert that Ask Gemini quick fix links are added to MessageEvents.
+    assertThat(buildEvents.filterIsInstance<MessageEvent>()).isNotEmpty()
+    buildEvents.filterIsInstance<MessageEvent>(). forEach { messageEvent ->
+      val buildIssueEvent = messageEvent as? BuildIssueEvent
+      assertTrue(buildIssueEvent?.issue?.quickFixes?.any { it is OpenStudioBotBuildIssueQuickFix}?:false)
+    }
+  }
+
+  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
+    val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isAvailable(): Boolean = isAvailable
+    }
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, project)
+  }
+
+
   fun testXmlParsingError() {
     val buildListener =
       GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
@@ -257,7 +241,6 @@ BUILD FAILED in 0s
 
   }
 
-  @Test
   fun testSyncXmlParseErrors() {
     val output = """
 Starting Gradle Daemon...
@@ -935,4 +918,62 @@ BUILD SUCCESSFUL in 4s
     // We don't report warnings
     assertThat(messages).isEmpty()
   }
+
+  private fun getOutputWithAndroidGradlePluginErrors(): String {
+    val path = tempDir.newPath("styles.xml")
+    val absolutePath = StringUtil.escapeBackSlashes(path.toAbsolutePath().toString())
+    val outputWithAndroidGradlePluginErrors = """
+      Executing tasks: [clean, :app:assembleDebug]
+      > Task :clean UP-TO-DATE
+      > Task :app:clean
+      > Task :app:preBuild UP-TO-DATE
+      > Task :app:extractProguardFiles
+      > Task :app:preDebugBuild
+      > Task :app:checkDebugManifest
+      > Task :app:generateDebugBuildConfig
+      > Task :app:mainApkListPersistenceDebug
+      > Task :app:generateDebugResValues
+      > Task :app:createDebugCompatibleScreenManifests
+      > Task :app:mergeDebugShaders
+      > Task :app:compileDebugShaders
+      > Task :app:compileDebugAidl NO-SOURCE
+      > Task :app:compileDebugRenderscript NO-SOURCE
+      > Task :app:generateDebugResources
+      > Task :app:processDebugManifest
+      > Task :app:generateDebugAssets
+      > Task :app:mergeDebugAssets
+      > Task :app:validateSigningDebug
+      > Task :app:signingConfigWriterDebug
+      > Task :app:mergeDebugResources
+      > Task :app:processDebugResources FAILED
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.\n    ","tool":"AAPT"}
+      AGPBI: {"kind":"error","text":"Android resource linking failed","sources":[{"file":"$absolutePath","position":{"startLine":3,"startColumn":4,"startOffset":54,"endLine":14,"endColumn":12,"endOffset":686}}],"original":"$absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.\n    ","tool":"AAPT"}
+
+      FAILURE: Build failed with an exception.
+
+      * What went wrong:
+      Execution failed for task ':app:processDebugResources'.
+      > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
+         > Android resource linking failed
+           $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+
+           $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
+
+           $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
+
+           $absolutePath:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
+
+
+      * Try:
+      Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+      * Get more help at https://help.gradle.org
+
+      BUILD FAILED in 5s
+      16 actionable tasks: 15 executed, 1 up-to-date
+    """
+    return outputWithAndroidGradlePluginErrors;
+ }
 }

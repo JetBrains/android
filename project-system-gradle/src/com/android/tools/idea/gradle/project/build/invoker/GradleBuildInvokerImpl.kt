@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionO
 import com.android.tools.idea.gradle.project.build.attribution.buildOutputLine
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
-import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter
 import com.android.tools.idea.gradle.run.createOutputBuildAction
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.BuildMode
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.studiobot.StudioBot
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ListMultimap
 import com.google.common.util.concurrent.Futures
@@ -479,13 +477,6 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         }
         if (request.doNotShowBuildOutputOnFailure) {
           buildDescriptor.isActivateToolWindowWhenFailed = false
-        }
-        val studioBot = StudioBot.getInstance()
-        if (studioBot.isAvailable()) {
-          // build output text shouldn't contain Studio Bot links,
-          // but this converter is added here to prevent links without highlighting from
-          // appearing since both build and sync output are managed by BuildOutputParserWrapper
-          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter())
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
         startBuildEventPosted = true
