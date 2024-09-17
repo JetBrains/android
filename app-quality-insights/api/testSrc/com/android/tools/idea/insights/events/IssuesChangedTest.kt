@@ -131,6 +131,7 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id) and
+            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent) and
             Action.FetchIssueVariants(ISSUE1.id) and
             Action.FetchNotes(ISSUE1.id) and
             Action.ListEvents(ISSUE1.id, null, null)
@@ -172,6 +173,7 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE2.id) and
+            Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent) and
             Action.FetchIssueVariants(ISSUE2.id) and
             Action.FetchNotes(ISSUE2.id) and
             Action.ListEvents(ISSUE2.id, null, null)
@@ -314,7 +316,7 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent, null)
+            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
         )
     }
   }
