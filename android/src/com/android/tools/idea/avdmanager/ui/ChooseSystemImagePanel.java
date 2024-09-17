@@ -254,6 +254,9 @@ public class ChooseSystemImagePanel extends JPanel
           image.getVersion().getFeatureLevel() < MIN_EMULATOR_FOLDABLE_DEVICE_API) {
         return false;
       }
+      if (deviceId.equals("pixel_9_pro_fold") && image.getVersion().getFeatureLevel() < 35) {
+        return false;
+      }
     }
 
     // Freeform display device requires R preview DP2 or API30 and above.
