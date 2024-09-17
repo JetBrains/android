@@ -17,7 +17,6 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
@@ -47,7 +46,6 @@ internal data class VirtualDevice
 internal constructor(
   val name: String,
   val device: Device,
-  internal val androidVersion: AndroidVersion,
   internal val skin: Skin,
   internal val frontCamera: AvdCamera,
   internal val rearCamera: AvdCamera,
@@ -67,7 +65,6 @@ internal constructor(
       VirtualDevice(
         name = device.displayName,
         device = device,
-        androidVersion = device.androidVersionRange.upperEndpoint(),
         skin = NoSkin.INSTANCE,
         frontCamera = AvdCamera.EMULATED,
         // TODO We're assuming the emulator supports this feature
@@ -92,7 +89,6 @@ internal fun VirtualDevice.copyFrom(avdInfo: AvdBuilder): VirtualDevice {
 
   return copy(
     name = avdInfo.displayName,
-    androidVersion = avdInfo.androidVersion!!,
     skin = avdInfo.skin.toSkin(),
     frontCamera = avdInfo.frontCamera,
     rearCamera = avdInfo.backCamera,
