@@ -38,10 +38,10 @@ import org.jetbrains.annotations.NotNull;
  * </ol>
  */
 @SuppressWarnings("GrazieInspection")
-final class NameComparator implements Comparator<Device> {
+public final class NameComparator implements Comparator<Device> {
   private final @NotNull Comparator<@NotNull Device> myComparator;
 
-  NameComparator() {
+  public NameComparator() {
     this(StudioFlags.RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED::get);
   }
 
