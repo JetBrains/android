@@ -157,6 +157,7 @@ public class BazelProjectSystem implements AndroidProjectSystem {
               ImmutableList.of(),
               ImmutableList.of(mainSourceProvider),
               ImmutableList.of(mainSourceProvider),
+              ImmutableList.of(mainSourceProvider),
               emptySourceProvider(ScopeType.MAIN),
               ImmutableMap.of(CommonTestType.UNIT_TEST, emptySourceProvider(ScopeType.UNIT_TEST)),
               ImmutableMap.of(
@@ -168,6 +169,7 @@ public class BazelProjectSystem implements AndroidProjectSystem {
               ImmutableList.of(mainSourceProvider),
               ImmutableMap.of(CommonTestType.UNIT_TEST, ImmutableList.of(mainSourceProvider)),
               ImmutableMap.of(CommonTestType.ANDROID_TEST, ImmutableList.of(mainSourceProvider)),
+              ImmutableList.of(mainSourceProvider),
               ImmutableList.of(mainSourceProvider),
               ImmutableList.of(mainSourceProvider),
               ImmutableList.of(mainSourceProvider),
