@@ -73,6 +73,33 @@ MODULE: MyApplication
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+             (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
+                AssetsDirectories:
+                    file://./assets
+                JavaDirectoryUrls:
+                    file://.
+                JavaDirectories:
+                    file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
+                ResDirectories:
+                    file://./res
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
              (IDEA)
                 ScopeType: MAIN
