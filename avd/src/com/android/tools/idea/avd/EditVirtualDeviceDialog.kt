@@ -76,6 +76,7 @@ internal class EditVirtualDeviceDialog(
 
             // At this point, builder.avdName still reflects its on-disk location. If the user
             // updated the display name, try to update avdName to reflect the new display name.
+            // We don't update the AVD folder; the device might be running.
             if (avdInfo.displayName != builder.displayName) {
               builder.avdName =
                 avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
