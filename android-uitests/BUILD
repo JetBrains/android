@@ -727,9 +727,7 @@ java_test(
     size = "large",
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.avdmanager.DeviceConfigurationDialogTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
+    tags = COMMON_TAGS + ["manual"],  # b/367875427
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
