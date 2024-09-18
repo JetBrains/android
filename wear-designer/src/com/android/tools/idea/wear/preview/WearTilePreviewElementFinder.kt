@@ -233,7 +233,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
       group = group,
       showDecoration = false,
       showBackground = true,
-      backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND,
+      backgroundColor = null,
     )
 
   val configuration = readAction {

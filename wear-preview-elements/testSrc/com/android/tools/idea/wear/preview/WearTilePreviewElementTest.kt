@@ -113,4 +113,78 @@ class WearTilePreviewElementTest {
     assertEquals(originalPreviewElement.previewBody, derivedPreviewElement.previewBody)
     assertEquals(originalPreviewElement.hasAnimations, derivedPreviewElement.hasAnimations)
   }
+
+  @Test
+  fun testToPreviewXml() {
+    val previewElement =
+      WearTilePreviewElement(
+        displaySettings =
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            "parameter name",
+            "some group",
+            false,
+            false,
+            "0xffabcd",
+          ),
+        previewElementDefinition = null,
+        previewBody = null,
+        methodFqn = "someMethodFqn",
+        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+      )
+
+    assertEquals(
+      """<androidx.wear.tiles.tooling.TileServiceViewAdapter
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="0xffabcd"
+    android:minWidth="1px"
+    android:minHeight="1px"
+    tools:tilePreviewMethodFqn="someMethodFqn" />
+
+"""
+        .trimIndent(),
+      previewElement.toPreviewXml().buildString(),
+    )
+  }
+
+  @Test
+  fun testToPreviewXmlBackgroundDefaultsToBlack() {
+    val previewElement =
+      WearTilePreviewElement(
+        displaySettings =
+          PreviewDisplaySettings(
+            "some name",
+            "some base name",
+            "parameter name",
+            "some group",
+            false,
+            false,
+            backgroundColor = null,
+          ),
+        previewElementDefinition = null,
+        previewBody = null,
+        methodFqn = "someMethodFqn",
+        configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
+      )
+
+    assertEquals(
+      """<androidx.wear.tiles.tooling.TileServiceViewAdapter
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ff000000"
+    android:minWidth="1px"
+    android:minHeight="1px"
+    tools:tilePreviewMethodFqn="someMethodFqn" />
+
+"""
+        .trimIndent(),
+      previewElement.toPreviewXml().buildString(),
+    )
+  }
 }

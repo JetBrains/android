@@ -93,6 +93,8 @@ class WearTilePreviewElementModelAdapterTest {
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ff000000"
+    android:minWidth="1px"
+    android:minHeight="1px"
     tools:tilePreviewMethodFqn="foo" />
 
 """

@@ -1017,7 +1017,7 @@ private fun defaultDisplaySettings(
     group = group,
     showBackground = true,
     showDecoration = false,
-    backgroundColor = "#ff000000",
+    backgroundColor = null,
   )
 
 private fun defaultConfiguration(
