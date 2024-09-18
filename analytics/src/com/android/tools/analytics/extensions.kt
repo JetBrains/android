@@ -20,6 +20,7 @@ package com.android.tools.analytics
 import com.android.AndroidProjectTypes
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.deviceProperties
+import com.android.adblib.isOnline
 import com.android.adblib.serialNumber
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.PROP_BUILD_CHARACTERISTICS
@@ -120,8 +121,14 @@ fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
     .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
 }
 
+/**
+ * Gets the connected device info for logging with the Android Usage stats.
+ *
+ * Note that only limited information is available if the [ConnectedDevice] is not ONLINE.
+ * Since this method interacts with an Android device, it may throw an `IOException`.
+ */
 suspend fun connectedDeviceToDeviceInfo(device: ConnectedDevice): DeviceInfo {
-  val properties = device.deviceProperties().allReadonly()
+  val properties = if (device.isOnline) device.deviceProperties().allReadonly() else emptyMap()
   val mdnsConnectionType = when {
     isMdnsAutoConnectUnencrypted(
       device.serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
