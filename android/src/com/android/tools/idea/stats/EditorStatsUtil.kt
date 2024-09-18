@@ -37,6 +37,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.getFolderType
 import com.google.wireless.android.sdk.stats.EditorFileType
+import com.google.wireless.android.sdk.stats.EditorFileType.DART
 import com.google.wireless.android.sdk.stats.EditorFileType.GROOVY
 import com.google.wireless.android.sdk.stats.EditorFileType.JAVA
 import com.google.wireless.android.sdk.stats.EditorFileType.JSON
@@ -106,6 +107,7 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
     }
     "protobuf" -> PROTO
     "TOML" -> TOML
+    "Dart" -> DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
     else -> when(file.extension) {
       "proto" -> PROTO_WITHOUT_PLUGIN
       else -> UNKNOWN
