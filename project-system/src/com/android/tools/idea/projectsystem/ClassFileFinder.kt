@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 
 /**
@@ -55,6 +56,13 @@ sealed interface ClassContent {
     fun fromJarEntryContent(jarFile: File, content: ByteArray): ClassContent {
       return JarEntryClassContent(jarFile, content)
     }
+
+    /** Creates a [ClassContent] for use in tests. */
+    @JvmStatic
+    @TestOnly
+    fun forTests(content: ByteArray): ClassContent {
+      return ClassContentForTests(content)
+    }
   }
 }
 
@@ -76,6 +84,10 @@ private class JarEntryClassContent(private val jarFile: File, override val conte
   override fun isUpToDate(): Boolean {
     return jarTimestamp == jarFile.lastModified() && jarSize == jarFile.length()
   }
+}
+
+private class ClassContentForTests(override val content: ByteArray): ClassContent{
+  override fun isUpToDate(): Boolean = true
 }
 
 fun getPathFromFqcn(fqcn: String): String {

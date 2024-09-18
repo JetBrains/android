@@ -31,8 +31,10 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.toClassNode
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -98,7 +100,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileIr(inputFiles: List<KtF
 /**
  * Compile the given file without calling into [LiveEditCompiler]. Should only be used to set up for tests.
  */
-fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFile: KtFile) = directApiCompile(listOf(inputFile))
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFile: KtFile) = directApiCompileByteArray(listOf(inputFile))
 
 fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFiles: List<KtFile>): HashMap<String, ByteArray> {
   val result = HashMap<String, ByteArray>()
@@ -124,7 +126,8 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
       } else {
         val resolution = fetchResolution(project, inputFiles)
         val analysisResult = analyze(inputFiles, resolution)
-        val generationState: GenerationState = backendCodeGen(project,
+        val generationState: GenerationState = backendCodeGen(ApplicationLiveEditServices.Legacy(project),
+                                                              project,
                                                               analysisResult,
                                                               inputFiles,
                                                               inputFiles.first().module!!,
@@ -138,6 +141,8 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
     }
   })
 }
+
+fun ByteArray.toIrClass(): IrClass = IrClass(toClassNode())
 
 fun AndroidProjectRule.Typed<*, Nothing>.initialCache(files: List<KtFile>): MutableIrClassCache {
   val cache = MutableIrClassCache()

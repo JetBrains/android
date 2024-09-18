@@ -83,6 +83,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * to avoid deadlocks when class loading is performed in the render thread. If read actions are
    * completely necessary, then they must be non-blocking.
    */
+  @Deprecated("Create or use application spcific token interfaces and implementations")
   fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
   /**

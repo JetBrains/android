@@ -29,6 +29,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.isInline
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
@@ -43,7 +44,8 @@ private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
 // PLEASE someone help me name this better
 internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
-  internal fun getGeneratedCode(sourceFile: KtFile,
+  internal fun getGeneratedCode(applicationLiveEditServices: ApplicationLiveEditServices,
+                                sourceFile: KtFile,
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
@@ -67,7 +69,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       if (isKeyMeta(classFile)) {
         continue
       }
-      val newClass = handleClassFile(classFile, sourceFile, groups, irCache, inlineCandidateCache, outputs)
+      val newClass = handleClassFile(applicationLiveEditServices, classFile, sourceFile, groups, irCache, inlineCandidateCache, outputs)
       outputs.addIrClass(newClass)
     }
 
@@ -75,7 +77,8 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     debug.log("Class file analysis ran in ${durationMs}ms")
   }
 
-  private fun handleClassFile(classFile: OutputFile,
+  private fun handleClassFile(applicationLiveEditServices: ApplicationLiveEditServices,
+                              classFile: OutputFile,
                               sourceFile: KtFile,
                               groups: List<ComposeGroup>,
                               irCache: IrClassCache,
@@ -85,7 +88,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     val newClass = IrClass(classBytes)
     val oldClass = irCache[newClass.name] ?: run {
       logger.info("Live Edit: No cache entry for ${newClass.name}; using the APK for class diff")
-      apkClassProvider.getClass(sourceFile, newClass.name)
+      apkClassProvider.getClass(applicationLiveEditServices, sourceFile, newClass.name)
     }
 
     val isFirstDiff = newClass.name !in irCache

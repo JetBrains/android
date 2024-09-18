@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.run.deployment.liveedit
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.codegen.inline.InlineCache
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -60,7 +60,7 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
   /**
    * Fill the bytecode cache with the .class content from the last build.
    */
-  fun fetchByteCodeFromBuildIfNeeded() {
+  fun fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices: ApplicationLiveEditServices) {
 
     // Don't read the disk if we already done it once.
     if (canFillInlineCache()) {
@@ -68,7 +68,7 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
     }
 
     // Fetch the output of the class file from the module's output directory.
-    var classContent = sourceFile.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
+    val classContent = applicationLiveEditServices.getClassContent(sourceFile.virtualFile, className)
 
     if (classContent == null) {
       LOGGER.warn("Unable to local $className in the build system.")
