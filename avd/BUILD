@@ -35,5 +35,7 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
