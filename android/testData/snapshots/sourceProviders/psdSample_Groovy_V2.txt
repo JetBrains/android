@@ -870,6 +870,613 @@ MODULE: project.app
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/main
+                ManifestDirectories:
+                    file://./app/src/main
+                AssetsDirectoryUrls:
+                    file://./app/src/main/assets
+                JavaDirectoryUrls:
+                    file://./app/src/main/java
+                JavaDirectories:
+                    file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/main/res
+                ResDirectories:
+                    file://./app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
+            androidTestBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBar
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBar/java
+                    file://./app/src/androidTestBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBar/shaders
+            androidTestBasic (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBasic
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasic/java
+                    file://./app/src/androidTestBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBasic/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBasic/shaders
+            androidTestBasicBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBasicBar
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/java
+                    file://./app/src/androidTestBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/shaders
+            androidTestBasicBarDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/java
+                    file://./app/src/androidTestBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestDebug/shaders
+            androidTestOtherBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestOtherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestOtherBar
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/java
+                    file://./app/src/androidTestOtherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestOtherBar/shaders
+            androidTestPaid (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestPaid
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestPaid/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestPaid/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestPaid/java
+                    file://./app/src/androidTestPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestPaid/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestPaid/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestPaid/shaders
+            bar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/bar
+                AssetsDirectoryUrls:
+                    file://./app/src/bar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/bar/java
+                    file://./app/src/bar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/bar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/bar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/bar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/bar/shaders
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basic
+                AssetsDirectoryUrls:
+                    file://./app/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basic/java
+                    file://./app/src/basic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/basic/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basic/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basic/shaders
+            basicBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBar
+                AssetsDirectoryUrls:
+                    file://./app/src/basicBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBar/java
+                    file://./app/src/basicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/basicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/basicBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basicBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basicBar/shaders
+            basicBarDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBarDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBarDebug/java
+                    file://./app/src/basicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/basicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/basicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basicBarDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basicBarDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/debug
+                AssetsDirectoryUrls:
+                    file://./app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/debug/shaders
+            otherBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/otherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/otherBar
+                AssetsDirectoryUrls:
+                    file://./app/src/otherBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/otherBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/otherBar/java
+                    file://./app/src/otherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/otherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/otherBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/otherBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/otherBar/shaders
+            paid (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/paid/AndroidManifest.xml
+                ManifestFiles:
+                    file://./app/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/paid
+                ManifestDirectories:
+                    file://./app/src/paid
+                AssetsDirectoryUrls:
+                    file://./app/src/paid/assets
+                JavaDirectoryUrls:
+                    file://./app/src/paid/java
+                JavaDirectories:
+                    file://./app/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./app/src/paid/java
+                    file://./app/src/paid/kotlin
+                KotlinDirectories:
+                    file://./app/src/paid/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/paid/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/paid/res
+                ResDirectories:
+                    file://./app/src/paid/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/paid/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/paid/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/release
+                AssetsDirectoryUrls:
+                    file://./app/src/release/assets
+                JavaDirectoryUrls:
+                    file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/release/shaders
+            specialRelease (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/specialRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/specialRelease
+                AssetsDirectoryUrls:
+                    file://./app/src/specialRelease/assets
+                JavaDirectoryUrls:
+                    file://./app/src/specialRelease/java
+                KotlinDirectoryUrls:
+                    file://./app/src/specialRelease/java
+                    file://./app/src/specialRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/specialRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/specialRelease/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/specialRelease/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/specialRelease/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/test
+                AssetsDirectoryUrls:
+                    file://./app/src/test/assets
+                JavaDirectoryUrls:
+                    file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/test/shaders
+            testBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBar
+                AssetsDirectoryUrls:
+                    file://./app/src/testBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBar/java
+                    file://./app/src/testBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testBar/shaders
+            testBasic (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBasic
+                AssetsDirectoryUrls:
+                    file://./app/src/testBasic/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasic/java
+                    file://./app/src/testBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testBasic/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testBasic/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testBasic/shaders
+            testBasicBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBasicBar
+                AssetsDirectoryUrls:
+                    file://./app/src/testBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasicBar/java
+                    file://./app/src/testBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testBasicBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testBasicBar/shaders
+            testBasicBarDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/java
+                    file://./app/src/testBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/jniLibs
+                ResourcesDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testDebug/shaders
+            testOtherBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testOtherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testOtherBar
+                AssetsDirectoryUrls:
+                    file://./app/src/testOtherBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testOtherBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testOtherBar/java
+                    file://./app/src/testOtherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testOtherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testOtherBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testOtherBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testOtherBar/shaders
+            testPaid (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testPaid
+                AssetsDirectoryUrls:
+                    file://./app/src/testPaid/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testPaid/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testPaid/java
+                    file://./app/src/testPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testPaid/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testPaid/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testPaid/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./app/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testRelease/java
+                    file://./app/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testRelease/shaders
+            testSpecialRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testSpecialRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testSpecialRelease
+                AssetsDirectoryUrls:
+                    file://./app/src/testSpecialRelease/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testSpecialRelease/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testSpecialRelease/java
+                    file://./app/src/testSpecialRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testSpecialRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testSpecialRelease/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testSpecialRelease/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testSpecialRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1854,6 +2461,179 @@ MODULE: project.dyn_feature
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/main
+                ManifestDirectories:
+                    file://./dyn_feature/src/main
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/main/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                    file://./dyn_feature/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/java
+                    file://./dyn_feature/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/debug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/debug/java
+                    file://./dyn_feature/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/release
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/release/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/release/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/release/java
+                    file://./dyn_feature/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/test
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/test/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/test/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/test/java
+                    file://./dyn_feature/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/java
+                    file://./dyn_feature/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/java
+                    file://./dyn_feature/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2431,6 +3211,185 @@ MODULE: project.lib
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./lib/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/main
+                ManifestDirectories:
+                    file://./lib/src/main
+                AssetsDirectoryUrls:
+                    file://./lib/src/main/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/main/java
+                JavaDirectories:
+                    file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/java
+                    file://./lib/src/main/kotlin
+                KotlinDirectories:
+                    file://./lib/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/main/res
+                ResDirectories:
+                    file://./lib/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./lib/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                    file://./lib/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./lib/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTestDebug/java
+                    file://./lib/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/debug
+                AssetsDirectoryUrls:
+                    file://./lib/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/debug/java
+                    file://./lib/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/release
+                AssetsDirectoryUrls:
+                    file://./lib/src/release/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/release/java
+                    file://./lib/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/test
+                AssetsDirectoryUrls:
+                    file://./lib/src/test/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/test/java
+                    file://./lib/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./lib/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testDebug/java
+                    file://./lib/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./lib/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./lib/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testRelease/java
+                    file://./lib/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./lib/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./lib/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3008,6 +3967,179 @@ MODULE: project.nested1
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/main
+                ManifestDirectories:
+                    file://./nested1/src/main
+                AssetsDirectoryUrls:
+                    file://./nested1/src/main/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/main/java
+                    file://./nested1/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested1/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./nested1/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                    file://./nested1/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested1/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/java
+                    file://./nested1/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/debug
+                AssetsDirectoryUrls:
+                    file://./nested1/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/debug/java
+                    file://./nested1/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/release
+                AssetsDirectoryUrls:
+                    file://./nested1/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/release/java
+                    file://./nested1/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/test
+                AssetsDirectoryUrls:
+                    file://./nested1/src/test/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/test/java
+                    file://./nested1/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./nested1/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/testDebug/java
+                    file://./nested1/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./nested1/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/testRelease/java
+                    file://./nested1/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3573,6 +4705,179 @@ MODULE: project.nested1.deep
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/main
+                ManifestDirectories:
+                    file://./nested1/deep/src/main
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/main/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                    file://./nested1/deep/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested1/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                    file://./nested1/deep/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/java
+                    file://./nested1/deep/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/debug
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/debug/java
+                    file://./nested1/deep/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested1/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/release
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/release/java
+                    file://./nested1/deep/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/test
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/test/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/test/java
+                    file://./nested1/deep/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/java
+                    file://./nested1/deep/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested1/deep/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/java
+                    file://./nested1/deep/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4375,6 +5680,366 @@ MODULE: project.nested2
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/main
+                ManifestDirectories:
+                    file://./nested2/src/main
+                AssetsDirectoryUrls:
+                    file://./nested2/src/main/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/main/java
+                    file://./nested2/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                    file://./nested2/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTest/shaders
+            androidTestBasic (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestBasic
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/java
+                    file://./nested2/src/androidTestBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/shaders
+            androidTestBasicDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestBasicDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/java
+                    file://./nested2/src/androidTestBasicDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/java
+                    file://./nested2/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/shaders
+            androidTestPaid (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestPaid
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/java
+                    file://./nested2/src/androidTestPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestPaid/shaders
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basic
+                AssetsDirectoryUrls:
+                    file://./nested2/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basic/java
+                    file://./nested2/src/basic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/basic/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/basic/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/basic/shaders
+            basicDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basicDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/basicDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/basicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basicDebug/java
+                    file://./nested2/src/basicDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/basicDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/basicDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/basicDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/basicDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/debug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/debug/java
+                    file://./nested2/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/debug/shaders
+            paid (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/paid
+                AssetsDirectoryUrls:
+                    file://./nested2/src/paid/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/paid/java
+                    file://./nested2/src/paid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/paid/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/paid/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/paid/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/paid/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/release
+                AssetsDirectoryUrls:
+                    file://./nested2/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/release/java
+                    file://./nested2/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/test
+                AssetsDirectoryUrls:
+                    file://./nested2/src/test/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/test/java
+                    file://./nested2/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/test/shaders
+            testBasic (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testBasic
+                AssetsDirectoryUrls:
+                    file://./nested2/src/testBasic/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testBasic/java
+                    file://./nested2/src/testBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/testBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/testBasic/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/testBasic/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/testBasic/shaders
+            testBasicDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/testBasicDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testBasicDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/java
+                    file://./nested2/src/testBasicDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/jniLibs
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testDebug/java
+                    file://./nested2/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/testDebug/shaders
+            testPaid (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/testPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testPaid
+                AssetsDirectoryUrls:
+                    file://./nested2/src/testPaid/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/testPaid/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testPaid/java
+                    file://./nested2/src/testPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/testPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/testPaid/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/testPaid/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/testPaid/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./nested2/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testRelease/java
+                    file://./nested2/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5127,6 +6792,179 @@ MODULE: project.nested2.deep
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/main
+                ManifestDirectories:
+                    file://./nested2/deep/src/main
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/main/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                    file://./nested2/deep/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                    file://./nested2/deep/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/java
+                    file://./nested2/deep/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/debug
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/debug/java
+                    file://./nested2/deep/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/release
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/release/java
+                    file://./nested2/deep/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/test
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/test/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/test/java
+                    file://./nested2/deep/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/java
+                    file://./nested2/deep/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/deep/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/java
+                    file://./nested2/deep/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5692,6 +7530,179 @@ MODULE: project.nested2.trans.deep2
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main
+                ManifestDirectories:
+                    file://./nested2/trans/deep2/src/main
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                    file://./nested2/trans/deep2/src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                    file://./nested2/trans/deep2/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                    file://./nested2/trans/deep2/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/java
+                    file://./nested2/trans/deep2/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/java
+                    file://./nested2/trans/deep2/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/java
+                    file://./nested2/trans/deep2/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/java
+                    file://./nested2/trans/deep2/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/java
+                    file://./nested2/trans/deep2/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

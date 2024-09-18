@@ -203,6 +203,9 @@ fun Project.dumpSourceProviders(): String {
               sourceProviderManager.generatedDeviceTestSources.forEach { it.value.dump("Generated${it.key.type.toPrintableName()}TestSources") }
             }
             nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
+            nest("AllVariantAllArtifactsSources:") {
+              sourceProviderManager.allVariantAllArtifactsSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() }
+            }
             nest(
               "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:"
             ) {
