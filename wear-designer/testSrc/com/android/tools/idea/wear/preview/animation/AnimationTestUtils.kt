@@ -43,6 +43,7 @@ class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FL
     }
   }
 
+  var isTerminalInternal: Boolean = true
   var duration: Long = 100
   var startDelay: Long = 10
 
@@ -116,5 +117,9 @@ class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FL
 
   override fun getStartDelayMs(): Long {
     return startDelay
+  }
+
+  override fun isTerminal(): Boolean {
+    return isTerminalInternal
   }
 }

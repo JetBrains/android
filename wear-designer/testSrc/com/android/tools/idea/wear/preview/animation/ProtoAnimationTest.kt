@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview.animation
 
 import com.android.tools.idea.wear.preview.animation.TestDynamicTypeAnimator.Unknowm
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertThrows
@@ -120,5 +121,17 @@ class ProtoAnimationTest {
     protoAnimation.setIntValues(*values)
 
     assertArrayEquals(values, animator.getIntValues())
+  }
+
+  @Test
+  fun testIsTerminal() {
+    val animator = TestDynamicTypeAnimator()
+    val protoAnimation = ProtoAnimation(animator)
+
+    animator.isTerminalInternal = false
+    assertThat(protoAnimation.isTerminal).isFalse()
+
+    animator.isTerminalInternal = true
+    assertThat(protoAnimation.isTerminal).isTrue()
   }
 }
