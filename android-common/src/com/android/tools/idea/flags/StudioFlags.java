@@ -1740,7 +1740,7 @@ public final class StudioFlags {
     "direct.access.device.catalog.enabled",
     "Enable the Device Catalog for Direct Access devices",
     "Enable new UI for selecting Firebase devices",
-    false
+    ChannelDefault.enabledUpTo(CANARY)
   );
   // endregion
 
