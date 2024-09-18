@@ -29,14 +29,13 @@ class EnhanceInsight : ChangeEvent {
   ): StateTransition<Action> {
     val issue = state.selectedIssue
     val event = state.selectedEvent
-    val variantId = state.selectedVariant?.id
 
     return if (issue == null || event == null) {
       StateTransition(state, Action.NONE)
     } else {
       StateTransition(
         state.copy(currentInsight = LoadingState.Loading),
-        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, variantId, true),
+        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, true),
       )
     }
   }
