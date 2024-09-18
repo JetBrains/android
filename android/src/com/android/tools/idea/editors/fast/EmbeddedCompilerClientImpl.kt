@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
+import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
@@ -168,8 +169,10 @@ class EmbeddedCompilerClientImpl private constructor(
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
+          val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
+
           @OptIn(KaExperimentalApi::class)
-          val result = backendCodeGenForK2(inputFile, moduleForAllInputs)
+          val result = backendCodeGenForK2(inputFile, moduleForAllInputs, configuration)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           @OptIn(KaExperimentalApi::class)
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {

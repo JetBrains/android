@@ -26,8 +26,8 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
+import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
-import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.diagnostic.Logger
@@ -40,9 +40,7 @@ import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -66,7 +64,7 @@ internal class LiveEditCompilerForK2(
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
-      val result = backendCodeGenForK2(file, module)
+      val result = backendCodeGenForK2(file, module, getCompilerConfiguration(module, file))
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
 
       // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
@@ -80,7 +78,7 @@ internal class LiveEditCompilerForK2(
 }
 
 @OptIn(KaExperimentalApi::class)
-fun backendCodeGenForK2(file: KtFile, module: Module): KaCompilationResult.Success {
+fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
   module.let {
     if (file.module != it) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
@@ -91,11 +89,6 @@ fun backendCodeGenForK2(file: KtFile, module: Module): KaCompilationResult.Succe
   // In other words, there is no performance penalty from this early check. Let's keep it because there is no guarantee that
   // K2 compile AA covers all cases.
   listOf(file).checkPsiErrorElement()
-
-  val configuration = CompilerConfiguration().apply {
-    setModuleName(file)
-    setOptions(file.languageVersionSettings)
-  }
 
   // TODO(316965795): Check the performance and the responsiveness once we complete K2 LE implementation.
   //                  Add/remove ProgressManager.checkCanceled() based on the performance and the responsiveness.
@@ -112,12 +105,5 @@ fun backendCodeGenForK2(file: KtFile, module: Module): KaCompilationResult.Succe
       is KaCompilationResult.Success -> return result
       is KaCompilationResult.Failure -> throw compilationError(result.errors.joinToString { it.getDefaultMessageWithFactoryName() })
     }
-  }
-}
-
-private fun CompilerConfiguration.setModuleName(file: KtFile) {
-  val containingModule = file.module
-  if (containingModule != null) {
-    put(CommonConfigurationKeys.MODULE_NAME, containingModule.name)
   }
 }
