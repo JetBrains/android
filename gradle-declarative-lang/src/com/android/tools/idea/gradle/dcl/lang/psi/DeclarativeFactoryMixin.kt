@@ -18,11 +18,8 @@ package com.android.tools.idea.gradle.dcl.lang.psi
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.CompositePsiElement
 import com.intellij.psi.tree.IElementType
-import com.intellij.util.IncorrectOperationException
 
-abstract class DeclarativeFactoryMixin(type: IElementType) : CompositePsiElement(type), DeclarativeFactory {
-
-  @Throws(IncorrectOperationException::class)
+abstract class DeclarativeFactoryMixin(type: IElementType) : CompositePsiElement(type), DeclarativeAbstractFactory {
   override fun addArgument(value: DeclarativeValue, name: String?): PsiElement {
     val generator = DeclarativePsiFactory(getProject())
     if (argumentsList == null) this.add(generator.createArgumentList())
@@ -36,5 +33,4 @@ abstract class DeclarativeFactoryMixin(type: IElementType) : CompositePsiElement
     } ?: error("Cannot addArgument as argument list is empty for $text")
     return this
   }
-
 }

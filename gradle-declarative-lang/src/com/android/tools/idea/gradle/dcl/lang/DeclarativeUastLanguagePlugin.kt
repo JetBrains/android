@@ -148,8 +148,8 @@ class DeclarativeUFactory(override val sourcePsi: DeclarativeFactory,
 class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
   override val classReference: UReferenceExpression? = null
   override val kind: UastCallKind = UastCallKind.METHOD_CALL
-  override val methodIdentifier: UIdentifier? = (sourcePsi.identifier ?: sourcePsi.factory?.identifier)?.let { UIdentifier(it, this) }
-  override val methodName: String? = (sourcePsi.identifier ?: sourcePsi.factory?.identifier)?.name
+  override val methodIdentifier: UIdentifier? = sourcePsi.identifier?.let { UIdentifier(it, this) }
+  override val methodName: String? = sourcePsi.identifier?.name
   override val receiver: UExpression? = null
   override val receiverType: PsiType? = null
   override val returnType: PsiType? = null
@@ -160,7 +160,7 @@ class DeclarativeUBlock(override val sourcePsi: DeclarativeBlock, parentProvider
   override val psi: PsiElement
     get() = sourcePsi
   override val valueArguments: List<UExpression> =
-    (sourcePsi.factory?.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) } ?: listOf()) +
+    (sourcePsi.embeddedFactory?.argumentsList?.arguments?.mapNotNull { it.toDeclarativeUExpression(this) } ?: listOf()) +
     DeclarativeULambda(sourcePsi.blockGroup, this)
   override val valueArgumentCount: Int = valueArguments.size
   override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)

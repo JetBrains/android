@@ -1,6 +1,6 @@
 FILE
   PsiElement(BLOCK)
-    PsiElement(FACTORY)
+    PsiElement(EMBEDDED_FACTORY)
       PsiElement(IDENTIFIER)
         PsiElement(DeclarativeTokenType.token)('create')
       PsiElement(DeclarativeTokenType.()('(')

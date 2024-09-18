@@ -21,21 +21,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeBlock extends DeclarativeEntry, DeclarativeIdentifierOwner {
+public interface DeclarativeEmbeddedFactory extends DeclarativeAbstractFactory {
+
+  @Nullable
+  DeclarativeArgumentsList getArgumentsList();
 
   @NotNull
-  DeclarativeBlockGroup getBlockGroup();
-
-  @Nullable
-  DeclarativeEmbeddedFactory getEmbeddedFactory();
-
-  @Nullable
   DeclarativeIdentifier getIdentifier();
-
-  @NotNull
-  List<DeclarativeEntry> getEntries();
-
-  @Nullable
-  PsiElement getBlockEntriesStart();
 
 }

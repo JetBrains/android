@@ -32,6 +32,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType BARE = new DeclarativeElementType("BARE");
   IElementType BLOCK = new DeclarativeElementType("BLOCK");
   IElementType BLOCK_GROUP = new DeclarativeElementType("BLOCK_GROUP");
+  IElementType EMBEDDED_FACTORY = new DeclarativeElementType("EMBEDDED_FACTORY");
   IElementType FACTORY = new DeclarativeElementType("FACTORY");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
@@ -78,6 +79,9 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == BLOCK_GROUP) {
         return new DeclarativeBlockGroupImpl(type);
+      }
+      else if (type == EMBEDDED_FACTORY) {
+        return new DeclarativeEmbeddedFactoryImpl(type);
       }
       else if (type == FACTORY) {
         return new DeclarativeFactoryImpl(type);
