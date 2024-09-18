@@ -17,11 +17,14 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.insights.ui.AqiHtmlRenderer
 import com.android.tools.idea.insights.ui.MarkDownConverter
+import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
+import com.intellij.ide.actions.CopyAction
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
@@ -35,18 +38,25 @@ class InsightTextPane : JTextPane(), CopyProvider {
 
   private val markDownConverter = MarkDownConverter { AqiHtmlRenderer(it) }
 
-  private var currentText = ""
-
   init {
     contentType = "text/html"
     editorKit =
       HTMLEditorKitBuilder.simple().apply { styleSheet.addRule("body { white-space: pre-wrap; }") }
     isEditable = false
     isOpaque = false
-    background = JBColor.background()
     border = JBUI.Borders.empty(8)
     font = StartupUiUtil.labelFont
-    isFocusable = false
+
+    val actionManager = ActionManager.getInstance()
+    val group =
+      DefaultActionGroup(
+        CopyAction().apply {
+          templatePresentation.text = "Copy"
+          templatePresentation.icon = AllIcons.Actions.Copy
+        }
+      )
+    val popupMenu = actionManager.createActionPopupMenu("InsightTextPaneContextMenu", group)
+    componentPopupMenu = popupMenu.component
   }
 
   override fun setText(text: String) {
@@ -57,7 +67,6 @@ class InsightTextPane : JTextPane(), CopyProvider {
     } else {
       super.setText(markDownConverter.toHtml(text))
     }
-    currentText = text
     val caret = caret
     if (caret is DefaultCaret) {
       caret.updatePolicy = DefaultCaret.NEVER_UPDATE
@@ -66,11 +75,14 @@ class InsightTextPane : JTextPane(), CopyProvider {
   }
 
   override fun performCopy(dataContext: DataContext) =
-    CopyPasteManager.copyTextToClipboard(currentText)
+    CopyPasteManager.copyTextToClipboard(selectedText ?: renderedText.trimIndent())
 
-  override fun isCopyEnabled(dataContext: DataContext) = currentText.isNotBlank()
+  override fun isCopyEnabled(dataContext: DataContext) = renderedText.isNotBlank()
 
   override fun isCopyVisible(dataContext: DataContext) = true
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  private val renderedText: String
+    get() = document.getText(0, document.length)
 }
