@@ -17,40 +17,48 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.util.application
 import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
 import javax.swing.JButton
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class InsightContentPanelTest {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  private val testRootDisposable
-    get() = controllerRule.disposable
-
-  @get:Rule
-  val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
 
   private lateinit var currentInsightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private lateinit var insightContentPanel: InsightContentPanel
@@ -63,15 +71,27 @@ class InsightContentPanelTest {
 
   private val enableInsightDeferred = CompletableDeferred<Boolean>(null)
 
+  private val mockController = mock<AppInsightsProjectLevelController>()
+
+  private var isStudioBotAvailable = false
+  private val stubStudioBot =
+    object : StudioBot.StubStudioBot() {
+      override fun isAvailable() = isStudioBotAvailable
+    }
+
+  private val scope = CoroutineScope(EmptyCoroutineContext)
+
   @Before
   fun setup() = runBlocking {
+    doReturn(projectRule.project).whenever(mockController).project
+    application.replaceService(StudioBot::class.java, stubStudioBot, projectRule.disposable)
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
     insightContentPanel =
       InsightContentPanel(
-        projectRule.project,
-        controllerRule.controller.coroutineScope,
+        mockController,
+        scope,
         currentInsightFlow,
-        testRootDisposable,
+        projectRule.disposable,
         object : InsightPermissionDeniedHandler {
           override fun handlePermissionDenied(
             permissionDenied: LoadingState.PermissionDenied,
@@ -86,6 +106,11 @@ class InsightContentPanelTest {
         },
         { enableInsightDeferred.complete(true) },
       ) {}
+  }
+
+  @After
+  fun teardown() {
+    scope.cancel()
   }
 
   @Test
@@ -211,12 +236,23 @@ class InsightContentPanelTest {
   fun `test gemini is not enabled`() = runBlocking {
     currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
 
-    FakeUi(insightContentPanel)
+    val fakeUi = FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
     assertThat(errorText).isEqualTo("Gemini is disabled")
     assertThat(secondaryText)
       .isEqualTo("To see insights, please enable and authorize the Gemini plugin")
+
+    val toolbar =
+      fakeUi.findComponent<ActionToolbarImpl> { it.place == "GeminiOnboardingObserver" }
+        ?: fail("Toolbar not found")
+    val action =
+      toolbar.actionGroup.getChildren(null).firstOrNull() ?: fail("Observer action not found")
+
+    isStudioBotAvailable = true
+    action.update(createTestEvent())
+
+    verify(mockController).refreshInsight(false)
   }
 
   @Test

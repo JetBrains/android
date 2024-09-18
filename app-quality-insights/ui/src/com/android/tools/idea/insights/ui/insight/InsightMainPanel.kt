@@ -59,7 +59,7 @@ class InsightMainPanel(
 
   private val mainContentPanel =
     InsightContentPanel(
-      controller.project,
+      controller,
       scope,
       controller.state.map { it.currentInsight },
       parentDisposable,
