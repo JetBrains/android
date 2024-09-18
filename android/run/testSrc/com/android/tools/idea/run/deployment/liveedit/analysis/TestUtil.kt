@@ -32,6 +32,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.toClassNode
+import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
@@ -120,7 +121,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
       if (KotlinPluginModeProvider.isK2Mode()) {
         @OptIn(KaExperimentalApi::class)
         inputFiles.forEach { inputFile ->
-          val result = backendCodeGenForK2(inputFile, inputFile.module!!)
+          val result = backendCodeGenForK2(inputFile, inputFile.module!!, getCompilerConfiguration(inputFile.module!!, inputFile))
           result.output.filter { it.path.endsWith(".class") } .forEach { output.add(it.content) }
         }
       } else {
