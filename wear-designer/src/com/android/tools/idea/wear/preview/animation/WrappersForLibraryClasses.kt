@@ -92,6 +92,9 @@ class ProtoAnimation(private val animator: Any) {
   val startDelayMs: Long
     get() = delegateMethodCall("getStartDelayMs") as Long
 
+  val isTerminal: Boolean
+    get() = delegateMethodCall("isTerminal") as Boolean
+
   private fun delegateMethodCall(methodName: String, vararg args: Any?): Any? {
     val method: Method =
       animator.javaClass.getMethod(
