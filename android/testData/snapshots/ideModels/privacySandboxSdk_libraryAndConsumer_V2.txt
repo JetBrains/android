@@ -834,6 +834,7 @@ MODULE                        : project
                         include                       : <empty>
                         includeApiClasspath           : <empty>
                         includeRuntimeClasspath       : <empty>
+                        lintChecks                    : <empty>
                         optionalSdk                   : <empty>
                         requiredSdk                   : <empty>
                         runtimeElements               : <empty>
