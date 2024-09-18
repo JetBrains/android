@@ -38,8 +38,8 @@ import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 
 @Composable
 fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
-  VerticallyScrollableContainer {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = modifier.padding(4.dp)) {
+  VerticallyScrollableContainer(modifier.padding(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Text(
         device.name,
         fontWeight = FontWeight.Bold,
