@@ -44,7 +44,6 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 private val toolbarSpacing = 6.dp
-private val fontSize = UIUtil.getFontSize(UIUtil.FontSize.SMALL)
 private const val descriptionOpened = "Hide preview group"
 private const val descriptionClosed = "Show preview group"
 
@@ -70,7 +69,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
         displayName.value,
         modifier = Modifier.testTag("displayName"),
         color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
-        fontSize = TextUnit(fontSize, TextUnitType.Sp),
+        fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
         fontWeight = FontWeight.Bold,
       )
       Spacer(Modifier.width(toolbarSpacing))
