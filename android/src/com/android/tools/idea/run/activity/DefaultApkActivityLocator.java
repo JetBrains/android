@@ -115,7 +115,7 @@ public class DefaultApkActivityLocator extends ActivityLocator {
         continue;
       }
 
-      // Open all apks and par´AndroidManifest.xml if found.
+      // Open all apks and parse AndroidManifest.xml if found.
       try (ZipFile zipFile = new ZipFile(file)) {
         ZipEntry manifestEntry = zipFile.getEntry(SdkConstants.FN_ANDROID_MANIFEST_XML);
         if (manifestEntry == null) {
