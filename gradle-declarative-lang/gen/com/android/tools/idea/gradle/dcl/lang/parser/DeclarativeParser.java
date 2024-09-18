@@ -255,13 +255,25 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // factory | identifier
+  // embedded_factory | identifier
   static boolean block_head(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block_head")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r;
-    r = factory(b, l + 1);
+    r = embedded_factory(b, l + 1);
     if (!r) r = identifier(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // private_factory
+  public static boolean embedded_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "embedded_factory")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = private_factory(b, l + 1);
+    exit_section_(b, m, EMBEDDED_FACTORY, r);
     return r;
   }
 
@@ -353,19 +365,15 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier OP_LPAREN argumentsList OP_RPAREN
+  // private_factory
   public static boolean factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "factory")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, FACTORY, null);
-    r = identifier(b, l + 1);
-    r = r && consumeToken(b, OP_LPAREN);
-    p = r; // pin = 2
-    r = r && report_error_(b, argumentsList(b, l + 1));
-    r = p && consumeToken(b, OP_RPAREN) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = private_factory(b, l + 1);
+    exit_section_(b, m, FACTORY, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -470,6 +478,22 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "one_line_entries_0_0_2")) return false;
     consumeToken(b, SEMI);
     return true;
+  }
+
+  /* ********************************************************** */
+  // identifier OP_LPAREN argumentsList OP_RPAREN
+  static boolean private_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "private_factory")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = identifier(b, l + 1);
+    r = r && consumeToken(b, OP_LPAREN);
+    p = r; // pin = 2
+    r = r && report_error_(b, argumentsList(b, l + 1));
+    r = p && consumeToken(b, OP_RPAREN) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   /* ********************************************************** */

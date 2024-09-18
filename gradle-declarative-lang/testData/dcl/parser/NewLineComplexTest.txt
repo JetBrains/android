@@ -21,7 +21,7 @@ FILE
           PsiElement(DeclarativeTokenType.{)('{')
           PsiWhiteSpace('\n    ')
           PsiElement(BLOCK)
-            PsiElement(FACTORY)
+            PsiElement(EMBEDDED_FACTORY)
               PsiElement(IDENTIFIER)
                 PsiElement(DeclarativeTokenType.token)('somefunction')
               PsiElement(DeclarativeTokenType.()('(')
