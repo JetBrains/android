@@ -32,6 +32,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
+import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices;
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
@@ -89,6 +91,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
@@ -171,6 +174,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private final @NotNull Project project;
 
   private @Nullable ApplicationProjectContext applicationProjectContext;
+  private @Nullable ApplicationLiveEditServices applicationLiveEditServices;
 
   // TODO: This is the Thread where we process keystroke but also where we receive appDeploy.
   //       1. A better name would be "mainThreadExecutor".
@@ -244,7 +248,7 @@ public class LiveEditProjectMonitor implements Disposable {
   public void resetState() {
     bufferedFiles.clear();
     filesWithCompilationErrors.clear();
-    compiler.resetState();
+    compiler.resetState(applicationLiveEditServices);
     hasLoggedSinceReset = false;
   }
 
@@ -370,8 +374,15 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
+    final var applicationLiveEditServices =
+      BuildSystemLiveEditServices.getApplicationLiveEditServices(applicationProjectContext);
+    if (applicationLiveEditServices == null) {
+      LOGGER.warning("Build system for live edit is not available for " + applicationProjectContext);
+      return false;
+    }
     mainThreadExecutor.submit(() -> {
       this.applicationProjectContext = applicationProjectContext;
+      this.applicationLiveEditServices = applicationLiveEditServices;
       intermediateSyncs.set(Boolean.FALSE);
       resetState();
 
@@ -466,6 +477,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private boolean shouldLiveEdit() {
     return LiveEditApplicationConfiguration.getInstance().isLiveEdit() &&
            StringUtil.isNotEmpty(applicationId()) &&
+           applicationLiveEditServices != null && // support from the project system.
            !liveEditDevices.isUnrecoverable() &&
            !liveEditDevices.isDisabled();
   }
@@ -568,7 +580,8 @@ public class LiveEditProjectMonitor implements Disposable {
         inputs.add(new LiveEditCompilerInput(file, state));
       }
 
-      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), getDevicesApiLevels());
+      compiled = compiler
+        .compile(inputs, !LiveEditService.isLeTriggerManual(), getDevicesApiLevels());
       if (compiled.isEmpty()) {
         return false;
       }

@@ -23,6 +23,7 @@ import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.idea.run.deployment.liveedit.k2.LiveEditCompilerForK2
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -33,7 +34,6 @@ import com.intellij.openapi.util.Computable
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
-
 import java.util.Optional
 
 class LiveEditCompiler(val project: Project,
@@ -42,12 +42,14 @@ class LiveEditCompiler(val project: Project,
 
   internal interface LiveEditCompilerForKotlinVersion {
     fun compileKtFile(
+      applicationLiveEditServices: ApplicationLiveEditServices,
       file: KtFile,
       inputs: Collection<LiveEditCompilerInput>,
       output: LiveEditCompilerOutput.Builder
     )
   }
 
+  private var applicationLiveEditServices: ApplicationLiveEditServices? = null
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
@@ -85,7 +87,7 @@ class LiveEditCompiler(val project: Project,
 
     var desugaredOutputs : LiveEditDesugarResponse? = null
     val compileCmd = {
-      val outputBuilder = LiveEditCompilerOutput.Builder()
+      var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
         // Ignore script files. This check must be done in a read action.
         if (file.isScript()) {
@@ -96,7 +98,7 @@ class LiveEditCompiler(val project: Project,
           when (KotlinPluginModeProvider.isK2Mode()) {
             true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder, file.module!!)
             false -> LiveEditCompilerForK1(project, inlineCandidateCache, irClassCache, this.outputBuilder, this.outputBuilderWithAnalysis)
-          }.compileKtFile(file, input, outputBuilder)
+          }.compileKtFile(applicationLiveEditServices(), file, input, outputBuilder)
 
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
@@ -145,9 +147,18 @@ class LiveEditCompiler(val project: Project,
     return@Computable null
   }
 
-  fun resetState() {
-    inlineCandidateCache.clear()
+  private fun applicationLiveEditServices() = applicationLiveEditServices ?: error("not yet initialized")
 
+  fun setApplicationLiveEditServicesForTests(applicationLiveEditServices: ApplicationLiveEditServices) {
+    if (this.applicationLiveEditServices != null) {
+      error("applicationLiveEditServices must not be already set")
+    }
+    this.applicationLiveEditServices = applicationLiveEditServices
+  }
+
+  fun resetState(applicationLiveEditServices: ApplicationLiveEditServices) {
+    inlineCandidateCache.clear()
+    this.applicationLiveEditServices = applicationLiveEditServices
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.
       desugarer.close()

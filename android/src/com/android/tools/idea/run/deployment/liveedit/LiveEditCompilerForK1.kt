@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -31,6 +32,7 @@ internal class LiveEditCompilerForK1(
 ) : LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   override fun compileKtFile(
+    applicationLiveEditServices: ApplicationLiveEditServices,
     file: KtFile,
     inputs: Collection<LiveEditCompilerInput>,
     output: LiveEditCompilerOutput.Builder
@@ -58,6 +60,7 @@ internal class LiveEditCompilerForK1(
       val generationState = try {
         tracker.record("codegen") {
           backendCodeGen(
+            applicationLiveEditServices,
             project,
             analysisResult,
             inputFiles,
@@ -80,6 +83,7 @@ internal class LiveEditCompilerForK1(
         // We will need to start using the new analysis for code gen.
         tracker.record("codegen_inline") {
           backendCodeGen(
+            applicationLiveEditServices,
             project,
             newAnalysisResult,
             inputFiles,
@@ -100,9 +104,23 @@ internal class LiveEditCompilerForK1(
       // 3) Diff the newly generated class files from step 2 with the previously generated class files in order to decide which classes
       //    we want to send to the device along with what extra meta-information the agent needs.
       if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_BYTECODE_ANALYSIS.get()) {
-        outputBuilderWithAnalysis.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+        outputBuilderWithAnalysis.getGeneratedCode(
+          applicationLiveEditServices,
+          file,
+          generationState.factory.asList(),
+          irClassCache,
+          inlineCandidateCache,
+          output
+        )
       } else {
-        outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+        outputBuilder.getGeneratedCode(
+          applicationLiveEditServices,
+          file,
+          generationState.factory.asList(),
+          irClassCache,
+          inlineCandidateCache,
+          output
+        )
       }
       return@runWithCompileLock
     }
