@@ -153,8 +153,8 @@ class GridLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
   ): Double {
-    if (content.isEmpty()) {
-      // No content. Use 100% as zoom level
+    if (content.none { it !is HeaderPositionableContent }) {
+      // No content or only Headers are showing. Use 100% as zoom level
       return 1.0
     }
 
