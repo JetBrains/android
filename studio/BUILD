@@ -645,6 +645,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
