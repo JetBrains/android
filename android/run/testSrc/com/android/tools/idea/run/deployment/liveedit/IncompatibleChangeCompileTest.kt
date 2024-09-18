@@ -17,11 +17,13 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.toIrClass
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
@@ -61,8 +63,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -77,7 +79,7 @@ class IncompatibleChangeCompileTest {
     assertEquals("added field(s): y", firstError.message)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, secondError.error)
     assertEquals("added field(s): y", secondError.message)
@@ -93,8 +95,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -108,7 +110,7 @@ class IncompatibleChangeCompileTest {
     assertEquals("removed field(s): x", firstError.message)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, secondError.error)
     assertEquals("removed field(s): x", secondError.message)
@@ -123,8 +125,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -139,7 +141,7 @@ class IncompatibleChangeCompileTest {
     assertEquals("added method(s): y", firstError.message)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, secondError.error)
     assertEquals("added method(s): y", secondError.message)
@@ -154,8 +156,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -171,7 +173,7 @@ class IncompatibleChangeCompileTest {
     assertEquals("added method(s): int y(String), int y(Test)", firstError.message)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, secondError.error)
     assertEquals("added method(s): int y(String), int y(Test)", secondError.message)
@@ -186,8 +188,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -201,7 +203,7 @@ class IncompatibleChangeCompileTest {
     compile(file, compiler)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, secondError.error)
     assertEquals("in Test, modified constructor <init>", secondError.message)
@@ -217,8 +219,8 @@ class IncompatibleChangeCompileTest {
     """)
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, provider(apk))
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       class Test {
@@ -231,13 +233,9 @@ class IncompatibleChangeCompileTest {
     compile(file, compiler)
 
     // Second+ edit - diff with cache
-    cache.update(apk.values.toList())
+    cache.update(apk.values.map { it.toIrClass() })
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, secondError.error)
     assertEquals("in Test, modified constructor void <init>(int, int)", secondError.message)
-  }
-
-  private fun provider(apk: Map<String, IrClass>): ApkClassProvider = object: ApkClassProvider {
-    override fun getClass(ktFile: KtFile, className: String) = apk[className]
   }
 }

@@ -722,6 +722,8 @@
                     interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
     <extensionPoint qualifiedName="com.android.tools.idea.rendering.tokens.buildSystemFilePreviewServices"
                     interface="com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.liveedit.tokens.buildSystemLiveEditServices"
+                    interface="com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.testRunParametersToken"
                     interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"

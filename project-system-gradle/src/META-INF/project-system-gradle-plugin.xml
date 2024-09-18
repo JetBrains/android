@@ -308,6 +308,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <versionCatalogFilesGradleModel implementation="com.android.tools.idea.gradle.catalog.VersionCatalogFilesGradleModel"/>
     <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.GradleBuildSystemFilePreviewServices"/>
+    <liveedit.tokens.buildSystemLiveEditServices implementation="com.android.tools.idea.run.deployment.liveedit.tokens.GradleBuildSystemLiveEditServices"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.memorysettings">

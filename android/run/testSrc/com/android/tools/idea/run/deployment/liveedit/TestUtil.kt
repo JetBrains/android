@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import org.jetbrains.kotlin.psi.KtFile
+import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 
-interface ApkClassProvider {
-  fun getClass(applicationServices: ApplicationLiveEditServices, ktFile: KtFile, className: String): IrClass?
+fun LiveEditCompiler.withClasses(classes: Map<String, ByteArray>): LiveEditCompiler {
+  this.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(classes))
+  return this
 }
 
-class DefaultApkClassProvider : ApkClassProvider {
-  override fun getClass(
-    applicationServices: ApplicationLiveEditServices,
-    ktFile: KtFile,
-    className: String
-  ): IrClass? {
-    val classContent = applicationServices.getClassContent(ktFile.originalFile.virtualFile, className)
-    return classContent?.let { IrClass(it.content) }
-  }
+fun FakeBuildSystemLiveEditServices.withClasses(classes: Map<String, ByteArray>): FakeBuildSystemLiveEditServices {
+  this.testApplicationLiveEditServices = ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(classes)
+  return this
 }

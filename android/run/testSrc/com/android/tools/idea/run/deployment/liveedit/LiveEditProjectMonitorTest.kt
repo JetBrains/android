@@ -36,6 +36,9 @@ import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.application.ReadAction
@@ -75,6 +78,7 @@ class LiveEditProjectMonitorTest {
   fun setUp() {
     UsageTracker.setWriterForTest(usageTracker)
     myProject = projectRule.project
+    FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
   }
 
@@ -103,7 +107,8 @@ class LiveEditProjectMonitorTest {
   @Test
   fun autoModeCompileSuccess() {
     val monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+      LiveEditService.getInstance(myProject), myProject
+    )
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
 
     // Fake a UpToDate Physical Device

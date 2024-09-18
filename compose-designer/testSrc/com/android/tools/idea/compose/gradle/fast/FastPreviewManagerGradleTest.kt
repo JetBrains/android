@@ -33,6 +33,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
 import com.android.tools.idea.run.deployment.liveedit.PsiState
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.testing.virtualFile
@@ -306,6 +307,12 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       while (compile) {
         try {
           LiveEditCompiler(projectRule.project, irCache)
+            .also {
+              // Normally initialized from a run configuration triggering deployment.
+              it.setApplicationLiveEditServicesForTests(
+                ApplicationLiveEditServices.Legacy(projectRule.project)
+              )
+            }
             .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))
           deviceCompilations.incrementAndGet()
         } catch (e: LiveEditUpdateException) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
@@ -121,11 +122,14 @@ interface CompileScope {
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project,
-                     analysisResult: AnalysisResult,
-                     input: List<KtFile>,
-                     moduleForAllInputs: Module,
-                     inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState
+  fun backendCodeGen(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    project: Project,
+    analysisResult: AnalysisResult,
+    input: List<KtFile>,
+    moduleForAllInputs: Module,
+    inlineClassRequest: Set<SourceInlineCandidate>?
+  ): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -177,8 +181,10 @@ private object CompileScopeImpl : CompileScope {
     }
   }
 
-  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>, moduleForAllInputs: Module,
-                              inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
+  override fun backendCodeGen(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    project: Project, analysisResult: AnalysisResult, input: List<KtFile>, moduleForAllInputs: Module,
+    inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
     // Ideally, we want to make sure that each compilation only contains files of a single module.
     // However, the current algorithm would fail if a file depends on an inline function that is in another module.
     // If we are unable to pull the binary version of the inline function from the .class directories, we would need to include the .kt
@@ -242,7 +248,7 @@ private object CompileScopeImpl : CompileScope {
 
     val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
-      it.fetchByteCodeFromBuildIfNeeded()
+      it.fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices)
       it.fillInlineCache(generationState.inlineCache)
     }
 

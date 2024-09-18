@@ -28,6 +28,7 @@ import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.setOptions
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -56,7 +57,12 @@ internal class LiveEditCompilerForK2(
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompilerForK2::class.java))
 
-  override fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
+  override fun compileKtFile(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    file: KtFile,
+    inputs: Collection<LiveEditCompilerInput>,
+    output: LiveEditCompilerOutput.Builder
+  ) {
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
@@ -67,7 +73,7 @@ internal class LiveEditCompilerForK2(
       // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
       validatePsiDiff(inputs, file)
 
-      outputBuilder.getGeneratedCode(file, compilerOutput, irClassCache, inlineCandidateCache, output)
+      outputBuilder.getGeneratedCode(applicationLiveEditServices, file, compilerOutput, irClassCache, inlineCandidateCache, output)
       return@runWithCompileLock
     }
   }

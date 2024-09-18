@@ -34,6 +34,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.parseComposeGroups
 import com.android.tools.idea.run.deployment.liveedit.analysis.toStringWithLineInfo
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -55,7 +56,8 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
   // Be extremely careful if you use the state inside the outputs object for any reason (or better yet, don't) - it's very easy to
   // inadvertently re-process classes and break things, especially when running in manual mode
   // TODO: Refactor this pattern so this isn't a thing that can happen
-  internal fun getGeneratedCode(sourceFile: KtFile,
+  internal fun getGeneratedCode(applicationLiveEditServices: ApplicationLiveEditServices,
+                                sourceFile: KtFile,
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
@@ -79,7 +81,7 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
     val modifiedMethods = mutableListOf<IrMethod>()
     val requiresReinit = mutableListOf<IrClass>()
     for (classFile in classFiles.filterNot { it in keyMetaFiles }) {
-      val changes = handleClassFile(classFile, sourceFile, irCache, inlineCandidateCache, outputs)
+      val changes = handleClassFile(applicationLiveEditServices, classFile, sourceFile, irCache, inlineCandidateCache, outputs)
       irClasses.add(changes.clazz)
 
       modifiedMethods.addAll(changes.modifiedMethods)
@@ -160,7 +162,8 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
 
   private data class ChangeInfo(val clazz: IrClass, val modifiedMethods: List<IrMethod>, val requiresReinit: Boolean)
 
-  private fun handleClassFile(classFile: OutputFile,
+  private fun handleClassFile(applicationLiveEditServices: ApplicationLiveEditServices,
+                              classFile: OutputFile,
                               sourceFile: KtFile,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
@@ -169,7 +172,7 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
     val newClass = IrClass(classBytes)
     val oldClass = irCache[newClass.name] ?: run {
       logger.info("Live Edit: No cache entry for ${newClass.name}; using the APK for class diff")
-      apkClassProvider.getClass(sourceFile, newClass.name)
+      apkClassProvider.getClass(applicationLiveEditServices, sourceFile, newClass.name)
     }
 
     output.addIrClass(newClass)

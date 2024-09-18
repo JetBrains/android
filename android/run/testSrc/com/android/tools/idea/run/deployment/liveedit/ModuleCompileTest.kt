@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
@@ -58,12 +59,10 @@ class ModuleCompileTest {
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
-    val apk = projectRule.directApiCompileIr(file).toMutableMap()
-    apk.putAll(projectRule.directApiCompileIr(file))
+    val apk = projectRule.directApiCompileByteArray(file).toMutableMap()
+    apk.putAll(projectRule.directApiCompileByteArray(file))
 
-    val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     val output = compile(listOf(LiveEditCompilerInput(file, readPsiValidationState(file))), compiler)
     val clazz = loadClass(output)
@@ -91,12 +90,10 @@ class ModuleCompileTest {
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
-    val apk = projectRule.directApiCompileIr(file1).toMutableMap()
-    apk.putAll(projectRule.directApiCompileIr(file2))
+    val apk = projectRule.directApiCompileByteArray(file1).toMutableMap()
+    apk.putAll(projectRule.directApiCompileByteArray(file2))
 
-    val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
                                 LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
@@ -138,10 +135,8 @@ class ModuleCompileTest {
       }
     } else {
       val cache = MutableIrClassCache()
-      val apk = projectRule.directApiCompileIr(listOf(file1, file2))
-      val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
-        override fun getClass(ktFile: KtFile, className: String) = apk[className]
-      })
+      val apk = projectRule.directApiCompileByteArray(listOf(file1, file2))
+      val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
       val output = compile(listOf(LiveEditCompilerInput(file1, readPsiValidationState(file1)),
                                   LiveEditCompilerInput(file2, readPsiValidationState(file2))), compiler)
