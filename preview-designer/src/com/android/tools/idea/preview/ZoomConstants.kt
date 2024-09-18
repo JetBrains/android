@@ -21,7 +21,6 @@ import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
  * This object defines the constants to use for the Zoom controller in [CommonPreviewRepresentation]
  */
 object ZoomConstants {
-  const val MAX_ZOOM_TO_FIT_LEVEL = 2.0 // 200%
   const val MIN_SCALE = 0.01 // 1% zoom level
   const val MAX_SCALE = 5.0 // 500% zoom level
 }

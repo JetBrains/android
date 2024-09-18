@@ -113,7 +113,7 @@ class NavDesignSurfaceZoomController(
       } else {
         availableHeight.toDouble() / contentSize.height
       }
-    return minOf(scaleX, scaleY, maxZoomToFitScale)
+    return minOf(scaleX, scaleY, maxScale)
   }
 
   override fun setScale(scale: Double, x: Int, y: Int): Boolean {

@@ -31,9 +31,11 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
 
+/** The min allowed scale that could be set in [DesignSurface]s */
 @SurfaceScale private const val MIN_SCALE: Double = 0.03
 
-@SurfaceScale private const val MAX_SCALE: Double = 10.0
+/** The max allowed scale that could be set in [DesignSurface]s */
+@SurfaceScale const val MAX_SCALE: Double = 10.0
 
 /**
  * If the difference between old and new scaling values is less than threshold, the scaling will be
@@ -64,7 +66,6 @@ abstract class DesignSurfaceZoomController(
   private val designerAnalyticsManager: DesignerAnalyticsManager?,
   private val selectionModel: SelectionModel?,
   private val scenesOwner: ScenesOwner?,
-  override val maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
 
   /** Emits an event of [ZoomType] before the given zoom is applied. */
@@ -77,13 +78,6 @@ abstract class DesignSurfaceZoomController(
   override val maxScale: Double = MAX_SCALE
 
   open val shouldShowZoomAnimation: Boolean = false
-
-  /**
-   * The max zoom level allowed in zoom to fit could not correspond if [screenScalingFactor] is
-   * different from 1.0.
-   */
-  protected val maxZoomToFitScale
-    get() = maxZoomToFitLevel / screenScalingFactor
 
   /**
    * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If

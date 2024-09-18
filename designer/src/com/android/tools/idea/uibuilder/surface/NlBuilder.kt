@@ -150,8 +150,6 @@ class NlSurfaceBuilder(
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
 
-  private var _maxZoomToFitLevel = Double.MAX_VALUE
-
   private var _visualLintIssueProviderFactory:
     (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
     {
@@ -298,11 +296,6 @@ class NlSurfaceBuilder(
     return this
   }
 
-  fun setMaxZoomToFitLevel(maxZoomToFitLevel: Double): NlSurfaceBuilder {
-    _maxZoomToFitLevel = maxZoomToFitLevel
-    return this
-  }
-
   fun setVisualLintIssueProvider(
     issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider
   ): NlSurfaceBuilder {
@@ -332,7 +325,6 @@ class NlSurfaceBuilder(
         _zoomControlsPolicy,
         _supportedActionsProvider,
         _shouldRenderErrorsPanel,
-        _maxZoomToFitLevel,
         _visualLintIssueProviderFactory,
         nlDesignSurfacePositionableContentLayoutManager,
       )
