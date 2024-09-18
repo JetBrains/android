@@ -24,6 +24,7 @@ import com.android.sdklib.SdkVersionInfo.getCodeName
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.device.FormFactor
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -171,6 +172,31 @@ class AndroidVersionsInfoTest {
     assertThat(versionItem.toString())
       .isEqualTo(AndroidTargetHash.getAddonHashString("AddonVendor", "AddonName", androidVersion))
   }
+
+  @Test
+  fun `mobile format has no minimum sdk limit`() {
+    val androidVersionsInfo = AndroidVersionsInfo { arrayOf(mockedPlatform(1000)) }
+    androidVersionsInfo.loadLocalVersions()
+    val targets = androidVersionsInfo.getKnownTargetVersions(FormFactor.MOBILE, 1)
+    assertThat(targets.last().minApiLevel).isEqualTo(1000)
+  }
+
+  @Test
+  fun `non-mobile formats have minimum sdk limit`() {
+    val info = AndroidVersionsInfo { arrayOf(mockedPlatform(1000)) }
+    info.loadLocalVersions()
+    val nonMobileFormats = FormFactor.entries - FormFactor.MOBILE
+    for (format in nonMobileFormats) {
+      val targets = info.getKnownTargetVersions(format, 1)
+      assertThat(targets.last().minApiLevel).isNotEqualTo(1000)
+    }
+  }
+
+  private fun mockedPlatform(api: Int): IAndroidTarget =
+    mock<IAndroidTarget?>().apply {
+      whenever(this.version).thenReturn(AndroidVersion(api))
+      whenever(this.isPlatform).thenReturn(true)
+    }
 }
 
 private const val OLDER_VERSION = HIGHEST_KNOWN_API - 1

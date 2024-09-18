@@ -55,7 +55,9 @@ import kotlin.math.max
  * The list can be filtered by min sdk level and a callback mechanism allows information to be provided asynchronously.
  * It is also possible to query the list of packages that the system needs to install to satisfy the requirements of an API level.
  */
-class AndroidVersionsInfo {
+class AndroidVersionsInfo(
+  private val targetProvider: () -> Array<IAndroidTarget> = { loadInstalledCompilationTargets() }
+) {
   private lateinit var knownTargetVersions: List<VersionItem>
 
   /**
@@ -64,7 +66,7 @@ class AndroidVersionsInfo {
    */
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
-    val installedPlatformAndAddonTargets = loadInstalledCompilationTargets()
+    val installedPlatformAndAddonTargets = targetProvider.invoke()
     val (installedStableTargets, installedPreviewAndAddonTargets) =
       installedPlatformAndAddonTargets.partition { it.isPlatform && !it.version.isPreview }
     knownTargetVersions = sequence {
