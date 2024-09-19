@@ -195,7 +195,7 @@ class AppInspectionServiceRule(
     }
   }
 
-  private fun addAppInspectionPayload(
+  fun addAppInspectionPayload(
     payloadId: Long,
     payloadEvent: AppInspection.AppInspectionPayload,
     isEnded: Boolean,

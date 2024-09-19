@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashExce
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createPayload
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createPayloadChunks
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -46,7 +47,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
@@ -224,6 +224,65 @@ class AppInspectorConnectionTest {
       // Payloads are deleted from the cache upon reading
       assertThat(appInspectionRule.transport.queryAllPayloads()).isEmpty()
     }
+
+  @Test
+  fun receiveDuplicatedPayLoadEvents() {
+    runBlocking {
+      val connection = appInspectionRule.launchInspectorConnection()
+
+      val payloadId = 1L
+      val data1 = byteArrayOf(0x1, 0x2, 0x3) // Make sure we can handle large chunk sizes
+      val data2 = byteArrayOf(0x4, 0x5, 0x6)
+      val data3 = byteArrayOf(0x7, 0x8, 0x9)
+      val chunkCount = 3
+      var chunkIndex = 0
+
+      // Send duplicated payloads events:
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, chunkIndex, data1),
+        isEnded = false,
+      )
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, chunkIndex, data1),
+        isEnded = false,
+      )
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, ++chunkIndex, data2),
+        isEnded = false,
+      )
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, ++chunkIndex, data3),
+        isEnded = true,
+      )
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, chunkIndex, data3),
+        isEnded = true,
+      )
+      appInspectionRule.addAppInspectionPayload(
+        payloadId,
+        createPayload(chunkCount, chunkIndex, data3),
+        isEnded = true,
+      )
+
+      // Send payload events out of order, just to stress test that payloads can be queried anytime
+      // after they are sent
+      appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(payloadId))
+
+      assertThat(appInspectionRule.transport.queryAllPayloads()).hasSize(6)
+
+      val rawData = connection.eventFlow.take(1).single()
+
+      assertThat(rawData.contentToString()).isEqualTo((data1 + data2 + data3).contentToString())
+
+      // Payloads are deleted from the cache upon reading
+      assertThat(appInspectionRule.transport.queryAllPayloads()).isEmpty()
+    }
+  }
 
   @Test
   fun disposeConnectionClosesConnection() =
