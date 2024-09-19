@@ -794,10 +794,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -811,10 +811,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpFirstLib
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -966,10 +966,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -983,10 +983,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpFirstLib
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1061,10 +1061,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1078,10 +1078,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpFirstLib
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1155,10 +1155,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1172,10 +1172,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpFirstLib
             IsTestModule                  : false
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1223,10 +1223,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1240,10 +1240,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpFirstLib
             IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1334,10 +1334,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1351,10 +1351,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpJvmOnly
             IsTestModule                  : false
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1397,10 +1397,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1414,10 +1414,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpJvmOnly
             IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1461,10 +1461,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1478,10 +1478,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpJvmOnly
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1526,10 +1526,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1543,10 +1543,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpJvmOnly
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1663,10 +1663,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1680,10 +1680,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpSecondLib
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1731,10 +1731,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1748,10 +1748,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpSecondLib
             IsTestModule                  : false
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1793,10 +1793,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1810,10 +1810,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpSecondLib
             IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1857,10 +1857,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1874,10 +1874,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpSecondLib
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1922,10 +1922,10 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1939,10 +1939,10 @@ PROJECT                       : Kotlin Multiplatform
             ExternalProjectId             : :kmpSecondLib
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar

@@ -869,7 +869,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -997,9 +996,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/common/build/libs/common-jvm.jar [-]
                     configurationArtifacts
                         allSourceSetsCompileDependenciesMetadata          : <empty>
-                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
-                        - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - archives                    : <ROOT>/common/build/libs/common-metadata.jar [-]
+                        - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -1059,7 +1057,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1114,7 +1111,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathMain       : <empty>
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1323,7 +1319,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1454,9 +1449,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                     configurationArtifacts
-                        allInstrumentedTestSourceSetsCompileDependenciesMetadata    : <empty>
                         allSourceSetsCompileDependenciesMetadata          : <empty>
-                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         androidApis                   : <empty>
                         androidDebugAndroidTestCompilationApi   : <empty>
                         androidDebugAndroidTestCompilationCompileOnly     : <empty>
@@ -1582,9 +1575,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         androidUnitTestRuntimeOnly    : <empty>
                         annotationProcessor           : <empty>
                         api                           : <empty>
+                        - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         - archives                    : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
-                        - archives                    : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -1639,7 +1632,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1762,7 +1754,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinCompilerPluginClasspathTestEnv    : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1921,10 +1912,9 @@ MODULE                        : NonStandardSourceSetDependencies
                             - taskArtifacts               : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             configurationArtifacts
                                 allSourceSetsCompileDependenciesMetadata          : <empty>
-                                allTestSourceSetsCompileDependenciesMetadata      : <empty>
                                 annotationProcessor           : <empty>
-                                - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                                - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 commonMainApi                 : <empty>
                                 commonMainApiDependenciesMetadata       : <empty>
                                 commonMainCompileOnly         : <empty>
@@ -1987,7 +1977,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 kotlinCompilerPluginClasspathJvmTest    : <empty>
                                 kotlinCompilerPluginClasspathMetadataMain         : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
-                                kotlinNativeBundleConfiguration         : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 kotlinScriptDef               : <empty>
                                 kotlinScriptDefExtensions     : <empty>
@@ -2317,7 +2306,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -3309,7 +3297,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3359,9 +3347,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : jvmMain:commonMain
-                    - fragments                   : jvmMain
-                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3439,9 +3424,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : jvmTest:commonTest
-                    - fragments                   : jvmTest
-                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5095,7 +5077,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : androidMain (KotlinSourceSetImpl)
@@ -5143,9 +5125,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : androidDebug:commonMain
-                    - fragments                   : androidDebug
-                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5217,7 +5196,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragments                   : androidInstrumentedTestDebug
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5290,9 +5268,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : androidUnitTestDebug:commonTest
-                    - fragments                   : androidUnitTestDebug
-                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5489,7 +5464,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -5540,9 +5515,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : jvmMain:commonMain
-                    - fragments                   : jvmMain
-                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5622,9 +5594,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : jvmTest:commonTest
-                    - fragments                   : jvmTest
-                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
