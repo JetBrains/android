@@ -16,6 +16,7 @@
 package com.android.tools.idea.backup
 
 import com.android.flags.junit.FlagRule
+import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
@@ -101,7 +102,7 @@ internal class BackupAppActionTest {
     runInEdtAndWait {}
 
     verify(mockBackupManager)
-      .showBackupDialog("serial", "com.app", BackupManager.Source.RUN_MENU, notify = true)
+      .showBackupDialog("serial", "com.app", BACKUP_APP_ACTION, notify = true)
     assertThat(actionHelper.warnings).isEmpty()
   }
 

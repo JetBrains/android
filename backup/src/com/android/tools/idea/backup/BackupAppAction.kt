@@ -19,6 +19,7 @@ package com.android.tools.idea.backup
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Invalid
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Valid
 import com.android.tools.idea.backup.BackupBundle.message
+import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -62,11 +63,7 @@ internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHe
   private fun doBackup(project: Project, backupInfo: Valid) {
     val backupManager = BackupManager.getInstance(project)
     val applicationId = backupInfo.applicationId
-    backupManager.showBackupDialog(
-      backupInfo.serialNumber,
-      applicationId,
-      BackupManager.Source.RUN_MENU,
-    )
+    backupManager.showBackupDialog(backupInfo.serialNumber, applicationId, BACKUP_APP_ACTION)
   }
 
   private suspend fun AnActionEvent.getBackupInfo(): BackupInfo {
