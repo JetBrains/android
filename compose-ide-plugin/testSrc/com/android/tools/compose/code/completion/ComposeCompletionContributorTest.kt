@@ -23,9 +23,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.application
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
@@ -1218,6 +1221,62 @@ class ComposeCompletionContributorTest {
           override fun FoobarOne() {
               TODO("Not yet implemented")
           }
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun testInsertHandler_importAdded() {
+    myFixture.addFileToProject(
+      "src/com/example/subpackage/FoobarOne.kt",
+      // language=kotlin
+      """
+      package com.example.subpackage
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun FoobarOne(children: @Composable () -> Unit) {}
+      """
+        .trimIndent(),
+    )
+
+    IndexingTestUtil.waitUntilIndexesAreReady(myFixture.project)
+
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
+        package com.example
+
+        fun doSomething() {
+            Foob${caret}
+        }
+        """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val lookupItems = myFixture.completeBasic()
+    if (lookupItems != null) {
+      // K1 and K2 differ in whether they have inserted the lookup string at this point, as tracked
+      // by https://youtrack.jetbrains.com/issue/KT-71313. If a lookup item was returned, it implies
+      // the string was not inserted and so we need to manually finish.
+      application.invokeAndWait { myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR) }
+    }
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import com.example.subpackage.FoobarOne
+
+      fun doSomething() {
+          FoobarOne { ${caret} }
       }
       """
         .trimIndent()
