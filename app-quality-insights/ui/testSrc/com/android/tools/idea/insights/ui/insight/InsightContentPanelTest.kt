@@ -31,6 +31,7 @@ import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
 import javax.swing.JButton
 import kotlin.test.fail
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -60,6 +61,8 @@ class InsightContentPanelTest {
   private val secondaryText: String
     get() = insightContentPanel.emptyStateText.secondaryComponent.toString()
 
+  private val enableInsightDeferred = CompletableDeferred<Boolean>(null)
+
   @Before
   fun setup() = runBlocking {
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
@@ -81,6 +84,7 @@ class InsightContentPanelTest {
             }
           }
         },
+        { enableInsightDeferred.complete(true) },
       ) {}
   }
 
@@ -155,7 +159,7 @@ class InsightContentPanelTest {
 
   @Test
   fun `test tos not accepted shows enable insight button`() = runBlocking {
-    currentInsightFlow.update { LoadingState.ToSNotAccepted }
+    currentInsightFlow.update { LoadingState.TosNotAccepted }
 
     val fakeUi = FakeUi(insightContentPanel)
 
@@ -171,6 +175,9 @@ class InsightContentPanelTest {
     val button = fakeUi.findComponent<JButton>() ?: fail("Button not found")
     assertThat(button.text).isEqualTo("Enable Insights")
     assertThat(button.isVisible).isTrue()
+
+    button.doClick()
+    assertThat(enableInsightDeferred.await()).isTrue()
   }
 
   @Test

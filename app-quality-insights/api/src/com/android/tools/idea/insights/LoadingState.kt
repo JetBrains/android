@@ -110,7 +110,7 @@ sealed class LoadingState<out T> {
     }
   }
 
-  data object ToSNotAccepted : Failure() {
+  data object TosNotAccepted : Failure() {
     override val message = null
 
     override fun <U> map(fn: (Nothing) -> U) = this

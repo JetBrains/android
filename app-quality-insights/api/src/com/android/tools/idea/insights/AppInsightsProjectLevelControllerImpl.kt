@@ -25,7 +25,6 @@ import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.ConnectionsChanged
 import com.android.tools.idea.insights.events.DeleteNoteRequested
 import com.android.tools.idea.insights.events.DevicesChanged
-import com.android.tools.idea.insights.events.EnhanceInsight
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.FatalityToggleChanged
@@ -33,6 +32,7 @@ import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
 import com.android.tools.idea.insights.events.PersistSettingsAdapter
+import com.android.tools.idea.insights.events.RefreshInsight
 import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
@@ -240,8 +240,8 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SelectedIssueVariantChanged(variant))
   }
 
-  override fun refreshInsight() {
-    emit(EnhanceInsight())
+  override fun refreshInsight(contextSharingOverride: Boolean) {
+    emit(RefreshInsight(contextSharingOverride))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {

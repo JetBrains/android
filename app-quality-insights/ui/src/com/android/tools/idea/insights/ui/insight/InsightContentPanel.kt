@@ -61,14 +61,15 @@ class InsightContentPanel(
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-  onRefresh: () -> Unit,
+  enableInsightHandler: () -> Unit,
+  onRefresh: (Boolean) -> Unit,
 ) : JPanel(), DataProvider, Disposable {
 
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane()
   private val feedbackPanel = InsightFeedbackPanel()
-  private val insightBottomPanel = InsightBottomPanel(project) { onRefresh() }
+  private val insightBottomPanel = InsightBottomPanel(project) { onRefresh(it) }
 
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
@@ -108,9 +109,7 @@ class InsightContentPanel(
 
       val button =
         JButton("Enable Insights", StudioBot.LOGO).apply {
-          addActionListener {
-            // TODO(b/361127260): Show ToS dialog
-          }
+          addActionListener { enableInsightHandler() }
           isFocusable = false
         }
 
@@ -217,7 +216,7 @@ class InsightContentPanel(
               permissionDeniedHandler.handlePermissionDenied(aiInsight, emptyStateText)
               showEmptyCard()
             }
-            is LoadingState.ToSNotAccepted -> {
+            is LoadingState.TosNotAccepted -> {
               showToSCard()
             }
             is LoadingState.UnsupportedOperation -> {

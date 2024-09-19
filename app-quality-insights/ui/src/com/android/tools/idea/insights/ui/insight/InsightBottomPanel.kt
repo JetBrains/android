@@ -47,8 +47,10 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
 private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
 
-class InsightBottomPanel(private val project: Project, private val onEnhanceInsight: () -> Unit) :
-  JPanel(BorderLayout()) {
+class InsightBottomPanel(
+  private val project: Project,
+  private val onEnhanceInsight: (Boolean) -> Unit,
+) : JPanel(BorderLayout()) {
 
   private val actionManager: ActionManager
     get() = ActionManager.getInstance()
@@ -79,7 +81,7 @@ class InsightBottomPanel(private val project: Project, private val onEnhanceInsi
               "Would you like to continue?</html>",
           )
         if (dialogBuilder.ask(e.project)) {
-          onEnhanceInsight()
+          onEnhanceInsight(true)
           e.presentation.isEnabledAndVisible = false
         }
       }

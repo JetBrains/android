@@ -49,6 +49,7 @@ class InsightMainPanel(
   controller: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
+  enableInsightHandler: () -> Unit,
 ) : JPanel(), DataProvider {
 
   private val scope =
@@ -63,8 +64,9 @@ class InsightMainPanel(
       controller.state.map { it.currentInsight },
       parentDisposable,
       permissionDeniedHandler,
+      enableInsightHandler,
     ) {
-      controller.refreshInsight()
+      controller.refreshInsight(it)
     }
 
   private val issueFlow =
