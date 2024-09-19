@@ -1828,7 +1828,7 @@ public final class StudioFlags {
       "crashlytics.show.insight.tool.window",
       "Show insight toolwindow in Crashlytics",
       "Show AI generated insights for Crashlytics issue in insight toolwindow",
-      false
+      true
     );
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
@@ -1861,7 +1861,7 @@ public final class StudioFlags {
       "play.vitals.show.insight.tool.window",
       "Show insight toolwindow in Play Vitals",
       "Show AI generated insights for Play Vitals issue in insight toolwindow",
-      false
+      true
     );
   // endregion App Insights
 
