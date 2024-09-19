@@ -153,19 +153,19 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { toolbar, ui ->
-      delayUntilCondition(200) { transitionCalls == 1 }
+      delayUntilCondition(200) { stateCalls == 2 }
       assertEquals(1, transitionCalls)
-      assertEquals(1, stateCalls)
+      assertEquals(2, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
       delayUntilCondition(200) { transitionCalls == 2 }
       assertEquals(2, transitionCalls)
-      assertEquals(2, stateCalls)
+      assertEquals(3, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
-      delayUntilCondition(200) { stateCalls == 3 }
+      delayUntilCondition(200) { stateCalls == 4 }
       assertEquals(2, transitionCalls)
-      assertEquals(3, stateCalls)
+      assertEquals(4, stateCalls)
     }
   }
 
@@ -179,15 +179,15 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { _, ui ->
-      // call from SupportedAnimationManager.setup and one from offset.collect in setUp
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      // 2 calls from SupportedAnimationManager.setup and one from offset.collect in setUp
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
-      assertEquals(3, numberOfCalls)
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
+      assertEquals(4, numberOfCalls)
     }
   }
 

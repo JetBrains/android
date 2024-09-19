@@ -144,7 +144,8 @@ abstract class AnimationPreview<T : AnimationManager>(
    * Tracks the maximum allowed duration of a single animation iteration. This is important for
    * handling long-running or repeating animations.
    */
-  protected val maxDurationPerIteration: MutableStateFlow<Long> =
+  @VisibleForTesting
+  val maxDurationPerIteration: MutableStateFlow<Long> =
     MutableStateFlow(DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS)
 
   // *****************
@@ -158,7 +159,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     Timeline(animationPreviewPanel, component).apply {
       addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
     }
-  protected val clockControl = SliderClockControl(timeline)
+  val clockControl = SliderClockControl(timeline)
 
   /**
    * Provides buttons and controls for playing, pausing, and adjusting the playback speed of the

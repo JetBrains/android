@@ -93,7 +93,7 @@ class ProtoAnimationTest {
     // Test a method with arguments
     val newTime = 500L
     protoAnimation.setTime(newTime)
-    assertEquals(newTime, animator.getAnimationFrameTime())
+    assertEquals(newTime, animator.currentTime)
 
     // Test a method that returns a value
     animator.setCurrentValue(123) // Set a current value
