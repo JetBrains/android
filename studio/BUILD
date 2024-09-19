@@ -100,7 +100,6 @@ studio_plugin(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
-        "//tools/adt/idea/app-quality-insights/ui:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/logcat/proto:logcat-proto",
@@ -521,7 +520,6 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:firebase_java_proto",
-        "//tools/vendor/google/firebase:libandroid-core-proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [

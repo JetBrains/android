@@ -17,10 +17,10 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule

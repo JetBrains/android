@@ -17,10 +17,10 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.Disposable

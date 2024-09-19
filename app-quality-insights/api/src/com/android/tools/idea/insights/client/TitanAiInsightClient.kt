@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AiInsight
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.protobuf.Any

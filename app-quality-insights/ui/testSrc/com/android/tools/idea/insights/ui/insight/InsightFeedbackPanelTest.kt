@@ -17,14 +17,13 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
-import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
-import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
@@ -94,7 +93,7 @@ class InsightFeedbackPanelTest {
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.ANR
-          INSIGHT_KEY.name -> AiInsight("", ExperimentType.CONTROL)
+          INSIGHT_KEY.name -> AiInsight("", Experiment.CONTROL)
           else -> null
         }
       }
@@ -111,7 +110,7 @@ class InsightFeedbackPanelTest {
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.FATAL
-          INSIGHT_KEY.name -> AiInsight("", ExperimentType.TOP_SOURCE)
+          INSIGHT_KEY.name -> AiInsight("", Experiment.TOP_SOURCE)
           else -> null
         }
       }
@@ -133,7 +132,4 @@ class InsightFeedbackPanelTest {
     action.actionPerformed(e)
     action.update(e)
   }
-
-  private fun createProtoResponse(experiment: ExperimentType) =
-    AqiExperimentsConfig.newBuilder().setExperimentType(experiment).build()
 }

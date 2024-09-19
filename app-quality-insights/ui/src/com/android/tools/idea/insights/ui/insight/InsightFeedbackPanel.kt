@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.analytics.toExperiment
+import com.android.tools.idea.insights.analytics.toProto
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
@@ -100,10 +100,9 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
   private fun logFeedback(sentiment: Sentiment, e: AnActionEvent) {
     val tracker = e.getData(APP_INSIGHTS_TRACKER_KEY) ?: return
     val crashType = e.getData(FAILURE_TYPE_KEY)?.toCrashType() ?: return
-    val experiment =
-      e.getData(INSIGHT_KEY)?.experimentType ?: ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED
+    val experiment = e.getData(INSIGHT_KEY)?.experiment ?: Experiment.UNKNOWN
 
-    tracker.logInsightSentiment(sentiment, experiment.toExperiment(), crashType)
+    tracker.logInsightSentiment(sentiment, experiment.toProto(), crashType)
   }
 
   private enum class InsightFeedback {
