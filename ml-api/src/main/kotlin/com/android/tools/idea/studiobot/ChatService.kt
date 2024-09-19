@@ -24,14 +24,12 @@ import com.android.tools.idea.studiobot.prompts.Prompt
  *
  * There are two ways to send messages into the chat window:
  *
- * Using [sendChatQuery], queries may be sent directly to the model without modification, and given
- * a truncated representation in the chat timeline. But this is only allowed if the user has opted
- * into sharing code from their project, since such queries may attach arbitrary context without
- * being visible to the user.
+ * Using [sendChatQuery], queries may be sent directly to the model, and given a truncated
+ * representation in the chat timeline.
  *
- * Alternatively, using [stageChatQuery] text can be pasted into the query bar without being sent
- * automatically. This API can be used regardless of the code sharing setting, since the user is
- * able to review the contents of the query before sending it.
+ * Alternatively, using [stageChatQuery] text can be pasted into the query bar for the user to
+ * manually review and send. Use this method if, for example, you want to send a query that includes
+ * information from the project, but the context sharing setting is disabled.
  */
 interface ChatService {
 
