@@ -28,16 +28,19 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.recordExistingFile
+import com.android.testutils.file.someRoot
 import com.android.utils.CpuArchitecture
 import com.android.utils.StdLogger
 import com.android.utils.osArchitecture
 import com.intellij.util.io.createDirectories
+import java.nio.file.Files
 import java.nio.file.Path
 
 class SdkFixture {
-  val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
+  val fileSystem = createInMemoryFileSystem()
+  val sdkRoot: Path = Files.createDirectories(fileSystem.someRoot.resolve("sdk"))
   val avdRoot: Path = sdkRoot.root.resolve("avd")
   val repoPackages = RepositoryPackages()
   val repoManager = FakeRepoManager(sdkRoot, repoPackages)
