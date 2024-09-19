@@ -316,8 +316,6 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"
                               order="first"/>
-    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"
-                              />
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
@@ -662,9 +660,6 @@
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
-    <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
-  </extensions>
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.actions.exportProjectZipExcludesContributor"
