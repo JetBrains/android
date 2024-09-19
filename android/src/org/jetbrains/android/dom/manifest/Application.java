@@ -81,6 +81,8 @@ public interface Application extends ManifestElement {
 
   List<UsesLibrary> getUsesLibrarys();
 
+  List<UsesNativeLibrary> getUsesNativeLibrarys();
+
   List<MetaData> getMetaDatas();
 
   Profileable getProfileable();
