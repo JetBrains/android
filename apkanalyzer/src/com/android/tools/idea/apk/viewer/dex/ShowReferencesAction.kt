@@ -25,6 +25,7 @@ import com.android.tools.proguard.ProguardMap
 import com.android.tools.proguard.ProguardSeedsMap
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.Reference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
@@ -47,9 +48,11 @@ import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.Dimension
 import javax.swing.JTree
 import javax.swing.event.TreeExpansionEvent
+import javax.swing.event.TreeSelectionEvent
 import javax.swing.event.TreeWillExpandListener
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.ExpandVetoException
+import javax.swing.tree.TreePath
 
 class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: DexFileViewer) :
   AnAction(ProjectBundle.message("find.usages.action.text"), null, AllIcons.Actions.Find) {
@@ -115,6 +118,10 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       }
     })
 
+    tree.addTreeSelectionListener {
+      onSelectionChanged(it)
+    }
+
     tree.cellRenderer = ReferenceRenderer(seedsMap, proguardMap, deobfuscate)
 
     val pane = JBScrollPane(tree)
@@ -129,6 +136,14 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       .setRequestFocus(true)
       .createPopup()
     popup.showInBestPositionFor(e.dataContext)
+  }
+
+  private fun onSelectionChanged(e: TreeSelectionEvent) {
+    val selectedNode = e.path.lastPathComponent as DexElementNode
+    val ref = selectedNode.reference ?: return
+    val root = tree.model.root as DexElementNode
+    val descendant = root.findDescendant(ref) ?: return
+    tree.selectionPath = descendant.toTreePath()
   }
 
   private fun getSelectedNode(): DexElementNode? = tree.selectionPath?.lastPathComponent as? DexElementNode
@@ -208,5 +223,30 @@ class ShowReferencesAction(private val tree: Tree, private val dexFileViewer: De
       append(PackageTreeCreator.decodeFieldName(ref, usedProguardMap), attr)
     }
   }
+}
+
+private fun DexElementNode.findDescendant(reference: Reference): DexElementNode? {
+  if (this.reference == reference) {
+    return this
+  }
+  children().iterator().forEach {
+    val child = it as DexElementNode
+    val node = child.findDescendant(reference)
+    if (node != null) {
+      return node
+    }
+  }
+  return null
+}
+
+private fun DexElementNode.toTreePath(): TreePath {
+  val nodes = buildList<DexElementNode> {
+    var node: DexElementNode? = this@toTreePath
+    while (node != null) {
+      add(0, node)
+      node = node.parent
+    }
+  }
+  return TreePath(nodes.toTypedArray())
 }
 
