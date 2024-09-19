@@ -59,7 +59,7 @@ class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FL
 
   private var _endValue: Any? = null
 
-  private var animationFrameTime: Long = 0
+  var currentTime: Long = 0
 
   private var _floatValues: FloatArray = FloatArray(2)
 
@@ -86,11 +86,7 @@ class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FL
   }
 
   override fun advanceToAnimationTime(newTime: Long) {
-    animationFrameTime = newTime
-  }
-
-  fun getAnimationFrameTime(): Long {
-    return animationFrameTime
+    currentTime = newTime
   }
 
   override fun getStartValue(): Any? {

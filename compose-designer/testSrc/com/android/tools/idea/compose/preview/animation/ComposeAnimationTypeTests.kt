@@ -162,18 +162,18 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { toolbar, ui ->
       withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 1 } }
       assertEquals(1, transitionCalls)
-      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 1 } }
-      assertEquals(1, stateCalls)
+      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 2 } }
+      assertEquals(2, stateCalls)
       // Swap
       ui.clickOn(toolbar.components[1])
       withContext(workerThread) { delayUntilCondition(200) { transitionCalls == 2 } }
       assertEquals(2, transitionCalls)
-      assertEquals(2, stateCalls)
+      assertEquals(3, stateCalls)
       // Swap again
       ui.clickOn(toolbar.components[1])
       assertEquals(2, transitionCalls)
-      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 3 } }
-      assertEquals(3, stateCalls)
+      withContext(workerThread) { delayUntilCondition(200) { stateCalls == 4 } }
+      assertEquals(4, stateCalls)
     }
   }
 
@@ -234,18 +234,18 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
-      // one from AnimationManager.setup and one from offset.collect
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
+      // Two from AnimationManager.setup and one from offset.collect
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
-      assertEquals(3, numberOfCalls)
-      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
       assertEquals(4, numberOfCalls)
+      timelineSlider.value = 200
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 5 } }
+      assertEquals(5, numberOfCalls)
     }
   }
 
