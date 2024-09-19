@@ -23,16 +23,25 @@ import com.intellij.ui.PlatformIcons;
 import javax.swing.*;
 
 public class DexNodeIcons {
-  public static Icon forNode(DexElementNode node){
-    if (node instanceof DexClassNode){
-      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Class);
-    } else if (node instanceof DexFieldNode){
-      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Field);
-    } else if (node instanceof DexMethodNode){
-      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Method);
-    } else if (node instanceof DexPackageNode){
+  @SuppressWarnings("UnstableApiUsage")
+  public static Icon forNode(DexElementNode node) {
+    IconManager iconManager = IconManager.getInstance();
+    if (node instanceof DexClassNode) {
+      return iconManager.getPlatformIcon(PlatformIcons.Class);
+    }
+    else if (node instanceof DexFieldNode) {
+      return iconManager.getPlatformIcon(PlatformIcons.Field);
+    }
+    else if (node instanceof DexMethodNode) {
+      return iconManager.getPlatformIcon(node.isDefined() ? PlatformIcons.Method : PlatformIcons.MethodReference);
+    }
+    else if (node instanceof DexPackageNode) {
       return AllIcons.Nodes.Package;
-    } else {
+    }
+    else if (node instanceof DexReferencesNode) {
+      return AllIcons.Nodes.Folder;
+    }
+    else {
       throw new IllegalArgumentException("No icon defined for this node type.");
     }
   }
