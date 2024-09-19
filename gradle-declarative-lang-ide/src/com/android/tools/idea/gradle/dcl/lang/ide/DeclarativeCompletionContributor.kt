@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
@@ -46,7 +45,8 @@ import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
-  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
+  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
+    DeclarativeIdeSupport.isEnabled()
 }
 
 // works when user start typing

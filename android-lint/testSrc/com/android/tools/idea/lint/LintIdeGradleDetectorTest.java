@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
@@ -92,13 +92,13 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     // However, we are not interested in Kotlin compiler diagnostics or resolution failures, as we are running with a
     // simplified and unrealistic project structure: so mask away the Kotlin highlighting visitors.
     unmaskKotlinHighlightVisitor();
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
+    DeclarativeStudioSupport.override(true);
   }
 
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
+    DeclarativeStudioSupport.clearOverride();
   }
 
   @Test

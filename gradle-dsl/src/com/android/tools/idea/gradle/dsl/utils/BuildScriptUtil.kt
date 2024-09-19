@@ -21,7 +21,7 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.DeclarativeStudioSupport
 import java.io.File
 
 internal fun findGradleBuildFile(dirPath: File) : File {
@@ -29,7 +29,7 @@ internal fun findGradleBuildFile(dirPath: File) : File {
   if (groovyBuildFile.isFile) return groovyBuildFile
   val kotlinBuildFile = File(dirPath, FN_BUILD_GRADLE_KTS)
   if (kotlinBuildFile.isFile) return kotlinBuildFile
-  if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+  if (DeclarativeStudioSupport.isEnabled()) {
     val gradleDeclarativeBuildFile = File(dirPath, FN_BUILD_GRADLE_DECLARATIVE)
     if (gradleDeclarativeBuildFile.isFile) return gradleDeclarativeBuildFile
   }
@@ -43,7 +43,7 @@ internal fun findGradleSettingsFile(dirPath: File) : File {
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)
   if (kotlinSettingsFile.isFile) return kotlinSettingsFile
-  if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+  if (DeclarativeStudioSupport.isEnabled()) {
     val gradleDeclarativeSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_DECLARATIVE)
     if (gradleDeclarativeSettingsFile.isFile) return gradleDeclarativeSettingsFile
   }

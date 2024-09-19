@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
@@ -37,12 +36,10 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
   private val fixture by lazy { projectRule.fixture }
 
   @Before
-  fun before() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
-  }
+  fun before() = DeclarativeIdeSupport.override(true)
 
   @After
-  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+  fun onAfter() = DeclarativeIdeSupport.clearOverride()
 
   @Test
   fun testBasicRootCompletion() {

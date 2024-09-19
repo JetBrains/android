@@ -31,7 +31,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -44,17 +44,14 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
@@ -396,7 +393,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
+    DeclarativeStudioSupport.override(true);
     try {
       loadSimpleApplication();
 
@@ -405,12 +402,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
+    DeclarativeStudioSupport.override(true);
     try {
       loadSimpleApplication();
 
@@ -419,7 +416,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 

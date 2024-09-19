@@ -1,5 +1,6 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <registryKey key="gradle.declarative.ide.support" defaultValue="false" description="Declarative IDE support"/>
     <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeHighlighter"/>
     <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeQuoteHandler"/>
     <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativePairedBraceMatcher"/>

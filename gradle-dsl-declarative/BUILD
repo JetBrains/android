@@ -13,8 +13,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module]",
     ],
 )

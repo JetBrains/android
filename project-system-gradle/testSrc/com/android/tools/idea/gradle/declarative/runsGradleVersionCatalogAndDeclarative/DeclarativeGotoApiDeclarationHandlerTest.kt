@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeGoToApiDeclarationHandler
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -48,12 +48,12 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   @Before
   fun onBefore() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_SCHEMA_KTS)
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    DeclarativeStudioSupport.override(true)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    DeclarativeStudioSupport.clearOverride()
   }
 
   @Test
