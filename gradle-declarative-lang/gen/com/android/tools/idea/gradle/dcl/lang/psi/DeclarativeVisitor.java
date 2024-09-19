@@ -51,11 +51,15 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitElement(o);
   }
 
+  public void visitEmbeddedFactory(@NotNull DeclarativeEmbeddedFactory o) {
+    visitAbstractFactory(o);
+  }
+
   public void visitFactory(@NotNull DeclarativeFactory o) {
     visitEntry(o);
     // visitIdentifierOwner(o);
     // visitValue(o);
-    // visitArgumentListManipulator(o);
+    // visitAbstractFactory(o);
   }
 
   public void visitIdentifier(@NotNull DeclarativeIdentifier o) {
@@ -74,6 +78,10 @@ public class DeclarativeVisitor extends PsiElementVisitor {
 
   public void visitQualified(@NotNull DeclarativeQualified o) {
     visitProperty(o);
+  }
+
+  public void visitAbstractFactory(@NotNull DeclarativeAbstractFactory o) {
+    visitElement(o);
   }
 
   public void visitEntry(@NotNull DeclarativeEntry o) {

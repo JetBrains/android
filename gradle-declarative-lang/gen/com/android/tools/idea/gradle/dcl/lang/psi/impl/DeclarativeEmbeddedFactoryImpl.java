@@ -24,18 +24,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeBlockImpl extends CompositePsiElement implements DeclarativeBlock {
+public class DeclarativeEmbeddedFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeEmbeddedFactory {
 
-  public DeclarativeBlockImpl(@NotNull IElementType type) {
+  public DeclarativeEmbeddedFactoryImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitBlock(this);
+    visitor.visitEmbeddedFactory(this);
   }
 
   @Override
@@ -45,33 +45,15 @@ public class DeclarativeBlockImpl extends CompositePsiElement implements Declara
   }
 
   @Override
+  @Nullable
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
+  }
+
+  @Override
   @NotNull
-  public DeclarativeBlockGroup getBlockGroup() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeBlockGroup.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeEmbeddedFactory getEmbeddedFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeEmbeddedFactory.class);
-  }
-
-  @Override
-  @Nullable
   public DeclarativeIdentifier getIdentifier() {
-    return PsiImplUtil.getIdentifier(this);
-  }
-
-  @Override
-  @NotNull
-  public List<DeclarativeEntry> getEntries() {
-    return PsiImplUtil.getEntries(this);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getBlockEntriesStart() {
-    return PsiImplUtil.getBlockEntriesStart(this);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

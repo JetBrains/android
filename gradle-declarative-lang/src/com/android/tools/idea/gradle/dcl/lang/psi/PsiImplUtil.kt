@@ -19,6 +19,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.childrenOfType
 
@@ -51,11 +52,6 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getFactory(block: DeclarativeBlock): DeclarativeFactory? {
-      return block.firstChild as? DeclarativeFactory
-    }
-
-    @JvmStatic
     fun getValue(assignment: DeclarativeAssignment): DeclarativeValue? {
       return assignment.children.firstNotNullOfOrNull { child -> (child as? DeclarativeValue).takeIf { it != null } }
     }
@@ -70,6 +66,10 @@ class PsiImplUtil {
       return block.blockGroup.entries
     }
 
+    @JvmStatic
+    fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier? {
+      return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java) ?: block.embeddedFactory?.identifier
+    }
 
     @JvmStatic
     fun getBlockEntriesStart(blockGroup: DeclarativeBlockGroup): PsiElement? {

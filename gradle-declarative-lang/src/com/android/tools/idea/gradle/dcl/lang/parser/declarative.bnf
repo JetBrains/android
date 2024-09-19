@@ -72,8 +72,8 @@
   implements("factory|property|literal")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
-  implements("factory")=[
-       "com.android.tools.idea.gradle.dcl.lang.psi.ArgumentListManipulator"
+  implements("factory|embedded_factory")=[
+       "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
   ]
   implements("property")=[
      "com.intellij.psi.ContributedReferenceHost"
@@ -108,10 +108,10 @@ qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
 block ::= block_head block_group {
    methods=[
+     getIdentifier
      getEntries
-     getFactory
      getBlockEntriesStart
-     factory=""
+     identifier=""
    ]
 }
 block_group ::= OP_LBRACE block_entries? newline_block_entries* OP_RBRACE {
@@ -127,10 +127,15 @@ block_group ::= OP_LBRACE block_entries? newline_block_entries* OP_RBRACE {
 }
 private block_entries ::= block_entry <<atSameLine (SEMI <<atSameLine block_entry>>)>>* SEMI?
 private newline_block_entries ::= <<atNewLine block_entries+>>
-private block_head ::= (factory | identifier)
+private block_head ::= (embedded_factory | identifier)
 private block_entry ::= !'}' entry
-factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {
+private private_factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {
    pin=2
+}
+embedded_factory ::= private_factory { // part of block - cannot be independent
+   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+}
+factory ::= private_factory {
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
 }
 argumentsList ::= (argument (OP_COMMA argument)*)? {
