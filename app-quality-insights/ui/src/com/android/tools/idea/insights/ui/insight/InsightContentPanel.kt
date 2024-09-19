@@ -151,7 +151,6 @@ class InsightContentPanel(
   init {
     Disposer.register(parentDisposable, this)
     layout = cardLayout
-    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
 
     add(loadingPanel, CONTENT_CARD)
     add(emptyOrErrorPanel, EMPTY_CARD)
