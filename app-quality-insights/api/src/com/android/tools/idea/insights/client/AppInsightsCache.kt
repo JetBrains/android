@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
@@ -26,6 +25,7 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet

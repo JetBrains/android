@@ -21,8 +21,9 @@ import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
-import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,7 +32,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.nio.file.Path
-import kotlin.io.path.name
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -278,7 +278,7 @@ private val EXCLUDED_ACTIVITY_CONTEXT =
   )
 
 @RunWith(Parameterized::class)
-class CodeContextResolverTest(private val experimentType: ExperimentType) {
+class CodeContextResolverTest(private val experiment: Experiment) {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -289,7 +289,7 @@ class CodeContextResolverTest(private val experimentType: ExperimentType) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val modes = ExperimentType.entries
+    val modes = ExperimentGroup.CODE_CONTEXT.experiments
   }
 
   @Before
@@ -305,7 +305,7 @@ class CodeContextResolverTest(private val experimentType: ExperimentType) {
 
     projectRule.replaceService(
       AppInsightsExperimentFetcher::class.java,
-      createTestExperimentFetcher(experimentType),
+      createTestExperimentFetcher(experiment),
     )
   }
 
@@ -356,21 +356,21 @@ class CodeContextResolverTest(private val experimentType: ExperimentType) {
     val contexts = resolver.getSource(STACKTRACE)
 
     val expected =
-      when (experimentType) {
-        ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED,
-        ExperimentType.CONTROL -> CodeContextData.EMPTY
-        ExperimentType.TOP_SOURCE ->
-          CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experimentType)
-        ExperimentType.TOP_THREE_SOURCES ->
+      when (experiment) {
+        Experiment.UNKNOWN,
+        Experiment.CONTROL -> CodeContextData.EMPTY
+        Experiment.TOP_SOURCE ->
+          CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experiment)
+        Experiment.TOP_THREE_SOURCES ->
           CodeContextData(
             listOf(
               EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
               EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
               EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
             ),
-            experimentType,
+            experiment,
           )
-        ExperimentType.ALL_SOURCES ->
+        Experiment.ALL_SOURCES ->
           CodeContextData(
             listOf(
               EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
@@ -378,15 +378,15 @@ class CodeContextResolverTest(private val experimentType: ExperimentType) {
               EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
               EXPECTED_MAIN_ACTIVITY_CONTEXT,
             ),
-            experimentType,
+            experiment,
           )
       }
 
     assertThat(contexts).isEqualTo(expected)
   }
 
-  private fun createTestExperimentFetcher(experimentType: ExperimentType) =
+  private fun createTestExperimentFetcher(experiment: Experiment) =
     object : AppInsightsExperimentFetcher {
-      override fun getCurrentExperiment() = experimentType
+      override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = experiment
     }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeGeminiToolkit
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker

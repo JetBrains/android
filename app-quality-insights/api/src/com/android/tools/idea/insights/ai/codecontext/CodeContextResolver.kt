@@ -16,8 +16,9 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
-import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
@@ -28,9 +29,9 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.ProjectScope
 
-data class CodeContextData(val codeContext: List<CodeContext>, val experimentType: ExperimentType) {
+data class CodeContextData(val codeContext: List<CodeContext>, val experimentType: Experiment) {
   companion object {
-    val EMPTY = CodeContextData(emptyList(), ExperimentType.CONTROL)
+    val EMPTY = CodeContextData(emptyList(), Experiment.CONTROL)
   }
 }
 
@@ -58,14 +59,14 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
     get() = AppInsightsExperimentFetcher.instance
 
   override suspend fun getSource(stack: StacktraceGroup): CodeContextData {
-    val experiment = experimentFetcher.getCurrentExperiment()
+    val experiment = experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
     val limit =
       when (experiment) {
-        ExperimentType.TOP_SOURCE -> 1
-        ExperimentType.TOP_THREE_SOURCES -> 3
-        ExperimentType.ALL_SOURCES -> Integer.MAX_VALUE
-        ExperimentType.CONTROL,
-        ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> return CodeContextData.EMPTY
+        Experiment.TOP_SOURCE -> 1
+        Experiment.TOP_THREE_SOURCES -> 3
+        Experiment.ALL_SOURCES -> Integer.MAX_VALUE
+        Experiment.CONTROL,
+        Experiment.UNKNOWN -> return CodeContextData.EMPTY
       }
     return CodeContextData(getSource(stack, limit), experiment)
   }

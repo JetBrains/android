@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.ai.AiInsight
 import java.time.Duration
 import java.time.Instant
 

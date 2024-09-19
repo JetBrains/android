@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.analytics.supportsContextSharing
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.android.tools.idea.insights.experiments.supportsContextSharing
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.studiobot.StudioBot
@@ -139,5 +140,7 @@ class InsightBottomPanel(
 
   private fun canShowEnableContextButton() =
     !StudioBot.getInstance().isContextAllowed(project) &&
-      AppInsightsExperimentFetcher.instance.getCurrentExperiment().supportsContextSharing()
+      AppInsightsExperimentFetcher.instance
+        .getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+        .supportsContextSharing()
 }

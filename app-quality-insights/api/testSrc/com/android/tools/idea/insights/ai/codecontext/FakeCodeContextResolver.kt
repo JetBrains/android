@@ -16,9 +16,9 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.android.tools.idea.insights.experiments.Experiment
 
 open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeContextResolver {
   override suspend fun getSource(stack: StacktraceGroup) =
-    CodeContextData(codeContext, ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
+    CodeContextData(codeContext, Experiment.UNKNOWN)
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AiInsight
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.StudioBot
