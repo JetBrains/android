@@ -47,5 +47,6 @@ iml_module(
         "@intellij//:test-framework[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module, test]",
     ],
 )

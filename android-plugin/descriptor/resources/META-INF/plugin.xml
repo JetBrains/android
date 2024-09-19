@@ -70,8 +70,6 @@
   <xi:include href="/META-INF/gradle-dsl.xml"/>
   <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
   <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
-  <xi:include href="/META-INF/gradle-declarative-lang.xml"/>
-  <xi:include href="/META-INF/gradle-declarative-lang-ide.xml"/>
   <xi:include href="/META-INF/gradle-dsl-toml.xml"/>
   <xi:include href="/META-INF/intellij.android.avd.xml"/>
   <xi:include href="/META-INF/logcat.xml"/>

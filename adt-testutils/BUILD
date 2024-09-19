@@ -18,6 +18,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/.idea/libraries:opentest4j",
         "//tools/adt/idea/studio:studio-sdk-all-modules",
     ],
