@@ -87,6 +87,7 @@ public class StartUpTest {
         "GitLab",
         "Google Cloud Tools For Android Studio",
         "Gradle",
+        "Gradle Declarative Support",
         "Gradle-Java",
         "Groovy",
         "HTML Tools",

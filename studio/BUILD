@@ -87,7 +87,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:zxing-core",
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
@@ -205,8 +204,6 @@ studio_plugin(
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/ml-api:intellij.android.ml-api",
             "//tools/adt/idea/streaming:intellij.android.streaming",
-            "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
-            "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
@@ -401,6 +398,7 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.android.tools.gradle.dcl",
         ":com.android.tools.idea.smali",
         "@intellij//:JUnit",
         "@intellij//:com.intellij.gradle",
@@ -677,6 +675,26 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.android.tools.gradle.dcl",
+    directory = "gradle-declarative",
+    libs = [
+        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
+    ],
+    modules = {
+        "gradle-declarative.jar": [
+            "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+            "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
+        ],
+    },
+    visibility = ["//visibility:public"],
+    deps = [
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+studio_plugin(
     name = "com.google.targetsdkversionassistant",
     directory = "targetsdkversion-upgrade-assistant",
     modules = {"targetsdkversion-upgrade-assistant.jar": ["//tools/vendor/google/targetsdkversion-upgrade-assistant:targetsdkversion-upgrade-assistant"]},
@@ -758,6 +776,7 @@ android_studio(
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
         ":com.google.targetsdkversionassistant",
+        ":com.android.tools.gradle.dcl",
     ],
     properties = select({
         "//conditions:default": [],

@@ -1360,8 +1360,6 @@ android-studio/plugins/android/lib/google-http-client-gson-1.42.3.jar
 android-studio/plugins/android/lib/google-login.jar
 android-studio/plugins/android/lib/google-oauth-client-1.34.1.jar
 android-studio/plugins/android/lib/google-oauth-client-java6-1.34.1.jar
-android-studio/plugins/android/lib/gradle-declarative-dsl-core-8.9-20240529002035+0000.jar
-android-studio/plugins/android/lib/gradle-declarative-dsl-tooling-models-8.9-20240529002035+0000.jar
 android-studio/plugins/android/lib/inspectors-common.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/javacpp-1.5.9-windows-x86_64.jar
@@ -2077,6 +2075,10 @@ android-studio/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
+android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
+android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
+android-studio/plugins/gradle-declarative/lib/gradle-declarative-dsl-core-8.9-20240529002035+0000.jar
+android-studio/plugins/gradle-declarative/lib/gradle-declarative-dsl-tooling-models-8.9-20240529002035+0000.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
 android-studio/plugins/gradle/lib/ant/ant-antlr.jar
