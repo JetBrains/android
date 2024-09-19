@@ -24,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent
 import com.intellij.notification.BrowseNotificationAction
@@ -56,6 +57,9 @@ class DeviceCableMonitor : ProjectActivity {
         ?: NotificationGroup(NOTIFICATION_GROUP_ID, NotificationDisplayType.BALLOON)
 
   override suspend fun execute(project: Project) {
+    if (!isAndroidEnvironment(project)) {
+      return
+    }
     val service = project.service<DeviceProvisionerService>()
     service.deviceProvisioner.devices
       .map { it.toSet() }
