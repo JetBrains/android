@@ -219,6 +219,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.run.configuration.editors">
     <androidWearConfigurationEditorToken implementation="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.execution.common.debug.utils">
+    <facetFinderToken implementation="com.android.tools.idea.execution.common.debug.utils.FacetFinderGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
