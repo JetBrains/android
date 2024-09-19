@@ -294,9 +294,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     for (int i = 0, n = s1.length(); i < n; i++) {
       char c1 = s1.charAt(i);
       char c2 = s2.charAt(i);
-      // The check below has been this way since 2012, but probably we *should* return false if
-      // one character is alphanumeric and the other is not?
-      if (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2)) {
+      if (Character.isLetterOrDigit(c1) || Character.isLetterOrDigit(c2)) {
         if (c1 != c2) return false;
       }
     }
