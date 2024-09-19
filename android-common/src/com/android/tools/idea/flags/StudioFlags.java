@@ -852,14 +852,6 @@ public final class StudioFlags {
     "Suggest migrating current project JDK configuration to .gradle/config.properties where gradleJvm uses the " +
     "#GRADLE_LOCAL_JAVA_HOME macro and the java.home stores the JDK path to trigger Gradle sync.", true);
 
-  public static final Flag<Boolean> GRADLE_DECLARATIVE_IDE_SUPPORT = new BooleanFlag(
-    GRADLE_IDE,
-    "gradle.declarative.ide.support",
-    "Studio support for Gradle's Declarative Configuration Language",
-    "Enable support for build.gradle.dcl in Android Studio",
-    false
-  );
-
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import org.junit.After
@@ -39,12 +38,12 @@ class DeclarativeServiceTest {
 
   @Before
   fun onBefore(){
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    DeclarativeIdeSupport.override(true)
   }
 
   @After
   fun onAfter(){
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    DeclarativeIdeSupport.clearOverride()
   }
 
   @Test

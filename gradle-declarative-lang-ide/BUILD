@@ -15,8 +15,6 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -37,8 +35,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module, test]",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
     ],
 )

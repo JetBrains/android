@@ -32,7 +32,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -47,6 +46,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
@@ -449,7 +449,7 @@ public class GradleProjectSystemUtil {
       else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
-      else if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && buildFileName.endsWith(DOT_DECLARATIVE)) {
+      else if (DeclarativeStudioSupport.isEnabled() && buildFileName.endsWith(DOT_DECLARATIVE)) {
         result.add(DOT_DECLARATIVE);
       }
     }
@@ -701,7 +701,7 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
-    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+    if (DeclarativeStudioSupport.isEnabled()) {
       return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS, FN_BUILD_GRADLE_DECLARATIVE);
     }
     return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
@@ -716,7 +716,7 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
-    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
+    if (DeclarativeStudioSupport.isEnabled()) {
       return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_SETTINGS_GRADLE_DECLARATIVE);
     }
     return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);

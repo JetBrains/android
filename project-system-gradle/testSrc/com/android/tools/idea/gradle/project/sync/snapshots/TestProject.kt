@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -436,10 +436,10 @@ enum class TestProject(
   GRADLE_DECLARATIVE(
     TestProjectToSnapshotPaths.GRADLE_DECLARATIVE,
     setup = fun(): () -> Unit {
-      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+      DeclarativeStudioSupport.override(true)
 
       return fun() {
-        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+        DeclarativeStudioSupport.clearOverride()
       }
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
