@@ -19,7 +19,6 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -59,7 +58,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -340,15 +338,14 @@ public class AndroidUtils extends CommonAndroidUtil {
     return null;
   }
 
-  public static boolean equal(@Nullable String s1, @Nullable String s2, boolean distinguishDelimiters) {
-    if (s1 == null || s2 == null) {
-      return false;
-    }
+  public static boolean equalIgnoringDelimiters(@NotNull String s1, @NotNull String s2) {
     if (s1.length() != s2.length()) return false;
     for (int i = 0, n = s1.length(); i < n; i++) {
       char c1 = s1.charAt(i);
       char c2 = s2.charAt(i);
-      if (distinguishDelimiters || (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2))) {
+      // The check below has been this way since 2012, but probably we *should* return false if
+      // one character is alphanumeric and the other is not?
+      if (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2)) {
         if (c1 != c2) return false;
       }
     }

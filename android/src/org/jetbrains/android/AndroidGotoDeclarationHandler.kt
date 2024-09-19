@@ -174,7 +174,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
       val nameAttribute = domElement.name
       val unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.value))
 
-      if (AndroidUtils.equal(unqualifiedName, fieldName, false)) {
+      if (AndroidUtils.equalIgnoringDelimiters(unqualifiedName, fieldName)) {
         val psiElement = nameAttribute.xmlAttributeValue
 
         if (psiElement != null) {
