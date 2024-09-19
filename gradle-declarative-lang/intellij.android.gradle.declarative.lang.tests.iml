@@ -15,5 +15,7 @@
     <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
   </component>
 </module>
