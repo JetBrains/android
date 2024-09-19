@@ -17,8 +17,10 @@ package com.android.tools.idea.avd
 
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdName
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
@@ -32,7 +34,11 @@ import com.intellij.openapi.ui.Messages
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.withContext
 
-internal class EditVirtualDeviceDialog(val project: Project?) {
+internal class EditVirtualDeviceDialog(
+  val project: Project?,
+  val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+) {
   suspend fun show(avdInfo: AvdInfo): Boolean {
     val skins =
       withContext(AndroidDispatchers.workerThread) {
@@ -56,8 +62,6 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
 
       val builder = AvdBuilder.createForExistingDevice(baseDevice, avdInfo)
       val device = VirtualDevice.withDefaults(baseDevice).copyFrom(builder)
-      val avdManager =
-        IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
       val wizard =
         ComposeWizard(project, "Edit Device") {
@@ -66,6 +70,7 @@ internal class EditVirtualDeviceDialog(val project: Project?) {
             avdInfo.systemImage,
             skins,
             DeviceNameValidatorImpl(avdManager, currentName = avdInfo.displayName),
+            sdkHandler,
           ) { device, image ->
             builder.copyFrom(device, image)
 
