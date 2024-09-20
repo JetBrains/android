@@ -16,7 +16,6 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
@@ -39,6 +38,7 @@ import com.android.tools.idea.insights.StatsGroup
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection

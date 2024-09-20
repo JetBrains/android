@@ -18,6 +18,7 @@ package com.android.tools.idea.insights
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidExecutorsRule

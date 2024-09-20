@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.analytics
+package com.android.tools.idea.insights.experiments
 
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.AqiExperimentsConfig
 import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.intellij.openapi.components.service
 
-private const val EXPERIMENT_CONTROL = "experiments/aqi/aqi.code.context.experiment.1"
-private const val EXPERIMENT_TOP_SOURCE = "experiments/aqi/aqi.code.context.experiment.2"
-private const val EXPERIMENT_TOP_THREE_SOURCES = "experiments/aqi/aqi.code.context.experiment.3"
-private const val EXPERIMENT_ALL_SOURCES = "experiments/aqi/aqi.code.context.experiment.4"
-
-private val experimentToExpectedMap =
-  mapOf(
-    EXPERIMENT_CONTROL to ExperimentType.CONTROL,
-    EXPERIMENT_TOP_SOURCE to ExperimentType.TOP_SOURCE,
-    EXPERIMENT_TOP_THREE_SOURCES to ExperimentType.TOP_THREE_SOURCES,
-    EXPERIMENT_ALL_SOURCES to ExperimentType.ALL_SOURCES,
-  )
-
 interface AppInsightsExperimentFetcher {
-  fun getCurrentExperiment(): ExperimentType
+  fun getCurrentExperiment(experimentGroup: ExperimentGroup): Experiment
 
   companion object {
     val instance: AppInsightsExperimentFetcher
@@ -44,11 +31,12 @@ interface AppInsightsExperimentFetcher {
 
 class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
 
-  override fun getCurrentExperiment(): ExperimentType {
-    experimentToExpectedMap.entries.forEach { (flag, expected) ->
-      if (isFlagExpected(flag, expected)) return expected
+  override fun getCurrentExperiment(experimentGroup: ExperimentGroup): Experiment {
+    experimentGroup.experiments.forEach { experiment ->
+      if (isFlagExpected("experiments/aqi/${experiment.flagName}", experiment.protoType))
+        return experiment
     }
-    return ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED
+    return Experiment.UNKNOWN
   }
 
   private fun isFlagExpected(flag: String, expected: ExperimentType) =
@@ -58,6 +46,6 @@ class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
 }
 
 private val CONTEXT_SHARING_EXPERIMENTS =
-  setOf(ExperimentType.TOP_SOURCE, ExperimentType.TOP_THREE_SOURCES, ExperimentType.ALL_SOURCES)
+  setOf(Experiment.TOP_SOURCE, Experiment.TOP_THREE_SOURCES, Experiment.ALL_SOURCES)
 
-fun ExperimentType.supportsContextSharing() = this in CONTEXT_SHARING_EXPERIMENTS
+fun Experiment.supportsContextSharing() = this in CONTEXT_SHARING_EXPERIMENTS

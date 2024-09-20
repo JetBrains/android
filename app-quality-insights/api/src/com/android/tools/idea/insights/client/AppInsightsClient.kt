@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
@@ -35,6 +34,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 

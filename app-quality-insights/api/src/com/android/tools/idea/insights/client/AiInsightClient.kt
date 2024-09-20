@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AiInsight
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.protobuf.Message
 
 interface AiInsightClient {
@@ -24,7 +24,8 @@ interface AiInsightClient {
    * Gets AI generated insight for this issue
    *
    * @param projectId - cloud project id
-   * @param additionalContextMsg - Additional context required by the insight client to get insights for the crash
+   * @param additionalContextMsg - Additional context required by the insight client to get insights
+   *   for the crash
    */
   suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message): AiInsight
 }

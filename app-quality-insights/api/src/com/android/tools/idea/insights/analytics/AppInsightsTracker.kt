@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
-import com.android.tools.idea.serverflags.protos.ExperimentType
+import com.android.tools.idea.insights.experiments.Experiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
@@ -95,11 +95,11 @@ interface AppInsightsTracker {
   }
 }
 
-fun ExperimentType.toExperiment() =
+fun Experiment.toProto() =
   when (this) {
-    ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED -> InsightExperiment.UNKNOWN_EXPERIMENT
-    ExperimentType.CONTROL -> InsightExperiment.CONTROL
-    ExperimentType.TOP_SOURCE -> InsightExperiment.TOP_SOURCE
-    ExperimentType.TOP_THREE_SOURCES -> InsightExperiment.TOP_THREE_SOURCES
-    ExperimentType.ALL_SOURCES -> InsightExperiment.ALL_SOURCES
+    Experiment.UNKNOWN -> InsightExperiment.UNKNOWN_EXPERIMENT
+    Experiment.CONTROL -> InsightExperiment.CONTROL
+    Experiment.TOP_SOURCE -> InsightExperiment.TOP_SOURCE
+    Experiment.TOP_THREE_SOURCES -> InsightExperiment.TOP_THREE_SOURCES
+    Experiment.ALL_SOURCES -> InsightExperiment.ALL_SOURCES
   }

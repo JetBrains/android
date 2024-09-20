@@ -16,10 +16,11 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.insights.AiInsight
-import com.android.tools.idea.insights.analytics.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
-import com.android.tools.idea.serverflags.protos.ExperimentType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -75,7 +76,7 @@ class InsightBottomPanelTest {
           else -> null
         }
       }
-    experimentFetcher = FakeExperimentFetcher(ExperimentType.ALL_SOURCES)
+    experimentFetcher = FakeExperimentFetcher(Experiment.ALL_SOURCES)
     application.replaceService(
       AppInsightsExperimentFetcher::class.java,
       experimentFetcher,
@@ -140,13 +141,13 @@ class InsightBottomPanelTest {
     var onCallBack = false
 
     val bottomPanel = InsightBottomPanel(projectRule.project) { onCallBack = true }
-    currentInsight = AiInsight("", ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
+    currentInsight = AiInsight("", Experiment.UNKNOWN)
     TestDialogManager.setTestDialog { Messages.OK }
 
     bottomPanel.enableCodeContextAction.actionPerformed(testEvent)
     assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
 
-    currentInsight = AiInsight("", ExperimentType.TOP_SOURCE)
+    currentInsight = AiInsight("", Experiment.TOP_SOURCE)
     bottomPanel.enableCodeContextAction.update(testEvent)
     assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
 
@@ -157,7 +158,7 @@ class InsightBottomPanelTest {
   fun `enable context button is still visible after user clicks cancel`() {
     val bottomPanel = InsightBottomPanel(projectRule.project) {}
     TestDialogManager.setTestDialog { Messages.CANCEL }
-    currentInsight = AiInsight("", ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
+    currentInsight = AiInsight("", Experiment.UNKNOWN)
 
     bottomPanel.enableCodeContextAction.actionPerformed(testEvent)
     assertThat(testEvent.presentation.isEnabledAndVisible).isTrue()
@@ -169,21 +170,17 @@ class InsightBottomPanelTest {
   @Test
   fun `enable context button is only visible when user is assigned an experiment`() {
     val bottomPanel = InsightBottomPanel(projectRule.project) {}
-    currentInsight = AiInsight("", ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)
+    currentInsight = AiInsight("", Experiment.UNKNOWN)
 
     for (experiment in
-      listOf(
-        ExperimentType.ALL_SOURCES,
-        ExperimentType.TOP_THREE_SOURCES,
-        ExperimentType.TOP_SOURCE,
-      )) {
-      experimentFetcher.experimentType = experiment
+      listOf(Experiment.ALL_SOURCES, Experiment.TOP_THREE_SOURCES, Experiment.TOP_SOURCE)) {
+      experimentFetcher.experiment = experiment
       bottomPanel.enableCodeContextAction.update(testEvent)
       assertThat(testEvent.presentation.isEnabledAndVisible).isTrue()
     }
 
-    for (experiment in listOf(ExperimentType.CONTROL, ExperimentType.EXPERIMENT_TYPE_UNSPECIFIED)) {
-      experimentFetcher.experimentType = experiment
+    for (experiment in listOf(Experiment.CONTROL, Experiment.UNKNOWN)) {
+      experimentFetcher.experiment = experiment
       bottomPanel.enableCodeContextAction.update(testEvent)
       assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
     }
@@ -199,9 +196,8 @@ class InsightBottomPanelTest {
     override fun isCopyVisible(dataContext: DataContext) = true
   }
 
-  private class FakeExperimentFetcher(var experimentType: ExperimentType) :
-    AppInsightsExperimentFetcher {
-    override fun getCurrentExperiment() = experimentType
+  private class FakeExperimentFetcher(var experiment: Experiment) : AppInsightsExperimentFetcher {
+    override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = experiment
   }
 
   private class FakeStudioBot(var isContextAllowed: Boolean) : StudioBot.StubStudioBot() {
