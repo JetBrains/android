@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.util.PsiModificationTracker
@@ -73,8 +74,18 @@ private val previewElementsCacheKey =
 private val uMethodsWithTilePreviewSignatureCacheKey =
   Key<ChangeTrackerCachedValue<List<UMethod>>>("uMethodsWithTilePreviewSignature")
 
-/** Object that can detect wear tile preview elements in a file. */
-internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearTilePreviewElement> {
+/**
+ * Object that can detect wear tile preview elements in a file.
+ *
+ * @param findMethods a function that returns all [PsiMethod]s and [KtNamedFunction]s for a given
+ *   [PsiFile]. The method will be invoked under a read lock.
+ */
+internal class WearTilePreviewElementFinder(
+  @RequiresReadLock
+  private val findMethods: (PsiFile?) -> Collection<PsiElement> = { psiFile ->
+    PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
+  }
+) : FilePreviewElementFinder<PsiWearTilePreviewElement> {
 
   /**
    * Checks if a given [vFile] contains any [PsiWearTilePreviewElement]s. Results of this method
@@ -90,7 +101,7 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
     return ChangeTrackerCachedValue.get(
       cachedValue,
       {
-        findUMethodsWithTilePreviewSignature(project, vFile).any {
+        findUMethodsWithTilePreviewSignature(project, vFile, findMethods).any {
           it.findAllTilePreviewAnnotations().any()
         }
       },
@@ -115,7 +126,7 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
     return ChangeTrackerCachedValue.get(
       cachedValue,
       {
-        findUMethodsWithTilePreviewSignature(project, vFile)
+        findUMethodsWithTilePreviewSignature(project, vFile, findMethods)
           .flatMap { method ->
             ProgressManager.checkCanceled()
             method
@@ -214,6 +225,7 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 private suspend fun findUMethodsWithTilePreviewSignature(
   project: Project,
   virtualFile: VirtualFile,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val cachedValue =
     virtualFile.getOrCreateCachedValue(uMethodsWithTilePreviewSignatureCacheKey) {
@@ -221,7 +233,7 @@ private suspend fun findUMethodsWithTilePreviewSignature(
     }
   return ChangeTrackerCachedValue.get(
     cachedValue,
-    { findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile) },
+    { findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile, findMethods) },
     project.javaKotlinAndDumbChangeTrackers(),
   )
 }
@@ -230,14 +242,15 @@ private suspend fun findUMethodsWithTilePreviewSignature(
 private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
   project: Project,
   virtualFile: VirtualFile,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
-      PsiTreeUtil.findChildrenOfAnyType(
-          virtualFile.toPsiFile(project),
-          PsiMethod::class.java,
-          KtNamedFunction::class.java,
-        )
+      if (!virtualFile.isValid) {
+        return@smartReadAction emptyList()
+      }
+      findMethods(virtualFile.toPsiFile(project))
+        .filter { it.isValid }
         .map {
           ProgressManager.checkCanceled()
           pointerManager.createSmartPsiElementPointer(it)
