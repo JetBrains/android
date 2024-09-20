@@ -13,6 +13,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "combine_visibilities",
     "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
@@ -37,10 +38,6 @@ load(
 )
 load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-load(
-    "//tools/vendor/google/aswb/third_party/java/jetbrains:build_defs.bzl",
-    "combine_visibilities",
-)
 
 optional_plugin_xml(
     name = "optional_ndk_xml",
