@@ -83,4 +83,13 @@ interface DynamicTypeAnimator {
    * @return The start delay of the animation.
    */
   fun getStartDelayMs(): Long
+
+  /**
+   * Returns whether this animator uses the outputs of previous animators as its input. This is
+   * typically used to chain animations together, where the result of one animation is used as the
+   * starting point for the next. A single animation in a chain is also considered terminal.
+   *
+   * @return `true` if this animator uses previous animator outputs as its input, `false` otherwise.
+   */
+  fun isTerminal(): Boolean
 }
