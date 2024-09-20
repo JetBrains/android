@@ -139,6 +139,7 @@ private val Device.formFactor: String
       Device.isTv(this) -> FormFactors.TV
       Device.isTablet(this) -> FormFactors.TABLET
       Device.isDesktop(this) -> FormFactors.DESKTOP
+      Device.isXr(this) -> FormFactors.XR
       else -> FormFactors.PHONE
     }
 

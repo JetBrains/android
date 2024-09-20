@@ -102,4 +102,5 @@ object FormFactors {
   const val TV = "TV"
   const val AUTO = "Automotive"
   const val DESKTOP = "Desktop"
+  const val XR = "XR"
 }
