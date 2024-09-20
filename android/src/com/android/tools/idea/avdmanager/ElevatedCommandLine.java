@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.diagnostic.Logger;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
@@ -85,6 +86,10 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     info.fMask = SEE_MASK_NO_CLOSE_PROCESS;
     boolean returnValue = Shell32.INSTANCE.ShellExecuteEx(info);
     int errorCode = returnValue ? 0 : Kernel32.INSTANCE.GetLastError();
+
+    Logger.getInstance(ElevatedCommandLine.class).info("ShellExecuteEx: \"" +
+            getExePath() +  getParametersList().getParametersString() +
+            "\" returned " + errorCode);
 
     // Return a fake Process which will wait for the created process to finish
     // and wrap stdout and stderr into their respective {@link InputStream}.
