@@ -20,7 +20,6 @@ import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.EventPage
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
@@ -358,8 +357,6 @@ class ActionDispatcher(
           when {
             !geminiToolkit.isGeminiEnabled -> LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
-            action.issueFatality != FailureType.FATAL ->
-              LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
@@ -368,6 +365,7 @@ class ActionDispatcher(
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
+                action.issueFatality,
                 action.event,
                 timeFilter,
                 codeContextData,

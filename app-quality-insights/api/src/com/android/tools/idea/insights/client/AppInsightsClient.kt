@@ -100,6 +100,7 @@ interface AppInsightsClient {
   suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
