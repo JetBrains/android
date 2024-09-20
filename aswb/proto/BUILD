@@ -9,7 +9,7 @@ load(
     "create_proto_visibility_group",
 )
 load(
-    "//tools/vendor/google/aswb/third_party/java/jetbrains:build_defs.bzl",
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "combine_visibilities",
 )
 
