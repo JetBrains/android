@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.insights.persistence
 
+import com.google.gct.login2.GoogleLoginService
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 
 @Service
 @State(name = "AppInsightsTos", storages = [Storage("appInsightsTos.xml")])
@@ -30,6 +32,15 @@ class TosPersistence : PersistentStateComponent<TosPersistenceState> {
 
   override fun loadState(state: TosPersistenceState) {
     tosPersistenceState = state
+  }
+
+  fun isTosAccepted(firebaseProject: String) =
+    GoogleLoginService.instance.getEmail()?.let { email ->
+      state.userProjectMap.getOrDefault(email, mutableSetOf()).contains(firebaseProject)
+    } == true
+
+  companion object {
+    fun getInstance() = service<TosPersistence>()
   }
 }
 
