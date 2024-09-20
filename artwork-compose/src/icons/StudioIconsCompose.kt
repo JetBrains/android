@@ -222,6 +222,7 @@ object StudioIconsCompose {
     val FirebaseDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/firebase-device-tv.svg", "/intui/icons/device-explorer/firebase-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
     val FirebaseDeviceWear: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/firebase-device-wear.svg", "/intui/icons/device-explorer/firebase-device-wear.svg", StudioIconsCompose.javaClass) // 16x16
     val MultipleDevices: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/multiple-devices.svg", "/intui/icons/device-explorer/multiple-devices.svg", StudioIconsCompose.javaClass) // 16x16
+    val OemLabDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/oem-lab-device-phone.svg", "/studio/icons/device-explorer/oem-lab-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceCar: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-car.svg", "/intui/icons/device-explorer/physical-device-car.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-phone.svg", "/intui/icons/device-explorer/physical-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceThings: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-things.svg", "/intui/icons/device-explorer/physical-device-things.svg", StudioIconsCompose.javaClass) // 16x16
