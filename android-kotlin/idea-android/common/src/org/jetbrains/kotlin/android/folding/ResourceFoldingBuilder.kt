@@ -116,10 +116,14 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     override fun isCollapsedByDefault(node: ASTNode): Boolean = isFoldingEnabled
 
     private fun KtReferenceExpression.getFoldingDescriptor(): FoldingDescriptor? {
-        analyze(this) {
-            val symbol = mainReference.resolveToSymbol() ?: return null
-            val resourceType = getAndroidResourceType(symbol) ?: return null
-            if (resourceType !in RESOURCE_TYPES) return null
+        // TODO(b/268387878)
+        @OptIn(KaAllowAnalysisOnEdt::class)
+        allowAnalysisOnEdt {
+            analyze(this) {
+                val symbol = mainReference.resolveToSymbol() ?: return null
+                val resourceType = getAndroidResourceType(symbol) ?: return null
+                if (resourceType !in RESOURCE_TYPES) return null
+            }
         }
 
         fun PsiElement.createFoldingDescriptor(): FoldingDescriptor {
@@ -178,6 +182,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         lateinit var resourceType: ResourceType
         var resolvedName: String? = null
 
+        // TODO(b/268387878)
         @OptIn(KaAllowAnalysisOnEdt::class)
         allowAnalysisOnEdt {
             analyze(this) {
