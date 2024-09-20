@@ -821,6 +821,8 @@ class AppInsightsProjectLevelControllerTest {
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
+    client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
@@ -830,8 +832,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
-          currentInsight =
-            LoadingState.UnsupportedOperation("Insights are currently only available for crashes"),
+          currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
       )
     return@runBlocking

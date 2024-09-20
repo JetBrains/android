@@ -144,9 +144,7 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
-        if (resultState.selectedIssue?.issueDetails?.fatality == FailureType.FATAL) {
-          client.completeFetchInsightCallWith(insightState)
-        }
+        client.completeFetchInsightCallWith(insightState)
         if (key != VITALS_KEY) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
@@ -377,6 +375,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,

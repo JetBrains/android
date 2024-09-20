@@ -473,6 +473,7 @@ class VitalsClientTest {
       client.fetchInsight(
         TEST_CONNECTION_1,
         ISSUE1.id,
+        ISSUE1.issueDetails.fatality,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
         CodeContextData.EMPTY,
@@ -515,6 +516,7 @@ class VitalsClientTest {
     client.fetchInsight(
       TEST_CONNECTION_1,
       ISSUE1.id,
+      ISSUE1.issueDetails.fatality,
       ISSUE1.sampleEvent,
       TimeIntervalFilter.ONE_DAY,
       CodeContextData.EMPTY,
@@ -541,6 +543,7 @@ class VitalsClientTest {
         client.fetchInsight(
           TEST_CONNECTION_1,
           ISSUE1.id,
+          ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
           CodeContextData.EMPTY,
@@ -579,6 +582,7 @@ class VitalsClientTest {
         client.fetchInsight(
           TEST_CONNECTION_1,
           ISSUE1.id,
+          ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
           CodeContextData.EMPTY,
@@ -586,5 +590,33 @@ class VitalsClientTest {
         )
       )
       .isEqualTo(LoadingState.Ready(newInsight))
+  }
+
+  @Test
+  fun `test fetch insight on ANR returns unsupported operation`() = runBlocking {
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        FailureType.ANR,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData.EMPTY,
+      )
+
+    assertThat(insight)
+      .isEqualTo(
+        LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+      )
   }
 }
