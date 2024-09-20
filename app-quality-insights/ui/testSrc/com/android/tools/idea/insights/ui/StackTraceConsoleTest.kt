@@ -328,6 +328,7 @@ class StackTraceConsoleTest {
           fetchState,
           eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
         )
+        delayUntilCondition(200) { stackTraceConsole.consoleView.text.isNotEmpty() }
         stackTraceConsole.consoleView.waitAllRequests()
         assertThat(stackTraceConsole.consoleView.text.trim())
           .isEqualTo(
