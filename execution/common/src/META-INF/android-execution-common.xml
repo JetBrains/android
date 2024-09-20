@@ -26,6 +26,8 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.execution.common.androidConfigurationExecutorProvider"
                     interface="com.android.tools.idea.execution.common.AndroidConfigurationExecutor$Provider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.execution.common.debug.utils.facetFinderToken"
+                    interface="com.android.tools.idea.execution.common.debug.utils.FacetFinderToken"/>
   </extensionPoints>
 
 </idea-plugin>
