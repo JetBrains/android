@@ -96,6 +96,7 @@ iml_module(
         "@intellij//:com.intellij.properties",
         "//tools/adt/idea/analytics[module]",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:intellij.platform.lvcs.impl",
     ],
 )
 

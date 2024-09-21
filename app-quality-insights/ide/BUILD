@@ -21,6 +21,8 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/analytics[module]",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
     ],
 )
 
@@ -71,6 +73,8 @@ iml_module(
         "//tools/vendor/google/git4insights[module, test]",
         "@intellij//:Git4Idea[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "@intellij//:intellij.platform.vcs.impl[test]",
+        "@intellij//:intellij.platform.vcs.dvcs.impl[test]",
     ],
 )
 

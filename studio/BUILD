@@ -407,6 +407,10 @@ studio_plugin(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
+        "@intellij//:intellij.platform.lvcs.impl",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.webp",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.intellij.intelliLang",
@@ -559,6 +563,8 @@ studio_plugin(
         ":com.google.services.firebase",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
 )
 
@@ -607,6 +613,8 @@ studio_plugin(
         "@intellij//:Git4Idea",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.jetbrains.plugins.gradle",
@@ -702,6 +710,8 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
