@@ -335,7 +335,6 @@
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
     <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
     <group id="GradleProjectStructureActions">
