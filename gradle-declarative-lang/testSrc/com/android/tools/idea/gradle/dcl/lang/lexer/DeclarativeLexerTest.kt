@@ -258,7 +258,7 @@ class DeclarativeLexerTest : LexerTestCase() {
   fun testToken2() {
     doTest(
       """
-        name age _count student1 calculateArea `_name_` `$%&^%&^`
+        name age _count student1 calculateArea `_name_` `$%&^%&^` __hello_ `___` _12_3_
       """.trimIndent(),
       """
       DeclarativeTokenType.token ('name')
@@ -274,13 +274,19 @@ class DeclarativeLexerTest : LexerTestCase() {
       DeclarativeTokenType.token ('`_name_`')
       WHITE_SPACE (' ')
       DeclarativeTokenType.token ('`$%&^%&^`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('__hello_')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`___`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('_12_3_')
       """.trimIndent())
   }
 
   fun testWrongIdentifier() {
     doTest(
       """
-        1name ``
+        1name `` _ __ _____
       """.trimIndent(),
       """
       DeclarativeTokenType.integer_literal ('1')
@@ -288,6 +294,17 @@ class DeclarativeLexerTest : LexerTestCase() {
       WHITE_SPACE (' ')
       BAD_CHARACTER ('`')
       BAD_CHARACTER ('`')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
       """.trimIndent())
   }
 
