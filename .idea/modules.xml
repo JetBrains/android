@@ -409,6 +409,7 @@
       <module fileurl="file://$PROJECT_DIR$/samples-browser/samples-browser.iml" filepath="$PROJECT_DIR$/samples-browser/samples-browser.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/studio.iml" filepath="$PROJECT_DIR$/studio/studio.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/studio-grpc-testutils/studio-grpc-testutils.iml" filepath="$PROJECT_DIR$/../../base/studio-grpc-testutils/studio-grpc-testutils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/studio/studio-sdk-all-modules.iml" filepath="$PROJECT_DIR$/studio/studio-sdk-all-modules.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" filepath="$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/targetsdkversion-upgrade-assistant/targetsdkversion-upgrade-assistant.iml" filepath="$PROJECT_DIR$/../../vendor/google/targetsdkversion-upgrade-assistant/targetsdkversion-upgrade-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/test-recorder/test-recorder.iml" />

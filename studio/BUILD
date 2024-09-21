@@ -1211,3 +1211,41 @@ iml_module(
         "@intellij//:org.toml.lang",
     ],
 )
+
+# managed by go/iml_to_build
+iml_module(
+    name = "studio-sdk-all-modules",
+    iml_files = ["studio-sdk-all-modules.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "@intellij//:intellij.java.featuresTrainer",
+        "@intellij//:intellij.java.structuralSearch",
+        "@intellij//:intellij.java.unscramble",
+        "@intellij//:intellij.java.vcs",
+        "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.microba",
+        "@intellij//:intellij.platform.clouds",
+        "@intellij//:intellij.platform.collaborationTools",
+        "@intellij//:intellij.platform.coverage",
+        "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij.platform.execution.dashboard",
+        "@intellij//:intellij.platform.execution.serviceView",
+        "@intellij//:intellij.platform.images.backend.svg",
+        "@intellij//:intellij.platform.images.copyright",
+        "@intellij//:intellij.platform.kernel",
+        "@intellij//:intellij.platform.kernel.backend",
+        "@intellij//:intellij.platform.lvcs.impl",
+        "@intellij//:intellij.platform.navbar",
+        "@intellij//:intellij.platform.navbar.backend",
+        "@intellij//:intellij.platform.navbar.frontend",
+        "@intellij//:intellij.platform.navbar.monolith",
+        "@intellij//:intellij.platform.settings.local",
+        "@intellij//:intellij.platform.smRunner.vcs",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.smart.update",
+        "@intellij//:intellij.turboComplete.languages.kotlin",
+    ],
+)
