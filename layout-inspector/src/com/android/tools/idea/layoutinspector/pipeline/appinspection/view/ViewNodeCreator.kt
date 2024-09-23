@@ -35,13 +35,29 @@ private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidV
  *   this will be used to generate [ComposeViewNode] children.
  */
 class ViewNodeCreator(
-  layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
+  private val layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
   composeResult: GetComposablesResult?,
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
-  private val origin = getOrigin(layoutEvent)
-  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it, origin) }
+
+  /**
+   * The offset of the window containing the views. For embedded Layout Inspector, we want the
+   * rendering to reflect what is shown on the device, therefore we don't apply any offset to the
+   * views inside the window. For standalone Layout Inspector, we want the rendering to be centered
+   * in the middle of the panel. For this reason we subtract the window's offset to every view in
+   * the window. So that views that are on the leftmost and topmost side of the window are mapped to
+   * (0, 0).
+   */
+  private val windowOffset: Point
+    get() =
+      if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+        Point()
+      } else {
+        layoutEvent.appContext.windowBounds.toRectangle().location
+      }
+
+  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it, windowOffset) }
 
   /** The collected capabilities based on the loaded data. */
   val dynamicCapabilities: Set<Capability>
@@ -69,12 +85,13 @@ class ViewNodeCreator(
     val resource = view.resource.convert().createReference(strings)
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
-    val layoutBounds = view.bounds.layout.toRectangle().apply { translate(-origin.x, -origin.y) }
+    val layoutBounds =
+      view.bounds.layout.toRectangle().apply { translate(-windowOffset.x, -windowOffset.y) }
     val renderBounds =
       view.bounds.render
         .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
         ?.toPolygon()
-        ?.apply { translate(-origin.x, -origin.y) } ?: layoutBounds
+        ?.apply { translate(-windowOffset.x, -windowOffset.y) } ?: layoutBounds
 
     val node =
       ViewNode(
@@ -124,17 +141,5 @@ class ViewNodeCreator(
       }
     }
     return node
-  }
-
-  /**
-   * Get the origin for all the [ViewNode]s. For embedded we use screen coordinates, for standalone
-   * we use window coordinates.
-   */
-  private fun getOrigin(event: LayoutInspectorViewProtocol.LayoutEvent): Point {
-    if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      return Point()
-    } else {
-      return event.appContext.windowBounds.toRectangle().location
-    }
   }
 }

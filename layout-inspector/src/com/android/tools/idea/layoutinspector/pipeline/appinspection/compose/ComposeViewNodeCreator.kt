@@ -32,9 +32,9 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
  * Helper class for creating [ComposeViewNode]s.
  *
  * @param result A compose tree received from the compose agent
- * @param origin The offset applied to each node to display in screen coordinates
+ * @param nodeOffset An offset to apply to each node
  */
-class ComposeViewNodeCreator(result: GetComposablesResult, private val origin: Point) {
+class ComposeViewNodeCreator(result: GetComposablesResult, private val nodeOffset: Point) {
   private val response = result.response
   private val pendingRecompositionCountReset = result.pendingRecompositionCountReset
   private val stringTable = StringTableImpl(response.stringsList)
@@ -108,7 +108,7 @@ class ComposeViewNodeCreator(result: GetComposablesResult, private val origin: P
       throw InterruptedException()
     }
 
-    val layoutBounds = bounds.layout.toRectangle().apply { translate(-origin.x, -origin.y) }
+    val layoutBounds = bounds.layout.toRectangle().apply { translate(-nodeOffset.x, -nodeOffset.y) }
 
     // The Quad coordinates are supplied relative to the View that contains the composables.
     // We need to convert them to the coordinates the inspector works in.
