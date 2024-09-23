@@ -427,6 +427,7 @@ filegroup(
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/vendor/google/asfg/ext:studio-intellijext_plugin_deploy.jar",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
         "//tools/vendor/google/ml/aiplugin/core/aida:aida_artifacts",
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
