@@ -961,7 +961,7 @@ abstract class DesignSurface<T : SceneManager>(
   ): SceneView? {
     // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView
     // when there is no hovered SceneView.
-    return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneView
+    return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneViews?.firstOrNull()
   }
 
   /**
