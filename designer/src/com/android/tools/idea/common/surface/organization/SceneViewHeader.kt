@@ -17,7 +17,6 @@ package com.android.tools.idea.common.surface.organization
 
 import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -31,15 +30,14 @@ import javax.swing.JPanel
 /** The unscaled height of the [SceneViewHeader]. */
 private const val heightPx = 26
 
+/** The unscaled width of the [SceneViewHeader]. */
+private const val widthPx = 100
+
 /** Offset to parent's width. */
 private const val widthOffsetPx = 30
 
 /** Maximum width allowed for the header */
 private const val maxHeaderWidth = 5000
-
-/** Size required for this component in layout. */
-private val requiredSize =
-  JBDimension(100, heightPx).apply { JBUIScale.addUserScaleChangeListener { this.update() } }
 
 /** Header for the group of previews. */
 class SceneViewHeader(
@@ -88,7 +86,7 @@ class SceneViewHeader(
       override val isFocusedContent: Boolean
         get() = isFocusOwner
 
-      override fun getContentSize(dimension: Dimension?) = requiredSize
+      override fun getContentSize(dimension: Dimension?) = JBDimension(widthPx, heightPx)
 
       override fun getMargin(scale: Double) = JBUI.emptyInsets()
 
