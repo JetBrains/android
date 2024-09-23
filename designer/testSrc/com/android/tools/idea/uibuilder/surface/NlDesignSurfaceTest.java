@@ -149,49 +149,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
                   .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
   }
 
-  // https://code.google.com/p/android/issues/detail?id=227931
-  public void /*test*/ScreenPositioning() {
-    mySurface.addNotify();
-    mySurface.setBounds(0, 0, 400, 4000);
-    mySurface.validate();
-    // Process the resize events
-    IdeEventQueue.getInstance().flushQueue();
-
-    NlModel model = model("absolute.xml",
-                          component(ABSOLUTE_LAYOUT)
-                            .withBounds(0, 0, 1000, 1000)
-                            .matchParentWidth()
-                            .matchParentHeight())
-      .build();
-    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
-    model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
-    mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager(model).getRenderResult());
-
-    mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER, false);
-    refreshSurface();
-    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
-    assertNotNull(mySurface.getFocusedSceneView());
-    assertNull(mySurface.getSceneManager(model).getSecondarySceneView());
-
-    mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false);
-    refreshSurface();
-    assertTrue(mySurface.getSceneManager(model).getRenderResult().getRenderResult().isSuccess());
-
-    SceneView screenView = mySurface.getFocusedSceneView();
-    SceneView blueprintView = mySurface.getSceneManager(model).getSecondarySceneView();
-    assertNotNull(screenView);
-    assertNotNull(blueprintView);
-
-    assertTrue(screenView.getY() < blueprintView.getY());
-    mySurface.setBounds(0, 0, 4000, 400);
-    mySurface.validate();
-    IdeEventQueue.getInstance().flushQueue();
-    // Horizontal stack
-    assertTrue(screenView.getY() == blueprintView.getY());
-    mySurface.removeNotify();
-  }
-
   /**
    * Copy a component and check that the id of the new component has the same
    * base and an incremented number
