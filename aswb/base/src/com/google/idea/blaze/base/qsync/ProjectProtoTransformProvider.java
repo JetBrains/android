@@ -16,7 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform;
+import com.google.idea.blaze.qsync.ProjectProtoTransform;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.List;
 

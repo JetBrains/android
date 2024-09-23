@@ -18,11 +18,11 @@ package com.google.idea.blaze.base.qsync.cc;
 import com.google.common.base.Supplier;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.cc.CcDependenciesInfo;
 import com.google.idea.blaze.qsync.cc.CcWorkspaceBuilder;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform;
 
 /**
  * Adds cc workspace information to the project proto, based on the output from cc dependency
