@@ -38,7 +38,7 @@ class AddDeviceWizardTest {
 
   /**
    * Pick a device, advance, and then finish (using default system image and settings). Verify that
-   * AVD files are created.
+   * AVD files are created. Then do it again.
    */
   @Test
   fun addDeviceDefaultPath() {
@@ -49,29 +49,38 @@ class AddDeviceWizardTest {
       val source =
         LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
 
-      val wizard = TestComposeWizard { with(AddDeviceWizard(source, null)) { DeviceGridPage() } }
-      val swingPanel = JPanel()
-      composeTestRule.setContent {
-        CompositionLocalProvider(
-          LocalComponent provides swingPanel,
-          LocalFileSystem provides fileSystem,
-        ) {
-          wizard.Content()
+      fun addPixel8() {
+        val wizard = TestComposeWizard { with(AddDeviceWizard(source, null)) { DeviceGridPage() } }
+        val swingPanel = JPanel()
+        composeTestRule.setContent {
+          CompositionLocalProvider(
+            LocalComponent provides swingPanel,
+            LocalFileSystem provides fileSystem,
+          ) {
+            wizard.Content()
+          }
         }
+
+        composeTestRule.onNodeWithText("Pixel 8").performClick()
+        composeTestRule.waitForIdle()
+
+        wizard.performAction(wizard.nextAction)
+        composeTestRule.waitForIdle()
+
+        wizard.performAction(wizard.finishAction)
+        composeTestRule.waitForIdle()
+        wizard.awaitClose()
       }
 
-      composeTestRule.onNodeWithText("Pixel 8").performClick()
-      composeTestRule.waitForIdle()
+      addPixel8()
 
-      wizard.performAction(wizard.nextAction)
-      composeTestRule.waitForIdle()
+      assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
+        .containsExactly("Pixel_8.avd", "Pixel_8.ini")
 
-      wizard.performAction(wizard.finishAction)
-      composeTestRule.waitForIdle()
-      wizard.awaitClose()
+      addPixel8()
 
-      val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
-      assertThat(files).containsExactly("Pixel_8.avd", "Pixel_8.ini")
+      assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
+        .containsExactly("Pixel_8.avd", "Pixel_8.ini", "Pixel_8_2.avd", "Pixel_8_2.ini")
     }
   }
 }
