@@ -38,10 +38,10 @@ java_library(
         "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:junit",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
     ],
 )
 
@@ -111,13 +111,13 @@ intellij_unit_test_suite(
 java_binary(
     name = "auto_value_lib",
     main_class = "None",
-    runtime_deps = ["//tools/vendor/google/aswb/third_party/java/auto:auto_value"],
+    runtime_deps = ["//tools/adt/idea/aswb/third_party/java/auto_value"],
 )
 
 java_binary(
     name = "auto_value_plugin_lib",
     main_class = "None",
-    runtime_deps = ["//tools/vendor/google/aswb/third_party/java/auto:auto_value"],
+    runtime_deps = ["//tools/adt/idea/aswb/third_party/java/auto_value"],
 )
 
 java_binary(
