@@ -106,21 +106,15 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     createSceneView();
   }
 
-  @Deprecated // A SceneManager can have more than one SceneView. Use getSceneViews() instead
-  @NotNull
-  public SceneView getSceneView() {
-    assert mySceneView != null : "createSceneView was not called";
-    return mySceneView;
-  }
-
   /**
    * @return a list of not null scene views. The first element is always the primary scene view,
    * and the second element, if present, will be the secondary scene view.
    */
   @NotNull
-  public List<SceneView> getSceneViews() {
+  final public List<SceneView> getSceneViews() {
+    assert mySceneView != null : "createSceneView was not called";
     ImmutableList.Builder<SceneView> builder = ImmutableList.<SceneView>builder()
-      .add(getSceneView());
+      .add(mySceneView);
 
     if (mySecondarySceneView != null) {
       builder.add(mySecondarySceneView);
