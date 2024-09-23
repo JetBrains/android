@@ -224,11 +224,15 @@ class VitalsClient(
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
     forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
+    if (failureType != FailureType.FATAL) {
+      return LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+    }
     val cachedInsight = cache.getAiInsight(connection, issueId)
     return if (cachedInsight == null || forceFetch) {
       val insight = aiInsightClient.fetchCrashInsight("", event.toGeminiInsightRequest())
