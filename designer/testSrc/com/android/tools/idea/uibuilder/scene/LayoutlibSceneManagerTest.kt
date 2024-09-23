@@ -51,18 +51,16 @@ class LayoutlibSceneManagerTest : SceneTest() {
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
     myLayoutlibSceneManager.updateSceneView()
-    assertNotNull(myLayoutlibSceneManager.sceneView)
-    assertNull(myLayoutlibSceneManager.secondarySceneView)
+    assertEquals(1, myLayoutlibSceneManager.sceneViews.size)
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     myLayoutlibSceneManager.updateSceneView()
-    assertNotNull(myLayoutlibSceneManager.sceneView)
-    assertNull(myLayoutlibSceneManager.secondarySceneView)
+    assertEquals(1, myLayoutlibSceneManager.sceneViews.size)
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
     myLayoutlibSceneManager.updateSceneView()
-    assertNotNull(myLayoutlibSceneManager.sceneView)
-    assertNotNull(myLayoutlibSceneManager.secondarySceneView)
+    // Secondary scene view should be present now
+    assertEquals(2, myLayoutlibSceneManager.sceneViews.size)
   }
 
   fun testDoNotCacheSuccessfulRenderImage() = runBlocking {

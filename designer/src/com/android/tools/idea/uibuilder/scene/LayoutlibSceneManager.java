@@ -330,11 +330,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     return sceneView;
   }
 
-  @Nullable
-  public SceneView getSecondarySceneView() {
-    return mySecondarySceneView;
-  }
-
   public void updateTargets() {
     Runnable updateAgain = this::updateTargets;
     SceneComponent root = getScene().getRoot();
