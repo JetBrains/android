@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Builds a module belonging to an IDEA project that is not an Android-model-based project.
  */
-public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
-  public MakeIdeaModuleAction() {
-    super(new MakeModuleAction(), "Make Module(s)");
+public class AssembleIdeaModuleAction extends AndroidStudioActionRemover {
+  public AssembleIdeaModuleAction() {
+    super(new MakeModuleAction(), "Assemble Module(s)");
   }
 
   @Override
@@ -54,6 +54,6 @@ public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
     // MakeModuleAction#update throws an NPE when being wrapped by this action.
     // The method 'updatePresentation' does exactly the same thing as MakeModuleAction#update, but without throwing NPE for non-Gradle
     // projects.
-    AbstractMakeGradleModuleAction.updatePresentation(e, project);
+    AbstractAssembleGradleModuleAction.updatePresentation(e, project);
   }
 }
