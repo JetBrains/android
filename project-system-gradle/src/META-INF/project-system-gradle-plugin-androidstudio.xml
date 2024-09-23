@@ -84,6 +84,12 @@
     </action>
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
     </action>
+    <action id="CompileGradleModule" class="com.android.tools.idea.gradle.actions.CompileGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule"/>
+    </action>
+    <action id="CompileAllSources" class="com.android.tools.idea.gradle.actions.CompileAllSources">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileGradleModule"/>
+    </action>
     <group id="AndroidToolbarMakeGroup">
       <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>

@@ -74,6 +74,7 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
     Actions.hideAction(actionManager, "Groovy.CheckResources.Rebuild");
     Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
     Actions.hideAction(actionManager, "Groovy.CheckResources");
+    Actions.hideAction(actionManager, "CompileFile");
   }
 
   private static void setUpGradleViewToolbarActions(ActionManager actionManager) {
