@@ -18,12 +18,10 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.InteractionHandler
-import com.android.tools.idea.common.surface.MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.ZoomConstants.MIN_SCALE
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -80,8 +78,6 @@ private fun createPreviewDesignSurfaceBuilder(
     }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
-    .setMaxScale(MAX_SCALE)
-    .setMinScale(MIN_SCALE)
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
 /**
