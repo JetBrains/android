@@ -18,16 +18,20 @@ package com.google.idea.blaze.qsync;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation.CachedArtifactProvider;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.java.AddCompiledJavaDeps;
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars;
 import com.google.idea.blaze.qsync.java.AddDependencySrcJars;
@@ -39,7 +43,6 @@ import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -116,6 +119,16 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
       throw new BuildException(
         "Artifact" + buildArtifact.artifactPath() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
     };
+  }
+
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
+      TargetBuildInfo forTarget) {
+    ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> builder =
+        ImmutableSetMultimap.builder();
+    for (ProjectProtoUpdateOperation op : updateOperations) {
+      builder.putAll(op.getRequiredArtifacts(forTarget));
+    }
+    return builder.build();
   }
 
   @Override

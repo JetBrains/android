@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync.project;
+package com.google.idea.blaze.qsync;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadataProvider;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.ProjectProto;
+import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.protobuf.ExtensionRegistryLite;
 import java.io.IOException;
@@ -34,10 +42,15 @@ import java.util.Map;
 
 /** Applies a transform to a project proto instance, yielding a new instance. */
 @FunctionalInterface
-public interface ProjectProtoTransform {
+public interface ProjectProtoTransform extends ArtifactMetadataProvider {
   @VisibleForTesting
   public static final BoolExperiment enableReadArtifactFromArtifactDirectories =
     new BoolExperiment("qsync.project.read.artifact.directory", true);
+
+  default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
+      TargetBuildInfo forTarget) {
+    return ImmutableSetMultimap.of();
+  }
 
   /**
    * Apply the transform.
@@ -49,15 +62,29 @@ public interface ProjectProtoTransform {
    * @return A project proto instance to replace the existing one. May return {@code proto}
    *     unchanged if this transform doesn't need to change anything.
    */
-  ProjectProto.Project apply(ProjectProto.Project proto, BuildGraphData graph, Context<?> context)
-      throws BuildException;
+  Project apply(Project proto, BuildGraphData graph, Context<?> context) throws BuildException;
 
   static ProjectProtoTransform compose(Iterable<ProjectProtoTransform> transforms) {
-    return (proto, graph, context) -> {
-      for (ProjectProtoTransform transform : transforms) {
-        proto = transform.apply(proto, graph, context);
+    return new ProjectProtoTransform() {
+      @Override
+      public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
+          TargetBuildInfo targetInfo) {
+        ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> allArtifacts =
+            ImmutableSetMultimap.builder();
+        for (ProjectProtoTransform transform : transforms) {
+          allArtifacts.putAll(transform.getRequiredArtifactMetadata(targetInfo));
+        }
+        return allArtifacts.build();
       }
-      return proto;
+
+      @Override
+      public Project apply(Project proto, BuildGraphData graph, Context<?> context)
+          throws BuildException {
+        for (ProjectProtoTransform transform : transforms) {
+          proto = transform.apply(proto, graph, context);
+        }
+        return proto;
+      }
     };
   }
 
