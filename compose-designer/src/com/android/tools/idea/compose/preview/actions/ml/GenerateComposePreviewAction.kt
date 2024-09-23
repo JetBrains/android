@@ -50,7 +50,7 @@ class GenerateComposePreviewAction :
   override fun update(e: AnActionEvent) {
     super.update(e)
     if (e.place != ActionPlaces.EDITOR_POPUP) {
-      e.presentation.icon = AndroidAIPluginIcons.Logo
+      e.presentation.icon = AndroidAIPluginIcons.GeminiLogo
     }
   }
 }

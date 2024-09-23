@@ -97,7 +97,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DELETE = load("intui/icons/common/delete.svg", "studio/icons/common/delete.svg", 55368258, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("intui/icons/common/edit.svg", "studio/icons/common/edit.svg", -1443582273, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_DECORATOR = load("intui/icons/common/error-decorator.svg", "studio/icons/common/error-decorator.svg", 1752370570, 2);
-    /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", "intui/icons/common/error-inline.svg", -1267613464, 2);
+    /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("intui/icons/common/error-inline.svg", "studio/icons/common/error-inline.svg", -1267613464, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_STACK = load("intui/icons/common/error-stack.svg", "studio/icons/common/error-stack.svg", 1724576961, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR = load("intui/icons/common/error.svg", "studio/icons/common/error.svg", -1991257582, 2);
     /** 16x16 */ public static final @NotNull Icon EXPORT = load("intui/icons/common/export.svg", "studio/icons/common/export.svg", -414706009, 2);
@@ -106,7 +106,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon GROUP = load("intui/icons/common/group.svg", "studio/icons/common/group.svg", -616944603, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("intui/icons/common/help.svg", "studio/icons/common/help.svg", 1868521137, 2);
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("intui/icons/common/import-data.svg", "studio/icons/common/import-data.svg", 2036891466, 2);
-    /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", "intui/icons/common/info-inline.svg", -2140866011, 2);
+    /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("intui/icons/common/info-inline.svg", "studio/icons/common/info-inline.svg", -2140866011, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("intui/icons/common/info.svg", "studio/icons/common/info.svg", 216054291, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("intui/icons/common/link.svg", "studio/icons/common/link.svg", 636172221, 2);
     /** 16x16 */ public static final @NotNull Icon LIST_VIEW = load("intui/icons/common/list-view.svg", "studio/icons/common/list-view.svg", 1382368463, 2);
@@ -129,12 +129,12 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon SCREENSHOT = load("intui/icons/common/screenshot.svg", "studio/icons/common/screenshot.svg", 1540467097, 2);
     /** 16x16 */ public static final @NotNull Icon SEARCH = load("intui/icons/common/search.svg", "studio/icons/common/search.svg", 1371267813, 2);
     /** 16x16 */ public static final @NotNull Icon SETTINGS = load("intui/icons/common/settings.svg", "studio/icons/common/settings.svg", 1783337616, 2);
-    /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("studio/icons/common/success-inline.svg", "intui/icons/common/success-inline.svg", 622028579, 2);
+    /** 16x16 */ public static final @NotNull Icon SUCCESS_INLINE = load("intui/icons/common/success-inline.svg", "studio/icons/common/success-inline.svg", 622028579, 2);
     /** 16x16 */ public static final @NotNull Icon SUCCESS = load("intui/icons/common/success.svg", "studio/icons/common/success.svg", -683128264, 2);
     /** 16x16 */ public static final @NotNull Icon TYPO_STACK = load("intui/icons/common/typo-stack.svg", "studio/icons/common/typo-stack.svg", 1178996725, 2);
     /** 16x16 */ public static final @NotNull Icon VIDEO_CAPTURE = load("intui/icons/common/video-capture.svg", "studio/icons/common/video-capture.svg", -1824493774, 2);
     /** 16x16 */ public static final @NotNull Icon VISIBILITY_INLINE = load("intui/icons/common/visibility-inline.svg", "studio/icons/common/visibility-inline.svg", 2092521706, 2);
-    /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("studio/icons/common/warning-inline.svg", "intui/icons/common/warning-inline.svg", 1942569773, 2);
+    /** 16x16 */ public static final @NotNull Icon WARNING_INLINE = load("intui/icons/common/warning-inline.svg", "studio/icons/common/warning-inline.svg", 1942569773, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING_STACK = load("intui/icons/common/warning-stack.svg", "studio/icons/common/warning-stack.svg", -1949741817, 2);
     /** 16x16 */ public static final @NotNull Icon WARNING = load("intui/icons/common/warning.svg", "studio/icons/common/warning.svg", 485473669, 2);
     /** 16x16 */ public static final @NotNull Icon WEAK_WARNING_STACK = load("intui/icons/common/weak-warning-stack.svg", "studio/icons/common/weak-warning-stack.svg", -674353934, 2);
@@ -734,9 +734,9 @@ public final class StudioIcons {
     }
 
     public static final class Memoryleakstask {
-      /** 16x16 */ public static final @NotNull Icon LEAK_MAYBE = load("studio/icons/profiler/memoryleakstask/leak-maybe.svg", "intui/icons/profiler/memoryleakstask/leak-maybe.svg", 1282998888, 2);
-      /** 16x16 */ public static final @NotNull Icon LEAK_NO = load("studio/icons/profiler/memoryleakstask/leak-no.svg", "intui/icons/profiler/memoryleakstask/leak-no.svg", 725363233, 2);
-      /** 16x16 */ public static final @NotNull Icon LEAK_YES = load("studio/icons/profiler/memoryleakstask/leak-yes.svg", "intui/icons/profiler/memoryleakstask/leak-yes.svg", 459106998, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_MAYBE = load("intui/icons/profiler/memoryleakstask/leak-maybe.svg", "studio/icons/profiler/memoryleakstask/leak-maybe.svg", 1282998888, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_NO = load("intui/icons/profiler/memoryleakstask/leak-no.svg", "studio/icons/profiler/memoryleakstask/leak-no.svg", 725363233, 2);
+      /** 16x16 */ public static final @NotNull Icon LEAK_YES = load("intui/icons/profiler/memoryleakstask/leak-yes.svg", "studio/icons/profiler/memoryleakstask/leak-yes.svg", 459106998, 2);
     }
 
     public static final class Overlays {
