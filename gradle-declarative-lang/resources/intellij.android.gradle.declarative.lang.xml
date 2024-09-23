@@ -1,4 +1,4 @@
-<idea-plugin>
+<idea-plugin package="com.android.tools.idea.gradle.dcl" >
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="Gradle Declarative Configuration Language"
               implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeFileType"
