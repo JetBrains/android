@@ -2783,6 +2783,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 file://./kmpFirstLib/src/androidMain
             ManifestDirectories:
                 file://./kmpFirstLib/src/androidMain
+            AssetsDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/assets
             JavaDirectoryUrls:
                 file://./kmpFirstLib/src/androidMain/java
             JavaDirectories:
@@ -2791,6 +2793,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 file://./kmpFirstLib/src/androidMain/kotlin
             KotlinDirectories:
                 file://./kmpFirstLib/src/androidMain/kotlin
+            ResDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/res
             ResourcesDirectoryUrls:
                 file://./kmpFirstLib/src/androidMain/resources
             ResourcesDirectories:
@@ -2799,30 +2803,42 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
         androidMain
             Manifest:
                 ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            AssetsDirectories:
+                ./kmpFirstLib/src/androidMain/assets
             JavaDirectories:
                 ./kmpFirstLib/src/androidMain/java
             KotlinDirectories:
                 ./kmpFirstLib/src/androidMain/kotlin
+            ResDirectories:
+                ./kmpFirstLib/src/androidMain/res
             ResourcesDirectories:
                 ./kmpFirstLib/src/androidMain/resources
         Active:
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpFirstLib/src/androidMain/assets
                 JavaDirectories:
                     ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpFirstLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpFirstLib/src/androidMain/resources
         All:
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpFirstLib/src/androidMain/assets
                 JavaDirectories:
                     ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpFirstLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpFirstLib/src/androidMain/resources
         HostTest:
@@ -2830,10 +2846,14 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 androidUnitTest
                     Manifest:
                         ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/assets
                     JavaDirectories:
                         ./kmpFirstLib/src/androidUnitTest/java
                     KotlinDirectories:
                         ./kmpFirstLib/src/androidUnitTest/kotlin
+                    ResDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/res
                     ResourcesDirectories:
                         ./kmpFirstLib/src/androidUnitTest/resources
         DeviceTest:
@@ -2841,10 +2861,14 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 androidInstrumentedTest
                     Manifest:
                         ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/assets
                     JavaDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/java
                     KotlinDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    ResDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/res
                     ResourcesDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/resources
         TestFixtures:
@@ -2862,6 +2886,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -2870,6 +2896,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -2883,12 +2911,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
         DeviceTestSources:
@@ -2902,12 +2934,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/resources
         TestFixturesSources:
@@ -2936,12 +2972,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/resources
             androidMain (IDEA)
@@ -2954,6 +2994,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -2962,6 +3004,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -2974,12 +3018,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
@@ -2993,6 +3041,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -3001,6 +3051,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -3016,6 +3068,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -3024,6 +3078,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -3037,12 +3093,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
         CurrentDeviceTestSourceProviders:
@@ -3056,12 +3116,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/resources
         CurrentTestFixturesSourceProviders:
@@ -3075,34 +3139,50 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                 file://./kmpSecondLib/src/androidMain
             ManifestDirectories:
                 file://./kmpSecondLib/src/androidMain
+            AssetsDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/assets
             KotlinDirectoryUrls:
                 file://./kmpSecondLib/src/androidMain/kotlin
             KotlinDirectories:
                 file://./kmpSecondLib/src/androidMain/kotlin
+            ResDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/res
             ResourcesDirectoryUrls:
                 file://./kmpSecondLib/src/androidMain/resources
     by AndroidModel:
         androidMain
             Manifest:
                 ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+            AssetsDirectories:
+                ./kmpSecondLib/src/androidMain/assets
             KotlinDirectories:
                 ./kmpSecondLib/src/androidMain/kotlin
+            ResDirectories:
+                ./kmpSecondLib/src/androidMain/res
             ResourcesDirectories:
                 ./kmpSecondLib/src/androidMain/resources
         Active:
             androidMain
                 Manifest:
                     ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpSecondLib/src/androidMain/assets
                 KotlinDirectories:
                     ./kmpSecondLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpSecondLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpSecondLib/src/androidMain/resources
         All:
             androidMain
                 Manifest:
                     ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpSecondLib/src/androidMain/assets
                 KotlinDirectories:
                     ./kmpSecondLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpSecondLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpSecondLib/src/androidMain/resources
         HostTest:
@@ -3120,10 +3200,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         HostTestSources:
@@ -3152,10 +3236,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
@@ -3167,10 +3255,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentSourceProviders:
@@ -3182,10 +3274,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentHostTestSourceProviders:
