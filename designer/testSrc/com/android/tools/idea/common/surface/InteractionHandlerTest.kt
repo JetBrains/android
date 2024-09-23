@@ -130,6 +130,7 @@ private class Surface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE,
+    shouldZoomOnFirstComponentResize = true,
   ) {
   init {
     testLayoutManager.surface = this

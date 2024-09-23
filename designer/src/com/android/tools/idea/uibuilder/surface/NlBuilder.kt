@@ -142,6 +142,7 @@ class NlSurfaceBuilder(
 
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
+  private var _shouldZoomOnFirstComponentResize = true
 
   private var _visualLintIssueProviderFactory:
     (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
@@ -153,6 +154,14 @@ class NlSurfaceBuilder(
   @Suppress("deprecation")
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
     surfaceLayoutOption = layoutOption
+    return this
+  }
+
+  /**
+   * The surface will calculate zoom-to-fit scale when a component is resized for the first time.
+   */
+  fun shouldZoomOnFirstComponentResize(shouldZoomOnResize: Boolean): NlSurfaceBuilder {
+    _shouldZoomOnFirstComponentResize = shouldZoomOnResize
     return this
   }
 
@@ -282,6 +291,7 @@ class NlSurfaceBuilder(
         _zoomControlsPolicy,
         _supportedActionsProvider,
         _shouldRenderErrorsPanel,
+        _shouldZoomOnFirstComponentResize,
         _visualLintIssueProviderFactory,
         nlDesignSurfacePositionableContentLayoutManager,
       )

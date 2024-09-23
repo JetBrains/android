@@ -154,6 +154,7 @@ abstract class DesignSurface<T : SceneManager>(
   // "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
+  private val shouldZoomOnFirstComponentResize: Boolean = true,
 ) :
   EditorDesignSurface(BorderLayout()),
   Disposable,
@@ -414,6 +415,14 @@ abstract class DesignSurface<T : SceneManager>(
 
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
+            // There are conditions where it is better to skip the first zooming.
+            // For example, if we are using a Compose Preview we want to wait for the content to be
+            // rendered before we can calculate the right fit scale.
+            if (!shouldZoomOnFirstComponentResize) {
+              // We skip the zooming calculation by setting the isInitialZoomLevelDetermined flag to
+              // true.
+              isInitialZoomLevelDetermined = true
+            }
             if (!isInitialZoomLevelDetermined && isShowing && width > 0 && height > 0) {
               // Set previous scale when DesignSurface becomes visible at first time.
               val hasModelAttached = restoreZoomOrZoomToFit()
