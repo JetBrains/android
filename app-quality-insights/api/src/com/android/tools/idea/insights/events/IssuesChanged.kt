@@ -29,8 +29,11 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
+import com.android.tools.idea.studiobot.StudioBot
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.AiInsightsOptInStatus
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import java.time.Clock
 
@@ -83,7 +86,7 @@ data class IssuesChanged(
             numRetries = 0
             cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
-            // TODO(b/367365738): track AI insight opt-in status
+            aiInsightsOptInStatus = getOptInStatus(state.connections.selected.projectId)
           }
           .build(),
       )
@@ -160,3 +163,13 @@ private fun LoadingState.Done<IssueResponse>.hasAppVcsInfo(): Boolean {
 
   return true
 }
+
+private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
+  when {
+    !StudioBot.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
+    firebaseProject == null -> AiInsightsOptInStatus.UNKNOWN_STATUS
+    else ->
+      if (TosPersistence.getInstance().isTosAccepted(firebaseProject))
+        AiInsightsOptInStatus.OPTED_IN
+      else AiInsightsOptInStatus.UNKNOWN_STATUS
+  }
