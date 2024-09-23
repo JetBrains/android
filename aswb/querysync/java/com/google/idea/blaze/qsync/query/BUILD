@@ -22,7 +22,7 @@ java_library(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
     ],
 )

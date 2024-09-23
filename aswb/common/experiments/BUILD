@@ -20,9 +20,9 @@ java_library(
     visibility = COMMON_PLUGINS_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/common/util:platform",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
     ],
 )
 
