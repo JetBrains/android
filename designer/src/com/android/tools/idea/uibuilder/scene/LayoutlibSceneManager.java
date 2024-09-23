@@ -87,8 +87,6 @@ import org.jetbrains.annotations.TestOnly;
 public class LayoutlibSceneManager extends SceneManager implements InteractiveSceneManager {
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
 
-  @Nullable private SceneView mySecondarySceneView;
-
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
@@ -291,19 +289,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     getDesignSurface().updateErrorDisplay();
 
     return primarySceneView;
-  }
-
-  @NotNull
-  @Override
-  public List<SceneView> getSceneViews() {
-    ImmutableList.Builder<SceneView> builder = ImmutableList.<SceneView>builder()
-      .addAll(super.getSceneViews());
-
-    if (mySecondarySceneView != null) {
-      builder.add(mySecondarySceneView);
-    }
-
-    return builder.build();
   }
 
   private SceneView createSceneViewsForMenu() {
