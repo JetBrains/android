@@ -44,6 +44,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.ui.Messages
 import java.awt.Component
 import java.nio.file.Files
 import java.nio.file.Path
@@ -181,8 +182,17 @@ private suspend fun WizardDialogScope.finish(
   sdkHandler: AndroidSdkHandler,
 ) {
   if (ensureSystemImageIsPresent(image, parent)) {
-    if (finish(device, sdkHandler.toLocalImage(image))) {
-      close()
+    try {
+      if (finish(device, sdkHandler.toLocalImage(image))) {
+        close()
+      }
+    } catch (e: Exception) {
+      logger<LocalVirtualDeviceSource>().error(e)
+      Messages.showErrorDialog(
+        parent,
+        "An error occurred while creating the AVD. See idea.log for details.",
+        "Error Creating AVD",
+      )
     }
   }
 }
