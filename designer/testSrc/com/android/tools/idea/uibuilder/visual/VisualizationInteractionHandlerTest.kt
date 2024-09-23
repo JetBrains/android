@@ -39,7 +39,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val sceneManager = surface.getSceneManager(myModel)!!
 
     // Return SceneView when hover on it, null otherwise.
-    val view = sceneManager.sceneView
+    val view = sceneManager.sceneViews.single()
     whenever(surface.getSceneViewAt(anyInt(), anyInt())).thenReturn(null)
     val xMatcher = intThat { view.x <= it && it <= view.x + view.scaledContentSize.width }
     val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
@@ -63,7 +63,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
         )
       }
 
-    val view = surface.getSceneManager(myModel)!!.sceneView
+    val view = surface.getSceneManager(myModel)!!.sceneViews.single()
     val mouseEvent =
       MouseEventBuilder(
           view.x + view.scaledContentSize.width * 2,

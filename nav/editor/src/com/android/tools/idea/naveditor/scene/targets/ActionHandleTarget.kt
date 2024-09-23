@@ -121,7 +121,7 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     val scene = myComponent.scene
     myComponent.parent?.nlComponent?.removeClientProperty(DRAG_CREATE_IN_PROGRESS)
     component.isDragging = false
-    scene.findComponent(component.scene.sceneManager.sceneView.context, x, y)?.let {
+    scene.findComponent(component.scene.sceneManager.sceneViews.first().context, x, y)?.let {
       closestComponent ->
       if (closestComponent !== component.scene.root && !closestComponent.id.isNullOrEmpty()) {
         createAction(closestComponent)?.let { action ->
