@@ -222,6 +222,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.execution.common.debug.utils">
     <facetFinderToken implementation="com.android.tools.idea.execution.common.debug.utils.FacetFinderGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.res">
+    <resourceClassToken implementation="com.android.tools.idea.res.ResourceClassGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
