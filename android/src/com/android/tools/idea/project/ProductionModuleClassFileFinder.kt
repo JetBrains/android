@@ -27,7 +27,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.util.io.URLUtil
 import java.io.File
 
-private val LOG = Logger.getInstance(ModuleBasedClassFileFinder::class.java)
+private val LOG = Logger.getInstance(ProductionModuleClassFileFinder::class.java)
 
 private fun Logger.debugIfEnabled(msg: String) {
   if (isDebugEnabled) debug(msg)
@@ -35,13 +35,13 @@ private fun Logger.debugIfEnabled(msg: String) {
 
 /**
  * The default implementation of [ClassFileFinder] which searches for class files
- * among the transitive dependencies of its [module], as determined by [ModuleRootManager].
+ * among the transitive production dependencies of its [module], as determined by [ModuleRootManager].
  *
- * [ModuleBasedClassFileFinder] only checks the JPS output directory for each module,
+ * [ProductionModuleClassFileFinder] only checks the JPS output directory for each module,
  * but subclasses may override [findClassFileInModule] to check other build system-specific
  * outputs.
  */
-open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
+class ProductionModuleClassFileFinder(val module: Module): ClassFileFinder {
   private val jarManager = JarManager.getInstance(module.project)
 
   override fun findClassFile(fqcn: String): ClassContent? {
@@ -61,7 +61,7 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
       val classFile = findClassFileInModuleWithLogging(module, fqcn)
       if (classFile != null) return classFile
 
-      ModuleRootManager.getInstance(module).getDependencies(module.isAndroidTestModule()).forEach { depModule ->
+      ModuleRootManager.getInstance(module).getDependencies(false).forEach { depModule ->
         val classFile = findClassFile(depModule, fqcn, visited)
         if (classFile != null) return classFile
       }
