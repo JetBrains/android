@@ -31,6 +31,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:libadblib-tools-proto",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
     ],
 )
 

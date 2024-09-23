@@ -16,17 +16,21 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbUsageTracker
+import com.android.ide.common.util.isMdnsAutoConnectTls
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
+import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.connectedDeviceToDeviceInfo
+import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AdbUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.diagnostic.thisLogger
 
 class AndroidAdbUsageTracker : AdbUsageTracker {
 
   private val log = thisLogger()
 
-  override suspend fun logUsage(event: AdbUsageTracker.Event) {
+  override fun logUsage(event: AdbUsageTracker.Event) {
     val studioEvent =
       try {
         event.toAndroidStudioEvent()
@@ -38,11 +42,11 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
     UsageTracker.log(studioEvent)
   }
 
-  private suspend fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
+  private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
     val androidStudioEvent =
       AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
 
-    device?.let { androidStudioEvent.setDeviceInfo(connectedDeviceToDeviceInfo(it)) }
+    deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
 
     jdwpProcessPropertiesCollector?.let {
       androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
@@ -78,4 +82,35 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
         AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType.OTHER_ERROR
     }
   }
+
+  private fun AdbUsageTracker.DeviceInfo.toProto(): DeviceInfo {
+    val mdnsConnectionType =
+      when {
+        isMdnsAutoConnectUnencrypted(serialNumber) ->
+          DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+        isMdnsAutoConnectTls(serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+        else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+      }
+
+    // TODO: Fix classification of `CLOUD_EMULATOR` and `CLOUD_PHYSICAL` device types
+    val deviceType =
+      if (LOCAL_EMULATOR_REGEX.matches(serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR
+      else DeviceInfo.DeviceType.LOCAL_PHYSICAL
+
+    return DeviceInfo.newBuilder()
+      .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
+      .setBuildTags(buildTags)
+      .setBuildType(buildType)
+      .setBuildVersionRelease(buildVersionRelease)
+      .setBuildApiLevelFull(buildApiLevelFull)
+      .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(cpuAbi))
+      .setManufacturer(manufacturer)
+      .setDeviceType(deviceType)
+      .setMdnsConnectionType(mdnsConnectionType)
+      .addAllCharacteristics(allCharacteristics)
+      .setModel(model)
+      .build()
+  }
+
+  private val LOCAL_EMULATOR_REGEX = "emulator-(\\d+)".toRegex()
 }
