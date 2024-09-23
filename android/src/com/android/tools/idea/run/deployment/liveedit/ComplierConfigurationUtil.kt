@@ -79,6 +79,13 @@ fun getCompilerConfiguration(
     } else {
       setOptions(file.languageVersionSettings)
     }
+
+    // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
+    //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
+    //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
+    //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
+    //  stable, we can drop this.
+    put(CommonConfigurationKeys.IGNORE_CONST_OPTIMIZATION_ERRORS, true)
   }
   return compilerConfiguration
 }
