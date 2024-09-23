@@ -17,7 +17,6 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
@@ -51,15 +50,9 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
-import java.lang.Boolean.getBoolean
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import kotlin.io.path.isDirectory
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
 
@@ -82,10 +75,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                           "xdebugger.actions" to ::logDebuggerEvent)
     val c = callbacks[group.id] ?: return CompletableFuture.completedFuture(null)
     val builder = c(eventId, data) ?: return CompletableFuture.completedFuture(null)
-    return CompletableFuture.runAsync({
-      UsageTracker.log(builder)
-      dumpStudioEventToDirectory(builder, group)
-    }, logExecutor)
+    return CompletableFuture.runAsync({ UsageTracker.log(builder) }, logExecutor)
   }
 
   override fun logAsync(group: EventLogGroup,
@@ -358,26 +348,6 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       }
 
       else -> null
-    }
-  }
-
-  @Suppress("SpellCheckingInspection")
-  private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-
-  private fun formatTime(time: ZonedDateTime): String = dateFormat.format(time)
-
-  private fun dumpStudioEventToDirectory(studioEvent: AndroidStudioEvent.Builder, group: EventLogGroup) {
-    if (!getBoolean("studio.event.dump.group.${group.id}")) {
-      return
-    }
-
-    System.getProperty("studio.event.dump.dir")?.let { traceDir ->
-      val traceDirPath = Path.of(traceDir)
-      if (traceDirPath.isDirectory()) {
-        val studioEventFile = traceDirPath.resolve("${studioEvent.kind.name}-${formatTime(ZonedDateTime.now())}.textproto")
-        Files.createFile(studioEventFile)
-        Files.writeString(studioEventFile, TextFormat.printer().printToString(studioEvent))
-      }
     }
   }
 
