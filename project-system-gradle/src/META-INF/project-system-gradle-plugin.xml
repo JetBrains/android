@@ -383,6 +383,12 @@
             description="Enable buildConfig for those modules that need it only">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidMigrateResValuesFromGradlePropertiesToDsl"
+            class="org.jetbrains.android.refactoring.MigrateResValuesFromGradlePropertiesAction"
+            text="Migrate ResValues to Gradle Build Files"
+            description="Enable resValues for those modules that need it only">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
     <action
         id="AndroidX.BaselineProfile.RunGenerate"
         class="com.android.tools.idea.run.configuration.BaselineProfileAction"

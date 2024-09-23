@@ -32,6 +32,7 @@ public final class BuildFeaturesModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String BUILD_CONFIG = "mBuildConfig";
   @NonNls public static final String AIDL = "mAidl";
   @NonNls public static final String SHADERS = "mShaders";
+  @NonNls public static final String RES_VALUES = "mResValues";
 
   public BuildFeaturesModelImpl(@NotNull BuildFeaturesDslElement dslElement) {
     super(dslElement);
@@ -87,5 +88,11 @@ public final class BuildFeaturesModelImpl extends GradleDslBlockModel implements
   @Override
   public ResolvedPropertyModel shaders() {
     return getModelForProperty(SHADERS);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel resValues() {
+    return getModelForProperty(RES_VALUES);
   }
 }

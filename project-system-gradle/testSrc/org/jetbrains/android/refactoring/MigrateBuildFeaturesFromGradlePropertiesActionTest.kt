@@ -25,7 +25,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
-class MigrateBuildConfigFromGradlePropertiesActionTest {
+class MigrateBuildFeaturesFromGradlePropertiesActionTest {
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
 
@@ -33,12 +33,28 @@ class MigrateBuildConfigFromGradlePropertiesActionTest {
   private val fixture get() = projectRule.fixture
 
   @Test
-  fun `check action is disabled in non-gradle projects`() {
+  fun `check build config action is disabled in non-gradle projects`() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
     val file = fixture.addFileToProject("BUILD", "load(\"//tools/base/bazel:bazel.bzl\", \"iml_module\")")
 
     ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
     val action = MigrateBuildConfigFromGradlePropertiesAction()
+    val event = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
+
+    Assert.assertFalse("Action should not be visible", event.presentation.isVisible)
+    Assert.assertFalse("Action should not be enabled", event.presentation.isEnabled)
+  }
+
+  @Test
+  fun `check res values action is disabled in non-gradle projects`() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
+    val file = fixture.addFileToProject("BUILD", "load(\"//tools/base/bazel:bazel.bzl\", \"iml_module\")")
+
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
+    val action = MigrateResValuesFromGradlePropertiesAction()
     val event = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
     ApplicationManager.getApplication().runReadAction {
       action.update(event)
