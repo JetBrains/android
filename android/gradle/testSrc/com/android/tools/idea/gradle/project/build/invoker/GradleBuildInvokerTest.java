@@ -177,25 +177,8 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
     GradleBuildInvoker buildInvoker = createBuildInvoker();
-    buildInvoker.compileJava(
-      ImmutableList.of(
-        Objects.requireNonNull(gradleModule(myProject, ":app")),
-        Objects.requireNonNull(gradleModule(myProject, ":lib"))
-      ).toArray(new Module[0])
-    );
-
-    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
-    assertThat(request).isNotNull();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
-      ":lib:compileDebugUnitTestSources",
-      ":lib:compileDebugAndroidTestSources",
-      ":lib:compileDebugSources",
-      ":app:compileDebugUnitTestSources",
-      ":app:compileDebugAndroidTestSources",
-      ":app:compileDebugSources"
-    ));
-
-    verifyInteractionWithMocks(COMPILE_JAVA);
+    verifyCompileSourcesWhenModulesSpecified(buildInvoker);
+    verifyCompileAllSourcesInvokesAllActions(buildInvoker);
   }
 
   public void testAssembleWhenNoTasksToRun() {
@@ -371,5 +354,36 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
     tasks.putAll(Paths.get("project_path"), taskNames);
     return tasks;
+  }
+
+  private void verifyCompileSourcesWhenModulesSpecified(GradleBuildInvoker buildInvoker) {
+    buildInvoker.compileJava(
+      ImmutableList.of(Objects.requireNonNull(gradleModule(myProject, ":app"))).toArray(new Module[0])
+    );
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":app:compileDebugUnitTestSources",
+      ":app:compileDebugAndroidTestSources",
+      ":app:compileDebugSources"
+    ));
+
+    verifyInteractionWithMocks(COMPILE_JAVA);
+  }
+
+  private void verifyCompileAllSourcesInvokesAllActions(GradleBuildInvoker buildInvoker) {
+    buildInvoker.compileJava();
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":lib:compileDebugUnitTestSources",
+      ":lib:compileDebugAndroidTestSources",
+      ":lib:compileDebugSources",
+      ":app:compileDebugUnitTestSources",
+      ":app:compileDebugAndroidTestSources",
+      ":app:compileDebugSources"
+    ));
   }
 }
