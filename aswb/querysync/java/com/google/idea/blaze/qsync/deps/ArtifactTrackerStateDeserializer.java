@@ -18,9 +18,11 @@ package com.google.idea.blaze.qsync.deps;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
@@ -71,6 +73,13 @@ public class ArtifactTrackerStateDeserializer {
             vcsState));
   }
 
+  private TargetBuildInfo.MetadataKey extractMetadataKey(String protoKey) {
+    int colon = protoKey.indexOf(":");
+    Preconditions.checkArgument(colon >= 0, "Invalid metadata key: %s", protoKey);
+    return new TargetBuildInfo.MetadataKey(
+        protoKey.substring(0, colon), Interners.pathOf(protoKey.substring(colon + 1)));
+  }
+
   private void visitTargetBuildInfo(Map.Entry<String, ArtifactTrackerProto.TargetBuildInfo> entry) {
     ArtifactTrackerProto.TargetBuildInfo proto = entry.getValue();
     TargetBuildInfo.Builder builder =
@@ -81,6 +90,11 @@ public class ArtifactTrackerStateDeserializer {
     }
     if (proto.hasCcInfo()) {
       builder.ccInfo(convertCcCompilationInfo(owner, proto.getCcInfo()));
+    }
+    for (Map.Entry<String, String> metadata : proto.getDerivedArtifactMetadataMap().entrySet()) {
+      builder
+          .artifactMetadataBuilder()
+          .put(extractMetadataKey(metadata.getKey()), metadata.getValue());
     }
     depsMap.put(owner, builder.build());
   }
@@ -145,7 +159,7 @@ public class ArtifactTrackerStateDeserializer {
   private ImmutableList<BuildArtifact> toArtifactList(
       List<ArtifactTrackerProto.Artifact> protos, Label owner) {
     return protos.stream()
-      .map(a -> BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner))
+        .map(a -> BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner))
         .collect(toImmutableList());
   }
 }

@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.ArtifactTrackerState;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import java.nio.file.Path;
@@ -158,5 +159,37 @@ public class ArtifactTrackerStateSerializationTest {
     ArtifactTracker.State newState = roundTrip(depsMap, toolchainMap);
     assertThat(newState.depsMap()).containsExactlyEntriesIn(depsMap);
     assertThat(newState.ccToolchainMap()).containsExactlyEntriesIn(toolchainMap);
+  }
+
+  @Test
+  public void test_metadata() {
+    DependencyBuildContext buildContext =
+        DependencyBuildContext.create(
+            "abc-def",
+            Instant.ofEpochMilli(1000),
+            Optional.of(new VcsState("workspaceId", "12345", ImmutableSet.of(), Optional.empty())));
+    TargetBuildInfo.Builder targetInfo =
+        TargetBuildInfo.forJavaTarget(
+            JavaArtifactInfo.empty(Label.of("//my/package:target")), buildContext)
+            .toBuilder();
+    targetInfo
+        .artifactMetadataBuilder()
+        .put(
+            new MetadataKey("key", Path.of("/build-out/my/package/artifact.txt")),
+            "metadata contents");
+    targetInfo
+        .artifactMetadataBuilder()
+        .put(
+            new MetadataKey("other-key", Path.of("/build-out/my/package/artifact.txt")),
+            "some other metadata contents");
+    targetInfo
+        .artifactMetadataBuilder()
+        .put(
+            new MetadataKey("key", Path.of("/build-out/my/package/another-artifact.srcjar")),
+            "more metadata contents");
+    ImmutableMap<Label, TargetBuildInfo> depsMap =
+        ImmutableMap.of(Label.of("//my/package:target"), targetInfo.build());
+
+    assertThat(roundTrip(depsMap)).containsExactlyEntriesIn(depsMap);
   }
 }
