@@ -51,6 +51,10 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @NotNull private final Scene myScene;
   // This will be initialized when constructor calls updateSceneView().
   @Nullable private SceneView mySceneView;
+  /**
+   * Optional secondary scene view. Null by default, but could be set by subclasses.
+   */
+  @Nullable protected SceneView mySecondarySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
 
@@ -109,9 +113,20 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     return mySceneView;
   }
 
+  /**
+   * @return a list of not null scene views. The first element is always the primary scene view,
+   * and the second element, if present, will be the secondary scene view.
+   */
   @NotNull
   public List<SceneView> getSceneViews() {
-    return ImmutableList.of(getSceneView());
+    ImmutableList.Builder<SceneView> builder = ImmutableList.<SceneView>builder()
+      .add(getSceneView());
+
+    if (mySecondarySceneView != null) {
+      builder.add(mySecondarySceneView);
+    }
+
+    return builder.build();
   }
 
   /**
