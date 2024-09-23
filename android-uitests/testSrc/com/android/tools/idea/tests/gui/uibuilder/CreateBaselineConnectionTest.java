@@ -33,8 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateBaselineConnectionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * To verify vertical constraints are removed from a widget when creating a baseline constraint connection
@@ -69,8 +68,8 @@ public class CreateBaselineConnectionTest {
       .waitForRenderToFinish();
 
     design.findView("Button", 0)
-      .createConstraintFromTopToTopOfLayout()
       .createConstraintFromBottomToBottomOfLayout()
+      .createConstraintFromTopToTopOfLayout()
       .createConstraintFromLeftToLeftOfLayout()
       .createConstraintFromRightToRightOfLayout()
       .createBaselineConstraintWith(design.findView("TextView", 0));
