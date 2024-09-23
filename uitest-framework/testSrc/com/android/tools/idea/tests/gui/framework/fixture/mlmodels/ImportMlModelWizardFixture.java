@@ -48,4 +48,9 @@ public class ImportMlModelWizardFixture extends AbstractWizardFixture<ImportMlMo
 
     return myIdeFrameFixture;
   }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(it -> clickFinish());
+  }
 }
