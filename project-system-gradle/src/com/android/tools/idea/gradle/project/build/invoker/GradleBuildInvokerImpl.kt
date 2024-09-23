@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ListMultimap
 import com.google.common.util.concurrent.Futures
@@ -88,9 +89,11 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.PathUtil
+import com.intellij.util.containers.toArray
 import com.intellij.xdebugger.XDebugSession
 import org.gradle.tooling.BuildAction
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.base.facet.isTestModule
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -222,6 +225,11 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   }
 
   override fun assemble(): ListenableFuture<AssembleInvocationResult> {
+    val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }.toTypedArray()
+    return assemble(modules)
+  }
+
+  override fun assembleWithTests(): ListenableFuture<AssembleInvocationResult> {
     return assemble(ModuleManager.getInstance(project).modules)
   }
 

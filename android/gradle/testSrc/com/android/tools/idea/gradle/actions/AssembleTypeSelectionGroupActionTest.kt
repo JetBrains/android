@@ -6,17 +6,17 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * Tests for [MakeTypeSelectionGroupActionTest].
+ * Tests for [AssembleTypeSelectionGroupActionTest].
  */
-class MakeTypeSelectionGroupActionTest : TestCase() {
+class AssembleTypeSelectionGroupActionTest : TestCase() {
 
   fun testDoPerform() {
     val groupAction = MakeTypeSelectionGroupAction()
     val children = groupAction.getChildren(null)
     assertEquals(2, children.size, "Number of make options in the action group")
 
-    val makeModules = children.find { it is MakeGradleModuleActionFromGroupAction }
-    val makeProject = children.find { it is MakeGradleProjectAction }
+    val makeModules = children.find { it is AssembleGradleModuleActionFromGroupAction }
+    val makeProject = children.find { it is AssembleGradleProjectWithTestsAction }
 
     assertNotNull(makeModules, "Action to build selected modules")
     assertNotNull(makeProject, "Action to build project")

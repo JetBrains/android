@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
@@ -52,6 +53,7 @@ fun Project.hookExecuteTasks(): List<GradleBuildInvoker.Request> {
     override fun generateSources(modules: Array<Module>) = notHooked()
     override fun compileJava(modules: Array<Module>) = notHooked()
     override fun compileJava() = notHooked()
+    override fun assembleWithTests() = notHooked()
     override fun assemble() = notHooked()
     override fun assemble(modules: Array<Module>) = notHooked()
     override fun bundle(modules: Array<Module>) = notHooked()

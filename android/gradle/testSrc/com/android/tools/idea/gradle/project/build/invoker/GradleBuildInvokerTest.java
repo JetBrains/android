@@ -255,27 +255,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
     GradleBuildInvoker buildInvoker = createBuildInvoker();
-    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
-      ImmutableList.of(
-        Objects.requireNonNull(gradleModule(myProject, ":app")),
-        Objects.requireNonNull(gradleModule(myProject, ":lib"))
-      ).toArray(new Module[0])
-    );
-
-    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
-    assertThat(request).isNotNull();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(
-      ImmutableList.of(":app:assembleDebug",
-                       ":app:assembleDebugUnitTest",
-                       ":app:assembleDebugAndroidTest",
-                       ":lib:assembleDebug",
-                       ":lib:assembleDebugUnitTest",
-                       ":lib:assembleDebugAndroidTest"
-      ));
-    assertThat(request.getCommandLineArguments()).isEmpty();
-    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
-
-    verifyInteractionWithMocks(ASSEMBLE);
+    verifyAssembleModulesList(buildInvoker);
+    verifyAssembleDoeNotIncludeTests(buildInvoker);
+    verifyAssembleWithTestsIncludesTests(buildInvoker);
   }
 
   public void testAssembleWithCommandLineArgs() throws Exception {
@@ -385,5 +367,56 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ":app:compileDebugAndroidTestSources",
       ":app:compileDebugSources"
     ));
+  }
+
+  private void verifyAssembleModulesList(GradleBuildInvoker buildInvoker) throws Exception {
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
+      ImmutableList.of(
+        Objects.requireNonNull(gradleModule(myProject, ":app")),
+        Objects.requireNonNull(gradleModule(myProject, ":lib"))
+      ).toArray(new Module[0])
+    );
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(
+      ImmutableList.of(":app:assembleDebug",
+                       ":app:assembleDebugUnitTest",
+                       ":app:assembleDebugAndroidTest",
+                       ":lib:assembleDebug",
+                       ":lib:assembleDebugUnitTest",
+                       ":lib:assembleDebugAndroidTest"
+      ));
+    assertThat(request.getCommandLineArguments()).isEmpty();
+    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
+
+    verifyInteractionWithMocks(ASSEMBLE);
+  }
+
+  private void verifyAssembleDoeNotIncludeTests(GradleBuildInvoker buildInvoker) throws Exception {
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble();
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":app:assembleDebug", ":lib:assembleDebug"));
+    assertThat(request.getCommandLineArguments()).isEmpty();
+    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
+  }
+
+  private void verifyAssembleWithTestsIncludesTests(GradleBuildInvoker buildInvoker) throws Exception {
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assembleWithTests();
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(
+      ImmutableList.of(":app:assembleDebug",
+                       ":app:assembleDebugUnitTest",
+                       ":app:assembleDebugAndroidTest",
+                       ":lib:assembleDebug",
+                       ":lib:assembleDebugUnitTest",
+                       ":lib:assembleDebugAndroidTest"
+      ));
+    assertThat(request.getCommandLineArguments()).isEmpty();
+    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
   }
 }

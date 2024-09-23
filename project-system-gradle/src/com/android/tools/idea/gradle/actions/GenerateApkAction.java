@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildApkAction extends DumbAwareAction {
-  private static final String ACTION_TEXT = "Build APK(s)";
+public class GenerateApkAction extends DumbAwareAction {
+  private static final String ACTION_TEXT = "Generate APK(s)";
 
-  public BuildApkAction() {
+  public GenerateApkAction() {
     super(ACTION_TEXT);
   }
 
