@@ -351,6 +351,7 @@ class TestDesignSurface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
+    shouldZoomOnFirstComponentResize = true,
   ) {
 
   init {
