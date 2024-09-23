@@ -21,9 +21,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeViewNodeCreator
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import java.awt.Point
 
 private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
 
@@ -35,29 +33,13 @@ private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidV
  *   this will be used to generate [ComposeViewNode] children.
  */
 class ViewNodeCreator(
-  private val layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
+  layoutEvent: LayoutInspectorViewProtocol.LayoutEvent,
   composeResult: GetComposablesResult?,
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
 
-  /**
-   * The offset of the window containing the views. For embedded Layout Inspector, we want the
-   * rendering to reflect what is shown on the device, therefore we don't apply any offset to the
-   * views inside the window. For standalone Layout Inspector, we want the rendering to be centered
-   * in the middle of the panel. For this reason we subtract the window's offset to every view in
-   * the window. So that views that are on the leftmost and topmost side of the window are mapped to
-   * (0, 0).
-   */
-  private val windowOffset: Point
-    get() =
-      if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-        Point()
-      } else {
-        layoutEvent.appContext.windowBounds.toRectangle().location
-      }
-
-  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it, windowOffset) }
+  private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it) }
 
   /** The collected capabilities based on the loaded data. */
   val dynamicCapabilities: Set<Capability>
@@ -85,13 +67,11 @@ class ViewNodeCreator(
     val resource = view.resource.convert().createReference(strings)
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
-    val layoutBounds =
-      view.bounds.layout.toRectangle().apply { translate(-windowOffset.x, -windowOffset.y) }
+    val layoutBounds = view.bounds.layout.toRectangle()
     val renderBounds =
       view.bounds.render
         .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
-        ?.toPolygon()
-        ?.apply { translate(-windowOffset.x, -windowOffset.y) } ?: layoutBounds
+        ?.toPolygon() ?: layoutBounds
 
     val node =
       ViewNode(
@@ -106,8 +86,7 @@ class ViewNodeCreator(
       )
 
     val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()
-    composeNodeCreator?.createForViewId(view.id, layoutBounds.location, shouldInterrupt)?.forEach {
-      child ->
+    composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child ->
       children.add(child)
     }
     val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()

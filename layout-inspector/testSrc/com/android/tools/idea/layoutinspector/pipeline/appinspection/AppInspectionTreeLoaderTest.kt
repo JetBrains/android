@@ -25,11 +25,7 @@ import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableBounds
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableQuad
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRect
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRectBounds
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewBounds
@@ -39,7 +35,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRec
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.GRAMMATICAL_GENDER_FEMININE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toRectangle
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_YES
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_YES
 import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_NO
@@ -55,7 +50,6 @@ import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
 import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
-import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
@@ -73,7 +67,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Image
-import java.awt.Point
 import java.awt.Polygon
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
@@ -158,12 +151,6 @@ class AppInspectionTreeLoaderTest {
             }
             mainDisplayHeight = 800
             mainDisplayWidth = 480
-            windowBoundsBuilder.apply {
-              x = 100
-              y = 1000
-              w = 480
-              h = 800
-            }
             themeBuilder.apply {
               type = 7
               namespace = 2
@@ -175,19 +162,19 @@ class AppInspectionTreeLoaderTest {
             id = 1
             packageName = 2
             className = 3
-            bounds = ViewBounds(ViewRect(100, 1000, sample565.image.width, sample565.image.height))
+            bounds = ViewBounds(ViewRect(sample565.image.width, sample565.image.height))
 
             ViewNode {
               id = 2
               packageName = 2
               className = 4
-              bounds = ViewBounds(ViewRect(110, 1010, 50, 100))
+              bounds = ViewBounds(ViewRect(10, 10, 50, 100))
 
               ViewNode {
                 id = 3
                 packageName = 2
                 className = 3
-                bounds = ViewBounds(ViewRect(120, 1020, 20, 50))
+                bounds = ViewBounds(ViewRect(20, 20, 20, 50))
               }
             }
 
@@ -196,17 +183,14 @@ class AppInspectionTreeLoaderTest {
               packageName = 2
               className = 4
               bounds =
-                ViewBounds(
-                  ViewRect(130, 1120, 40, 50),
-                  ViewQuad(125, 1125, 175, 1127, 123, 1250, 178, 1253),
-                )
+                ViewBounds(ViewRect(30, 120, 40, 50), ViewQuad(25, 125, 75, 127, 23, 250, 78, 253))
             }
 
             ViewNode {
               id = 5
               packageName = 5
               className = 6
-              bounds = ViewBounds(ViewRect(300, 1200, 300, 200))
+              bounds = ViewBounds(ViewRect(300, 200))
             }
           }
 
@@ -244,7 +228,6 @@ class AppInspectionTreeLoaderTest {
               name = 4
               recomposeCount = 2
               recomposeSkips = 5
-              bounds = ComposableRectBounds(300, 1200, 300, 200)
 
               ComposableNode {
                 id = -3
@@ -253,7 +236,6 @@ class AppInspectionTreeLoaderTest {
                 name = 5
                 recomposeCount = 3
                 recomposeSkips = 5
-                bounds = ComposableRectBounds(310, 1200, 20, 40)
 
                 ComposableNode {
                   id = -4
@@ -262,7 +244,6 @@ class AppInspectionTreeLoaderTest {
                   name = 6
                   recomposeCount = 4
                   recomposeSkips = 5
-                  bounds = ComposableRectBounds(320, 1200, 10, 30)
 
                   ComposableNode {
                     id = -5
@@ -273,7 +254,6 @@ class AppInspectionTreeLoaderTest {
                     // These recomposition numbers will be ignored because this is a system node
                     recomposeCount = 4
                     recomposeSkips = 5
-                    bounds = ComposableRectBounds(320, 1210, 10, 20)
                   }
                 }
               }
@@ -284,28 +264,24 @@ class AppInspectionTreeLoaderTest {
               filename = 3
               name = 9
               flags = nestedFlag
-              bounds = ComposableRectBounds(450, 1300, 150, 100)
 
               ComposableNode {
                 id = -7
                 packageHash = 1
                 filename = 3
                 name = 9
-                bounds = ComposableRectBounds(450, 1300, 50, 100)
               }
               ComposableNode {
                 id = -8
                 packageHash = 1
                 filename = 3
                 name = 9
-                bounds = ComposableRectBounds(500, 1200, 50, 100)
               }
               ComposableNode {
                 id = -9
                 packageHash = 1
                 filename = 3
                 name = 9
-                bounds = ComposableRectBounds(550, 1300, 50, 100)
               }
               ComposableNode {
                 id = -10
@@ -314,7 +290,6 @@ class AppInspectionTreeLoaderTest {
                 name = 5
                 recomposeCount = 4
                 recomposeSkips = 4
-                bounds = ComposableRectBounds(510, 1350, 60, 40)
 
                 ComposableNode {
                   id = -11
@@ -323,11 +298,6 @@ class AppInspectionTreeLoaderTest {
                   name = 6
                   recomposeCount = 5
                   recomposeSkips = 5
-                  bounds =
-                    ComposableBounds(
-                      ComposableRect(510, 1350, 60, 40),
-                      ComposableQuad(225, 170, 285, 150, 295, 185, 230, 190),
-                    )
                 }
               }
             }
@@ -349,265 +319,206 @@ class AppInspectionTreeLoaderTest {
   }
 
   @Test
-  fun testLoadInEmbeddedMode() {
-    runLoadTest(pendingRecompositionCountReset = false, embeddedMode = true)
-  }
-
-  @Test
   fun testLoadAfterReset() {
     runLoadTest(pendingRecompositionCountReset = true)
   }
 
-  private fun runLoadTest(pendingRecompositionCountReset: Boolean, embeddedMode: Boolean = false) {
+  private fun runLoadTest(pendingRecompositionCountReset: Boolean) {
     val image1: Image = mock()
     val image2: Image = mock()
     val image3: Image = mock()
     val image4: Image = mock()
     val image5: Image = mock()
 
-    withEmbeddedLayoutInspector(embeddedMode) {
-      val skiaResponse =
-        SkiaViewNode(
-          1,
-          listOf(
-            SkiaViewNode(1, image1),
-            SkiaViewNode(
-              2,
-              listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3)))),
-            ),
-            SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
-            SkiaViewNode(5, listOf(SkiaViewNode(5, image5))),
+    val skiaResponse =
+      SkiaViewNode(
+        1,
+        listOf(
+          SkiaViewNode(1, image1),
+          SkiaViewNode(
+            2,
+            listOf(SkiaViewNode(2, image2), SkiaViewNode(3, listOf(SkiaViewNode(3, image3)))),
           ),
+          SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
+          SkiaViewNode(5, listOf(SkiaViewNode(5, image5))),
+        ),
+      )
+
+    val skiaParser: SkiaParser = mock()
+    whenever(
+        skiaParser.getViewTree(
+          eq(sample565.bytes),
+          argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) },
+          any(),
+          any(),
         )
+      )
+      .thenReturn(skiaResponse)
 
-      val skiaParser: SkiaParser = mock()
-      whenever(
-          skiaParser.getViewTree(
-            eq(sample565.bytes),
-            argThat { req ->
-              req.map { it.id }.sorted() ==
-                listOf(-11L, -10L, -9L, -8L, -7L, -6L, -5L, -4L, -3L, -2L, 1L, 2L, 3L, 4L, 5L)
-            },
-            any(),
-            any(),
-          )
-        )
-        .thenReturn(skiaResponse)
+    var loggedEvent: DynamicLayoutInspectorEventType? = null
+    val treeLoader =
+      AppInspectionTreeLoader(
+        NotificationModel(projectRule.project),
+        // Initial event is only ever logged one time
+        logEvent = {
+          assertThat(loggedEvent).isNull()
+          loggedEvent = it
+        },
+        skiaParser,
+      )
 
-      var loggedEvent: DynamicLayoutInspectorEventType? = null
-      val treeLoader =
-        AppInspectionTreeLoader(
-          NotificationModel(projectRule.project),
-          // Initial event is only ever logged one time
-          logEvent = {
-            assertThat(loggedEvent).isNull()
-            loggedEvent = it
-          },
-          skiaParser,
-        )
+    val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
+    val lookup = ResourceLookup(projectRule.project)
+    val (window, generation) =
+      treeLoader.loadComponentTree(data, lookup, MODERN_DEVICE.createProcess())!!
+    assertThat(data.generation).isEqualTo(generation)
 
-      val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
-      val lookup = ResourceLookup(projectRule.project)
-      val (window, generation) =
-        treeLoader.loadComponentTree(data, lookup, MODERN_DEVICE.createProcess())!!
-      assertThat(data.generation).isEqualTo(generation)
-      val offset =
-        if (embeddedMode) data.viewEvent.appContext.windowBounds.toRectangle().location else Point()
+    runBlocking { window!!.refreshImages(1.0) }
 
-      runBlocking { window!!.refreshImages(1.0) }
+    ViewNode.readAccess {
+      val tree = window!!.root
+      assertThat(tree.drawId).isEqualTo(1)
+      assertThat(tree.layoutBounds.x).isEqualTo(0)
+      assertThat(tree.layoutBounds.y).isEqualTo(0)
+      assertThat(tree.layoutBounds.width).isEqualTo(sample565.image.width)
+      assertThat(tree.layoutBounds.height).isEqualTo(sample565.image.height)
+      assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
+      assertThat((tree.drawChildren[0] as DrawViewImage).image).isEqualTo(image1)
+      assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
 
-      ViewNode.readAccess {
-        val tree = window!!.root
-        assertThat(tree.drawId).isEqualTo(1)
-        assertThat(tree.layoutBounds.x).isEqualTo(offset.x)
-        assertThat(tree.layoutBounds.y).isEqualTo(offset.y)
-        assertThat(tree.layoutBounds.width).isEqualTo(sample565.image.width)
-        assertThat(tree.layoutBounds.height).isEqualTo(sample565.image.height)
-        assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
-        assertThat((tree.drawChildren[0] as DrawViewImage).image).isEqualTo(image1)
-        assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
+      val node2 = tree.children[0]
+      assertThat(node2.drawId).isEqualTo(2)
+      assertThat(node2.layoutBounds.x).isEqualTo(10)
+      assertThat(node2.layoutBounds.y).isEqualTo(10)
+      assertThat(node2.layoutBounds.width).isEqualTo(50)
+      assertThat(node2.layoutBounds.height).isEqualTo(100)
+      assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
+      assertThat((node2.drawChildren[0] as DrawViewImage).image).isEqualTo(image2)
+      assertThat(node2.children.map { it.drawId }).containsExactly(3L)
 
-        val node2 = tree.children[0]
-        assertThat(node2.drawId).isEqualTo(2)
-        assertThat(node2.layoutBounds.x).isEqualTo(10 + offset.x)
-        assertThat(node2.layoutBounds.y).isEqualTo(10 + offset.y)
-        assertThat(node2.layoutBounds.width).isEqualTo(50)
-        assertThat(node2.layoutBounds.height).isEqualTo(100)
-        assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
-        assertThat((node2.drawChildren[0] as DrawViewImage).image).isEqualTo(image2)
-        assertThat(node2.children.map { it.drawId }).containsExactly(3L)
+      val node3 = node2.children[0]
+      assertThat(node3.drawId).isEqualTo(3)
+      assertThat(node3.layoutBounds.x).isEqualTo(20)
+      assertThat(node3.layoutBounds.y).isEqualTo(20)
+      assertThat(node3.layoutBounds.width).isEqualTo(20)
+      assertThat(node3.layoutBounds.height).isEqualTo(50)
+      assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
+      assertThat((node3.drawChildren[0] as DrawViewImage).image).isEqualTo(image3)
+      assertThat(node3.children).isEmpty()
 
-        val node3 = node2.children[0]
-        assertThat(node3.drawId).isEqualTo(3)
-        assertThat(node3.layoutBounds.x).isEqualTo(20 + offset.x)
-        assertThat(node3.layoutBounds.y).isEqualTo(20 + offset.y)
-        assertThat(node3.layoutBounds.width).isEqualTo(20)
-        assertThat(node3.layoutBounds.height).isEqualTo(50)
-        assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
-        assertThat((node3.drawChildren[0] as DrawViewImage).image).isEqualTo(image3)
-        assertThat(node3.children).isEmpty()
+      val node4 = tree.children[1]
+      assertThat(node4.drawId).isEqualTo(4)
+      assertThat(node4.layoutBounds.x).isEqualTo(30)
+      assertThat(node4.layoutBounds.y).isEqualTo(120)
+      assertThat(node4.layoutBounds.width).isEqualTo(40)
+      assertThat(node4.layoutBounds.height).isEqualTo(50)
+      assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
+      assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
+      assertThat(node4.children).isEmpty()
+      assertThat((node4.renderBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
+      assertThat((node4.renderBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
 
-        val node4 = tree.children[1]
-        assertThat(node4.drawId).isEqualTo(4)
-        assertThat(node4.layoutBounds.x).isEqualTo(30 + offset.x)
-        assertThat(node4.layoutBounds.y).isEqualTo(120 + offset.y)
-        assertThat(node4.layoutBounds.width).isEqualTo(40)
-        assertThat(node4.layoutBounds.height).isEqualTo(50)
-        assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
-        assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
-        assertThat(node4.children).isEmpty()
-        assertThat((node4.renderBounds as Polygon).xpoints)
-          .isEqualTo(listOf(25, 75, 23, 78).map { it + offset.x }.toIntArray())
-        assertThat((node4.renderBounds as Polygon).ypoints)
-          .isEqualTo(listOf(125, 127, 250, 253).map { it + offset.y }.toIntArray())
+      val node6 = tree.children[2]
+      assertThat(node6.drawId).isEqualTo(5)
+      assertThat(node6.layoutBounds.x).isEqualTo(0)
+      assertThat(node6.layoutBounds.y).isEqualTo(0)
+      assertThat(node6.layoutBounds.width).isEqualTo(300)
+      assertThat(node6.layoutBounds.height).isEqualTo(200)
+      assertThat(node6.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
+      assertThat((node6.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
+      assertThat(node6.children.map { it.drawId }).containsExactly(-2L, -6L)
 
-        val node6 = tree.children[2]
-        assertThat(node6.drawId).isEqualTo(5)
-        assertThat(node6.layoutBounds.x).isEqualTo(200 + offset.x)
-        assertThat(node6.layoutBounds.y).isEqualTo(200 + offset.y)
-        assertThat(node6.layoutBounds.width).isEqualTo(300)
-        assertThat(node6.layoutBounds.height).isEqualTo(200)
-        assertThat(node6.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
-        assertThat((node6.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
-        assertThat(node6.children.map { it.drawId }).containsExactly(-2L, -6L)
+      val cNode2 = node6.children[0] as ComposeViewNode
+      assertThat(cNode2.drawId).isEqualTo(-2)
+      assertThat(cNode2.qualifiedName).isEqualTo("Surface")
+      assertThat(cNode2.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
+      assertThat(cNode2.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode2.children.map { it.drawId }).containsExactly(-3L)
 
-        val cNode2 = node6.children[0] as ComposeViewNode
-        assertThat(cNode2.drawId).isEqualTo(-2)
-        assertThat(cNode2.layoutBounds.x).isEqualTo(200 + offset.x)
-        assertThat(cNode2.layoutBounds.y).isEqualTo(200 + offset.y)
-        assertThat(cNode2.layoutBounds.width).isEqualTo(300)
-        assertThat(cNode2.layoutBounds.height).isEqualTo(200)
-        assertThat(cNode2.qualifiedName).isEqualTo("Surface")
-        assertThat(cNode2.recompositions.count)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
-        assertThat(cNode2.recompositions.skips)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-        assertThat(cNode2.children.map { it.drawId }).containsExactly(-3L)
+      val cNode3 = cNode2.children[0] as ComposeViewNode
+      assertThat(cNode3.drawId).isEqualTo(-3)
+      assertThat(cNode3.qualifiedName).isEqualTo("Button")
+      assertThat(cNode3.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
+      assertThat(cNode3.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode3.children.map { it.drawId }).containsExactly(-4L)
 
-        val cNode3 = cNode2.children[0] as ComposeViewNode
-        assertThat(cNode3.drawId).isEqualTo(-3)
-        assertThat(cNode3.qualifiedName).isEqualTo("Button")
-        assertThat(cNode3.layoutBounds.x).isEqualTo(210 + offset.x)
-        assertThat(cNode3.layoutBounds.y).isEqualTo(200 + offset.y)
-        assertThat(cNode3.layoutBounds.width).isEqualTo(20)
-        assertThat(cNode3.layoutBounds.height).isEqualTo(40)
-        assertThat(cNode3.recompositions.count)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 3)
-        assertThat(cNode3.recompositions.skips)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-        assertThat(cNode3.children.map { it.drawId }).containsExactly(-4L)
+      val cNode4 = cNode3.children[0] as ComposeViewNode
+      assertThat(cNode4.drawId).isEqualTo(-4)
+      assertThat(cNode4.qualifiedName).isEqualTo("Text")
+      assertThat(cNode4.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode4.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode4.children.map { it.drawId }).containsExactly(-5L)
 
-        val cNode4 = cNode3.children[0] as ComposeViewNode
-        assertThat(cNode4.drawId).isEqualTo(-4)
-        assertThat(cNode4.qualifiedName).isEqualTo("Text")
-        assertThat(cNode4.layoutBounds.x).isEqualTo(220 + offset.x)
-        assertThat(cNode4.layoutBounds.y).isEqualTo(200 + offset.y)
-        assertThat(cNode4.layoutBounds.width).isEqualTo(10)
-        assertThat(cNode4.layoutBounds.height).isEqualTo(30)
-        assertThat(cNode4.recompositions.count)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-        assertThat(cNode4.recompositions.skips)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-        assertThat(cNode4.children.map { it.drawId }).containsExactly(-5L)
+      val cNode5 = cNode4.children[0] as ComposeViewNode
+      assertThat(cNode5.isSystemNode).isTrue()
+      assertThat(cNode5.drawId).isEqualTo(-5)
+      assertThat(cNode5.qualifiedName).isEqualTo("BasicText")
+      assertThat(cNode5.recompositions.count).isEqualTo(0)
+      assertThat(cNode5.recompositions.skips).isEqualTo(0)
+      assertThat(cNode5.children).isEmpty()
 
-        val cNode5 = cNode4.children[0] as ComposeViewNode
-        assertThat(cNode5.isSystemNode).isTrue()
-        assertThat(cNode5.drawId).isEqualTo(-5)
-        assertThat(cNode5.qualifiedName).isEqualTo("BasicText")
-        assertThat(cNode5.layoutBounds.x).isEqualTo(220 + offset.x)
-        assertThat(cNode5.layoutBounds.y).isEqualTo(210 + offset.y)
-        assertThat(cNode5.layoutBounds.width).isEqualTo(10)
-        assertThat(cNode5.layoutBounds.height).isEqualTo(20)
-        assertThat(cNode5.recompositions.count).isEqualTo(0)
-        assertThat(cNode5.recompositions.skips).isEqualTo(0)
-        assertThat(cNode5.children).isEmpty()
+      val cNode6 = node6.children[1] as ComposeViewNode
+      assertThat(cNode6.isSystemNode).isFalse()
+      assertThat(cNode6.drawId).isEqualTo(-6)
+      assertThat(cNode6.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode6.recompositions.count).isEqualTo(0)
+      assertThat(cNode6.recompositions.skips).isEqualTo(0)
+      assertThat(cNode6.children).hasSize(1)
 
-        val cNode6 = node6.children[1] as ComposeViewNode
-        assertThat(cNode6.isSystemNode).isFalse()
-        assertThat(cNode6.drawId).isEqualTo(-6)
-        assertThat(cNode6.qualifiedName).isEqualTo("Recursive")
-        assertThat(cNode6.layoutBounds.x).isEqualTo(350 + offset.x)
-        assertThat(cNode6.layoutBounds.y).isEqualTo(300 + offset.y)
-        assertThat(cNode6.layoutBounds.width).isEqualTo(150)
-        assertThat(cNode6.layoutBounds.height).isEqualTo(100)
-        assertThat(cNode6.recompositions.count).isEqualTo(0)
-        assertThat(cNode6.recompositions.skips).isEqualTo(0)
-        assertThat(cNode6.children).hasSize(1)
+      val cNode7 = cNode6.children[0] as ComposeViewNode
+      assertThat(cNode7.isSystemNode).isFalse()
+      assertThat(cNode7.drawId).isEqualTo(-7)
+      assertThat(cNode7.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode7.recompositions.count).isEqualTo(0)
+      assertThat(cNode7.recompositions.skips).isEqualTo(0)
+      assertThat(cNode7.children).hasSize(1)
 
-        val cNode7 = cNode6.children[0] as ComposeViewNode
-        assertThat(cNode7.isSystemNode).isFalse()
-        assertThat(cNode7.drawId).isEqualTo(-7)
-        assertThat(cNode7.qualifiedName).isEqualTo("Recursive")
-        assertThat(cNode7.layoutBounds.x).isEqualTo(350 + offset.x)
-        assertThat(cNode7.layoutBounds.y).isEqualTo(300 + offset.y)
-        assertThat(cNode7.layoutBounds.width).isEqualTo(50)
-        assertThat(cNode7.layoutBounds.height).isEqualTo(100)
-        assertThat(cNode7.recompositions.count).isEqualTo(0)
-        assertThat(cNode7.recompositions.skips).isEqualTo(0)
-        assertThat(cNode7.children).hasSize(1)
+      val cNode8 = cNode7.children[0] as ComposeViewNode
+      assertThat(cNode8.isSystemNode).isFalse()
+      assertThat(cNode8.drawId).isEqualTo(-8)
+      assertThat(cNode8.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode8.recompositions.count).isEqualTo(0)
+      assertThat(cNode8.recompositions.skips).isEqualTo(0)
+      assertThat(cNode8.children).hasSize(1)
 
-        val cNode8 = cNode7.children[0] as ComposeViewNode
-        assertThat(cNode8.isSystemNode).isFalse()
-        assertThat(cNode8.drawId).isEqualTo(-8)
-        assertThat(cNode8.qualifiedName).isEqualTo("Recursive")
-        assertThat(cNode8.layoutBounds.x).isEqualTo(400 + offset.x)
-        assertThat(cNode8.layoutBounds.y).isEqualTo(200 + offset.y)
-        assertThat(cNode8.layoutBounds.width).isEqualTo(50)
-        assertThat(cNode8.layoutBounds.height).isEqualTo(100)
-        assertThat(cNode8.recompositions.count).isEqualTo(0)
-        assertThat(cNode8.recompositions.skips).isEqualTo(0)
-        assertThat(cNode8.children).hasSize(1)
+      val cNode9 = cNode8.children[0] as ComposeViewNode
+      assertThat(cNode9.isSystemNode).isFalse()
+      assertThat(cNode9.drawId).isEqualTo(-9)
+      assertThat(cNode9.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode9.recompositions.count).isEqualTo(0)
+      assertThat(cNode9.recompositions.skips).isEqualTo(0)
+      assertThat(cNode9.children).hasSize(1)
 
-        val cNode9 = cNode8.children[0] as ComposeViewNode
-        assertThat(cNode9.isSystemNode).isFalse()
-        assertThat(cNode9.drawId).isEqualTo(-9)
-        assertThat(cNode9.qualifiedName).isEqualTo("Recursive")
-        assertThat(cNode9.layoutBounds.x).isEqualTo(450 + offset.x)
-        assertThat(cNode9.layoutBounds.y).isEqualTo(300 + offset.y)
-        assertThat(cNode9.layoutBounds.width).isEqualTo(50)
-        assertThat(cNode9.layoutBounds.height).isEqualTo(100)
-        assertThat(cNode9.recompositions.count).isEqualTo(0)
-        assertThat(cNode9.recompositions.skips).isEqualTo(0)
-        assertThat(cNode9.children).hasSize(1)
+      val cNode10 = cNode9.children[0] as ComposeViewNode
+      assertThat(cNode10.drawId).isEqualTo(-10)
+      assertThat(cNode10.qualifiedName).isEqualTo("Button")
+      assertThat(cNode10.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.children).hasSize(1)
 
-        val cNode10 = cNode9.children[0] as ComposeViewNode
-        assertThat(cNode10.drawId).isEqualTo(-10)
-        assertThat(cNode10.qualifiedName).isEqualTo("Button")
-        assertThat(cNode10.layoutBounds.x).isEqualTo(410 + offset.x)
-        assertThat(cNode10.layoutBounds.y).isEqualTo(350 + offset.y)
-        assertThat(cNode10.layoutBounds.width).isEqualTo(60)
-        assertThat(cNode10.layoutBounds.height).isEqualTo(40)
-        assertThat(cNode10.recompositions.count)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-        assertThat(cNode10.recompositions.skips)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
-        assertThat(cNode10.children).hasSize(1)
+      val cNode11 = cNode10.children[0] as ComposeViewNode
+      assertThat(cNode11.drawId).isEqualTo(-11)
+      assertThat(cNode11.qualifiedName).isEqualTo("Text")
+      assertThat(cNode11.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode11.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode11.children).isEmpty()
 
-        val cNode11 = cNode10.children[0] as ComposeViewNode
-        assertThat(cNode11.drawId).isEqualTo(-11)
-        assertThat(cNode11.qualifiedName).isEqualTo("Text")
-        assertThat(cNode11.layoutBounds.x).isEqualTo(410 + offset.x)
-        assertThat(cNode11.layoutBounds.y).isEqualTo(350 + offset.y)
-        assertThat(cNode11.layoutBounds.width).isEqualTo(60)
-        assertThat(cNode11.layoutBounds.height).isEqualTo(40)
-        assertThat((cNode11.renderBounds as Polygon).xpoints)
-          .isEqualTo(listOf(425, 485, 495, 430).map { it + offset.x }.toIntArray())
-        assertThat((cNode11.renderBounds as Polygon).ypoints)
-          .isEqualTo(listOf(370, 350, 385, 390).map { it + offset.y }.toIntArray())
-        assertThat(cNode11.recompositions.count)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-        assertThat(cNode11.recompositions.skips)
-          .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-        assertThat(cNode11.children).isEmpty()
+      assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
 
-        assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-
-        assertThat(lookup.hasResolver).isTrue()
-        assertThat(lookup.defaultTheme?.resourceUrl?.toString())
-          .isEqualTo("@style/Theme.BasicViews")
-        assertThat(lookup.dpi).isEqualTo(560)
-        assertThat(lookup.screenDimension).isEqualTo(Dimension(480, 800))
-      }
+      assertThat(lookup.hasResolver).isTrue()
+      assertThat(lookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Theme.BasicViews")
+      assertThat(lookup.dpi).isEqualTo(560)
+      assertThat(lookup.screenDimension).isEqualTo(Dimension(480, 800))
     }
   }
 

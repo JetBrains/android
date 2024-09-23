@@ -191,9 +191,9 @@ class DeviceViewContentPanelTest {
   fun testPaint() {
     val model =
       model(disposable.disposable) {
-        view(ROOT, 0, 0, 100, 150) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
-          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+        view(ROOT, 0, 100, 100, 150) {
+          view(VIEW1, 10, 115, 25, 25) { image() }
+          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 150, width = 80, height = 50)
         }
       }
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
