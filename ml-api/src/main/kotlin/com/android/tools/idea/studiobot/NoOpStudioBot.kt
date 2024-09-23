@@ -17,6 +17,7 @@ import java.nio.file.Path
  * This service is instantiated only when it is run in IDEA.
  * Android Studio should instantiate its services in the `aiplugin-api-androidstudio.xml` configuration file.
  */
+// TODO IDEA-359574 Remove declaration once the AOSP commit 'I6aeeb657a72b495f9f75ec04d4c19e445f718a16' gets merged.
 class NoOpStudioBot : StudioBot {
 
   override val MAX_QUERY_CHARS: Int = 0
