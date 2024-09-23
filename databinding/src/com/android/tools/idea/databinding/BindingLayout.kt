@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
@@ -65,9 +64,11 @@ private constructor(
      */
     fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
       val modulePackage =
-        if (facet.module.isAndroidTestModule()) facet.getModuleSystem().getTestPackageName()
-        else facet.getModuleSystem().getPackageName()
-      if (modulePackage == null) return null
+        when {
+          BindingLayoutToken.isTestModule(facet.module) ->
+            facet.getModuleSystem().getTestPackageName()
+          else -> facet.getModuleSystem().getPackageName()
+        } ?: return null
 
       val file = resource.getSourceAsVirtualFile() ?: return null
       val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
