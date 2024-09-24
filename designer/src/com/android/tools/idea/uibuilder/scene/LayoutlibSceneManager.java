@@ -459,7 +459,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       .thenAccept(result -> {
         if (result != null && !isDisposed.get()) {
           myLayoutlibSceneRenderer.updateHierarchy(result);
-          notifyListenersModelLayoutComplete(animate);
+          getModel().notifyListenersModelChangedOnLayout(animate);
         }
       });
   }
@@ -467,10 +467,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Nullable
   public RenderResult getRenderResult() {
     return myLayoutlibSceneRenderer.getRenderResult();
-  }
-
-  private void notifyListenersModelLayoutComplete(boolean animate) {
-    getModel().notifyListenersModelChangedOnLayout(animate);
   }
 
   private void logConfigurationChange(@NotNull DesignSurface<?> surface) {
