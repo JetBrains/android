@@ -33,6 +33,7 @@ import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars;
 import com.google.idea.blaze.qsync.java.AddDependencySrcJars;
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcJars;
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcs;
+import com.google.idea.blaze.qsync.java.JavaSourcePackageNameMetadata;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.SourceJarInnerPathsAndPackagePrefixes;
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder;
@@ -65,7 +66,9 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
                 new AddProjectGenSrcJars(
                     projectDefinition,
                     new SourceJarInnerPathsAndPackagePrefixes(srcJarInnerPathFinder)))
-            .add(new AddProjectGenSrcs(projectDefinition, artifactCache, packageReader))
+            .add(
+                new AddProjectGenSrcs(
+                    projectDefinition, new JavaSourcePackageNameMetadata(packageReader)))
             .add(new ConfigureCcCompilation.UpdateOperation());
     if (attachDepsSrcjarsExperiment.get()) {
       updateOperations.add(
