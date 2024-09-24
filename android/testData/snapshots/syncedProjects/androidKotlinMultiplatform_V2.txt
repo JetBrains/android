@@ -730,6 +730,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -780,6 +782,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -950,6 +954,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -1043,6 +1049,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -1593,6 +1601,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
@@ -1641,6 +1651,8 @@ PROJECT                       : Kotlin Multiplatform
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
+            ResFolderRelativePath         : /src/androidMain/res
+            AssetsFolderRelativePath      : /src/androidMain/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
             PackTestCode                  : false
