@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.common.surface.ShapePolicyKt.DEVICE_CONFIGURATION_SHAPE_POLICY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
@@ -25,7 +24,6 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
@@ -40,7 +38,6 @@ import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
 import java.util.function.Function;
