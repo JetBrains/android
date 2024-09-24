@@ -380,8 +380,8 @@ class GradleModuleSystem(
    */
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-    //TODO: Change the API to return a ListenableFuture instead of calling get with a timeout here...
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(30, TimeUnit.SECONDS)
+    //TODO(b/369433182): Change the API to return a ListenableFuture instead of calling get with a timeout here...
+    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(60, TimeUnit.SECONDS)
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
