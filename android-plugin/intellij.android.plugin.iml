@@ -74,5 +74,6 @@
     <orderEntry type="module" module-name="test-recorder.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="url-assistant.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.databinding.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="RUNTIME" />
   </component>
 </module>

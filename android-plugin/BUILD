@@ -76,6 +76,7 @@ iml_module(
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
         "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
+        "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation",
     ],
     # do not sort: must match IML order
     deps = [

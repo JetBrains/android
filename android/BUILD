@@ -686,5 +686,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k1[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k2[module, test]",
+        "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation[module, test]",
     ],
 )
