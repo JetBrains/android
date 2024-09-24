@@ -322,7 +322,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // Check if multiple dex files are selected and return a multiple dex viewer.
     boolean allDex = true;
     for (ArchiveTreeNode path : nodes) {
-       if (!path.getData().getPath().getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
+      if (path == null) {
+        continue;
+      }
+      Path fileName = path.getData().getPath().getFileName();
+      if (fileName != null && !fileName.toString().endsWith(SdkConstants.EXT_DEX)){
         allDex = false;
         break;
       }
