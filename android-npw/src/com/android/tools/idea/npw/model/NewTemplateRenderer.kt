@@ -387,6 +387,7 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: Te
     if (metrics.bytecodeLevel != null) {
       bytecodeLevel = when (metrics.bytecodeLevel) {
         TemplateBytecodeLevel.L8 -> BytecodeLevel.LEVEL_8
+        TemplateBytecodeLevel.L11 -> BytecodeLevel.LEVEL_11_NO_TOOLCHAIN
       }
     }
   }

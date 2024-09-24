@@ -22,7 +22,7 @@ fun buildGradle(javaVersion: String, isKts: Boolean, useVersionCatalog: Boolean)
 ${emptyPluginsBlock()}
 
 java {
-  sourceCompatibility = $javaVersion
-  targetCompatibility = $javaVersion
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
 }
 """

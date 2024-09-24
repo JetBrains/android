@@ -239,8 +239,8 @@ android {
   compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   defaultConfig {
@@ -285,12 +285,12 @@ android {
   compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
   defaultConfig {
@@ -663,8 +663,8 @@ android {
   compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   defaultConfig {
@@ -699,12 +699,12 @@ android {
   compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
   defaultConfig {
