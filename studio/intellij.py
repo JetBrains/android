@@ -165,9 +165,7 @@ def _load_include(include, xpath, external_xmls, cwd, index):
     print("Cannot find file to include %s" % href)
     sys.exit(1)
 
-  with zipfile.ZipFile(index[rel]) as jar:
-    res = jar.read(rel)
-
+  res = index[rel].read(rel)
   e = ET.fromstring(res)
 
   ret = []
@@ -238,17 +236,16 @@ def _resolve_includes(elem, external_xmls, cwd, index):
 def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugin.xml"):
   xmls = {}
   index = {}
-  for file in files:
-    if file.suffix == ".jar":
-      with zipfile.ZipFile(file) as jar:
-        for jar_entry in jar.namelist():
-          if jar_entry == xml_name:
-            xmls[f"{file}!{jar_entry}"] = jar.read(jar_entry)
-          if not jar_entry.endswith("/"):
-            # TODO: Investigate if we can have a strict mode where we fail on duplicate
-            # files across jars in the same plugin. Currently even IJ plugins fail with
-            # such a check as they have even .class files duplicated in the same plugin.
-            index[jar_entry] = str(file)
+  jars = [zipfile.ZipFile(f) for f in files if f.suffix == ".jar"]
+  for jar in jars:
+    for jar_entry in jar.namelist():
+      if jar_entry == xml_name:
+        xmls[f"{jar.filename}!{jar_entry}"] = jar.read(jar_entry)
+      if not jar_entry.endswith("/"):
+        # TODO: Investigate if we can have a strict mode where we fail on duplicate
+        # files across jars in the same plugin. Currently even IJ plugins fail with
+        # such a check as they have even .class files duplicated in the same plugin.
+        index[jar_entry] = jar
 
   if len(xmls) != 1:
     msg = "\n".join(xmls.keys())
@@ -263,4 +260,8 @@ def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugi
 
   # We cannot use ElementInclude because it does not support xpointer
   _resolve_includes(element, external_xmls, "META-INF", index)
+
+  for jar in jars:
+    jar.close()
+
   return element
