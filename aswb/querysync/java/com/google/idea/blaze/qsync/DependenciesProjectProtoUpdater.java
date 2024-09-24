@@ -19,7 +19,6 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation;
@@ -35,6 +34,7 @@ import com.google.idea.blaze.qsync.java.AddProjectGenSrcJars;
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcs;
 import com.google.idea.blaze.qsync.java.JavaSourcePackageNameMetadata;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
+import com.google.idea.blaze.qsync.java.SourceJarInnerPackageRoots;
 import com.google.idea.blaze.qsync.java.SourceJarInnerPathsAndPackagePrefixes;
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
@@ -47,11 +47,11 @@ import com.google.idea.blaze.qsync.project.ProjectProto.Project;
  * on all artifacts that have been built.
  */
 public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
+
   private final ImmutableList<ProjectProtoUpdateOperation> updateOperations;
 
   public DependenciesProjectProtoUpdater(
       ProjectDefinition projectDefinition,
-      BuildArtifactCache artifactCache,
       ProjectPath.Resolver pathResolver,
       Supplier<Boolean> attachDepsSrcjarsExperiment) {
     // Require empty package prefixes for srcjar inner paths, since the ultimate consumer of these
@@ -78,9 +78,7 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
               srcJarInnerPathFinder));
       updateOperations.add(
           new AddDependencyGenSrcsJars(
-              projectDefinition,
-              artifactCache,
-              srcJarInnerPathFinder));
+              projectDefinition, new SourceJarInnerPackageRoots(srcJarInnerPathFinder)));
     }
     this.updateOperations = updateOperations.build();
   }
