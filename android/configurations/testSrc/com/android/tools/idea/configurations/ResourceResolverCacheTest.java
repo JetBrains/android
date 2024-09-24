@@ -41,7 +41,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
   public void test() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject("render/layout2.xml", "res/layout/layout2.xml");
-    VirtualFile file3 = myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
+    VirtualFile file3 = myFixture.copyFileToProject("configurations/strings.xml", "res/values/strings.xml");
     assertNotNull(file1);
     assertNotNull(file2);
     assertNotNull(file3);

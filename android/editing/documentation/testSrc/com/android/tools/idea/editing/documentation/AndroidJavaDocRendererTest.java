@@ -65,7 +65,7 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
     myProject = projectRule.getProject();
     myModule = projectRule.getProjectRule().getModule();
     myFixture = projectRule.getFixture();
-    myFixture.setTestDataPath(TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/android/testData").toString());
+    myFixture.setTestDataPath(TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/android/editing/documentation/testData").toString());
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
@@ -443,7 +443,7 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
   @NotNull
   @Override
   public String getSnapshotDirectoryWorkspaceRelativePath() {
-    return "tools/adt/idea/android/testData/javadoc/snapshots";
+    return "tools/adt/idea/android/editing/documentation/testData/javadoc/snapshots";
   }
 
   @NotNull
