@@ -49,6 +49,7 @@ fun Project.hookExecuteTasks(): List<GradleBuildInvoker.Request> {
       return buildInvoker.executeTasks(request)
     }
 
+    override fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean) = notHooked()
     override fun cleanProject() = notHooked()
     override fun generateSources(modules: Array<Module>) = notHooked()
     override fun compileJava(modules: Array<Module>) = notHooked()
