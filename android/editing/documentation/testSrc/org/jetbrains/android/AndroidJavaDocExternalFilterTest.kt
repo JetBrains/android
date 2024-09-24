@@ -21,12 +21,12 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.ProjectRule
+import java.io.FileReader
+import kotlin.io.path.listDirectoryEntries
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.FileReader
-import kotlin.io.path.listDirectoryEntries
 
 const val POINT_URL = "http://developer.android.com/reference/android/graphics/Point.html"
 
@@ -56,7 +56,10 @@ class AndroidJavaDocExternalFilterTest {
   private fun getInputFiles(): List<String> {
     val inputDir =
       TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/javadoc/classes/input")
-    return inputDir.listDirectoryEntries().map { p -> p.fileName.toString() }.filterNot { it == "README" }
+    return inputDir
+      .listDirectoryEntries()
+      .map { p -> p.fileName.toString() }
+      .filterNot { it == "README" }
   }
 
   private fun String.toOutputFile(): String {
