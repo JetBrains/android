@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /** A local cache of project dependencies. */
@@ -70,6 +71,13 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
                   toImmutableMap(
                       JavaArtifactInfo::label,
                       j -> TargetBuildInfo.forJavaTarget(j, DependencyBuildContext.NONE))),
+          ImmutableMap.of());
+    }
+
+    @VisibleForTesting
+    public static State forTargets(TargetBuildInfo... targets) {
+      return create(
+          Stream.of(targets).collect(toImmutableMap(TargetBuildInfo::label, Function.identity())),
           ImmutableMap.of());
     }
 

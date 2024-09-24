@@ -62,7 +62,7 @@ public class SrcJarInnerPathFinder {
   }
 
   public ImmutableSet<JarPath> findInnerJarPaths(
-      File jarFile, AllowPackagePrefixes allowPackagePrefixes, String fileNameForLogs) {
+      File jarFile, AllowPackagePrefixes allowPackagePrefixes, Object fileNameForLogs) {
     try (ZipFile zip = new ZipFile(jarFile)) {
       return findInnerJarPaths(zip, allowPackagePrefixes, fileNameForLogs);
     } catch (IOException ioe) {
@@ -73,7 +73,7 @@ public class SrcJarInnerPathFinder {
   }
 
   public ImmutableSet<JarPath> findInnerJarPaths(
-      CachedArtifact artifact, AllowPackagePrefixes allowPackagePrefixes, String fileNameForLogs) {
+      CachedArtifact artifact, AllowPackagePrefixes allowPackagePrefixes, Object fileNameForLogs) {
     try (ZipFile zip = artifact.openAsZipFile()) {
       return findInnerJarPaths(zip, allowPackagePrefixes, fileNameForLogs);
     } catch (IOException ioe) {
@@ -86,7 +86,7 @@ public class SrcJarInnerPathFinder {
   }
 
   private ImmutableSet<JarPath> findInnerJarPaths(
-      ZipFile zip, AllowPackagePrefixes allowPackagePrefixes, String fileNameForLogs)
+      ZipFile zip, AllowPackagePrefixes allowPackagePrefixes, Object fileNameForLogs)
       throws IOException {
     Set<JarPath> paths = Sets.newHashSet();
     Set<Path> topLevelPaths = Sets.newHashSet();

@@ -149,3 +149,18 @@ java_test(
         "@maven//:org.mockito.mockito-core",
     ],
 )
+
+java_test(
+    name = "SourceJarInnerPathsAndPackagePrefixesTest",
+    size = "small",
+    srcs = ["SourceJarInnerPathsAndPackagePrefixesTest.java"],
+    deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
+        "//tools/adt/idea/aswb/shared:artifact",
+        "//tools/adt/idea/aswb/shared:exception",
+        "//tools/vendor/google/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/third_party/java/truth",
+        "@maven//:com.google.guava.guava",
+        "@maven//:org.mockito.mockito-core",
+    ],
+)
