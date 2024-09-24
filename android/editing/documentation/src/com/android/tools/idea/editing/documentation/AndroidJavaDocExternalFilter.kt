@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package com.android.tools.idea.editing.documentation
 
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.ABORTED
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_CLASS_DATA
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_DESCRIPTION
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CLASS_DATA
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CODE
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_DESCRIPTION
+import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.State.SUCCESS
 import com.android.tools.idea.util.fsm.StateMachine.Companion.stateMachine
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.io.BufferedReader
 import java.io.Reader
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.ABORTED
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_CLASS_DATA
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_DESCRIPTION
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CLASS_DATA
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CODE
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_DESCRIPTION
-import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.SUCCESS
 import org.jetbrains.annotations.NonNls
 
 internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternalFilter(project) {

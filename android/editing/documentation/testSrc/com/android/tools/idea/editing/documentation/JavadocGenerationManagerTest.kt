@@ -1,4 +1,4 @@
-package com.android.tools.idea.javadoc
+package com.android.tools.idea.editing.documentation
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.analysis.AnalysisScope

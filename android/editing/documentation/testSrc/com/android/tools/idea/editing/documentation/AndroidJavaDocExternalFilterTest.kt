@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package com.android.tools.idea.editing.documentation
 
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
