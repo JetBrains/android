@@ -50,8 +50,20 @@ iml_module(
             ],
             "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=true"],
         },
-        "tests": {
-            "test_filter": "com.android.tools.idea.benchmarks.tests",
+        "JetNewsProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest",
+            "timeout": "long",
+        },
+        "MlModelBindingProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.MlModelBindingBenchmarkTest",
+            "timeout": "long",
+        },
+        "SantaTrackerKotlinProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.SantaTrackerKotlinBenchmarkTest",
+            "timeout": "long",
+        },
+        "SimpleHighlightingProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.SimpleHighlightingBenchmarkTest",
             "timeout": "long",
         },
         "other": {
