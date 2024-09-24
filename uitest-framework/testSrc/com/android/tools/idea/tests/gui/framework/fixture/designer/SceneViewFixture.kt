@@ -69,7 +69,7 @@ class SceneComponentFixture internal constructor(
     @AndroidDpCoordinate get() = sceneComponent.drawHeight
 
   private val sceneView: SceneView
-    get() = sceneComponent.scene.sceneManager.sceneViews.single()
+    get() = sceneComponent.scene.sceneManager.sceneViews.first()
 
   val midPoint: Point
     get() =
