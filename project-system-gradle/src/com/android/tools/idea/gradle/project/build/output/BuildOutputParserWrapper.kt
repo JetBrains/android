@@ -19,13 +19,15 @@ import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorC
 import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.extractTaskNameFromId
+import com.android.tools.idea.gradle.project.build.events.copyWithQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.BuildIssueEvent
-import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.BuildIssueEventImpl
+import com.intellij.build.events.impl.FileMessageEventImpl
+import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -84,10 +86,10 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
 @Suppress("UnstableApiUsage")
 private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildEvent {
   return when(this) {
-    // TODO(b/316057751) : Map BuildIssueEvents.
-    is BuildIssueEvent -> this
-    is FileMessageEvent -> FileMessageBuildIssueEvent(this, quickFix)
-    is MessageEvent ->  MessageBuildIssueEvent(this, quickFix)
+    // TODO(b/316057751) : Map other implementations of MessageEvents.
+    is BuildIssueEventImpl -> this.copyWithQuickFix(quickFix)
+    is FileMessageEventImpl -> FileMessageBuildIssueEvent(this, quickFix)
+    is MessageEventImpl ->  MessageBuildIssueEvent(this, quickFix)
     else -> this
   }
 }
