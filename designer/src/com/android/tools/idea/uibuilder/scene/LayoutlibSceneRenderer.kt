@@ -24,6 +24,7 @@ import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.rendering.ShowFixFactory
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createHtmlLogger
@@ -341,7 +342,7 @@ class LayoutlibSceneRenderer(
 
     // Notify surface and track metrics async
     val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
-    scope.launch {
+    executeOnPooledThread {
       surface.modelRendered()
       result?.let {
         // In an unlikely event when result is disposed we can still safely request the size of the
