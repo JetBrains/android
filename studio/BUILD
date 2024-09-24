@@ -189,6 +189,7 @@ studio_plugin(
             "//tools/adt/idea/avd:intellij.android.avd",
             "//tools/adt/idea/intellij.android.device",
             "//tools/adt/idea/android:intellij.android.core",
+            "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation",
             "//tools/adt/idea/android-navigator:intellij.android.navigator",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
