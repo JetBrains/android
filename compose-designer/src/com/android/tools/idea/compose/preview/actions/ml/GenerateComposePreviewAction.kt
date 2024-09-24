@@ -63,6 +63,10 @@ class GenerateComposePreviewAction :
     if (e.place != ActionPlaces.EDITOR_POPUP) {
       e.presentation.icon = AipluginIcons.Logo
     }
+    e.presentation.text =
+      getContainingFunctionAtCaret(e)?.name?.let {
+        message("action.generate.preview.function.name", it)
+      } ?: message("action.generate.preview")
   }
 
   /**
