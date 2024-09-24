@@ -28,7 +28,9 @@ import kotlin.test.fail
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.formatter.kotlinCustomSettings
+import org.jetbrains.kotlin.idea.k2.refactoring.inline.KotlinInlineFunctionHandler
 import org.jetbrains.kotlin.idea.refactoring.inline.KotlinInlineNamedFunctionHandler
 import org.jetbrains.kotlin.idea.util.ClassImportFilter.ClassInfo
 import org.jetbrains.kotlin.name.FqName
@@ -118,8 +120,13 @@ class NestedResourceClassImportFilterTest {
     fixture.openFileInEditor(file.virtualFile)
 
     val myOtherGreatFunction = fixture.getEnclosing<KtNamedFunction>("fun myOther")
-    KotlinInlineNamedFunctionHandler()
-      .inlineKotlinFunction(project, fixture.editor, myOtherGreatFunction)
+    val handler =
+      if (KotlinPluginModeProvider.isK2Mode()) {
+        KotlinInlineFunctionHandler()
+      } else {
+        KotlinInlineNamedFunctionHandler()
+      }
+    handler.inlineKotlinFunction(project, fixture.editor, myOtherGreatFunction)
 
     // The refactor does some weird things with formatting that we don't want this test to rely on,
     // so just make some basic assertions.
