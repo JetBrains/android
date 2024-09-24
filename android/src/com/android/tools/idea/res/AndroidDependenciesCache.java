@@ -20,6 +20,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.ModuleRClass.SourceSet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
@@ -229,7 +230,7 @@ public class AndroidDependenciesCache implements Disposable {
     // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place.
 
-    boolean isTestModule = ModuleSystemUtil.isAndroidTestModule(module);
+    boolean isTestModule = ResourceClassToken.getSourceSet(module) == SourceSet.TEST;
     for (int i = entries.length; --i >= 0;) {
       ProgressManager.checkCanceled();
       OrderEntry orderEntry = entries[i];
