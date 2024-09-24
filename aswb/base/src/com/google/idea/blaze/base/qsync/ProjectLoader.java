@@ -156,7 +156,11 @@ public class ProjectLoader {
     AppInspectorArtifactTracker appInspectorArtifactTracker;
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
-            BlazeDataStorage.getProjectDataDir(importSettings).toPath(), artifactCache);
+            BlazeDataStorage.getProjectDataDir(importSettings).toPath(),
+            artifactCache,
+            // don't pass the composed transform directly as it's not fully constructed yet:
+            t -> projectTransformRegistry.getComposedTransform().getRequiredArtifactMetadata(t),
+            executor);
     projectTransformRegistry.add(
         new DependenciesProjectProtoUpdater(
             tracker,
