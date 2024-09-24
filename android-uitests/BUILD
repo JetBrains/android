@@ -1197,7 +1197,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_26.1.0",
+        "@maven//:com.android.support.appcompat-v7_28.0.0",
     ] + glob([
         "testData/ConvertFrom9Patch/**",
     ]) + glob([
