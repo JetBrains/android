@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.intellij.lang.annotation.AnnotationHolder
@@ -33,7 +31,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 class DeclarativeAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return
+    if (!DeclarativeIdeSupport.isEnabled()) return
     if (element !is com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement) return
 
     fun getSchema(): DeclarativeSchema? {

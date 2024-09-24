@@ -652,7 +652,7 @@
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
-
+    <registryKey key="gradle.declarative.studio.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

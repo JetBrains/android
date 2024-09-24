@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeUnresolvedReferenceInspection
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -34,13 +34,13 @@ class DeclarativeUnresolvedReferenceTest {
 
   @Before
   fun setUp() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
+    DeclarativeIdeSupport.override(true)
     projectRule.fixture.enableInspections(DeclarativeUnresolvedReferenceInspection::class.java)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
+    DeclarativeIdeSupport.clearOverride()
   }
 
   @Test

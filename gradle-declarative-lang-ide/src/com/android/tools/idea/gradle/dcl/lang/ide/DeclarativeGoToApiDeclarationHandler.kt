@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
@@ -33,7 +32,7 @@ import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
 
 class DeclarativeGoToApiDeclarationHandler : GotoDeclarationHandlerBase() {
   override fun getGotoDeclarationTarget(sourceElement: PsiElement?, editor: Editor?): PsiElement? {
-    if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() != true) return null
+    if (!DeclarativeIdeSupport.isEnabled()) return null
     val segment = (sourceElement?.parent as? DeclarativeIdentifier) ?: return null
     val segmentName = segment.name ?: return null
 
