@@ -17,11 +17,14 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
+import com.android.tools.idea.protobuf.Any
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -190,8 +193,9 @@ class InsightContentPanelTest {
 
     val statusTexts =
       fakeUi
-        .findAllComponents<Any> { it.javaClass.name.contains("StatusText\$Fragment") }
+        .findAllComponents<kotlin.Any> { it.javaClass.name.contains("StatusText\$Fragment") }
         .map { it.toString() }
+
     assertThat(statusTexts.size).isEqualTo(2)
     assertThat(statusTexts[0]).isEqualTo("Insights require Gemini")
     assertThat(statusTexts[1])
@@ -264,6 +268,27 @@ class InsightContentPanelTest {
 
     assertThat(errorText).isEqualTo("No insight available")
     assertThat(secondaryText).isEqualTo("Some message")
+  }
+
+  @Test
+  fun `test temporary kill switch message`() = runBlocking {
+    val status =
+      Status.newBuilder()
+        .apply {
+          val message =
+            "SomeException: Cannot process request for disabled experience at\nsome stacktrace"
+          val any = Any.newBuilder().setValue(ByteString.copyFrom(message.toByteArray()))
+          addDetails(any)
+        }
+        .build()
+    currentInsightFlow.update { LoadingState.UnknownFailure("Some message", null, status) }
+
+    FakeUi(insightContentPanel)
+    delayUntilStatusTextVisible()
+
+    assertThat(errorText).isEqualTo("Request failed")
+    assertThat(secondaryText)
+      .isEqualTo("Insights feature is temporarily unavailable, check back later.")
   }
 
   private suspend fun delayUntilStatusTextVisible() =
