@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperTest
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.studiobot.StudioBot
@@ -31,6 +31,8 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -43,6 +45,7 @@ import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class TomlErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -98,9 +101,10 @@ class TomlErrorParserTest {
   @Test
   fun testWrapper_parsesTomlErrorWithFile() {
     setStudioBotInstanceAvailability(true)
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
-    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser(), BuildOutputParserWrapperTest.ID)
+    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser(), ID)
     val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
     val consumer = TestMessageEventConsumer()
 
@@ -112,7 +116,7 @@ class TomlErrorParserTest {
       Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml"))
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -399,6 +403,7 @@ class TomlErrorParserTest {
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)
 
   companion object {
+    val ID = mock<ExternalSystemTaskId>()
     fun getVersionCatalogLibsBuildOutput(absolutePath: String? = null): String = """
 FAILURE: Build failed with an exception.
 
