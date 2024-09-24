@@ -86,7 +86,7 @@ internal fun transformAndShowDiff(
 private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: String) {
   val diffFactory = DiffContentFactory.getInstance()
   val originalContent = diffFactory.create(project, psiFile.virtualFile)
-  val modifiedContent = diffFactory.create(project, modifiedDocument)
+  val modifiedContent = diffFactory.create(project, modifiedDocument, psiFile.fileType)
   val request =
     SimpleDiffRequest(
       "Review Code Changes",
