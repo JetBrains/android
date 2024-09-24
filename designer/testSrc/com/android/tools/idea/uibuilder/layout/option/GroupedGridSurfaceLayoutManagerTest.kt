@@ -668,8 +668,9 @@ class GroupedGridSurfaceLayoutManagerTest {
     }
 
     run {
+      // test zoom-to-fit on a very narrow surface
       val scale = manager.getFitIntoScale(contents, 50, 1000)
-      assertEquals(1.0, scale, tolerance)
+      assertEquals(0.5, scale, tolerance)
     }
   }
 

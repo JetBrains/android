@@ -70,7 +70,10 @@ class GridLayoutManager(
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
     val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
     val requiredHeight = groupSizes.sumOf { it.height }
-    return Dimension(requiredWidth, max(0, padding.canvasTopPadding + requiredHeight))
+    return Dimension(
+      max(0, padding.canvasLeftPadding + requiredWidth),
+      max(0, padding.canvasTopPadding + requiredHeight),
+    )
   }
 
   /**
@@ -229,7 +232,7 @@ class GridLayoutManager(
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
     val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
-    return if (dim.height <= height) {
+    return if (dim.height <= height && dim.width <= width) {
       // We want the resulting content fitting into the height we try to lower the scale
       getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
     } else {
