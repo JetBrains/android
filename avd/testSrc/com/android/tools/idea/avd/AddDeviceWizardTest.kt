@@ -17,6 +17,8 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -25,6 +27,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -54,7 +57,17 @@ class AddDeviceWizardTest {
         LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
 
       fun addPixel8() {
-        val wizard = TestComposeWizard { with(AddDeviceWizard(source, null)) { DeviceGridPage() } }
+        val wizard = TestComposeWizard {
+          with(
+            AddDeviceWizard(
+              source,
+              null,
+              accelerationCheck = { AccelerationErrorCode.ALREADY_INSTALLED },
+            )
+          ) {
+            DeviceGridPage()
+          }
+        }
         val swingPanel = JPanel()
         composeTestRule.setContent {
           CompositionLocalProvider(
@@ -88,6 +101,40 @@ class AddDeviceWizardTest {
 
       assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
         .containsExactly("Pixel_8.avd", "Pixel_8.ini", "Pixel_8_2.avd", "Pixel_8_2.ini")
+    }
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun accelerationErrorCode() {
+    with(SdkFixture()) {
+      val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
+      repoPackages.setLocalPkgInfos(listOf(api34))
+
+      val source =
+        LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
+
+      val wizard = TestComposeWizard {
+        with(AddDeviceWizard(source, null, { AccelerationErrorCode.NO_EMULATOR_INSTALLED })) {
+          DeviceGridPage()
+        }
+      }
+      val swingPanel = JPanel()
+      composeTestRule.setContent {
+        CompositionLocalProvider(
+          LocalComponent provides swingPanel,
+          LocalFileSystem provides fileSystem,
+          LocalProject provides null,
+        ) {
+          wizard.Content()
+        }
+      }
+
+      composeTestRule.waitUntilDoesNotExist(hasText("Loading system images", substring = true))
+      // The fetching of the acceleration status is asynchronous
+      composeTestRule.waitUntilAtLeastOneExists(hasText("No emulator installed"))
+      composeTestRule.onNodeWithText("No emulator installed").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Install Emulator").assertIsEnabled()
     }
   }
 }
