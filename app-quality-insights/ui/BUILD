@@ -26,6 +26,8 @@ iml_module(
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
 )
 
@@ -63,5 +65,7 @@ iml_module(
         "//prebuilts/tools/common/m2:commonmark-0.22.0[test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "@intellij//:intellij.platform.vcs.impl[test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
     ],
 )
