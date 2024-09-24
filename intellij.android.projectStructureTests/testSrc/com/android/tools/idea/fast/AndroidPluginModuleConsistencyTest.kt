@@ -30,6 +30,17 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
     "intellij.android.backend.split"
   )
 
+  /**
+   * Content modules of the Gradle DSL plugin. Should not depend on the other Android plugin module.
+   */
+  private val gradleDslPluginModules = listOf(
+    "intellij.android.gradle.declarative.lang",
+    "intellij.android.gradle.dsl",
+    "intellij.android.gradle.dsl.declarative",
+    "intellij.android.gradle.dsl.kotlin",
+    "intellij.android.gradle.dsl.toml",
+  )
+
   @Test
   fun `modules from 'Android plugin' repository are added to 'Ultimate'`() {
     val androidProject = androidProject
@@ -103,22 +114,33 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
   }
 
   @Test
-  fun `'Android gradle-dsl' module does not depend on the Android plugin modules`() {
-    val androidGradleDslModule = androidProject.findModuleByName("intellij.android.gradle.dsl")
-                                 ?: error("'intellij.android.gradle.dsl' module not found.")
-    val androidModuleDependencies = androidGradleDslModule
-      .moduleDependencies
-      .filter { it.moduleReference.moduleName.startsWith("intellij.android") }
-      .map { it.moduleReference.moduleName }
+  fun `'Gradle DSL plugin' modules do not depend on the Android plugin modules`() {
+    gradleDslPluginModules.forEach { moduleName ->
+      val androidGradleDslModule = androidProject.findModuleByName(moduleName)
+                                   ?: error("'$moduleName' module not found.")
+      val androidModuleDependencies = androidGradleDslModule
+        .moduleDependencies
+        .filter {
+          val otherAndroidModuleName = it.moduleReference.moduleName
 
-    val reason = buildString {
-      appendLine("'intellij.android.gradle.dsl' module should not have the Android plugin modules as dependencies,")
-      appendLine("but it depends on following Android plugin modules: $androidModuleDependencies.")
-      appendLine("Module file: ${androidGradleDslModule.imlFilePath}")
+          // Gradle DSL plugin modules can depend on following two modules:
+          val isGradleDslModule = "intellij.android.gradle.dsl" == otherAndroidModuleName
+          val isGradleDslDeclarativeLangModule = "intellij.android.gradle.declarative.lang" == otherAndroidModuleName
+
+          !isGradleDslModule && !isGradleDslDeclarativeLangModule && otherAndroidModuleName.startsWith("intellij.android")
+        }
+        .map { it.moduleReference.moduleName }
+
+      val reason = buildString {
+        appendLine("'$moduleName' module should not have the Android plugin modules as dependencies,")
+        appendLine("but it depends on following Android plugin modules: $androidModuleDependencies.")
+        appendLine("Module file: ${androidGradleDslModule.imlFilePath}")
+      }
+
+      assertThat(reason, androidModuleDependencies, CoreMatchers.`is`(emptyList()))
     }
-
-    assertThat(reason, androidModuleDependencies, CoreMatchers.`is`(emptyList()))
   }
+
 
   private fun failWithFileComparisonError(
     project: JpsProject,
