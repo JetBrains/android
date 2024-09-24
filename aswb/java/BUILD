@@ -35,7 +35,6 @@ java_library(
         "//tools/adt/idea/aswb/common/util:transactions",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
-        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/third_party/java/auto_value",

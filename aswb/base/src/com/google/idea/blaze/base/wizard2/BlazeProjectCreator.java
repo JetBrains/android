@@ -16,8 +16,8 @@
 package com.google.idea.blaze.base.wizard2;
 
 import com.google.idea.blaze.base.project.ExtendableBazelProjectCreator;
-import com.google.idea.sdkcompat.general.BaseSdkCompat;
 import com.intellij.ide.SaveAndSyncHandler;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -66,7 +66,7 @@ public class BlazeProjectCreator {
     @VisibleForTesting
     public void openProject() {
       ProjectManagerEx.getInstanceEx()
-          .openProject(ideaProjectPath, BaseSdkCompat.createOpenProjectTask(project));
+          .openProject(ideaProjectPath, OpenProjectTask.build().withProject(project));
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         SaveAndSyncHandler.getInstance().scheduleProjectSave(project);
