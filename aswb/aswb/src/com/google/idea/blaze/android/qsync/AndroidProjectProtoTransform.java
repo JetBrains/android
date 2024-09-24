@@ -18,7 +18,6 @@ package com.google.idea.blaze.android.qsync;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser;
 import com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.ProjectProtoTransform;
@@ -29,6 +28,7 @@ import com.google.idea.blaze.qsync.java.AarPackageNameMetaData;
 import com.google.idea.blaze.qsync.java.AddAndroidResPackages;
 import com.google.idea.blaze.qsync.java.AddDependencyAars;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import java.util.List;
 
@@ -40,19 +40,20 @@ public class AndroidProjectProtoTransform implements ProjectProtoTransform {
    * proto.
    */
   public static class Provider implements ProjectProtoTransformProvider {
+
     @Override
-    public List<ProjectProtoTransform> createTransforms(QuerySyncProject project) {
-      return ImmutableList.of(new AndroidProjectProtoTransform(project));
+    public List<ProjectProtoTransform> createTransforms(ProjectDefinition projectDef) {
+      return ImmutableList.of(new AndroidProjectProtoTransform(projectDef));
     }
   }
 
   private final ImmutableList<ProjectProtoUpdateOperation> updateOperations;
 
-  private AndroidProjectProtoTransform(QuerySyncProject project) {
+  private AndroidProjectProtoTransform(ProjectDefinition projectDefinition) {
     updateOperations =
         ImmutableList.of(
             new AddDependencyAars(
-                project.getProjectDefinition(),
+                projectDefinition,
                 new AarPackageNameMetaData(
                     in -> ManifestParser.parseManifestFromInputStream(in).packageName)),
             new AddAndroidResPackages());

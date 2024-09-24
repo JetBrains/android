@@ -233,7 +233,7 @@ public class ProjectLoader {
             buildSystem,
             projectTransformRegistry);
     QuerySyncProjectListenerProvider.registerListenersFor(querySyncProject);
-    projectTransformRegistry.addAll(ProjectProtoTransformProvider.getAll(querySyncProject));
+    projectTransformRegistry.addAll(ProjectProtoTransformProvider.getAll(latestProjectDef));
 
     return querySyncProject;
   }
