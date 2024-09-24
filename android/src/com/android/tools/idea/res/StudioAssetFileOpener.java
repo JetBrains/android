@@ -27,7 +27,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
@@ -205,12 +204,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    AndroidFacet holderFacet = AndroidFacet.getInstance(ModuleSystemUtil.getHolderModule(facet.getModule()));
-    Stream<VirtualFile> sampleDataDirs = Stream.of(
-      ResourceContent.getSampleDataBaseDir(),
-      ResourceContent.getSampleDataUserDir(facet),
-      (holderFacet == null) ? null : ResourceContent.getSampleDataUserDir(holderFacet)
-    )
+    Stream<VirtualFile> sampleDataDirs = Stream.of(ResourceContent.getSampleDataBaseDir(), ResourceContent.getSampleDataUserDir(facet))
       .filter(Objects::nonNull)
       .distinct()
       .map(dir -> manager.findFileByUrl("file://" + dir.toAbsolutePath()))
