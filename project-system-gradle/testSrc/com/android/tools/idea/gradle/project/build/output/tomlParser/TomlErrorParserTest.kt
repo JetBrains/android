@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
@@ -26,6 +28,7 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -35,6 +38,8 @@ import com.intellij.pom.Navigatable
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -78,6 +83,28 @@ class TomlErrorParserTest {
 
     val line = reader.readLine()!!
     val parsed = parser.parse(line, reader, consumer)
+
+    Truth.assertThat(parsed).isTrue()
+    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
+      Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml"))
+      Truth.assertThat(it.getNavigatable(project)).isNull()
+    }
+  }
+
+  @Test
+  fun testWrapper_parsesTomlErrorWithFile() {
+    setStudioBotInstanceAvailability(true)
+    val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
+
+    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser())
+    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val consumer = TestMessageEventConsumer()
+
+    val line = reader.readLine()!!
+    val parsed = wrappedParser.parse(line, reader, consumer)
 
     Truth.assertThat(parsed).isTrue()
     consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
@@ -358,6 +385,14 @@ class TomlErrorParserTest {
       file?.setBinaryContent(content.toByteArray(Charsets.UTF_8))
     }
     return gradleDir to file
+  }
+
+  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
+    val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isAvailable(): Boolean = isAvailable
+    }
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, project)
   }
 
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)

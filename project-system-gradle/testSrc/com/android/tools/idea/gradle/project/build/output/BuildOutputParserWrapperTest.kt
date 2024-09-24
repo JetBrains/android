@@ -17,31 +17,28 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
-import com.intellij.build.events.impl.BuildIssueEventImpl
+import com.intellij.build.events.MessageEvent.Kind.ERROR
+import com.intellij.build.events.MessageEvent.Kind.INFO
+import com.intellij.build.events.MessageEvent.Kind.WARNING
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +46,6 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import kotlin.test.assertEquals
 
 class BuildOutputParserWrapperTest {
 
@@ -68,11 +64,8 @@ class BuildOutputParserWrapperTest {
 
   @Before
   fun setUp() {
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isAvailable(): Boolean = true
-    }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
+    // Set StudioBot's availability to true by default.
+    setStudioBotInstanceAvailability(true)
     MockitoAnnotations.initMocks(this)
     val parser = BuildOutputParser { _, _, messageConsumer ->
       messageConsumer?.accept(messageEvent)
@@ -88,67 +81,103 @@ class BuildOutputParserWrapperTest {
     whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
   }
 
-  /** Regression test for b/323135834. */
   @Test
-  fun `test Ask Gemini link is inserted for ERROR messages`() {
+  fun `test 'Ask Gemini' link is added for ERROR FileMessageEvent`() {
+    messageEvent = createFileMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes).hasSize(1)
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' link is added for ERROR MessageEvent`() {
+    messageEvent = createMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes).hasSize(1)
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' link is not added for WARNING MessageEvent`() {
+    messageEvent = createFileMessageEvent(WARNING)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
+    }
+  }
+
+
+  @Test
+  fun `test 'Ask Gemini' link is not added for INFO MessageEvent`() {
+    messageEvent = createFileMessageEvent(INFO)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
+    }
+  }
+
+  @Test
+  fun `test when StudioBot is not available, 'Ask Gemini' links is not added for ERROR MessageEvent`() {
+    setStudioBotInstanceAvailability(false)
+    messageEvent = createMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
+    }
+  }
+
+  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
+    val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isAvailable(): Boolean = isAvailable
+    }
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
+  }
+
+  private fun createMessageEvent(
+    kind: MessageEvent.Kind,
+    group: String = "Compiler",
+    message: String = "!!some error message!!",
+    detailedMessage: String = "Detailed error message"
+  ): MessageEventImpl {
+    return MessageEventImpl(
+      ID,
+      kind,
+      group,
+      message,
+      detailedMessage)
+  }
+
+  private fun createFileMessageEvent(
+    kind: MessageEvent.Kind,
+    group: String = "Compiler",
+    message: String = "!!some error message!!",
+    detailedMessage: String = "Detailed error message"
+  ): FileMessageEvent {
     val folder = temporaryFolder.newFolder("test")
-    val id = MockitoKt.mock<ExternalSystemTaskId>()
-    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.ERROR, "Compiler", "!!some error message!!", "Detailed error message",
-                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
-    myParserWrapper.parse(null, null) { event ->
-      val expected = """
-        Detailed error message
-
-        >> Ask Gemini !!some error message!!
-      """
-      assertEquals(expected.trimIndent(), event.description)
-
-    }
-
+    return FileMessageEventImpl(
+      ID,
+      kind,
+      group,
+      message,
+      detailedMessage,
+      FilePosition(FileUtils.join(folder, "main", "src", "main.java"),1, 1))
   }
 
-  @Test
-  fun `test Ask Gemini link is inserted for MessageEventImpl`() {
-    val id = MockitoKt.mock<ExternalSystemTaskId>()
-    messageEvent = MessageEventImpl(id, MessageEvent.Kind.ERROR, "Compiler", "!!some error message!!", "Detailed error message")
-    myParserWrapper.parse(null, null) { event ->
-      val expected = """
-        Detailed error message
-
-        >> Ask Gemini !!some error message!!
-      """
-      assertEquals(expected.trimIndent(), event.description)
-
-    }
+  companion object {
+    val ID = MockitoKt.mock<ExternalSystemTaskId>()
   }
-
-  @Test
-  fun `test Ask Gemini links are not inserted for WARNING messages`() {
-    val folder = temporaryFolder.newFolder("test")
-    val id = MockitoKt.mock<ExternalSystemTaskId>()
-    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.WARNING, "Compiler", "!!some error message!!", "Detailed error message",
-                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
-    myParserWrapper.parse(null, null) { event ->
-      val expected = """
-        Detailed error message
-      """
-      assertEquals(expected.trimIndent(), event.description)
-    }
-
-  }
-
-  @Test
-  fun `test Ask Gemini links are not inserted for INFO messages`() {
-    val folder = temporaryFolder.newFolder("test")
-    val id = MockitoKt.mock<ExternalSystemTaskId>()
-    messageEvent = FileMessageEventImpl(id, MessageEvent.Kind.INFO, "Compiler", "!!some error message!!", "Detailed error message",
-                                        FilePosition(FileUtils.join(folder, "main", "src", "main.java"), 1, 2))
-    myParserWrapper.parse(null, null) { event ->
-      val expected = """
-        Detailed error message
-      """
-      assertEquals(expected.trimIndent(), event.description)
-    }
-  }
-
 }
