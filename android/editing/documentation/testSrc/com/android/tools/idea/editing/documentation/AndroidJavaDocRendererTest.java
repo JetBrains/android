@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.javadoc;
+package com.android.tools.idea.editing.documentation;
 
 import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.SnapshotComparisonTest;
