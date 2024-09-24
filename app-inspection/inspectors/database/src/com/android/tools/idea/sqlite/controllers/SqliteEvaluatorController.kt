@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.Companion.DEFAULT_ROW_BATCH_SIZE
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -58,6 +59,8 @@ class SqliteEvaluatorController(
   private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor,
+  private var isLiveUpdatesEnabled: Boolean = false,
+  private var rowBatchSize: Int = DEFAULT_ROW_BATCH_SIZE,
 ) : DatabaseInspectorController.TabController {
   companion object {
     private const val QUERY_HISTORY_KEY = "com.android.tools.idea.sqlite.queryhistory"
@@ -184,6 +187,11 @@ class SqliteEvaluatorController(
     return EvaluationParams(databaseId, currentEvaluationParams.statementText)
   }
 
+  override fun isLiveUpdateEnabled() =
+    currentTableController?.isLiveUpdateEnabled() ?: isLiveUpdatesEnabled
+
+  override fun getRowBatchSize() = currentTableController?.getRowBatchSize() ?: rowBatchSize
+
   private fun executeSqlStatement(
     databaseId: SqliteDatabaseId,
     sqliteStatement: SqliteStatement,
@@ -223,8 +231,11 @@ class SqliteEvaluatorController(
       lastUsedEvaluationParams = null
       view.tableView.resetView()
     }
-    if (currentTableController != null) {
-      Disposer.dispose(currentTableController!!)
+    val controller = currentTableController
+    if (controller != null) {
+      rowBatchSize = controller.getRowBatchSize()
+      isLiveUpdatesEnabled = controller.isLiveUpdateEnabled()
+      Disposer.dispose(controller)
       currentTableController = null
     }
   }
@@ -242,16 +253,18 @@ class SqliteEvaluatorController(
   ): ListenableFuture<Unit> {
     currentTableController =
       TableController(
-        closeTabInvoked = closeTabInvoked,
         project = project,
+        rowBatchSize = rowBatchSize,
         view = view.tableView,
-        tableSupplier = { null },
         databaseId = databaseId,
+        tableSupplier = { null },
         databaseRepository = databaseRepository,
         sqliteStatement = sqliteStatement,
+        closeTabInvoked = closeTabInvoked,
         showExportDialog = showExportDialog,
         edtExecutor = edtExecutor,
         taskExecutor = taskExecutor,
+        liveUpdatesEnabled = isLiveUpdatesEnabled,
       )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
     return currentTableController!!
