@@ -15,25 +15,34 @@
  */
 package com.android.tools.idea.kotlin
 
-import com.android.tools.tests.AdtTestProjectDescriptors
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.junit.Rule
 import org.junit.Test
 
-class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
+@RunsInEdt
+class AndroidKtPsiUtilsTest {
 
-  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
+
+  private val myFixture get() = projectRule.fixture
 
   @Test
   fun testKtClass_insideBody() {
@@ -276,6 +285,54 @@ class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
 
     val classElement = file.getElementAtCaret<KtClassOrObject>()
     assertThat(classElement.toPsiType()?.canonicalText).isEqualTo("com.android.example.Foo")
+  }
+
+  @Test
+  fun testKtAnnotated_declaration() {
+    val file = setFileContents("""
+      annotation class Foo
+
+      @Foo fun <caret>f(block: (param: Any) -> Unit)
+      """.trimIndent())
+
+    val funElement = file.getElementAtCaret<KtNamedFunction>()
+    val fooClassId = ClassId.fromString("com/android/example/Foo")
+    assertThat(funElement.hasAnnotation(fooClassId)).isTrue()
+    assertThat(funElement.findAnnotation(fooClassId)).isNotNull()
+  }
+
+  @Test
+  fun testKtAnnotated_typeReference() {
+    // Value parameter type-reference lookups only work in K2 mode.
+    assume().that(KotlinPluginModeProvider.currentPluginMode).isEqualTo(KotlinPluginMode.K2)
+
+    val file = setFileContents("""
+      annotation class Foo
+
+      fun f(<caret>block: @Foo ((param: Any) -> Unit))
+    """.trimIndent())
+
+    val parameterElement = file.getElementAtCaret<KtParameter>()
+    val typeReference = parameterElement.typeReference!!
+    val fooClassId = ClassId.fromString("com/android/example/Foo")
+    assertThat(typeReference.hasAnnotation(fooClassId)).isTrue()
+    assertThat(typeReference.findAnnotation(fooClassId)).isNotNull()
+  }
+
+  @Test
+  fun testKtAnnotated_functionTypeParameter() {
+    val file = setFileContents("""
+      annotation class Foo
+
+      fun f(block: (<caret>param: @Foo Any) -> Unit)
+    """.trimIndent())
+
+    val parameterElement = file.getElementAtCaret<KtParameter>()
+    assertThat(parameterElement.isFunctionTypeParameter).isTrue()
+
+    val fooClassId = ClassId.fromString("com/android/example/Foo")
+    assertThat(parameterElement.hasAnnotation(fooClassId)).isFalse()
+    assertThat(parameterElement.findAnnotation(fooClassId)).isNull()
   }
 
   private inline fun <reified T : PsiElement> PsiFile.getElementAtCaret(): T =

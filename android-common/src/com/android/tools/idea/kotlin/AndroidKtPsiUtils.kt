@@ -385,15 +385,24 @@ private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
 @OptIn(KaAllowAnalysisOnEdt::class)
 private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(
   block: KaSession.(KaDeclarationSymbol) -> T?
-): T? = allowAnalysisOnEdt {
-  @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-  allowAnalysisFromWriteAction {
-    analyze(this) {
-      val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
-      declaration?.symbol?.let { block(it) }
+): T? =
+  when {
+    this !is KtDeclaration -> null
+    // b/367493550: Function type parameters cannot have a KaSymbol created for them.
+    // [Example: foo in `fun f(block: (foo: Any) -> Unit))`.]
+    // Skip these elements and let the fallback handling take care of them.
+    this is KtParameter && isFunctionTypeParameter -> null
+    else -> {
+      allowAnalysisOnEdt {
+        @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        allowAnalysisFromWriteAction {
+          analyze(this) {
+            block(symbol)
+          }
+        }
+      }
     }
   }
-}
 
 /**
  * Fallback of [mapOnDeclarationSymbol] in the case the given [KtAnnotated] is not [KtDeclaration].
