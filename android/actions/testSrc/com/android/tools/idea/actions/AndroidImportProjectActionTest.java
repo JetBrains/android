@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
@@ -23,6 +24,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.TestApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,8 +44,10 @@ public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    // Workaround for b/356483696: XDebuggerManagerImpl preloading races with test tear-down, causing false-positive leaks.
-    com.intellij.xdebugger.XDebuggerManager.getInstance(myProject);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      // Workaround for b/356483696: XDebuggerManagerImpl preloading races with test tear-down, causing false-positive leaks.
+      com.intellij.xdebugger.XDebuggerManager.getInstance(myProject);
+    }
     super.tearDown();
   }
 
