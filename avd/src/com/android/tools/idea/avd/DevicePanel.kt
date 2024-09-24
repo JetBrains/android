@@ -194,8 +194,11 @@ private fun ServicesDropdown(
         Text(selectedServices?.toString() ?: "Show All")
       }
 
-      // TODO: http://b/335263751
-      // InfoOutlineIcon("", Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "Filter by images that include full support for the Google Play Store, only Google APIs and services, or the base version of " +
+          "Android (AOSP) without any Google apps or services",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }
@@ -304,7 +307,9 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
       Modifier.padding(end = Padding.MEDIUM),
     )
 
-    // TODO: http://b/335263751
-    // InfoOutlineIcon("", Modifier.align(Alignment.CenterVertically))
+    InfoOutlineIcon(
+      "Select this option to see images of SDK extensions for the selected API level",
+      Modifier.align(Alignment.CenterVertically),
+    )
   }
 }
