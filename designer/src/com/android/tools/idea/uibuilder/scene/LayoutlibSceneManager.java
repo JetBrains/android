@@ -424,16 +424,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   /**
-   * Similar to {@link #requestRenderAsync()} but it will be logged as a user initiated action. This is
-   * not exposed at SceneManager level since it only makes sense for the Layout editor.
-   */
-  @NotNull
-  public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
-    getSceneRenderConfiguration().getNeedsInflation().set(true);
-    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
-  }
-
-  /**
    * If true, register the {@link com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener} which calls
    * {@link #resourcesChanged(ImmutableSet)} when any resource is changed.
    * By default, it is enabled.
