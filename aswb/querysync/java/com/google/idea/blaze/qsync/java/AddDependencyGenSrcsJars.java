@@ -15,12 +15,11 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes.EMPTY_PACKAGE_PREFIXES_ONLY;
-
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
@@ -30,6 +29,8 @@ import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.LibrarySource;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Adds generated {@code .srcjar} files from external dependencies to the {@code .dependencies}
@@ -38,54 +39,57 @@ import com.google.idea.blaze.qsync.project.ProjectProto.LibrarySource;
  */
 public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
 
-  private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
-  private final SrcJarInnerPathFinder srcJarInnerPathFinder;
+  private final SourceJarInnerPackageRoots srcJarPathsMetadata;
 
   public AddDependencyGenSrcsJars(
-      ProjectDefinition projectDefinition,
-      BuildArtifactCache buildCache,
-      SrcJarInnerPathFinder srcJarInnerPathFinder) {
+      ProjectDefinition projectDefinition, SourceJarInnerPackageRoots srcJarPathsMetadata) {
     this.projectDefinition = projectDefinition;
-    this.buildCache = buildCache;
-    this.srcJarInnerPathFinder = srcJarInnerPathFinder;
+    this.srcJarPathsMetadata = srcJarPathsMetadata;
+  }
+
+  private Stream<BuildArtifact> getDependencyGenSrcJars(TargetBuildInfo target) {
+    if (target.javaInfo().isEmpty()) {
+      return Stream.empty();
+    }
+    JavaArtifactInfo javaInfo = target.javaInfo().get();
+    if (projectDefinition.isIncluded(javaInfo.label())) {
+      return Stream.empty();
+    }
+    return javaInfo.genSrcs().stream()
+        .filter(genSrc -> JAVA_ARCHIVE_EXTENSIONS.contains(genSrc.getExtension()));
+  }
+
+  @Override
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+      TargetBuildInfo forTarget) {
+    return getDependencyGenSrcJars(forTarget)
+        .collect(
+            ImmutableSetMultimap.toImmutableSetMultimap(
+                Function.identity(), unused -> srcJarPathsMetadata));
   }
 
   @Override
   public void update(ProjectProtoUpdate update, State artifactState) throws BuildException {
     for (TargetBuildInfo target : artifactState.depsMap().values()) {
-      if (target.javaInfo().isEmpty()) {
-        continue;
-      }
-      JavaArtifactInfo javaInfo = target.javaInfo().get();
-      if (projectDefinition.isIncluded(javaInfo.label())) {
-        continue;
-      }
-      for (BuildArtifact genSrc : javaInfo.genSrcs()) {
-        if (!JAVA_ARCHIVE_EXTENSIONS.contains(genSrc.getExtension())) {
-          continue;
-        }
+      getDependencyGenSrcJars(target)
+          .forEach(
+              genSrc -> {
+                ProjectPath projectArtifact =
+                    update
+                        .artifactDirectory(ArtifactDirectories.DEFAULT)
+                        .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
+                        .orElse(null);
 
-        ProjectPath projectArtifact =
-            update
-                .artifactDirectory(ArtifactDirectories.DEFAULT)
-                .addIfNewer(genSrc.artifactPath(), genSrc, target.buildContext())
-                .orElse(null);
-
-        if (projectArtifact != null) {
-          srcJarInnerPathFinder
-              .findInnerJarPaths(
-                  genSrc.blockingGetFrom(buildCache),
-                  EMPTY_PACKAGE_PREFIXES_ONLY,
-                  genSrc.artifactPath().toString())
-              .stream()
-              .map(JarPath::path)
-              .map(projectArtifact::withInnerJarPath)
-              .map(ProjectPath::toProto)
-              .map(LibrarySource.newBuilder()::setSrcjar)
-              .forEach(update.library(JAVA_DEPS_LIB_NAME)::addSources);
-        }
-      }
+                if (projectArtifact != null) {
+                  srcJarPathsMetadata.from(target, genSrc).stream()
+                      .map(JarPath::path)
+                      .map(projectArtifact::withInnerJarPath)
+                      .map(ProjectPath::toProto)
+                      .map(LibrarySource.newBuilder()::setSrcjar)
+                      .forEach(update.library(JAVA_DEPS_LIB_NAME)::addSources);
+                }
+              });
     }
   }
 }
