@@ -21,9 +21,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -43,6 +45,7 @@ import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
 import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
 import com.android.tools.idea.avdmanager.ui.DeleteDeviceAction
@@ -50,11 +53,14 @@ import com.android.tools.idea.avdmanager.ui.DeviceUiAction
 import com.android.tools.idea.avdmanager.ui.EditDeviceAction
 import com.android.tools.idea.avdmanager.ui.ExportDeviceAction
 import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.CheckboxRow
@@ -63,7 +69,12 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
-internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project: Project?) {
+internal class AddDeviceWizard(
+  val source: LocalVirtualDeviceSource,
+  val project: Project?,
+  val accelerationCheck: () -> AccelerationErrorCode,
+) {
+
   fun createDialog(): ComposeWizard {
     return ComposeWizard(project, "Add Device") { DeviceGridPage() }
   }
@@ -72,6 +83,11 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
   internal fun WizardPageScope.DeviceGridPage() {
     val component = LocalComponent.current
     val density = LocalDensity.current
+
+    var accelerationError by remember { mutableStateOf(AccelerationErrorCode.ALREADY_INSTALLED) }
+    LaunchedEffect(Unit) {
+      withContext(AndroidDispatchers.workerThread) { accelerationError = accelerationCheck() }
+    }
 
     val filterState = getOrCreateState { VirtualDeviceFilterState() }
     val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
@@ -106,6 +122,15 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
       }
 
       Column {
+        if (accelerationError != AccelerationErrorCode.ALREADY_INSTALLED) {
+          val coroutineScope = rememberCoroutineScope()
+          AccelerationErrorBanner(
+            accelerationError,
+            refresh = { coroutineScope.launch { accelerationError = accelerationCheck() } },
+            Modifier.padding(vertical = 8.dp),
+          )
+        }
+
         DeviceGridPage(
           filterState = filterState,
           selectionState = selectionState,
