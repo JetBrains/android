@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
@@ -40,6 +41,7 @@ import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ListMultimap
 import com.google.common.util.concurrent.Futures
@@ -79,6 +81,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.FileSystemUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -89,11 +92,11 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.PathUtil
-import com.intellij.util.containers.toArray
 import com.intellij.xdebugger.XDebugSession
 import org.gradle.tooling.BuildAction
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.base.facet.isTestModule
+import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -122,6 +125,43 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   @Suppress("unused")
   constructor (project: Project) :
     this(project, FileDocumentManager.getInstance(), GradleTasksExecutorImpl(), NativeDebugSessionFinder(project), GradleTaskFinder.getInstance())
+
+  override fun buildConfiguration(modules: Array<Module>, deployApkFromBundle: Boolean): ListenableFuture<AssembleInvocationResult> {
+    return if (deployApkFromBundle) {
+      bundle(modules)
+    } else {
+      // Build mode should be different here where we could invoke the main action as well.
+      val buildMode = ASSEMBLE
+      // If we have to build the whole project, i.e. we have one module and it's the root project's, then we need to extract all the modules
+      // and get their build tasks.
+      val tasks = if (modules.size == 1 && modules.first().externalProjectPath == project.basePath) {
+        taskFinder.findTasksToExecute(project.modules, buildMode)
+      } else if (modules.size > 1) {
+        // Ife we have a list of modules to build, there we do not need to expand any further because we have all the necessary
+        // modules to build already.
+        taskFinder.findTasksToExecute(modules, buildMode)
+      } else {
+        // This is the case where we get the module of the Run Configuration and wee need to figure out which other modules we need to build.
+        val androidFacet = AndroidFacet.getInstance(modules.first())
+        // If we are building a library module or a unitTest one then we do not need to expand it any further and we just need to build
+        // the current module.
+        val expand = !(androidFacet?.configuration?.projectType == PROJECT_TYPE_LIBRARY || modules.first().isUnitTestModule())
+        taskFinder.findTasksToExecute(modules, buildMode, expand)
+      }
+      if (tasks.isEmpty) {
+        return Futures.immediateCancelledFuture<AssembleInvocationResult>()
+      }
+      return executeAssembleTasks(
+        modules,
+        tasks.keySet()
+          .map { rootPath ->
+            GradleBuildInvoker.Request.builder(project, rootPath.toFile(), tasks.get(rootPath))
+              .setMode(buildMode)
+              .build()
+          }
+      )
+    }
+  }
 
   override fun cleanProject(): ListenableFuture<GradleMultiInvocationResult> {
     if (stopNativeDebugSessionOrStopBuild()) {
