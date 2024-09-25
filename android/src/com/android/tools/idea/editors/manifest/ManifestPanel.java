@@ -35,7 +35,7 @@ import com.android.manifmerger.XmlNode;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerUtils;
+//import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -362,14 +362,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private void logManifestPanelEvent() {
-    UsageTracker.log(
-      UsageTrackerUtils.withProjectId(
-        AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.MANIFEST_PANEL_EVENT)
-          .setCategory(AndroidStudioEvent.EventCategory.STUDIO_UI),
-        myProject
-      )
-    );
+    //UsageTracker.log(
+    //  UsageTrackerUtils.withProjectId(
+    //    AndroidStudioEvent.newBuilder()
+    //      .setKind(AndroidStudioEvent.EventKind.MANIFEST_PANEL_EVENT)
+    //      .setCategory(AndroidStudioEvent.EventCategory.STUDIO_UI),
+    //    myProject
+    //  )
+    //);
   }
 
   private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
@@ -923,7 +923,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     final int finalMinSdk = minSdkVersion;
 
-    Runnable link = null;
+/*    Runnable link = null;
     if (token != null) {
       link = token.generateMinSdkSettingRunnable(facet.getModule(), finalMinSdk);
     }
@@ -933,7 +933,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     else {
       sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
       sb.add(message.substring(end));
-    }
+    }*/
     return sb.getHtml();
   }
 
@@ -967,13 +967,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
-
+/*
     if (myToken != null) {
       Module module = facet.getModule();
       ManifestFileWithMetadata metadata = myToken.createMetadataForFile(file, module);
       if (metadata != null) return metadata;
     }
-
+*/
     if (file != null && NAV_FILE_PATTERN.matcher(FileUtils.toSystemIndependentPath(file.toString())).matches()) {
       String source = "";
       boolean isProjectFile = false;
@@ -1089,6 +1089,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @Nullable
   private String findSourceForFileInExplodedAar(@NotNull Project project, @NotNull File file) {
+    /*
     File parentFile = file.getParentFile();
     if (parentFile == null) return null;
     PathString parentFilePath = new PathString(parentFile);
@@ -1096,6 +1097,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (androidLibrary == null) return null;
     if (myToken == null) return null;
     return myToken.getExternalAndroidLibraryDisplayName(androidLibrary);
+    */
+    return null;
   }
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
