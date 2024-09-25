@@ -22,7 +22,7 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.actions.FeatureSurveyNotificationAction
+//import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.flags.StudioFlags
@@ -90,7 +90,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Tracks Android Studio specific metrics
  */
-object AndroidStudioUsageTracker {
+object AndroidStudioUsageTracker {/*
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
@@ -521,5 +521,5 @@ object AndroidStudioUsageTracker {
     override fun appWillBeClosed(isRestart: Boolean) {
       runShutdownReports()
     }
-  }
+  }*/
 }

@@ -5,8 +5,6 @@ package org.jetbrains.android.exportSignedPackage;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
@@ -22,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
@@ -56,7 +55,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
-import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
+//import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -65,8 +64,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
   public static final String MODULE_PROPERTY = "ExportedModule";
-  public @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
-  public @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+  public static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
+  public static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
@@ -84,30 +83,30 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   private JBLabel myKeyStorePasswordLabel;
   private JBLabel myKeyAliasLabel;
   private JBLabel myKeyPasswordLabel;
-  private final ExportSignedPackageWizard myWizard;
+  //private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
   private boolean myIsBundle;
   @VisibleForTesting
   public AndroidFacet mySelection;
   public @VisibleForTesting final List<AndroidFacet> myFacets;
 
-  public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
+  public KeystoreStep(/*@NotNull ExportSignedPackageWizard wizard,*/
                       boolean useGradleForSigning,
                       @NotNull List<AndroidFacet> facets) {
     setupUI();
-    myWizard = wizard;
+    //myWizard = wizard;
     myFacets = facets;
     myUseGradleForSigning = useGradleForSigning;
-    Project project = wizard.getProject();
+    //Project project = wizard.getProject();
 
-    GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
-    myKeyStorePathField.setText(settings.KEY_STORE_PATH);
-    myKeyAliasField.setText(settings.KEY_ALIAS);
-    myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
-
-    if (settings.REMEMBER_PASSWORDS) {
-      tryLoadSavedPasswords();
-    }
+    //GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
+    //myKeyStorePathField.setText(settings.KEY_STORE_PATH);
+    //myKeyAliasField.setText(settings.KEY_ALIAS);
+    //myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
+    //
+    //if (settings.REMEMBER_PASSWORDS) {
+    //  tryLoadSavedPasswords();
+    //}
 
     myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       if (value == null) return;
@@ -119,13 +118,13 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     myGradlePanel.setVisible(false);
     myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
 
-    ExportSignedPackageUtil.initSigningSettingsForm(project, this);
+    ExportSignedPackageUtil.initSigningSettingsForm(ProjectManager.getInstance().getDefaultProject(), this);
   }
 
   @Override
   public void _init() {
     super._init();
-    myIsBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
+    myIsBundle = false;//myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
     updateModuleDropdown();
 
     // Treat TextField actions as selections and try to refresh.
@@ -134,20 +133,20 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   }
 
   private void updateModuleDropdown() {
-    List<AndroidFacet> facets = myIsBundle ? filteredFacets(myFacets) : myFacets;
-    mySelection = null;
-    myModuleCombo.setEnabled(facets.size() > 1);
-    if (!facets.isEmpty()) {
-      facets.sort(Comparator.comparing(AndroidFacet::getModule, ModuleTypeComparator.INSTANCE));
-      // If the selected module is not available, just pick the first item in the list
-      String savedModuleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(getModuleProperty(myIsBundle));
-      Optional<AndroidFacet> optionalFacet = facets.stream()
-        .filter(facet -> facet.getModule().getName().equals(savedModuleName))
-        .findFirst();
-      mySelection = optionalFacet.orElse(facets.get(0));
-      myModuleCombo.setModel(new CollectionComboBoxModel<>(facets, mySelection));
-      updateSelection(mySelection);
-    }
+    //List<AndroidFacet> facets = myIsBundle ? filteredFacets(myFacets) : myFacets;
+    //mySelection = null;
+    //myModuleCombo.setEnabled(facets.size() > 1);
+    //if (!facets.isEmpty()) {
+    //  facets.sort(Comparator.comparing(AndroidFacet::getModule, ModuleTypeComparator.INSTANCE));
+    //  // If the selected module is not available, just pick the first item in the list
+    //  String savedModuleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(getModuleProperty(myIsBundle));
+    //  Optional<AndroidFacet> optionalFacet = facets.stream()
+    //    .filter(facet -> facet.getModule().getName().equals(savedModuleName))
+    //    .findFirst();
+    //  mySelection = optionalFacet.orElse(facets.get(0));
+    //  myModuleCombo.setModel(new CollectionComboBoxModel<>(facets, mySelection));
+    //  updateSelection(mySelection);
+    //}
   }
 
   // Instant Apps cannot be built as bundles
@@ -156,10 +155,10 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   }
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
-    PropertiesComponent.getInstance(myWizard.getProject())
-      .setValue(getModuleProperty(myIsBundle), selectedItem == null ? "" : selectedItem.getModule().getName());
-    mySelection = selectedItem;
-    showGradleError(!isGradleValid(myWizard.getTargetType()));
+    //PropertiesComponent.getInstance(myWizard.getProject())
+    //  .setValue(getModuleProperty(myIsBundle), selectedItem == null ? "" : selectedItem.getModule().getName());
+    //mySelection = selectedItem;
+    //showGradleError(!isGradleValid(myWizard.getTargetType()));
   }
 
   private void setupUI() {
@@ -320,15 +319,15 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     return isBundle ? "Bundle" + MODULE_PROPERTY : "Apk" + MODULE_PROPERTY;
   }
 
-  private boolean isGradleValid(@NotNull TargetType targetType) {
+  //private boolean isGradleValid(@NotNull TargetType targetType) {
     // all gradle versions are valid unless targetType is bundle
-    if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
-      return true;
-    }
+    //if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
+    //  return true;
+    //}
 
-    if (mySelection == null) return true;
-    return GradleProjectSystemUtil.supportsBundleTask(mySelection.getModule());
-  }
+    //if (mySelection == null) return true;
+    //return false;GradleProjectSystemUtil.supportsBundleTask(mySelection.getModule());
+  //}
 
   private void showGradleError(boolean showError) {
     // key store fields
@@ -481,7 +480,7 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
    * thus only one username/password pair can be saved per service name.
    * That's why we need to include password determining key into service name instead of passing it as user name.
    */
-  private static @NotNull CredentialAttributes credentialAttributesForKey(@NotNull String key) {
+  public static @NotNull CredentialAttributes credentialAttributesForKey(@NotNull String key) {
     String serviceName = CredentialAttributesKt.generateServiceName("APK Signing Keystore Step", key);
     return new CredentialAttributes(serviceName);
   }
@@ -510,7 +509,7 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     return new CredentialAttributes("org.jetbrains.android.exportSignedPackage.KeystoreStep$KeyPasswordRequestor", key);
   }
 
-  @VisibleForTesting
+  //@VisibleForTesting
   static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
     return prefix + "__" + keyStorePath + (keyAlias != null ? "__" + keyAlias : "");
   }
@@ -544,9 +543,9 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
 
   @Override
   protected void commitForNext() throws CommitStepException {
-    if (!isGradleValid(myWizard.getTargetType())) {
-      throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
-    }
+    //if (!isGradleValid(myWizard.getTargetType())) {
+    //  throw new CommitStepException(AndroidBundle.message("android.export.package.bundle.gradle.error"));
+    //}
 
     String keyStoreLocation = myKeyStorePathField.getText().trim();
     if (keyStoreLocation.isEmpty()) {
@@ -569,7 +568,7 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     }
 
     if (myUseGradleForSigning) {
-      myWizard.setGradleSigningInfo(new GradleSigningInfo(keyStoreLocation, keyStorePassword, keyAlias, keyPassword));
+      //myWizard.setGradleSigningInfo(new GradleSigningInfo(keyStoreLocation, keyStorePassword, keyAlias, keyPassword));
     }
     else {
       KeyStore keyStore = loadKeyStore(new File(keyStoreLocation));
@@ -579,18 +578,36 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
       loadKeyAndSaveToWizard(keyStore, keyAlias, keyPassword);
     }
 
-    Project project = myWizard.getProject();
-    GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
+    //Project project = myWizard.getProject();
+    //GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
 
-    settings.KEY_STORE_PATH = keyStoreLocation;
-    settings.KEY_ALIAS = keyAlias;
+    //settings.KEY_STORE_PATH = keyStoreLocation;
+    //settings.KEY_ALIAS = keyAlias;
+    //
+    //boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
+    //settings.REMEMBER_PASSWORDS = rememberPasswords;
+    //
+    //if (myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
+    //  boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
+    //  settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
+    //  myWizard.setExportPrivateKey(exportPrivateKey);
+    //  if (exportPrivateKey) {
+    //    String keyFolder = myExportKeyPathField.getText().trim();
+    //    if (keyFolder.isEmpty()) {
+    //      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
+    //    }
+    //
+    //    File f = new File(keyFolder);
+    //    if (!f.isDirectory() || !f.canWrite()) {
+    //      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.invalid.destination"));
+    //    }
+    //    myWizard.setExportKeyPath(keyFolder);
+    //  }
+    //}
 
-    boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
-    settings.REMEMBER_PASSWORDS = rememberPasswords;
-
-    trySavePasswords(keyStoreLocation, keyStorePassword, keyAlias, keyPassword, rememberPasswords);
-
-    myWizard.setFacet(getSelectedFacet());
+    //trySavePasswords(keyStoreLocation, keyStorePassword, keyAlias, keyPassword, rememberPasswords);
+    //
+    //myWizard.setFacet(getSelectedFacet());
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {
@@ -640,8 +657,8 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
     if (privateKey == null || certificate == null) {
       throw new CommitStepException(AndroidBundle.message("android.extract.package.cannot.find.key.error", alias));
     }
-    myWizard.setPrivateKey(privateKey);
-    myWizard.setCertificate((X509Certificate)certificate);
+    //myWizard.setPrivateKey(privateKey);
+    //myWizard.setCertificate((X509Certificate)certificate);
   }
 
   private AndroidFacet getSelectedFacet() {
