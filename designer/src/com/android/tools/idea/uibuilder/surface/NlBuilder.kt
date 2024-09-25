@@ -99,7 +99,7 @@ class NlSurfaceBuilder(
     }
   }
 
-  @Suppress("deprecation") private var surfaceLayoutOption: SurfaceLayoutOption? = null
+  private var surfaceLayoutOption: SurfaceLayoutOption? = null
 
   /**
    * An optional [DataProvider] that allows users of the surface to provide additional information
