@@ -1,4 +1,0 @@
-[[plugins]]
-id = "maven-publish"
-[[plugins]]
-id = "jacoco"
