@@ -16,7 +16,7 @@
 package com.android.tools.idea.codenavigation
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ResolveComposeTracingCodeLocationMetadata
@@ -92,17 +92,17 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
                   "lineNumber=$lineNumber.", e)
       return null
     } finally {
-      UsageTracker.log(
-        AndroidStudioEvent.newBuilder()
-          .withProjectId(project)
-          .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-          .setAndroidProfilerEvent(
-            AndroidProfilerEvent.newBuilder()
-              .setType(AndroidProfilerEvent.Type.RESOLVE_COMPOSE_TRACING_CODE_LOCATION)
-              .setResolveComposeTracingCodeLocationMetadata(
-                ResolveComposeTracingCodeLocationMetadata.newBuilder().setResultCount(resolvedLocations))
-          ).also { lastMetricsEvent = it }
-      )
+      //UsageTracker.log(
+      //  AndroidStudioEvent.newBuilder()
+      //    .withProjectId(project)
+      //    .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+      //    .setAndroidProfilerEvent(
+      //      AndroidProfilerEvent.newBuilder()
+      //        .setType(AndroidProfilerEvent.Type.RESOLVE_COMPOSE_TRACING_CODE_LOCATION)
+      //        .setResolveComposeTracingCodeLocationMetadata(
+      //          ResolveComposeTracingCodeLocationMetadata.newBuilder().setResultCount(resolvedLocations))
+      //    ).also { lastMetricsEvent = it }
+      //)
     }
   }
 
