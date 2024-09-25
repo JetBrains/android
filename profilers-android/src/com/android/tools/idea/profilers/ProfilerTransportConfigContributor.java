@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import static com.android.tools.analytics.UsageTrackerUtils.deviceToDeviceInfo;
+//import static com.android.tools.analytics.UsageTrackerUtils.deviceToDeviceInfo;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -41,6 +41,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.analytics.ExtensionsKt.deviceToDeviceInfo;
 
 public class ProfilerTransportConfigContributor implements TransportConfigContributor {
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);

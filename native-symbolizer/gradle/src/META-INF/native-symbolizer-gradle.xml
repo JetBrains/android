@@ -1,5 +1,5 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.nativeSymbolizer">
-    <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.NdkSymbolSourceContributor"/>
+<!--    <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.NdkSymbolSourceContributor"/>-->
   </extensions>
 </idea-plugin>
