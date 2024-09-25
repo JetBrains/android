@@ -68,6 +68,9 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -257,6 +260,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
               else -> null
             }
+          }
+          .setShouldShowLayoutDeprecationBanner {
+            listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
+              .contains(it)
           }
           .apply { configureDesignSurface(navigationHandler) },
         this,
