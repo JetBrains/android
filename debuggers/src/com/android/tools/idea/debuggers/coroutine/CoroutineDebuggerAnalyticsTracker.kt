@@ -16,7 +16,7 @@
 package com.android.tools.idea.debuggers.coroutine
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.CoroutineDebuggerEvent
 import com.intellij.openapi.project.Project
@@ -41,11 +41,11 @@ class CoroutineDebuggerAnalyticsTrackerImpl(val project: Project) : CoroutineDeb
   }
 
   private fun track(coroutineDebuggerEvent: CoroutineDebuggerEvent.Builder) {
-    val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.COROUTINE_DEBUGGER)
-      .setCoroutineDebuggerEvent(coroutineDebuggerEvent)
-
-    studioEvent.withProjectId(project)
-    UsageTracker.log(studioEvent)
+    //val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
+    //  .setKind(AndroidStudioEvent.EventKind.COROUTINE_DEBUGGER)
+    //  .setCoroutineDebuggerEvent(coroutineDebuggerEvent)
+    //
+    //studioEvent.withProjectId(project)
+    //UsageTracker.log(studioEvent)
   }
 }
