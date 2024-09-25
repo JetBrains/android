@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.scene;
 
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
@@ -25,7 +24,6 @@ import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsK
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.sdklib.AndroidCoordinate;
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -35,7 +33,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
@@ -46,7 +43,6 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
-import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
@@ -83,9 +79,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
-public class LayoutlibSceneManager extends SceneManager implements InteractiveSceneManager {
-  private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-
+public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements InteractiveSceneManager {
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
@@ -136,7 +130,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
-    super(model, designSurface, sceneComponentProvider);
+    super(model, designSurface, renderTaskDisposerExecutor, sceneComponentProvider, layoutScannerConfig);
     myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, layoutScannerConfig);
     updateSceneView();
 
@@ -217,21 +211,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     return myViewEditor;
   }
 
-  @Override
-  @NotNull
-  public SceneDecoratorFactory getSceneDecoratorFactory() {
-    return DECORATOR_FACTORY;
-  }
-
-  /**
-   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
-   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
-   */
-  @Override
-  public float getSceneScalingFactor() {
-    return getModel().getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
-  }
-
   @NotNull
   public LayoutlibSceneRenderConfiguration getSceneRenderConfiguration() {
     return myLayoutlibSceneRenderer.getSceneRenderConfiguration();
@@ -263,12 +242,6 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     finally {
       super.dispose();
     }
-  }
-
-  @NotNull
-  @Override
-  protected NlDesignSurface getDesignSurface() {
-    return (NlDesignSurface) super.getDesignSurface();
   }
 
   @NotNull
