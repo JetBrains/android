@@ -30,4 +30,9 @@ class TreeViewNode(val view: ViewNode) {
   fun flatten(): Sequence<TreeViewNode> {
     return sequenceOf(this).plus(children.asSequence().flatMap { it.flatten() })
   }
+
+  /** It is convenient for debugging to see the contents of a TreeViewNode. */
+  override fun toString(): String {
+    return view.qualifiedName
+  }
 }
