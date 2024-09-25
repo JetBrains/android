@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.quickDefinitions
+package com.android.tools.idea.editing.documentation
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -38,7 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.util.Processor
-import org.jetbrains.android.dom.AndroidXmlDocumentationProvider
 
 /**
  * [ImplementationViewSessionFactory] for Android resources, for a better "Quick Definition" UI.`

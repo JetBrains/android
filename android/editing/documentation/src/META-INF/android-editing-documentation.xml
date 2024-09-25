@@ -16,5 +16,8 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <lang.documentationProvider language="JAVA" implementationClass="com.android.tools.idea.editing.documentation.AndroidDocumentationProvider" order="first"/>
+    <lang.documentationProvider language="XML" implementationClass="com.android.tools.idea.editing.documentation.AndroidXmlDocumentationProvider" order="first"/>
+
+    <implementationViewSessionFactory implementation="com.android.tools.idea.editing.documentation.AndroidImplementationViewSessionFactory" order="first"/>
   </extensions>
 </idea-plugin>

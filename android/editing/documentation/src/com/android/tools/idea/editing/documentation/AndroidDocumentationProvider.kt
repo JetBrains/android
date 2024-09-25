@@ -8,7 +8,6 @@ import com.android.resources.ResourceType
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.javadoc.AndroidJavaDocRenderer
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.util.CommonAndroidUtil
