@@ -92,9 +92,10 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
 
 
   companion object {
+    /*
     @JvmField
     val INSTANCE = DefaultActivityLaunch()
-
+    */
     val UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY = "UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY"
 
     val ACTIVITY_DOES_NOT_EXIST = "ACTIVITY_DOES_NOT_EXIST"

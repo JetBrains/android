@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.analytics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
@@ -48,7 +48,7 @@ class DataBindingDefaultTracker private constructor(private val project: Project
             }
             .build()
       }
-    UsageTracker.log(studioEventBuilder.withProjectId(project))
+    //UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
   override fun trackDataBindingCompletion(
