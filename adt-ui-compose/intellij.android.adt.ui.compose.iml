@@ -284,19 +284,19 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jewel-markdown-ide-laf-bridge-styling-243" type="repository">
-        <properties maven-id="org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-242:0.27.0">
+        <properties maven-id="org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-243:0.27.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.27.0/jewel-markdown-ide-laf-bridge-styling-242-0.27.0.jar">
-              <sha256sum>70f7247e1eeb6f4c6ea1564f101d5382fb192fbfde127dbe32808abdeda540b4</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-243/0.27.0/jewel-markdown-ide-laf-bridge-styling-243-0.27.0.jar">
+              <sha256sum>cb67451961e0e78e634332771d637f2723aa363146abaf9c3098fa4886d170a3</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-242/0.27.0/jewel-markdown-core-242-0.27.0.jar">
-              <sha256sum>f449e0d45cde9d9bae8df329e8c4a4f23b302d0043892cfe4c095889be9ef8e2</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-243/0.27.0/jewel-markdown-core-243-0.27.0.jar">
+              <sha256sum>377d9f19ebc66b151b262184bc5bd5047c185087505baf8784e3a05150e6d1ef</sha256sum>
             </artifact>
             <artifact url="file://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.24.0/commonmark-0.24.0.jar">
               <sha256sum>679338e0b7fc15c02d275d598654b01a149893bc28a87992e90123c8d06af25b</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.27.0/jewel-ide-laf-bridge-242-0.27.0.jar">
-              <sha256sum>fb4dda7cb9610f0e0a80765ec6fba97af3c6a228212bb128aeb84e0557db3af8</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-243/0.27.0/jewel-ide-laf-bridge-243-0.27.0.jar">
+              <sha256sum>b2b988104d5cfb8d3c185e588d73bdb75bb1beea0f74994a7f01e1bbb427d085</sha256sum>
             </artifact>
           </verification>
           <exclude>
@@ -307,7 +307,7 @@
             <dependency maven-id="androidx.arch.core:core-common" />
             <dependency maven-id="androidx.collection:collection-jvm" />
             <dependency maven-id="androidx.annotation:annotation" />
-            <dependency maven-id="org.jetbrains.jewel:jewel-foundation-242" />
+            <dependency maven-id="org.jetbrains.jewel:jewel-foundation-243" />
             <dependency maven-id="org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-desktop" />
             <dependency maven-id="org.jetbrains.compose.foundation:foundation-layout-desktop" />
             <dependency maven-id="org.jetbrains.compose.ui:ui-desktop" />
@@ -323,7 +323,7 @@
             <dependency maven-id="org.jetbrains.compose.ui:ui-graphics-desktop" />
             <dependency maven-id="org.jetbrains.compose.runtime:runtime-saveable-desktop" />
             <dependency maven-id="org.jetbrains.compose.foundation:foundation-desktop" />
-            <dependency maven-id="org.jetbrains.jewel:jewel-ui-242" />
+            <dependency maven-id="org.jetbrains.jewel:jewel-ui-243" />
             <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core" />
             <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8" />
             <dependency maven-id="org.jetbrains.skiko:skiko-awt" />
@@ -335,10 +335,10 @@
           </exclude>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.27.0/jewel-markdown-ide-laf-bridge-styling-242-0.27.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-242/0.27.0/jewel-markdown-core-242-0.27.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-243/0.27.0/jewel-markdown-ide-laf-bridge-styling-243-0.27.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-243/0.27.0/jewel-markdown-core-243-0.27.0.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/commonmark/commonmark/0.24.0/commonmark-0.24.0.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.27.0/jewel-ide-laf-bridge-242-0.27.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-243/0.27.0/jewel-ide-laf-bridge-243-0.27.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
