@@ -22,8 +22,8 @@ import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfigurationType
+//import com.android.tools.idea.run.AndroidRunConfiguration
+//import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.impl.RunDialog
@@ -90,21 +90,21 @@ internal class PostBackupDialog(private val project: Project, private val backup
   override fun doOKAction() {
     applyFields()
     // TODO(aalbert): Handle errors
-    val settings =
-      when (mode) {
-        EXISTING_CONFIG -> selectedSetting
-        NEW_CONFIG -> addNewRunConfigSetting()
-      }
-    val config = settings?.configuration as? AndroidRunConfiguration ?: return
-    config.RESTORE_ENABLED = true
-    config.RESTORE_FILE = backupPath.relativeToProject()
-    when (openRunConfigWhenDone) {
-      true -> RunDialog.editConfiguration(project, settings, "Edit Configuration")
-      false -> showNotification(settings)
-    }
-    if (setAsCurrentRunConfig) {
-      RunManager.getInstance(project).selectedConfiguration = settings
-    }
+    //val settings =
+    //  when (mode) {
+    //    EXISTING_CONFIG -> selectedSetting
+    //    NEW_CONFIG -> addNewRunConfigSetting()
+    //  }
+    //val config = settings?.configuration as? AndroidRunConfiguration ?: return
+    //config.RESTORE_ENABLED = true
+    //config.RESTORE_FILE = backupPath.relativeToProject()
+    //when (openRunConfigWhenDone) {
+    //  true -> RunDialog.editConfiguration(project, settings, "Edit Configuration")
+    //  false -> showNotification(settings)
+    //}
+    //if (setAsCurrentRunConfig) {
+    //  RunManager.getInstance(project).selectedConfiguration = settings
+    //}
     super.doOKAction()
   }
 
@@ -121,21 +121,21 @@ internal class PostBackupDialog(private val project: Project, private val backup
     Notifications.Bus.notify(notification, project)
   }
 
-  private fun addNewRunConfigSetting(): RunnerAndConfigurationSettings {
-    val runManager = RunManager.getInstance(project)
-    val settings =
-      runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
-    runManager.setUniqueNameIfNeeded(settings.configuration)
-    val applicationId = BackupService.getMetadata(backupPath).applicationId
-    val module = findModule(applicationId)
-    if (module != null) {
-      val config = settings.configuration as AndroidRunConfiguration
-      config.setModule(module)
-    }
-    settings.storeInDotIdeaFolder()
-    runManager.addConfiguration(settings)
-    return settings
-  }
+  //private fun addNewRunConfigSetting(): RunnerAndConfigurationSettings {
+  //  val runManager = RunManager.getInstance(project)
+  //  val settings =
+  //    runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
+  //  runManager.setUniqueNameIfNeeded(settings.configuration)
+  //  val applicationId = BackupService.getMetadata(backupPath).applicationId
+  //  val module = findModule(applicationId)
+  //  if (module != null) {
+  //    val config = settings.configuration as AndroidRunConfiguration
+  //    config.setModule(module)
+  //  }
+  //  settings.storeInDotIdeaFolder()
+  //  runManager.addConfiguration(settings)
+  //  return settings
+  //}
 
   private fun Path.relativeToProject() =
     pathString.removePrefix(project.basePath ?: "").removePrefix(File.separator)
@@ -160,8 +160,9 @@ internal class PostBackupDialog(private val project: Project, private val backup
   }
 
   private fun RunnerAndConfigurationSettings.isApplicable(applicationId: String): Boolean {
-    val configuration = configuration as? AndroidRunConfiguration ?: return false
-    return configuration.applicationIdProvider?.packageName == applicationId
+    return false
+    //val configuration = configuration as? AndroidRunConfiguration ?: return false
+    //return configuration.applicationIdProvider?.packageName == applicationId
   }
 
   private class RunConfigSettingRenderer : ListCellRenderer<RunnerAndConfigurationSettings?> {

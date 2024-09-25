@@ -61,8 +61,8 @@ public class DexCodeViewer extends DialogWrapper {
     myEditor = factory.createEditor(doc, project);
 
     EditorHighlighterFactory editorHighlighterFactory = EditorHighlighterFactory.getInstance();
-    SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(getSmaliFileTypeOrFallback(), project, null);
-    ((EditorEx)myEditor).setHighlighter(editorHighlighterFactory.createEditorHighlighter(syntaxHighlighter, EditorColorsManager.getInstance().getGlobalScheme()));
+    //SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(getSmaliFileTypeOrFallback(), project, null);
+    //((EditorEx)myEditor).setHighlighter(editorHighlighterFactory.createEditorHighlighter(syntaxHighlighter, EditorColorsManager.getInstance().getGlobalScheme()));
     ((EditorEx)myEditor).setCaretVisible(true);
 
     final EditorSettings settings = myEditor.getSettings();

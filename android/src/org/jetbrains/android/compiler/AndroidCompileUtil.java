@@ -44,7 +44,7 @@ public class AndroidCompileUtil {
 
   private AndroidCompileUtil() {
   }
-
+/*
   @Nullable
   public static Pair<VirtualFile, Boolean> getDefaultProguardConfigFile(@NotNull AndroidFacet facet) {
     VirtualFile root = AndroidRootUtil.getMainContentRoot(facet);
@@ -62,7 +62,7 @@ public class AndroidCompileUtil {
     }
     return null;
   }
-
+*/
   // must be invoked in a read action!
 
   public static void setReleaseBuild(@NotNull CompileScope compileScope) {
@@ -79,7 +79,7 @@ public class AndroidCompileUtil {
     if (compilerOutput == null) return null;
     return new File(compilerOutput.getPath(), getApkName(module)).getPath();
   }
-
+/*
   @Nullable
   public static Module findCircularDependencyOnLibraryWithSamePackage(@NotNull AndroidFacet facet) {
     final Manifest manifest = Manifest.getMainManifest(facet);
@@ -102,7 +102,7 @@ public class AndroidCompileUtil {
     }
     return null;
   }
-
+*/
   @Nullable
   public static String getUnsignedApkPath(@NotNull AndroidFacet facet) {
     String path = facet.getProperties().APK_PATH;

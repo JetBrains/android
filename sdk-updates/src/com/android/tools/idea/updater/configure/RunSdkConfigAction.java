@@ -50,13 +50,13 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
     Presentation presentation = e.getPresentation();
-    presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
+    presentation.setEnabledAndVisible(project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
 
     if (IdeInfo.getInstance().isAndroidStudio()) return;
 
     if (e.getPlace().equals(ActionPlaces.MAIN_TOOLBAR) || e.getPlace().equals(ActionPlaces.POPUP)) {
-      @Nullable Project project = e.getProject();
       boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
       presentation.setVisible(hasAndroidFacets);
     }
@@ -73,16 +73,16 @@ public class RunSdkConfigAction extends DumbAwareAction {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.SDK_MANAGER)
                                    .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
-    if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
+//    if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Invoked from Welcome Screen, might not have an SDK setup yet
-      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-      if (sdkData == null) {
-        // This probably shouldn't happen, but the check was there in the standalone launcher case...
-        return;
-      }
-    }
+//      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+//      if (sdkData == null) {
+//        // This probably shouldn't happen, but the check was there in the standalone launcher case...
+//        return;
+//      }
+//    }
     Configurable configurable =
       ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
-    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), configurable.getClass());
+    ShowSettingsUtil.getInstance().showSettingsDialog(e != null? e.getProject() : null, configurable.getClass());
   }
 }

@@ -15,7 +15,7 @@
  */
 package org.jetbrains.kotlin.android.configure
 
-import com.android.tools.idea.apk.ApkFacet
+//import com.android.tools.idea.apk.ApkFacet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -63,7 +63,7 @@ class KotlinApkModuleConfigurator : KotlinProjectConfigurator {
     // TODO(b/320447078): this might be better either as a Project System call of some kind (though testing for identity is not something
     //  generally supported), or, like in KotlinWithGradleConfigurator, maybe should test for the name of the facet ("APK" in this case).
     //  We will have to revisit this as and when the ApkProjectSystem is integrated.
-    override fun isApplicable(module: Module) = FacetManager.getInstance(module).allFacets.any { it is ApkFacet }
+    override fun isApplicable(module: Module) = false//FacetManager.getInstance(module).allFacets.any { it is ApkFacet }
 
     override fun updateLanguageVersion(module: Module,
                                        languageVersion: String?,

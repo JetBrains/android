@@ -39,7 +39,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.selector.DeviceAndSnapshotExecutionTargetProvider"/>
+<!--    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.selector.DeviceAndSnapshotExecutionTargetProvider"/>-->
 
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.DeploymentTargetDevicesService"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.ExecutionTargetService"/>
