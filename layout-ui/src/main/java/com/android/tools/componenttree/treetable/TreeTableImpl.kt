@@ -309,15 +309,7 @@ class TreeTableImpl(
   }
 
   override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
-    object : TreeTableModelAdapter(treeTableModel, tree, this) {
-      override fun fireTableDataChanged() {
-        // Note: This is called when a tree node is expanded/collapsed.
-        // Delay the table update to avoid paint problems during tree node expansions and closures.
-        // The problem seem to be caused by this being called from the selection update of the
-        // table.
-        invokeLater { treeTableSelectionModel.update { super.fireTableDataChanged() } }
-      }
-    }
+    TreeTableModelAdapterImpl(tableModel, tree, this)
 
   override fun paintComponent(g: Graphics) {
     tree.putClientProperty(Control.Painter.KEY, painter?.invoke())
