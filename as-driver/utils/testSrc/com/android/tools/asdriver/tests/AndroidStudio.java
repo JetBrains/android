@@ -370,6 +370,10 @@ public class AndroidStudio implements AutoCloseable {
     install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 3, TimeUnit.MINUTES);
   }
 
+  public void waitForFinishedCodeAnalysis(@Nullable String project) {
+    executeCommand("%waitForFinishedCodeAnalysis", project);
+  }
+
   /**
    * Opens a file and then goes to a specific line and column in the first open project's selected
    * text editor.

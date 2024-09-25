@@ -20,8 +20,18 @@ import static io.ktor.util.date.DateJvmKt.getTimeMillis;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
 import com.google.common.math.Quantiles;
+import com.google.protobuf.TextFormat;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.openapi.util.Pair;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class MetricCollector {
@@ -29,15 +39,77 @@ public class MetricCollector {
   @NotNull
   private final Benchmark benchmark;
   private final Path telemetryJsonFile;
+  private final Path studioEventsDir;
 
-  public MetricCollector(@NotNull final String dashboardName, @NotNull final Path telemetryJsonFile) {
+  public MetricCollector(@NotNull final String dashboardName, @NotNull final Path telemetryJsonFile, @NotNull final Path studioEventsDir) {
     this.telemetryJsonFile = telemetryJsonFile;
+    this.studioEventsDir = studioEventsDir;
     String testDisplayNameNoWhitespaces = dashboardName.replace(' ', '_');
 
     benchmark = new Benchmark.Builder(testDisplayNameNoWhitespaces)
       .setProject("Android Studio Performance")
       .setDescription(String.format("Performance metrics collected during the execution of the %s test", dashboardName))
       .build();
+  }
+
+  /**
+   * Collects a metric from the studio_stats event dumped by the Studio run and sends it to the perfgate dashboard named after the test.
+   * Perfgate metric will have specified {@param metricName}.
+   * <p>
+   * The latest reported event matching the specified {@param studioStatsEventKind} and {@param studioStatsEventFilter} will be used.
+   * </p>
+   *
+   * @param studioStatsEventKind   kind of the studio_stat events containing the metric of interest
+   * @param metricName             the name of the output Perfgate metric
+   * @param metricValueExtractors  function used to extract {@code Long} metric from the AndroidStudioEvent with a specified {@param studioStatsEventKind}
+   * @param studioStatsEventFilter function for filtering studio_stats events of interests
+   */
+  public void collectStudioStatsEventMetric(@NotNull final String studioStatsEventKind,
+                                            @NotNull final String metricName,
+                                            Function<AndroidStudioEvent, Long> metricValueExtractors,
+                                            Function<AndroidStudioEvent, Boolean> studioStatsEventFilter) {
+
+    File[] files = studioEventsDir.toFile().listFiles();
+    if (files == null) {
+      return;
+    }
+    Optional<AndroidStudioEvent> androidStudioEvent =
+      Arrays.stream(files).filter(f -> f.getName().startsWith(studioStatsEventKind)).map(f -> {
+          AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder();
+          try {
+            TextFormat.merge(Files.readString(f.toPath()), builder);
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+          return new Pair<>(builder.build(), f.getName());
+        }).filter(p -> studioStatsEventFilter.apply(p.getFirst())).max(Comparator.comparing(f -> f.getSecond())).map(p -> p.getFirst())
+        .stream().findFirst();
+    if (androidStudioEvent.isEmpty()) {
+      return;
+    }
+    long timeStamp = getTimeMillis();
+
+    Metric metric = new Metric(metricName);
+    metric.addSamples(benchmark, new Metric.MetricSample(timeStamp, metricValueExtractors.apply(androidStudioEvent.get())));
+    metric.commit();
+  }
+
+  /**
+   * Collects a metric from the studio_stats event dumped by the Studio run and sends it to the perfgate dashboard named after the test.
+   * Perfgate metric will have specified {@param metricName}.
+   * <p>
+   * The latest reported event matching the specified {@param studioStatsEventKind} will be used.
+   * </p>
+   *
+   * @param studioStatsEventKind  kind of the studio_stat events containing the metric of interest
+   * @param metricName            the name of the output Perfgate metric
+   * @param metricValueExtractors function used to extract {@code Long} metric from the AndroidStudioEvent with a specified {@param studioStatsEventKind}
+   */
+  public void collectStudioStatsEventMetric(@NotNull final String studioStatsEventKind,
+                                            @NotNull final String metricName,
+                                            Function<AndroidStudioEvent, Long> metricValueExtractors) {
+    collectStudioStatsEventMetric(studioStatsEventKind, metricName, metricValueExtractors, (AndroidStudioEvent e) -> true);
   }
 
   /**
@@ -67,7 +139,7 @@ public class MetricCollector {
    * <li> median duration of the metric events
    * <li> max duration of the metric events
    * </ul>
-   *
+   * <p>
    * This method is needed due to the way how IntelliJ platform sets isWarmup tags to spans, the tag will only be set to a particular kind
    * of event spans, but will not be propagated down to the child event spans. For example for the warmup findUsages call the tag will only
    * be specified for the event of a `findUsagesParent` kind, but won't be propagated to its child findUsages (or findUsages_firstUsage
@@ -75,7 +147,7 @@ public class MetricCollector {
    * non-warmup ones and take their child event's of a kind we are interested in (event name is {@code childMetricName} in this case).
    *
    * @param parentMetricName the names of parent metric
-   * @param childMetricName the names of the metrics that will be obtained and aggregated
+   * @param childMetricName  the names of the metrics that will be obtained and aggregated
    */
   public void collectChildMetrics(@NotNull String parentMetricName, @NotNull String childMetricName) {
     List<Long> metricDurations =
