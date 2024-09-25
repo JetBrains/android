@@ -85,6 +85,9 @@ public class AndroidStudioInstallation {
       case ASWB:
         zipPath = String.format("tools/vendor/google/aswb/aswb.%s.zip", platform);
         break;
+      case ASFP:
+        zipPath = String.format("tools/vendor/google/asfp/studio/asfp.%s.zip", platform);
+        break;
       default:
         throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + androidStudioFlavor);
     }
@@ -562,6 +565,9 @@ public class AndroidStudioInstallation {
 
     // Android Studio with Blaze.
     ASWB,
+
+    // Android Studio for Platform.
+    ASFP,
 
     // This indicates that some operation will need to be performed to determine which flavor is
     // being used.
