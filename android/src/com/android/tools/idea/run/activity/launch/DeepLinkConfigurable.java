@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.activity.launch;
 
-import com.android.tools.idea.run.editor.DeepLinkChooserDialog;
+//import com.android.tools.idea.run.editor.DeepLinkChooserDialog;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -46,6 +46,7 @@ public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLa
           Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher");
           return;
         }
+        /*
         DeepLinkChooserDialog dialog = new DeepLinkChooserDialog(project, module);
         dialog.setTitle("Select URL");
         dialog.show();
@@ -53,7 +54,7 @@ public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLa
         String deepLinkSelected = dialog.getSelectedDeepLink();
         if (deepLinkSelected != null && !deepLinkSelected.isEmpty()) {
           myDeepLinkField.getChildComponent().setText(deepLinkSelected);
-        }
+        }*/
       }
     });
     myDeepLinkField.getChildComponent().getEmptyText().setText("Specify URL declared in the manifest");
