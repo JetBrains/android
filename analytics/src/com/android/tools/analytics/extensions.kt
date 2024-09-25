@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("UsageTrackerUtils")
 
 package com.android.tools.analytics
 
@@ -55,44 +54,44 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  *    TODO(b/123518352): Expand this to include all application IDs in the model.
  */
-fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioEvent.Builder {
-  project?.let {
+//fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioEvent.Builder {
+//  project?.let {
+//
+//    // The base path is only  null for the default project (identified by [Project.isDefault] == true), which is used to store defaults.
+//    // In that case just store "DEFAULT", as this is not a real user project.
+//    this.projectId = if (project.isDefault) {
+//      "DEFAULT"
+//    }
+//    else {
+//      AnonymizerUtil.anonymizeUtf8(project.basePath!!)
+//    }
+//    val appId = kotlin.runCatching { getApplicationId(it) }.getOrLogException(LOG)
+//    if (appId != null) {
+//      this.rawProjectId = appId
+//    }
+//  }
+//  return this
+//}
 
-    // The base path is only  null for the default project (identified by [Project.isDefault] == true), which is used to store defaults.
-    // In that case just store "DEFAULT", as this is not a real user project.
-    this.projectId = if (project.isDefault) {
-      "DEFAULT"
-    }
-    else {
-      AnonymizerUtil.anonymizeUtf8(project.basePath!!)
-    }
-    val appId = kotlin.runCatching { getApplicationId(it) }.getOrLogException(LOG)
-    if (appId != null) {
-      this.rawProjectId = appId
-    }
-  }
-  return this
-}
-
-private fun getApplicationId(project: Project): String? {
-  if (project.isDisposed) {
-    return null
-  }
-  val moduleManager = ModuleManager.getInstance(project)
-  for (module in moduleManager.modules) {
-    if (module.isDisposed) {
-      continue
-    }
-    val androidModel = AndroidModel.get(module)
-    if (androidModel != null) {
-      val facet = AndroidFacet.getInstance(module)
-      if (facet != null && facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP) {
-        return androidModel.applicationId
-      }
-    }
-  }
-  return null
-}
+//private fun getApplicationId(project: Project): String? {
+//  if (project.isDisposed) {
+//    return null
+//  }
+//  val moduleManager = ModuleManager.getInstance(project)
+//  for (module in moduleManager.modules) {
+//    if (module.isDisposed) {
+//      continue
+//    }
+//    val androidModel = AndroidModel.get(module)
+//    if (androidModel != null) {
+//      val facet = AndroidFacet.getInstance(module)
+//      if (facet != null && facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP) {
+//        return androidModel.applicationId
+//      }
+//    }
+//  }
+//  return null
+//}
 
 /**
  * Creates a [DeviceInfo] from a [IDevice] instance.

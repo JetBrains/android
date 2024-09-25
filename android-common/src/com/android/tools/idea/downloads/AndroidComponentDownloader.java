@@ -20,6 +20,7 @@ import com.intellij.util.download.DownloadableFileService;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -163,7 +164,8 @@ public abstract class AndroidComponentDownloader {
   protected abstract String getArtifactName();
 
   public File getPluginDir() {
-    return new File(PathManager.getSystemPath(), "android/" + getArtifactName() + "/" + getVersion());
+    File pluginDir = new File(PathManager.getSystemPath(), "rider-android/");
+    return pluginDir;
   }
 
 
@@ -188,6 +190,9 @@ public abstract class AndroidComponentDownloader {
       try {
         Properties properties = new Properties();
         try (InputStream is = LazyComponentVersions.class.getClassLoader().getResourceAsStream("studio-platform.properties")) {
+          if (is == null) {
+            throw new FileNotFoundException("Could not find resource \"studio-platform.properties\"");
+          }
           properties.load(is);
           studioPlatformVersion = properties.getProperty("version");
           if (studioPlatformVersion == null) {
