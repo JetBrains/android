@@ -17,16 +17,15 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
-import java.util.NavigableSet
+import com.google.common.collect.Range
 import kotlin.time.Duration
 
 interface DeviceProfile {
   // TODO: alert icon, text
 
-  val apiLevels: NavigableSet<AndroidVersion>
+  val apiRange: Range<Int>
 
   val manufacturer: String
   val name: String
@@ -54,7 +53,7 @@ interface DeviceProfile {
   @Composable fun Icon(modifier: Modifier)
 
   abstract class Builder {
-    lateinit var apiLevels: NavigableSet<AndroidVersion>
+    lateinit var apiRange: Range<Int>
 
     lateinit var manufacturer: String
     lateinit var name: String
@@ -75,7 +74,7 @@ interface DeviceProfile {
     abstract fun build(): DeviceProfile
 
     fun copyFrom(profile: DeviceProfile) {
-      apiLevels = profile.apiLevels
+      apiRange = profile.apiRange
       manufacturer = profile.manufacturer
       name = profile.name
       resolution = profile.resolution

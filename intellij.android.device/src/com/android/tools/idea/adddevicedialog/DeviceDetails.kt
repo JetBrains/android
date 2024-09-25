@@ -28,10 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.DeviceScreenDiagram
+import com.google.common.collect.Range
 import java.text.DecimalFormat
-import java.util.NavigableSet
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
@@ -59,10 +58,14 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
       LabeledValue("OEM", device.manufacturer)
 
       Header("System Image")
-      if (device.apiLevels.size > 1) {
-        LabeledValue("Supported APIs", device.apiLevels.firstAndLastApiLevel())
+      if (
+        device.apiRange.hasLowerBound() &&
+          device.apiRange.hasUpperBound() &&
+          device.apiRange.lowerEndpoint() == device.apiRange.upperEndpoint()
+      ) {
+        LabeledValue("API", device.apiRange.upperEndpoint().toString())
       } else {
-        LabeledValue("API", device.apiLevels.last().apiLevel.toString())
+        LabeledValue("Supported APIs", device.apiRange.firstAndLastApiLevel())
       }
 
       Header("Screen")
@@ -72,8 +75,8 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
   }
 }
 
-private fun NavigableSet<AndroidVersion>.firstAndLastApiLevel(): String =
-  "${first().apiLevel}\u2013${last().apiLevel}"
+private fun Range<Int>.firstAndLastApiLevel(): String =
+  if (hasUpperBound()) "${lowerEndpoint()}\u2013${upperEndpoint()}" else "${lowerEndpoint()}+"
 
 @Composable
 private fun Header(text: String) {
