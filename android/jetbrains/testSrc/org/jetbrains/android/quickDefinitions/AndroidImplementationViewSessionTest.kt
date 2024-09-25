@@ -45,14 +45,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-/**
- * Tests for [AndroidImplementationViewSession] and [ShowImplementationsAction].
- */
+/** Tests for [AndroidImplementationViewSession] and [ShowImplementationsAction]. */
 @RunWith(JUnit4::class)
 class AndroidImplementationViewSessionTest {
 
-  @get:Rule
-  val edtRule = AndroidProjectRule.withSdk().onEdt()
+  @get:Rule val edtRule = AndroidProjectRule.withSdk().onEdt()
 
   private val fixture by lazy {
     edtRule.projectRule.fixture.apply {
@@ -69,7 +66,8 @@ class AndroidImplementationViewSessionTest {
 
       public class ConstraintLayout extends android.view.ViewGroup {
       }
-      """.trimIndent()
+      """
+      .trimIndent()
 
   @Before
   fun setUp() {
@@ -78,7 +76,7 @@ class AndroidImplementationViewSessionTest {
   }
 
   private val KOTLIN_ACTIVITY =
-    //language=kotlin
+    // language=kotlin
     """
         package p1.p2
 
@@ -91,31 +89,46 @@ class AndroidImplementationViewSessionTest {
             R.drawable.thumbnail${caret}
           }
         }
-      """.trimIndent()
+      """
+      .trimIndent()
 
-  /**
-   * Tests on resource representations that resolve in the editor.
-   */
+  /** Tests on resource representations that resolve in the editor. */
   @Test
   @RunsInEdt
   fun drawableKotlin() {
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-mdpi/thumbnail.png")
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-xhdpi/thumbnail.png")
-    val activityFile = fixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-mdpi/thumbnail.png",
+    )
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-xhdpi/thumbnail.png",
+    )
+    val activityFile =
+      fixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
     fixture.configureFromExistingVirtualFile(activityFile)
     val implementations = ShowImplementationsTestUtil.getImplementations()
     assertThat(implementations).hasLength(2)
-    assertThat(implementations.map { it.toString() }).containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
+    assertThat(implementations.map { it.toString() })
+      .containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
   }
 
   @Test
   @RunsInEdt
   fun drawableFromResourceReferenceXml() {
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-mdpi/thumbnail.png")
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-xhdpi/thumbnail.png")
-    val layoutFile = fixture.addFileToProject("res/layout/activity_main.xml",
-      //language=xml
-                                              """
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-mdpi/thumbnail.png",
+    )
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-xhdpi/thumbnail.png",
+    )
+    val layoutFile =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
       <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -128,13 +141,17 @@ class AndroidImplementationViewSessionTest {
           app:layout_constraintTop_toBottomOf="parent"
           android:src="@drawable/thumbnail${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
     val implementations = ShowImplementationsTestUtil.getImplementations()
-    assertThat(implementations.map(PsiElement::toString)).containsExactly(
+    assertThat(implementations.map(PsiElement::toString))
+      .containsExactly(
         "PsiElement(XML_ATTRIBUTE_VALUE): ResourceReference{namespace=apk/res-auto, type=drawable, name=thumbnail}",
         "PsiBinaryFile:thumbnail.png",
-        "PsiBinaryFile:thumbnail.png")
+        "PsiBinaryFile:thumbnail.png",
+      )
   }
 
   @Test
@@ -142,15 +159,19 @@ class AndroidImplementationViewSessionTest {
   fun colorFromResourceReferenceXml() {
     fixture.addFileToProject(
       "res/values/colors.xml",
-      //language=XML
+      // language=XML
       """
         <resources>
           <color name="colorPrimary">#008577</color>
         </resources>
-      """.trimIndent())
-    val layoutFile = fixture.addFileToProject("res/layout/activity_main.xml",
-      //language=xml
-                                              """
+      """
+        .trimIndent(),
+    )
+    val layoutFile =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=xml
+        """
       <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -161,33 +182,41 @@ class AndroidImplementationViewSessionTest {
           android:layout_height="match_parent"
           android:textColor="@color/colorPrimary${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
     val implementations = ShowImplementationsTestUtil.getImplementations()
     assertThat(implementations).hasLength(2)
-    assertThat(implementations[0].toString()).isEqualTo(
-        "PsiElement(XML_ATTRIBUTE_VALUE): ResourceReference{namespace=apk/res-auto, type=color, name=colorPrimary}")
-    assertThat(ImplementationViewComponent.getNewText(implementations[1])).isEqualTo("  <color name=\"colorPrimary\">#008577</color>")
+    assertThat(implementations[0].toString())
+      .isEqualTo(
+        "PsiElement(XML_ATTRIBUTE_VALUE): ResourceReference{namespace=apk/res-auto, type=color, name=colorPrimary}"
+      )
+    assertThat(ImplementationViewComponent.getNewText(implementations[1]))
+      .isEqualTo("  <color name=\"colorPrimary\">#008577</color>")
   }
 
-  /**
-   * Tests on resource representations from code completion
-   */
+  /** Tests on resource representations from code completion */
   @Test
   @RunsInEdt
   fun completionColorReferenceXml() {
     fixture.addFileToProject(
       "res/values/colors.xml",
-      //language=XML
+      // language=XML
       """
         <resources>
           <color name="colorPrimary">#008577</color>
           <color name="colorAccent">#008577</color>
         </resources>
-      """.trimIndent())
-    val layoutFile = fixture.addFileToProject("res/layout/activity_main.xml",
-      //language=xml
-                                              """
+      """
+        .trimIndent(),
+    )
+    val layoutFile =
+      fixture
+        .addFileToProject(
+          "res/layout/activity_main.xml",
+          // language=xml
+          """
       <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -198,26 +227,50 @@ class AndroidImplementationViewSessionTest {
           android:layout_height="match_parent"
           android:textColor="@color/colo${caret}"/>
       </androidx.constraintlayout.widget.ConstraintLayout>
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     fixture.configureFromExistingVirtualFile(layoutFile)
     val completionElements = fixture.completeBasic()
-    val colorPrimaryElement = completionElements.stream().filter { it.lookupString == "@color/colorPrimary" }.findFirst().get()
-    val implementationsForCompletionObject = getImplementationsForCompletionObject(colorPrimaryElement)
+    val colorPrimaryElement =
+      completionElements
+        .stream()
+        .filter { it.lookupString == "@color/colorPrimary" }
+        .findFirst()
+        .get()
+    val implementationsForCompletionObject =
+      getImplementationsForCompletionObject(colorPrimaryElement)
     assertThat(implementationsForCompletionObject).hasLength(1)
-    assertThat(ImplementationViewComponent.getNewText((implementationsForCompletionObject[0] as PsiImplementationViewElement).getPsiElement()))
+    assertThat(
+        ImplementationViewComponent.getNewText(
+          (implementationsForCompletionObject[0] as PsiImplementationViewElement).getPsiElement()
+        )
+      )
       .isEqualTo("  <color name=\"colorPrimary\">#008577</color>")
   }
 
   @Test
   @RunsInEdt
   fun completionDrawableReferenceKotlin() {
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-mdpi/thumbnail.png")
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-xhdpi/thumbnail.png")
-    fixture.copyFileToProject("quickDefinitions/drawable1_thumbnail.png", "res/drawable-xhdpi/thumbNotNail.png")
-    val activityFile = fixture.addFileToProject(
-      "src/p1/p2/MyActivity.kt",
-      //language=kotlin
-      """
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-mdpi/thumbnail.png",
+    )
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-xhdpi/thumbnail.png",
+    )
+    fixture.copyFileToProject(
+      "quickDefinitions/drawable1_thumbnail.png",
+      "res/drawable-xhdpi/thumbNotNail.png",
+    )
+    val activityFile =
+      fixture
+        .addFileToProject(
+          "src/p1/p2/MyActivity.kt",
+          // language=kotlin
+          """
         package p1.p2
 
         import android.app.Activity
@@ -229,13 +282,19 @@ class AndroidImplementationViewSessionTest {
             R.drawable.thumb${caret}
           }
         }
-      """.trimIndent()).virtualFile
+      """
+            .trimIndent(),
+        )
+        .virtualFile
     fixture.configureFromExistingVirtualFile(activityFile)
     val completionElements = fixture.completeBasic()
-    val colorPrimaryElement = completionElements.stream().filter { it.lookupString == "thumbnail" }.findFirst().get()
+    val colorPrimaryElement =
+      completionElements.stream().filter { it.lookupString == "thumbnail" }.findFirst().get()
     val implementations = getImplementationsForCompletionObject(colorPrimaryElement)
     assertThat(implementations).hasLength(2)
-    assertThat(implementations.map { (it as PsiImplementationViewElement).getPsiElement().toString() })
+    assertThat(
+        implementations.map { (it as PsiImplementationViewElement).getPsiElement().toString() }
+      )
       .containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
   }
 
@@ -243,23 +302,26 @@ class AndroidImplementationViewSessionTest {
   @RunsInEdt
   fun nonTransitiveAarRClassReferenceKotlin() {
     addAarDependency(fixture, module, "aarLib", "com.example.aarLib") { resDir ->
-      resDir.parentFile.resolve(FN_RESOURCE_TEXT).writeText(
-        """int color colorPrimary 0x7f010001"""
-      )
-      resDir.resolve("values/colors.xml").writeText(
-        // language=XML
-        """
+      resDir.parentFile.resolve(FN_RESOURCE_TEXT).writeText("""int color colorPrimary 0x7f010001""")
+      resDir
+        .resolve("values/colors.xml")
+        .writeText(
+          // language=XML
+          """
         <resources>
           <color name="colorPrimary">#008577</color>
         </resources>
-        """.trimIndent()
-      )
+        """
+            .trimIndent()
+        )
     }
 
-    fixture.configureFromExistingVirtualFile(fixture.addFileToProject(
-      "src/p1/p2/MyActivity.kt",
-      //language=kotlin
-      """
+    fixture.configureFromExistingVirtualFile(
+      fixture
+        .addFileToProject(
+          "src/p1/p2/MyActivity.kt",
+          // language=kotlin
+          """
         package p1.p2
 
         class MyActivity {
@@ -267,30 +329,48 @@ class AndroidImplementationViewSessionTest {
             com.example.aarLib.R.color.colorPrimary${caret}
           }
         }
-      """.trimIndent()).virtualFile)
+      """
+            .trimIndent(),
+        )
+        .virtualFile
+    )
     val implementations = ShowImplementationsTestUtil.getImplementations()
     assertThat(implementations).hasLength(1)
     assertThat(implementations.map { ImplementationViewComponent.getNewText(it) })
       .containsExactly("  <color name=\"colorPrimary\">#008577</color>")
   }
 
-  private fun getImplementationsForCompletionObject(lookupElement: LookupElement): Array<ImplementationViewElement> {
+  private fun getImplementationsForCompletionObject(
+    lookupElement: LookupElement
+  ): Array<ImplementationViewElement> {
     val activeLookup = LookupManager.getInstance(fixture.project).activeLookup
     activeLookup!!.currentItem = lookupElement
     val dataContext = DataManager.getInstance().getDataContext(fixture.editor.component)
     val sessionRef = Ref<ImplementationViewSession>()
     object : ShowImplementationsAction() {
 
-      override fun showImplementations(session: ImplementationViewSession,
-                                       invokedFromEditor: Boolean,
-                                       invokedByShortcut: Boolean) {
-        sessionRef.set(session)
+        override fun showImplementations(
+          session: ImplementationViewSession,
+          invokedFromEditor: Boolean,
+          invokedByShortcut: Boolean,
+        ) {
+          sessionRef.set(session)
+        }
       }
-    }.performForContext(dataContext)
+      .performForContext(dataContext)
     val session = sessionRef.get()
-    val targetElement = DocumentationManager.getInstance(fixture.project).getElementFromLookup(fixture.editor, fixture.file)
-    val newSession = session.factory.createSessionForLookupElement(session.project, session.editor, session.file,
-                                                                   targetElement,true, alwaysIncludeSelf = true)
+    val targetElement =
+      DocumentationManager.getInstance(fixture.project)
+        .getElementFromLookup(fixture.editor, fixture.file)
+    val newSession =
+      session.factory.createSessionForLookupElement(
+        session.project,
+        session.editor,
+        session.file,
+        targetElement,
+        true,
+        alwaysIncludeSelf = true,
+      )
     return newSession!!.implementationElements.toTypedArray()
   }
 }
