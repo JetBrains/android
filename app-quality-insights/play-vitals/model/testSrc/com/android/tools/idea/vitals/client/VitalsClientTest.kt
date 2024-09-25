@@ -522,7 +522,8 @@ class VitalsClientTest {
       CodeContextData.EMPTY,
       false,
     )
-    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id)).isEqualTo(DEFAULT_AI_INSIGHT)
+    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test
@@ -550,7 +551,7 @@ class VitalsClientTest {
           false,
         )
       )
-      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(isCached = true)))
   }
 
   @Test
