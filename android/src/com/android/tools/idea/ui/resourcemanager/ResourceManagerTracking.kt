@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.resources.ResourceType
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ResourceManagerEvent
 import com.google.wireless.android.sdk.stats.ResourceManagerEvent.Kind
@@ -152,16 +152,16 @@ object ResourceManagerTracking {
   /**
    * Creates a log event for the resource manager.
    */
-  private fun createEvent(project: Project?,
-                          kind: ResourceManagerEvent.Kind,
-                          type: ResourceManagerEvent.ResourceType
-  ): AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-    .withProjectId(project)
-    .setKind(AndroidStudioEvent.EventKind.RESOURCE_MANAGER)
-    .setResourceManagerEvent(
-      ResourceManagerEvent.newBuilder()
-        .setKind(kind)
-        .setResourceType(type))
+  //private fun createEvent(project: Project?,
+  //                        kind: ResourceManagerEvent.Kind,
+  //                        type: ResourceManagerEvent.ResourceType
+  //): AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
+  //  .withProjectId(project)
+  //  .setKind(AndroidStudioEvent.EventKind.RESOURCE_MANAGER)
+  //  .setResourceManagerEvent(
+  //    ResourceManagerEvent.newBuilder()
+  //      .setKind(kind)
+  //      .setResourceType(type))
 
   /**
    * Utility method to log a resource manager event
@@ -171,8 +171,8 @@ object ResourceManagerTracking {
   /**
    * Utility method to log a resource manager event
    */
-  private fun log(project: Project?, kind: ResourceManagerEvent.Kind) =
-    UsageTracker.log(createEvent(project, kind, EventResourceType.UNKNOWN))
+  private fun log(project: Project?, kind: ResourceManagerEvent.Kind) {}/*=
+    UsageTracker.log(createEvent(project, kind, EventResourceType.UNKNOWN))*/
 
   /**
    * Utility method to log a resource manager event with a resource type
@@ -182,8 +182,8 @@ object ResourceManagerTracking {
   /**
    * Utility method to log a resource manager event with a resource type
    */
-  private fun log(project: Project?, kind: ResourceManagerEvent.Kind, type: ResourceType?) =
-    UsageTracker.log(createEvent(project, kind, type.toEventType()))
+  private fun log(project: Project?, kind: ResourceManagerEvent.Kind, type: ResourceType?) {}/*=
+    UsageTracker.log(createEvent(project, kind, type.toEventType()))*/
 
   /**
    * Map a [ResourceType] to an [EventResourceType] which represents a resource in the proto.
