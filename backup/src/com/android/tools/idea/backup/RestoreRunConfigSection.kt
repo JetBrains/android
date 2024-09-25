@@ -20,7 +20,7 @@ import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.AndroidRunConfiguration
+//import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.RunConfigSection
 import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
@@ -60,45 +60,45 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   }
 
   override fun resetFrom(runConfiguration: RunConfiguration) {
-    val config = runConfiguration as? AndroidRunConfiguration ?: return
-    restoreApp.set(config.RESTORE_ENABLED)
-    backupFile.set(config.RESTORE_FILE)
+    //val config = runConfiguration as? AndroidRunConfiguration ?: return
+    //restoreApp.set(config.RESTORE_ENABLED)
+    //backupFile.set(config.RESTORE_FILE)
   }
 
   override fun applyTo(runConfiguration: RunConfiguration) {
-    val config = runConfiguration as? AndroidRunConfiguration ?: return
-    config.RESTORE_ENABLED = restoreApp.get()
-    config.RESTORE_FILE = backupFile.get()
+    //val config = runConfiguration as? AndroidRunConfiguration ?: return
+    //config.RESTORE_ENABLED = restoreApp.get()
+    //config.RESTORE_FILE = backupFile.get()
   }
 
   override fun validate(runConfiguration: RunConfiguration): List<ValidationError> {
-    val config = runConfiguration as? AndroidRunConfiguration ?: return emptyList()
-    if (!config.RESTORE_ENABLED) {
-      return emptyList()
-    }
-    val file = config.RESTORE_FILE
-    if (file.isBlank()) {
-      return listOf(ValidationError.warning(message("backup.file.missing")))
-    }
-
-    val path =
-      when (file.startsWith('/')) {
-        true -> Path.of(file)
-        false -> Path.of(project.basePath ?: "", file)
-      }
-    if (path.notExists()) {
-      return listOf(ValidationError.warning(message("backup.file.not.exist")))
-    }
-
-    try {
-      val fileApplicationId = BackupService.validateBackupFile(path)
-      val packageName = projectSystem.getApplicationIdProvider(runConfiguration)?.packageName
-      if (packageName != null && fileApplicationId != packageName) {
-        return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))
-      }
-    } catch (e: Exception) {
-      return listOf(ValidationError.warning(message("backup.file.invalid")))
-    }
+    //val config = runConfiguration as? AndroidRunConfiguration ?: return emptyList()
+    //if (!config.RESTORE_ENABLED) {
+    //  return emptyList()
+    //}
+    //val file = config.RESTORE_FILE
+    //if (file.isBlank()) {
+    //  return listOf(ValidationError.warning(message("backup.file.missing")))
+    //}
+    //
+    //val path =
+    //  when (file.startsWith('/')) {
+    //    true -> Path.of(file)
+    //    false -> Path.of(project.basePath ?: "", file)
+    //  }
+    //if (path.notExists()) {
+    //  return listOf(ValidationError.warning(message("backup.file.not.exist")))
+    //}
+    //
+    //try {
+    //  val fileApplicationId = BackupService.validateBackupFile(path)
+    //  val packageName = projectSystem.getApplicationIdProvider(runConfiguration)?.packageName
+    //  if (packageName != null && fileApplicationId != packageName) {
+    //    return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))
+    //  }
+    //} catch (e: Exception) {
+    //  return listOf(ValidationError.warning(message("backup.file.invalid")))
+    //}
 
     return emptyList()
   }

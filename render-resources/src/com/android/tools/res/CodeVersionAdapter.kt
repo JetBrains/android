@@ -25,7 +25,7 @@ import com.intellij.openapi.extensions.PluginId
  */
 object CodeVersionAdapter {
 
-  private const val ANDROID_PLUGIN_ID = "org.jetbrains.android"
+  private const val ANDROID_PLUGIN_ID = "com.jetbrains.rider.android"
 
   /**
    * Returns the version of library of plugin containing this class or null if the code is not a
