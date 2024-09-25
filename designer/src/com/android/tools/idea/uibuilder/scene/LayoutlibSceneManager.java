@@ -19,16 +19,12 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
-import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.updateTargetProviders;
 
 import com.android.ide.common.rendering.api.RenderSession;
-import com.android.tools.configurations.ConfigurationListener;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider;
@@ -39,7 +35,6 @@ import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
@@ -80,13 +75,8 @@ import org.jetbrains.annotations.TestOnly;
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
 public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements InteractiveSceneManager {
-  private int myDpi = 0;
-  private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
-  private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
   private final boolean myAreListenersRegistered;
-  // Variables to track previous values of the configuration bar for tracking purposes
-  private final AtomicInteger myConfigurationUpdatedFlags = new AtomicInteger(0);
   @NotNull private final ViewEditor myViewEditor;
 
   /**
@@ -134,13 +124,13 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, layoutScannerConfig);
     updateSceneView();
 
-    getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
+    getDesignSurface().getSelectionModel().addListener(selectionChangeListener);
 
     Scene scene = getScene();
 
     myViewEditor = new ViewEditorImpl(model, scene);
 
-    model.getConfiguration().addListener(myConfigurationChangeListener);
+    model.getConfiguration().addListener(configurationChangeListener);
 
     List<NlComponent> components = model.getTreeReader().getComponents();
     if (!components.isEmpty()) {
@@ -234,8 +224,8 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     try {
       if (myAreListenersRegistered) {
         NlModel model = getModel();
-        getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
-        model.getConfiguration().removeListener(myConfigurationChangeListener);
+        getDesignSurface().getSelectionModel().removeListener(selectionChangeListener);
+        model.getConfiguration().removeListener(configurationChangeListener);
         model.removeListener(myModelChangeListener);
       }
     }
@@ -287,15 +277,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     return sceneView;
   }
 
-  private void updateTargets() {
-    Runnable updateAgain = this::updateTargets;
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      updateTargetProviders(root, updateAgain);
-      root.updateTargets();
-    }
-  }
-
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
@@ -309,7 +290,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
         }
 
         // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
-        mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+        selectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
       }, EdtExecutorService.getInstance());
     }
 
@@ -324,7 +305,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       myLayoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
       requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
         .thenRunAsync(() ->
-                        mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
+                        selectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
     }
 
@@ -346,14 +327,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     }
   }
 
-  private class SelectionChangeListener implements SelectionListener {
-    @Override
-    public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      updateTargets();
-      getScene().needsRebuildList();
-    }
-  }
-
   /**
    * Adds a new render request to the queue.
    * @param trigger build trigger for reporting purposes
@@ -371,22 +344,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     getModel().resetLastChange();
 
     return myLayoutlibSceneRenderer.renderAsync(trigger).thenCompose((unit) -> CompletableFuture.completedFuture(null));
-  }
-
-  private class ConfigurationChangeListener implements ConfigurationListener {
-    @Override
-    public boolean changed(int flags) {
-      myConfigurationUpdatedFlags.getAndUpdate((value) -> value |= flags);
-      if ((flags & CFG_DEVICE) != 0) {
-        int newDpi = getModel().getConfiguration().getDensity().getDpiValue();
-        if (myDpi != newDpi) {
-          myDpi = newDpi;
-          // Update from the model to update the dpi
-          LayoutlibSceneManager.this.update();
-        }
-      }
-      return true;
-    }
   }
 
   @Override
@@ -439,28 +396,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   @Nullable
   public RenderResult getRenderResult() {
     return myLayoutlibSceneRenderer.getRenderResult();
-  }
-
-  private void logConfigurationChange(@NotNull DesignSurface<?> surface) {
-    int flags = myConfigurationUpdatedFlags.getAndSet(0);  // Get and reset the saved flags
-    if (flags != 0) {
-      // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
-      // by the user
-      NlAnalyticsManager analyticsManager = (NlAnalyticsManager)(surface.getAnalyticsManager());
-
-      if ((flags & ConfigurationListener.CFG_THEME) != 0) {
-        analyticsManager.trackThemeChange();
-      }
-      if ((flags & ConfigurationListener.CFG_TARGET) != 0) {
-        analyticsManager.trackApiLevelChange();
-      }
-      if ((flags & ConfigurationListener.CFG_LOCALE) != 0) {
-        analyticsManager.trackLanguageChange();
-      }
-      if ((flags & ConfigurationListener.CFG_DEVICE) != 0) {
-        analyticsManager.trackDeviceChange();
-      }
-    }
   }
 
   /**
