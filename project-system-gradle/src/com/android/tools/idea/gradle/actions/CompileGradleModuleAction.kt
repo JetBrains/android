@@ -117,7 +117,7 @@ abstract class AbstractCompileGradleModuleAction :
     }
 
     private fun extractModuleNames(e: AnActionEvent, project: Project): List<String> =
-      Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name.replace('.', ':') }
+      Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
 
     private fun updatePresentation(e: AnActionEvent, project: Project, moduleNames: List<String?>) {
       val moduleCount = moduleNames.size
