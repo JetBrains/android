@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.tracker
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -56,12 +56,12 @@ abstract class SafeArgsTracker(private val project: Project) {
   }
 
   private fun track(safeArgsEvent: NavSafeArgsEvent.Builder) {
-    val studioEvent =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT)
-        .setNavSafeArgsEvent(safeArgsEvent)
-
-    UsageTracker.log(studioEvent.withProjectId(project))
+    //val studioEvent =
+    //  AndroidStudioEvent.newBuilder()
+    //    .setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT)
+    //    .setNavSafeArgsEvent(safeArgsEvent)
+    //
+    //UsageTracker.log(studioEvent.withProjectId(project))
   }
 
   /**
