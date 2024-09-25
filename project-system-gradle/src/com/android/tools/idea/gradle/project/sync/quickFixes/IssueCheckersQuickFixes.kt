@@ -25,6 +25,7 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -42,7 +43,6 @@ import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.StudioBotBundle
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
@@ -363,13 +363,13 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   }
 }
 
-class OpenStudioBotBuildIssueQuickFix(private val queryContext: String) : DescribedBuildIssueQuickFix {
+class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErrorContext) : DescribedBuildIssueQuickFix {
   override val id: String = "open.plugin.studio.bot"
   override val description: String = StudioBotBundle.message("studiobot.ask.text")
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val studioBot = StudioBot.getInstance()
-    studioBot.sendChatQueryIfContextAllowed(project, "Explain build error: $queryContext", StudioBot.RequestSource.BUILD)
+    studioBot.sendChatQueryIfContextAllowed(project, gradleErrorContext, StudioBot.RequestSource.BUILD)
     return CompletableFuture.completedFuture(null)
   }
 }
@@ -377,13 +377,12 @@ class OpenStudioBotBuildIssueQuickFix(private val queryContext: String) : Descri
 /** Sends chat query if context is allowed, otherwise stages it. */
 fun StudioBot.sendChatQueryIfContextAllowed(
   project: Project,
-  query: String,
+  gradleErrorContext: GradleErrorContext,
   requestSource: StudioBot.RequestSource,
 ) {
   if (isContextAllowed(project)) {
-    val prompt = buildPrompt(project) { userMessage { text(query, filesUsed = emptyList()) } }
-    chat(project).sendChatQuery(prompt, requestSource)
+    chat(project).sendChatQuery(gradleErrorContext.toPrompt(project), requestSource)
   } else {
-    chat(project).stageChatQuery(query, requestSource)
+    chat(project).stageChatQuery(gradleErrorContext.toQuery(), requestSource)
   }
 }
