@@ -43,14 +43,11 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
-import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
@@ -69,7 +66,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
@@ -79,31 +75,10 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   private final boolean myAreListenersRegistered;
   @NotNull private final ViewEditor myViewEditor;
 
-  /**
-   * Helper class in charge of some render related responsibilities
-   */
-  // TODO(b/335424569): add a better explanation after moving more responsibilities to
-  //  LayoutlibSceneRenderer
-  private final LayoutlibSceneRenderer myLayoutlibSceneRenderer;
-
-  /**
-   * If true, listen the resource change.
-   */
-  private boolean myListenResourceChange = true;
-
-  /**
-   * If true, automatically update (if needed) and re-render when being activated. Which happens after {@link #activate(Object)} is called.
-   * Note that if it is activated already, then it will not re-render.
-   */
-  private boolean myUpdateAndRenderWhenActivated = true;
-
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   /** Counter for user events during the interactive session. */
   private final AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
-
-  @NotNull
-  private VisualLintMode myVisualLintMode = VisualLintMode.DISABLED;
 
   /**
    * Creates a new LayoutlibSceneManager.
@@ -121,7 +96,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
                                   @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, renderTaskDisposerExecutor, sceneComponentProvider, layoutScannerConfig);
-    myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, layoutScannerConfig);
     updateSceneView();
 
     getDesignSurface().getSelectionModel().addListener(selectionChangeListener);
@@ -199,20 +173,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   @NotNull
   public ViewEditor getViewEditor() {
     return myViewEditor;
-  }
-
-  @NotNull
-  public LayoutlibSceneRenderConfiguration getSceneRenderConfiguration() {
-    return myLayoutlibSceneRenderer.getSceneRenderConfiguration();
-  }
-
-  public void setVisualLintMode(@NotNull VisualLintMode visualLintMode) {
-    myVisualLintMode = visualLintMode;
-  }
-
-  @NotNull
-  public VisualLintMode getVisualLintMode() {
-    return myVisualLintMode;
   }
 
   @Override
@@ -302,7 +262,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
       // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
       // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
-      myLayoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
+      layoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
       requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
         .thenRunAsync(() ->
                         selectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
@@ -343,34 +303,13 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     logConfigurationChange(surface);
     getModel().resetLastChange();
 
-    return myLayoutlibSceneRenderer.renderAsync(trigger).thenCompose((unit) -> CompletableFuture.completedFuture(null));
+    return layoutlibSceneRenderer.renderAsync(trigger).thenCompose((unit) -> CompletableFuture.completedFuture(null));
   }
 
   @Override
   @NotNull
   public CompletableFuture<Void> requestRenderAsync() {
     return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
-  }
-
-  /**
-   * If true, register the {@link com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener} which calls
-   * {@link #resourcesChanged(ImmutableSet)} when any resource is changed.
-   * By default, it is enabled.
-   */
-  public void setListenResourceChange(boolean enabled) {
-    myListenResourceChange = enabled;
-  }
-
-  public void setUpdateAndRenderWhenActivated(boolean enable) {
-    myUpdateAndRenderWhenActivated = enable;
-  }
-
-  public float getLastRenderQuality() {
-    return myLayoutlibSceneRenderer.getLastRenderQuality();
-  }
-
-  public void invalidateCachedResponse() {
-    myLayoutlibSceneRenderer.setRenderResult(null);
   }
 
   @Override
@@ -380,30 +319,17 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
+    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
     return currentTask.layout()
       .thenAccept(result -> {
         if (result != null && !isDisposed.get()) {
-          myLayoutlibSceneRenderer.updateHierarchy(result);
+          layoutlibSceneRenderer.updateHierarchy(result);
           getModel().notifyListenersModelChangedOnLayout(animate);
         }
       });
-  }
-
-  @Nullable
-  public RenderResult getRenderResult() {
-    return myLayoutlibSceneRenderer.getRenderResult();
-  }
-
-  /**
-   * Returns if there are any pending render requests.
-   */
-  @TestOnly
-  public boolean isRendering() {
-    return myLayoutlibSceneRenderer.isRendering();
   }
 
   /**
@@ -415,7 +341,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
-    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
+    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
     }
@@ -436,7 +362,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
    */
   @NotNull
   public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block, long timeout, TimeUnit timeUnit) {
-    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
+    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -444,7 +370,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   }
 
   private long currentTimeNanos() {
-    return myLayoutlibSceneRenderer.getSessionClock().getTimeNanos();
+    return layoutlibSceneRenderer.getSessionClock().getTimeNanos();
   }
 
   /**
@@ -452,7 +378,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
    */
   @Override
   public void pauseSessionClock() {
-    myLayoutlibSceneRenderer.getSessionClock().pause();
+    layoutlibSceneRenderer.getSessionClock().pause();
   }
 
   /**
@@ -460,7 +386,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
    */
   @Override
   public void resumeSessionClock() {
-    myLayoutlibSceneRenderer.getSessionClock().resume();
+    layoutlibSceneRenderer.getSessionClock().resume();
   }
 
   /**
@@ -477,7 +403,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       Logger.getInstance(LayoutlibSceneManager.class).warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
+    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -496,7 +422,7 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       Logger.getInstance(LayoutlibSceneManager.class).warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed");
     }
 
-    RenderTask currentTask = myLayoutlibSceneRenderer.getRenderTask();
+    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
     if (currentTask == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -515,12 +441,12 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   @Override
   public boolean activate(@NotNull Object source) {
     boolean active = super.activate(source);
-    myLayoutlibSceneRenderer.activate();
-    if (active && myUpdateAndRenderWhenActivated) {
+    layoutlibSceneRenderer.activate();
+    if (active && updateAndRenderWhenActivated) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
-      if (!version.equals(myLayoutlibSceneRenderer.getRenderedVersion())) {
+      if (!version.equals(layoutlibSceneRenderer.getRenderedVersion())) {
         getSceneRenderConfiguration().getNeedsInflation().set(true);
       }
       requestRenderAsync();
@@ -533,17 +459,10 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   public boolean deactivate(@NotNull Object source) {
     boolean deactivated = super.deactivate(source);
     if (deactivated) {
-      myLayoutlibSceneRenderer.deactivate();
+      layoutlibSceneRenderer.deactivate();
     }
 
     return deactivated;
-  }
-
-  @Override
-  public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reasons) {
-    if (myListenResourceChange) {
-      super.resourcesChanged(reasons);
-    }
   }
 
   /**
