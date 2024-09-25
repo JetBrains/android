@@ -17,7 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+//import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
@@ -93,7 +93,7 @@ public class RunInstantApp {
     ApkInfo apkInfo = myPackages.iterator().next();
     List<ApkFileUnit> artifactFiles = apkInfo.getFiles();
 
-    StatusCode status;
+    StatusCode status = null;
     if (isSingleZipFile(artifactFiles)) {
       // This is a ZIP built by the feature plugin, containing all the app splits
       status = aiaSdk.getRunHandler().runZip(
@@ -105,6 +105,7 @@ public class RunInstantApp {
         resultStream,
         new NullProgressIndicator());
     }
+    /*
     else {
       // This is a set of individual APKs, such as might be built from a bundle
       status = aiaSdk.getRunHandler().runApks(
@@ -120,6 +121,7 @@ public class RunInstantApp {
         resultStream,
         new NullProgressIndicator());
     }
+    */
 
     if (status != StatusCode.SUCCESS) {
       throw new ExecutionException("Instant app deployment failed");
