@@ -16,7 +16,7 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
@@ -124,69 +124,72 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   }
 
   private fun logFileType(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    return null
     // filter out events that Jetbrains does not require
-    if (eventId != "file.in.project") {
-      return null
-    }
-
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.FILE_TYPE
-      fileType = FileType.newBuilder().apply {
-        (data["file_type"] as? String)?.let { fileType = it }
-        (data["plugin_type"] as? String)?.let { pluginType = it }
-        (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
-      }.build()
-    }.withProjectId(data)
+    //if (eventId != "file.in.project") {
+    //  return null
+    //}
+    //
+    //return AndroidStudioEvent.newBuilder().apply {
+    //  kind = AndroidStudioEvent.EventKind.FILE_TYPE
+    //  fileType = FileType.newBuilder().apply {
+    //    (data["file_type"] as? String)?.let { fileType = it }
+    //    (data["plugin_type"] as? String)?.let { pluginType = it }
+    //    (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
+    //  }.build()
+    //}.withProjectId(data)
   }
 
   private fun logFileTypeUsage(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
-    // filter out events that Jetbrains does not require
-    if (eventId == "registered") {
-      return null
-    }
-
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.FILE_USAGE
-      fileUsage = FileUsage.newBuilder().apply {
-        (data["file_path"] as? String)?.let { filePath = it }
-        (data["file_type"] as? String)?.let { fileType = it }
-        (data["plugin_type"] as? String)?.let { pluginType = it }
-        (data["plugin_version"] as? String)?.let { pluginVersion = it }
-        eventType = when (eventId) {
-          "select" -> FileUsage.EventType.SELECT
-          "edit" -> FileUsage.EventType.EDIT
-          "open" -> FileUsage.EventType.OPEN
-          "close" -> FileUsage.EventType.CLOSE
-          else -> FileUsage.EventType.UNKNOWN_TYPE
-        }
-      }.build()
-    }.withProjectId(data)
+    return null
+    //// filter out events that Jetbrains does not require
+    //if (eventId == "registered") {
+    //  return null
+    //}
+    //
+    //return AndroidStudioEvent.newBuilder().apply {
+    //  kind = AndroidStudioEvent.EventKind.FILE_USAGE
+    //  fileUsage = FileUsage.newBuilder().apply {
+    //    (data["file_path"] as? String)?.let { filePath = it }
+    //    (data["file_type"] as? String)?.let { fileType = it }
+    //    (data["plugin_type"] as? String)?.let { pluginType = it }
+    //    (data["plugin_version"] as? String)?.let { pluginVersion = it }
+    //    eventType = when (eventId) {
+    //      "select" -> FileUsage.EventType.SELECT
+    //      "edit" -> FileUsage.EventType.EDIT
+    //      "open" -> FileUsage.EventType.OPEN
+    //      "close" -> FileUsage.EventType.CLOSE
+    //      else -> FileUsage.EventType.UNKNOWN_TYPE
+    //    }
+    //  }.build()
+    //}.withProjectId(data)
   }
 
   private fun logKotlinGradlePerformance(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
-    if (eventId != "All") {
-      return null
-    }
-
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
-      kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
-        data.getString(StringMetrics.USE_FIR)?.let { useFir = firUsage(it) }
-        data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
-        data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
-        data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
-        data.getString(StringMetrics.KOTLIN_STDLIB_VERSION)?.let { kotlinStdlibVersion = it }
-        (data["plugin_version"] as? String)?.let { pluginVersion = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN)?.let { enabledCompilerPluginAllOpen = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU)?.let { enabledCompilerPluginAtomicfu = it }
-        (data["enabled_compiler_plugin_jpasupport"] as? Boolean)?.let { enabledCompilerPluginJpaSupport = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK)?.let { enabledCompilerPluginLombok = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG)?.let { enabledCompilerPluginNoArg = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE)?.let { enabledCompilerPluginParcelize = it }
-        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
-        data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
-      }.build()
-    }.withProjectId(data, "project_path")
+    return null
+    //if (eventId != "All") {
+    //  return null
+    //}
+    //
+    //return AndroidStudioEvent.newBuilder().apply {
+    //  kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
+    //  kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
+    //    data.getString(StringMetrics.USE_FIR)?.let { useFir = firUsage(it) }
+    //    data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
+    //    data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
+    //    data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
+    //    data.getString(StringMetrics.KOTLIN_STDLIB_VERSION)?.let { kotlinStdlibVersion = it }
+    //    (data["plugin_version"] as? String)?.let { pluginVersion = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN)?.let { enabledCompilerPluginAllOpen = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU)?.let { enabledCompilerPluginAtomicfu = it }
+    //    (data["enabled_compiler_plugin_jpasupport"] as? Boolean)?.let { enabledCompilerPluginJpaSupport = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK)?.let { enabledCompilerPluginLombok = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG)?.let { enabledCompilerPluginNoArg = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE)?.let { enabledCompilerPluginParcelize = it }
+    //    data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
+    //    data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
+    //  }.build()
+    //}.withProjectId(data, "project_path")
   }
 
   private fun Map<String, Any>.getBoolean(metric: BooleanMetrics): Boolean? {
@@ -211,50 +214,52 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   }
 
   private fun logKotlinProjectConfiguration(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    return null
     // filter out events that Jetbrains does not require
-    if (eventId == "invoked") {
-      return null
-    }
-
-    return AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
-      kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
-        (data["system"] as? String?)?.let { system = it }
-        (data["plugin_version"] as? String?)?.let { pluginVersion = it }
-        (data["plugin"] as? String?)?.let { plugin = it }
-        (data["plugin_type"] as? String?)?.let { pluginType = it }
-        (data["platform"] as? String?)?.let { platform = it }
-        (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
-        (data["eventFlags"] as? Long?)?.let { eventFlags = it }
-        eventType = when (eventId) {
-          "Build" -> KotlinProjectConfiguration.EventType.BUILD
-          else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
-        }
-      }.build()
-    }.withProjectId(data)
+    //if (eventId == "invoked") {
+    //  return null
+    //}
+    //
+    //return AndroidStudioEvent.newBuilder().apply {
+    //  kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
+    //  kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
+    //    (data["system"] as? String?)?.let { system = it }
+    //    (data["plugin_version"] as? String?)?.let { pluginVersion = it }
+    //    (data["plugin"] as? String?)?.let { plugin = it }
+    //    (data["plugin_type"] as? String?)?.let { pluginType = it }
+    //    (data["platform"] as? String?)?.let { platform = it }
+    //    (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
+    //    (data["eventFlags"] as? Long?)?.let { eventFlags = it }
+    //    eventType = when (eventId) {
+    //      "Build" -> KotlinProjectConfiguration.EventType.BUILD
+    //      else -> KotlinProjectConfiguration.EventType.TYPE_UNKNOWN
+    //    }
+    //  }.build()
+    //}.withProjectId(data)
   }
 
   private fun logRunConfigurationExec(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
-    return when (eventId) {
-      "started" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.RUN_START_DATA
-        runStartData = RunStartData.newBuilder().apply {
-          (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
-          (data["executor"] as? String?)?.let { executor = it }
-          (data["id"] as? String?)?.let { runConfiguration = it }
-        }.build()
-      }
-
-      "finished" -> AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
-        runFinishData = RunFinishData.newBuilder().apply {
-          (data["duration_ms"] as? String?)?.toLongOrNull()?.let { durationMs = it }
-          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
-        }.build()
-      }
-
-      else -> return null
-    }.withProjectId(data)
+    return null
+    //return when (eventId) {
+    //  "started" -> AndroidStudioEvent.newBuilder().apply {
+    //    kind = AndroidStudioEvent.EventKind.RUN_START_DATA
+    //    runStartData = RunStartData.newBuilder().apply {
+    //      (data["ide_activity_id"] as? Int?)?.let { ideActivityId = it }
+    //      (data["executor"] as? String?)?.let { executor = it }
+    //      (data["id"] as? String?)?.let { runConfiguration = it }
+    //    }.build()
+    //  }
+    //
+    //  "finished" -> AndroidStudioEvent.newBuilder().apply {
+    //    kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
+    //    runFinishData = RunFinishData.newBuilder().apply {
+    //      (data["duration_ms"] as? String?)?.toLongOrNull()?.let { durationMs = it }
+    //      (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
+    //    }.build()
+    //  }
+    //
+    //  else -> return null
+    //}.withProjectId(data)
   }
 
   private fun logVfsEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
@@ -413,11 +418,11 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
    */
-  private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>, key: String = "project"): AndroidStudioEvent.Builder {
-    val id = data[key] as? String? ?: return this
-    val eventLogConfiguration = EventLogConfiguration.getInstance().getOrCreate("FUS")
-    val project = ProjectManager.getInstance().openProjects
-      .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
-    return this.withProjectId(project)
-  }
+  //private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>, key: String = "project"): AndroidStudioEvent.Builder {
+  //  val id = data[key] as? String? ?: return this
+  //  val eventLogConfiguration = EventLogConfiguration.getInstance().getOrCreate("FUS")
+  //  val project = ProjectManager.getInstance().openProjects
+  //    .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
+  //  return this.withProjectId(project)
+  //}
 }

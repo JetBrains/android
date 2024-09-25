@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import static com.android.tools.idea.naveditor.actions.NavEditorHelpAssistantActionKt.NAV_EDITOR_BUNDLE_ID;
+//import static com.android.tools.idea.naveditor.actions.NavEditorHelpAssistantActionKt.NAV_EDITOR_BUNDLE_ID;
 
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
@@ -39,7 +39,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(IssueNotificationAction.getInstance());
-    AnAction assistantAction = ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID);
+    AnAction assistantAction = ActionManager.getInstance().getAction("NavEditor.HelpAssistant");
     if (assistantAction != null) {
       group.add(assistantAction);
     }

@@ -17,7 +17,7 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -84,18 +84,18 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
   override fun run() {
     project.coroutineScope.launch {
       withBackgroundProgress(project, "Computing project size", true) {
-        val builder = AndroidStudioEvent
-          .newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-          .withProjectId(project)
-
-        FileType.entries.forEach { fileType ->
-          project.runReadActionInSmartModeWithIndexes {
-            builder.addIntellijProjectSizeStatsForFileType(fileType)
-          }
-        }
-
-        UsageTracker.log(builder)
+        //val builder = AndroidStudioEvent
+        //  .newBuilder()
+        //  .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
+        //  .withProjectId(project)
+        //
+        //FileType.entries.forEach { fileType ->
+        //  project.runReadActionInSmartModeWithIndexes {
+        //    builder.addIntellijProjectSizeStatsForFileType(fileType)
+        //  }
+        //}
+        //
+        //UsageTracker.log(builder)
       }
     }.also {
       if (ApplicationManager.getApplication().isUnitTestMode) {

@@ -20,7 +20,7 @@ import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.AnonymizerUtil
+//import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AdbUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -31,41 +31,41 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
   private val log = thisLogger()
 
   override fun logUsage(event: AdbUsageTracker.Event) {
-    val studioEvent =
-      try {
-        event.toAndroidStudioEvent()
-      } catch (t: Throwable) {
-        log.warn("Could not build `AndroidStudioEvent` from `AdbUsageTracker.Event`", t)
-        return
-      }
-
-    UsageTracker.log(studioEvent)
+    //val studioEvent =
+    //  try {
+    //    event.toAndroidStudioEvent()
+    //  } catch (t: Throwable) {
+    //    log.warn("Could not build `AndroidStudioEvent` from `AdbUsageTracker.Event`", t)
+    //    return
+    //  }
+    //
+    //UsageTracker.log(studioEvent)
   }
 
-  private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
-    val androidStudioEvent =
-      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
-
-    deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
-
-    jdwpProcessPropertiesCollector?.let {
-      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
-        .setSuccess(it.isSuccess)
-        .setPreviouslyFailedCount(it.previouslyFailedCount)
-
-      val failureType = it.failureType?.toProtoEnum()
-      if (failureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType =
-          failureType
-      }
-      val previousFailureType = it.previousFailureType?.toProtoEnum()
-      if (previousFailureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType =
-          previousFailureType
-      }
-    }
-    return androidStudioEvent
-  }
+  //private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
+  //  val androidStudioEvent =
+  //    AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
+  //
+  //  deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
+  //
+  //  jdwpProcessPropertiesCollector?.let {
+  //    androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
+  //      .setSuccess(it.isSuccess)
+  //      .setPreviouslyFailedCount(it.previouslyFailedCount)
+  //
+  //    val failureType = it.failureType?.toProtoEnum()
+  //    if (failureType != null) {
+  //      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType =
+  //        failureType
+  //    }
+  //    val previousFailureType = it.previousFailureType?.toProtoEnum()
+  //    if (previousFailureType != null) {
+  //      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType =
+  //        previousFailureType
+  //    }
+  //  }
+  //  return androidStudioEvent
+  //}
 
   private fun AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.toProtoEnum():
     AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType {
@@ -83,34 +83,34 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
     }
   }
 
-  private fun AdbUsageTracker.DeviceInfo.toProto(): DeviceInfo {
-    val mdnsConnectionType =
-      when {
-        isMdnsAutoConnectUnencrypted(serialNumber) ->
-          DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
-        isMdnsAutoConnectTls(serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
-        else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
-      }
-
-    // TODO: Fix classification of `CLOUD_EMULATOR` and `CLOUD_PHYSICAL` device types
-    val deviceType =
-      if (LOCAL_EMULATOR_REGEX.matches(serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR
-      else DeviceInfo.DeviceType.LOCAL_PHYSICAL
-
-    return DeviceInfo.newBuilder()
-      .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
-      .setBuildTags(buildTags)
-      .setBuildType(buildType)
-      .setBuildVersionRelease(buildVersionRelease)
-      .setBuildApiLevelFull(buildApiLevelFull)
-      .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(cpuAbi))
-      .setManufacturer(manufacturer)
-      .setDeviceType(deviceType)
-      .setMdnsConnectionType(mdnsConnectionType)
-      .addAllCharacteristics(allCharacteristics)
-      .setModel(model)
-      .build()
-  }
+  //private fun AdbUsageTracker.DeviceInfo.toProto(): DeviceInfo {
+  //  val mdnsConnectionType =
+  //    when {
+  //      isMdnsAutoConnectUnencrypted(serialNumber) ->
+  //        DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+  //      isMdnsAutoConnectTls(serialNumber) -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+  //      else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+  //    }
+  //
+  //  // TODO: Fix classification of `CLOUD_EMULATOR` and `CLOUD_PHYSICAL` device types
+  //  val deviceType =
+  //    if (LOCAL_EMULATOR_REGEX.matches(serialNumber)) DeviceInfo.DeviceType.LOCAL_EMULATOR
+  //    else DeviceInfo.DeviceType.LOCAL_PHYSICAL
+  //
+  //  return DeviceInfo.newBuilder()
+  //    .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
+  //    .setBuildTags(buildTags)
+  //    .setBuildType(buildType)
+  //    .setBuildVersionRelease(buildVersionRelease)
+  //    .setBuildApiLevelFull(buildApiLevelFull)
+  //    .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(cpuAbi))
+  //    .setManufacturer(manufacturer)
+  //    .setDeviceType(deviceType)
+  //    .setMdnsConnectionType(mdnsConnectionType)
+  //    .addAllCharacteristics(allCharacteristics)
+  //    .setModel(model)
+  //    .build()
+  //}
 
   private val LOCAL_EMULATOR_REGEX = "emulator-(\\d+)".toRegex()
 }

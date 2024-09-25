@@ -36,20 +36,21 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,7 +60,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,8 +147,7 @@ public final class SdkQuickfixUtils {
   }
 
   public static void showAndroidSdkManager() {
-    ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
-      AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+    ShowSettingsUtil.getInstance().showSettingsDialog(Arrays.stream(ProjectManager.getInstance().getOpenProjects()).findFirst().orElse(null), "Android");
   }
 
   private static AndroidSdkHandler getSdkHandler() {

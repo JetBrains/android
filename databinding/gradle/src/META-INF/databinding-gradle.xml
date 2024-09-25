@@ -15,6 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.databinding">
-    <bindingLayoutToken implementation="com.android.tools.idea.databinding.BindingLayoutGradleToken"/>
+<!--    <bindingLayoutToken implementation="com.android.tools.idea.databinding.BindingLayoutGradleToken"/>-->
   </extensions>
 </idea-plugin>

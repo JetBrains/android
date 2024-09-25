@@ -284,6 +284,12 @@ class StudioModuleClassLoaderManager :
     }
   }
 
+  private fun <T> UserDataHolder.removeUserData(key: Key<T>): T? {
+    val data = getUserData(key)
+    putUserData(key, null)
+    return data
+  }
+
   @Synchronized
   private fun unHold(moduleClassLoader: ModuleClassLoaderManager.Reference<*>) {
     holders.remove(moduleClassLoader.classLoader as StudioModuleClassLoader, moduleClassLoader)

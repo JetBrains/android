@@ -259,7 +259,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(createShowDisassemblyAction(tree));
     group.add(new ShowReferencesAction(tree, this));
-    group.add(new GenerateProguardKeepRuleAction(tree));
+    //group.add(new GenerateProguardKeepRuleAction(tree));
     group.add(new NavigateToSourceAction(tree));
     return group;
   }
