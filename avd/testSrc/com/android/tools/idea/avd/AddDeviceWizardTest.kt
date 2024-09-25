@@ -16,6 +16,8 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.sdklib.AndroidVersion
@@ -40,6 +42,7 @@ class AddDeviceWizardTest {
    * Pick a device, advance, and then finish (using default system image and settings). Verify that
    * AVD files are created. Then do it again.
    */
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun addDeviceDefaultPath() {
     with(SdkFixture()) {
@@ -61,12 +64,14 @@ class AddDeviceWizardTest {
           }
         }
 
+        composeTestRule.waitUntilAtLeastOneExists(hasText("Pixel 8"))
         composeTestRule.onNodeWithText("Pixel 8").performClick()
         composeTestRule.waitForIdle()
 
         wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()
 
+        composeTestRule.waitUntilDoesNotExist(hasText("Loading system images", substring = true))
         wizard.performAction(wizard.finishAction)
         composeTestRule.waitForIdle()
         wizard.awaitClose()

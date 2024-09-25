@@ -16,7 +16,9 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -80,6 +82,7 @@ class LocalVirtualDeviceSourceTest {
     }
   }
 
+  @OptIn(ExperimentalTestApi::class)
   inner class ConfigurationPageFixture(sdkFixture: SdkFixture) {
     val wizard: TestComposeWizard
 
@@ -106,6 +109,7 @@ class LocalVirtualDeviceSourceTest {
 
         wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()
+        composeTestRule.waitUntilDoesNotExist(hasText("Loading system images", substring = true))
       }
     }
   }
@@ -130,6 +134,7 @@ class LocalVirtualDeviceSourceTest {
     }
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun configurationPage_nameValidation() {
     with(SdkFixture()) {
