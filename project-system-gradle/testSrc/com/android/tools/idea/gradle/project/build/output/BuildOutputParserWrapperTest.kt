@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
+import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.FilePosition
@@ -34,29 +35,24 @@ import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 class BuildOutputParserWrapperTest {
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()
 
-  @Mock
-  private lateinit var myProject: Project
-
   @get:Rule
-  val projectRule = ProjectRule()
+  val projectRule = AndroidGradleProjectRule()
 
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
@@ -65,18 +61,12 @@ class BuildOutputParserWrapperTest {
   fun setUp() {
     // Set StudioBot's availability to true by default.
     setStudioBotInstanceAvailability(true)
-    MockitoAnnotations.initMocks(this)
     val parser = BuildOutputParser { _, _, messageConsumer ->
       messageConsumer?.accept(messageEvent)
       true
     }
     myParserWrapper = BuildOutputParserWrapper(parser, ID)
-
-    whenever(myProject.basePath).thenReturn("test")
-
-    val moduleManager = Mockito.mock(ModuleManager::class.java)
-    whenever(myProject.getService(ModuleManager::class.java)).thenReturn(moduleManager)
-    whenever(moduleManager.modules).thenReturn(emptyArray<Module>())
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
   }
 
   @Test
@@ -137,22 +127,136 @@ class BuildOutputParserWrapperTest {
     }
   }
 
-  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
+  @Test
+  fun `test 'Ask Gemini' quick fix sends query to ChatService when context allowed`() {
+    // Given: Context is allowed.
+    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
+    messageEvent = createMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
+        buildPrompt(projectRule.project){
+          userMessage {
+            text("""
+            I'm getting the following error while syncing my project. The error is: !!some error message!!
+            ```
+            Detailed error message
+            ```
+            How do I fix this?
+        """.trimIndent(), emptyList())
+          }
+        },
+        StudioBot.RequestSource.BUILD)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' quick fix sends query to ChatService without gradle command`() {
+    // Given: Context is allowed.
+    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
+    messageEvent = createMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
+        buildPrompt(projectRule.project){
+          userMessage {
+            text("""
+            I'm getting the following error while building my project. The error is: !!some error message!!
+            ```
+            Detailed error message
+            ```
+            How do I fix this?
+        """.trimIndent(), emptyList())
+          }
+        },
+        StudioBot.RequestSource.BUILD)
+    }
+  }
+
+
+  @Test
+  fun `test 'Ask Gemini' quick fix stages query to ChatService when context not allowed`() {
+    // Given: Context is not allowed
+    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
+    messageEvent = createMessageEvent(ERROR)
+
+    myParserWrapper.parse(null, null) { event ->
+
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
+        """
+        I'm getting the following error while building my project. The error is: !!some error message!!
+        ```
+        Detailed error message
+        ```
+        How do I fix this?
+        """.trimIndent(),
+        StudioBot.RequestSource.BUILD)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' quick fix parses Gradle command from projectId`() {
+    // Given: Context is not allowed
+    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
+    messageEvent = createMessageEvent(ERROR, id = "[-4474:2441] > [Task :app:compileDebugJavaWithJavac]")
+
+    myParserWrapper.parse(null, null) { event ->
+
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
+        """
+        I'm getting the following error while building my project. The error is: !!some error message!!
+        ```
+        ${'$'} ./gradlew :app:compileDebugJavaWithJavac
+        Detailed error message
+        ```
+        How do I fix this?
+        """.trimIndent(),
+        StudioBot.RequestSource.BUILD)
+    }
+  }
+
+  private fun setStudioBotInstanceAvailability(isAvailable: Boolean, isContextAllowed: Boolean = false) {
     val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isContextAllowed(project: Project): Boolean = isContextAllowed
       override fun isAvailable(): Boolean = isAvailable
+      private val _chatService = spy(object : ChatService.StubChatService() {})
+      override fun chat(project: Project): ChatService = _chatService
     }
     ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
+      .replaceService(StudioBot::class.java, studioBot, projectRule.project)
   }
 
   private fun createMessageEvent(
     kind: MessageEvent.Kind,
     group: String = "Compiler",
     message: String = "!!some error message!!",
-    detailedMessage: String = "Detailed error message"
+    detailedMessage: String = "Detailed error message",
+    id: Any = ID,
   ): MessageEventImpl {
     return MessageEventImpl(
-      ID,
+      id,
       kind,
       group,
       message,
@@ -163,11 +267,12 @@ class BuildOutputParserWrapperTest {
     kind: MessageEvent.Kind,
     group: String = "Compiler",
     message: String = "!!some error message!!",
-    detailedMessage: String = "Detailed error message"
+    detailedMessage: String = "Detailed error message",
+    id: Any = ID,
   ): FileMessageEvent {
     val folder = temporaryFolder.newFolder("test")
     return FileMessageEventImpl(
-      ID,
+      id,
       kind,
       group,
       message,
@@ -176,6 +281,6 @@ class BuildOutputParserWrapperTest {
   }
 
   companion object {
-    val ID = MockitoKt.mock<ExternalSystemTaskId>()
+    val ID = mock<ExternalSystemTaskId>()
   }
 }
