@@ -17,35 +17,35 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.connectedDeviceToDeviceInfo
+//import com.android.tools.analytics.connectedDeviceToDeviceInfo
 import com.google.wireless.android.sdk.stats.AdbUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 
 class AndroidAdbUsageTracker : AdbUsageTracker {
 
   override suspend fun logUsage(event: AdbUsageTracker.Event) {
-    val androidStudioEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
-
-    event.device?.let {
-      androidStudioEvent.setDeviceInfo(connectedDeviceToDeviceInfo(it))
-    }
-
-    event.jdwpProcessPropertiesCollector?.let {
-      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
-        .setSuccess(it.isSuccess)
-        .setPreviouslyFailedCount(it.previouslyFailedCount)
-
-      val failureType = it.failureType?.toProtoEnum()
-      if (failureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType = failureType
-      }
-      val previousFailureType = it.previousFailureType?.toProtoEnum()
-      if (previousFailureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType = previousFailureType
-      }
-    }
-
-    UsageTracker.log(androidStudioEvent)
+    //val androidStudioEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
+    //
+    //event.device?.let {
+    //  androidStudioEvent.setDeviceInfo(connectedDeviceToDeviceInfo(it))
+    //}
+    //
+    //event.jdwpProcessPropertiesCollector?.let {
+    //  androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
+    //    .setSuccess(it.isSuccess)
+    //    .setPreviouslyFailedCount(it.previouslyFailedCount)
+    //
+    //  val failureType = it.failureType?.toProtoEnum()
+    //  if (failureType != null) {
+    //    androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType = failureType
+    //  }
+    //  val previousFailureType = it.previousFailureType?.toProtoEnum()
+    //  if (previousFailureType != null) {
+    //    androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType = previousFailureType
+    //  }
+    //}
+    //
+    //UsageTracker.log(androidStudioEvent)
   }
 
   private fun AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.toProtoEnum(): AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType {
