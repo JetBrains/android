@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.FastPreviewEvent
 import com.intellij.openapi.project.Project
@@ -82,44 +82,44 @@ interface FastPreviewTrackerManager {
 }
 
 internal class FastPreviewTrackerManagerImpl(private val project: Project) : FastPreviewTrackerManager {
-  private fun newStudioEvent(): AndroidStudioEvent.Builder =
-    AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.FAST_PREVIEW_EVENT)
-      .withProjectId(project)
+  //private fun newStudioEvent(): AndroidStudioEvent.Builder =
+  //  AndroidStudioEvent.newBuilder()
+  //    .setKind(AndroidStudioEvent.EventKind.FAST_PREVIEW_EVENT)
+  //    .withProjectId(project)
 
 
   override fun userEnabled() {
-    UsageTracker.log(
-      newStudioEvent()
-        .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                               .setType(FastPreviewEvent.Type.USER_ENABLED))
-    )
+    //UsageTracker.log(
+    //  newStudioEvent()
+    //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+    //                           .setType(FastPreviewEvent.Type.USER_ENABLED))
+    //)
   }
 
   override fun userDisabled() {
-    UsageTracker.log(
-      newStudioEvent()
-        .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                               .setType(FastPreviewEvent.Type.USER_DISABLED))
-    )
+    //UsageTracker.log(
+    //  newStudioEvent()
+    //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+    //                           .setType(FastPreviewEvent.Type.USER_DISABLED))
+    //)
   }
 
   override fun autoDisabled() {
-    UsageTracker.log(
-      newStudioEvent()
-        .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                               .setType(FastPreviewEvent.Type.AUTO_DISABLED))
-    )
+    //UsageTracker.log(
+    //  newStudioEvent()
+    //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+    //                           .setType(FastPreviewEvent.Type.AUTO_DISABLED))
+    //)
   }
 
   override fun daemonStartFailed() {
-    UsageTracker.log(
-      newStudioEvent()
-        .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                               .setType(FastPreviewEvent.Type.COMPILE)
-                               .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
-                                                       .setStatus(FastPreviewEvent.CompilationResult.Status.DAEMON_START_ERROR)))
-    )
+    //UsageTracker.log(
+    //  newStudioEvent()
+    //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+    //                           .setType(FastPreviewEvent.Type.COMPILE)
+    //                           .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
+    //                                                   .setStatus(FastPreviewEvent.CompilationResult.Status.DAEMON_START_ERROR)))
+    //)
   }
 
   override fun trackRequest(): FastPreviewTrackerManager.Request = object : FastPreviewTrackerManager.Request {
@@ -128,28 +128,28 @@ internal class FastPreviewTrackerManagerImpl(private val project: Project) : Fas
     }
 
     override fun compilationFailed(compilationDurationMs: Long, compiledFiles: Int) {
-      UsageTracker.log(
-        newStudioEvent()
-          .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                                 .setType(FastPreviewEvent.Type.COMPILE)
-                                 .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
-                                                         .setStatus(FastPreviewEvent.CompilationResult.Status.FAILED)
-                                                         .setCompileDurationMs(compilationDurationMs)
-                                                         .setCompiledFiles(compiledFiles.toLong())))
-      )
+      //UsageTracker.log(
+      //  newStudioEvent()
+      //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+      //                           .setType(FastPreviewEvent.Type.COMPILE)
+      //                           .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
+      //                                                   .setStatus(FastPreviewEvent.CompilationResult.Status.FAILED)
+      //                                                   .setCompileDurationMs(compilationDurationMs)
+      //                                                   .setCompiledFiles(compiledFiles.toLong())))
+      //)
     }
 
     override fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long) {
-      UsageTracker.log(
-        newStudioEvent()
-          .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                                 .setType(FastPreviewEvent.Type.COMPILE)
-                                 .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
-                                                         .setStatus(FastPreviewEvent.CompilationResult.Status.SUCCESS)
-                                                         .setCompileDurationMs(compilationDurationMs)
-                                                         .setCompiledFiles(compiledFiles.toLong()).also {
-                                                           if (refreshTimeMs != -1L) it.refreshDurationMs = refreshTimeMs
-                                                         })))
+      //UsageTracker.log(
+      //  newStudioEvent()
+      //    .setFastPreviewEvent(FastPreviewEvent.newBuilder()
+      //                           .setType(FastPreviewEvent.Type.COMPILE)
+      //                           .setCompilationResult(FastPreviewEvent.CompilationResult.newBuilder()
+      //                                                   .setStatus(FastPreviewEvent.CompilationResult.Status.SUCCESS)
+      //                                                   .setCompileDurationMs(compilationDurationMs)
+      //                                                   .setCompiledFiles(compiledFiles.toLong()).also {
+      //                                                     if (refreshTimeMs != -1L) it.refreshDurationMs = refreshTimeMs
+      //                                                   })))
     }
 
     override fun refreshCancelled(compilationCompleted: Boolean) {
