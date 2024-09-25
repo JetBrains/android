@@ -21,6 +21,7 @@ import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.AnonymizerUtil
+//import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AdbUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -31,41 +32,41 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
   private val log = thisLogger()
 
   override fun logUsage(event: AdbUsageTracker.Event) {
-    val studioEvent =
-      try {
-        event.toAndroidStudioEvent()
-      } catch (t: Throwable) {
-        log.warn("Could not build `AndroidStudioEvent` from `AdbUsageTracker.Event`", t)
-        return
-      }
-
-    UsageTracker.log(studioEvent)
+    //val studioEvent =
+    //  try {
+    //    event.toAndroidStudioEvent()
+    //  } catch (t: Throwable) {
+    //    log.warn("Could not build `AndroidStudioEvent` from `AdbUsageTracker.Event`", t)
+    //    return
+    //  }
+    //
+    //UsageTracker.log(studioEvent)
   }
 
-  private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
-    val androidStudioEvent =
-      AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
-
-    deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
-
-    jdwpProcessPropertiesCollector?.let {
-      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
-        .setSuccess(it.isSuccess)
-        .setPreviouslyFailedCount(it.previouslyFailedCount)
-
-      val failureType = it.failureType?.toProtoEnum()
-      if (failureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType =
-          failureType
-      }
-      val previousFailureType = it.previousFailureType?.toProtoEnum()
-      if (previousFailureType != null) {
-        androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType =
-          previousFailureType
-      }
-    }
-    return androidStudioEvent
-  }
+  //private fun AdbUsageTracker.Event.toAndroidStudioEvent(): AndroidStudioEvent.Builder {
+  //  val androidStudioEvent =
+  //    AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
+  //
+  //  deviceInfo?.toProto()?.let { androidStudioEvent.setDeviceInfo(it) }
+  //
+  //  jdwpProcessPropertiesCollector?.let {
+  //    androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
+  //      .setSuccess(it.isSuccess)
+  //      .setPreviouslyFailedCount(it.previouslyFailedCount)
+  //
+  //    val failureType = it.failureType?.toProtoEnum()
+  //    if (failureType != null) {
+  //      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.failureType =
+  //        failureType
+  //    }
+  //    val previousFailureType = it.previousFailureType?.toProtoEnum()
+  //    if (previousFailureType != null) {
+  //      androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder.previousFailureType =
+  //        previousFailureType
+  //    }
+  //  }
+  //  return androidStudioEvent
+  //}
 
   private fun AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.toProtoEnum():
     AdbUsageEvent.JdwpProcessPropertiesCollectorEvent.FailureType {

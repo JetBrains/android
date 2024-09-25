@@ -28,7 +28,7 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerUtils;
+//import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
@@ -544,13 +544,13 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       }
 
       // Create metrics event to report callstack.
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-        .setDeviceInfo(UsageTrackerUtils.deviceToDeviceInfo(myDevice))
-        .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
-                                   .setType(AndroidProfilerEvent.Type.PERFD_CRASHED)
-                                   .setPerfdCrashInfo(crashInfo));
-      UsageTracker.log(event);
+      //AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      //  .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+      //  .setDeviceInfo(UsageTrackerUtils.deviceToDeviceInfo(myDevice))
+      //  .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
+      //                             .setType(AndroidProfilerEvent.Type.PERFD_CRASHED)
+      //                             .setPerfdCrashInfo(crashInfo));
+      //UsageTracker.log(event);
     }
 
     private void reportTransportDaemonStarted(boolean isRestart, long millisecSinceLastStart) {

@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.analytics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
@@ -68,17 +68,17 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
     eventType: DataBindingEvent.EventType,
     context: DataBindingEvent.DataBindingContext,
   ) {
-    val studioEventBuilder =
-      createStudioEventBuilder().apply {
-        dataBindingEvent =
-          DataBindingEvent.newBuilder()
-            .apply {
-              type = eventType
-              this.context = context
-            }
-            .build()
-      }
-    UsageTracker.log(studioEventBuilder.withProjectId(project))
+    //val studioEventBuilder =
+    //  createStudioEventBuilder().apply {
+    //    dataBindingEvent =
+    //      DataBindingEvent.newBuilder()
+    //        .apply {
+    //          type = eventType
+    //          this.context = context
+    //        }
+    //        .build()
+    //  }
+    //UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
   private fun trackPollingEvent(
@@ -86,18 +86,18 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
     dataBindingMetadata: DataBindingEvent.DataBindingPollMetadata?,
     viewBindingMetaData: DataBindingEvent.ViewBindingPollMetadata?,
   ) {
-    val studioEventBuilder =
-      createStudioEventBuilder().apply {
-        dataBindingEvent =
-          DataBindingEvent.newBuilder()
-            .apply {
-              type = eventType
-              pollMetadata = dataBindingMetadata
-              viewBindingMetadata = viewBindingMetaData
-            }
-            .build()
-      }
-    UsageTracker.log(studioEventBuilder.withProjectId(project))
+    //val studioEventBuilder =
+    //  createStudioEventBuilder().apply {
+    //    dataBindingEvent =
+    //      DataBindingEvent.newBuilder()
+    //        .apply {
+    //          type = eventType
+    //          pollMetadata = dataBindingMetadata
+    //          viewBindingMetadata = viewBindingMetaData
+    //        }
+    //        .build()
+    //  }
+    //UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
   /** This task must be run inside of a read action. Collects basic data binding usage metrics. */
