@@ -688,6 +688,29 @@ class TreeTableImplTest {
   }
 
   @Test
+  fun testCollapseCausesSelectionUpdate() {
+    val result = createTree() { withExpandableRoot() }
+    val table = result.focusComponent as TreeTableImpl
+    val selectionModel = result.selectionModel
+    TreeUtil.expandAll(table.tree)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    selectionModel.currentSelection = listOf(table.getValueAt(2, 0))
+
+    // Click on tree expansion icon to close the root node:
+    setScrollPaneSize(table, 400, 700)
+    val ui = FakeUi(table)
+    val cell = table.getCellRect(0, 0, true)
+    val leftOffset = table.computeLeftOffset(table.tree.getPathForRow(0).pathCount)
+    ui.mouse.click(leftOffset + 8, cell.centerY.toInt())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Nothing is now expanded:
+    assertThat(table.rowCount).isEqualTo(1)
+    // The root node is selected (and we got a selection update):
+    assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(item1))
+  }
+
+  @Test
   fun testFullExpansionOnRootUpdates() {
     val result = createTree { withExpandAllOnRootChange() }
     val table = result.focusComponent as TreeTableImpl
