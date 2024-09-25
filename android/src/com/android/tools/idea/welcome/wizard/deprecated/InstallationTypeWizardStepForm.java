@@ -61,7 +61,7 @@ public class InstallationTypeWizardStepForm {
     panel1.setLayout(new GridLayoutManager(8, 1, new Insets(0, 0, 0, 0), -1, -1));
     myContents.setViewportView(panel1);
     final JLabel label1 = new JLabel();
-    label1.setText("Choose the type of setup you want for Android Studio:");
+    label1.setText("Choose the type of setup you want for JetBrains Rider:");
     panel1.add(label1,
                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -74,7 +74,7 @@ public class InstallationTypeWizardStepForm {
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JLabel label2 = new JLabel();
-    label2.setText("Android Studio will be installed with the most common settings and options.");
+    label2.setText("JetBrains Rider will be installed with the most common settings and options.");
     panel1.add(label2,
                new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 4, false));

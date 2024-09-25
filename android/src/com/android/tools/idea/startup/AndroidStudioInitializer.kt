@@ -69,12 +69,12 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
 
   /** Sets up collection of Android Studio specific analytics.  */
   private fun setupAnalytics() {
-    UsageTracker.version = ApplicationInfo.getInstance().strictVersion
-    UsageTracker.ideBrand = currentIdeBrand()
-    if (ApplicationManager.getApplication().isInternal) {
-      UsageTracker.ideaIsInternal = true
-    }
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
+    //UsageTracker.version = ApplicationInfo.getInstance().strictVersion
+    //UsageTracker.ideBrand = currentIdeBrand()
+    //if (ApplicationManager.getApplication().isInternal) {
+    //  UsageTracker.ideaIsInternal = true
+    //}
+    //AndroidStudioUsageTracker.setup(JobScheduler.getScheduler())
   }
 
   private fun setupAndroidSdkForTests() {

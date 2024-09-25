@@ -19,7 +19,7 @@ import static com.android.tools.idea.execution.common.stats.RunStatsUtilsKt.getD
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerUtils;
+//import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.tracer.Trace;
@@ -75,10 +75,10 @@ public class RunStats {
       myEvent.getRunEventBuilder()
         .setStatus(status)
         .setEndTimestampMs(System.currentTimeMillis());
-      UsageTracker.log(UsageTrackerUtils.withProjectId(myEvent, myProject));
+      //UsageTracker.log(UsageTrackerUtils.withProjectId(myEvent, myProject));
 
       for (AndroidStudioEvent.Builder event : myAdditionalOnCommitEvents) {
-        UsageTracker.log(UsageTrackerUtils.withProjectId(event, myProject));
+        //UsageTracker.log(UsageTrackerUtils.withProjectId(event, myProject));
       }
 
       myLogged = true;
