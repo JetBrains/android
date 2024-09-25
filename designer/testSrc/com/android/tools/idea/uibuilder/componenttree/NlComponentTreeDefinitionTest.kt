@@ -71,7 +71,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.UiInterceptors
 import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
@@ -246,7 +245,7 @@ class NlComponentTreeDefinitionTest {
     table.tableModel
     val bounds = table.getCellRect(6, 0, true) // "@id/b"
     val ui = FakeUi(table)
-    ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.centerY.toInt())
+    ui.mouse.doubleClick(bounds.maxX.toInt() - 2, bounds.centerY.toInt())
     UIUtil.dispatchAllInvocationEvents()
 
     // Activating a reference should select the component being referenced: the Button
@@ -255,23 +254,23 @@ class NlComponentTreeDefinitionTest {
     assertThat(selection.first().tagName).isEqualTo(SdkConstants.BUTTON)
   }
 
+  @RunsInEdt
   @Test
   fun testGotoDeclarationFromKeyboard() {
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
-    runInEdtAndWait {
-      val content = createToolContent()
-      val model = createFlowModel()
-      val table = attach(content, model)
-      val textView = model.treeReader.find("a")!!
-      model.surface.selectionModel.setSelection(listOf(textView))
-      val ui = FakeUi(table)
-      val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
-      focusManager.focusOwner = table
 
-      ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
-      ui.keyboard.pressAndRelease(KeyEvent.VK_B)
-      ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
-    }
+    val content = createToolContent()
+    val model = createFlowModel()
+    val table = attach(content, model)
+    val textView = model.treeReader.find("a")!!
+    model.surface.selectionModel.setSelection(listOf(textView))
+    val ui = FakeUi(table)
+    val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
+    focusManager.focusOwner = table
+
+    ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_B)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
     fileOpenRule.checkEditor("some_layout.xml", 6, "<TextView")
   }
 
@@ -454,7 +453,6 @@ class NlComponentTreeDefinitionTest {
     val model = createFlowModel()
     val table = attach(content, model)
     val tableModel = table.tableModel
-    val textA = model.treeReader.find("a")!!
     val button = model.treeReader.find("b")!!
     val linear = model.treeReader.find("linear")!!
     val imageViewXml =

@@ -60,6 +60,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import java.io.File
 
 private const val BACKUP_PATH_KEY = "Backup.Path"
 private const val NOTIFICATION_GROUP = "Backup"
@@ -143,11 +144,11 @@ internal constructor(private val project: Project, private val backupService: Ba
   ): BackupResult {
     val path =
       when {
-        backupFile.pathString.startsWith('/') -> backupFile
+        backupFile.isAbsolute -> backupFile
         else -> Path.of(project.basePath ?: "", backupFile.pathString)
       }
     logger.debug("Restoring from $path on '${serialNumber}'")
-    val result = backupService.restore(serialNumber, backupFile, listener)
+    val result = backupService.restore(serialNumber, path, listener)
     val operation = message("restore")
     if (notify) {
       result.notify(operation, serialNumber = serialNumber)

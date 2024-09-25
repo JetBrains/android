@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="16dp"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <TextView
+      android:id="@+id/helloBazelTextView"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:textSize="32sp"
+      android:textColor="@color/bazel_green"
+      android:text="@string/thinking_face"/>
+
+  <Button
+      android:id="@+id/clickMeButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:background="@color/bazel_green"
+      android:textColor="@color/color_on_bazel_green"
+      android:layout_marginTop="16dp"
+      android:text="@string/click_me_button"/>
+
+  <Button
+      android:id="@+id/clickMeButtonExternal"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:background="@color/external_bazel_green"
+      android:textColor="@color/external_color_on_bazel_green"
+      android:layout_marginTop="16dp"
+      android:text="@string/external_click_me_button"/>
+</LinearLayout>

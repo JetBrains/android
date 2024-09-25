@@ -20,16 +20,13 @@ import com.android.tools.idea.common.scene.TargetProvider
 import com.android.tools.idea.common.scene.target.LassoTarget
 import com.android.tools.idea.common.scene.target.Target
 
-/**
- * Providers targets for the current display root of the navigation editor.
- */
+/** Providers targets for the current display root of the navigation editor. */
 object NavigationTargetProvider : TargetProvider {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     return listOf(
-      if (sceneComponent.childCount == 0)
-        EmptyDesignerTarget(sceneComponent.scene.designSurface)
+      if (sceneComponent.childCount == 0) EmptyDesignerTarget(sceneComponent.scene.designSurface)
       else
-        LassoTarget(/* selectWhileDragging= */true,/* showMargins= */false,/* recurse= */true)
+        LassoTarget(/* selectWhileDragging= */ true, /* showMargins= */ false, /* recurse= */ true)
     )
   }
 }

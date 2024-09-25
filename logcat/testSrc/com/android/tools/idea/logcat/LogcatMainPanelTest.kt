@@ -866,12 +866,11 @@ class LogcatMainPanelTest {
       logcatMessage(
         message = "foo".padStart(97, ' ')
       ) // Make the message part exactly 100 chars long
-    // Insert 20 log lines
-    logcatMainPanel.processMessages(List(20) { logcatMessage })
     val logcatSettings = AndroidLogcatSettings(bufferSize = 1024)
 
     logcatMainPanel.applyLogcatSettings(logcatSettings)
 
+    logcatMainPanel.processMessages(List(20) { logcatMessage })
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(document.immutableText().length).isAtMost(1024 + logcatMessage.length())
       // backlog trims by message length

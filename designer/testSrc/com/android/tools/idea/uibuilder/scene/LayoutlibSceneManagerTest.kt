@@ -20,16 +20,12 @@ import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.render
-import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.update.Update
 import kotlinx.coroutines.runBlocking
 
 class LayoutlibSceneManagerTest : SceneTest() {
@@ -69,54 +65,10 @@ class LayoutlibSceneManagerTest : SceneTest() {
     assertNotNull(myLayoutlibSceneManager.secondarySceneView)
   }
 
-  fun testChangingShowDecorationsForcesReinflate() {
-    val defaultShowDecorations = myLayoutlibSceneManager.isShowingDecorations
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setShowDecorations(!defaultShowDecorations)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setShowDecorations(defaultShowDecorations)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testChangingUsePrivateClassLoaderForcesReinflate() {
-    val defaultIsUsePrivateClassLoader = myLayoutlibSceneManager.isUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.isUsePrivateClassLoader = !defaultIsUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.isUsePrivateClassLoader = defaultIsUsePrivateClassLoader
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testSettingShrinkRenderingForcesReinflate() {
-    val defaultShrinkRendering = myLayoutlibSceneManager.isUseShrinkRendering
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setShrinkRendering(!defaultShrinkRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setShrinkRendering(defaultShrinkRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
-  fun testSettingTransparentRenderingForcesReinflate() {
-    val defaultTransparentRendering = myLayoutlibSceneManager.isUseTransparentRendering
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isFalse()
-
-    myLayoutlibSceneManager.setTransparentRendering(!defaultTransparentRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-
-    myLayoutlibSceneManager.setTransparentRendering(defaultTransparentRendering)
-    assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
-  }
-
   fun testDoNotCacheSuccessfulRenderImage() = runBlocking {
-    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(false)
+    myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = false
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)
@@ -139,9 +91,9 @@ class LayoutlibSceneManagerTest : SceneTest() {
   }
 
   fun testCacheSuccessfulRenderImage() = runBlocking {
-    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(true)
+    myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = true
     myLayoutlibSceneManager.render()
-    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
       assertTrue(it.renderedImage.isValid)
@@ -168,15 +120,6 @@ class LayoutlibSceneManagerTest : SceneTest() {
     }
   }
 
-  fun testDeactivateCancelsPendingRenders() {
-    val noOpLayoutlibSceneManager = noOpRenderingLayoutLibSceneManager()
-
-    val future = noOpLayoutlibSceneManager.requestRenderAsync()
-    assertFalse(future.isDone)
-    noOpLayoutlibSceneManager.deactivate(ModelBuilder::class.java)
-    assertTrue("the render should be interrupted", future.isCompletedExceptionally)
-  }
-
   override fun createModel(): ModelBuilder {
     return model(
       FD_RES_XML,
@@ -187,20 +130,4 @@ class LayoutlibSceneManagerTest : SceneTest() {
         .matchParentHeight(),
     )
   }
-
-  private fun noOpRenderingLayoutLibSceneManager() =
-    LayoutlibSceneManager(
-      myLayoutlibSceneManager.model,
-      myLayoutlibSceneManager.designSurface,
-      EdtExecutorService.getInstance(),
-      {
-        object : RenderingQueue {
-          override fun queue(update: Update) {
-            // no-op
-          }
-        }
-      },
-      LayoutlibSceneManagerHierarchyProvider(),
-      DISABLED,
-    )
 }

@@ -245,6 +245,7 @@ class StackTraceConsoleTest {
 
         // Ensure initial state: there's hyperlinks
         val hyperlinks = stackTraceConsole.consoleView.hyperlinks
+        stackTraceConsole.consoleView.rehighlightHyperlinksAndFoldings()
         delayUntilCondition(200) {
           // Below is what's printed out in the console:
           // ```

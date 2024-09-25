@@ -41,6 +41,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
+    <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.DefaultDeviceProvisionerFactory"/>
     <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.PhysicalDeviceProvisionerFactory"/>
   </extensions>
 
@@ -71,5 +72,6 @@
             class="com.android.tools.idea.deviceprovisioner.EndReservationAction"
             text="Return and Erase Device"
             description="End reservation and return device"/>
+    <action id="Android.AdbSettings" class="com.android.tools.idea.adb.AdbOpenSettingsAction"/>
   </actions>
 </idea-plugin>

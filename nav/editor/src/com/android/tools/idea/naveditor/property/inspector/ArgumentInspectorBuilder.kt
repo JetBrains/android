@@ -26,11 +26,14 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.C
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
-class ArgumentInspectorBuilder
-  : ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer()) {
+class ArgumentInspectorBuilder :
+  ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer()) {
   override fun title(component: NlComponent): String = "Arguments"
+
   override fun addActionText(component: NlComponent) = "Add argument"
+
   override fun deleteActionText(component: NlComponent) = "Remove argument"
+
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }
@@ -39,16 +42,18 @@ class ArgumentInspectorBuilder
     component.parent?.let { invokeDialog(component, it) }
   }
 
-  override fun isApplicable(component: NlComponent) = component.supportsArguments && !component.isAction
+  override fun isApplicable(component: NlComponent) =
+    component.supportsArguments && !component.isAction
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
     val argumentDialog = AddArgumentDialog(component, parent)
 
     if (argumentDialog.showAndGet()) {
       argumentDialog.save()
-      NavUsageTracker.getInstance(parent.model).createEvent(if (component == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
-        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).log()
+      NavUsageTracker.getInstance(parent.model)
+        .createEvent(if (component == null) CREATE_ARGUMENT else EDIT_ARGUMENT)
+        .withSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+        .log()
     }
   }
 }
-

@@ -55,13 +55,12 @@ import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
 import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
+import com.android.tools.idea.layoutinspector.setApplicationIdForTest
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.BitmapType
@@ -100,8 +99,7 @@ class AppInspectionTreeLoaderTest {
   @Before
   fun before() {
     projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel("com.example"))
+    AndroidFacet.getInstance(projectRule.module)!!.setApplicationIdForTest("com.example")
   }
 
   /**

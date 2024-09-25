@@ -199,6 +199,10 @@
                         overrides="true"
                         headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
     />
+    <applicationService serviceInterface="com.intellij.diagnostic.EventWatcher"
+                        serviceImplementation="com.android.tools.idea.diagnostics.typing.TypingEventWatcher" headlessImplementation=""
+                        preload="notHeadless"
+                        overrides="true"/>
 
     <ApplicationLoadListener implementation="com.intellij.android.safemode.SafeMode"/>
 

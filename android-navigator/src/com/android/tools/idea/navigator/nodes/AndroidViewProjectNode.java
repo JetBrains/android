@@ -18,6 +18,8 @@ package com.android.tools.idea.navigator.nodes;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.navigator.nodes.backup.BackupGroupNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
@@ -75,6 +77,10 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
     if (getProjectSystem(myProject).getBuildConfigurationSourceProvider() != null) {
       children.add(new AndroidBuildScriptsGroupNode(myProject, settings));
+    }
+
+    if (StudioFlags.BACKUP_ENABLED.get()) {
+      children.add(new BackupGroupNode(myProject, settings));
     }
 
     // TODO: What about files in the base project directory

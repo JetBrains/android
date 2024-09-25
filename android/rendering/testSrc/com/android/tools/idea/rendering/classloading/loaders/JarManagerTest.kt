@@ -16,27 +16,33 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.cache.AbstractCache
 import com.google.common.cache.Cache
 import com.google.common.cache.ForwardingCache
-import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.kotlin.util.prefixIfNot
-import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import org.jetbrains.kotlin.konan.file.File
+import org.jetbrains.kotlin.util.prefixIfNot
+import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 private class MapCache(val delegateMap: MutableMap<String, EntryCache>) :
   AbstractCache<String, EntryCache>() {
   override fun get(key: String, valueLoader: Callable<out EntryCache>): EntryCache =
     delegateMap[key] ?: valueLoader.call().also { delegateMap[key] = it }
+
   override fun getIfPresent(key: Any): EntryCache? = delegateMap[key as String]
 
   override fun put(key: String, value: EntryCache) {
@@ -64,12 +70,11 @@ fun createJarFile(outputJar: Path, contents: Map<String, ByteArray>): String {
 }
 
 private fun JarManager.getSortedPrefetchBannedJars(): String =
-  getPrefetchBannedJars()
-    .map { it.substringAfterLast("/") }
-    .sorted()
-    .joinToString(",")
+  getPrefetchBannedJars().map { it.substringAfterLast("/") }.sorted().joinToString(",")
 
 class JarManagerUtilTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
   private fun createSampleJarFile(name: String = "contents.jar"): String {
     val outDirectory = Files.createTempDirectory("out")
     val jarFile = outDirectory.resolve(name)
@@ -79,7 +84,7 @@ class JarManagerUtilTest {
         "file1" to "contents1".encodeToByteArray(),
         "file2" to "contents2".encodeToByteArray(),
         "dir1/dir2/file1" to "dir1/dir2/contents1".encodeToByteArray(),
-      )
+      ),
     )
   }
 
@@ -87,18 +92,19 @@ class JarManagerUtilTest {
   fun `check single file loading with no cache`() {
     val jarFilePath = createSampleJarFile()
 
-    val jarManagerNoPrefetch = JarManager.withNoCache()
+    val jarManagerNoPrefetch =
+      JarManager.withNoCache(projectRule.project, projectRule.testRootDisposable)
     assertEquals(
       "contents1",
-      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
+      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!),
     )
     assertEquals(
       "contents2",
-      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
     )
     assertEquals(
       "dir1/dir2/contents1",
-      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/dir1/dir2/file1"))!!)
+      String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/dir1/dir2/file1"))!!),
     )
     assertTrue(jarManagerNoPrefetch.getPrefetchBannedJars().isEmpty())
   }
@@ -108,41 +114,47 @@ class JarManagerUtilTest {
     val jarFilePath = createSampleJarFile()
 
     run {
-      val jarManagerNoPrefetch = JarManager()
+      val jarManagerNoPrefetch =
+        JarManager.forTesting(projectRule.project, projectRule.testRootDisposable)
       assertEquals(
         "contents1",
-        String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
+        String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!),
       )
       assertEquals(
         "contents2",
-        String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+        String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
       )
       assertEquals(
         "dir1/dir2/contents1",
         String(
           jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/dir1/dir2/file1"))!!
-        )
+        ),
       )
-      assertTrue("No jars should have been banned from prefetch", jarManagerNoPrefetch.getPrefetchBannedJars().isEmpty())
+      assertTrue(
+        "No jars should have been banned from prefetch",
+        jarManagerNoPrefetch.getPrefetchBannedJars().isEmpty(),
+      )
     }
 
     run {
-      val jarManagerPrefetch = JarManager()
+      val jarManagerPrefetch =
+        JarManager.forTesting(projectRule.project, projectRule.testRootDisposable)
       assertEquals(
         "contents1",
-        String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
+        String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!),
       )
       assertEquals(
         "contents2",
-        String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+        String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
       )
       assertEquals(
         "dir1/dir2/contents1",
-        String(
-          jarManagerPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/dir1/dir2/file1"))!!
-        )
+        String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/dir1/dir2/file1"))!!),
       )
-      assertTrue("No jars should have been banned from prefetch", jarManagerPrefetch.getPrefetchBannedJars().isEmpty())
+      assertTrue(
+        "No jars should have been banned from prefetch",
+        jarManagerPrefetch.getPrefetchBannedJars().isEmpty(),
+      )
     }
   }
 
@@ -152,7 +164,8 @@ class JarManagerUtilTest {
     val outDirectoryPath = PathString(outDirectory).portablePath
     val jarFilePath = PathString(outDirectory.resolve("contents.jar")).portablePath
 
-    val jarManagerNoPrefetch = JarManager.withNoCache()
+    val jarManagerNoPrefetch =
+      JarManager.withNoCache(projectRule.project, projectRule.testRootDisposable)
     assertNull(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1")))
     assertNull(
       jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:/$outDirectoryPath/notAFile.jar!/file1"))
@@ -164,11 +177,17 @@ class JarManagerUtilTest {
     val jarFilePath = createSampleJarFile()
     val backingMap = mutableMapOf<String, EntryCache>()
     val cache = MapCache(backingMap)
-    val jarManager = JarManager.forTesting(maxPrefetchFileSizeBytes = 0L, jarFileCache = cache)
+    val jarManager =
+      JarManager.forTesting(
+        projectRule.project,
+        projectRule.testRootDisposable,
+        maxPrefetchFileSizeBytes = 0L,
+        jarFileCache = cache,
+      )
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
     assertEquals(jarFilePath, backingMap.keys.single().prefixIfNot("/"))
     assertEquals(
@@ -176,12 +195,12 @@ class JarManagerUtilTest {
         file1
       """
         .trimIndent(),
-      backingMap.entries.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n"),
     )
 
     assertEquals(
       "contents2",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
     )
     assertEquals(
       """
@@ -189,7 +208,7 @@ class JarManagerUtilTest {
         file2
       """
         .trimIndent(),
-      backingMap.entries.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n"),
     )
   }
 
@@ -197,16 +216,23 @@ class JarManagerUtilTest {
   fun `check no-preload cache misses`() {
     val jarFilePath = createSampleJarFile()
     var cacheMisses = 0
-    val jarManager = JarManager.forTesting(maxPrefetchFileSizeBytes = 0L) { cacheMisses++ }
+    val jarManager =
+      JarManager.forTesting(
+        projectRule.project,
+        projectRule.testRootDisposable,
+        maxPrefetchFileSizeBytes = 0L,
+      ) {
+        cacheMisses++
+      }
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
 
     assertEquals(
       "contents2",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
     )
     assertEquals(2, cacheMisses)
   }
@@ -216,11 +242,16 @@ class JarManagerUtilTest {
     val jarFilePath = createSampleJarFile()
     val backingMap = mutableMapOf<String, EntryCache>()
     val cache = MapCache(backingMap)
-    val jarManager = JarManager.forTesting(jarFileCache = cache)
+    val jarManager =
+      JarManager.forTesting(
+        projectRule.project,
+        projectRule.testRootDisposable,
+        jarFileCache = cache,
+      )
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
     assertEquals(jarFilePath, backingMap.keys.single().prefixIfNot("/"))
     assertEquals(
@@ -230,17 +261,17 @@ class JarManagerUtilTest {
         file2
       """
         .trimIndent(),
-      backingMap.entries.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n"),
     )
 
     assertEquals(
       "contents2",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!),
     )
     assertNull(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/notAFile")))
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
     assertEquals(
       """
@@ -250,7 +281,7 @@ class JarManagerUtilTest {
         notAFile
       """
         .trimIndent(),
-      backingMap.entries.first().value.keys.sorted().joinToString("\n")
+      backingMap.entries.first().value.keys.sorted().joinToString("\n"),
     )
   }
 
@@ -275,24 +306,29 @@ class JarManagerUtilTest {
             super.get(key, valueLoader)
           }
       }
-    val jarManager = JarManager.forTesting(jarFileCache = selectiveCache)
+    val jarManager =
+      JarManager.forTesting(
+        projectRule.project,
+        projectRule.testRootDisposable,
+        jarFileCache = selectiveCache,
+      )
 
     assertEquals("contents1", String(jarManager.loadFileFromJar(URI("jar:file:/$jar1!/file1"))!!))
     assertEquals("", jarManager.getSortedPrefetchBannedJars())
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$bannedJar1!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$bannedJar1!/file1"))!!),
     )
     assertEquals("bannedJar1.jar", jarManager.getSortedPrefetchBannedJars())
     assertEquals(
       "The contents of jar2 are expected to load even after being the prefetch banned jar list",
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jar1!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jar1!/file1"))!!),
     )
     assertEquals("contents1", String(jarManager.loadFileFromJar(URI("jar:file:/$jar2!/file1"))!!))
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$bannedJar2!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$bannedJar2!/file1"))!!),
     )
     assertEquals("bannedJar1.jar,bannedJar2.jar", jarManager.getSortedPrefetchBannedJars())
   }
@@ -305,7 +341,12 @@ class JarManagerUtilTest {
   fun `check cache load after eviction`() {
     val backingMap = mutableMapOf<String, EntryCache>()
     val cache = MapCache(backingMap)
-    val jarManager = JarManager.forTesting(jarFileCache = cache)
+    val jarManager =
+      JarManager.forTesting(
+        projectRule.project,
+        projectRule.testRootDisposable,
+        jarFileCache = cache,
+      )
 
     val outDirectory = Files.createTempDirectory("out")
     val jarFile = outDirectory.resolve("content1.jar")
@@ -314,27 +355,17 @@ class JarManagerUtilTest {
     // that would throw.
     // Create a sample jar file with 1 file that we will replace after it's
     // been loaded.
-    val jarFilePath = createJarFile(
-      jarFile,
-      mapOf(
-        "file1" to "contents1".encodeToByteArray(),
-      )
-    )
+    val jarFilePath = createJarFile(jarFile, mapOf("file1" to "contents1".encodeToByteArray()))
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
 
-    createJarFile(
-      jarFile,
-      mapOf(
-        "file3" to "contents3".encodeToByteArray(),
-      )
-    )
+    createJarFile(jarFile, mapOf("file3" to "contents3".encodeToByteArray()))
     assertEquals(
       "contents3",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file3"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file3"))!!),
     )
   }
 
@@ -343,11 +374,11 @@ class JarManagerUtilTest {
     val outDirectory = Files.createTempDirectory("out")
     val jarFile = outDirectory.resolve("content1.jar")
     val jarFilePath = createJarFile(jarFile, mapOf("file1" to "contents1".encodeToByteArray()))
-    val jarManager = JarManager()
+    val jarManager = JarManager.forTesting(projectRule.project, projectRule.testRootDisposable)
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
 
     jarFile.toFile().delete()
@@ -355,14 +386,33 @@ class JarManagerUtilTest {
 
     assertEquals(
       "contents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
 
-    jarManager.clearCache()
+    val buildCompletedCountDownLatch = CountDownLatch(1)
+
+    val buildManager =
+      ProjectSystemService.getInstance(projectRule.project).projectSystem.getBuildManager()
+    buildManager.addBuildListener(
+      projectRule.testRootDisposable,
+      object : ProjectSystemBuildManager.BuildListener {
+        override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+          buildCompletedCountDownLatch.countDown()
+        }
+      },
+    )
+
+    // Trigger a build that should invalidate the cache contents.
+    ProjectSystemService.getInstance(projectRule.project)
+      .projectSystem
+      .getBuildManager()
+      .compileProject()
+    // Wait for the build to complete
+    buildCompletedCountDownLatch.await()
 
     assertEquals(
       "updatedcontents1",
-      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!),
     )
   }
 }

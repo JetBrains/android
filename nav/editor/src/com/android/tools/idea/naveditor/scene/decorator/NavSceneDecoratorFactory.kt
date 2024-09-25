@@ -23,9 +23,7 @@ import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.isAction
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
-/**
- * Creates [SceneComponent]s from [NlComponent]s for the navigation editor.
- */
+/** Creates [SceneComponent]s from [NlComponent]s for the navigation editor. */
 object NavSceneDecoratorFactory : SceneDecoratorFactory() {
 
   override fun get(component: NlComponent): SceneDecorator {
@@ -35,7 +33,8 @@ object NavSceneDecoratorFactory : SceneDecoratorFactory() {
     return when (component.destinationType) {
       NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator
       NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator
-      NavigationSchema.DestinationType.FRAGMENT, NavigationSchema.DestinationType.OTHER -> FragmentDecorator
+      NavigationSchema.DestinationType.FRAGMENT,
+      NavigationSchema.DestinationType.OTHER -> FragmentDecorator
       else -> BASIC_DECORATOR
     }
   }

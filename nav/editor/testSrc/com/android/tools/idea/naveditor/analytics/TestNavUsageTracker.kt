@@ -18,11 +18,12 @@ package com.android.tools.idea.naveditor.analytics
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.idea.common.model.NlModel
-import org.mockito.Mockito
 import java.io.Closeable
+import org.mockito.Mockito
 
 // Open for testing
-open class TestNavUsageTracker private constructor(override val model: NlModel) : NavNopTracker(), Closeable {
+open class TestNavUsageTracker private constructor(override val model: NlModel) :
+  NavNopTracker(), Closeable {
   override fun close() {
     NavUsageTracker.MANAGER.cleanAfterTesting(model)
   }
@@ -37,6 +38,5 @@ open class TestNavUsageTracker private constructor(override val model: NlModel) 
       NavUsageTracker.MANAGER.setInstanceForTest(model, tracker)
       return tracker
     }
-
   }
 }

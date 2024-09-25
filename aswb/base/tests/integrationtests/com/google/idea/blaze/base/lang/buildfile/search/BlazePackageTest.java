@@ -25,7 +25,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for BlazePackage */
+/**
+ * Tests for BlazePackage
+ */
 @RunWith(JUnit4.class)
 public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
@@ -33,7 +35,7 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
   public void testFindPackage() {
     BuildFile packageFile = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
     PsiFile subDirFile =
-        workspace.createPsiFile(new WorkspacePath("java/com/google/tools/test.txt"));
+      workspace.createPsiFile(new WorkspacePath("java/com/google/tools/test.txt"));
     BlazePackage blazePackage = BlazePackage.getContainingPackage(subDirFile);
     assertThat(blazePackage).isNotNull();
     assertThat(blazePackage.buildFile).isEqualTo(packageFile);
@@ -69,5 +71,15 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
     BlazePackage blazePackage = BlazePackage.getContainingPackage(subDirFile);
     assertThat(blazePackage.buildFile).isEqualTo(pkg);
     assertThat(blazePackage.getSearchScope(true).contains(subDirFile.getVirtualFile())).isFalse();
+  }
+
+  @Test
+  public void testGetPackageRelativePath() {
+    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
+    BlazePackage blazePackage = BlazePackage.getContainingPackage(pkg);
+    assertThat(blazePackage.getPackageRelativePath(workspaceRoot.path().resolve("java/com/google/Some.java").toString()))
+      .isEqualTo("Some.java");
+    assertThat(blazePackage.getPackageRelativePath(workspaceRoot.path().resolve("java/com/google/foo/Some.java").toString()))
+      .isEqualTo("foo/Some.java");
   }
 }

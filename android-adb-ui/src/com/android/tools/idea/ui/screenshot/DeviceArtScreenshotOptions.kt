@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION
 import java.awt.image.BufferedImage
@@ -42,7 +41,7 @@ class DeviceArtScreenshotOptions(
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
     val imgAspectRatio = screenshotImage.width.toDouble() / screenshotImage.height
-    val orientation = if (imgAspectRatio >= 1 - ImageUtils.EPSILON) ScreenOrientation.LANDSCAPE else ScreenOrientation.PORTRAIT
+    val orientation = if (imgAspectRatio >= 1 - DeviceArtDescriptor.EPSILON) ScreenOrientation.LANDSCAPE else ScreenOrientation.PORTRAIT
     val allDescriptors = DeviceArtDescriptor.getDescriptors(null)
     return allDescriptors
       .filter { it.canFrameImage(screenshotImage.image, orientation) }

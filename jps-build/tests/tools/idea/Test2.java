@@ -23,6 +23,10 @@ import org.junit.Test;
 public class Test2 {
 
     @Test
+    public void test1() {
+    }
+
+    @Test
     public void testAlwaysFails() {
         throw new RuntimeException("Failed");
     }

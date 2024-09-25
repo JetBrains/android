@@ -41,22 +41,21 @@ import javax.swing.JComponent
 class TreePanel : ToolContent<DesignSurface<*>> {
   private var designSurface: DesignSurface<*>? = null
   private val componentTree: JComponent
-  @VisibleForTesting
-  val componentTreeModel: ComponentTreeModel
-  @VisibleForTesting
-  val componentTreeSelectionModel: ComponentTreeSelectionModel
+  @VisibleForTesting val componentTreeModel: ComponentTreeModel
+  @VisibleForTesting val componentTreeSelectionModel: ComponentTreeSelectionModel
   private val contextSelectionListener = SelectionListener { _, _ -> contextSelectionChanged() }
   private val modelListener = NlModelListener()
 
   init {
-    val builder = ComponentTreeBuilder()
-      .withNodeType(NlComponentNodeType())
-      .withMultipleSelection()
-      .withContextMenu { _, _, x: Int, y: Int -> showContextMenu(x, y) }
-      .withDoubleClick { activateComponent() }
-      .withExpandableRoot()
-      .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .withComponentName("navComponentTree")
+    val builder =
+      ComponentTreeBuilder()
+        .withNodeType(NlComponentNodeType())
+        .withMultipleSelection()
+        .withContextMenu { _, _, x: Int, y: Int -> showContextMenu(x, y) }
+        .withDoubleClick { activateComponent() }
+        .withExpandableRoot()
+        .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+        .withComponentName("navComponentTree")
 
     val result = builder.build()
     componentTree = result.component
@@ -84,7 +83,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
   override fun setToolContext(toolContext: DesignSurface<*>?) {
     designSurface?.let {
-      it.selectionModel?.removeListener(contextSelectionListener)
+      it.selectionModel.removeListener(contextSelectionListener)
       it.models.firstOrNull()?.removeListener(modelListener)
       DataManager.removeDataProvider(componentTree)
     }
@@ -92,17 +91,21 @@ class TreePanel : ToolContent<DesignSurface<*>> {
     designSurface = toolContext
 
     designSurface?.let {
-      it.selectionModel?.addListener(contextSelectionListener)
+      it.selectionModel.addListener(contextSelectionListener)
       it.models.firstOrNull()?.let { model ->
         model.addListener(modelListener)
         update(model)
       }
-      DataManager.registerDataProvider(componentTree, EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, it) })
+      DataManager.registerDataProvider(
+        componentTree,
+        EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, it) },
+      )
     }
   }
 
   private fun contextSelectionChanged() {
-    componentTreeSelectionModel.currentSelection = designSurface?.selectionModel?.selection ?: emptyList()
+    componentTreeSelectionModel.currentSelection =
+      designSurface?.selectionModel?.selection ?: emptyList()
   }
 
   override fun getComponent() = componentTree
@@ -136,7 +139,8 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
     override fun textValueOf(node: NlComponent): String? = null
 
-    override fun iconOf(node: NlComponent): Icon = node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
+    override fun iconOf(node: NlComponent): Icon =
+      node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 
     override fun isEnabled(node: NlComponent) = true
 
@@ -144,13 +148,16 @@ class TreePanel : ToolContent<DesignSurface<*>> {
 
     override fun parentOf(node: NlComponent) = node.parent
 
-    override fun childrenOf(node: NlComponent) = node.children.filter { it.isDestination || it.isAction }
+    override fun childrenOf(node: NlComponent) =
+      node.children.filter { it.isDestination || it.isAction }
   }
 
   private inner class NlModelListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) = updateLater(model)
+
     override fun modelLiveUpdate(model: NlModel) = updateLater(model)
 
-    private fun updateLater(model: NlModel) = ApplicationManager.getApplication().invokeLater { update(model) }
+    private fun updateLater(model: NlModel) =
+      ApplicationManager.getApplication().invokeLater { update(model) }
   }
 }

@@ -24,18 +24,13 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.res.ResourceNotificationManager
-import com.android.tools.rendering.RenderService.RenderTaskBuilder
-import com.android.tools.rendering.api.RenderModelModule
 import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.update.Update
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Function
 
 /** Number of seconds to wait for the render to complete in any of the render calls. */
 private const val RENDER_TIMEOUT_SECS = 60L
@@ -49,18 +44,16 @@ open class SyncLayoutlibSceneManager(
     model,
     surface,
     EdtExecutorService.getInstance(),
-    Function {
-      object : RenderingQueue {
-        override fun queue(update: Update) {
-          update.run()
-        }
-      }
-    },
     LayoutlibSceneManagerHierarchyProvider(),
     DISABLED,
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
+
+  init {
+    sceneRenderConfiguration.setRenderModuleWrapperForTest { TestRenderModelModule(it) }
+    sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
+  }
 
   private fun <T> waitForFutureWithoutBlockingUiThread(
     future: CompletableFuture<T>
@@ -94,21 +87,12 @@ open class SyncLayoutlibSceneManager(
   }
 
   override fun requestRenderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?,
-    reverseUpdate: AtomicBoolean,
+    trigger: LayoutEditorRenderResult.Trigger?
   ): CompletableFuture<Void> {
     if (ignoreRenderRequests) {
       return CompletableFuture.completedFuture(null)
     }
-    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate))
-  }
-
-  override fun wrapRenderModule(core: RenderModelModule): RenderModelModule {
-    return TestRenderModelModule(core)
-  }
-
-  override fun setupRenderTaskBuilder(taskBuilder: RenderTaskBuilder): RenderTaskBuilder {
-    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager()
+    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger))
   }
 
   fun putDefaultPropertyValue(
@@ -118,7 +102,7 @@ open class SyncLayoutlibSceneManager(
     value: String,
   ) {
     if (renderResult == null) {
-      forceReinflate()
+      sceneRenderConfiguration.needsInflation.set(true)
       requestRenderAsync().join()
     }
     val map: MutableMap<ResourceReference, ResourceValue> =

@@ -17,6 +17,7 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.deviceprovisioner.DefaultProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.concurrency.createChildScope
 import com.google.common.truth.Truth.assertThat
@@ -48,14 +49,13 @@ class DeviceProvisionerLeakTest {
     val coroutineScope =
       fakeAdbProvider.adbSession.scope.createChildScope(
         isSupervisor = true,
-        parentDisposable = project
+        parentDisposable = project,
       )
 
     return DeviceProvisioner.create(
       coroutineScope,
       fakeAdbProvider.adbSession,
-      emptyList(),
-      StudioDefaultDeviceIcons
+      listOf(DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)),
     )
   }
 

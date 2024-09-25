@@ -16,7 +16,6 @@
 package com.android.tools.idea.diagnostics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent.DeadlockStatus
@@ -399,7 +398,6 @@ class SystemHealthDataCollection: Disposable {
     }
 
   private fun logSystemHealthEvent(systemHealthEvent: SystemHealthEvent.Builder) {
-    systemHealthEvent.setEssentialsMode(EssentialsMode.isEnabled())
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.SYSTEM_HEALTH_EVENT)

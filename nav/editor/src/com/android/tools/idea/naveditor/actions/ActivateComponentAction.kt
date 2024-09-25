@@ -24,10 +24,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ActivateComponentAction(
-  text: String?,
-  private val component: NlComponent
-) : AnAction(text) {
+class ActivateComponentAction(text: String?, private val component: NlComponent) : AnAction(text) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -35,7 +32,8 @@ class ActivateComponentAction(
     if (e.getData(DESIGN_SURFACE) == null) {
       e.presentation.isEnabled = false
     } else {
-      e.presentation.isEnabled = component.isNavigation || component.className != null || component.layout != null
+      e.presentation.isEnabled =
+        component.isNavigation || component.className != null || component.layout != null
     }
   }
 

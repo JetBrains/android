@@ -77,7 +77,7 @@ class HandshakeExecutorTest {
   fun setUp() {
     syncChannel = Channel()
 
-    scope = projectRule.project.coroutineScope()
+    scope = projectRule.project.coroutineScope
     workDispatcher = AndroidDispatchers.workerThread
     mockClient = mock()
     val mockStub = mock<TransportServiceBlockingStub>()

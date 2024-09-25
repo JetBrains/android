@@ -23,6 +23,8 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -317,19 +319,14 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getBrQualifiedName(@NotNull AndroidFacet facet) {
-    String packageName = getGeneratedPackageName(facet);
-    return packageName == null ? null : packageName + "." + BR;
-  }
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet);
+    if (!ModuleSystemUtil.isMainModule(facet.getModule())) {
+      // The BR class is only generated for the main module (not androidTest or unit test).
+      return null;
+    }
 
-  /**
-   * Returns the package name that will be use to generate R file or BR file.
-   *
-   * @param facet The {@link AndroidFacet} to check.
-   * @return The package name that can be used to generate R and BR classes, or null if it could not be determined.
-   */
-  @Nullable
-  public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
-    return ProjectSystemUtil.getModuleSystem(facet).getPackageName();
+    String packageName = moduleSystem.getPackageName();
+    return packageName == null ? null : packageName + "." + BR;
   }
 
   /**

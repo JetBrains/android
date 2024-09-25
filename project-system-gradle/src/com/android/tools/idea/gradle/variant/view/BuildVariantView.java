@@ -49,6 +49,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
@@ -190,8 +191,6 @@ public class BuildVariantView {
 
     NotificationPanel() {
       super(new BorderLayout());
-      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
-      setBackground(color == null ? getToolTipBackground() : color);
       setBorder(JBUI.Borders.empty(1, 15)); // Same as EditorNotificationPanel
       setPreferredSize(new Dimension(-1, scale(24)));
 
@@ -228,6 +227,17 @@ public class BuildVariantView {
       toolbarComponent.setBorder(null);
       toolbarComponent.setOpaque(false);
       add(toolbarComponent, BorderLayout.EAST);
+    }
+
+    @Override
+    public void setBackground(Color bg) {}
+
+    @Override
+    public Color getBackground() {
+      return ObjectUtils.notNull(
+        EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND),
+        getToolTipBackground()
+      );
     }
 
     private int nextConflictModule(Function<Integer, Integer> getNextIndex) {

@@ -23,8 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.ISystemImage
+import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.getFullApiName
+import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
+import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
@@ -47,10 +52,12 @@ import org.jetbrains.jewel.ui.icon.PathIconKey
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   devicePanelState: DevicePanelState,
+  androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -67,20 +74,29 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
-  ServicesDropdown(
-    devicePanelState.selectedServices,
-    servicesCollection,
-    onSelectedServicesChange = {
-      onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
-    },
-    Modifier.padding(bottom = Padding.MEDIUM_LARGE),
-  )
+  Row {
+    ApiFilter(
+      androidVersions,
+      selectedApiLevel = devicePanelState.selectedApiLevel,
+      onApiLevelChange = { onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it)) },
+    )
+
+    ServicesDropdown(
+      devicePanelState.selectedServices,
+      servicesCollection,
+      onSelectedServicesChange = {
+        onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
+      },
+      Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+    )
+  }
 
   SystemImageTable(
     images,
     devicePanelState,
     configureDevicePanelState.systemImageTableSelectionState,
     onDownloadButtonClick,
+    onSystemImageTableRowClick,
     Modifier.height(150.dp).padding(bottom = Padding.SMALL),
   )
 
@@ -138,61 +154,59 @@ private fun ServicesDropdown(
 
 @Composable
 private fun SystemImageTable(
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   devicePanelState: DevicePanelState,
-  selectionState: TableSelectionState<SystemImage>,
+  selectionState: TableSelectionState<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val columns =
     listOf(
-      TableColumn("", TableColumnWidth.Fixed(16.dp), Comparator.comparing(SystemImage::isRemote)) {
-        if (it.isRemote) DownloadButton(onClick = { onDownloadButtonClick(it.path) })
+      TableColumn(
+        "",
+        TableColumnWidth.Fixed(16.dp),
+        Comparator.comparing { it is RemoteSystemImage },
+      ) {
+        if (it is RemoteSystemImage)
+          DownloadButton(onClick = { onDownloadButtonClick(it.`package`.path) })
       },
-      TableTextColumn("System Image", attribute = SystemImage::name),
-      TableTextColumn(
-        "Services",
-        TableColumnWidth.Fixed(132.dp),
-        attribute = { it.services.toString() },
-        Comparator.comparing(SystemImage::services),
-      ),
+      TableTextColumn("System Image", attribute = { it.`package`.displayName }),
       TableTextColumn(
         "API",
-        attribute = {
-          it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true)
-        },
-        comparator = Comparator.comparing(SystemImage::androidVersion),
-      ),
-      TableTextColumn(
-        "ABIs",
-        TableColumnWidth.Fixed(77.dp),
-        attribute = { it.abis.joinToString() },
-      ),
-      TableTextColumn(
-        "Translated ABIs",
-        TableColumnWidth.Fixed(77.dp),
-        attribute = { it.translatedAbis.joinToString() },
+        TableColumnWidth.Fixed(250.dp),
+        { it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true) },
+        Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )
 
-  Table(columns, images.filter(devicePanelState::test), { it }, modifier, selectionState)
+  Table(
+    columns,
+    images.filter(devicePanelState::test),
+    { it },
+    modifier,
+    tableSelectionState = selectionState,
+    onRowClick = onRowClick,
+  )
 }
 
 internal data class DevicePanelState
 internal constructor(
+  internal val selectedApiLevel: AndroidVersionSelection,
   internal val selectedServices: Services?,
   internal val sdkExtensionSystemImagesVisible: Boolean = false,
   internal val onlyForHostCpuArchitectureVisible: Boolean = true,
 ) {
-  internal fun test(image: SystemImage): Boolean {
-    val servicesMatch = selectedServices == null || image.services == selectedServices
+  internal fun test(image: ISystemImage): Boolean {
+    val servicesMatch = selectedServices == null || image.getServices() == selectedServices
 
     val androidVersionMatches =
-      sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension
+      (sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension) &&
+        selectedApiLevel.matches(image.androidVersion)
 
     val abisMatch =
       !onlyForHostCpuArchitectureVisible ||
-        image.abis.contains(valueOfCpuArchitecture(osArchitecture))
+        image.abiTypes.contains(valueOfCpuArchitecture(osArchitecture))
 
     return servicesMatch && androidVersionMatches && abisMatch
   }
@@ -200,8 +214,8 @@ internal constructor(
   private companion object {
     private fun valueOfCpuArchitecture(architecture: CpuArchitecture) =
       when (architecture) {
-        CpuArchitecture.X86_64 -> Abi.X86_64
-        CpuArchitecture.ARM -> Abi.ARM64_V8A
+        CpuArchitecture.X86_64 -> Abi.X86_64.toString()
+        CpuArchitecture.ARM -> Abi.ARM64_V8A.toString()
         else -> throw IllegalArgumentException(architecture.toString())
       }
   }

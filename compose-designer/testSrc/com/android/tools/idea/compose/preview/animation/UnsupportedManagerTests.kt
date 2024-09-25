@@ -49,8 +49,6 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
 
   @Test
   fun unsupportedAnimationInspector() = runBlocking {
-    val inspector = createAndOpenInspector()
-
     val animation =
       object : ComposeAnimation {
         override val animationObject = Any()
@@ -58,15 +56,13 @@ class UnsupportedManagerTests(private val animationType: ComposeAnimationType) :
         override val states = emptySet<Any>()
       }
 
-    val clock = TestClock()
-
-    ComposeAnimationSubscriber.onAnimationSubscribed(clock, animation).join()
+    animationPreview.addAnimation(animation).join()
 
     withContext(uiThread) {
-      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+      val ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
-      val cards = findAllCards(inspector.component)
+      val cards = findAllCards(animationPreview.component)
       assertEquals(1, cards.size)
       assertTrue(cards.first() is LabelCard)
     }

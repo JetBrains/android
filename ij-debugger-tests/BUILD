@@ -1,6 +1,7 @@
 load("//tools/adt/idea/jps-build:idea.bzl", "jps_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load(":ij-debugger-tests.bzl", "debugger_test", "shard")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 jps_library(
     name = "kotlin.jvm-debugger.test_lib",
@@ -240,4 +241,13 @@ maven_repository(
         "@maven//:org.jetbrains.annotations-java5_24.0.0",
     ],
     zip_prefix = "maven/",
+)
+
+kotlin_library(
+    name = "attacher",
+    srcs = ["ArtAttacher.kt"],
+    deps = [
+        ":kotlin.jvm-debugger.test_lib_import",
+        "@maven//:junit.junit",
+    ],
 )

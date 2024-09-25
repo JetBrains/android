@@ -6,6 +6,7 @@ import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
 import org.jdom.Attribute
+import org.jdom.IllegalAddException
 import org.jetbrains.jps.model.java.JpsJavaDependencyScope
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
@@ -53,6 +54,7 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
 
         if (library.scope != expectedLibraryScope) {
           if (moduleName == "intellij.android.plugin" && library.libraryName == "studio-platform") {
+            // IDEA-356251
             logger<AndroidPluginModuleConsistencyTest>()
               .warn("'$moduleName' module specifies '${library.libraryName}' as a '${library.scope}' dependency. " +
                     "It should be declared as a 'PROVIDED' dependency instead.")
@@ -147,7 +149,11 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
 
       libraryElements.forEach { libraryElement ->
         val expectedScope = missConfiguredLibrariesToLibraryScope[libraryElement.getAttributeValue("name")]!!.name
-        libraryElement.attributes.add(1, Attribute("scope", expectedScope))
+        try {
+          libraryElement.attributes.add(1, Attribute("scope", expectedScope))
+        } catch (ex:IllegalAddException) {
+          println(libraryElement.name)
+        }
       }
 
       return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n${JDOMUtil.write(element).trimEnd('\n')}"

@@ -1,0 +1,15 @@
+
+# Test projects use the new default dependency resolution in bazel. See https://bazel.build/external/migration.
+common --enable_bzlmod
+
+# Help troubleshooting toolchain resolution errors.
+common --toolchain_resolution_debug='@bazel_tools//tools/cpp:toolchain_type'
+common --toolchain_resolution_debug='@@bazel_tools//tools/jdk:bootstrap_runtime_toolchain_type'
+common --toolchain_resolution_debug='@@bazel_tools//tools/jdk:runtime_toolchain_type'
+common --toolchain_resolution_debug='@@bazel_tools//tools/jdk:toolchain_type'
+
+# Match the JVM version used by the IDE itself.
+common --java_language_version=17
+common --java_runtime_version=remotejdk_17
+common --tool_java_language_version=17
+common --tool_java_runtime_version=remotejdk_17

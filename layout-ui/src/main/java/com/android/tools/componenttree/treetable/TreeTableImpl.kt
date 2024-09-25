@@ -363,6 +363,11 @@ class TreeTableImpl(
     return tree.insets.left + (ourUi.leftChildIndent + ourUi.rightChildIndent) * (nodeDepth - 1)
   }
 
+  private fun computeLeftOffset(item: Any): Int {
+    val depth = tableModel.computeDepth(item)
+    return computeLeftOffset(depth)
+  }
+
   private fun alwaysExpanded(path: TreePath): Boolean {
     // An invisible root or a root without root handles should always be expanded
     val parentPath = path.parentPath ?: return !tree.isRootVisible || !tree.showsRootHandles
@@ -450,7 +455,9 @@ class TreeTableImpl(
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          cell.column == 0 && event.clickCount == 2 -> doubleClick(item)
+          // Do not emit double click with mouse to the left of the item:
+          cell.column == 0 && event.clickCount == 2 && event.x > computeLeftOffset(item) ->
+            doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)

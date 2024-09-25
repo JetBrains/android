@@ -41,5 +41,6 @@ iml_module(
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/avd:intellij.android.avd[module]",
+        "//tools/adt/idea/intellij.android.device[module]",
     ],
 )

@@ -26,18 +26,36 @@ import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import java.awt.Rectangle
 
 object NavHorizontalActionHitProvider : NavActionHitProviderBase() {
-  override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
+  override fun addShapeHit(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    picker: ScenePicker,
+  ) {
     component.inlineDrawRect(sceneTransform).let {
-      picker.addRect(component, 0, it.x.toInt(), it.y.toInt(), (it.x + it.width).toInt(), (it.y + it.height).toInt())
+      picker.addRect(
+        component,
+        0,
+        it.x.toInt(),
+        it.y.toInt(),
+        (it.x + it.width).toInt(),
+        (it.y + it.height).toInt(),
+      )
     }
   }
 
-  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+  override fun iconRectangle(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+  ): SwingRectangle? {
     val source = component.inlineDrawRect(sceneTransform)
     return getHorizontalActionIconRect(source, sceneTransform.inlineScale)
   }
 
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle) : Boolean {
+  override fun intersects(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    @AndroidDpCoordinate rectangle: Rectangle,
+  ): Boolean {
     val source = component.fillDrawRect(0, null)
     return rectangle.intersects(source)
   }

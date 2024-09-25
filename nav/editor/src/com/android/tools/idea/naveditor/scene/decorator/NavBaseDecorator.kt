@@ -42,18 +42,26 @@ val HIGHLIGHTED_FRAME_THICKNESS = scaledSwingLength(2f)
 val HIGHLIGHTED_FRAME_STROKE = SwingStroke(HIGHLIGHTED_FRAME_THICKNESS)
 
 abstract class NavBaseDecorator : SceneDecorator() {
-  override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
+  override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {}
 
-  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
+  override fun addBackground(
+    list: DisplayList,
+    sceneContext: SceneContext,
+    component: SceneComponent,
+  ) {}
 
-  protected fun addHeader(list: DisplayList, sceneContext: SceneContext, rectangle: SwingRectangle, component: SceneComponent) {
+  protected fun addHeader(
+    list: DisplayList,
+    sceneContext: SceneContext,
+    rectangle: SwingRectangle,
+    component: SceneComponent,
+  ) {
     val headerRect = getHeaderRect(sceneContext, rectangle)
     val scale = sceneContext.inlineScale
     val text = component.nlComponent.uiName
     val isStart = component.nlComponent.isStartDestination
-    val hasDeepLink = component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
+    val hasDeepLink =
+      component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
 
     list.add(DrawHeader(headerRect, scale, text, isStart, hasDeepLink))
   }
@@ -75,7 +83,9 @@ abstract class NavBaseDecorator : SceneDecorator() {
 
   fun isHighlighted(component: SceneComponent): Boolean =
     when (component.drawState) {
-      SceneComponent.DrawState.SELECTED, SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG -> true
+      SceneComponent.DrawState.SELECTED,
+      SceneComponent.DrawState.HOVER,
+      SceneComponent.DrawState.DRAG -> true
       else -> false
     }
 }

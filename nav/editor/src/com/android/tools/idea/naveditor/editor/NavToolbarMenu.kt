@@ -33,8 +33,11 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
-    IconWithTextAction("", description, icon), Toggleable {
+abstract class NavToolbarMenu(
+  protected val surface: NavDesignSurface,
+  description: String,
+  icon: Icon,
+) : IconWithTextAction("", description, icon), Toggleable {
   protected val BACKGROUND_COLOR: Color = UIUtil.getListBackground()
   protected var balloonHasDisplayedAndClosed = false
   private var balloon: Balloon? = null
@@ -48,39 +51,41 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
   override fun actionPerformed(e: AnActionEvent) {
     if (isBalloonVisible()) {
       hideBalloon()
-    }
-    else {
-      val showComponent =
-        e.inputEvent?.source as? JComponent
-        ?: button
-        ?: return
+    } else {
+      val showComponent = e.inputEvent?.source as? JComponent ?: button ?: return
       show(showComponent)
     }
   }
 
-  @VisibleForTesting
-  fun isBalloonVisible() = balloon?.wasFadedOut() == false
+  @VisibleForTesting fun isBalloonVisible() = balloon?.wasFadedOut() == false
 
   fun hideBalloon() = balloon?.hide()
 
   fun show(component: JComponent) {
-    balloon = JBPopupFactory.getInstance()
-      .createBalloonBuilder(mainPanel)
-      .setShadow(true)
-      .setHideOnAction(false)
-      .setBlockClicksThroughBalloon(true)
-      .setAnimationCycle(200)
-      .setRequestFocus(true)  // Note that this seems non-functional, since it requests focus before the balloon is shown
-      .setBorderColor(secondaryPanelBackground)
-      .setFillColor(BACKGROUND_COLOR)
-      .createBalloon().also {
-        it.addListener(object : JBPopupListener {
-          override fun onClosed(event: LightweightWindowEvent) {
-            balloon = null
-          }
-        })
-        it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
-      }
+    balloon =
+      JBPopupFactory.getInstance()
+        .createBalloonBuilder(mainPanel)
+        .setShadow(true)
+        .setHideOnAction(false)
+        .setBlockClicksThroughBalloon(true)
+        .setAnimationCycle(200)
+        .setRequestFocus(
+          true
+        ) // Note that this seems non-functional, since it requests focus before the balloon is
+          // shown
+        .setBorderColor(secondaryPanelBackground)
+        .setFillColor(BACKGROUND_COLOR)
+        .createBalloon()
+        .also {
+          it.addListener(
+            object : JBPopupListener {
+              override fun onClosed(event: LightweightWindowEvent) {
+                balloon = null
+              }
+            }
+          )
+          it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
+        }
   }
 
   abstract val mainPanel: JPanel

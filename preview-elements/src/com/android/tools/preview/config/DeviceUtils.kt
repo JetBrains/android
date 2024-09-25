@@ -31,6 +31,18 @@ import com.android.tools.environment.Logger
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
+/** Device spec for a reference phone device. */
+const val REFERENCE_PHONE_SPEC = "spec:width=411dp,height=891dp"
+
+/** Device spec for a reference foldable device. */
+const val REFERENCE_FOLDABLE_SPEC = "spec:width=673dp,height=841dp"
+
+/** Device spec for a reference tablet device. */
+const val REFERENCE_TABLET_SPEC = "spec:width=1280dp,height=800dp,dpi=240"
+
+/** Device spec for a reference desktop device. */
+const val REFERENCE_DESKTOP_SPEC = "spec:width=1920dp,height=1080dp,dpi=160"
+
 /** Prefix used by device specs to find devices by id. */
 const val DEVICE_BY_ID_PREFIX = "id:"
 

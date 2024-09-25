@@ -59,7 +59,6 @@ class TransportFileManagerTest {
   val projectRule = ProjectRule()
 
   private lateinit var mockDevice: IDevice
-  private lateinit var messageBus: MessageBus
   private lateinit var fileManager: TransportFileManager
 
   @Before
@@ -73,8 +72,7 @@ class TransportFileManagerTest {
     ApplicationManager.getApplication().registerExtension(TransportConfigContributor.EP_NAME, fakeExtension, disposableRule.disposable)
 
     mockDevice = mock(IDevice::class.java)
-    messageBus = mock(MessageBus::class.java)
-    fileManager = TransportFileManager(mockDevice, messageBus)
+    fileManager = TransportFileManager(mockDevice)
   }
 
   @Test
@@ -308,7 +306,7 @@ class TransportFileManagerTest {
       mock(TransportDeviceManager.TransportDeviceManagerListener::class.java, Mockito.RETURNS_DEEP_STUBS)
 
     doReturn(transportDeviceManagerListener).whenever(mockMessageBus).syncPublisher(TransportDeviceManager.TOPIC)
-    val fileManagerSpy = spy(TransportFileManager(device, mockMessageBus))
+    val fileManagerSpy = spy(TransportFileManager(device))
 
     doReturn(ArrayList<String>()).whenever(fileManagerSpy).copyFileToDevice(any(DeployableFile::class.java))
     whenever(device.version.featureLevel).thenReturn(apiLevel)

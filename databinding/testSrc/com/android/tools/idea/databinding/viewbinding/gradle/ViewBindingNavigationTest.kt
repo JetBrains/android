@@ -24,11 +24,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiAnchor
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -64,7 +64,7 @@ class ViewBindingNavigationTest {
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     // Make sure that all file system events up to this point have been processed.
-    VirtualFileManager.getInstance().syncRefresh()
+    VfsTestUtil.syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     assertThat(projectRule.androidFacet(":app").isViewBindingEnabled()).isTrue()

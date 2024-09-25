@@ -23,9 +23,6 @@ iml_module(
         "//tools/adt/idea/android-templates:intellij.android.templates",
         # Kotlin Android Gradle Configurator
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        # TODO(b/336267864): temporarily allowed until SomethingLanguage is
-        #  separated from gradle-dsl-declarative
-        "//tools/adt/idea/lint:intellij.lint",
         # TODO(xof): investigate
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/vendor/google/android-ndk:android-ndk",
@@ -71,11 +68,9 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
-        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
-        "//tools/adt/idea/lint:intellij.lint[module, test]",
-        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
 

@@ -62,9 +62,6 @@ import com.intellij.util.SlowOperations
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import kotlinx.coroutines.launch
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
-import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -81,6 +78,9 @@ import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
+import kotlinx.coroutines.launch
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
+import org.jetbrains.android.dom.navigation.isNavHostFragment
 
 private const val NO_HOST_TEXT1 = "No NavHostFragments found"
 private const val NO_HOST_TEXT2 = "This nav graph must be"
@@ -89,7 +89,8 @@ private const val NO_HOST_TEXT4 = "NavHostFragment in a layout in"
 private const val NO_HOST_TEXT5 = "order to be accessible."
 
 private const val NO_HOST_LINK_TEXT = "Using Navigation Component"
-private const val NO_HOST_LINK_TARGET = "https://developer.android.com/guide/navigation/navigation-getting-started#add-navhost"
+private const val NO_HOST_LINK_TARGET =
+  "https://developer.android.com/guide/navigation/navigation-getting-started#add-navhost"
 
 private const val SPACING_1 = 6
 private const val SPACING_2 = 24
@@ -101,8 +102,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
 
-  @VisibleForTesting
-  val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
+  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
   private val cardLayout = layout as CardLayout
   private var resourceVersion = 0L
 
@@ -132,79 +132,93 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
 
     list.background = secondaryPanelBackground
     if (GeneralSettings.getInstance().isSupportScreenReaders) {
-      list.addFocusListener(object : FocusListener {
-        override fun focusLost(e: FocusEvent?) {
-          list.selectedIndices = intArrayOf()
-        }
+      list.addFocusListener(
+        object : FocusListener {
+          override fun focusLost(e: FocusEvent?) {
+            list.selectedIndices = intArrayOf()
+          }
 
-        override fun focusGained(e: FocusEvent?) {
-          if (list.selectedIndices.isEmpty() && !list.isEmpty) {
-            list.selectedIndex = 0
+          override fun focusGained(e: FocusEvent?) {
+            if (list.selectedIndices.isEmpty() && !list.isEmpty) {
+              list.selectedIndex = 0
+            }
           }
         }
-      })
-    }
-    else {
-      list.selectionModel = object : DefaultListSelectionModel() {
-        override fun setAnchorSelectionIndex(anchorIndex: Int) {
-        }
+      )
+    } else {
+      list.selectionModel =
+        object : DefaultListSelectionModel() {
+          override fun setAnchorSelectionIndex(anchorIndex: Int) {}
 
-        override fun setSelectionInterval(index0: Int, index1: Int) {
-        }
+          override fun setSelectionInterval(index0: Int, index1: Int) {}
 
-        override fun setLeadSelectionIndex(leadIndex: Int) {
+          override fun setLeadSelectionIndex(leadIndex: Int) {}
         }
-      }
     }
-    list.cellRenderer = object : ColoredListCellRenderer<SmartPsiElementPointer<XmlTag>>() {
-      override fun customizeCellRenderer(list: JList<out SmartPsiElementPointer<XmlTag>>,
-                                         value: SmartPsiElementPointer<XmlTag>?,
-                                         index: Int,
-                                         selected: Boolean,
-                                         hasFocus: Boolean) {
-        if (value == null) {
-          return
-        }
-        icon = StudioIcons.NavEditor.Tree.ACTIVITY
-        val containingFile = value.containingFile?.name ?: "Unknown File"
-        val id = runReadAction {
-          SlowOperations.allowSlowOperations(ThrowableComputable {
-            value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
-          })
-        }
-        append(FileUtil.getNameWithoutExtension(containingFile))
-        append(" (${id ?: "no id"})")
-      }
-    }
-    list.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.clickCount == 2) {
-          activate(list.locationToIndex(e.point))
-        }
-      }
-    })
-    list.addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(e: KeyEvent?) {
-        if (e?.keyCode == VK_ENTER || e?.keyChar == '\n') {
-          activate(list.selectedIndex)
+    list.cellRenderer =
+      object : ColoredListCellRenderer<SmartPsiElementPointer<XmlTag>>() {
+        override fun customizeCellRenderer(
+          list: JList<out SmartPsiElementPointer<XmlTag>>,
+          value: SmartPsiElementPointer<XmlTag>?,
+          index: Int,
+          selected: Boolean,
+          hasFocus: Boolean,
+        ) {
+          if (value == null) {
+            return
+          }
+          icon = StudioIcons.NavEditor.Tree.ACTIVITY
+          val containingFile = value.containingFile?.name ?: "Unknown File"
+          val id = runReadAction {
+            SlowOperations.allowSlowOperations(
+              ThrowableComputable {
+                value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
+              }
+            )
+          }
+          append(FileUtil.getNameWithoutExtension(containingFile))
+          append(" (${id ?: "no id"})")
         }
       }
-    })
-    surface.models.first().addListener(object : ModelListener {
-      override fun modelActivated(model: NlModel) {
-        val modCount = StudioResourceRepositoryManager.getAppResources(model.facet).modificationCount
-        if (resourceVersion < modCount) {
-          resourceVersion = modCount
-          startLoading()
+    list.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount == 2) {
+            activate(list.locationToIndex(e.point))
+          }
         }
       }
-    })
+    )
+    list.addKeyListener(
+      object : KeyAdapter() {
+        override fun keyTyped(e: KeyEvent?) {
+          if (e?.keyCode == VK_ENTER || e?.keyChar == '\n') {
+            activate(list.selectedIndex)
+          }
+        }
+      }
+    )
+    surface.models
+      .first()
+      .addListener(
+        object : ModelListener {
+          override fun modelActivated(model: NlModel) {
+            val modCount =
+              StudioResourceRepositoryManager.getAppResources(model.facet).modificationCount
+            if (resourceVersion < modCount) {
+              resourceVersion = modCount
+              startLoading()
+            }
+          }
+        }
+      )
 
     startLoading()
   }
 
   /**
-   * Resets the internal cached version number. This ensures that a future [NlModel] activation will re-load the information immediately.
+   * Resets the internal cached version number. This ensures that a future [NlModel] activation will
+   * re-load the information immediately.
    */
   @TestOnly
   internal fun resetCachedVersionCount() {
@@ -230,13 +244,14 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       val project = model.project
       val virtualFile = model.virtualFile
 
-      val psi = readAction {
-        if (project.isDisposed) return@readAction null
+      val psi =
+        readAction {
+          if (project.isDisposed) return@readAction null
 
-        if (model.virtualFile.isValid)
-          PsiManager.getInstance(project).findFile(virtualFile)
-        else null
-      } as? XmlFile ?: return@launch
+          if (model.virtualFile.isValid) PsiManager.getInstance(project).findFile(virtualFile)
+          else null
+        }
+          as? XmlFile ?: return@launch
 
       (list.model as DefaultListModel).clear()
       doLoad(psi)
@@ -250,19 +265,23 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       val listModel = list.model as DefaultListModel
       listModel.clear()
       if (module != null) {
-        val newReferences = ProgressManager.getInstance().runProcess(
-          Computable {
-            findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
-          }, EmptyProgressIndicator())
+        val newReferences =
+          ProgressManager.getInstance()
+            .runProcess(
+              Computable {
+                findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
+              },
+              EmptyProgressIndicator(),
+            )
 
         listModel.addAll(newReferences)
       }
-      val name = if (list.model.size == 0) {
-        "EMPTY"
-      }
-      else {
-        "LIST"
-      }
+      val name =
+        if (list.model.size == 0) {
+          "EMPTY"
+        } else {
+          "LIST"
+        }
       cardLayout.show(this, name)
     }
   }
@@ -280,7 +299,10 @@ internal fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
       continue
     }
     val attribute = element.parent as? XmlAttribute ?: continue
-    if (attribute.localName != ATTR_NAV_GRAPH || attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri) {
+    if (
+      attribute.localName != ATTR_NAV_GRAPH ||
+        attribute.namespace != ResourceNamespace.TODO().xmlNamespaceUri
+    ) {
       continue
     }
     val tag = attribute.parent
@@ -334,11 +356,13 @@ private class HostPanelLayoutManager : LayoutManager {
       val x = insets.left + (width - component.width) / 2
       component.setLocation(x, y)
 
-      y += component.height + when (i) {
-        0 -> SPACING_1
-        4 -> SPACING_2
-        else -> 0
-      }
+      y +=
+        component.height +
+          when (i) {
+            0 -> SPACING_1
+            4 -> SPACING_2
+            else -> 0
+          }
     }
   }
 
@@ -353,7 +377,6 @@ private class HostPanelLayoutManager : LayoutManager {
   }
 
   override fun addLayoutComponent(name: String, comp: Component) {}
+
   override fun removeLayoutComponent(comp: Component) {}
 }
-
-

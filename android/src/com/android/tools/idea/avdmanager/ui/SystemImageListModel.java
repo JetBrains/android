@@ -420,8 +420,11 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     @Nullable
     @Override
     public Comparator<SystemImageDescription> getComparator() {
+      // Order images in order of preference: newer API levels are preferred, and if they are the same, prefer the image with fewer tags.
+      // (We compare the list of tags lexicographically. We don't attempt to favor certain tags over others, we only care that in the
+      // multiple tags case, "google_apis_playstore, tablet" will compare before (i.e. lower priority) "google_apis_playstore".)
       return Comparator.comparing(this::valueOf, new ApiLevelComparator())
-        .thenComparing(SystemImageDescription::getTags, IdDisplay.ID_DISPLAY_LIST_COMPARATOR);
+        .thenComparing(SystemImageDescription::getTags, IdDisplay.ID_DISPLAY_LIST_COMPARATOR.reversed());
     }
 
     @Override

@@ -389,37 +389,6 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.MOVE_COMMENTS_IN_BLOCK_EXPECTED)
   }
 
-  @Ignore("b/303108941")
-  @Test
-  fun testMoveBasicWithComments() {
-    writeToBuildFile(TestFile.MOVE_BASIC_WITH_COMMENTS)
-
-    val buildModel = gradleBuildModel
-    val extElement = buildModel.ext().dslElement()
-
-    val extElementMap = extElement.elements
-
-    // Move all of the elements around
-    extElement.moveElementTo(0, extElementMap["prop3"]!!)
-    extElement.moveElementTo(2, extElementMap["prop1"]!!)
-    extElement.moveElementTo(0, extElementMap["prop2"]!!)
-
-    fun verify() {
-      val firstModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(firstModel, STRING_TYPE, "value1", REFERENCE, REGULAR, 0, "prop1")
-      val secondModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(secondModel, STRING_TYPE, "hello", STRING, REGULAR, 0, "prop2")
-      val thirdModel = buildModel.ext().findProperty("prop3")
-      verifyPropertyModel(thirdModel, STRING_TYPE, "Boo", STRING, REGULAR, 0, "prop3")
-    }
-
-    verify()
-
-    applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFile.MOVE_BASIC_WITH_COMMENTS_EXPECTED)
-    verify()
-  }
-
   @Test
   fun testMoveBlockWithUnparsedContent() {
     assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
@@ -867,8 +836,6 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     MOVE_BEFORE_EDIT_EXPECTED("moveBeforeEditExpected"),
     MOVE_COMMENTS_IN_BLOCK("moveCommentsInBlock"),
     MOVE_COMMENTS_IN_BLOCK_EXPECTED("moveCommentsInBlockExpected"),
-    MOVE_BASIC_WITH_COMMENTS("moveBasicWithComments"),
-    MOVE_BASIC_WITH_COMMENTS_EXPECTED("moveBasicWithCommentsExpected"),
     MOVE_BLOCK_WITH_UNPARSED_CONTENT("moveBlockWithUnparsedContent"),
     MOVE_BLOCK_WITH_UNPARSED_CONTENT_EXPECTED("moveBlockWithUnparsedContentExpected"),
     WRONG_ORDER_NO_DEPENDENCY("wrongOrderNoDependency"),

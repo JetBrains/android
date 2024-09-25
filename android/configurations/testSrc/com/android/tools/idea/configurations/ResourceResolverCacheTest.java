@@ -76,13 +76,13 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     configuration2.setTheme("Theme.Light");
     assertSame(resolver1b, configuration2.getResourceResolver());
 
-    configuration1.setGestureNav(true);
+    configuration1.setGestureNav(false);
     ResourceResolver resolver1c = configuration1.getResourceResolver();
     assertNotSame(resolver1c, resolver1b);
     assertNotSame(resolver1c, resolver2);
     assertSame(resolver1c, configuration1.getResourceResolver());
 
-    configuration2.setGestureNav(true);
+    configuration2.setGestureNav(false);
     assertSame(resolver1c, configuration2.getResourceResolver());
 
     // Test project resource changes, should invalidate

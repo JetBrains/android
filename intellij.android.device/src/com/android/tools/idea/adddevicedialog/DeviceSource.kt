@@ -16,9 +16,10 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.sdklib.deviceprovisioner.Extension
+import kotlinx.coroutines.flow.Flow
 
 interface DeviceSource : Extension {
-  val profiles: List<DeviceProfile>
+  val profiles: Flow<LoadingState<List<DeviceProfile>>>
 
   fun WizardPageScope.selectionUpdated(profile: DeviceProfile)
 }

@@ -24,17 +24,24 @@ import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.sdklib.internal.avd.BootMode
+import com.android.sdklib.internal.avd.BootSnapshot
 import com.android.sdklib.internal.avd.ColdBoot
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.ExternalSdCard
+import com.android.sdklib.internal.avd.GenericSkin
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.internal.avd.QuickBoot
 import com.android.sdklib.internal.avd.SdCard
+import com.android.sdklib.internal.avd.Skin as AvdSkin
+import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 @Immutable
 internal data class VirtualDevice
@@ -55,15 +62,60 @@ internal constructor(
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
-)
+) {
+  companion object {
+    fun withDefaults(device: Device): VirtualDevice =
+      VirtualDevice(
+        name = device.displayName,
+        device = device,
+        androidVersion = device.androidVersionRange.upperEndpoint(),
+        skin = NoSkin.INSTANCE,
+        frontCamera = AvdCamera.EMULATED,
+        // TODO We're assuming the emulator supports this feature
+        rearCamera = AvdCamera.VIRTUAL_SCENE,
+        speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
+        latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
+        orientation = device.defaultState.orientation,
+        defaultBoot = Boot.QUICK,
+        internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
+        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
+        graphicAcceleration = GpuMode.AUTO,
+        simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
+      )
+  }
+}
+
+internal fun VirtualDevice.copyFrom(avdInfo: AvdBuilder): VirtualDevice {
+  // TODO: System image
+  // TODO: Preferred ABI
+
+  return copy(
+    name = avdInfo.displayName,
+    androidVersion = avdInfo.androidVersion!!,
+    skin = avdInfo.skin.toSkin(),
+    frontCamera = avdInfo.frontCamera,
+    rearCamera = avdInfo.backCamera,
+    speed = avdInfo.networkSpeed,
+    latency = avdInfo.networkLatency,
+    orientation = avdInfo.screenOrientation,
+    defaultBoot = avdInfo.bootMode.toBoot(),
+    internalStorage = avdInfo.internalStorage.toStorageCapacity(),
+    expandedStorage = avdInfo.sdCard.toExpandedStorage(),
+    cpuCoreCount = avdInfo.cpuCoreCount,
+    graphicAcceleration = avdInfo.gpuMode,
+    simulatedRam = avdInfo.ram.toStorageCapacity(),
+    vmHeapSize = avdInfo.vmHeap.toStorageCapacity(),
+  )
+}
 
 internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   this.device = device.device
-  avdName = device.name
   displayName = device.name
 
   sdCard = device.expandedStorage.toSdCard()
-  skin = OnDiskSkin(device.skin.path()).takeUnless { device.skin == NoSkin.INSTANCE }
+  skin = device.skin.toAvdSkin()
 
   screenOrientation = device.orientation
   cpuCoreCount = device.cpuCoreCount ?: 1
@@ -79,12 +131,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
   networkSpeed = device.speed
   networkLatency = device.latency
 
-  bootMode =
-    when (device.defaultBoot) {
-      Boot.COLD -> ColdBoot
-      Boot.QUICK -> QuickBoot
-    // TODO(b/343544613): Boot from snapshot?
-    }
+  bootMode = device.defaultBoot.toBootMode()
 }
 
 private fun StorageCapacity.toStorage(): Storage {
@@ -123,4 +170,35 @@ internal fun ExpandedStorage.toSdCard(): SdCard? =
     is Custom -> InternalSdCard(value.valueIn(StorageCapacity.Unit.B))
     is ExistingImage -> ExternalSdCard(toString())
     None -> null
+  }
+
+internal fun SdCard?.toExpandedStorage() =
+  when (this) {
+    null -> None
+    is ExternalSdCard -> ExistingImage(Paths.get(path))
+    is InternalSdCard -> Custom(StorageCapacity(size, StorageCapacity.Unit.B).withMaxUnit())
+  }
+
+internal fun Skin.toAvdSkin(): AvdSkin? = OnDiskSkin(path()).takeUnless { this == NoSkin.INSTANCE }
+
+internal fun AvdSkin?.toSkin(): Skin =
+  when (this) {
+    null -> NoSkin.INSTANCE
+    is OnDiskSkin -> DefaultSkin(path)
+    is GenericSkin -> DefaultSkin(Paths.get(name))
+  }
+
+internal fun Boot.toBootMode() =
+  when (this) {
+    Boot.COLD -> ColdBoot
+    Boot.QUICK -> QuickBoot
+  // TODO(b/343544613): Boot from snapshot?
+  }
+
+internal fun BootMode.toBoot() =
+  when (this) {
+    ColdBoot -> Boot.COLD
+    QuickBoot -> Boot.QUICK
+    // TODO(b/343544613): Boot from snapshot?
+    is BootSnapshot -> Boot.QUICK
   }

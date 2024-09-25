@@ -54,7 +54,6 @@ import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.client.ClientSystemInfo;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
@@ -94,12 +93,13 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class NlComponentTree extends Tree
-  implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable, UiDataProvider {
+public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
+                                                     UiDataProvider {
   private  final static int UPDATE_DELAY_MSECS = 250;
 
   private final AtomicBoolean mySelectionIsUpdating;
@@ -116,8 +116,7 @@ public class NlComponentTree extends Tree
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
 
-  public NlComponentTree(@NotNull Project project,
-                         @Nullable NlDesignSurface designSurface,
+  public NlComponentTree(@Nullable NlDesignSurface designSurface,
                          NlVisibilityGutterPanel visibilityGutter) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
@@ -663,13 +662,14 @@ public class NlComponentTree extends Tree
     }
   }
 
+  // ---- Implements UiDataProvider ----
   @Override
   public void uiDataSnapshot(@NotNull DataSink sink) {
-    TreePath[] paths = getSelectionPaths();
-    if (paths == null || paths.length == 0) return;
-    if (paths[0].getLastPathComponent() instanceof NlComponent) return;
-    sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider(paths));
     DataSink.uiDataSnapshot(sink, mySurface);
+    TreePath path = getSelectionPath();
+    if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
+      sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider(getSelectionPaths()));
+    }
   }
 
   @NotNull

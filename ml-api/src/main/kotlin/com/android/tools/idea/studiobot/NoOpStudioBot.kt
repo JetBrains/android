@@ -68,6 +68,7 @@ class NoOpStudioBot : StudioBot {
       config: GenerationConfig,
       history: Prompt?,
       legacyClientSidePrompt: Prompt?,
+      isTransformUseCase: Boolean,
     ): List<Content> = emptyList()
 
     override fun generateContent(prompt: Prompt, config: GenerationConfig): Flow<Content> = emptyFlow()

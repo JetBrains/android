@@ -25,17 +25,20 @@ class HostPanelTest : NavTestCase() {
 
   fun testDumbMode() {
     // This has a navHostFragment referencing our nav file
-    myFixture.addFileToProject("res/layout/file1.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                       "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
-                                                       "\n" +
-                                                       "    <fragment\n" +
-                                                       "        android:id=\"@+id/fragment3\"\n" +
-                                                       "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
-                                                       "        app:defaultNavHost=\"true\"\n" +
-                                                       "        app:navGraph=\"@navigation/nav\" />\n" +
-                                                       "\n" +
-                                                       "</LinearLayout>")
+    myFixture.addFileToProject(
+      "res/layout/file1.xml",
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
+        "\n" +
+        "    <fragment\n" +
+        "        android:id=\"@+id/fragment3\"\n" +
+        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
+        "        app:defaultNavHost=\"true\"\n" +
+        "        app:navGraph=\"@navigation/nav\" />\n" +
+        "\n" +
+        "</LinearLayout>",
+    )
     val model = modelBuilder("nav.xml") { navigation() }.build(false)
     waitForResourceRepositoryUpdates()
     val panel = HostPanel(model.surface as NavDesignSurface)
@@ -48,7 +51,8 @@ class HostPanelTest : NavTestCase() {
       waitFor("list expected to be empty") { listModel.isEmpty }
     }
 
-    // This forces the listModel to be loaded on the next model activation. Without this call, the panel will
+    // This forces the listModel to be loaded on the next model activation. Without this call, the
+    // panel will
     // detect that no changes have happened and ignore the changes.
     panel.resetCachedVersionCount()
     model.deactivate(this)
@@ -58,7 +62,9 @@ class HostPanelTest : NavTestCase() {
 
   fun testFindReferences() {
     // This has a navHostFragment referencing our nav file
-    myFixture.addFileToProject("res/layout/file1.xml", """
+    myFixture.addFileToProject(
+      "res/layout/file1.xml",
+      """
       .<?xml version="1.0" encoding="utf-8"?>
       .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
       .    xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -70,10 +76,14 @@ class HostPanelTest : NavTestCase() {
       .       app:navGraph="@navigation/nav"/>
       .
       .</LinearLayout>
-      """.trimMargin("."))
+      """
+        .trimMargin("."),
+    )
 
     // This has a navHostFragment referencing a different nav file
-    myFixture.addFileToProject("res/layout/file2.xml", """
+    myFixture.addFileToProject(
+      "res/layout/file2.xml",
+      """
       .<?xml version="1.0" encoding="utf-8"?>
       .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
       .   xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -85,10 +95,14 @@ class HostPanelTest : NavTestCase() {
       .     app:navGraph="@navigation/navigation"/>
       .
       .</LinearLayout>
-      """.trimMargin("."))
+      """
+        .trimMargin("."),
+    )
 
     // This has a fragment referencing this file, but it's not a navHostFragment
-    myFixture.addFileToProject("res/layout/file3.xml", """
+    myFixture.addFileToProject(
+      "res/layout/file3.xml",
+      """
       .<?xml version="1.0" encoding="utf-8"?>
       .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
       .   xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -100,7 +114,9 @@ class HostPanelTest : NavTestCase() {
       .       app:navGraph="@navigation/navigation"/>
       .
       .</LinearLayout>
-      """.trimMargin("."))
+      """
+        .trimMargin("."),
+    )
 
     val model = model("nav.xml") { navigation() }
     waitForResourceRepositoryUpdates()
@@ -113,7 +129,9 @@ class HostPanelTest : NavTestCase() {
 
   fun testFindDerivedClassReference() {
     // This has a subclass of NavHostFragment referencing this file
-    myFixture.addFileToProject("res/layout/file1.xml", """
+    myFixture.addFileToProject(
+      "res/layout/file1.xml",
+      """
       .<?xml version="1.0" encoding="utf-8"?>
       .<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
       .    xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -125,15 +143,21 @@ class HostPanelTest : NavTestCase() {
       .        app:navGraph="@navigation/nav" />
       .
       .</LinearLayout>
-      """.trimMargin("."))
+      """
+        .trimMargin("."),
+    )
 
-    myFixture.addFileToProject("src/mytest/navtest/NavHostFragmentChild.java", """
+    myFixture.addFileToProject(
+      "src/mytest/navtest/NavHostFragmentChild.java",
+      """
       .package mytest.navtest;
       .import androidx.navigation.fragment.NavHostFragment;
       .
       .public class NavHostFragmentChild extends NavHostFragment {
       .}
-      """.trimMargin("."))
+      """
+        .trimMargin("."),
+    )
 
     val model = model("nav.xml") { navigation() }
     waitForResourceRepositoryUpdates()

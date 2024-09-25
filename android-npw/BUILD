@@ -69,7 +69,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleKtTest",
         },
         "other": {
-            "shard_count": 4,
+            "shard_count": 10,
         },
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
@@ -176,12 +176,13 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
-        "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.24",
+        "@maven//:org.jetbrains.kotlin.kotlin-test_1.9.24",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
     ],
 )

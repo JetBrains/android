@@ -1,0 +1,130 @@
+<!--
+  ~ Copyright 2016 The Bazel Authors. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <vendor>Google</vendor>
+
+  <depends>com.intellij.modules.androidstudio</depends>
+  <depends>org.jetbrains.android</depends>
+  <depends>com.google.gct.test.recorder</depends>
+  <depends>com.intellij.modules.java</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <programRunner implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryProgramRunner" order="first"/>
+    <programRunner implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestProgramRunner" order="first"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.manifest.ParsedManifestService"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.ExternalLibraryInterner"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.libraries.UnpackedAars"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.libraries.RenderJarCache"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.resources.BlazeLightResourceClassService"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$LastSyncResultCache"/>
+    <projectService serviceImplementation="com.google.idea.blaze.android.editor.ProjectUnresolvedResourceStatsCollector"/>
+    <projectService serviceInterface="com.google.idea.blaze.android.run.runner.BlazeDeployTargetService"
+        serviceImplementation="com.google.idea.blaze.android.run.runner.BlazeDeployTargetService$DefaultService"/>
+    <projectService serviceInterface="com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService"
+        serviceImplementation="com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService$DefaultDebuggerService"/>
+    <projectService serviceInterface="com.google.idea.blaze.android.targetmaps.TargetToBinaryMap"
+        serviceImplementation="com.google.idea.blaze.android.targetmaps.TargetToBinaryMapImpl" />
+    <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$LastBuildResultCache"/>
+    <applicationService serviceImplementation="com.google.idea.blaze.android.settings.BlazeAndroidUserSettings"/>
+    <applicationService serviceInterface="com.google.idea.blaze.android.sdk.BlazeSdkProvider"
+      serviceImplementation="com.google.idea.blaze.android.sdk.BlazeSdkProviderImpl"/>
+    <applicationService serviceInterface="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService"
+        serviceImplementation="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService$DefaultImpl"/>
+    <dom.fileMetaData implementation="com.google.idea.blaze.android.resources.BlazeResourcesDomFileDescription" rootTagName="resources"/>
+    <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeModuleSystem"/>
+    <runConfigurationProducer
+        implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
+        order="first"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.android.actions">
+    <newResourceCreationHandler
+        implementation="com.google.idea.blaze.android.resources.actions.BlazeNewResourceCreationHandler" />
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.google.idea.blaze.MavenArtifactLocator" interface="com.google.idea.blaze.android.projectsystem.MavenArtifactLocator"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.DesugaringLibraryConfigFilesLocator" interface="com.google.idea.blaze.android.projectsystem.DesugaringLibraryConfigFilesLocator"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.AndroidTestLaunchMethodsProvider" interface="com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.GeneratedResourceRetentionFilter" interface="com.google.idea.blaze.android.sync.importer.problems.GeneratedResourceRetentionFilter"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.MobileInstallAdbLocationProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.MobileInstallAdbLocationProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.AdbTunnelConfiguratorProvider" interface="com.google.idea.blaze.android.run.binary.mobileinstall.AdbTunnelConfigurator$AdbTunnelConfiguratorProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.RemoteApkDownloader" interface="com.google.idea.blaze.android.run.RemoteApkDownloader"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.android.ApkBuildStepProvider" interface="com.google.idea.blaze.android.run.ApkBuildStepProvider" />
+    <extensionPoint qualifiedName="com.google.idea.blaze.NativeSymbolFinder" interface="com.google.idea.blaze.android.run.NativeSymbolFinder" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <LintCollector implementation="com.google.idea.blaze.android.libraries.AndroidLintCollector"/>
+    <SyncPlugin implementation="com.google.idea.blaze.android.sync.BlazeAndroidSyncPlugin"/>
+    <QuerySyncPlugin implementation="com.google.idea.blaze.android.qsync.BlazeAndroidQuerySyncPlugin"/>
+    <SyncListener implementation="com.google.idea.blaze.android.sync.BlazeAndroidSyncListener"/>
+    <SyncListener implementation="com.google.idea.blaze.android.manifest.ParsedManifestService$ClearManifestParser"/>
+    <SyncListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemSyncManager$SyncStatusPublisher"/>
+    <JavaSyncAugmenter implementation="com.google.idea.blaze.android.sync.BlazeAndroidJavaSyncAugmenter"/>
+    <FileCache implementation="com.google.idea.blaze.android.libraries.UnpackedAars$FileCacheAdapter"/>
+    <FileCache implementation="com.google.idea.blaze.android.libraries.RenderJarCache$FileCacheAdapter"/>
+    <OutputsProvider implementation="com.google.idea.blaze.android.sync.AndroidOutputsProvider"/>
+    <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryRunConfigurationHandlerProvider"/>
+    <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestRunConfigurationHandlerProvider"/>
+    <BlazeTestEventsHandler implementation="com.google.idea.blaze.android.run.test.smrunner.BlazeAndroidTestEventsHandler"/>
+    <ProjectViewDefaultValueProvider implementation="com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection$AndroidSdkPlatformProjectViewDefaultValueProvider"/>
+    <AndroidTestLaunchMethodsProvider implementation="com.google.idea.blaze.android.run.test.BlazeAndroidTestLaunchMethodsProviderImpl"/>
+    <SyncDataExtractor implementation="com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData$Extractor"/>
+    <TestContextProvider
+        implementation="com.google.idea.blaze.android.run.test.AndroidTestContextProvider"
+        order="first, before JavaTestContextProvider"/>
+    <BlazeHighlightStatsCollector implementation="com.google.idea.blaze.android.editor.UnresolvedResourceStatsCollector"/>
+    <SyncListener implementation="com.google.idea.blaze.android.editor.ProjectUnresolvedResourceStatsCollector$CollectorSyncListener"/>
+    <SyncListener implementation="com.google.idea.blaze.android.targetmaps.TargetToBinaryMapImpl$Adapter"/>
+    <OutputGroupsProvider implementation="com.google.idea.blaze.android.sync.aspects.strategy.RenderResolveOutputGroupProvider"/>
+    <ComposeStatusProvider implementation="com.google.idea.blaze.android.compose.ExperimentComposeStatusProvider"/>
+    <BlazeBuildListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$BuildCallbackPublisher"/>
+    <android.ApkBuildStepProvider implementation="com.google.idea.blaze.android.run.BazelApkBuildStepProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze.cpp">
+    <CppSupportChecker implementation="com.google.idea.blaze.android.cppimpl.NdkCppSupportChecker" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.ide">
+    <sdkEventListener implementation="com.google.idea.blaze.android.sdk.AndroidSdkListener"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.project">
+    <projectsystem implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.rendering">
+    <renderErrorContributor implementation="com.android.tools.rendering.RenderResultCompat$BlazeProvider"/>
+    <renderSecurityManagerOverrides implementation="com.google.idea.blaze.android.rendering.BlazeRenderSecurityManagerOverrides"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.google.gct.testrecorder.run">
+    <testRecorderRunConfigurationProxyProvider implementation="com.google.idea.blaze.android.run.testrecorder.TestRecorderBlazeCommandRunConfigurationProxyProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
+    <androidDebuggerInfoProvider implementation="com.google.idea.blaze.android.run.BlazeCommandAndroidDebuggerInfoProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze.base.qsync">
+    <ProjectProtoTransformProvider implementation="com.google.idea.blaze.android.qsync.AndroidProjectProtoTransform$Provider" />
+  </extensions>
+
+</idea-plugin>

@@ -18,9 +18,10 @@ package com.android.tools.idea.adb.wireless
 import com.android.tools.idea.FutureValuesTracker
 import com.intellij.openapi.project.Project
 
-class MockDevicePairingView(project: Project,
-                            notificationService: WiFiPairingNotificationService,
-                            override val model: WiFiPairingModel
+class MockDevicePairingView(
+  project: Project,
+  notificationService: WiFiPairingNotificationService,
+  override val model: WiFiPairingModel,
 ) : WiFiPairingView {
   val hyperlinkListener = MockWiFiPairingHyperlinkListener()
   private val viewImpl = WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener)
@@ -29,12 +30,13 @@ class MockDevicePairingView(project: Project,
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()
   val showMdnsNotSupportedErrorTracker = FutureValuesTracker<Unit>()
   val showMdnsNotSupportedByAdbErrorTracker = FutureValuesTracker<Unit>()
+  val showMacWontWorkAdbErrorTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckErrorTracker = FutureValuesTracker<Unit>()
   val showQrCodePairingStartedTracker = FutureValuesTracker<Unit>()
   val showQrCodePairingInProgressTracker = FutureValuesTracker<MdnsService>()
   val showQrCodePairingWaitForDeviceTracker = FutureValuesTracker<PairingResult>()
-  val showQrCodePairingSuccessTracker = FutureValuesTracker<Pair<MdnsService,AdbOnlineDevice>>()
-  val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<MdnsService,Throwable>>()
+  val showQrCodePairingSuccessTracker = FutureValuesTracker<Pair<MdnsService, AdbOnlineDevice>>()
+  val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<MdnsService, Throwable>>()
 
   override fun showDialog() {
     showDialogTracker.produce(Unit)
@@ -89,6 +91,11 @@ class MockDevicePairingView(project: Project,
   override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
     showQrCodePairingErrorTracker.produce(Pair(mdnsService, error))
     viewImpl.showQrCodePairingError(mdnsService, error)
+  }
+
+  override fun showMacMdnsEnvironmentIsBroken() {
+    showMacWontWorkAdbErrorTracker.produce(Unit)
+    viewImpl.showMacMdnsEnvironmentIsBroken()
   }
 
   override fun addListener(listener: WiFiPairingView.Listener) {

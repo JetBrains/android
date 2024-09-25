@@ -32,7 +32,10 @@ COMMON_DATA = [
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_for_compose_prebuilts",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/vendor/google/testing/display:xvfb",
-]
+] + select({
+    "@platforms//os:macos": ["//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper"],
+    "//conditions:default": ["//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper"],
+})
 
 COMMON_TAGS = [
     "block-network",
@@ -109,7 +112,6 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module, test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
     ],
 )
 
@@ -184,11 +186,9 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.6.6",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
@@ -198,7 +198,6 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.6.6",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.6.6",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
@@ -263,9 +262,11 @@ maven_repository(
         "@maven//:androidx.wear.compose.compose-material_1.2.1",
         "@maven//:androidx.wear.compose.compose-navigation_1.2.1",
         "@maven//:androidx.wear.compose.compose-ui-tooling_1.2.1",
-        "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
-        "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
-        "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
+        "@maven//:androidx.wear.tiles.tiles-material_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles-tooling-preview_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles-tooling_1.4.0",
+        "@maven//:androidx.wear.tiles.tiles_1.4.0",
+        "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.2.1",
         "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
@@ -299,8 +300,8 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-pay_16.1.0",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
         "@maven//:com.google.android.gms.play-services-wearable_18.0.0",
-        "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
-        "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
+        "@maven//:com.google.android.horologist.horologist-compose-tools_0.6.17",
+        "@maven//:com.google.android.horologist.horologist-tiles_0.6.17",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.1.0",
         "@maven//:com.google.android.material.material_1.10.0",
@@ -314,7 +315,9 @@ maven_repository(
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.code.gson.gson_2.6.2",
+        "@maven//:com.google.dagger.dagger-compiler_2.52",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
+        "@maven//:com.google.dagger.dagger_2.52",
         "@maven//:com.google.dagger.dagger_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.firebase.firebase-common_12.0.1",
@@ -378,7 +381,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
     ] + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
@@ -393,9 +395,7 @@ java_test(
 java_test(
     name = "InspectionsMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -409,9 +409,7 @@ java_test(
 java_test(
     name = "GradleSyncMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -425,9 +423,7 @@ java_test(
 java_test(
     name = "FindInPathMemoryLeakTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -441,9 +437,7 @@ java_test(
 java_test(
     name = "EditorTabsMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.EditorTabsMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -457,9 +451,7 @@ java_test(
 java_test(
     name = "AddResourceMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -473,9 +465,7 @@ java_test(
 java_test(
     name = "AddAssetMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
-    ] + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -496,7 +486,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
     ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
@@ -2030,7 +2019,13 @@ java_test(
     timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
-    ]) + [
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:emulator",
+            "@externsdk//:system-images",
+        ],
+        "//conditions:default": [],
+    }) + [
         ":espresso_recorder_deps",
         "//prebuilts/studio/sdk:emulator",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
@@ -2283,6 +2278,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob([
         "testData/Dagger2App/**",
+        "testData/Dagger2AppKotlinLib/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.annotator.DaggerSymbolResolutionTest"],
     tags = COMMON_TAGS + [

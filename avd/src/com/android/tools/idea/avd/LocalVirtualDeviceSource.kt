@@ -15,182 +15,94 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
+import com.android.sdklib.DeviceSystemImageMatcher
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.sdklib.internal.avd.GpuMode
+import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
-import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.ui.MessageDialogBuilder
-import java.awt.Component
+import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.sdk.DeviceManagers
 import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.withContext
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
-  private val provisioner: LocalEmulatorProvisionerPlugin,
-  systemImages: ImmutableCollection<SystemImage>,
+  systemImages: ImmutableCollection<ISystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
-  private var systemImages by mutableStateOf(systemImages)
 
   companion object {
-    internal fun create(provisioner: LocalEmulatorProvisionerPlugin): LocalVirtualDeviceSource {
-      val images = SystemImage.getSystemImages().toImmutableList()
-
+    internal fun create(): LocalVirtualDeviceSource {
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(provisioner, images, skins)
+      return LocalVirtualDeviceSource(ISystemImages.get(), skins)
     }
   }
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
     nextAction = WizardAction {
       pushPage {
-        ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice(), null, ::add)
+        ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice(), null, skins, ::add)
       }
     }
     finishAction = WizardAction.Disabled
   }
 
-  @Composable
-  internal fun WizardPageScope.ConfigurationPage(
-    device: VirtualDevice,
-    image: SystemImage?,
-    finish: suspend (VirtualDevice, SystemImage) -> Boolean,
-  ) {
-    val images = systemImages.filter { it.matches(device) }.toImmutableList()
+  private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
+    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices().add(device, image) }
+    return true
+  }
 
-    // TODO: http://b/342003916
-    val configureDevicePanelState =
-      remember(device) { ConfigureDevicePanelState(device, skins, image ?: images.first()) }
+  override val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
+    callbackFlow {
+        send(LoadingState.Loading)
 
-    @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
+        val deviceManager =
+          DeviceManagers.getDeviceManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
+        fun sendDevices() {
+          val profiles =
+            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNull { device ->
+              // Note that we don't care about systemImages being updated after downloading an
+              // image; we don't care if an image is local or remote here.
+              val androidVersions =
+                systemImages
+                  .filter { DeviceSystemImageMatcher.matches(device, it) }
+                  .mapTo(TreeSet()) { it.androidVersion }
 
-    val coroutineScope = rememberCoroutineScope()
+              // If there are no system images for a device, we can't create it.
+              if (androidVersions.isEmpty()) null
+              else device.toVirtualDeviceProfile(androidVersions)
+            }
 
-    ConfigureDevicePanel(
-      configureDevicePanelState,
-      images,
-      onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
-      onImportButtonClick = {
-        // TODO Validate the skin
-        val skin =
-          FileChooser.chooseFile(
-            FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-            null, // TODO: add component from CompositionLocal?
-            null,
-            null,
-          )
-
-        if (skin != null) {
-          configureDevicePanelState.importSkin(skin.toNioPath())
+          // Cannot fail due to conflate() below
+          trySend(LoadingState.Ready(profiles))
         }
-      },
-    )
 
-    nextAction = WizardAction.Disabled
+        val listener = DeviceManager.DevicesChangedListener { sendDevices() }
+        deviceManager.registerListener(listener)
 
-    finishAction = WizardAction {
-      coroutineScope.launch {
-        val selectedDevice = configureDevicePanelState.device
-        val selectedImage = configureDevicePanelState.systemImageTableSelectionState.selection!!
+        sendDevices()
 
-        if (ensureSystemImageIsPresent(selectedImage, parent)) {
-          if (finish(selectedDevice, selectedImage)) {
-            close()
-          }
-        }
+        awaitClose { deviceManager.unregisterListener(listener) }
       }
-    }
-  }
-
-  private suspend fun add(device: VirtualDevice, image: SystemImage): Boolean {
-    withContext(AndroidDispatchers.diskIoThread) {
-      VirtualDevices().add(device, image)
-      provisioner.refreshDevices()
-    }
-    return true
-  }
-
-  /**
-   * Prompts the user to download the system image if it is not present.
-   *
-   * @return true if the system image is present (either because it was already there or it was
-   *   downloaded successfully).
-   */
-  private suspend fun ensureSystemImageIsPresent(image: SystemImage, parent: Component): Boolean {
-    if (image.isRemote) {
-      val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
-
-      if (!yes) {
-        return false
-      }
-
-      val finish = downloadSystemImage(parent, image.path)
-
-      if (!finish) {
-        return false
-      }
-    }
-    return true
-  }
-
-  private suspend fun downloadSystemImage(parent: Component, path: String): Boolean {
-    val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
-
-    if (dialog == null) {
-      thisLogger().warn("Could not create the SDK Quickfix Installation dialog")
-      return false
-    }
-
-    val finish = dialog.showAndGet()
-
-    if (!finish) {
-      return false
-    }
-
-    withContext(AndroidDispatchers.workerThread) {
-      systemImages = SystemImage.getSystemImages().toImmutableList()
-    }
-
-    return true
-  }
-
-  override val profiles: List<DeviceProfile>
-    get() =
-      DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.mapNotNull { device ->
-        val androidVersions =
-          systemImages.filter { it.matches(device) }.mapTo(TreeSet()) { it.androidVersion }
-        // If there are no system images for a device, we can't create it.
-        if (androidVersions.isEmpty()) null else device.toVirtualDeviceProfile(androidVersions)
-      }
+      .conflate()
 }
 
 internal fun Device.toVirtualDeviceProfile(
@@ -201,24 +113,4 @@ internal fun Device.toVirtualDeviceProfile(
     .build()
 
 internal fun VirtualDeviceProfile.toVirtualDevice() =
-  // TODO: Check that these are appropriate defaults
-  VirtualDevice(
-    name = device.displayName,
-    device = device,
-    androidVersion = apiLevels.last(),
-    // TODO(b/335267252): Set the skin appropriately.
-    skin = NoSkin.INSTANCE,
-    frontCamera = AvdCamera.EMULATED,
-    // TODO We're assuming the emulator supports this feature
-    rearCamera = AvdCamera.VIRTUAL_SCENE,
-    speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
-    latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-    orientation = device.defaultState.orientation,
-    defaultBoot = Boot.QUICK,
-    internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-    expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-    cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-    graphicAcceleration = GpuMode.AUTO,
-    simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-    vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-  )
+  VirtualDevice.withDefaults(device).copy(androidVersion = apiLevels.last())

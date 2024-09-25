@@ -23,32 +23,38 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.layout.SKIP_PERSISTED_LAYOUT
 import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.concurrent.CompletableFuture
 import junit.framework.TestCase
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.util.concurrent.CompletableFuture
 
 class AutoArrangeActionTest : NavTestCase() {
   fun testAction() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("f1")
-        fragment("f2")
-        fragment("f3")
+    val model =
+      model("nav.xml") {
+        NavModelBuilderUtil.navigation {
+          fragment("f1")
+          fragment("f2")
+          fragment("f3")
+        }
       }
-    }
     val surface = model.surface
     val scene = surface.scene!!
     val root = scene.root!!
     val manager = spy(surface.getSceneManager(model))!!
     doAnswer {
-      root.children.forEach { component ->
-        TestCase.assertEquals(true, component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
+        root.children.forEach { component ->
+          TestCase.assertEquals(
+            true,
+            component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT),
+          )
+        }
+        CompletableFuture.completedFuture(null)
       }
-      CompletableFuture.completedFuture(null)
-    }.whenever(manager).requestRenderAsync()
+      .whenever(manager)
+      .requestRenderAsync()
 
     whenever(surface.getSceneManager(MockitoKt.any())).thenReturn(manager)
     whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())

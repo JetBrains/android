@@ -37,11 +37,9 @@ import org.junit.rules.RuleChain
 class AndroidDynamicFeatureNavTest {
   private val DYNAMIC_FEATURE_MODULE_NAME = "dynamicfeaturemodule"
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
   private val projectRule = AndroidProjectRule.withSdk()
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(NavEditorRule(projectRule))
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(NavEditorRule(projectRule))
 
   val myFixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture
@@ -59,7 +57,9 @@ class AndroidDynamicFeatureNavTest {
 
   @Test
   fun testToolsLayoutFragmentCompletion() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:tools="http://schemas.android.com/tools"
           xmlns:android="http://schemas.android.com/apk/res/android"
@@ -69,25 +69,30 @@ class AndroidDynamicFeatureNavTest {
               android:name="mytest.navtest.dynamicFragment"
               android:label="Blank"
               tools:layout="@layo${caret}" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = projectRule.fixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     waitForResourceRepositoryUpdates(projectRule.module)
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.completeBasic()
-    assertThat(projectRule.fixture.lookupElementStrings).containsExactly(
-      "@layout/activity1",
-      "@layout/dynamicActivity",
-      "@layout/activity_main",
-      "@layout/dynamicFragment",
-      "@layout/fragment1",
-      "@layout/fragment2",
-      "@layout/fragment3",
-      "@layout/fragment_blank")
+    assertThat(projectRule.fixture.lookupElementStrings)
+      .containsExactly(
+        "@layout/activity1",
+        "@layout/dynamicActivity",
+        "@layout/activity_main",
+        "@layout/dynamicFragment",
+        "@layout/fragment1",
+        "@layout/fragment2",
+        "@layout/fragment3",
+        "@layout/fragment_blank",
+      )
   }
 
   @Test
   fun testToolsLayoutFragmentGotoDeclaration() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:tools="http://schemas.android.com/tools"
           xmlns:android="http://schemas.android.com/apk/res/android"
@@ -97,10 +102,16 @@ class AndroidDynamicFeatureNavTest {
               android:name="mytest.navtest.dynamicFragment"
               android:label="Blank"
               tools:layout="@layout/dynamic${caret}Fragment" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
+    val targetElements =
+      GotoDeclarationAction.findAllTargetElements(
+        myFixture.project,
+        myFixture.editor,
+        myFixture.caretOffset,
+      )
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(XmlFile::class.java)
     assertThat((targetElements[0] as XmlFile).name).isEqualTo("dynamicFragment.xml")
@@ -108,7 +119,9 @@ class AndroidDynamicFeatureNavTest {
 
   @Test
   fun testFragmentCompletion() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:tools="http://schemas.android.com/tools"
           xmlns:android="http://schemas.android.com/apk/res/android"
@@ -118,22 +131,27 @@ class AndroidDynamicFeatureNavTest {
               android:name="$caret"
               android:label="Blank"
               tools:layout="@layout/fragment_blank" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph1.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "mytest.navtest.AbstractFragment",
-      "mytest.navtest.BlankFragment",
-      "mytest.navtest.fragment1",
-      "mytest.navtest.fragment2",
-      "mytest.navtest.fragment3",
-      "mytest.navtest.dynamicFragment")
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "mytest.navtest.AbstractFragment",
+        "mytest.navtest.BlankFragment",
+        "mytest.navtest.fragment1",
+        "mytest.navtest.fragment2",
+        "mytest.navtest.fragment3",
+        "mytest.navtest.dynamicFragment",
+      )
   }
 
   @Test
   fun testFragmentGotoDeclaration() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:android="http://schemas.android.com/apk/res/android"
           app:startDestination="@id/blankFragment">
@@ -141,18 +159,27 @@ class AndroidDynamicFeatureNavTest {
               android:id="@+id/blankFragment"
               android:name="mytest.navtest.dynamic${caret}Fragment"
               android:label="Blank" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
+    val targetElements =
+      GotoDeclarationAction.findAllTargetElements(
+        myFixture.project,
+        myFixture.editor,
+        myFixture.caretOffset,
+      )
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(PsiClass::class.java)
-    assertThat((targetElements[0] as PsiClass).qualifiedName).isEqualTo("mytest.navtest.dynamicFragment")
+    assertThat((targetElements[0] as PsiClass).qualifiedName)
+      .isEqualTo("mytest.navtest.dynamicFragment")
   }
 
   @Test
   fun testActivityCompletion() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:android="http://schemas.android.com/apk/res/android"
           app:startDestination="@id/blankActivity">
@@ -160,20 +187,24 @@ class AndroidDynamicFeatureNavTest {
               android:id="@+id/blankActivity"
               android:name="$caret"
               android:label="Blank" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph4.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
-      "mytest.navtest.AbstractActivity",
-      "mytest.navtest.MainActivity",
-      "mytest.navtest.activity1"
-    )
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactly(
+        "mytest.navtest.AbstractActivity",
+        "mytest.navtest.MainActivity",
+        "mytest.navtest.activity1",
+      )
   }
 
   @Test
   fun testActivityGotoDeclaration() {
-    @Language("XML") val navGraph = """
+    @Language("XML")
+    val navGraph =
+      """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
           xmlns:tools="http://schemas.android.com/tools"
           xmlns:android="http://schemas.android.com/apk/res/android"
@@ -183,61 +214,77 @@ class AndroidDynamicFeatureNavTest {
               android:name="mytest.navtest.dynamic${caret}Activity"
               android:label="Blank"
               tools:layout="@layout/fragment_blank" />
-      </navigation>""".trimIndent()
+      </navigation>"""
+        .trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    val targetElements = GotoDeclarationAction.findAllTargetElements(myFixture.project, myFixture.editor, myFixture.caretOffset)
+    val targetElements =
+      GotoDeclarationAction.findAllTargetElements(
+        myFixture.project,
+        myFixture.editor,
+        myFixture.caretOffset,
+      )
     assertThat(targetElements).hasLength(1)
     assertThat(targetElements[0]).isInstanceOf(PsiClass::class.java)
-    assertThat((targetElements[0] as PsiClass).qualifiedName).isEqualTo("mytest.navtest.dynamicActivity")
+    assertThat((targetElements[0] as PsiClass).qualifiedName)
+      .isEqualTo("mytest.navtest.dynamicActivity")
   }
 
   private fun addFragment(name: String, moduleName: String?) {
-    val sourcePath = if (moduleName == null) {
-      "src/mytest/navtest/$name.java"
-    } else {
-      "${moduleName}/$name.java"
-    }
-    val fileText = """
+    val sourcePath =
+      if (moduleName == null) {
+        "src/mytest/navtest/$name.java"
+      } else {
+        "${moduleName}/$name.java"
+      }
+    val fileText =
+      """
       package mytest.navtest;
       import android.support.v4.app.Fragment;
 
       public class $name extends Fragment {}
-      """.trimIndent()
+      """
+        .trimIndent()
     myFixture.addFileToProject(sourcePath, fileText)
     addLayout(name, moduleName)
   }
 
   private fun addActivity(name: String, moduleName: String?) {
-    val sourcePath = if (moduleName == null) {
-      "src/$name.java"
-    } else {
-      "${moduleName}/src/$name.java"
-    }
-    val fileText = """
+    val sourcePath =
+      if (moduleName == null) {
+        "src/$name.java"
+      } else {
+        "${moduleName}/src/$name.java"
+      }
+    val fileText =
+      """
       package mytest.navtest;
       import android.app.Activity;
 
       public class $name extends Activity {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     myFixture.addFileToProject(sourcePath, fileText)
     addLayout(name, moduleName)
   }
 
   private fun addLayout(name: String, moduleName: String?) {
-    val layoutPath =  if (moduleName == null) {
-      "res/layout/$name.xml"
-    } else {
-      "${moduleName}/res/layout/$name.xml"
-    }
-    val layoutText = """
+    val layoutPath =
+      if (moduleName == null) {
+        "res/layout/$name.xml"
+      } else {
+        "${moduleName}/res/layout/$name.xml"
+      }
+    val layoutText =
+      """
       <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
       </LinearLayout>
-      """.trimIndent()
+      """
+        .trimIndent()
     myFixture.addFileToProject(layoutPath, layoutText)
   }
 }

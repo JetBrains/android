@@ -33,6 +33,7 @@ import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /** The minumum height x width what should be available for the preview. */
 private const val minumumPreviewSpacePx = 100 * 100
@@ -66,9 +67,11 @@ open class GroupedGridSurfaceLayoutManager(
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
-  private var currentAvailableWidth: Int? = null
+  private var cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>? = null
 
-  private var currentLayoutGroup: GridLayoutGroup? = null
+  override fun useCachedLayoutGroups(cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>) {
+    this.cachedLayoutGroups = cachedLayoutGroups
+  }
 
   /** Get the total required size to layout the [content] with the given conditions. */
   override fun getSize(
@@ -82,7 +85,7 @@ open class GroupedGridSurfaceLayoutManager(
 
     val groups =
       transform(content).map { group ->
-        createLayoutGroup(group, scaleFunc, availableWidth) { sizeFunc().width }
+        createLayoutGroup(group, scaleFunc, availableWidth, cachedLayoutGroups) { sizeFunc().width }
       }
 
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
@@ -109,7 +112,10 @@ open class GroupedGridSurfaceLayoutManager(
       val margin = it.getMargin(scale)
       val framePadding = padding.previewPaddingProvider(scale)
       groupRequiredWidth = 2 * framePadding + it.sizeFunc().width + margin.horizontal
-      groupRequiredHeight = 2 * framePadding + it.calculateHeightWithOffset(it.sizeFunc().height, scale)  + margin.vertical
+      groupRequiredHeight =
+        2 * framePadding +
+          it.calculateHeightWithOffset(it.sizeFunc().height, scale) +
+          margin.vertical
     }
 
     for (row in layoutGroup.rows) {
@@ -145,7 +151,9 @@ open class GroupedGridSurfaceLayoutManager(
       if (StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
         // Take into consideration both height and width
         content.take(max(1, availableWidth * availableHeight / minumumPreviewSpacePx))
-      } else content
+      } else {
+        content
+      }
 
     // Use binary search to find the proper zoom-to-fit value.
 
@@ -194,12 +202,11 @@ open class GroupedGridSurfaceLayoutManager(
     }
 
     return getMaxZoomToFitScale(
-      contentToFit,
-      lowerBound,
-      upperBound,
-      availableWidth,
-      availableHeight,
-      Dimension(),
+      content = contentToFit,
+      min = lowerBound,
+      max = upperBound,
+      width = availableWidth,
+      height = availableHeight,
     )
   }
 
@@ -211,23 +218,26 @@ open class GroupedGridSurfaceLayoutManager(
     @SurfaceScale max: Double,
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
-    cache: Dimension,
     depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
     }
     if (max - min <= SCALE_UNIT) {
-      // Last attempt.
-      val dim = getSize(content, { contentSize.scaleOf(max) }, { max }, width, cache)
+      // Last attempt
+      val dim = getSize(content, { contentSize.scaleOf(max) }, { max }, width, null)
       return if (dim.width <= width && dim.height <= height) max else min
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, cache)
+    // We get the sizes of the content with the new scale applied.
+    val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
     return if (dim.height <= height) {
-      getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
+      // We want the resulting content fitting into the height we try to lower the scale
+      getMaxZoomToFitScale(content, scale, max, width, height)
     } else {
-      getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
+      // We want can increase the scale as the scaled dimension results on a lower height than the
+      // available height
+      getMaxZoomToFitScale(content, min, scale, width, height)
     }
   }
 
@@ -240,11 +250,9 @@ open class GroupedGridSurfaceLayoutManager(
     group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
+    cachedLayoutGroup: MutableStateFlow<List<GridLayoutGroup>>?,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int,
   ): GridLayoutGroup {
-    val isSameWidth = currentAvailableWidth == availableWidth
-    currentAvailableWidth = availableWidth
-
     val content = group.content
     if (content.isEmpty()) {
       return GridLayoutGroup(group.header, emptyList())
@@ -252,13 +260,19 @@ open class GroupedGridSurfaceLayoutManager(
 
     // If the content in the windows hasn't changed and there is no additional content to add in the
     // layout group, we want to keep the layout as it is
-    currentLayoutGroup?.let { layoutGroup ->
-      if (SCROLLABLE_ZOOM_ON_GRID.get() && isSameWidth && content == layoutGroup.content()) {
-        return layoutGroup
+    cachedLayoutGroup
+      ?.value
+      ?.firstOrNull()
+      ?.takeIf { SCROLLABLE_ZOOM_ON_GRID.get() }
+      ?.let { layoutGroup ->
+        if (content == layoutGroup.content()) {
+          return layoutGroup
+        }
       }
-    }
 
-    return reLayout(scaleFunc, widthFunc, availableWidth, group).apply { currentLayoutGroup = this }
+    return reLayout(scaleFunc, widthFunc, availableWidth, group).apply {
+      cachedLayoutGroup?.value = listOf(this)
+    }
   }
 
   private fun reLayout(
@@ -323,7 +337,9 @@ open class GroupedGridSurfaceLayoutManager(
 
     for (group in groups) {
       val layoutGroup =
-        createLayoutGroup(group, { scale }, availableWidth) { scaledContentSize.width }
+        createLayoutGroup(group, { scale }, availableWidth, cachedLayoutGroups) {
+          scaledContentSize.width
+        }
       var nextX = startX
       var nextY = nextGroupY
       var maxBottomInRow = 0

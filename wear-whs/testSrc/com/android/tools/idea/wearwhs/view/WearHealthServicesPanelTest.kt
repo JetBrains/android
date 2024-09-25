@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearwhs.view
 
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -31,13 +32,14 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -49,13 +51,18 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mockStatic
 
 @RunsInEdt
 class WearHealthServicesPanelTest {
@@ -98,6 +105,7 @@ class WearHealthServicesPanelTest {
           stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
+        .also { it.serialNumber = "some serial number" }
     whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
   }
 
@@ -135,7 +143,6 @@ class WearHealthServicesPanelTest {
 
       stateManager.forceUpdateState()
 
-      stateManager.preset.value = Preset.CUSTOM
       stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
       stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
       stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
@@ -253,34 +260,43 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `test panel disables checkboxes and dropdown during an exercise`() =
+  fun `test panel disables checkboxes and load preset button during an exercise`() =
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
 
-      fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && it.isEnabled }
+      fakeUi.waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.load.preset") && it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.heart.rate.label")) && it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.steps.label")) && it.isEnabled
+      }
 
       deviceManager.activeExercise = true
 
-      fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && !it.isEnabled }
-      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && !it.isEnabled }
+      fakeUi.waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.load.preset") && !it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.heart.rate.label")) && !it.isEnabled
+      }
+      fakeUi.waitForDescendant<JCheckBox> {
+        it.hasLabel(message("wear.whs.capability.steps.label")) && !it.isEnabled
+      }
     }
 
   @Test
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
     val fakeUi = FakeUi(whsPanel.component)
 
-    // TODO: Remove this apply when ag/26161198 is merged
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
-
     val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     hrCheckBox.doClick()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
     applyButton.doClick()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
@@ -476,6 +492,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
     }
@@ -490,6 +507,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
     }
@@ -502,6 +520,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -521,6 +540,7 @@ class WearHealthServicesPanelTest {
       val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
       val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
       triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -595,6 +615,39 @@ class WearHealthServicesPanelTest {
           }
       }
     }
+
+  @Test
+  fun `test trigger event flow notification`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+    val triggerEventFlow = whsPanel.onUserTriggerEventFlow
+
+    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
+    val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
+    triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+
+    withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
+  }
+
+  @Test
+  fun `has learn more link`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val learnMoreLink =
+      fakeUi.waitForDescendant<ActionLink> { it.text == message("wear.whs.panel.learn.more") }
+    mockStatic(BrowserUtil::class.java).use { browserUtil ->
+      val url = CompletableDeferred<String>()
+      browserUtil
+        .whenever<String> { BrowserUtil.browse(anyString()) }
+        .thenAnswer {
+          url.complete(it.getArgument(0) as String)
+          Unit
+        }
+
+      learnMoreLink.doClick()
+
+      assertEquals(LEARN_MORE_URL, url.await())
+    }
+  }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->

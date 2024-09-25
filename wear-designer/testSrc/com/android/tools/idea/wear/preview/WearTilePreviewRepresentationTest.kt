@@ -52,6 +52,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -64,9 +67,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -366,25 +366,25 @@ class WearTilePreviewRepresentationTest {
       assertEquals(
         """
           TestKt.preview
-          PreviewDisplaySettings(name=preview, group=null, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=preview, baseName=preview, parameterName=null, group=null, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 1, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 1, baseName=multiPreview, parameterName=1, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 2, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 2, baseName=multiPreview, parameterName=2, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 3, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 3, baseName=multiPreview, parameterName=3, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 4, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 4, baseName=multiPreview, parameterName=4, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 5, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 5, baseName=multiPreview, parameterName=5, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 6, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 6, baseName=multiPreview, parameterName=6, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
@@ -412,8 +412,9 @@ class WearTilePreviewRepresentationTest {
   }
 
   private val WearTilePreviewRepresentation.mainSurfaceDataContext
-    get() = DataManager.getInstance().customizeDataContext(
-      DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+    get() =
+      DataManager.getInstance()
+        .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
 
   private val WearTilePreviewRepresentation.previewModeManager
     get() = PreviewModeManager.KEY.getData(mainSurfaceDataContext)!!

@@ -18,12 +18,15 @@ package com.android.tools.idea.compose.preview.animation
 import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationSubscribed
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationUnsubscribed
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 
 /**
  * Responsible for animation subscription events and passing them to [ComposeAnimationHandler].
@@ -36,6 +39,7 @@ object ComposeAnimationSubscriber {
   private var animationHandler: ComposeAnimationHandler? = null
 
   fun setHandler(handler: ComposeAnimationHandler?) {
+    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
     animationHandler = handler
   }
 
@@ -55,9 +59,9 @@ object ComposeAnimationSubscriber {
    * Sets the panel clock, adds the animation to the subscribed list, and creates the corresponding
    * tab in the [ComposeAnimationPreview].
    */
-  fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation): Job {
-    if (clock == null) return CompletableDeferred(Unit)
-    val handler = animationHandler ?: return CompletableDeferred(Unit)
+  suspend fun onAnimationSubscribed(clock: Any?, animation: ComposeAnimation) {
+    if (clock == null) return
+    val handler = animationHandler ?: return
     if (handler.animationClock == null) {
       handler.animationClock = AnimationClock(clock)
     }
@@ -78,25 +82,18 @@ object ComposeAnimationSubscriber {
     }
 
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
-      return handler.addAnimation(animation)
+      handler.addAnimation(animation).join()
     }
-    return CompletableDeferred(Unit)
   }
 
   /**
    * Removes the animation from the subscribed list and removes the corresponding tab in the
    * [ComposeAnimationPreview].
    */
-  fun onAnimationUnsubscribed(animation: ComposeAnimation): Job {
+  suspend fun onAnimationUnsubscribed(animation: ComposeAnimation) {
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
-      return animationHandler?.removeAnimation(animation) ?: CompletableDeferred(Unit)
+      animationHandler?.removeAnimation(animation)?.join()
     }
-    return CompletableDeferred(Unit)
-  }
-
-  /** Removes all the subscribed animations. */
-  fun removeAllAnimations() {
-    synchronized(subscribedAnimationsLock) { subscribedAnimations.clear() }
   }
 
   @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
@@ -108,7 +105,9 @@ object ComposeAnimationSubscriber {
       LOG.debug("Animation subscribed: $animation")
     }
     onSubscribedUnsubscribedExecutor.execute {
-      (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+      CoroutineScope(onSubscribedUnsubscribedExecutor.asCoroutineDispatcher()).launch {
+        (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+      }
     }
   }
 
@@ -120,7 +119,9 @@ object ComposeAnimationSubscriber {
     }
     if (animation == null) return
     onSubscribedUnsubscribedExecutor.execute {
-      (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+      CoroutineScope(onSubscribedUnsubscribedExecutor.asCoroutineDispatcher()).launch {
+        (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+      }
     }
   }
 }

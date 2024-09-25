@@ -97,13 +97,7 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
     GradleBuildState.subscribe(project, object : GradleBuildListener {
       @UiThread
       override fun buildStarted(context: BuildContext) {
-        // TODO: solodkyy - Review mode and status mapping to handle failures and cancellations with more caution.
-        val buildMode = context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN
-        val translatedBuildMode = when (buildMode) {
-          ProjectSystemBuildManager.BuildMode.UNKNOWN -> return
-          ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE -> BuildListener.BuildMode.COMPILE
-          ProjectSystemBuildManager.BuildMode.CLEAN -> BuildListener.BuildMode.CLEAN
-        }
+        val translatedBuildMode = context.translatedBuildMode ?: return
         val resultFuture =
           runningBuilds.getOrPut(context) { SettableFuture.create<BuildListener.BuildResult>() }
         listener.buildStarted(translatedBuildMode, resultFuture)
@@ -111,13 +105,29 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
       @UiThread
       override fun buildFinished(status: BuildStatus, context: BuildContext) {
-        val resultFuture = runningBuilds.remove(context) ?: return
-        resultFuture.set(
-          BuildListener.BuildResult(
-            status.toProjectSystemBuildStatus(),
-            getBuildScope(project, context)
+        val resultFuture = runningBuilds.remove(context)
+        if (resultFuture != null) {
+          resultFuture.set(
+            BuildListener.BuildResult(
+              status.toProjectSystemBuildStatus(),
+              getBuildScope(project, context)
+            )
           )
-        )
+        } else {
+          val translatedBuildMode = context.translatedBuildMode
+          if (translatedBuildMode == BuildListener.BuildMode.COMPILE) {
+            val missedBuildResultFuture = SettableFuture.create<BuildListener.BuildResult>()
+            listener.buildStarted(translatedBuildMode, missedBuildResultFuture)
+            missedBuildResultFuture.set(
+              BuildListener.BuildResult(
+                status.toProjectSystemBuildStatus(),
+                // `buildStarted` event was delayed and any other scope won't communicate which files were
+                // build as of their state at `buildStarted()` event.
+                GlobalSearchScope.EMPTY_SCOPE
+              )
+            )
+          }
+        }
       }
     }, parentDisposable)
   }
@@ -153,3 +163,13 @@ private class GradleBuildServicesStatus(private val module: Module) {
 }
 
 data class GradleBuildTargetReference internal constructor(override val module: Module) : BuildTargetReference
+
+private val BuildContext.translatedBuildMode: BuildListener.BuildMode? get() {
+  // TODO: solodkyy - Review mode and status mapping to handle failures and cancellations with more caution.
+  val buildMode = buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN
+  return when (buildMode) {
+    ProjectSystemBuildManager.BuildMode.UNKNOWN -> null
+    ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE -> BuildListener.BuildMode.COMPILE
+    ProjectSystemBuildManager.BuildMode.CLEAN -> BuildListener.BuildMode.CLEAN
+  }
+}

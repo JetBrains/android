@@ -6,7 +6,6 @@ iml_module(
     name = "intellij.android.app-quality-insights.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.ui.iml"],
-    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

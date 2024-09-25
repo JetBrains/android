@@ -36,6 +36,7 @@ import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -50,11 +51,11 @@ class GridLayoutManager(
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
-  /** The list of all the [GridLayoutGroup]s applied in this manager. */
-  private var cachedLayoutGroups: List<GridLayoutGroup>? = null
+  @VisibleForTesting var cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>? = null
 
-  /** When this value is true it should update [cachedLayoutGroups]. */
-  private var currentAvailableWidth: Int? = null
+  override fun useCachedLayoutGroups(cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>) {
+    this.cachedLayoutGroups = cachedLayoutGroups
+  }
 
   /** Get the total required size to layout the [content] with the given conditions. */
   override fun getSize(
@@ -82,24 +83,21 @@ class GridLayoutManager(
     availableWidth: Int,
     sizeFunc: PositionableContent.() -> Dimension,
   ): List<GridLayoutGroup> {
-    val isSameWidth = currentAvailableWidth == availableWidth
-    currentAvailableWidth = availableWidth
-
-    val cachedGroups = cachedLayoutGroups
+    val cachedGroups = cachedLayoutGroups?.value
     // We skip creating a new layout group if the content hasn't changed, in this way we keep the
     // same size and layout group order when zooming in or when resizing the window.
     val canUseCachedGroups =
-      groups.all { group: PositionableGroup ->
-        cachedGroups
-          ?.takeIf { StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() && isSameWidth }
-          ?.any { it.content() == group.content } ?: false
-      }
+      cachedGroups != null &&
+        StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get() &&
+        groups.all { group: PositionableGroup ->
+          cachedGroups.any { it.content() == group.content }
+        }
     return if (canUseCachedGroups && cachedGroups != null) {
       cachedGroups
     } else {
       val newGroup =
         groups.map { createLayoutGroup(it, scaleFunc, availableWidth) { sizeFunc().width } }
-      cachedLayoutGroups = newGroup
+      cachedLayoutGroups?.value = newGroup
       newGroup
     }
   }
@@ -217,8 +215,6 @@ class GridLayoutManager(
     @SwingCoordinate height: Int,
     depth: Int = 0,
   ): Double {
-    // We need to reset the cached layout to recreate a new one that fits the content.
-    cachedLayoutGroups = null
     if (depth >= MAX_ITERATION_TIMES) {
       // because we want to show the content as wide as possible we return max even in case we reach
       // the max iteration, and we haven't found the perfect zoom to fit value.

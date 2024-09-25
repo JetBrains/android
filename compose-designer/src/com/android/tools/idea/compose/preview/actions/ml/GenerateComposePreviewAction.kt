@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview.actions.ml
 
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.runReadAction
@@ -43,5 +45,12 @@ class GenerateComposePreviewAction :
     val psiFile = e.getData(CommonDataKeys.PSI_FILE) as? KtFile ?: return null
     val psiElement = runReadAction { psiFile.findElementAt(caret.offset) } ?: return null
     return psiElement.parentOfType<KtNamedFunction>()
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    if (e.place != ActionPlaces.EDITOR_POPUP) {
+      e.presentation.icon = AndroidAIPluginIcons.Logo
+    }
   }
 }

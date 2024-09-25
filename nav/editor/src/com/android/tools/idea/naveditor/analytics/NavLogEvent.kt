@@ -49,6 +49,7 @@ import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavPropertyInfo
+import java.util.LinkedList
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA
@@ -65,7 +66,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.annotations.TestOnly
-import java.util.LinkedList
 
 /**
  * This class probably shouldn't be instantiated directly. Instead do
@@ -89,38 +89,36 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     return navEventBuilder.build()
   }
 
-  fun withAttributeInfo(attrName: String,
-                        tagName: String?,
-                        wasEmpty: Boolean): NavLogEvent {
+  fun withAttributeInfo(attrName: String, tagName: String?, wasEmpty: Boolean): NavLogEvent {
     val builder = navEventBuilder.propertyInfoBuilder
-    builder.property = when (attrName) {
-      ATTR_ACTION -> NavPropertyInfo.Property.ACTION
-      ATTR_ARG_TYPE -> NavPropertyInfo.Property.ARG_TYPE
-      ATTR_AUTO_VERIFY -> NavPropertyInfo.Property.AUTO_VERIFY
-      ATTR_DATA -> NavPropertyInfo.Property.DATA
-      ATTR_DATA_PATTERN -> NavPropertyInfo.Property.DATA_PATTERN
-      ATTR_DEFAULT_NAV_HOST -> NavPropertyInfo.Property.DEFAULT_NAV_HOST
-      ATTR_DEFAULT_VALUE -> NavPropertyInfo.Property.DEFAULT_VALUE
-      ATTR_DESTINATION -> NavPropertyInfo.Property.DESTINATION
-      ATTR_ENTER_ANIM -> NavPropertyInfo.Property.ENTER_ANIM
-      ATTR_EXIT_ANIM -> NavPropertyInfo.Property.EXIT_ANIM
-      ATTR_GRAPH -> NavPropertyInfo.Property.GRAPH
-      ATTR_ID -> NavPropertyInfo.Property.ID
-      ATTR_LABEL -> NavPropertyInfo.Property.LABEL
-      ATTR_SINGLE_TOP -> NavPropertyInfo.Property.LAUNCH_SINGLE_TOP
-      ATTR_NAME -> NavPropertyInfo.Property.NAME
-      ATTR_NAV_GRAPH -> NavPropertyInfo.Property.NAV_GRAPH
-      ATTR_NULLABLE -> NavPropertyInfo.Property.NULLABLE
-      ATTR_POP_ENTER_ANIM -> NavPropertyInfo.Property.POP_ENTER_ANIM
-      ATTR_POP_EXIT_ANIM -> NavPropertyInfo.Property.POP_EXIT_ANIM
-      ATTR_POP_UP_TO -> NavPropertyInfo.Property.POP_UP_TO
-      ATTR_POP_UP_TO_INCLUSIVE -> NavPropertyInfo.Property.POP_UP_TO_INCLUSIVE
-      ATTR_START_DESTINATION -> NavPropertyInfo.Property.START_DESTINATION
-      ATTR_URI -> NavPropertyInfo.Property.URI
-      ATTR_DEEPLINK_MIMETYPE -> NavPropertyInfo.Property.MIME_TYPE
-
-      else -> NavPropertyInfo.Property.CUSTOM
-    }
+    builder.property =
+      when (attrName) {
+        ATTR_ACTION -> NavPropertyInfo.Property.ACTION
+        ATTR_ARG_TYPE -> NavPropertyInfo.Property.ARG_TYPE
+        ATTR_AUTO_VERIFY -> NavPropertyInfo.Property.AUTO_VERIFY
+        ATTR_DATA -> NavPropertyInfo.Property.DATA
+        ATTR_DATA_PATTERN -> NavPropertyInfo.Property.DATA_PATTERN
+        ATTR_DEFAULT_NAV_HOST -> NavPropertyInfo.Property.DEFAULT_NAV_HOST
+        ATTR_DEFAULT_VALUE -> NavPropertyInfo.Property.DEFAULT_VALUE
+        ATTR_DESTINATION -> NavPropertyInfo.Property.DESTINATION
+        ATTR_ENTER_ANIM -> NavPropertyInfo.Property.ENTER_ANIM
+        ATTR_EXIT_ANIM -> NavPropertyInfo.Property.EXIT_ANIM
+        ATTR_GRAPH -> NavPropertyInfo.Property.GRAPH
+        ATTR_ID -> NavPropertyInfo.Property.ID
+        ATTR_LABEL -> NavPropertyInfo.Property.LABEL
+        ATTR_SINGLE_TOP -> NavPropertyInfo.Property.LAUNCH_SINGLE_TOP
+        ATTR_NAME -> NavPropertyInfo.Property.NAME
+        ATTR_NAV_GRAPH -> NavPropertyInfo.Property.NAV_GRAPH
+        ATTR_NULLABLE -> NavPropertyInfo.Property.NULLABLE
+        ATTR_POP_ENTER_ANIM -> NavPropertyInfo.Property.POP_ENTER_ANIM
+        ATTR_POP_EXIT_ANIM -> NavPropertyInfo.Property.POP_EXIT_ANIM
+        ATTR_POP_UP_TO -> NavPropertyInfo.Property.POP_UP_TO
+        ATTR_POP_UP_TO_INCLUSIVE -> NavPropertyInfo.Property.POP_UP_TO_INCLUSIVE
+        ATTR_START_DESTINATION -> NavPropertyInfo.Property.START_DESTINATION
+        ATTR_URI -> NavPropertyInfo.Property.URI
+        ATTR_DEEPLINK_MIMETYPE -> NavPropertyInfo.Property.MIME_TYPE
+        else -> NavPropertyInfo.Property.CUSTOM
+      }
     tagName?.let { builder.setContainingTag(convertTag(it)) }
     builder.wasEmpty = wasEmpty
     navEventBuilder.setPropertyInfo(builder)
@@ -144,14 +142,17 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     val builder = navEventBuilder.actionInfoBuilder
     val source = actionComponent.parent ?: return this // shouldn't happen
     val destination = actionComponent.actionDestination
-    val root = if (actionComponent.parent?.isNavigation == true) actionComponent.parent else actionComponent.parent?.parent
-    builder.type = when (actionComponent.getActionType(root)) {
-      ActionType.GLOBAL -> NavActionInfo.ActionType.GLOBAL
-      ActionType.EXIT -> NavActionInfo.ActionType.EXIT
-      ActionType.REGULAR -> NavActionInfo.ActionType.REGULAR
-      ActionType.SELF -> NavActionInfo.ActionType.SELF
-      else -> NavActionInfo.ActionType.UNKNOWN
-    }
+    val root =
+      if (actionComponent.parent?.isNavigation == true) actionComponent.parent
+      else actionComponent.parent?.parent
+    builder.type =
+      when (actionComponent.getActionType(root)) {
+        ActionType.GLOBAL -> NavActionInfo.ActionType.GLOBAL
+        ActionType.EXIT -> NavActionInfo.ActionType.EXIT
+        ActionType.REGULAR -> NavActionInfo.ActionType.REGULAR
+        ActionType.SELF -> NavActionInfo.ActionType.SELF
+        else -> NavActionInfo.ActionType.UNKNOWN
+      }
     if (actionComponent.popUpTo != null) {
       builder.hasPop = true
     }
@@ -193,11 +194,12 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
 
   fun withDestinationInfo(destination: NlComponent): NavLogEvent {
     val builder = navEventBuilder.destinationInfoBuilder
-    builder.type = when {
-      destination.isFragment -> NavDestinationInfo.DestinationType.FRAGMENT
-      destination.isActivity -> NavDestinationInfo.DestinationType.ACTIVITY
-      else -> NavDestinationInfo.DestinationType.OTHER
-    }
+    builder.type =
+      when {
+        destination.isFragment -> NavDestinationInfo.DestinationType.FRAGMENT
+        destination.isActivity -> NavDestinationInfo.DestinationType.ACTIVITY
+        else -> NavDestinationInfo.DestinationType.OTHER
+      }
     if (!destination.className.isNullOrBlank()) {
       builder.hasClass = true
     }
@@ -248,12 +250,16 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
         if (component.parent != null && component.isNavigation && !component.isInclude) {
           nestedGraphs++
         }
-        if (component.destinationType != NavigationSchema.DestinationType.NAVIGATION && component.className == null) {
+        if (
+          component.destinationType != NavigationSchema.DestinationType.NAVIGATION &&
+            component.className == null
+        ) {
           placeholders++
         }
       }
       if (component.isAction) {
-        val actionRoot = if (component.parent?.isNavigation == true) component.parent else component.parent?.parent
+        val actionRoot =
+          if (component.parent?.isNavigation == true) component.parent else component.parent?.parent
         when (component.getActionType(actionRoot)) {
           ActionType.GLOBAL -> globalActions++
           ActionType.SELF -> selfActions++

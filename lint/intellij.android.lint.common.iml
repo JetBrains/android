@@ -68,6 +68,6 @@
     <orderEntry type="module" module-name="kotlin.base.plugin" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
   </component>
 </module>

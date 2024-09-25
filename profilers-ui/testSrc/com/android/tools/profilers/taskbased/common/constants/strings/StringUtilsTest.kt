@@ -42,6 +42,7 @@ class StringUtilsTest(private val taskType: ProfilerTaskType) {
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> assertEquals(taskTabTitle, "Find CPU Hotspots (Java/Kotlin Method Recording)")
       ProfilerTaskType.NATIVE_ALLOCATIONS -> assertEquals(taskTabTitle, "Track Memory Consumption (Native Allocations)")
       ProfilerTaskType.LIVE_VIEW -> assertEquals(taskTabTitle, "View Live Telemetry")
+      ProfilerTaskType.LEAKCANARY -> assertEquals(taskTabTitle, "Find memory leaks with LeakCanary")
       ProfilerTaskType.UNSPECIFIED -> assertEquals(taskTabTitle, "Task not supported yet")
     }
   }

@@ -51,7 +51,7 @@ internal fun KaSession.containingPackage(functionSymbol: KaFunctionSymbol) =
 
 internal fun KaSession.getArgumentForParameter(
   functionCall: KaFunctionCall<*>,
-  parameterSymbol: KaValueParameterSymbol
+  parameterSymbol: KaValueParameterSymbol,
 ) =
   functionCall.argumentMapping.entries
     .singleOrNull { (_, parameter) -> parameter.symbol == parameterSymbol }

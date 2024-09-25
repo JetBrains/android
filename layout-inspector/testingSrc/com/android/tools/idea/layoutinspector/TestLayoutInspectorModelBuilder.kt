@@ -34,8 +34,6 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.TestStringTable
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -450,8 +448,10 @@ class InspectorModelDescriptor(
       }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
     if (project.isOpen) {
-      val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()
-      facet?.let { AndroidModel.set(facet, TestAndroidModel("com.example")) }
+      ProjectFacetManager.getInstance(project)
+        .getFacets(AndroidFacet.ID)
+        .singleOrNull()
+        ?.setApplicationIdForTest("com.example")
       val strings = TestStringTable()
       val builder = ConfigurationParamsBuilder(strings)
       val context = builder.makeSampleContext(project)

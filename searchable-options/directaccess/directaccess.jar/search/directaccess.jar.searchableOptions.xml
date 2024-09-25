@@ -1,9 +1,0 @@
-<options>
-  <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="configure" path="ActionManager" hit="Configure Device Streaming Project" />
-    <option name="device" path="ActionManager" hit="Configure Device Streaming Project" />
-    <option name="project" path="ActionManager" hit="Configure Device Streaming Project" />
-    <option name="streaming" path="ActionManager" hit="Configure Device Streaming Project" />
-    <option name="text" path="ActionManager" hit="text" />
-  </configurable>
-</options>

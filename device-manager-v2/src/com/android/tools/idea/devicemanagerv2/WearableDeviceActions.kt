@@ -80,10 +80,6 @@ class ViewPairedDevicesAction : DumbAwareAction("View Paired Device(s)") {
 }
 
 class UnpairWearableDeviceAction() : DumbAwareAction("Unpair Device") {
-  // The WearPairingManager is an Application-scoped service, so we use that scope too.
-  private val coroutineScope =
-    AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
-
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -100,8 +96,8 @@ class UnpairWearableDeviceAction() : DumbAwareAction("Unpair Device") {
         else -> PHYSICAL_UNPAIR_DEVICE_ACTION
       }
     )
-
-    coroutineScope.launch {
+    // The WearPairingManager is an Application-scoped service, so we use that scope too.
+    AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance()).launch {
       WearPairingManager.getInstance().removeAllPairedDevices(wearPairingId, true)
     }
   }

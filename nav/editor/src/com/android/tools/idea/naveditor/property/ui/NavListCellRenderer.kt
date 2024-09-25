@@ -19,18 +19,25 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.NlComponent
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.ExperimentalUI
+import com.intellij.ui.NewUI
 import javax.swing.Icon
 import javax.swing.JList
 
 /*
  * A cell renderer that sets the icon and background for elements in the property inspector
  */
-open class NavListCellRenderer(private val regularIcon: Icon) : ColoredListCellRenderer<NlComponent>() {
+open class NavListCellRenderer(private val regularIcon: Icon) :
+  ColoredListCellRenderer<NlComponent>() {
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(regularIcon)
 
-  override fun customizeCellRenderer(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
-    icon = if (selected && hasFocus && !ExperimentalUI.isNewUI()) whiteIcon else regularIcon
+  override fun customizeCellRenderer(
+    list: JList<out NlComponent>,
+    value: NlComponent?,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean,
+  ) {
+    icon = if (selected && hasFocus && !NewUI.isEnabled()) whiteIcon else regularIcon
 
     if (!selected) {
       background = secondaryPanelBackground

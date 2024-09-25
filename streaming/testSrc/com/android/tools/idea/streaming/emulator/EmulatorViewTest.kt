@@ -31,6 +31,7 @@ import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
+import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.mockStatic
@@ -515,6 +516,25 @@ class EmulatorViewTest {
   }
 
   @Test
+  fun testSkinButtons() {
+    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createAvdWithSkinButtons(path) }
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+
+    // Check initial appearance.
+    fakeUi.root.size = Dimension(110, 200)
+    fakeUi.layoutAndDispatchEvents()
+    val call = getStreamScreenshotCallAndWaitForFrame()
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 180 height: 275")
+    fakeUi.mouse.moveTo(23, 166)
+    assertAppearance("SkinButtons1")
+    fakeUi.mouse.press(23, 166)
+    val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"GoBack\" }")
+    fakeUi.mouse.release()
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"GoBack\" }")
+  }
+
+  @Test
   fun testMouseMoveSendGrpc() {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 1.0)
@@ -922,6 +942,10 @@ class EmulatorViewTest {
     waitForFrame()
     return call
   }
+
+  @Throws(TimeoutException::class)
+  private fun getNextGrpcCallIgnoringStreamScreenshot(): GrpcCallRecord =
+      fakeEmulator.getNextGrpcCall(2.seconds, IGNORE_SCREENSHOT_CALL_FILTER)
 
   @Throws(TimeoutException::class)
   private fun waitForFrame() {

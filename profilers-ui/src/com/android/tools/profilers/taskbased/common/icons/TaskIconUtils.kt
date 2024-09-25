@@ -37,6 +37,8 @@ object TaskIconUtils {
       ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.NativeAllocationsLarge
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIconsCompose.Profiler.Taskslarge.JavaKotlinAllocationsLarge
       ProfilerTaskType.LIVE_VIEW -> StudioIconsCompose.Profiler.Taskslarge.LiveViewLarge
+      ProfilerTaskType.LEAKCANARY -> StudioIconsCompose.Profiler.Taskslarge.FindMemoryLeaksLarge
+
     }
     return iconKey
   }
@@ -54,6 +56,7 @@ object TaskIconUtils {
       ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIcons.Profiler.Tasks.NATIVE_ALLOCATIONS
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIcons.Profiler.Tasks.JAVA_KOTLIN_ALLOCATIONS
       ProfilerTaskType.LIVE_VIEW -> StudioIcons.Profiler.Tasks.LIVE_VIEW
+      ProfilerTaskType.LEAKCANARY -> StudioIcons.Profiler.Tasks.FIND_MEMORY_LEAKS
     }
   }
 }

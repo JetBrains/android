@@ -191,6 +191,9 @@ private class PreparedTemplateBasedTestProject(
     ) { project ->
       IndexingTestUtil.waitUntilIndexesAreReady(project)
       invokeAndWaitIfNeeded {
+        AndroidGradleTests.waitForProjectStructureUsageTracker(project)
+      }
+      invokeAndWaitIfNeeded {
         AndroidGradleTests.waitForCreateRunConfigurations(project)
       }
       invokeAndWaitIfNeeded {

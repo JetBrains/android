@@ -105,10 +105,10 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
   }
 
   @Override
-  public @Nullable String doToString(ResourceValue element) {
+  public @Nullable String convertToString(@Nullable ResourceValue element) {
     if (element != null && element.getPrefix() == '@') {
       return element.toString();
     }
-    return super.doToString(element);
+    return super.convertToString(element);
   }
 }

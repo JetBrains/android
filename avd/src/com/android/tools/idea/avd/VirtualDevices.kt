@@ -15,35 +15,24 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdName
-import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 
 internal class VirtualDevices(
   private val avdManager: AvdManager =
-    IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler()),
-  private val manager: SystemImageManager = getSystemImageManager(),
+    IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
 ) {
-  internal fun add(device: VirtualDevice, image: SystemImage) {
-    val sdklibImage = manager.images.first { it.`package`.path == image.path }
-
+  internal fun add(device: VirtualDevice, image: ISystemImage) {
     val avdBuilder = avdManager.createAvdBuilder(device.device)
     avdBuilder.copyFrom(device)
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
     avdBuilder.displayName = device.name
-    avdBuilder.systemImage = sdklibImage
+    avdBuilder.systemImage = image
 
     avdManager.createAvd(avdBuilder)
-  }
-
-  private companion object {
-    private fun getSystemImageManager() =
-      AndroidSdks.getInstance()
-        .tryToChooseSdkHandler()
-        .getSystemImageManager(StudioLoggerProgressIndicator(VirtualDevices::class.java))
   }
 }

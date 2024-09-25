@@ -199,7 +199,7 @@ java_library(
         ":tags_query",
     ],
     deps = [
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
+        "//tools/adt/idea/aswb/shared",
         "@bazel_tools//tools/java/runfiles",
         "@maven//:com.google.guava.guava",
     ],
@@ -216,7 +216,7 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:exception",
+        "//tools/adt/idea/aswb/shared:exception",
         "@maven//:com.google.guava.guava",
     ],
 )

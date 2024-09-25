@@ -27,20 +27,14 @@ import com.intellij.testFramework.TestActionEvent
 class StartDestinationToolbarActionTest : NavTestCase() {
 
   fun testStartDestinationToolbarAction() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { NavModelBuilderUtil.navigation { fragment("fragment1") } }
 
     val component = model.treeReader.find("fragment1")!!
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf(component))
 
-    val dataContext = SimpleDataContext.builder()
-      .add(DESIGN_SURFACE, surface)
-      .build()
+    val dataContext = SimpleDataContext.builder().add(DESIGN_SURFACE, surface).build()
 
     val action = StartDestinationToolbarAction.instance
     val actionEvent = TestActionEvent(dataContext)
@@ -50,21 +44,23 @@ class StartDestinationToolbarActionTest : NavTestCase() {
       """
         NlComponent{tag=<navigation>, instance=0}
             NlComponent{tag=<fragment>, instance=1}
-      """.trimIndent(),
-      NlTreeDumper().toTree(model.treeReader.components)
+      """
+        .trimIndent(),
+      NlTreeDumper().toTree(model.treeReader.components),
     )
 
     assert(component.isStartDestination)
   }
 
   fun testActivityCannotBeStartDestination() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("fragment1")
-        activity("activity1")
-        fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        NavModelBuilderUtil.navigation {
+          fragment("fragment1")
+          activity("activity1")
+          fragment("fragment2")
+        }
       }
-    }
 
     val fragment1 = model.treeReader.find("fragment1")!!
 
@@ -72,9 +68,7 @@ class StartDestinationToolbarActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(fragment1))
 
     val action = StartDestinationToolbarAction.instance
-    val dataContext = SimpleDataContext.builder()
-      .add(DESIGN_SURFACE, surface)
-      .build()
+    val dataContext = SimpleDataContext.builder().add(DESIGN_SURFACE, surface).build()
     val actionEvent = TestActionEvent(dataContext)
     action.actionPerformed(actionEvent)
 
@@ -84,8 +78,9 @@ class StartDestinationToolbarActionTest : NavTestCase() {
             NlComponent{tag=<fragment>, instance=1}
             NlComponent{tag=<activity>, instance=2}
             NlComponent{tag=<fragment>, instance=3}
-      """.trimIndent(),
-      NlTreeDumper().toTree(model.treeReader.components)
+      """
+        .trimIndent(),
+      NlTreeDumper().toTree(model.treeReader.components),
     )
 
     assert(fragment1.isStartDestination)

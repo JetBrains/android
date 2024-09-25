@@ -276,6 +276,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testGradleDeclarative() = testProject(TestProject.GRADLE_DECLARATIVE)
 
+  @Test
+  fun testAddTestStaticDir() = testProject(TestProject.TEST_STATIC_DIR)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }

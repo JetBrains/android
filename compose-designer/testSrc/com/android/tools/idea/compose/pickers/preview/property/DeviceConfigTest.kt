@@ -21,6 +21,10 @@ import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.MutableDeviceConfig
 import com.android.tools.preview.config.Navigation
 import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.REFERENCE_DESKTOP_SPEC
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
+import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.toMutableConfig
 import org.junit.Assert.assertEquals
@@ -268,19 +272,10 @@ internal class DeviceConfigTest {
 
   @Test
   fun testReferenceDevicesIdInjection() {
-    assertEquals("_device_class_phone", parseDeviceSpec("spec:width=411dp,height=891dp")!!.deviceId)
-    assertEquals(
-      "_device_class_foldable",
-      parseDeviceSpec("spec:width=673dp,height=841dp")!!.deviceId,
-    )
-    assertEquals(
-      "_device_class_tablet",
-      parseDeviceSpec("spec:width=1280dp,height=800dp,dpi=240")!!.deviceId,
-    )
-    assertEquals(
-      "_device_class_desktop",
-      parseDeviceSpec("spec:width=1920dp,height=1080dp,dpi=160")!!.deviceId,
-    )
+    assertEquals("_device_class_phone", parseDeviceSpec(REFERENCE_PHONE_SPEC)!!.deviceId)
+    assertEquals("_device_class_foldable", parseDeviceSpec(REFERENCE_FOLDABLE_SPEC)!!.deviceId)
+    assertEquals("_device_class_tablet", parseDeviceSpec(REFERENCE_TABLET_SPEC)!!.deviceId)
+    assertEquals("_device_class_desktop", parseDeviceSpec(REFERENCE_DESKTOP_SPEC)!!.deviceId)
   }
 }
 

@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceTemplateAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -71,6 +72,8 @@ import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import java.awt.BorderLayout
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -78,6 +81,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -85,8 +89,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
-import java.awt.BorderLayout
-import javax.swing.JPanel
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
 internal class DeviceManagerPanel
@@ -100,12 +102,14 @@ constructor(
   createDeviceActions: List<CreateDeviceAction>,
   createTemplateActions: List<CreateDeviceTemplateAction>,
   pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
+  private val deviceFilter: (DeviceProperties) -> Boolean,
 ) : JPanel(), UiDataProvider {
 
   constructor(
     project: Project,
     deviceProvisioner: DeviceProvisioner =
       project.service<DeviceProvisionerService>().deviceProvisioner,
+    deviceFilter: (DeviceProperties) -> Boolean = { true },
   ) : this(
     project,
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project)),
@@ -115,11 +119,13 @@ constructor(
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
     WearPairingManager.getInstance().pairedDevicesFlow(),
+    deviceFilter,
   )
 
   constructor(
     parentScope: CoroutineScope,
     deviceProvisioner: DeviceProvisioner,
+    deviceFilter: (DeviceProperties) -> Boolean,
   ) : this(
     null,
     parentScope.createChildScope(isSupervisor = true),
@@ -129,6 +135,7 @@ constructor(
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
     WearPairingManager.getInstance().pairedDevicesFlow(),
+    deviceFilter,
   )
 
   private val splitter = JBSplitter(true)
@@ -240,7 +247,10 @@ constructor(
       .trackSetChanges()
       .collect { change ->
         when (change) {
-          is SetChange.Add -> trackDevice(change.value)
+          is SetChange.Add ->
+            if (deviceFilter(change.value.state.properties)) {
+              trackDevice(change.value)
+            }
           is SetChange.Remove -> {} // we use device scope ending to detect removal
         }
       }
@@ -248,20 +258,23 @@ constructor(
 
   private suspend fun trackDeviceTemplates() {
     val currentTemplates = mutableMapOf<DeviceTemplate, TemplateState>()
-    templates.pairWithNestedState(DeviceTemplate::stateFlow).collect { pairs ->
-      val newTemplates = pairs.map { it.first }.toSet()
-      val removed = currentTemplates.keys - newTemplates
-      removed.forEach {
-        currentTemplates.remove(it)
-        deviceTable.removeRowByKey(it)
-      }
-      for ((template, state) in pairs) {
-        if (currentTemplates[template] != state) {
-          currentTemplates[template] = state
-          deviceTable.addOrUpdateRow(DeviceRowData.create(template))
+    templates
+      .map { it.filter { deviceFilter(it.properties) } }
+      .pairWithNestedState(DeviceTemplate::stateFlow)
+      .collect { pairs ->
+        val newTemplates = pairs.map { it.first }.toSet()
+        val removed = currentTemplates.keys - newTemplates
+        removed.forEach {
+          currentTemplates.remove(it)
+          deviceTable.removeRowByKey(it)
+        }
+        for ((template, state) in pairs) {
+          if (currentTemplates[template] != state) {
+            currentTemplates[template] = state
+            deviceTable.addOrUpdateRow(DeviceRowData.create(template))
+          }
         }
       }
-    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)

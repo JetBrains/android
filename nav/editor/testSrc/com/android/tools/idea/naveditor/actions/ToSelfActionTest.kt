@@ -28,27 +28,36 @@ import org.mockito.Mockito
 
 class ToSelfActionTest : NavTestCase() {
   fun testRun() {
-    val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation {
-        fragment("f1")
-        fragment("f2")
+    val model =
+      model("nav.xml") {
+        NavModelBuilderUtil.navigation {
+          fragment("f1")
+          fragment("f2")
+        }
       }
-    }
     TestNavUsageTracker.create(model).use { tracker ->
       val f2 = model.treeReader.find("f2")!!
-      ToSelfAction(f2).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
+      ToSelfAction(f2)
+        .actionPerformed(
+          TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null }
+        )
       val action = f2.children.first { it.isAction }
       assertEquals(f2, action.effectiveDestination)
       assertSameElements(model.surface.selectionModel.selection, action)
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(1)
-                                                          .setCountToDestination(1)
-                                                          .setCountSame(1)
-                                                          .setType(NavActionInfo.ActionType.SELF))
-                                         .setSource(NavEditorEvent.Source.CONTEXT_MENU).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setCountToDestination(1)
+                .setCountSame(1)
+                .setType(NavActionInfo.ActionType.SELF)
+            )
+            .setSource(NavEditorEvent.Source.CONTEXT_MENU)
+            .build()
+        )
     }
   }
-
 }

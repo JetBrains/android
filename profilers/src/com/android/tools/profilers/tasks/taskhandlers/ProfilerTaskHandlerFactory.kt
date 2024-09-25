@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers
 
+import com.android.tools.profilers.leakcanary.LeakCanaryTaskHandler
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
@@ -36,6 +37,9 @@ object ProfilerTaskHandlerFactory {
     taskHandlers[ProfilerTaskType.NATIVE_ALLOCATIONS] = NativeAllocationsTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS] = JavaKotlinAllocationsTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.LIVE_VIEW] = LiveTaskHandler(sessionsManager)
+    if (sessionsManager.studioProfilers.ideServices.featureConfig.isLeakCanaryEnabled) {
+     taskHandlers[ProfilerTaskType.LEAKCANARY] = LeakCanaryTaskHandler(sessionsManager)
+    }
     return taskHandlers
   }
 }

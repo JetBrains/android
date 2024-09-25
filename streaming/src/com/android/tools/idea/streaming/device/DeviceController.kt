@@ -218,7 +218,7 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
-    applicationCoroutineScope(Dispatchers.IO).launch { controlChannel.close() }
+    applicationCoroutineScope.launch((Dispatchers.IO)) { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }

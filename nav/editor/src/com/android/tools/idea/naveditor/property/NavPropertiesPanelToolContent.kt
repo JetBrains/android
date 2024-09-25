@@ -22,11 +22,12 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import org.jetbrains.android.facet.AndroidFacet
 
-class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) : ToolContent<DesignSurface<*>> {
+class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) :
+  ToolContent<DesignSurface<*>> {
   private val panel = JPanel(BorderLayout())
   private val componentModel = NlPropertiesModel(this, facet)
   private val componentView = NavPropertiesView(componentModel)
@@ -44,6 +45,5 @@ class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispo
 
   override fun getComponent() = panel
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 }

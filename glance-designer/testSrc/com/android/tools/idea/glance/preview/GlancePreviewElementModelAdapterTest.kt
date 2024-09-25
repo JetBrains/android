@@ -35,7 +35,7 @@ internal class TestModel(override var dataContext: DataContext) : DataContextHol
 }
 
 private fun simplestDisplaySettings(name: String = "") =
-  PreviewDisplaySettings(name, null, false, false, null)
+  PreviewDisplaySettings(name, name, null, null, false, false, null)
 
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
   override fun toXml(previewElement: PsiGlancePreviewElement) = ""

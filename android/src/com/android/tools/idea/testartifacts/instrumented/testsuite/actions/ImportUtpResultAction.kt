@@ -113,7 +113,8 @@ class ImportUtpResultAction(icon: Icon? = null,
         ModuleManager.getInstance(project).modules.find {
           it.getModuleSystem().getPackageName() == packageName
         }
-      } else {
+      }
+      else {
         null
       }
       if (module == null) {
@@ -128,7 +129,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
 
-      project.coroutineScope().launch {
+      project.coroutineScope.launch {
         testAdapter.forwardResults(testSuiteView)
       }
       toolWindow.activate(null)

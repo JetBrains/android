@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -37,22 +38,17 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testDelete() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment2") {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-        }
-        fragment("fragment2") {
-          action("a2", destination = "fragment3")
-        }
-        fragment("fragment3") {
-          action("a3", destination = "fragment1")
+    val model =
+      model("nav.xml") {
+        navigation("root", startDestination = "fragment2") {
+          fragment("fragment1") { action("a1", destination = "fragment2") }
+          fragment("fragment2") { action("a2", destination = "fragment3") }
+          fragment("fragment3") { action("a3", destination = "fragment1") }
         }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
@@ -62,8 +58,13 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
 
     handler.deleteElement(context)
 
-    assertSameElements(model.treeReader.flattenComponents().toArray(),
-                       model.treeReader.components[0], model.treeReader.find("fragment1"), model.treeReader.find("fragment3"), model.treeReader.find("a3"))
+    assertSameElements(
+      model.treeReader.flattenComponents().toArray(),
+      model.treeReader.components[0],
+      model.treeReader.find("fragment1"),
+      model.treeReader.find("fragment3"),
+      model.treeReader.find("a3"),
+    )
     assertEquals(surface.selectionModel.selection, listOf(model.treeReader.find("fragment3")))
     val root = model.treeReader.find("root")!!
     assertNull(root.startDestination)
@@ -74,15 +75,16 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testUndoRedoDelete() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment")
-        fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment")
+          fragment("fragment2")
+        }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     var nlComponent = model.treeReader.find("fragment")!!
@@ -149,17 +151,14 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testGetPasteTarget() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-        }
-        fragment("fragment2")
-        navigation("subnav") {
-          fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") { action("a1", destination = "fragment2") }
+          fragment("fragment2")
+          navigation("subnav") { fragment("fragment3") }
         }
       }
-    }
     val surface = model.surface as NavDesignSurface
     val handler = NavDesignSurfaceActionHandler(surface)
 
@@ -186,18 +185,17 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testCanHandleChildren() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-          action("a2", destination = "subnav")
-        }
-        fragment("fragment2")
-        navigation("subnav") {
-          fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") {
+            action("a1", destination = "fragment2")
+            action("a2", destination = "subnav")
+          }
+          fragment("fragment2")
+          navigation("subnav") { fragment("fragment3") }
         }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     val handler = NavDesignSurfaceActionHandler(surface)
@@ -221,18 +219,17 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testCutPasteToSubnav() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-          action("a2", destination = "subnav")
-        }
-        fragment("fragment2")
-        navigation("subnav") {
-          fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") {
+            action("a1", destination = "fragment2")
+            action("a2", destination = "subnav")
+          }
+          fragment("fragment2")
+          navigation("subnav") { fragment("fragment3") }
         }
       }
-    }
 
     val root = model.treeReader.components[0]
     val subnav = model.treeReader.find("subnav")!!
@@ -240,7 +237,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment2 = model.treeReader.find("fragment2")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
@@ -255,18 +252,17 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testCutPasteAction() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1") {
-          action("a1", destination = "fragment2")
-          action("a2", destination = "subnav")
-        }
-        fragment("fragment2")
-        navigation("subnav") {
-          fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1") {
+            action("a1", destination = "fragment2")
+            action("a2", destination = "subnav")
+          }
+          fragment("fragment2")
+          navigation("subnav") { fragment("fragment3") }
         }
       }
-    }
 
     val subnav = model.treeReader.find("subnav")!!
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -275,7 +271,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val action2 = model.treeReader.find("a2")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(action1))
@@ -290,17 +286,13 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
   }
 
   fun testCopyPasteToSelf() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("fragment1") } }
 
     val root = model.treeReader.find("root")!!
     val fragment1 = model.treeReader.find("fragment1")!!
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))

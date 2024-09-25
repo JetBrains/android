@@ -108,7 +108,7 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
     if (annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }) return false
     if (!isValidPreviewLocation()) return false
     if (
-      annotations.any {
+      annotationEntries.any {
         val uAnnotation = (it.toUElement() as? UAnnotation) ?: return@any false
         return@any uAnnotation.isPreviewAnnotation() || uAnnotation.isMultiPreviewAnnotation()
       }

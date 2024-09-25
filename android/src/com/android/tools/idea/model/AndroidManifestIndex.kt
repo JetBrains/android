@@ -251,7 +251,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         }
       }
       catch (e: XmlPullParserException) {
-        LOG.warn(e)
+        LOG.warn(e.toString())
       }
       // This is unfortunate. Ideally, we'd just be catching XmlPullParserExceptions from KXmlParser
       // and the IllegalStateExceptions from our utility methods, but KXmlParser throws simple
@@ -261,7 +261,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         throw e
       }
       catch (e: RuntimeException) {
-        LOG.warn(e)
+        LOG.warn(e.toString())
       }
       return null
     }

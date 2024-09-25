@@ -33,21 +33,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 
 internal typealias DeviceAttribute<V> = RowAttribute<DeviceProfile, V>
 
 @Composable
-internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = Modifier) {
+fun DeviceFiltersPanel(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   val scrollState = rememberScrollState()
   Box(modifier.fillMaxSize()) {
     Column(Modifier.padding(6.dp).testTag("DeviceFilters").verticalScroll(scrollState)) {
-      ApiFilter(filterState.apiLevelFilter)
-      SingleSelectionDropdown(filterState.formFactorFilter)
-      for (attribute in DeviceSetAttributes) {
-        SetFilter(filterState[attribute])
-      }
+      content()
     }
     VerticalScrollbar(
       rememberScrollbarAdapter(scrollState),
@@ -57,24 +51,12 @@ internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = 
 }
 
 @Stable
-internal class DeviceFilterState(profiles: List<DeviceProfile>) : RowFilter<DeviceProfile> {
-  private val setFilters: ImmutableList<SetFilterState<DeviceProfile, *>> =
-    DeviceSetAttributes.map { it.initialSetFilterState(profiles) }.toImmutableList()
-
-  val apiLevelFilter = ApiLevelSelectionState()
-  val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone", profiles)
-
+open class DeviceFilterState : RowFilter<DeviceProfile> {
+  val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
   val textFilter = TextFilterState()
 
-  operator fun <V> get(attribute: DeviceAttribute<V>): SetFilterState<DeviceProfile, V> =
-    setFilters.find { it.attribute == attribute } as SetFilterState<DeviceProfile, V>
-
-  override fun apply(row: DeviceProfile): Boolean {
-    return setFilters.all { it.apply(row) } &&
-      formFactorFilter.apply(row) &&
-      apiLevelFilter.apply(row) &&
-      textFilter.apply(row)
-  }
+  override fun apply(row: DeviceProfile): Boolean =
+    formFactorFilter.apply(row) && textFilter.apply(row)
 }
 
 @Stable
@@ -87,12 +69,8 @@ class TextFilterState : RowFilter<DeviceProfile> {
       row.name.contains(searchText.trim(), ignoreCase = true)
 }
 
-private val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
-private val IsRemote = DeviceAttribute("Type") { if (it.isRemote) "Remote" else "Local" }
-private val FormFactor = DeviceAttribute("Form Factor") { it.formFactor }
-// The DeviceAttributes that we use set-based filters on. Note that this determines the display
-// order.
-internal val DeviceSetAttributes = listOf<DeviceAttribute<*>>(IsRemote, Manufacturer)
+val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
+val FormFactor = DeviceAttribute("Form Factor") { it.formFactor }
 
 internal fun <V : Comparable<V>> DeviceAttribute(name: String, value: (DeviceProfile) -> V) =
   DeviceAttribute(name, Comparator.naturalOrder(), value)

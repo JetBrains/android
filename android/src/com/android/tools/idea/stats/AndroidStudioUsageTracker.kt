@@ -26,6 +26,7 @@ import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
@@ -90,6 +91,7 @@ object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
+  private const val IDX_ENVIRONMENT_VARIABLE = "GOOGLE_CLOUD_WORKSTATIONS"
 
   // Broadcast channel for Android Studio events being logged
   val channel = BroadcastChannel<AndroidStudioEvent.Builder>(BUFFERED)
@@ -114,17 +116,22 @@ object AndroidStudioUsageTracker {
         theme = currentIdeTheme()
         serverFlagsChangelist = ServerFlagService.instance.configurationVersion
         addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.names))
+        runningInsideIdx = (System.getenv(IDX_ENVIRONMENT_VARIABLE) == "true")
       }.build()
     }
 
   /** Gets list of active experiments. */
   @JvmStatic
   fun buildActiveExperimentList(): Collection<String> {
-    val experimentOverrides = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
-    if (experimentOverrides.isNullOrEmpty()) {
-      return listOf()
+    val experimentOverridesProperty = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
+
+    val experimentOverrides = if (experimentOverridesProperty.isNullOrEmpty()) {
+      emptyList()
+    } else {
+      experimentOverridesProperty.split(',')
     }
-    return experimentOverrides.split(',')
+    val activeMendelExperimentIds = MendelFlagsProvider.getActiveExperimentIds().map { it.toString() }
+    return experimentOverrides + activeMendelExperimentIds
   }
 
   /** Gets information about all the displays connected to this machine.  */

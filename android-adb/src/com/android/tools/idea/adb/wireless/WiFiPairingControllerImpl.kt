@@ -25,23 +25,26 @@ import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.launch
 
 @UiThread
-class WiFiPairingControllerImpl(private val project: Project,
-                                parentDisposable: Disposable,
-                                private val pairingService: WiFiPairingService,
-                                private val notificationService: WiFiPairingNotificationService,
-                                private val view: WiFiPairingView,
-                                private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
-                                  createPairingCodePairingController(project, pairingService, notificationService, it)
-                                }
+class WiFiPairingControllerImpl(
+  private val project: Project,
+  parentDisposable: Disposable,
+  private val pairingService: WiFiPairingService,
+  private val notificationService: WiFiPairingNotificationService,
+  private val view: WiFiPairingView,
+  private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
+    createPairingCodePairingController(project, pairingService, notificationService, it)
+  },
 ) : WiFiPairingController {
   companion object {
-    fun createPairingCodePairingController(project: Project,
-                                           pairingService: WiFiPairingService,
-                                           notificationService: WiFiPairingNotificationService,
-                                           mdnsService: MdnsService): PairingCodePairingController {
+    fun createPairingCodePairingController(
+      project: Project,
+      pairingService: WiFiPairingService,
+      notificationService: WiFiPairingNotificationService,
+      mdnsService: MdnsService,
+    ): PairingCodePairingController {
       val model = PairingCodePairingModel(mdnsService)
       val view = PairingCodePairingViewImpl(project, notificationService, model)
-      return PairingCodePairingController(project.coroutineScope(), pairingService, view)
+      return PairingCodePairingController(project.coroutineScope, pairingService, view)
     }
   }
 
@@ -65,7 +68,7 @@ class WiFiPairingControllerImpl(private val project: Project,
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    project.coroutineScope().launch(uiThread(ModalityState.any())) {
+    project.coroutineScope.launch(uiThread(ModalityState.any())) {
       val supportState = pairingService.checkMdnsSupport()
       when (supportState) {
         MdnsSupportState.Supported -> {
@@ -80,6 +83,9 @@ class WiFiPairingControllerImpl(private val project: Project,
         }
         MdnsSupportState.AdbInvocationError -> {
           view.showMdnsCheckError()
+        }
+        MdnsSupportState.AdbMacEnvironmentBroken -> {
+          view.showMacMdnsEnvironmentIsBroken()
         }
       }
     }

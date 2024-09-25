@@ -18,8 +18,10 @@ package com.android.tools.idea.common.layout.option
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import java.awt.Dimension
 import java.awt.Point
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Interface used to layout and measure the size of [PositionableContent]s in
@@ -79,6 +81,16 @@ interface SurfaceLayoutManager {
     @SwingCoordinate availableHeight: Int,
     keepPreviousPadding: Boolean = false,
   ): Map<PositionableContent, Point>
+
+  /**
+   * Caches the state of the current layout group.
+   *
+   * @param cachedLayoutGroups keep the state of the current grouped layout if any. When null, the
+   *   given [SurfaceLayoutManager] doesn't keep any cache of the current layout.
+   */
+  fun useCachedLayoutGroups(cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>) {
+    /* do nothing */
+  }
 }
 
 /**

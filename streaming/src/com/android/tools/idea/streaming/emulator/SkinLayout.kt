@@ -35,19 +35,20 @@ import java.awt.image.BufferedImage
  * @param maskImages the images constituting the device display mask
  */
 class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, val frameRectangle: Rectangle,
-                 val frameImages: List<AnchoredImage>, val maskImages: List<AnchoredImage>) {
+                 val frameImages: List<AnchoredImage>, val maskImages: List<AnchoredImage>, val buttons: List<SkinButton>) {
 
   /**
    * Creates a layout without a frame or mask.
    */
   constructor(width: Int, height: Int) :
-      this(Dimension(width, height), Dimension(0, 0), Rectangle(0, 0, width, height), emptyList(), emptyList())
+      this(Dimension(width, height), Dimension(0, 0), Rectangle(0, 0, width, height),
+           emptyList(), emptyList(), emptyList())
 
   /**
    * Draws frame and mask to the given graphics context. The [displayRectangle]  parameter defines
    * the coordinates and the scaled size of the display.
    */
-  fun drawFrameAndMask(g: Graphics2D, displayRectangle: Rectangle) {
+  fun drawFrameAndMask(g: Graphics2D, displayRectangle: Rectangle, highlightedButtonKey: String? = null) {
     if (frameImages.isNotEmpty() || maskImages.isNotEmpty()) {
       val scaleX = displayRectangle.width.toDouble() / displaySize.width
       val scaleY = displayRectangle.height.toDouble() / displaySize.height
@@ -58,6 +59,12 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
       }
       for (image in maskImages) {
         drawImage(g, image, displayRectangle, scaleX, scaleY, transform)
+      }
+      if (highlightedButtonKey != null) {
+        val highlightedButton = buttons.find { it.keyName == highlightedButtonKey }
+        if (highlightedButton != null) {
+          drawImage(g, highlightedButton.image, displayRectangle, scaleX, scaleY, transform)
+        }
       }
     }
   }
@@ -70,6 +77,29 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
     transform.scale(scaleX, scaleY)
     g.drawImage(anchoredImage.image, transform, null)
   }
+
+  /**
+   * Returns the skin button containing the given coordinates, or null if not found.
+   * The coordinates are considered contained in a button if they are located inside the button
+   * rectangle and the corresponding pixel of the button image is not fully transparent.
+   */
+  fun findSkinButtonContaining(x: Int, y: Int): SkinButton? {
+    for (button in buttons) {
+      val anchoredImage = button.image
+      val relativeX = x - anchoredImage.offset.x - anchoredImage.anchorPoint.x * displaySize.width
+      if (relativeX < 0 || relativeX >= anchoredImage.size.width) {
+        continue
+      }
+      val relativeY = y - anchoredImage.offset.y - anchoredImage.anchorPoint.y * displaySize.height
+      if (relativeY < 0 || relativeY >= anchoredImage.size.height) {
+        continue
+      }
+      if (!ImageUtils.isTransparentPixel(anchoredImage.image, relativeX, relativeY)) {
+        return button
+      }
+    }
+    return null
+  }
 }
 
 /**
@@ -80,33 +110,52 @@ class SkinLayout(val displaySize: Dimension, val displayCornerSize: Dimension, v
  * @param anchorPoint the point on the boundary of the display rectangle the image is attached to
  * @param offset the offset of the upper left corner of the image relative to the anchor point
  */
-class AnchoredImage(val image: BufferedImage, val size: Dimension, val anchorPoint: AnchorPoint, val offset: Point) {
+data class AnchoredImage(val image: BufferedImage, val size: Dimension, val anchorPoint: AnchorPoint, val offset: Point) {
   /**
-   * Creates another [AnchoredImage] that is result of rotating and scaling this one. Returns null
-   * if the scaled image has zero width or height.
-   *
-   * @param orientationQuadrants the rotation that is applied to the image and the display rectangle
-   * @param scaleX the X-axis scale factor applied to the rotated image
-   * @param scaleY the Y-axis scale factor applied to the rotated image
+   * Creates another [AnchoredImage] that is the result of rotating and scaling this one.
+   * Returns null if the scaled image has zero width or height.
    */
-  fun rotatedAndScaled(orientationQuadrants: Int, scaleX: Double, scaleY: Double): AnchoredImage? {
-    val rotatedSize = size.rotatedByQuadrants(orientationQuadrants)
+  internal fun rotatedAndScaled(imageTransformer: ImageTransformer): AnchoredImage? {
+    val rotationQuadrants = imageTransformer.rotationQuadrants
+    val scaleX = imageTransformer.scaleX
+    val scaleY = imageTransformer.scaleY
+    val rotatedSize = size.rotatedByQuadrants(rotationQuadrants)
     val width = rotatedSize.width.scaled(scaleX)
     val height = rotatedSize.height.scaled(scaleY)
     if (width == 0 || height == 0) {
       return null // Degenerate image.
     }
-    val rotatedAnchorPoint = anchorPoint.rotatedByQuadrants(orientationQuadrants)
-    val rotatedOffset = offset.rotatedByQuadrants(orientationQuadrants)
+    val transformedImage = imageTransformer.transform(image) ?: return null
+    val rotatedAnchorPoint = anchorPoint.rotatedByQuadrants(rotationQuadrants)
+    val rotatedOffset = offset.rotatedByQuadrants(rotationQuadrants)
     val transformedOffset =
-      when (orientationQuadrants) {
+      when (rotationQuadrants) {
         1 -> Point(rotatedOffset.x.scaled(scaleX), rotatedOffset.y.scaled(scaleY) - height)
         2 -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY) - height)
         3 -> Point(rotatedOffset.x.scaled(scaleX) - width, rotatedOffset.y.scaled(scaleY))
         else -> Point(rotatedOffset.x.scaled(scaleX), rotatedOffset.y.scaled(scaleY))
       }
-    val transformedImage = ImageUtils.rotateByQuadrantsAndScale(image, orientationQuadrants, width, height)
     return AnchoredImage(transformedImage, Dimension(width, height), rotatedAnchorPoint, transformedOffset)
+  }
+
+  /** Returns the AnchoredImage shifted by [x] and [y] and reanchored to the nearest corner of the display. */
+  fun translatedAndReanchored(x: Int, y: Int, displaySize: Dimension): AnchoredImage {
+    val point = Point(offset.x + x, offset.y + y)
+    var minDistanceSquared = Int.MAX_VALUE
+    var closestAnchor = anchorPoint
+    for (anchor in AnchorPoint.entries) {
+      val cornerX = displaySize.width * (anchor.x - anchorPoint.x)
+      val cornerY = displaySize.height * (anchor.y - anchorPoint.y)
+      val dx = point.x - cornerX
+      val dy = point.y - cornerY
+      val d = dx * dx + dy * dy
+      if (d < minDistanceSquared) {
+        minDistanceSquared = d
+        closestAnchor = anchor
+      }
+    }
+    point.translate(displaySize.width * (anchorPoint.x - closestAnchor.x), displaySize.height * (anchorPoint.y - closestAnchor.y))
+    return AnchoredImage(image, size, closestAnchor, point)
   }
 }
 
@@ -128,3 +177,34 @@ enum class AnchorPoint(val x: Int, val y: Int) {
     return entries[(ordinal + rotation) % entries.size]
   }
 }
+
+/**
+ * Rotates and scales graphical images.
+ *
+ * @param rotationQuadrants the rotation that is applied to images
+ * @param scaleX the X-axis scale factor applied to images after rotation
+ * @param scaleY the Y-axis scale factor applied to images after rotation
+ */
+internal class ImageTransformer(val rotationQuadrants: Int, val scaleX: Double, val scaleY: Double) {
+
+  private val cache = mutableMapOf<BufferedImage, BufferedImage?>()
+
+  /**
+   * Returns the transformed image or null if the transformed image would have zero width or height.
+   */
+  fun transform(image: BufferedImage): BufferedImage? {
+    return cache.computeIfAbsent(image) {
+      val rotatedSize = Dimension(image.width, image.height).rotatedByQuadrants(rotationQuadrants)
+      val width = rotatedSize.width.scaled(scaleX)
+      val height = rotatedSize.height.scaled(scaleY)
+      if (width > 0 && height > 0) {
+        ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, width, height, BufferedImage.TYPE_INT_ARGB)
+      }
+      else {
+        null // Degenerate image.
+      }
+    }
+  }
+}
+
+class SkinButton(val keyName: String, val image: AnchoredImage)

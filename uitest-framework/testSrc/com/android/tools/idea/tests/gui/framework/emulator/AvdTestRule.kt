@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.emulator
 
-import com.android.SdkConstants
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.AdbInitOptions
 import com.android.ddmlib.AndroidDebugBridge
@@ -34,7 +33,6 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.test.testutils.TestUtils
 import com.android.test.testutils.TestUtils.getSdk
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.test.testutils.TestUtils.runningFromBazel

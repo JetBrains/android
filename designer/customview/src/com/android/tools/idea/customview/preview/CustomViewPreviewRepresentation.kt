@@ -210,7 +210,9 @@ class CustomViewPreviewRepresentation(
   private val view = invokeAndWaitIfNeeded {
     CustomViewPreviewView(
       NlSurfaceBuilder.builder(project, this) { surface, model ->
-          defaultSceneManagerProvider(surface, model).apply { setShrinkRendering(true) }
+          defaultSceneManagerProvider(surface, model).apply {
+            sceneRenderConfiguration.useShrinkRendering = true
+          }
         }
         .setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
         .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
@@ -420,7 +422,7 @@ class CustomViewPreviewRepresentation(
           // repaint.
           surface.deactivate()
           surface.models.first().let { model ->
-            surface.getSceneManager(model)!!.forceReinflate()
+            surface.getSceneManager(model)!!.sceneRenderConfiguration.needsInflation.set(true)
             model.updateFileContentBlocking(fileContent)
           }
         }

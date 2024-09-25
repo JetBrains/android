@@ -24,6 +24,8 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
+import java.lang.Integer.min
+import java.util.IdentityHashMap
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
@@ -47,8 +49,6 @@ import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.calls.util.getParameterForArgument
-import java.lang.Integer.min
-import java.util.IdentityHashMap
 
 /**
  * Compose lambda name prefix.
@@ -394,9 +394,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       foundComposableSibling = foundComposableSiblingBefore
     }
 
-    private fun KaSession?.hasComposableAnnotation(
-      expression: KtLambdaExpression
-    ): Boolean {
+    private fun KaSession?.hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
       val argument = expression.parent as? KtValueArgument ?: return false
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
       if (this != null) {
@@ -407,8 +405,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())
           ?.symbol
-          ?.annotations
-          ?.contains(ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME)) == true
+          ?.let { ClassId.topLevel(COMPOSABLE_ANNOTATION_FQNAME) in it.annotations } == true
       } else {
         // K1 plugin - use old descriptor API.
         val resolvedCall = call.resolveToCall() ?: return false

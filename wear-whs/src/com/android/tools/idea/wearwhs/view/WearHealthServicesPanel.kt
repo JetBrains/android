@@ -22,13 +22,22 @@ import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
-import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
@@ -40,7 +49,6 @@ import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.Toolkit
 import java.util.Collections
-import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -75,6 +83,9 @@ private const val PADDING = 15
 private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
 private const val NOTIFICATION_GROUP_ID = "Wear Health Services Notification"
 private val TEMPORARY_MESSAGE_DISPLAY_DURATION = 2.seconds
+
+internal const val LEARN_MORE_URL =
+  "https://developer.android.com/health-and-fitness/guides/health-services/simulated-data#use_the_health_services_sensor_panel"
 
 private fun createCenterPanel(
   stateManager: WearHealthServicesStateManager,
@@ -149,7 +160,6 @@ private fun createCenterPanel(
               checkBox.addActionListener {
                 workerScope.launch {
                   stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
-                  stateManager.preset.value = Preset.CUSTOM
                 }
               }
             }
@@ -270,23 +280,52 @@ private fun createWearHealthServicesPanelHeader(
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
   notifyUser: (String, MessageType) -> Unit,
+  onTriggerEventChannel: Channel<Unit>,
 ): JPanel = panel {
   row(
     JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
-  ) {}
+  ) {
+    cell(
+        ActionLink(message("wear.whs.panel.learn.more")).apply {
+          addActionListener { BrowserUtil.browse(LEARN_MORE_URL) }
+          setExternalLinkIcon()
+        }
+      )
+      .align(AlignX.RIGHT)
+  }
   separator()
 
-  val capabilitiesComboBox =
-    ComboBox<Preset>().apply { model = DefaultComboBoxModel(Preset.values()) }
-  capabilitiesComboBox.addActionListener {
-    stateManager.preset.value = (capabilitiesComboBox.selectedItem as Preset)
-  }
-  stateManager.preset.onEach { capabilitiesComboBox.selectedItem = it }.launchIn(uiScope)
+  val presetActionGroup =
+    object : ActionGroup(null, true) {
+      override fun getChildren(e: AnActionEvent?) =
+        Preset.entries
+          .map {
+            object : AnAction(message(it.labelKey)) {
+              override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+              override fun actionPerformed(e: AnActionEvent) {
+                stateManager.loadPreset(it)
+              }
+            }
+          }
+          .toTypedArray()
+    }
+
+  val loadCapabilityPresetButton =
+    JButton(message("wear.whs.panel.load.preset")).apply {
+      addActionListener {
+        val popup =
+          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, presetActionGroup)
+        JBPopupMenu.showBelow(this, popup.component)
+      }
+    }
+
   stateManager.ongoingExercise
     .onEach {
-      capabilitiesComboBox.isEnabled = !it
-      capabilitiesComboBox.toolTipText =
-        if (it) message("wear.whs.panel.disabled.during.exercise") else null
+      loadCapabilityPresetButton.isEnabled = !it
+      loadCapabilityPresetButton.toolTipText =
+        if (it) message("wear.whs.panel.disabled.during.exercise")
+        else message("wear.whs.panel.load.preset.tooltip")
     }
     .launchIn(uiScope)
   val eventTriggersDropDownButton =
@@ -300,6 +339,7 @@ private fun createWearHealthServicesPanelHeader(
                     eventTriggerGroup.eventTriggers.map { eventTrigger ->
                       CommonAction(eventTrigger.eventLabel, null) {
                         workerScope.launch {
+                          onTriggerEventChannel.send(Unit)
                           stateManager
                             .triggerEvent(eventTrigger)
                             .onSuccess {
@@ -354,7 +394,7 @@ private fun createWearHealthServicesPanelHeader(
 
   twoColumnsRow(
     {
-      cell(capabilitiesComboBox)
+      cell(loadCapabilityPresetButton)
       cell(eventTriggersDropDownButton)
     },
     { cell(statusLabel) },
@@ -370,6 +410,11 @@ data class WearHealthServicesPanel(
    * applied.
    */
   val onUserApplyChangesFlow: Flow<Unit>,
+  /**
+   * Flow receiving an element when the user triggers an event. The event might still fail to be
+   * triggered.
+   */
+  val onUserTriggerEventFlow: Flow<Unit>,
 )
 
 private sealed class PanelInformation(val message: String) {
@@ -400,6 +445,7 @@ internal fun createWearHealthServicesPanel(
       if (isPanelShowing) {
         informationFlow.value = PanelInformation.TemporaryMessage(message)
       } else {
+        informationFlow.value = PanelInformation.EmptyMessage
         Notifications.Bus.notify(
           Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
         )
@@ -415,6 +461,7 @@ internal fun createWearHealthServicesPanel(
     }
 
   val onApplyChangesChannel = Channel<Unit>()
+  val onTriggerEventChannel = Channel<Unit>()
   val footer =
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
@@ -499,7 +546,13 @@ internal fun createWearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
         add(
-          createWearHealthServicesPanelHeader(stateManager, uiScope, workerScope, ::notifyUser),
+          createWearHealthServicesPanelHeader(
+            stateManager,
+            uiScope,
+            workerScope,
+            ::notifyUser,
+            onTriggerEventChannel,
+          ),
           BorderLayout.NORTH,
         )
         add(content, BorderLayout.CENTER)
@@ -510,5 +563,6 @@ internal fun createWearHealthServicesPanel(
         focusTraversalPolicy = LayoutFocusTraversalPolicy()
       },
     onUserApplyChangesFlow = onApplyChangesChannel.receiveAsFlow(),
+    onUserTriggerEventFlow = onTriggerEventChannel.receiveAsFlow(),
   )
 }

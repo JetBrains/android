@@ -107,6 +107,7 @@ import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.nio.file.Path
 import java.util.concurrent.TimeoutException
 import javax.swing.JViewport
+import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -156,7 +157,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     // Check appearance.
@@ -245,7 +246,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR)
 
     // Check appearance.
@@ -374,7 +375,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR)
 
     // Check appearance.
@@ -413,7 +414,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
 
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
@@ -460,7 +461,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -521,7 +522,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    var emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    var emulatorView = panel.primaryEmulatorView ?: fail()
 
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
@@ -544,7 +545,7 @@ class EmulatorToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     panel.createContent(true, uiState)
-    emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    emulatorView = panel.primaryEmulatorView ?: fail()
     ui.layoutAndDispatchEvents()
 
     // Check that zoom level and scroll position are restored.
@@ -565,7 +566,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -678,7 +679,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
 
     // Check appearance.
     val frameNumbers = uintArrayOf(emulatorView.frameNumber, 0u, 0u)
@@ -725,7 +726,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: fail()
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
 
@@ -772,8 +773,8 @@ class EmulatorToolWindowPanelTest {
     // Check camera movement.
     val velocityExpectations =
         mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
-    val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
-                                                       "android.emulation.control.EmulatorController/streamScreenshot")
+    val callFilter = FakeEmulator.DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamClipboard",
+                                                         "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.code)
 

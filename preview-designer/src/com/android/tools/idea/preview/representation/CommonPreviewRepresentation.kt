@@ -233,9 +233,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         project,
         NlSurfaceBuilder.builder(project, this) { surface, model ->
             defaultSceneManagerProvider(surface, model).apply {
-              setUseCustomInflater(useCustomInflater)
-              setShrinkRendering(true)
-              setRenderingTopic(renderingTopic)
+              sceneRenderConfiguration.let { config ->
+                config.useCustomInflater = useCustomInflater
+                config.useShrinkRendering = true
+                config.renderingTopic = renderingTopic
+              }
               setListenResourceChange(false) // don't re-render on resource changes
               setUpdateAndRenderWhenActivated(false) // don't re-render on activation
             }
@@ -685,14 +687,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     layoutlibSceneManager: LayoutlibSceneManager,
   ) =
     layoutlibSceneManager.apply {
-      setCacheSuccessfulRenderImage(
-        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && mode.value !is PreviewMode.Interactive
-      )
-      setClassesToPreload(
-        if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
-      )
-      isUsePrivateClassLoader = mode.value is PreviewMode.Interactive
-      quality = qualityManager.getTargetQuality(this@apply)
+      sceneRenderConfiguration.let { config ->
+        config.cacheSuccessfulRenderImage =
+          StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && mode.value !is PreviewMode.Interactive
+        config.classesToPreload =
+          if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
+        config.usePrivateClassLoader = mode.value is PreviewMode.Interactive
+        config.quality = qualityManager.getTargetQuality(this@apply)
+      }
     }
 
   private fun activate(isResuming: Boolean) {

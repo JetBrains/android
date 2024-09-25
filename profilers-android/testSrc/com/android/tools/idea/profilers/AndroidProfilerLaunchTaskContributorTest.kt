@@ -66,7 +66,7 @@ class AndroidProfilerLaunchTaskContributorTest {
   fun testAgentConfigIsEmptyForProfileable() {
     val device = Mockito.mock(IDevice::class.java)
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
-    val fileManager = TransportFileManager(device, projectRule.project.messageBus)
+    val fileManager = TransportFileManager(device)
 
     val result = fileManager.configureStartupAgent("com.example.app", "foo", ProfileRunExecutorGroup.getInstance()!!.childExecutors()[0].id)
     assertThat(result).isEmpty()

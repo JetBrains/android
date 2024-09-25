@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -44,10 +45,7 @@ class LongTextAnalyzerComposeTest {
           visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview",
-            configuration =
-              PreviewConfiguration.cleanAndGet(
-                device = "spec:width=1280dp,height=800dp,dpi=240" // Tablet
-              ),
+            configuration = PreviewConfiguration.cleanAndGet(device = REFERENCE_TABLET_SPEC),
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
@@ -76,10 +74,7 @@ class LongTextAnalyzerComposeTest {
           visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview",
-            configuration =
-              PreviewConfiguration.cleanAndGet(
-                device = "spec:width=1280dp,height=800dp,dpi=240" // Tablet
-              ),
+            configuration = PreviewConfiguration.cleanAndGet(device = REFERENCE_TABLET_SPEC),
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )

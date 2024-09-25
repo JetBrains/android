@@ -29,20 +29,23 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import java.awt.Color
 
-
-class DrawSelfAction(private val rectangle: SwingRectangle,
-                     scale: Scale,
-                     color: Color,
-                     isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction) {
+class DrawSelfAction(
+  private val rectangle: SwingRectangle,
+  scale: Scale,
+  color: Color,
+  isPopAction: Boolean,
+) : DrawActionBase(scale, color, isPopAction) {
   override fun buildAction(): Action {
     val points = selfActionPoints(rectangle, scale)
     val path = SwingPath()
     path.moveTo(points[0])
-    DrawConnectionUtils.drawRound(path.value,
-                                  points.map { it.x.toInt() }.toIntArray(),
-                                  points.map { it.y.toInt() }.toIntArray(),
-                                  points.size,
-                                  SELF_ACTION_RADII.map { (it * scale).toInt() }.toIntArray())
+    DrawConnectionUtils.drawRound(
+      path.value,
+      points.map { it.x.toInt() }.toIntArray(),
+      points.map { it.y.toInt() }.toIntArray(),
+      points.size,
+      SELF_ACTION_RADII.map { (it * scale).toInt() }.toIntArray(),
+    )
 
     val width = ACTION_ARROW_PERPENDICULAR * scale
     val height = ACTION_ARROW_PARALLEL * scale
@@ -52,5 +55,6 @@ class DrawSelfAction(private val rectangle: SwingRectangle,
     return Action(path, SwingRectangle(x, y, width, height), ArrowDirection.UP)
   }
 
-  override fun getPopIconRectangle(): SwingRectangle = getSelfActionIconRect(getStartPoint(rectangle), scale)
+  override fun getPopIconRectangle(): SwingRectangle =
+    getSelfActionIconRect(getStartPoint(rectangle), scale)
 }

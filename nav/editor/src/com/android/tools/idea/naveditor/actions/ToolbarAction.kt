@@ -16,14 +16,11 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
-import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import javax.swing.Icon
 import javax.swing.JComponent
 

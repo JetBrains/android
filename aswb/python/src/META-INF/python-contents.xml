@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright 2017 The Bazel Authors. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+
+  <extensions defaultExtensionNs="com.google.idea.blaze">
+    <SyncPlugin implementation="com.google.idea.blaze.python.sync.BlazePythonSyncPlugin"/>
+    <SyncStatusContributor implementation="com.google.idea.blaze.python.sync.PySyncStatusContributor"/>
+    <PrefetchFileSource implementation="com.google.idea.blaze.python.sync.PythonPrefetchFileSource"/>
+    <OutputsProvider implementation="com.google.idea.blaze.python.sync.PythonPrefetchFileSource"/>
+    <BlazeCommandRunConfigurationHandlerProvider implementation="com.google.idea.blaze.python.run.BlazePyRunConfigurationHandlerProvider" order="first"/>
+    <BlazeTestEventsHandler implementation="com.google.idea.blaze.python.run.smrunner.BlazePythonTestEventsHandler"/>
+    <PyParameterizedNameConverter implementation="com.google.idea.blaze.python.run.smrunner.PyBaseParameterizedNameConverter" order="first"/>
+    <BlazeIssueParserProvider implementation="com.google.idea.blaze.python.issueparser.PyIssueParserProvider"/>
+    <TestContextProvider implementation="com.google.idea.blaze.python.run.producers.PyTestContextProvider"/>
+    <BinaryContextProvider implementation="com.google.idea.blaze.python.run.producers.PyBinaryContextProvider"/>
+
+    <!-- check genfiles before non-genfiles -->
+    <PyImportResolverStrategy implementation="com.google.idea.blaze.python.resolve.provider.BazelPyGenfilesImportResolverStrategy"/>
+    <PyImportResolverStrategy implementation="com.google.idea.blaze.python.resolve.provider.BazelPyImportResolverStrategy"/>
+
+    <PySdkSuggester implementation="com.google.idea.blaze.python.sdk.FallbackPythonSdkSuggester" order="last"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <useScopeEnlarger implementation="com.google.idea.blaze.python.search.BlazePyUseScopeEnlarger"/>
+    <programRunner implementation="com.google.idea.blaze.python.run.BlazePyDebugRunner"/>
+    <consoleFilterProvider implementation="com.google.idea.blaze.python.run.filter.BlazePyTracebackFilter$BlazePyTracebackFilterProvider"/>
+    <postStartupActivity implementation="com.google.idea.blaze.python.sdk.FallbackPythonSdkSuggester$SdkInitializer"/>
+    <postStartupActivity implementation="com.google.idea.blaze.python.run.producers.NonBlazeProducerSuppressor"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="Pythonid">
+    <importResolver implementation="com.google.idea.blaze.python.resolve.BlazePyOutsideModuleImportResolver"/>
+    <pyReferenceResolveProvider implementation="com.google.idea.blaze.python.resolve.BlazePyBuiltinReferenceResolveProvider"/>
+    <customPackageIdentifier implementation="com.google.idea.blaze.python.resolve.BlazeCustomPackageIdentifier" order="first"/>
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.google.idea.blaze.BlazePyDebugFlagsProvider"
+      interface="com.google.idea.blaze.python.run.BlazePyDebugHelper"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.PyParameterizedNameConverter"
+      interface="com.google.idea.blaze.python.run.smrunner.PyParameterizedNameConverter"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.PyImportResolverStrategy"
+        interface="com.google.idea.blaze.python.resolve.provider.PyImportResolverStrategy"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.PySdkSuggester"
+        interface="com.google.idea.blaze.python.sync.PySdkSuggester"/>
+  </extensionPoints>
+
+  <application-components>
+    <component>
+      <implementation-class>com.google.idea.blaze.python.resolve.PyDynamicImportResolverInitializer</implementation-class>
+    </component>
+  </application-components>
+  <applicationListeners>
+    <listener class="com.google.idea.blaze.python.run.BlazePyTracebackParser$OverrideUpstreamParser"
+        topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
+</idea-plugin>

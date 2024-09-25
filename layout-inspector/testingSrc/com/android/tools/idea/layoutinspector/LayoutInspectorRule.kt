@@ -278,9 +278,7 @@ class LayoutInspectorRule(
         executor = launcherExecutor,
       )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)
-    AndroidFacet.getInstance(projectRule.module)?.let {
-      AndroidModel.set(it, TestAndroidModel("com.example"))
-    }
+    AndroidFacet.getInstance(projectRule.module)?.setApplicationIdForTest("com.example")
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process
     // is updated
@@ -360,5 +358,17 @@ class LayoutInspectorRule(
     return innerRules.fold(coreStatement) { stmt: Statement, rule: TestRule ->
       rule.apply(stmt, description)
     }
+  }
+}
+
+/**
+ * For tests that run with the Default Project System, modify project system structures so that the
+ * test environment has a model with this [applicationId].
+ */
+fun AndroidFacet.setApplicationIdForTest(applicationId: String) {
+  AndroidModel.set(this, TestAndroidModel(applicationId))
+  this.properties.run {
+    USE_CUSTOM_MANIFEST_PACKAGE = true
+    CUSTOM_MANIFEST_PACKAGE = applicationId
   }
 }

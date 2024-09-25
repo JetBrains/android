@@ -109,9 +109,9 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
-  fun `test state manager has the correct list of capabilities enabled when preset is selected`() =
+  fun `test state manager has the correct list of capabilities enabled when standard preset is loaded`() =
     runBlocking {
-      stateManager.preset.value = Preset.STANDARD
+      stateManager.loadPreset(Preset.STANDARD)
 
       stateManager
         .getState(heartRateBpmCapability)
@@ -128,9 +128,9 @@ class WearHealthServicesStateManagerTest {
     }
 
   @Test
-  fun `test state manager reports to the subscribers when all capabilities preset is selected`() =
+  fun `test state manager reports to the subscribers when all capabilities preset is loaded`() =
     runBlocking {
-      stateManager.preset.value = Preset.STANDARD
+      stateManager.loadPreset(Preset.STANDARD)
 
       stateManager
         .getState(heartRateBpmCapability)
@@ -145,7 +145,7 @@ class WearHealthServicesStateManagerTest {
         .mapState { it.capabilityState.enabled }
         .waitForValue(false)
 
-      stateManager.preset.value = Preset.ALL
+      stateManager.loadPreset(Preset.ALL)
 
       stateManager
         .getState(heartRateBpmCapability)
@@ -248,17 +248,15 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
-  fun `test reset sets the preset to all, removes overrides and invokes device manager`() =
+  fun `test reset loads 'all' preset, removes overrides and invokes device manager`() =
     runBlocking {
-      stateManager.preset.value = Preset.STANDARD
-
+      stateManager.loadPreset(Preset.STANDARD).join()
       stateManager.setOverrideValue(locationCapability, 3f)
 
       assertEquals(0, deviceManager.clearContentProviderInvocations)
 
       stateManager.reset()
 
-      stateManager.preset.waitForValue(Preset.ALL)
       stateManager
         .getState(stepsCapability)
         .mapState { it.capabilityState.enabled }
@@ -274,8 +272,7 @@ class WearHealthServicesStateManagerTest {
 
   @Test
   fun `when an exercise is ongoing reset only clears the overridden values`(): Unit = runBlocking {
-    stateManager.preset.value = Preset.STANDARD
-
+    stateManager.loadPreset(Preset.STANDARD).join()
     stateManager.setOverrideValue(locationCapability, 3f)
     deviceManager.activeExercise = true
 
@@ -285,7 +282,6 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.reset()
 
-    stateManager.preset.waitForValue(Preset.STANDARD)
     stateManager
       .getState(heartRateBpmCapability)
       .mapState { it.capabilityState.enabled }

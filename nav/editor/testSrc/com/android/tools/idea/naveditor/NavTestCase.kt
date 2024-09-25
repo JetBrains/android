@@ -33,29 +33,37 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.AndroidTestCase
 import java.io.File
 import java.nio.file.Paths
+import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.AndroidTestCase
 
 @Deprecated("Use NavTestRule instead")
-abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) : AndroidTestCase() {
-  // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
+abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) :
+  AndroidTestCase() {
+  // The normal test root disposable is disposed after Timer leak checking is done, which can cause
+  // problems.
   // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
   protected lateinit var myRootDisposable: Disposable
   protected lateinit var myBuildTarget: AndroidBuildTargetReference
 
   public override fun setUp() {
     super.setUp()
-    @Suppress("ObjectLiteralToLambda") // Otherwise a static instance is created and used between tests.
-    myRootDisposable = object : Disposable {
-      override fun dispose() {}
-    }
+    @Suppress(
+      "ObjectLiteralToLambda"
+    ) // Otherwise a static instance is created and used between tests.
+    myRootDisposable =
+      object : Disposable {
+        override fun dispose() {}
+      }
     FakeBuildSystemFilePreviewServices().register(myRootDisposable)
     myBuildTarget = AndroidBuildTargetReference.gradleOnly(myFacet)
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/java", "src")
     myFixture.copyDirectoryToProject("$projectDirectory/app/src/main/res", "res")
-    myFixture.copyFileToProject("$projectDirectory/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
+    myFixture.copyFileToProject(
+      "$projectDirectory/app/src/main/AndroidManifest.xml",
+      "AndroidManifest.xml",
+    )
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
@@ -70,10 +78,9 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
         virtualFileList.add(VfsUtil.findFileByIoFile(resFile, true))
       }
 
-      val library = PsiTestUtil.addProjectLibrary(myModule, libName, virtualFileList, emptyList<VirtualFile>())
-      myAdditionalModules.forEach {
-        ModuleRootModificationUtil.addDependency(it, library)
-      }
+      val library =
+        PsiTestUtil.addProjectLibrary(myModule, libName, virtualFileList, emptyList<VirtualFile>())
+      myAdditionalModules.forEach { ModuleRootModificationUtil.addDependency(it, library) }
 
       myFixture.testDataPath = testDataPath
     }
@@ -83,11 +90,9 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
 
   override fun tearDown() {
     try {
-      UIUtil.dispatchAllInvocationEvents ()
+      UIUtil.dispatchAllInvocationEvents()
       Disposer.dispose(myRootDisposable)
       deleteManifest()
-    } catch (t: Throwable){
-      addSuppressedException(t)
     } finally {
       super.tearDown()
     }
@@ -108,14 +113,14 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
     val testDataPath: String
       get() = "$navEditorPluginHome/testData"
 
-    // Now that the Android plugin is kept in a separate place, we need to look in a relative position instead
+    // Now that the Android plugin is kept in a separate place, we need to look in a relative
+    // position instead
     private val navEditorPluginHome: String
       get() {
         val adtPath = resolveWorkspacePath("tools/adt/idea/nav/editor").toString()
         return if (File(adtPath).exists()) {
           adtPath
-        }
-        else AndroidTestBase.getAndroidPluginHome()
+        } else AndroidTestBase.getAndroidPluginHome()
       }
 
     @JvmStatic

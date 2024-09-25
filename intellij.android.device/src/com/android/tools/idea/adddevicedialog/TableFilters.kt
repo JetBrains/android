@@ -21,10 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.runtime.toMutableStateList
-import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,17 +36,16 @@ import org.jetbrains.jewel.ui.component.items
  * An attribute of a table row that can be extracted and used for filtering; it may or may not be
  * represented in a column. [V] must have a toString() method that is suitable for display.
  */
-internal class RowAttribute<T, V>(
-  val name: String,
-  val comparator: Comparator<V>,
-  val value: (T) -> V,
-)
+class RowAttribute<T, V>(val name: String, val comparator: Comparator<V>, val value: (T) -> V)
+
+fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> =
+  ts.mapTo(TreeSet(comparator)) { value(it) }.toList()
 
 /**
  * A Composable that puts a list of checkboxes in a HideablePanel and tracks their selection state.
  */
 @Composable
-internal fun <V> SetFilter(
+fun <V> SetFilter(
   header: String,
   values: List<V>,
   selection: MutableMap<V, Boolean>,
@@ -58,7 +54,7 @@ internal fun <V> SetFilter(
   HideablePanel(header, modifier.padding(6.dp)) {
     Column {
       for (item in values) {
-        CheckboxRow(selection[item] == true, onCheckedChange = { selection[item] = it }) {
+        CheckboxRow(selection[item] ?: true, onCheckedChange = { selection[item] = it }) {
           Text(item.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       }
@@ -67,13 +63,8 @@ internal fun <V> SetFilter(
 }
 
 @Composable
-internal fun <V> SetFilter(state: SetFilterState<*, V>, modifier: Modifier = Modifier) {
-  SetFilter(
-    state.attribute.name,
-    state.selection.keys.sortedWith(state.attribute.comparator),
-    state.selection,
-    modifier,
-  )
+fun <V> SetFilter(values: List<V>, state: SetFilterState<*, V>, modifier: Modifier = Modifier) {
+  SetFilter(state.attribute.name, values, state.selection, modifier)
 }
 
 interface RowFilter<T> {
@@ -81,23 +72,16 @@ interface RowFilter<T> {
 }
 
 /** The UI state for a single set-based attribute filter. */
-internal class SetFilterState<T, V>(
-  val attribute: RowAttribute<T, V>,
-  val selection: SnapshotStateMap<V, Boolean>,
-) : RowFilter<T> {
-  override fun apply(row: T) = selection[attribute.value(row)] == true
-}
+class SetFilterState<T, V>(val attribute: RowAttribute<T, V>, val defaultValue: Boolean = true) :
+  RowFilter<T> {
+  val selection = SnapshotStateMap<V, Boolean>()
 
-/**
- * Produces an initial SetFilterState, containing entries for all the distinct values found in the
- * given rows, with all values enabled.
- */
-internal fun <T, V> RowAttribute<T, V>.initialSetFilterState(rows: List<T>) =
-  SetFilterState(this, rows.map { Pair(value(it), true) }.toMutableStateMap())
+  override fun apply(row: T) = selection[attribute.value(row)] ?: defaultValue
+}
 
 /** A Dropdown that acts as a view to a SingleSelectionFilterState. */
 @Composable
-internal fun <T, V> SingleSelectionDropdown(state: SingleSelectionFilterState<T, V>) {
+fun <T, V> SingleSelectionDropdown(values: List<V>, state: SingleSelectionFilterState<T, V>) {
   Column(modifier = Modifier.padding(6.dp)) {
     Text(state.attribute.name)
 
@@ -105,7 +89,7 @@ internal fun <T, V> SingleSelectionDropdown(state: SingleSelectionFilterState<T,
       modifier = Modifier.padding(2.dp),
       menuContent = {
         items(
-          state.allValues,
+          values,
           isSelected = { state.selection == it },
           onItemClick = { state.selection = it },
         ) {
@@ -121,26 +105,13 @@ internal fun <T, V> SingleSelectionDropdown(state: SingleSelectionFilterState<T,
 /**
  * The UI state for an attribute filter that selects one value from the values present on the rows.
  */
-internal class SingleSelectionFilterState<T, V>(
-  val attribute: RowAttribute<T, V>,
-  selection: V,
-  val allValues: SnapshotStateList<V>,
-) : RowFilter<T> {
+class SingleSelectionFilterState<T, V>(val attribute: RowAttribute<T, V>, selection: V) :
+  RowFilter<T> {
   var selection by mutableStateOf(selection)
 
   override fun apply(row: T): Boolean = selection == attribute.value(row)
 }
 
-/**
- * Produces an initial SingleSelectionFilterState, containing entries for all the distinct values
- * found in the given rows, with the specified initial selection.
- */
-internal fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(
-  initialSelection: V,
-  rows: List<T>,
-) =
-  SingleSelectionFilterState(
-    this,
-    initialSelection,
-    rows.mapTo(TreeSet(comparator)) { value(it) }.toMutableStateList(),
-  )
+/** Produces a SingleSelectionFilterState with the given initial selection. */
+fun <T, V> RowAttribute<T, V>.initialSingleSelectionFilterState(initialSelection: V) =
+  SingleSelectionFilterState(this, initialSelection)

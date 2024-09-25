@@ -57,7 +57,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
 
-    project.coroutineScope().launch {
+    project.coroutineScope.launch {
       when (val restoreInfo = e.getRestoreInfo()) {
         is Invalid ->
           actionHelper.showWarning(

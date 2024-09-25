@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
+import com.android.sdklib.deviceprovisioner.DefaultProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
@@ -38,7 +39,7 @@ interface DeviceProvisionerFactory {
 
     fun createProvisioners(
       coroutineScope: CoroutineScope,
-      project: Project
+      project: Project,
     ): List<DeviceProvisionerPlugin> =
       EP_NAME.extensionList.filter { it.isEnabled }.map { it.create(coroutineScope, project) }
   }
@@ -48,29 +49,39 @@ interface DeviceProvisionerFactory {
   /**
    * Create a [DeviceProvisionerPlugin].
    *
-   * @param coroutineScope the [CoroutineScope] of the [com.android.tools.idea.deviceprovisioner.DeviceProvisionerService].
-   * The plugin should use this scope or inherit from it.
+   * @param coroutineScope the [CoroutineScope] of the
+   *   [com.android.tools.idea.deviceprovisioner.DeviceProvisionerService]. The plugin should use
+   *   this scope or inherit from it.
    * @param project the IntelliJ project
    */
   fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin
 }
 
-val StudioDefaultDeviceIcons = DeviceIcons(
-  handheld = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
-  wear = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR,
-  tv = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV,
-  automotive = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-)
+val StudioDefaultDeviceIcons =
+  DeviceIcons(
+    handheld = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
+    wear = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR,
+    tv = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV,
+    automotive = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR,
+  )
+
+class DefaultDeviceProvisionerFactory : DeviceProvisionerFactory {
+  override val isEnabled: Boolean
+    get() = true
+
+  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
+    create(coroutineScope)
+
+  fun create(coroutineScope: CoroutineScope): DeviceProvisionerPlugin =
+    DefaultProvisionerPlugin(coroutineScope, StudioDefaultDeviceIcons)
+}
 
 class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
     get() = true
 
   override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
-    PhysicalDeviceProvisionerPlugin(
-      coroutineScope,
-      deviceIcons = StudioDefaultDeviceIcons
-    )
+    PhysicalDeviceProvisionerPlugin(coroutineScope, deviceIcons = StudioDefaultDeviceIcons)
 }
 
 @JvmField val DEVICE_HANDLE_KEY = DataKey.create<DeviceHandle>("DeviceHandle")

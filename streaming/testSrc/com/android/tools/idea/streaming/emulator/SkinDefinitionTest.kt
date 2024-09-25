@@ -18,11 +18,12 @@ package com.android.tools.idea.streaming.emulator
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getSkinFolder
+import com.android.utils.HashCodes
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.awt.Dimension
@@ -33,13 +34,13 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.function.Consumer
 import java.util.function.Predicate
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlin.test.fail
 
 /**
  * Tests for [SkinDefinition] and related classes.
@@ -54,7 +55,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_2_XL() {
     val folder = getSkinFolder("pixel_2_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1623, 3322))
@@ -97,7 +98,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_3_XL() {
     val folder = getSkinFolder("pixel_3_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method without scaling.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(1584, 3245))
@@ -146,7 +147,7 @@ class SkinDefinitionTest {
   @Test
   fun testVeryTinyScale() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the createScaledLayout method with scaling.
     val layout = skin.createScaledLayout(8, 16, 0)
@@ -158,7 +159,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4() {
     val folder = getSkinFolder("pixel_4")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -171,7 +172,7 @@ class SkinDefinitionTest {
   @Test
   fun testPixel_4_xl() {
     val folder = getSkinFolder("pixel_4_xl")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
@@ -184,9 +185,50 @@ class SkinDefinitionTest {
   @Test
   fun testTwoDisplays() {
     val folder = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/skins/two_displays")
-    val skin = SkinDefinition.createOrNull(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
     // Check the skin layout.
     assertThat(skin.getRotatedFrameSize(0)).isEqualTo(Dimension(2348, 1080))
+  }
+
+  @Test
+  fun testSkinButtons() {
+    val folder = getSkinFolder("nexus_one")
+    val skin = SkinDefinition.createOrNull(folder) ?: fail("Expected non-null SkinDefinition")
+    // Check the skin layout.
+    val layout = skin.createScaledLayout(400, 240, 1)
+    val buttons = layout.buttons
+    assertThat(buttons).hasSize(7)
+    assertThat(buttons[0].keyName).isEqualTo("GoBack")
+    assertThat(buttons[0].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[0].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_RIGHT)
+    assertThat(buttons[0].image.offset).isEqualTo(Point(7, -41))
+    assertThat(buttons[1].keyName).isEqualTo("Menu")
+    assertThat(buttons[1].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[1].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_RIGHT)
+    assertThat(buttons[1].image.offset).isEqualTo(Point(7, -101))
+    assertThat(buttons[1].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[2].keyName).isEqualTo("GoHome")
+    assertThat(buttons[2].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[2].image.anchorPoint).isEqualTo(AnchorPoint.TOP_RIGHT)
+    assertThat(buttons[2].image.offset).isEqualTo(Point(7, 79))
+    assertThat(buttons[2].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[3].keyName).isEqualTo("Search")
+    assertThat(buttons[3].image.size).isEqualTo(Dimension(24, 23))
+    assertThat(buttons[3].image.anchorPoint).isEqualTo(AnchorPoint.TOP_RIGHT)
+    assertThat(buttons[3].image.offset).isEqualTo(Point(7, 18))
+    assertThat(buttons[3].image.image).isSameAs(buttons[0].image.image)
+    assertThat(buttons[4].keyName).isEqualTo("AudioVolumeUp")
+    assertThat(buttons[4].image.size).isEqualTo(Dimension(25, 34))
+    assertThat(buttons[4].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[4].image.offset).isEqualTo(Point(33, 17))
+    assertThat(buttons[5].keyName).isEqualTo("AudioVolumeDown")
+    assertThat(buttons[5].image.size).isEqualTo(Dimension(25, 34))
+    assertThat(buttons[5].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[5].image.offset).isEqualTo(Point(64, 17))
+    assertThat(buttons[6].keyName).isEqualTo("Power")
+    assertThat(buttons[6].image.size).isEqualTo(Dimension(29, 34))
+    assertThat(buttons[6].image.anchorPoint).isEqualTo(AnchorPoint.BOTTOM_LEFT)
+    assertThat(buttons[6].image.offset).isEqualTo(Point(-65, -45))
   }
 
   @Test
@@ -260,7 +302,7 @@ class SkinDefinitionTest {
   }
 
   private fun validateLayout(skinLayout: SkinLayout, skinFolder: Path): List<String> {
-    val backgroundImageFile = getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
+    val backgroundImageFile = SkinDefinition.getBackgroundImageFile(skinFolder) ?: return listOf("The skin doesn't define a background image")
     val backgroundImage = try {
       backgroundImageFile.readImage()
     }
@@ -270,7 +312,7 @@ class SkinDefinitionTest {
     val displaySize = skinLayout.displaySize
     val center = Point(displaySize.width / 2 - skinLayout.frameRectangle.x,
                        displaySize.height / 2 - skinLayout.frameRectangle.y)
-    if (!backgroundImage.isTransparent(center)) {
+    if (!backgroundImage.isTransparentPixel(center)) {
       return listOf("The background image is not transparent near the center of the display")
     }
 
@@ -280,7 +322,7 @@ class SkinDefinitionTest {
       problems.add("The ${backgroundImageFile.fileName} image can be cropped without loosing any information")
     }
 
-    val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparent)
+    val transparentAreaBounds = findBoundsOfContiguousArea(image, center, image::isTransparentPixel)
     if (transparentAreaBounds.width != displaySize.width) {
       problems.add("The width of the display area in the skin image (${transparentAreaBounds.width})" +
                      " doesn't match the layout file (${displaySize.width})")
@@ -289,7 +331,7 @@ class SkinDefinitionTest {
       problems.add("The height of the display area in the skin image (${transparentAreaBounds.height})" +
                      " doesn't match the layout file (${displaySize.height})")
     }
-    val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNotOpaque)
+    val nonOpaqueAreaBounds = findBoundsOfContiguousArea(image, center, image::isNonOpaquePixel)
     if (nonOpaqueAreaBounds.x != transparentAreaBounds.x) {
       problems.add("Partially transparent pixels near the left edge of the display area")
     }
@@ -321,12 +363,12 @@ class SkinDefinitionTest {
         var interior = halfSize + 1 // Distance between the display corner and inner boundary of the frame near the corner.
         for (d in 0..halfSize) {
           if (exterior < 0) {
-            if (image.isOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+            if (image.isOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               exterior = d
             }
           }
           else {
-            if (image.isNotOpaque(Point(xOffset + d * xStep, yOffset + d * yStep))) {
+            if (image.isNonOpaquePixel(Point(xOffset + d * xStep, yOffset + d * yStep))) {
               interior = d
               break
             }
@@ -355,11 +397,6 @@ class SkinDefinitionTest {
                    " or to gaps between the rounded corners of the display and the frame.")
     }
     return problems
-  }
-
-  private fun getBackgroundImageFile(skinFolder: Path): Path? {
-    val backgroundFileUrl = SkinDefinition.createLayoutDescriptor(skinFolder).backgroundFile ?: return null
-    return Paths.get(backgroundFileUrl.toURI())
   }
 
   private fun findBoundsOfContiguousArea(image: BufferedImage, start: Point, predicate: Predicate<Point>): Rectangle {
@@ -429,23 +466,27 @@ class SkinDefinitionTest {
   }
 }
 
-private fun BufferedImage.isTransparent(point: Point): Boolean {
-  return getRGB(point.x, point.y) and ALPHA_MASK == 0
+private fun BufferedImage.isTransparentPixel(point: Point): Boolean {
+  return ImageUtils.isTransparentPixel(this, point.x, point.y)
 }
 
-private fun BufferedImage.isOpaque(point: Point): Boolean {
-  return getRGB(point.x, point.y) and ALPHA_MASK == ALPHA_MASK
+private fun BufferedImage.isOpaquePixel(point: Point): Boolean {
+  return ImageUtils.isOpaquePixel(this, point.x, point.y)
 }
 
-private fun BufferedImage.isNotOpaque(point: Point): Boolean {
-  return !isOpaque(point)
+private fun BufferedImage.isNonOpaquePixel(point: Point): Boolean {
+  return !isOpaquePixel(point)
 }
 
-private data class Point(val x: Int, val y: Int) // Unlike java.awt.Point this class has an efficient hashCode method.
+/** The `hashCode` method is overloaded for efficiency. The [java.awt.Point.equals] method is ok. */
+private class Point(x: Int, y: Int) : java.awt.Point(x, y) {
+
+  override fun hashCode(): Int {
+    return HashCodes.mix(x, y)
+  }
+}
 
 private val NEIGHBORS = listOf(Point(-1, -1), Point(-1, 0), Point(-1, 1), Point(0, 1),
                                Point(1, 1), Point(1, 0), Point(1, -1), Point(0, -1))
-
-private const val ALPHA_MASK = 0xFF shl 24
 
 private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/SkinDefinitionTest"

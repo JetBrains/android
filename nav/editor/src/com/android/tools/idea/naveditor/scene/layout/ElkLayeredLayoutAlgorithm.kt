@@ -40,7 +40,8 @@ class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
     graph.setProperty(LayeredMetaDataProvider.SPACING_NODE_NODE_BETWEEN_LAYERS, 100.0)
     // We don't use their line routing, so no need to leave space
     graph.setProperty(CoreOptions.SPACING_EDGE_EDGE, 0.0)
-    // If there's an edge between two nodes the edge/node spacing is used instead of the node/node spacing.
+    // If there's an edge between two nodes the edge/node spacing is used instead of the node/node
+    // spacing.
     graph.setProperty(CoreOptions.SPACING_EDGE_NODE, 50.0)
     graph.setProperty(CoreOptions.DIRECTION, Direction.RIGHT)
 
@@ -67,7 +68,10 @@ class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
         }
       }
     }
-    startDestinationNode?.setProperty(LayeredMetaDataProvider.LAYERING_LAYER_CONSTRAINT, LayerConstraint.FIRST_SEPARATE)
+    startDestinationNode?.setProperty(
+      LayeredMetaDataProvider.LAYERING_LAYER_CONSTRAINT,
+      LayerConstraint.FIRST_SEPARATE,
+    )
 
     RecursiveGraphLayoutEngine().layout(graph, BasicProgressMonitor())
     for (component in destinations.filter { it.nlComponent.isDestination }) {

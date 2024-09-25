@@ -32,10 +32,10 @@ import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import org.mockito.Mockito
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Point
 import java.awt.event.MouseEvent
+import org.mockito.Mockito
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class ActionHandleTargetTest : NavTestCase() {
   private lateinit var surface: DesignSurface<*>
@@ -59,13 +59,14 @@ class ActionHandleTargetTest : NavTestCase() {
   }
 
   fun testCreateAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          fragment("fragment2")
+          fragment("fragment3")
+        }
       }
-    }
     setModel(model)
 
     TestNavUsageTracker.create(model).use { tracker ->
@@ -76,41 +77,57 @@ class ActionHandleTargetTest : NavTestCase() {
       assertEquals("action_fragment1_to_fragment2", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(1)
-                                                          .setCountToDestination(1)
-                                                          .setCountSame(1)
-                                                          .setType(NavActionInfo.ActionType.REGULAR))
-                                         .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setCountToDestination(1)
+                .setCountSame(1)
+                .setType(NavActionInfo.ActionType.REGULAR)
+            )
+            .setSource(NavEditorEvent.Source.DESIGN_SURFACE)
+            .build()
+        )
     }
 
     TestNavUsageTracker.create(model).use { tracker ->
       dragCreate("fragment1", "fragment3")
 
-      val action = model.treeReader.find("fragment1")!!.children.first { it.isAction && it.id == "action_fragment1_to_fragment3" }
+      val action =
+        model.treeReader.find("fragment1")!!.children.first {
+          it.isAction && it.id == "action_fragment1_to_fragment3"
+        }
       assertEquals(model.treeReader.find("fragment3")!!, action.actionDestination)
       assertSameElements(surface.selectionModel.selection, action)
 
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(2)
-                                                          .setCountToDestination(1)
-                                                          .setCountSame(1)
-                                                          .setType(NavActionInfo.ActionType.REGULAR))
-                                         .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(2)
+                .setCountToDestination(1)
+                .setCountSame(1)
+                .setType(NavActionInfo.ActionType.REGULAR)
+            )
+            .setSource(NavEditorEvent.Source.DESIGN_SURFACE)
+            .build()
+        )
     }
   }
 
   fun testCreateToInclude() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        include("navigation")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          include("navigation")
+        }
       }
-    }
 
     setModel(model)
 
@@ -122,23 +139,25 @@ class ActionHandleTargetTest : NavTestCase() {
       assertEquals("action_fragment1_to_nav", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(1)
-                                                          .setCountToDestination(1)
-                                                          .setCountSame(1)
-                                                          .setType(NavActionInfo.ActionType.REGULAR))
-                                         .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setCountToDestination(1)
+                .setCountSame(1)
+                .setType(NavActionInfo.ActionType.REGULAR)
+            )
+            .setSource(NavEditorEvent.Source.DESIGN_SURFACE)
+            .build()
+        )
     }
   }
 
   fun testCreateSelfAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("fragment1") } }
 
     setModel(model)
 
@@ -150,23 +169,25 @@ class ActionHandleTargetTest : NavTestCase() {
       assertEquals("action_fragment1_self", action.id)
       assertSameElements(surface.selectionModel.selection, action)
 
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                         .setActionInfo(NavActionInfo.newBuilder()
-                                                          .setCountFromSource(1)
-                                                          .setCountToDestination(1)
-                                                          .setCountSame(1)
-                                                          .setType(NavActionInfo.ActionType.SELF))
-                                         .setSource(NavEditorEvent.Source.DESIGN_SURFACE).build())
+      Mockito.verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setCountToDestination(1)
+                .setCountSame(1)
+                .setType(NavActionInfo.ActionType.SELF)
+            )
+            .setSource(NavEditorEvent.Source.DESIGN_SURFACE)
+            .build()
+        )
     }
   }
 
   fun testDragAbandon() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("fragment1") } }
 
     setModel(model)
 
@@ -182,12 +203,13 @@ class ActionHandleTargetTest : NavTestCase() {
   }
 
   fun testDragInvalid() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        addChild(ComponentDescriptor("fragment"), null)
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          addChild(ComponentDescriptor("fragment"), null)
+        }
       }
-    }
 
     setModel(model)
 
@@ -214,8 +236,12 @@ class ActionHandleTargetTest : NavTestCase() {
     dragAndRelease(p1.x, p1.y, p2.x, p2.y)
   }
 
-  private fun dragAndRelease(@SwingCoordinate x1: Int, @SwingCoordinate y1: Int,
-                             @SwingCoordinate x2: Int, @SwingCoordinate y2: Int) {
+  private fun dragAndRelease(
+    @SwingCoordinate x1: Int,
+    @SwingCoordinate y1: Int,
+    @SwingCoordinate x2: Int,
+    @SwingCoordinate y2: Int,
+  ) {
     LayoutTestUtilities.pressMouse(myGuiInputHandler, MouseEvent.BUTTON1, x1, y1, 0)
     LayoutTestUtilities.dragMouse(myGuiInputHandler, x1, y1, x2, y2, 0)
     LayoutTestUtilities.releaseMouse(myGuiInputHandler, MouseEvent.BUTTON1, x2, y2, 0)

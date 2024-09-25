@@ -19,10 +19,10 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         ":querysummary_java_proto",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:build_java_proto",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:proto",
         "@maven//:com.google.guava.guava",
     ],
 )

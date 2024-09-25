@@ -43,7 +43,8 @@ class AndroidStudioBundleSizeTest {
           .build())
       .build()
 
-    val plugins = Files.readAllLines(resolveWorkspacePath("tools/adt/idea/studio/android-studio.plugin.lst")).toSet();
+    var plugins = Files.readAllLines(resolveWorkspacePath("tools/adt/idea/studio/android-studio.plugin.lst")).toSet()
+    plugins = plugins.map { line -> line.split(':', limit = 2)[0] }.toSet()
     val pluginRegex = Regex("(android-studio/plugins/|Android Studio.*\\.app/Contents/plugins/)([^/]+)/.*")
     val platforms = listOf("win", "mac", "linux")
 

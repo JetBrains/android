@@ -19,6 +19,7 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -28,19 +29,16 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.UnindexedFilesScannerExecutor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -84,7 +82,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
   }
 
   override fun run() {
-    project.coroutineScope().launch {
+    project.coroutineScope.launch {
       withBackgroundProgress(project, "Computing project size", true) {
         val builder = AndroidStudioEvent
           .newBuilder()
@@ -92,20 +90,8 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
           .withProjectId(project)
 
         FileType.entries.forEach { fileType ->
-          var waitSmartModeWithFileIndexes = true
-          // Smart mode doesn't wait for UnindexedFilesScannerExecutorImpl queued tasks to finish
-          // so this was added to explicitly wait for them until IDEA-356331 gets fixed.
-          while (waitSmartModeWithFileIndexes) {
-            waitSmartModeWithFileIndexes = smartReadAction(project) {
-              if (UnindexedFilesScannerExecutor.getInstance(project).hasQueuedTasks
-                  || UnindexedFilesScannerExecutor.getInstance(project).isRunning.value) {
-                true
-              } else {
-                builder.addIntellijProjectSizeStatsForFileType(fileType)
-                false
-              }
-            }
-            if (waitSmartModeWithFileIndexes) delay(1000)
+          project.runReadActionInSmartModeWithIndexes {
+            builder.addIntellijProjectSizeStatsForFileType(fileType)
           }
         }
 

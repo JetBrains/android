@@ -50,7 +50,6 @@ import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
-import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.repository.targets.SystemImageManager
@@ -324,7 +323,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+  fun getNextGrpcCall(timeout: Duration, filter: Predicate<GrpcCallRecord> = DEFAULT_CALL_FILTER): GrpcCallRecord =
       grpcCallLog.get(timeout, filter)
 
   /**
@@ -989,6 +988,100 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
+     * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
+     */
+    @JvmStatic
+    fun createAvdWithSkinButtons(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 26): Path {
+      val avdId = "Nexus_One_API_$api"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val skinFolder = getSkinFolder("nexus_one")
+      val systemImage = "system-images/android-$api/google_apis/x86/"
+      val systemImageFolder = sdkFolder.resolve(systemImage)
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=800M
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=virtualscene
+          hw.camera.front=emulated
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name=Nexus One
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=Portrait
+          hw.keyboard=yes
+          hw.lcd.density = 240
+          hw.lcd.height = 800
+          hw.lcd.width = 480
+          hw.mainKeys=no
+          hw.ramSize=512
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=yes
+          image.sysdir.1=$systemImage
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          sdcard.size=512 MB
+          showDeviceFrame=yes
+          skin.dynamic=yes
+          skin.name=${skinFolder.fileName}
+          skin.path=${skinFolder}
+          tag.display=Google APIs
+          tag.id=google_apis
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch=x86
+          hw.cpu.model=qemu32
+          hw.cpu.ncore=4
+          hw.lcd.density = 240
+          hw.lcd.width = 480
+          hw.lcd.height = 800
+          hw.ramSize=1536
+          hw.screen=multi-touch
+          hw.dPad=false
+          hw.rotaryInput=false
+          hw.gsmModem=true
+          hw.gps=true
+          hw.battery=false
+          hw.accelerometer=false
+          hw.gyroscope=true
+          hw.audioInput=true
+          hw.audioOutput=true
+          hw.sdCard=false
+          android.sdk.root=$sdkFolder
+          """.trimIndent()
+
+      val sourceProperties = """
+          Pkg.Desc=System Image x86 with Google APIs.
+          Pkg.Revision=1
+          AndroidVersion.ApiLevel=$api
+          SystemImage.Abi=x86
+          SystemImage.TagId=google_apis
+          SystemImage.TagDisplay=Google APIs
+          SystemImage.GpuSupport=true
+          Addon.VendorId=google
+          Addon.VendorDisplay=Google Inc.
+          """.trimIndent()
+
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
+    }
+
+    /**
      * Creates a fake "Nexus 10" AVD. The skin path in config.ini is relative.
      */
     @JvmStatic
@@ -1067,7 +1160,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sdCard = false
           android.sdk.root = $sdkFolder
           """.trimIndent()
-
 
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google Play.
@@ -1192,7 +1284,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sdCard = false
           android.sdk.root = $sdkFolder
           """.trimIndent()
-
 
       val sourceProperties = """
           Pkg.Desc=System Image x86_64 with Google APIs.
@@ -1726,9 +1817,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
-    val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
-                                       "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                       "android.emulation.control.EmulatorController/streamNotification")
+    val DEFAULT_CALL_FILTER = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                         "android.emulation.control.EmulatorController/getDisplayConfigurations",
+                                         "android.emulation.control.EmulatorController/streamNotification")
+    val IGNORE_SCREENSHOT_CALL_FILTER =
+        DEFAULT_CALL_FILTER.or("android.emulation.control.EmulatorController/streamScreenshot")
   }
 }
 

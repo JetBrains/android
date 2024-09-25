@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message TypingLatencyReportConfig {
+  // The time interval in milliseconds after which, if the typing event has not
+  // been processed, a snapshot of the UI thread will be collected.
+  optional int64 typing_event_report_threshold_millis = 1;
+  // Maximum number of UI thread snapshots that will be merged in a single crash
+  // report.
+  optional int32 max_number_of_snapshots_per_report = 2;
+}

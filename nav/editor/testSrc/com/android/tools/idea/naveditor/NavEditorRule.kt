@@ -31,17 +31,17 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.io.ZipUtil
+import java.io.File
+import java.nio.file.Paths
 import org.jetbrains.android.AndroidTestBase
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
-import java.io.File
-import java.nio.file.Paths
 
 class NavEditorRule(
   private val projectRule: AndroidProjectRule? = null,
-  private val projectName: String = NAVIGATION_EDITOR_BASIC
+  private val projectName: String = NAVIGATION_EDITOR_BASIC,
 ) : TestRule {
 
   val testDataPath: String
@@ -55,25 +55,32 @@ class NavEditorRule(
 
   private val myProjectRule = projectRule ?: AndroidProjectRule.withSdk()
 
-  fun model(name: String, f: () -> ComponentDescriptor) = runInEdtAndGet { modelBuilder(name, f).build() }
+  fun model(name: String, f: () -> ComponentDescriptor) = runInEdtAndGet {
+    modelBuilder(name, f).build()
+  }
 
   fun modelBuilder(name: String, f: () -> ComponentDescriptor): ModelBuilder =
-    NavModelBuilderUtil.model(name, myProjectRule.module.androidFacet!!, myProjectRule.fixture as JavaCodeInsightTestFixture, f)
+    NavModelBuilderUtil.model(
+      name,
+      myProjectRule.module.androidFacet!!,
+      myProjectRule.fixture as JavaCodeInsightTestFixture,
+      f,
+    )
 
   override fun apply(statement: Statement, description: Description): Statement {
-    var localStatement: Statement = object : Statement() {
-      override fun evaluate() {
-        val errors = mutableListOf<Throwable>()
-        before()
-        try {
-          statement.evaluate()
+    var localStatement: Statement =
+      object : Statement() {
+        override fun evaluate() {
+          val errors = mutableListOf<Throwable>()
+          before()
+          try {
+            statement.evaluate()
+          } catch (e: Throwable) {
+            errors.add(e)
+          }
+          MultipleFailureException.assertEmpty(errors)
         }
-        catch (e: Throwable) {
-          errors.add(e)
-        }
-        MultipleFailureException.assertEmpty(errors)
       }
-    }
     if (projectRule == null) {
       localStatement = myProjectRule.apply(localStatement, description)
     }
@@ -86,7 +93,10 @@ class NavEditorRule(
 
     myProjectRule.fixture.copyDirectoryToProject("$projectName/app/src/main/java", "src")
     myProjectRule.fixture.copyDirectoryToProject("$projectName/app/src/main/res", "res")
-    myProjectRule.fixture.copyFileToProject("$projectName/app/src/main/AndroidManifest.xml", "AndroidManifest.xml")
+    myProjectRule.fixture.copyFileToProject(
+      "$projectName/app/src/main/AndroidManifest.xml",
+      "AndroidManifest.xml",
+    )
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
@@ -101,7 +111,12 @@ class NavEditorRule(
         virtualFileList.add(VfsUtil.findFileByIoFile(resFile, true))
       }
 
-      PsiTestUtil.addProjectLibrary(myProjectRule.module, libName, virtualFileList, emptyList<VirtualFile>())
+      PsiTestUtil.addProjectLibrary(
+        myProjectRule.module,
+        libName,
+        virtualFileList,
+        emptyList<VirtualFile>(),
+      )
       VfsUtil.markDirtyAndRefresh(false, true, true, unzippedClasses)
 
       // TODO: support multiple modules

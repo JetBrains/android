@@ -31,29 +31,48 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
 
-fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCodeInsightTestFixture) {
+fun addDynamicFeatureModule(
+  moduleName: String,
+  module: Module,
+  fixture: JavaCodeInsightTestFixture,
+) {
   val project = module.project
-  val dynamicFeatureModule = PsiTestUtil.addModule(project, JavaModuleType.getModuleType(), moduleName,
-                                                   fixture.tempDirFixture.findOrCreateDir(moduleName))
+  val dynamicFeatureModule =
+    PsiTestUtil.addModule(
+      project,
+      JavaModuleType.getModuleType(),
+      moduleName,
+      fixture.tempDirFixture.findOrCreateDir(moduleName),
+    )
   AndroidTestCase.addAndroidFacetAndSdk(dynamicFeatureModule, false)
 
-  val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
-    override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
-  }
+  val newModuleSystem =
+    object : AndroidModuleSystem by DefaultModuleSystem(module) {
+      override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
+    }
 
-  val newProjectSystem = object : AndroidProjectSystem by DefaultProjectSystem(project) {
-    override fun getModuleSystem(module: Module): AndroidModuleSystem = newModuleSystem
-  }
+  val newProjectSystem =
+    object : AndroidProjectSystem by DefaultProjectSystem(project) {
+      override fun getModuleSystem(module: Module): AndroidModuleSystem = newModuleSystem
+    }
 
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(newProjectSystem)
 
-  Dependencies.add(fixture, "navigation/navigation-runtime",
-                   "navigation/navigation-common",
-                   "navigation/navigation-fragment",
-                   "fragment/fragment")
+  Dependencies.add(
+    fixture,
+    "navigation/navigation-runtime",
+    "navigation/navigation-common",
+    "navigation/navigation-fragment",
+    "fragment/fragment",
+  )
 
   val lib = findFragmentLibrary(module)
-  ModuleRootModificationUtil.addDependency(dynamicFeatureModule, lib, DependencyScope.PROVIDED, true)
+  ModuleRootModificationUtil.addDependency(
+    dynamicFeatureModule,
+    lib,
+    DependencyScope.PROVIDED,
+    true,
+  )
 }
 
 private fun findFragmentLibrary(module: Module): Library {
@@ -62,8 +81,7 @@ private fun findFragmentLibrary(module: Module): Library {
     if (it.name == "fragment.aar") {
       library = it
       false
-    }
-    else {
+    } else {
       true
     }
   }

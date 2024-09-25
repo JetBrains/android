@@ -37,17 +37,16 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class NavEnumSupportProviderTest : NavTestCase() {
   fun testDestinations() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        navigation("navigation1") {
-          fragment("fragment2")
-          fragment("fragment3") {
-            action("action1")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          navigation("navigation1") {
+            fragment("fragment2")
+            fragment("fragment3") { action("action1") }
           }
         }
       }
-    }
 
     val action1 = model.treeReader.find("action1")!!
     val property = getProperty(AUTO_URI, ATTR_DESTINATION, NlPropertyType.DESTINATION, action1)
@@ -57,18 +56,20 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val expected = listOf("none", "fragment3", "navigation1", "fragment2", "root", "fragment1")
     testDisplays(expected, values)
     testValues(expected.map { if (it == "none") null else "@id/$it" }, values)
-    assertThat(support.createValue("@id/text123")).isEqualTo(EnumValue.item("@id/text123", "text123"))
+    assertThat(support.createValue("@id/text123"))
+      .isEqualTo(EnumValue.item("@id/text123", "text123"))
   }
 
   fun testStartDestinations() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        action("action1", "fragment1")
-        fragment("fragment1")
-        activity("activity1")
-        navigation("navigation1")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          action("action1", "fragment1")
+          fragment("fragment1")
+          activity("activity1")
+          navigation("navigation1")
+        }
       }
-    }
 
     val root = model.treeReader.find("root")!!
     val property = getProperty(AUTO_URI, ATTR_START_DESTINATION, NlPropertyType.DESTINATION, root)
@@ -88,47 +89,49 @@ class NavEnumSupportProviderTest : NavTestCase() {
     addFragment("fragment3")
     addFragment("dynamicFragment", dynamicFeatureModuleName)
 
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("fragment1") } }
 
     val fragment1 = model.treeReader.find("fragment1")!!
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     val support = getSupport(property)
     val values = support.values
 
-    val expectedDisplays = listOf("none",
-                                  "BlankFragment (mytest.navtest)",
-                                  "dynamicFragment (mytest.navtest)",
-                                  "fragment1 (mytest.navtest)",
-                                  "fragment2 (mytest.navtest)",
-                                  "fragment3 (mytest.navtest)")
+    val expectedDisplays =
+      listOf(
+        "none",
+        "BlankFragment (mytest.navtest)",
+        "dynamicFragment (mytest.navtest)",
+        "fragment1 (mytest.navtest)",
+        "fragment2 (mytest.navtest)",
+        "fragment3 (mytest.navtest)",
+      )
 
     testDisplays(expectedDisplays, values)
 
-    val expectedValues = listOf(null,
-                                "mytest.navtest.BlankFragment",
-                                "mytest.navtest.dynamicFragment",
-                                "mytest.navtest.fragment1",
-                                "mytest.navtest.fragment2",
-                                "mytest.navtest.fragment3")
+    val expectedValues =
+      listOf(
+        null,
+        "mytest.navtest.BlankFragment",
+        "mytest.navtest.dynamicFragment",
+        "mytest.navtest.fragment1",
+        "mytest.navtest.fragment2",
+        "mytest.navtest.fragment3",
+      )
 
     testValues(expectedValues, values)
 
     val expectedNames = listOf(null, null, dynamicFeatureModuleName, null, null, null)
-    assertThat(values.map { (it as? ClassEnumValue)?.moduleName }).containsExactlyElementsIn(expectedNames).inOrder()
+    assertThat(values.map { (it as? ClassEnumValue)?.moduleName })
+      .containsExactlyElementsIn(expectedNames)
+      .inOrder()
     assertThat(support.createValue("mytest.navtest.ImportantFragment"))
-      .isEqualTo(EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)"))
+      .isEqualTo(
+        EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)")
+      )
   }
 
   fun testSelectName() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation("root") { fragment("fragment1") } }
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -137,12 +140,13 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
+    val enumValue =
+      ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
     enumValue.select(property) {}
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    testSelectName(fragment1, "mytest.navtest.BlankFragment",  null)
-    testSelectName(fragment1, "mytest.navtest.DynamicFragment",  "dynamicfeaturemodule")
+    testSelectName(fragment1, "mytest.navtest.BlankFragment", null)
+    testSelectName(fragment1, "mytest.navtest.DynamicFragment", "dynamicfeaturemodule")
   }
 
   private fun testSelectName(component: NlComponent, value: String, moduleName: String?) {
@@ -165,12 +169,17 @@ class NavEnumSupportProviderTest : NavTestCase() {
     assertThat(values.map { it.value }).containsExactlyElementsIn(expectedValues).inOrder()
   }
 
-  private fun getProperty(namespace: String, name: String, type: NlPropertyType, component: NlComponent) : NlPropertyItem {
+  private fun getProperty(
+    namespace: String,
+    name: String,
+    type: NlPropertyType,
+    component: NlComponent,
+  ): NlPropertyItem {
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     return NlPropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
   }
 
-  private fun getValues(property: NlPropertyItem) : List<EnumValue> {
+  private fun getValues(property: NlPropertyItem): List<EnumValue> {
     val enumSupport = getSupport(property)
     return enumSupport.values
   }
@@ -184,13 +193,15 @@ class NavEnumSupportProviderTest : NavTestCase() {
 
   private fun addFragment(name: String, folder: String = "src/mytest/navtest") {
     val relativePath = "$folder/$name.java"
-    val fileText = """
+    val fileText =
+      """
       .package mytest.navtest;
       .import android.support.v4.app.Fragment;
       .
       .public class $name extends Fragment {
       .}
-      """.trimMargin(".")
+      """
+        .trimMargin(".")
 
     myFixture.addFileToProject(relativePath, fileText)
   }

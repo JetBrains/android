@@ -321,8 +321,13 @@ class LayoutInspectorTreePanelTest {
     TreeUtil.expandAll(tree)
     val bounds = tree.getRowBounds(1)
     val ui = FakeUi(focusComponent)
-    ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
+    // A double click on the expander should not cause a goto declaration:
+    ui.mouse.doubleClick(5, bounds.y + bounds.height / 2)
+    fileOpenCaptureRule.checkNoNavigation()
+
+    // A double click on item should cause a goto declaration:
+    ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
     runDispatching { GotoDeclarationAction.lastAction?.join() }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")

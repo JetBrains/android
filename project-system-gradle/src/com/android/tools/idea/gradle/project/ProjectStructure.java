@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -66,7 +66,7 @@ public class ProjectStructure {
       GradleAndroidModel androidModel = GradleAndroidModel.get(module);
       if (androidModel != null) {
         pluginVersionsInProject.add(androidModel);
-        if (isApp(module) && ModuleSystemUtil.isHolderModule(module)) {
+        if (isApp(module) && LinkedAndroidModuleGroupUtilsKt.isHolderModule(module)) {
           appHolderModules.add(module);
         }
       }

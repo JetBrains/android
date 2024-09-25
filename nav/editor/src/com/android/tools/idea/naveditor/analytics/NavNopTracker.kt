@@ -19,9 +19,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 
-/**
- * No-op tracker used when stats tracking is disabled
- */
+/** No-op tracker used when stats tracking is disabled */
 // Open for testing
 @VisibleForTesting
 open class NavNopTracker : NavUsageTracker {

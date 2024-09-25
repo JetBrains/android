@@ -116,8 +116,8 @@ class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
   override fun isNamespaceOrParentPackage(packageName: String): Boolean =
     delegate.isNamespaceOrParentPackage(packageName)
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
-    delegate.getAndroidFacetsWithPackageName(project, packageName)
+  override fun getAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> =
+    delegate.getAndroidFacetsWithPackageName(packageName)
 
   override fun getKnownApplicationIds(): Set<String> =
     // TODO: properties.USE_CUSTOM_MANIFEST_PACKAGE?

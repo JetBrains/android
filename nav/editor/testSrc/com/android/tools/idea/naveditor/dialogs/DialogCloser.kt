@@ -18,14 +18,13 @@ package com.android.tools.idea.naveditor.dialogs
 import com.intellij.openapi.ui.DialogWrapper
 
 /**
- * The various dialog tests in this package require that the dialog be closed at the end to prevent Project leaks. This simply runs the
- * given block in a try and then finally closes the dialog.
+ * The various dialog tests in this package require that the dialog be closed at the end to prevent
+ * Project leaks. This simply runs the given block in a try and then finally closes the dialog.
  */
-fun <T: DialogWrapper> T.runAndClose(block: (T) -> Unit) {
+fun <T : DialogWrapper> T.runAndClose(block: (T) -> Unit) {
   try {
     block(this)
-  }
-  finally {
+  } finally {
     close(0)
   }
 }

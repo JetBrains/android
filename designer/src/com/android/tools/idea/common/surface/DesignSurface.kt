@@ -54,17 +54,16 @@ import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceVi
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.base.Predicate
 import com.google.common.collect.Collections2
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -112,7 +111,6 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -161,6 +159,9 @@ abstract class DesignSurface<T : SceneManager>(
   ScaleListener,
   UiDataProvider {
 
+  /** [CoroutineScope] to be used by any operations constrained to the zoom changes. */
+  protected val zoomControllerScope = AndroidCoroutineScope(parentDisposable)
+
   init {
     Disposer.register(parentDisposable, this)
 
@@ -171,8 +172,7 @@ abstract class DesignSurface<T : SceneManager>(
     val selectionListener = SelectionListener { _, selection ->
       if (focusedSceneView != null) {
         notifySelectionChanged(selection)
-      }
-      else {
+      } else {
         notifySelectionChanged(emptyList<NlComponent>())
       }
     }
@@ -213,13 +213,13 @@ abstract class DesignSurface<T : SceneManager>(
 
   protected val sceneViewPanel =
     SceneViewPanel(
-      sceneViewProvider = ::sceneViews,
-      interactionLayersProvider = ::getLayers,
-      actionManagerProvider = ::actionManager,
-      disposable = this,
-      shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
-      layoutManager = positionableLayoutManagerProvider(this),
-    )
+        sceneViewProvider = ::sceneViews,
+        interactionLayersProvider = ::getLayers,
+        actionManagerProvider = ::actionManager,
+        disposable = this,
+        shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
+        layoutManager = positionableLayoutManagerProvider(this),
+      )
       .apply {
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
@@ -239,8 +239,7 @@ abstract class DesignSurface<T : SceneManager>(
           }
         )
       }
-    }
-    else null
+    } else null
 
   /** Current scrollable [Rectangle] if available or null. */
   val currentScrollRectangle: Rectangle?
@@ -280,14 +279,13 @@ abstract class DesignSurface<T : SceneManager>(
   private val onHoverListener: AWTEventListener =
     if (zoomControlsLayerPane != null && zoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
       createZoomControlAutoHiddenListener(
-        zoomControlPaneOwner = this,
-        zoomControlComponent = zoomControlsLayerPane,
-      )
+          zoomControlPaneOwner = this,
+          zoomControlComponent = zoomControlsLayerPane,
+        )
         .apply {
           Toolkit.getDefaultToolkit().addAWTEventListener(this@apply, AWTEvent.MOUSE_EVENT_MASK)
         }
-    }
-    else AWTEventListener {}
+    } else AWTEventListener {}
 
   /**
    * Enables the mouse click display. If enabled, the clicks of the user are displayed in the
@@ -510,11 +508,9 @@ abstract class DesignSurface<T : SceneManager>(
 
   private val listenersLock = ReentrantLock()
 
-  @GuardedBy("listenersLock")
-  private val listeners = mutableListOf<DesignSurfaceListener>()
+  @GuardedBy("listenersLock") private val listeners = mutableListOf<DesignSurfaceListener>()
 
-  @GuardedBy("listenersLock")
-  private val zoomListeners = mutableListOf<PanZoomListener>()
+  @GuardedBy("listenersLock") private val zoomListeners = mutableListOf<PanZoomListener>()
 
   fun addListener(listener: DesignSurfaceListener) {
     listenersLock.withLock {
@@ -652,8 +648,7 @@ abstract class DesignSurface<T : SceneManager>(
    * The offsets to the left and top edges when scrolling to a component by calling
    * [scrollToVisible].
    */
-  @get:SwingCoordinate
-  protected abstract val scrollToVisibleOffset: Dimension
+  @get:SwingCoordinate protected abstract val scrollToVisibleOffset: Dimension
 
   /**
    * Ensures that the given model is visible in the surface by scrolling to it if needed. If the
@@ -688,7 +683,8 @@ abstract class DesignSurface<T : SceneManager>(
    */
   protected fun scrollToCenter(sceneView: SceneView, @SwingCoordinate rectangle: Rectangle) {
     val availableSpace = viewport.extentSize
-    sceneViewPanel.findMeasuredSceneViewRectangle(sceneView, availableSpace)?.let { sceneViewRectangle ->
+    sceneViewPanel.findMeasuredSceneViewRectangle(sceneView, availableSpace)?.let {
+      sceneViewRectangle ->
       val topLeftCorner =
         Point(sceneViewRectangle.x + rectangle.x, sceneViewRectangle.y + rectangle.y)
       scrollToCenter(Rectangle(topLeftCorner, rectangle.size))
@@ -737,6 +733,32 @@ abstract class DesignSurface<T : SceneManager>(
       zoomController.zoomToFit()
     }
     return true
+  }
+
+  /**
+   * Apply zoom to fit if there is a stored zoom in the persistent settings, it does nothing
+   * otherwise.
+   *
+   * Because zoom to fit scale gets calculated whenever [DesignSurface] changes its space or number
+   * of items, this function clear-up the stored zoom and replace it with the newly calculated zoom
+   * to fit value.
+   */
+  fun zoomToFitIfStorageNotEmpty() {
+    if (isZoomStored()) {
+      zoomController.zoomToFit()
+    }
+  }
+
+  /**
+   * Checks if there is zoom level stored from persistent settings.
+   *
+   * @return true if persistent settings contains a stored zoom, false otherwise.
+   */
+  private fun isZoomStored(): Boolean {
+    val model = model ?: return false
+    return getInstance(model.project)
+      .surfaceState
+      .loadFileScale(project, model.virtualFile, zoomController) != null
   }
 
   /**
@@ -923,7 +945,7 @@ abstract class DesignSurface<T : SceneManager>(
       view.getScaledContentSize(scaledSize)
       if (
         (view.x <= x && x <= view.x + scaledSize.width && view.y <= y) &&
-        y <= (view.y + scaledSize.height)
+          y <= (view.y + scaledSize.height)
       ) {
         return view
       }
@@ -980,8 +1002,7 @@ abstract class DesignSurface<T : SceneManager>(
   private fun reactivateGuiInputHandler() {
     if (isEditable) {
       guiInputHandler.startListening()
-    }
-    else {
+    } else {
       guiInputHandler.stopListening()
     }
   }
@@ -1042,10 +1063,10 @@ abstract class DesignSurface<T : SceneManager>(
    * @see [addAndRenderModel]
    * @see [removeModel]
    */
-  open fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+  open fun setModel(newModel: NlModel?) {
     val oldModel = model
     if (newModel === oldModel) {
-      return CompletableFuture.completedFuture(null)
+      return
     }
 
     if (oldModel != null) {
@@ -1053,13 +1074,10 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
     if (newModel == null) {
-      return CompletableFuture.completedFuture(null)
+      return
     }
 
-    return CompletableFuture.supplyAsync(
-      { addModel(newModel) },
-      AppExecutorUtil.getAppExecutorService(),
-    )
+    CompletableFuture.runAsync({ addModel(newModel) }, AppExecutorUtil.getAppExecutorService())
       .thenCompose { requestRender() }
       .whenCompleteAsync(
         { _, _ ->
@@ -1074,7 +1092,6 @@ abstract class DesignSurface<T : SceneManager>(
         },
         EdtExecutorService.getInstance(),
       )
-      .thenRun {}
   }
 
   /**
@@ -1158,7 +1175,7 @@ abstract class DesignSurface<T : SceneManager>(
     if (sceneManagers.isEmpty()) {
       return CompletableFuture.completedFuture(null)
     }
-    return requestSequentialRender { it.requestLayoutAndRenderAsync() }
+    return requestSequentialRender { it.requestRenderAsync() }
   }
 
   /**
@@ -1169,7 +1186,7 @@ abstract class DesignSurface<T : SceneManager>(
    * @return A callback which is triggered when the scheduled rendering are completed.
    */
   protected fun requestSequentialRender(
-    renderRequest: (T) -> CompletableFuture<Void>,
+    renderRequest: (T) -> CompletableFuture<Void>
   ): CompletableFuture<Void> {
     val callback = CompletableFuture<Void>()
     synchronized(renderFutures) {
@@ -1180,8 +1197,7 @@ abstract class DesignSurface<T : SceneManager>(
         // fixed.
         renderFutures.add(callback)
         return callback
-      }
-      else {
+      } else {
         renderFutures.add(callback)
       }
     }
@@ -1244,6 +1260,21 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
+    sink[DESIGN_SURFACE] = this
+    sink[GuiInputHandler.CURSOR_RECEIVER] = this
+
+    sink[PANNABLE_KEY] = pannable
+    sink[ZOOMABLE_KEY] = zoomController
+    sink[CONFIGURATIONS] = configurations
+
+    val handler: DesignSurfaceActionHandler = actionHandlerProvider(this)
+    sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = handler
+    sink[PlatformDataKeys.CUT_PROVIDER] = handler
+    sink[PlatformDataKeys.COPY_PROVIDER] = handler
+    sink[PlatformDataKeys.PASTE_PROVIDER] = handler
+
+    sink[PlatformCoreDataKeys.FILE_EDITOR] = fileEditorDelegate
+
     fun getMenuPoint(): Point? {
       val view = focusedSceneView ?: return null
       val selection = selectionModel.primary ?: return null
@@ -1253,37 +1284,18 @@ abstract class DesignSurface<T : SceneManager>(
         Coordinates.getSwingYDip(view, sceneComponent.centerY),
       )
     }
-
-    sink[DESIGN_SURFACE] = this
-    sink[GuiInputHandler.CURSOR_RECEIVER] = this
-    sink[PANNABLE_KEY] = pannable
-    sink[ZOOMABLE_KEY] = zoomController
-    sink[CONFIGURATIONS] = configurations
-
-    val actionHandlerProvider = actionHandlerProvider(this)
-    sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = actionHandlerProvider
-    sink[PlatformDataKeys.CUT_PROVIDER] = actionHandlerProvider
-    sink[PlatformDataKeys.COPY_PROVIDER] = actionHandlerProvider
-    sink[PlatformDataKeys.PASTE_PROVIDER] = actionHandlerProvider
-
-    sink[CONFIGURATIONS] = configurations
-    sink[PlatformCoreDataKeys.FILE_EDITOR] = fileEditorDelegate
     sink[PlatformDataKeys.CONTEXT_MENU_POINT] = getMenuPoint()
-    sink[PlatformCoreDataKeys.MODULE] = model?.module
-
+    sink[PlatformDataKeys.MODULE] = model?.module
 
     sink.lazy(CommonDataKeys.PSI_ELEMENT) {
-      return@lazy focusedSceneView?.selectionModel?.primary?.tagDeprecated
+      focusedSceneView?.selectionModel?.primary?.tagDeprecated
     }
     sink.lazy(LangDataKeys.PSI_ELEMENT_ARRAY) {
-      val selection = focusedSceneView?.selectionModel?.selection
-      if (selection == null) return@lazy emptyArray<XmlTag>()
-
-      val list = Lists.newArrayListWithCapacity<XmlTag>(selection.size)
-      for (component in selection) {
-        list.add(component.tagDeprecated)
-      }
-      return@lazy list.toArray<XmlTag>(XmlTag.EMPTY)
+      focusedSceneView
+        ?.selectionModel
+        ?.selection
+        ?.map { it.tagDeprecated }
+        ?.toArray<XmlTag>(XmlTag.EMPTY)
     }
   }
 
@@ -1295,9 +1307,7 @@ abstract class DesignSurface<T : SceneManager>(
       for (future in renderFutures) {
         try {
           future.cancel(true)
-        }
-        catch (ignored: CancellationException) {
-        }
+        } catch (ignored: CancellationException) {}
       }
       renderFutures.clear()
     }
@@ -1320,8 +1330,7 @@ abstract class DesignSurface<T : SceneManager>(
         layout = MatchParentLayoutManager()
         add(scrollPane)
         setLayer(zoomControlsLayerPane, JLayeredPane.POPUP_LAYER)
-      }
-      else {
+      } else {
         layout = OverlayLayout(this@apply)
         add(sceneViewPanel)
         setLayer(zoomControlsLayerPane, JLayeredPane.POPUP_LAYER)

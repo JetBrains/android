@@ -18,7 +18,7 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.module.Module

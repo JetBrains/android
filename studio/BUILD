@@ -207,6 +207,7 @@ studio_plugin(
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/ml-api:intellij.android.ml-api",
             "//tools/adt/idea/streaming:intellij.android.streaming",
+            "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
@@ -325,6 +326,7 @@ studio_plugin(
             "//tools/base/draw9patch:studio.android.sdktools.draw9patch",
             "//tools/base/jdwp-packet:studio.android.sdktools.jdwppacket",
             "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer",
+            "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib",
             "//tools/base/lint:studio.android.sdktools.lint-api",
             "//tools/base/lint:studio.android.sdktools.lint-checks",
             "//tools/base/lint:studio.android.sdktools.lint-model",
@@ -493,7 +495,6 @@ studio_plugin(
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
-    libs = ["//tools/adt/idea/compose-ide-plugin:compose-compiler"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
     visibility = ["//visibility:public"],
     deps = [

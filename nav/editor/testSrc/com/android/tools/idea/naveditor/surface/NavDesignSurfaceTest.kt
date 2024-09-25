@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKotlinUtils.safeEq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.Coordinates
@@ -52,19 +53,8 @@ import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
-import org.intellij.lang.annotations.Language
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -75,10 +65,18 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JPanel
 import kotlin.test.assertNotEquals
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doCallRealMethod
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 
-/**
- * Tests for [NavDesignSurface]
- */
+/** Tests for [NavDesignSurface] */
 class NavDesignSurfaceTest : NavTestCase() {
 
   lateinit var testProjectSystem: TestProjectSystem
@@ -86,18 +84,20 @@ class NavDesignSurfaceTest : NavTestCase() {
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
 
-    val model = model("nav2.xml") {
-      navigation {
-        fragment("f1")
-        activity("a1")
+    val model =
+      model("nav2.xml") {
+        navigation {
+          fragment("f1")
+          activity("a1")
+        }
       }
-    }
     TestNavUsageTracker.create(model).use { tracker ->
-      PlatformTestUtil.waitForFuture(surface.setModel(model))
+      DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
-      val expectedEvent = NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
-        .withNavigationContents()
-        .getProtoForTest()
+      val expectedEvent =
+        NavLogEvent(NavEditorEvent.NavEditorEventType.OPEN_FILE, tracker)
+          .withNavigationContents()
+          .getProtoForTest()
       assertEquals(1, expectedEvent.contents.fragments)
       verify(tracker).logEvent(expectedEvent)
     }
@@ -107,13 +107,14 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1", layout = "activity_main", name = "mytest.navtest.MainActivity")
-        fragment("fragment2", layout = "fragment_blank", name = "mytest.navtest.BlankFragment")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1", layout = "activity_main", name = "mytest.navtest.MainActivity")
+          fragment("fragment2", layout = "fragment_blank", name = "mytest.navtest.BlankFragment")
+        }
       }
-    }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -122,19 +123,25 @@ class NavDesignSurfaceTest : NavTestCase() {
       editorManager.closeFile(editorManager.openFiles[0])
       surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
       assertEquals("fragment_blank.xml", editorManager.openFiles[0].name)
-      verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT).build())
+      verify(tracker, times(2))
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT)
+            .build()
+        )
     }
   }
 
   fun testNoLayoutComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1", name = "mytest.navtest.MainActivity")
-        fragment("fragment2", name = "mytest.navtest.BlankFragment")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1", name = "mytest.navtest.MainActivity")
+          fragment("fragment2", name = "mytest.navtest.BlankFragment")
+        }
       }
-    }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
@@ -142,57 +149,66 @@ class NavDesignSurfaceTest : NavTestCase() {
       editorManager.closeFile(editorManager.openFiles[0])
       surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
       assertEquals("BlankFragment.java", editorManager.openFiles[0].name)
-      verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS).build())
+      verify(tracker, times(2))
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS)
+            .build()
+        )
     }
   }
 
   fun testSubflowActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        navigation("subnav") {
-          fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          navigation("subnav") { fragment("fragment2") }
         }
       }
-    }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       assertEquals(model.treeReader.components[0], surface.currentNavigation)
       val subnav = model.treeReader.find("subnav")!!
       surface.notifyComponentActivate(subnav)
       assertEquals(subnav, surface.currentNavigation)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED)
+            .build()
+        )
     }
   }
 
   fun testIncludeActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml") {
-      navigation("root") {
-        include("navigation")
-      }
-    }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    val model = model("nav.xml") { navigation("root") { include("navigation") } }
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("nav")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("navigation.xml", editorManager.openFiles[0].name)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE)
+            .build()
+        )
     }
   }
 
   fun testRootActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        navigation("subnav") {
-          fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          navigation("subnav") { fragment("fragment2") }
         }
       }
-    }
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val modelListener = mock(ModelListener::class.java)
     val surfaceListener = mock(DesignSurfaceListener::class.java)
     model.addListener(modelListener)
@@ -206,12 +222,13 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testDoubleClickFragment() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1", layout = "activity_main")
-        fragment("fragment2", layout = "activity_main2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1", layout = "activity_main")
+          fragment("fragment2", layout = "activity_main2")
+        }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     val guiInputHandler = surface.guiInputHandler
@@ -229,15 +246,21 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testScrollToCenter() {
-    val model = NavModelBuilderUtil.model(name = "nav.xml", facet = myFacet, fixture = myFixture,
-                                          extentSize = Dimension(1000, 1000),
-                                          f = {
-                                            navigation("root") {
-                                              fragment("fragment1")
-                                              fragment("fragment2")
-                                              fragment("fragment3")
-                                            }
-                                          }).build()
+    val model =
+      NavModelBuilderUtil.model(
+          name = "nav.xml",
+          facet = myFacet,
+          fixture = myFixture,
+          extentSize = Dimension(1000, 1000),
+          f = {
+            navigation("root") {
+              fragment("fragment1")
+              fragment("fragment2")
+              fragment("fragment3")
+            }
+          },
+        )
+        .build()
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(view)
@@ -247,9 +270,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     doCallRealMethod().whenever(surface).scrollToCenter(any())
     val scrollPosition = Point()
     doAnswer { invocation ->
-      scrollPosition.setLocation(invocation.getArgument(0), invocation.getArgument<Int>(1))
-      null
-    }.whenever(surface).setScrollPosition(anyInt(), anyInt())
+        scrollPosition.setLocation(invocation.getArgument(0), invocation.getArgument<Int>(1))
+        null
+      }
+      .whenever(surface)
+      .setScrollPosition(anyInt(), anyInt())
 
     val f1 = model.treeReader.find("fragment1")!!
     val f2 = model.treeReader.find("fragment2")!!
@@ -261,7 +286,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     (surface.getSceneManager(model) as NavSceneManager).requestLayoutAsync(false)
     surface.zoomController.zoomToFit()
 
-    // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
+    // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new
+    // locations
     verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, 488, 514)
     verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, 463, 489)
     verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, 488, 514)
@@ -274,7 +300,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     scheduleRef: AtomicReference<Future<*>>,
     scrollPosition: Point,
     expectedX: Int,
-    expectedY: Int
+    expectedY: Int,
   ) {
     surface.scrollToCenter(components)
 
@@ -285,12 +311,13 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testDragSelect() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-        fragment("fragment2")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1")
+          fragment("fragment2")
+        }
       }
-    }
 
     val surface = model.surface as NavDesignSurface
     val scene = surface.scene!!
@@ -298,10 +325,15 @@ class NavDesignSurfaceTest : NavTestCase() {
     val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
-    val manager = GuiInputHandler(
-      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
+    model.surface.selectionModel.setSelection(
+      ImmutableList.of(model.treeReader.find("fragment1")!!)
     )
+    val manager =
+      GuiInputHandler(
+        surface,
+        TestInteractable(surface.pannable, JPanel(), JPanel()),
+        NavInteractionHandler(surface),
+      )
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -348,21 +380,18 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testRefreshRoot() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-        navigation("subnav") {
-          navigation("duplicate")
+    val model =
+      model("nav.xml") {
+        navigation {
+          fragment("fragment1")
+          navigation("subnav") { navigation("duplicate") }
+          navigation("othersubnav") { navigation("duplicate") }
+          fragment("oldfragment")
         }
-        navigation("othersubnav") {
-          navigation("duplicate")
-        }
-        fragment("oldfragment")
       }
-    }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -376,18 +405,15 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val orig = model.treeReader.find("othersubnav")!!.getChild(0)!!
     surface.currentNavigation = orig
-    val model2 = model("nav.xml") {
-      navigation("foo") {
-        fragment("fragment1")
-        navigation("subnav") {
-          navigation("duplicate")
+    val model2 =
+      model("nav.xml") {
+        navigation("foo") {
+          fragment("fragment1")
+          navigation("subnav") { navigation("duplicate") }
+          navigation("othersubnav") { navigation("duplicate") }
+          activity("newactivity")
         }
-        navigation("othersubnav") {
-          navigation("duplicate")
-        }
-        activity("newactivity")
       }
-    }
 
     updateHierarchy(model, model2)
     val newVersion = model.treeReader.find("othersubnav")!!.getChild(0)!!
@@ -398,16 +424,11 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   // TODO: Add a similar test that manipulates the NlModel directly instead of changing the XML
   fun testUpdateXml() {
-    val model = model("nav.xml") {
-      navigation {
-        navigation("navigation1") {
-          fragment("fragment1")
-        }
-      }
-    }
+    val model =
+      model("nav.xml") { navigation { navigation("navigation1") { fragment("fragment1") } } }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     var root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
@@ -420,28 +441,33 @@ class NavDesignSurfaceTest : NavTestCase() {
     WriteCommandAction.runWriteCommandAction(project) {
       val manager = PsiDocumentManager.getInstance(project)
       val document = manager.getDocument(model.file)!!
-      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                       "    <navigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
-                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
-                       "    </navigation>\n" +
-                       "</navigation>")
+      document.setText(
+        "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+          "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+          "    <navigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+          "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+          "    </navigation>\n" +
+          "</navigation>"
+      )
       manager.commitAllDocuments()
     }
 
     navigation1 = model.treeReader.find("navigation1")!!
     assertEquals(navigation1, surface.currentNavigation)
 
-    // Paste in xml that invalidates the current navigation and verify that the current navigation gets reset to the root
+    // Paste in xml that invalidates the current navigation and verify that the current navigation
+    // gets reset to the root
     WriteCommandAction.runWriteCommandAction(project) {
       val manager = PsiDocumentManager.getInstance(project)
       val document = manager.getDocument(model.file)!!
-      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                       "    <xnavigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
-                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
-                       "    </xnavigation>\n" +
-                       "</navigation>")
+      document.setText(
+        "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+          "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+          "    <xnavigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+          "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+          "    </xnavigation>\n" +
+          "</navigation>"
+      )
       manager.commitAllDocuments()
     }
 
@@ -458,7 +484,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
     val surface = NavDesignSurface(project, editor, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
     @Suppress("UNCHECKED_CAST")
     val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
     whenever(editor.workBench).thenReturn(workbench)
@@ -467,15 +493,21 @@ class NavDesignSurfaceTest : NavTestCase() {
     // This should indicate that the relevant logic is complete
     whenever(workbench.hideLoading()).then { lock.release() }
 
-    val navigator = addClass("import androidx.navigation.*;\n" +
-                             "@Navigator.Name(\"activity_sub\")\n" +
-                             "public class TestListeners extends ActivityNavigator {}\n")
+    val navigator =
+      addClass(
+        "import androidx.navigation.*;\n" +
+          "@Navigator.Name(\"activity_sub\")\n" +
+          "public class TestListeners extends ActivityNavigator {}\n"
+      )
     NavigationSchema.get(myModule).rebuildSchema().get()
     val initialSchema = NavigationSchema.get(myModule)
 
-    updateContent(navigator, "import androidx.navigation.*;\n" +
-                             "@Navigator.Name(\"activity_sub2\")\n" +
-                             "public class TestListeners extends ActivityNavigator {}\n")
+    updateContent(
+      navigator,
+      "import androidx.navigation.*;\n" +
+        "@Navigator.Name(\"activity_sub2\")\n" +
+        "public class TestListeners extends ActivityNavigator {}\n",
+    )
 
     surface.activate()
     // wait for the relevant logic to complete
@@ -494,11 +526,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testRightClick() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("fragment1")
-      }
-    }
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
     val surface = model.surface as NavDesignSurface
     val scene = surface.scene!!
@@ -506,11 +534,16 @@ class NavDesignSurfaceTest : NavTestCase() {
     val sceneView = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
-
-    val manager = GuiInputHandler(
-      surface, TestInteractable(surface.pannable, JPanel(), JPanel()), NavInteractionHandler(surface)
+    model.surface.selectionModel.setSelection(
+      ImmutableList.of(model.treeReader.find("fragment1")!!)
     )
+
+    val manager =
+      GuiInputHandler(
+        surface,
+        TestInteractable(surface.pannable, JPanel(), JPanel()),
+        NavInteractionHandler(surface),
+      )
     manager.startListening()
 
     try {
@@ -531,17 +564,20 @@ class NavDesignSurfaceTest : NavTestCase() {
       // confirm that right clicking did not end up dragging the fragment
       val finalRect = fragment1.inlineDrawRect(sceneView)
       assertEquals(finalRect, rect)
-    }
-    finally {
+    } finally {
       manager.stopListening()
     }
   }
 
   private fun addClass(@Language("JAVA") content: String): PsiClass {
-    val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> {
-      myFixture.addClass(content)
-    })
-    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    val result =
+      WriteCommandAction.runWriteCommandAction(
+        project,
+        Computable<PsiClass> { myFixture.addClass(content) },
+      )
+    WriteAction.runAndWait<RuntimeException> {
+      PsiDocumentManager.getInstance(myModule.project).commitAllDocuments()
+    }
     val dumbService = DumbService.getInstance(project)
     UnindexedFilesScanner(project).queue()
     dumbService.completeJustSubmittedTasks()
@@ -549,16 +585,16 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun updateContent(psiClass: PsiClass, @Language("JAVA") newContent: String) {
-    WriteCommandAction.runWriteCommandAction(
-      project) {
+    WriteCommandAction.runWriteCommandAction(project) {
       try {
         psiClass.containingFile.virtualFile.setBinaryContent(newContent.toByteArray())
-      }
-      catch (e: Exception) {
+      } catch (e: Exception) {
         fail(e.message)
       }
     }
-    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    WriteAction.runAndWait<RuntimeException> {
+      PsiDocumentManager.getInstance(myModule.project).commitAllDocuments()
+    }
     val dumbService = DumbService.getInstance(project)
     UnindexedFilesScanner(project).queue()
     dumbService.completeJustSubmittedTasks()
@@ -569,11 +605,13 @@ class NavDesignSurfaceTest : NavTestCase() {
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface = NavDesignSurface(project, mock(DesignerEditorPanel::class.java), project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model("nav.xml") { navigation() }))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
 
-    addClass("import androidx.navigation.*;\n" +
-             "@Navigator.Name(\"activity_sub\")\n" +
-             "public class TestListeners extends ActivityNavigator {}\n")
+    addClass(
+      "import androidx.navigation.*;\n" +
+        "@Navigator.Name(\"activity_sub\")\n" +
+        "public class TestListeners extends ActivityNavigator {}\n"
+    )
     val initialSchema = NavigationSchema.get(myModule)
 
     surface.activate()
@@ -589,7 +627,9 @@ class NavDesignSurfaceTest : NavTestCase() {
   private fun testDependencies(androidX: Boolean, groupId: String) {
     if (androidX != testProjectSystem.useAndroidX) {
       testProjectSystem.useAndroidX = androidX
-      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      project.messageBus
+        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       UIUtil.dispatchAllInvocationEvents()
     }
 
@@ -604,20 +644,19 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testSelection() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        navigation("nested1") {
-          fragment("fragment2")
-          navigation("nested2") {
-            fragment("fragment3")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment1")
+          navigation("nested1") {
+            fragment("fragment2")
+            navigation("nested2") { fragment("fragment3") }
           }
         }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val root = model.treeReader.find("root")!!
     val fragment1 = model.treeReader.find("fragment1")!!
@@ -640,12 +679,20 @@ class NavDesignSurfaceTest : NavTestCase() {
     testCurrentNavigation(surface, nested1, fragment2, nested2, fragment1)
   }
 
-  private fun testCurrentNavigation(surface: NavDesignSurface, expected: NlComponent, vararg select: NlComponent) {
+  private fun testCurrentNavigation(
+    surface: NavDesignSurface,
+    expected: NlComponent,
+    vararg select: NlComponent,
+  ) {
     surface.selectionModel.setSelection(select.toList())
     assertEquals(expected.id, surface.currentNavigation.id)
   }
 
-  private fun dragSelect(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragSelect(
+    manager: GuiInputHandler,
+    sceneView: SceneView,
+    @NavCoordinate rect: Rectangle,
+  ) {
     @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
     @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
@@ -655,7 +702,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestUtilities.dragMouse(manager, x1, y1, x2, y2, 0)
   }
 
-  private fun dragRelease(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragRelease(
+    manager: GuiInputHandler,
+    sceneView: SceneView,
+    @NavCoordinate rect: Rectangle,
+  ) {
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
     @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
 

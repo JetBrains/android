@@ -16,32 +16,105 @@
 package com.android.tools.idea.wear.preview.animation
 
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
-import org.jetbrains.android.dom.animator.PropertyValuesHolder
 
-class TestDynamicTypeAnimator : DynamicTypeAnimator {
-  override var typeEvaluator: DynamicTypeAnimator.TypeEvaluator<*> =
-    object : DynamicTypeAnimator.TypeEvaluator<Any> {
-      override fun evaluate(fraction: Float, startValue: Any, endValue: Any): Any {
-        return if (fraction == 0f) startValue else endValue
-      }
+class TestDynamicTypeAnimator(type: ProtoAnimation.TYPE = ProtoAnimation.TYPE.FLOAT) :
+  DynamicTypeAnimator {
+  class FloatEvaluator : DynamicTypeAnimator.TypeEvaluator<Float> {
+    override fun evaluate(fraction: Float, startValue: Float, endValue: Float): Float {
+      return if (fraction == 0f) startValue else endValue
     }
-  private var floatValues: FloatArray? = null
-  private var intValues: IntArray? = null
+  }
+
+  class IntEvaluator : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  class ArgbEvaluator : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  class Unknowm : DynamicTypeAnimator.TypeEvaluator<Int> {
+    override fun evaluate(fraction: Float, startValue: Int, endValue: Int): Int {
+      return if (fraction == 0f) startValue else endValue
+    }
+  }
+
+  var duration: Long = 100
+  var startDelay: Long = 10
+
+  override var typeEvaluator =
+    when (type) {
+      ProtoAnimation.TYPE.FLOAT -> FloatEvaluator()
+      ProtoAnimation.TYPE.INT -> IntEvaluator()
+      ProtoAnimation.TYPE.COLOR -> ArgbEvaluator()
+      else -> Unknowm()
+    }
+
+  private var _startValue: Any? = null
+
+  private var _endValue: Any? = null
+
   private var animationFrameTime: Long = 0
-  override var propertyValuesHolders: Array<PropertyValuesHolder?>? = null
-  override var lastAnimatedValue: Any? = null
-  override var duration: Long = 0
-  override var startDelay: Long = 0
+
+  private var _floatValues: FloatArray = FloatArray(2)
 
   override fun setFloatValues(vararg values: Float) {
-    floatValues = values
+    _floatValues = values
+    _startValue = values[0]
+    _endValue = values[1]
   }
+
+  fun getFloatValues(): FloatArray {
+    return _floatValues.copyOf() // Return a copy to prevent external modification
+  }
+
+  private var _intValues: IntArray = IntArray(2)
 
   override fun setIntValues(vararg values: Int) {
-    intValues = values
+    _intValues = values
+    _startValue = values[0]
+    _endValue = values[1]
   }
 
-  override fun setAnimationFrameTime(newTime: Long) {
+  fun getIntValues(): IntArray {
+    return _intValues.copyOf() // Return a copy to prevent external modification
+  }
+
+  override fun advanceToAnimationTime(newTime: Long) {
     animationFrameTime = newTime
+  }
+
+  fun getAnimationFrameTime(): Long {
+    return animationFrameTime
+  }
+
+  override fun getStartValue(): Any? {
+    return _startValue
+  }
+
+  override fun getEndValue(): Any? {
+    return _endValue
+  }
+
+  private var _lastCurrentValue: Any? = null
+
+  fun setCurrentValue(newValue: Any?) {
+    _lastCurrentValue = newValue
+  }
+
+  override fun getCurrentValue(): Any? {
+    return _lastCurrentValue ?: _startValue
+  }
+
+  override fun getDurationMs(): Long {
+    return duration
+  }
+
+  override fun getStartDelayMs(): Long {
+    return startDelay
   }
 }

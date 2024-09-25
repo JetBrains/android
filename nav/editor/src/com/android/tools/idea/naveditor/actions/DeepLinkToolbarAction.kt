@@ -31,7 +31,7 @@ import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
-class DeepLinkToolbarAction private constructor(): AnAction() {
+class DeepLinkToolbarAction private constructor() : AnAction() {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -39,17 +39,20 @@ class DeepLinkToolbarAction private constructor(): AnAction() {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface
     val selection = surface?.selectionModel?.selection
 
-    val enabled = if (selection != null && selection.size == 1) {
-      supportsSubtag(selection[0], DeeplinkElement::class.java)
-    }
-    else {
-      false
-    }
+    val enabled =
+      if (selection != null && selection.size == 1) {
+        supportsSubtag(selection[0], DeeplinkElement::class.java)
+      } else {
+        false
+      }
 
     e.presentation.isEnabled = enabled
   }
 
-  private fun supportsSubtag(component: NlComponent, subtag: Class<out AndroidDomElement>): Boolean {
+  private fun supportsSubtag(
+    component: NlComponent,
+    subtag: Class<out AndroidDomElement>,
+  ): Boolean {
     val model = component.model ?: return false
     val schema = NavigationSchema.get(model.module)
     return schema.getDestinationSubtags(component.tagName).containsKey(subtag)
@@ -61,8 +64,10 @@ class DeepLinkToolbarAction private constructor(): AnAction() {
       val dialog = AddDeeplinkDialog(null, it)
       if (dialog.showAndGet()) {
         dialog.save()
-        NavUsageTracker.getInstance(surface.model).createEvent(CREATE_DEEP_LINK)
-          .withSource(NavEditorEvent.Source.TOOLBAR).log()
+        NavUsageTracker.getInstance(surface.model)
+          .createEvent(CREATE_DEEP_LINK)
+          .withSource(NavEditorEvent.Source.TOOLBAR)
+          .log()
       }
     }
   }
@@ -70,6 +75,8 @@ class DeepLinkToolbarAction private constructor(): AnAction() {
   companion object {
     @JvmStatic
     val instance: DeepLinkToolbarAction
-      get() = ActionManager.getInstance().getAction(DesignerActions.ACTION_ADD_DEEP_LINK) as DeepLinkToolbarAction
+      get() =
+        ActionManager.getInstance().getAction(DesignerActions.ACTION_ADD_DEEP_LINK)
+          as DeepLinkToolbarAction
   }
 }

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.never
@@ -28,15 +28,16 @@ import org.mockito.Mockito.verify
 
 class ActivateSelectionActionTest : NavTestCase() {
   fun testActivateSelectionAction() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment")
-        navigation("nested")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("fragment")
+          navigation("nested")
+        }
       }
-    }
 
     val surface = NavDesignSurface(project, project)
-    PlatformTestUtil.waitForFuture(surface.setModel(model))
+    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val spy = spy(surface)
     val action = ActivateSelectionAction()

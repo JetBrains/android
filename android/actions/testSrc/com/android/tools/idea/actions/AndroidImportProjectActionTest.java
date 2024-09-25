@@ -40,6 +40,13 @@ public class AndroidImportProjectActionTest extends HeavyPlatformTestCase {
     myProjectRootDir = PlatformTestUtil.getOrCreateProjectBaseDir(myProject);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    // Workaround for b/356483696: XDebuggerManagerImpl preloading races with test tear-down, causing false-positive leaks.
+    com.intellij.xdebugger.XDebuggerManager.getInstance(myProject);
+    super.tearDown();
+  }
+
   public void testFindImportTargetWithDirectoryAndWithoutGradleOrEclipseFiles() {
     assertEquals(myProjectRootDir, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
   }

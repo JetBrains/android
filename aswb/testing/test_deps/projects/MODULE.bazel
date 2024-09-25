@@ -1,0 +1,56 @@
+module(
+    name = "test_projects",
+    version = "1.0",
+)
+
+bazel_dep(
+    name = "rules_jvm_external",
+    version = "6.1",
+)
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "com.google.guava:guava:31.1-jre",
+    ],
+    repositories = [
+        # "file://m2", # <-- Replaced by the test framework.
+    ],
+)
+use_repo(maven, "maven")
+
+bazel_dep(
+    name = "rules_pkg",
+    version = "0.10.1",
+)
+bazel_dep(
+    name = "rules_kotlin",
+    version = "1.9.5",
+)
+bazel_dep(
+    name = "rules_java",
+    version = "7.6.1",
+)
+bazel_dep(
+    name = "rules_cc",
+    version = "0.0.10-rc1",
+)
+bazel_dep(
+    name = "platforms",
+    version = "0.0.10",
+)
+bazel_dep(
+    name = "rules_proto",
+    version = "6.0.0",
+)
+bazel_dep(
+    name = "apple_support",
+    version = "1.15.1",
+    repo_name = "build_bazel_apple_support",
+)
+
+archive_override(
+    module_name = "rules_cc",
+    integrity = "sha256-11oEDDKVTaDTCNPy6iunNUkPSbOnqj5LQCWcpLgU+CU=",
+    urls = "https://github.com/bazelbuild/rules_cc/releases/download/0.0.10-rc1/rules_cc-0.0.10-rc1.tar.gz",
+)

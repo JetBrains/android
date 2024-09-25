@@ -22,10 +22,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
-import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
@@ -36,38 +36,22 @@ import java.nio.file.Files
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.junit.AfterClass
 import org.junit.Assert.assertEquals
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
-  // TODO: http://b/325127223
-  private companion object {
-    private val oldHome: String = System.getProperty("user.home")
-
-    @BeforeClass
-    @JvmStatic
-    fun overrideUserHome() {
-      System.setProperty("user.home", System.getProperty("java.io.tmpdir"))
-    }
-
-    @AfterClass
-    @JvmStatic
-    fun restoreUserHome() {
-      System.setProperty("user.home", oldHome)
-    }
-  }
-
   @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
+    val version = AndroidVersion(34, null, 7, true)
     val fileSystem = createInMemoryFileSystem()
     val home = System.getProperty("user.home")
 
@@ -75,7 +59,7 @@ class AdditionalSettingsPanelTest {
       VirtualDevice(
         device = readTestDevices().first { it.id == "pixel_8" },
         name = "Pixel 8 API 34",
-        androidVersion = AndroidVersion(34, null, 7, true),
+        androidVersion = version,
         skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_8")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
@@ -91,13 +75,15 @@ class AdditionalSettingsPanelTest {
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )
 
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), MockitoKt.mock())
+    val image = mock<ISystemImage>()
+    whenever(image.androidVersion).thenReturn(version)
+
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image)
 
     rule.setContent {
       CompositionLocalProvider(
         LocalFileSystem provides fileSystem,
-        @OptIn(ExperimentalJewelApi::class) LocalComponent provides MockitoKt.mock(),
+        @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
         LocalProject provides null,
       ) {
         Column {

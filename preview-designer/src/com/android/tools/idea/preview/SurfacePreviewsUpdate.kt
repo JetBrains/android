@@ -298,6 +298,8 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
       // Common configuration steps for new and reused models
       newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
+      newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
+      newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
       (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
@@ -305,7 +307,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           groups.getOrPut(methodPreviewElement.methodFqn) {
             OrganizationGroup(
               methodPreviewElement.methodFqn,
-              methodPreviewElement.displaySettings.name,
+              methodPreviewElement.displaySettings.baseName,
             )
           }
       }
@@ -314,7 +316,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       val sceneManager =
         configureLayoutlibSceneManager(previewElement.displaySettings, newSceneManager).also {
           if (forceReinflate) {
-            it.forceReinflate()
+            it.sceneRenderConfiguration.needsInflation.set(true)
           }
           if (invalidatePreviousRender) {
             it.invalidateCachedResponse()
@@ -361,8 +363,8 @@ private suspend fun renderAndTrack(
   refreshEventBuilder: PreviewRefreshEventBuilder?,
   onCompleteCallback: (Throwable?) -> Unit = {},
 ) {
-  val inflate = sceneManager.isForceReinflate
-  val quality = sceneManager.quality
+  val inflate = sceneManager.sceneRenderConfiguration.needsInflation.get()
+  val quality = sceneManager.sceneRenderConfiguration.quality
   val startMs = System.currentTimeMillis()
   sceneManager.render {
     onCompleteCallback(it)

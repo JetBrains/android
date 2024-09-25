@@ -28,16 +28,31 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import java.awt.Rectangle
 
 object NavSelfActionHitProvider : NavActionHitProviderBase() {
-  override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
+  override fun addShapeHit(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    picker: ScenePicker,
+  ) {
     val source = sourceRectangle(component, sceneTransform) ?: return
     val points = selfActionPoints(source, sceneTransform.inlineScale)
 
     for (i in 1 until points.size) {
-      picker.addLine(component, 0, points[i - 1].x.toInt(), points[i - 1].y.toInt(), points[i].x.toInt(), points[i].y.toInt(), 5)
+      picker.addLine(
+        component,
+        0,
+        points[i - 1].x.toInt(),
+        points[i - 1].y.toInt(),
+        points[i].x.toInt(),
+        points[i].y.toInt(),
+        5,
+      )
     }
   }
 
-  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+  override fun iconRectangle(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+  ): SwingRectangle? {
     val source = sourceRectangle(component, sceneTransform) ?: return null
     val scale = sceneTransform.inlineScale
     val points = selfActionPoints(source, scale)
@@ -45,7 +60,11 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
     return getSelfActionIconRect(points[0], scale)
   }
 
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
+  override fun intersects(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    @AndroidDpCoordinate rectangle: Rectangle,
+  ): Boolean {
     val source = sourceRectangle(component, sceneTransform) ?: return false
     val points = selfActionPoints(source, sceneTransform.inlineScale)
     val bounds = SwingRectangle(getSwingRectDip(sceneTransform, rectangle))
@@ -55,18 +74,20 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
       return true
     }
 
-    val corners = arrayOf(SwingPoint(bounds.x, bounds.y),
-                          SwingPoint(bounds.x + bounds.width, bounds.y),
-                          SwingPoint(bounds.x + bounds.width, bounds.y + bounds.height),
-                          SwingPoint(bounds.x, bounds.y + bounds.height),
-                          SwingPoint(bounds.x, bounds.y))
+    val corners =
+      arrayOf(
+        SwingPoint(bounds.x, bounds.y),
+        SwingPoint(bounds.x + bounds.width, bounds.y),
+        SwingPoint(bounds.x + bounds.width, bounds.y + bounds.height),
+        SwingPoint(bounds.x, bounds.y + bounds.height),
+        SwingPoint(bounds.x, bounds.y),
+      )
 
     // Check whether any of the line segments making up the self action cross
     // any line segments making up the selection rectangle
     for (i in 0 until points.size - 1) {
       for (j in 0 until corners.size - 1) {
-        if (intersects(points[i], points[i + 1], corners[j], corners[j + 1]))
-          return true
+        if (intersects(points[i], points[i + 1], corners[j], corners[j + 1])) return true
       }
     }
 
@@ -74,11 +95,11 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
   }
 
   /*
-    Calculates whether the segment from p1 to p2 intersects the segment from p3 to p4
-    Segment 1: p1 + (p2 - p1) * t1, 0 < t1 < 1
-    Segment 2: p3 + (p4 - p3) * t2, 0 < t2 < 1
-    Solve for t1 and and t2 and verify that each is between zero and one.
-   */
+   Calculates whether the segment from p1 to p2 intersects the segment from p3 to p4
+   Segment 1: p1 + (p2 - p1) * t1, 0 < t1 < 1
+   Segment 2: p3 + (p4 - p3) * t2, 0 < t2 < 1
+   Solve for t1 and and t2 and verify that each is between zero and one.
+  */
   private fun intersects(p1: SwingPoint, p2: SwingPoint, p3: SwingPoint, p4: SwingPoint): Boolean {
     val a = (p2.x - p1.x).value
     val b = (p3.x - p4.x).value
@@ -92,7 +113,6 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
       return false
     }
 
-    return (c * e - b * f) / det in 0.0..1.0 &&
-           (a * f - c * d) / det in 0.0..1.0
+    return (c * e - b * f) / det in 0.0..1.0 && (a * f - c * d) / det in 0.0..1.0
   }
 }

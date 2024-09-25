@@ -18,7 +18,7 @@
     <group id="sml.studiobot.gemini.editor.group"
            class="com.android.tools.idea.studiobot.action.GeminiEditorActionGroup"
            popup="true"
-           icon="com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons.GeminiLogo">
+           icon="com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons.Logo">
       <add-to-group anchor="before" group-id="EditorPopupMenu" relative-to-action="$SearchWeb"/>
       <add-to-group group-id="Floating.CodeToolbar" anchor="before" relative-to-action="Floating.CodeToolbar.Extract"/>
     </group>

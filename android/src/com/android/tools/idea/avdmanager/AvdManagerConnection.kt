@@ -470,8 +470,11 @@ constructor(
     }
 
     val result = showAccelerationErrorDialog(code, project)
+    if (result == Messages.CANCEL) {
+      throw DeviceActionCanceledException("Could not start AVD")
+    }
 
-    return tryFixingAccelerationError(result, project, info, requestType, code)
+    return tryFixingAccelerationError(project, info, requestType, code)
   }
 
   private suspend fun showAccelerationErrorDialog(
@@ -479,9 +482,7 @@ constructor(
     project: Project?,
   ): Int =
     withContext(uiDispatcher) {
-      val hypervisor = if (SystemInfo.isLinux) "KVM" else "Intel HAXM"
-      val message =
-        "$hypervisor is required to run this AVD.\n\n${code.problem}\n\n${code.solutionMessage}"
+      val message = "${code.problem}\n\n${code.solutionMessage}"
       Messages.showOkCancelDialog(
         project,
         message,
@@ -493,16 +494,11 @@ constructor(
     }
 
   private suspend fun tryFixingAccelerationError(
-    result: Int,
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     code: AccelerationErrorCode,
   ): IDevice {
-    if (result == Messages.CANCEL) {
-      throw DeviceActionCanceledException("Could not start AVD")
-    }
-
     val changeWasMade = CompletableDeferred<Boolean>()
 
     ApplicationManager.getApplication()

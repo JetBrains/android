@@ -37,14 +37,20 @@ class NavEditorProvider : DesignerEditorProvider(listOf(NavigationFileType)) {
 
   override fun handleCaretChanged(sceneView: SceneView, nodes: ImmutableList<NlComponent>) {
     sceneView.selectionModel.setSelection(
-      nodes.mapNotNull { node -> node.parentSequence().firstOrNull { it.isAction || it.isDestination } })
+      nodes.mapNotNull { node ->
+        node.parentSequence().firstOrNull { it.isAction || it.isDestination }
+      }
+    )
   }
 
   private object NavigationFileType : DesignerEditorFileType {
-    override fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>) =
-      surface.actionManager.getToolbarActions(selection)
+    override fun getSelectionContextToolbar(
+      surface: DesignSurface<*>,
+      selection: List<NlComponent>,
+    ) = surface.actionManager.getToolbarActions(selection)
 
-    override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && NavigationDomFileDescription.isNavFile(file)
+    override fun isResourceTypeOf(file: PsiFile) =
+      file is XmlFile && NavigationDomFileDescription.isNavFile(file)
 
     override fun getToolbarActionGroups(surface: DesignSurface<*>) = NavToolbarActionGroups(surface)
 

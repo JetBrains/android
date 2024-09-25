@@ -21,23 +21,23 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import java.util.Collections
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.Collections
 
 class NavActionsToolbarTest : NavTestCase() {
 
   fun testAddActions() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("f1") {
-          action("a1", "f2")
+    val model =
+      model("nav.xml") {
+        navigation("root") {
+          fragment("f1") { action("a1", "f2") }
+          fragment("f2")
+          activity("a1")
         }
-        fragment("f2")
-        activity("a1")
       }
-    }
 
     val actionManager = mock(NavActionManager::class.java)
     val surface = model.surface
@@ -49,7 +49,8 @@ class NavActionsToolbarTest : NavTestCase() {
     whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList()))
+      .thenReturn(DefaultActionGroup())
     ActionsToolbar(project, surface)
 
     val components = listOf(model.treeReader.find("root")!!)
@@ -67,6 +68,7 @@ class NavActionsToolbarTest : NavTestCase() {
     verify(actionManager).getToolbarActions(eq(f1AndRoot))
   }
 
-  fun <T> any(): T = Mockito.any() as T
-  fun <T> eq(v: T): T = Mockito.eq(v) as T
+  fun <T> any(): T = ArgumentMatchers.any() as T
+
+  fun <T> eq(v: T): T = ArgumentMatchers.eq(v) as T
 }

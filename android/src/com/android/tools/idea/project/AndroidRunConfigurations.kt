@@ -17,10 +17,9 @@ package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants.VALUE_TRUE
-import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getMainModule
@@ -41,9 +40,7 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
@@ -58,25 +55,20 @@ private val wearConfigurationProducers = listOf(
 )
 
 class AndroidRunConfigurations {
-  @Slow
-  @WorkerThread
-  fun createRunConfigurations(project: Project) {
+
+  suspend fun createRunConfigurations(project: Project) {
     createAndroidRunConfigurations(project)
     // create the Android run configurations first as we limit the number of wear configurations
     // based on the existing number of configurations.
     createWearConfigurations(project)
   }
 
-  @Slow
-  @WorkerThread
   private fun createAndroidRunConfigurations(project: Project) {
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
       createAndroidRunConfiguration(it)
     }
   }
 
-  @Slow
-  @WorkerThread
   private fun createAndroidRunConfiguration(facet: AndroidFacet) {
     // Android run configuration should always be created with the main module
     val module = facet.module.getMainModule()
@@ -95,9 +87,7 @@ class AndroidRunConfigurations {
     addAndroidRunConfiguration(facet)
   }
 
-  @Slow
-  @WorkerThread
-  private fun createWearConfigurations(project: Project) {
+  private suspend fun createWearConfigurations(project: Project) {
     if (!StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.get()) {
       return
     }
@@ -115,10 +105,8 @@ class AndroidRunConfigurations {
 
     val wearRunConfigurationsToAdd = mutableListOf<RunnerAndConfigurationSettings>()
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-      DumbService.getInstance(project).runReadActionInSmartMode {
-        if (!project.isDisposed) {
-          wearRunConfigurationsToAdd += createWearConfigurations(it.module)
-        }
+      if (!project.isDisposed) {
+        wearRunConfigurationsToAdd += createWearConfigurations(it.module)
       }
       if (existingRunConfigurationCount + wearRunConfigurationsToAdd.size > maxAllowedRunConfigurations) {
         // We don't want to breach the maximum number of allowed run configurations
@@ -174,9 +162,7 @@ class AndroidRunConfigurations {
     return runReadAction { DefaultActivityLocator.hasDefaultLauncherActivity(manifest) }
   }
 
-  @Slow
-  @WorkerThread
-  private fun createWearConfigurations(module: Module): List<RunnerAndConfigurationSettings> {
+  private suspend fun createWearConfigurations(module: Module): List<RunnerAndConfigurationSettings> {
     val wearComponents = extractWearComponents(module)
     val wearComponentsUsedInRunConfigurations = wearComponentsUsedInRunConfigurations(module.project)
     return wearComponents
@@ -199,18 +185,16 @@ class AndroidRunConfigurations {
     return "${module.name.removePrefix("$projectNameInExternalSystemStyle.")}.$presentableComponentName"
   }
 
-  @Slow
-  @WorkerThread
-  private fun extractWearComponents(module: Module): List<WearComponent> {
-    return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
+  private suspend fun extractWearComponents(module: Module): List<WearComponent> {
+    return module.project.runReadActionInSmartModeWithIndexes {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
           val primaryManifest = it.primaryManifest
             ?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-            ?: return@Computable emptyList()
+            ?: return@runReadActionInSmartModeWithIndexes emptyList()
 
           if (!isWatchFeatureRequired(primaryManifest)) {
-            return@Computable emptyList()
+            return@runReadActionInSmartModeWithIndexes emptyList()
           }
 
           val libraryManifests = it.libraryManifests.mapNotNull { file ->
@@ -226,7 +210,7 @@ class AndroidRunConfigurations {
         val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
         WearComponent(qualifiedName, configurationFactory)
       }
-    })
+    }
   }
 
   private fun wearConfigurationFactory(psiClass: PsiClass): ConfigurationFactory? {

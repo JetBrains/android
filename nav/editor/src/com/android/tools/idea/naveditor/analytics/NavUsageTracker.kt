@@ -35,7 +35,8 @@ interface NavUsageTracker {
   companion object {
     private val NOP_TRACKER = NavNopTracker()
     @VisibleForTesting
-    val MANAGER: DesignerUsageTrackerManager<NavUsageTracker, NlModel> = DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
+    val MANAGER: DesignerUsageTrackerManager<NavUsageTracker, NlModel> =
+      DesignerUsageTrackerManager(::NavUsageTrackerImpl, NOP_TRACKER)
 
     fun getInstance(model: NlModel?) = MANAGER.getInstance(model)
   }

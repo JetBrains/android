@@ -102,7 +102,7 @@ class GutterIconFactory {
                                     int maxWidth, int maxHeight) {
     try {
       String xml = getXmlContent(file);
-      Image image;
+      Image image = null;
       // If drawable is a vector drawable, use the renderer inside Studio.
       // Otherwise, delegate to layoutlib.
       if (xml.contains("<vector")) {
@@ -153,7 +153,6 @@ class GutterIconFactory {
           } else {
             LOG.debug(message, e);
           }
-          image = null;
         } finally {
           Disposer.dispose(renderer);
         }

@@ -20,23 +20,23 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
 import java.awt.Dimension
-import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 
-/**
- * View of a navigation editor [Scene], as part of a [NavDesignSurface].
- */
-class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView(surface, sceneManager, SQUARE_SHAPE_POLICY) {
-  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
+/** View of a navigation editor [Scene], as part of a [NavDesignSurface]. */
+class NavView(surface: NavDesignSurface, sceneManager: SceneManager) :
+  SceneView(surface, sceneManager, SQUARE_SHAPE_POLICY) {
+  override fun createLayers(): ImmutableList<Layer> =
+    ImmutableList.of(SceneLayer(surface, this, true))
 
   override val contentTranslationX: Int
-    get() =  -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
+    get() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
 
   override val contentTranslationY: Int
-    get() =  -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawY ?: 0)
+    get() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawY ?: 0)
 
   override fun getContentSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
@@ -47,8 +47,8 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
   }
 
   /**
-   * This color set does not provide the navigation colors.
-   * Navigation-specific colors are defined in NavColors.
+   * This color set does not provide the navigation colors. Navigation-specific colors are defined
+   * in NavColors.
    */
   override val colorSet = ColorSet()
 }

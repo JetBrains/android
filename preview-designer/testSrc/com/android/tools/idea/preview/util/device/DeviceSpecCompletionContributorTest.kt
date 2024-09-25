@@ -18,6 +18,10 @@ package com.android.tools.idea.preview.util.device
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.caret
+import com.android.tools.preview.config.REFERENCE_DESKTOP_SPEC
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
+import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionContributorEP
 import com.intellij.openapi.application.ApplicationManager
@@ -56,22 +60,24 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Test
   fun providedDeviceInId() {
-    fixture.completeDeviceSpec("id:pixel_8$caret")
+    fixture.completeDeviceSpec("id:pixel_9$caret")
 
-    assertEquals(3, fixture.lookupElementStrings!!.size)
-    assertEquals("pixel_8", fixture.lookupElementStrings!![0])
-    assertEquals("pixel_8_pro", fixture.lookupElementStrings!![1])
-    assertEquals("pixel_8a", fixture.lookupElementStrings!![2])
+    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals("pixel_9", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
+    assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
   }
 
   @Test
   fun providedDeviceInParent() {
-    fixture.completeDeviceSpec("spec:parent=pixel_8$caret")
+    fixture.completeDeviceSpec("spec:parent=pixel_9$caret")
 
-    assertEquals(3, fixture.lookupElementStrings!!.size)
-    assertEquals("pixel_8", fixture.lookupElementStrings!![0])
-    assertEquals("pixel_8_pro", fixture.lookupElementStrings!![1])
-    assertEquals("pixel_8a", fixture.lookupElementStrings!![2])
+    assertEquals(4, fixture.lookupElementStrings!!.size)
+    assertEquals("pixel_9", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_9_pro", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_9_pro_fold", fixture.lookupElementStrings!![2])
+    assertEquals("pixel_9_pro_xl", fixture.lookupElementStrings!![3])
   }
 
   @Test
@@ -129,23 +135,11 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals(6, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:", fixture.lookupElementStrings!![1]) // Driven by Live Template
-    assertEquals(
-      "spec:width=411dp,height=891dp", // Phone
-      fixture.lookupElementStrings!![2],
-    )
+    assertEquals(REFERENCE_PHONE_SPEC, fixture.lookupElementStrings!![2])
 
-    assertEquals(
-      "spec:width=673dp,height=841dp", // Foldable
-      fixture.lookupElementStrings!![3],
-    )
-    assertEquals(
-      "spec:width=1280dp,height=800dp,dpi=240", // Tablet
-      fixture.lookupElementStrings!![4],
-    )
-    assertEquals(
-      "spec:width=1920dp,height=1080dp,dpi=160", // Desktop
-      fixture.lookupElementStrings!![5],
-    )
+    assertEquals(REFERENCE_FOLDABLE_SPEC, fixture.lookupElementStrings!![3])
+    assertEquals(REFERENCE_TABLET_SPEC, fixture.lookupElementStrings!![4])
+    assertEquals(REFERENCE_DESKTOP_SPEC, fixture.lookupElementStrings!![5])
 
     // 'pix' should only match the default device (pixel_5)
     fixture.completeDeviceSpec("pix$caret")
@@ -158,45 +152,21 @@ internal class DeviceSpecCompletionContributorTest {
     ) // Note that 'id' also matches 'width' in the full 'spec:...' definition
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
-    assertEquals(
-      "spec:width=411dp,height=891dp", // Phone
-      fixture.lookupElementStrings!![1],
-    )
+    assertEquals(REFERENCE_PHONE_SPEC, fixture.lookupElementStrings!![1])
 
-    assertEquals(
-      "spec:width=673dp,height=841dp", // Foldable
-      fixture.lookupElementStrings!![2],
-    )
-    assertEquals(
-      "spec:width=1280dp,height=800dp,dpi=240", // Tablet
-      fixture.lookupElementStrings!![3],
-    )
-    assertEquals(
-      "spec:width=1920dp,height=1080dp,dpi=160", // Desktop
-      fixture.lookupElementStrings!![4],
-    )
+    assertEquals(REFERENCE_FOLDABLE_SPEC, fixture.lookupElementStrings!![2])
+    assertEquals(REFERENCE_TABLET_SPEC, fixture.lookupElementStrings!![3])
+    assertEquals(REFERENCE_DESKTOP_SPEC, fixture.lookupElementStrings!![4])
 
     // completion for 'spec' prefix
     fixture.completeDeviceSpec("spe$caret")
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("spec:", fixture.lookupElementStrings!![0]) // Driven by Live Template
-    assertEquals(
-      "spec:width=411dp,height=891dp", // Phone
-      fixture.lookupElementStrings!![1],
-    )
+    assertEquals(REFERENCE_PHONE_SPEC, fixture.lookupElementStrings!![1])
 
-    assertEquals(
-      "spec:width=673dp,height=841dp", // Foldable
-      fixture.lookupElementStrings!![2],
-    )
-    assertEquals(
-      "spec:width=1280dp,height=800dp,dpi=240", // Tablet
-      fixture.lookupElementStrings!![3],
-    )
-    assertEquals(
-      "spec:width=1920dp,height=1080dp,dpi=160", // Desktop
-      fixture.lookupElementStrings!![4],
-    )
+    assertEquals(REFERENCE_FOLDABLE_SPEC, fixture.lookupElementStrings!![2])
+    assertEquals(REFERENCE_TABLET_SPEC, fixture.lookupElementStrings!![3])
+    assertEquals(REFERENCE_DESKTOP_SPEC, fixture.lookupElementStrings!![4])
   }
 
   @Test

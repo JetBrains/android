@@ -76,8 +76,8 @@ class SetColorBlindModeActionTest {
     surface.setScreenViewProvider(myScreenViewProvider, false)
 
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
-    val dataContext = DataManager.getInstance().customizeDataContext(
-      DataContext.EMPTY_CONTEXT, surface)
+    val dataContext =
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
     val event = createTestEvent(dataContext)
 
     // Two things are tested here:

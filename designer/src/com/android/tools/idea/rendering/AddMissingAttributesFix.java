@@ -85,7 +85,7 @@ public class AddMissingAttributesFix extends StudioHtmlLinkManager.StudioCommand
 
 
   @Override
-  public void run() {
+  protected void run() {
     findViewsMissingSizes(myFile, myResourceResolver).stream()
                                                      .map(SmartPsiElementPointer::getElement)
                                                      .filter(Objects::nonNull)

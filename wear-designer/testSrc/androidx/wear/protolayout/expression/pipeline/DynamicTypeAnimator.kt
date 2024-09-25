@@ -15,9 +15,6 @@
  */
 package androidx.wear.protolayout.expression.pipeline
 
-import com.android.annotations.NonNull
-import org.jetbrains.android.dom.animator.PropertyValuesHolder
-
 /** Interface that should match the one from the AndroidX library */
 interface DynamicTypeAnimator {
 
@@ -31,38 +28,59 @@ interface DynamicTypeAnimator {
    * Sets the float values that this animation will animate between.
    *
    * @param values The float values to animate between.
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
+   *   suitable [TypeEvaluator] for float values (e.g., [FloatEvaluator]).
    */
-  fun setFloatValues(@NonNull vararg values: Float)
+  fun setFloatValues(vararg values: Float)
 
   /**
    * Sets the integer values that this animation will animate between.
    *
    * @param values The integer values to animate between.
+   * @throws IllegalArgumentException if this [DynamicTypeAnimator] is not configured with a
+   *   suitable [TypeEvaluator] for integer values (e.g., [IntEvaluator] or [ ]).
    */
-  fun setIntValues(@NonNull vararg values: Int)
+  fun setIntValues(vararg values: Int)
 
   /**
-   * Advances the animation to the specified time frame.
+   * Advances the animation to the specified time.
    *
-   * @param newTime The new time in milliseconds.
+   * @param newTime The new time in milliseconds from animation start.
    */
-  fun setAnimationFrameTime(newTime: Long)
+  fun advanceToAnimationTime(newTime: Long)
 
-  val propertyValuesHolders: Array<PropertyValuesHolder?>?
+  /**
+   * Gets the start value of the animation.
+   *
+   * @return The start value of the animation or null if value wasn't set.
+   */
+  fun getStartValue(): Any?
 
-  val lastAnimatedValue: Any?
+  /**
+   * Gets the end value of the animation.
+   *
+   * @return The end value of the animation.
+   */
+  fun getEndValue(): Any?
+
+  /**
+   * Gets the last value of the animated property at the current time in the animation.
+   *
+   * @return The last calculated animated value or null if value wasn't set.
+   */
+  fun getCurrentValue(): Any?
 
   /**
    * Gets the duration of the animation, in milliseconds.
    *
    * @return The duration of the animation.
    */
-  val duration: Long
+  fun getDurationMs(): Long
 
   /**
    * Gets the start delay of the animation, in milliseconds.
    *
    * @return The start delay of the animation.
    */
-  val startDelay: Long
+  fun getStartDelayMs(): Long
 }

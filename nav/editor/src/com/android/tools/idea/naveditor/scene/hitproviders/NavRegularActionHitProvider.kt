@@ -31,30 +31,54 @@ import java.awt.Rectangle
 private const val STEPS = 30
 
 object NavRegularActionHitProvider : NavActionHitProviderBase() {
-  override fun addShapeHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
+  override fun addShapeHit(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    picker: ScenePicker,
+  ) {
     val source = sourceRectangle(component, sceneTransform) ?: return
     val destination = destinationRectangle(component, sceneTransform) ?: return
 
     val (p1, p2, p3, p4) = getCurvePoints(source, destination, sceneTransform.inlineScale)
-    picker.addCurveTo(component, 0, p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt(), p3.x.toInt(), p3.y.toInt(),
-                      p4.x.toInt(), p4.y.toInt(), 10)
-
+    picker.addCurveTo(
+      component,
+      0,
+      p1.x.toInt(),
+      p1.y.toInt(),
+      p2.x.toInt(),
+      p2.y.toInt(),
+      p3.x.toInt(),
+      p3.y.toInt(),
+      p4.x.toInt(),
+      p4.y.toInt(),
+      10,
+    )
   }
 
-  override fun iconRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+  override fun iconRectangle(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+  ): SwingRectangle? {
     val source = sourceRectangle(component, sceneTransform) ?: return null
     val destination = destinationRectangle(component, sceneTransform) ?: return null
 
     return getRegularActionIconRect(source, destination, sceneTransform.inlineScale)
   }
 
-  private fun destinationRectangle(component: SceneComponent, sceneTransform: SceneContext): SwingRectangle? {
+  private fun destinationRectangle(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+  ): SwingRectangle? {
     val destinationId = component.nlComponent.effectiveDestinationId ?: return null
     val destination = component.scene.root?.getSceneComponent(destinationId) ?: return null
     return destination.inlineDrawRect(sceneTransform)
   }
 
-  override fun intersects(component: SceneComponent, sceneTransform: SceneContext, @AndroidDpCoordinate rectangle: Rectangle): Boolean {
+  override fun intersects(
+    component: SceneComponent,
+    sceneTransform: SceneContext,
+    @AndroidDpCoordinate rectangle: Rectangle,
+  ): Boolean {
     val source = sourceRectangle(component, sceneTransform) ?: return false
     val destination = destinationRectangle(component, sceneTransform) ?: return false
 

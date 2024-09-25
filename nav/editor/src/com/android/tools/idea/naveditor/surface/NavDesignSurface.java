@@ -53,7 +53,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
-import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.ZoomChange;
@@ -238,16 +237,14 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     }
   }
 
-  @NotNull
   @Override
-  public CompletableFuture<Void> forceUserRequestedRefresh() {
-    return forceRefresh();
+  public void forceUserRequestedRefresh() {
+    // Ignored for nav editor
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> forceRefresh() {
+  public void forceRefresh() {
     // Ignored for nav editor
-    return CompletableFuture.completedFuture(null);
   }
 
   @NotNull
@@ -314,13 +311,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> setModel(@Nullable NlModel model) {
-    CompletableFuture<Void> future = super.setModel(model);
+  public void setModel(@Nullable NlModel model) {
+    super.setModel(model);
     NavUsageTracker.Companion.getInstance(model)
       .createEvent(OPEN_FILE)
       .withNavigationContents()
       .log();
-    return future;
   }
 
   private void showFailToAddMessage(@NotNull CompletableFuture<?> result, @NotNull NlModel model) {

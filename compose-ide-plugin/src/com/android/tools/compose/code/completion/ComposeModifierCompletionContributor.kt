@@ -129,7 +129,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val isNewModifier =
       !isMethodCalledOnImportedModifier &&
-      originalPosition.parentOfType<KtDotQualifiedExpression>() == null
+        originalPosition.parentOfType<KtDotQualifiedExpression>() == null
     // Prioritise functions that return Modifier over other extension function.
     returnsModifier.asSequence()
       .map {
@@ -261,7 +261,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // https://youtrack.jetbrains.com/issue/KTIJ-23360 is resolved.
     val isOnInvisibleObject =
       suggestedKtFunction?.containingClassOrObject?.hasModifier(KtTokens.INTERNAL_KEYWORD) ==
-      true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
+        true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
 
     if (!alreadyAddedResult && !isOnInvisibleObject) {
       resultSet.passResult(completionResult)
@@ -350,8 +350,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         moduleDescriptor,
         resolutionFacade,
         stableSmartCastsOnly =
-        true,
-        /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
+          true, /* we don't include smart cast receiver types for "unstable" receiver value to mark members grayed */
         withImplicitReceiversWhenExplicitPresent = true,
       )
 
@@ -385,8 +384,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         // See https://b.corp.google.com/issues/330760992#comment3 for more information.
         KtPsiFactory(originalFile.project)
           .createExpressionCodeFragment(newExpressionAsString, originalFile)
-      }
-      else {
+      } else {
         requireNotNull(
           KtPsiFactory.contextual(originalFile)
             .createFile("temp.kt", "val x = $newExpressionAsString")
@@ -474,7 +472,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
       val callee =
         callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
-        ?: return false
+          ?: return false
 
       val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
@@ -569,8 +567,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, endOffset)
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-        @OptIn(KaIdeApi::class)
-        shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
+        @OptIn(KaIdeApi::class) shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
       }
       if (ktFile.importDirectives.all { it.importedFqName != FqName(COMPOSE_MODIFIER_FQN) }) {
         ktFile.addImport(FqName(COMPOSE_MODIFIER_FQN))

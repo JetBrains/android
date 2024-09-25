@@ -107,19 +107,18 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     )
   }
 
-  override suspend fun createFileEditor(project: Project,
-                                        file: VirtualFile,
-                                        document: Document?,
-                                        editorCoroutineScope: CoroutineScope): FileEditor {
-    val textEditor = PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
+  override suspend fun createFileEditor(
+    project: Project,
+    file: VirtualFile,
+    document: Document?,
+    editorCoroutineScope: CoroutineScope,
+  ): FileEditor {
+    val textEditor =
+      PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
     val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
 
     return withContext(Dispatchers.EDT) {
-      buildSourceCodeEditorWithMultiRepresentationPreview(
-        project,
-        psiFile,
-        textEditor,
-      )
+      buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
     }
   }
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.fixtures.ModelBuilder.TestActionManager
 import com.android.tools.idea.common.model.DefaultSelectionModel
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
@@ -38,10 +39,14 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -111,7 +116,6 @@ object DesignSurfaceTestUtil {
 
     Mockito.`when`(surface.model).thenReturn(model)
     Mockito.`when`(surface.models).thenReturn(ImmutableList.of(model))
-    Mockito.`when`(surface.setModel(any())).thenReturn(CompletableFuture.completedFuture(null))
     Mockito.`when`(surface.addModelWithoutRender(any()))
       .thenReturn(CompletableFuture.completedFuture<Nothing?>(null))
     Mockito.`when`(surface.addAndRenderModel(any()))
@@ -189,4 +193,25 @@ object DesignSurfaceTestUtil {
 
       override fun canZoomToActual(): Boolean = true
     }
+
+  fun setModelToSurfaceAndWait(surface: DesignSurface<*>, model: NlModel?) = runBlocking {
+    val expectedModelChange = (model != null && surface.model != model)
+    var modelChanged = false
+    val surfaceListener =
+      object : DesignSurfaceListener {
+        override fun modelChanged(surface: DesignSurface<*>, newModel: NlModel?) {
+          if (newModel === model) modelChanged = true
+        }
+      }
+    surface.addListener(surfaceListener)
+    surface.setModel(model)
+    var attempts = 10
+    while (!modelChanged && attempts > 0) {
+      UIUtil.dispatchAllInvocationEvents()
+      delay(1000)
+      attempts--
+    }
+    assertEquals(expectedModelChange, modelChanged)
+    surface.removeListener(surfaceListener)
+  }
 }

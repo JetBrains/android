@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.ZoomController
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -86,6 +87,7 @@ import java.util.function.Supplier
 import java.util.stream.Collectors
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 /**
  * The [DesignSurface] for the layout editor, which contains the full background, rulers, one or
@@ -101,9 +103,9 @@ internal constructor(
   private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
   defaultLayoutOption: SurfaceLayoutOption,
   actionManagerProvider:
-  (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
-    out DesignSurface<LayoutlibSceneManager>
-    >,
+    (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
+        out DesignSurface<LayoutlibSceneManager>
+      >,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
   @SurfaceScale minScale: Double,
@@ -152,7 +154,7 @@ internal constructor(
 
         for (manager in sceneManagers) {
           manager.updateSceneView()
-          manager.requestLayoutAndRenderAsync()
+          manager.requestRenderAsync()
         }
         revalidateScrollArea()
       }
@@ -188,18 +190,26 @@ internal constructor(
 
   override val zoomController: ZoomController =
     NlDesignSurfaceZoomController(
-      {
-        sceneViewLayoutManager.getFitIntoScale(
-          sceneViewPanel.positionableContent,
-          viewport.extentSize,
-        )
-      },
-      analyticsManager,
-      selectionModel,
-      this,
-      maxZoomToFitLevel,
-    )
+        {
+          sceneViewLayoutManager.getFitIntoScale(
+            sceneViewPanel.positionableContent,
+            viewport.extentSize,
+          )
+        },
+        analyticsManager,
+        selectionModel,
+        this,
+        maxZoomToFitLevel,
+      )
       .apply {
+        zoomControllerScope.launch {
+          beforeZoomChange.collect { zoomType ->
+            if (zoomType == ZoomType.FIT) {
+              sceneViewLayoutManager.clearCachedGroups()
+            }
+          }
+        }
+        // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
         this@apply.maxScale = maxScale
         this@apply.minScale = minScale
@@ -223,9 +233,9 @@ internal constructor(
     revalidateScrollArea()
   }
 
-  override fun forceRefresh(): CompletableFuture<Void> {
-    return requestSequentialRender {
-      it.forceReinflate()
+  override fun forceRefresh() {
+    requestSequentialRender {
+      it.sceneRenderConfiguration.needsInflation.set(true)
       it.requestRenderAsync()
     }
   }
@@ -271,7 +281,7 @@ internal constructor(
     screenViewProvider.colorBlindFilter = mode
     for (manager in sceneManagers) {
       manager.updateSceneView()
-      manager.requestLayoutAndRenderAsync()
+      manager.requestRenderAsync()
     }
     revalidateScrollArea()
   }
@@ -301,9 +311,9 @@ internal constructor(
   override val scrollToVisibleOffset =
     Dimension(2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y)
 
-  override fun setModel(newModel: NlModel?): CompletableFuture<Void> {
+  override fun setModel(newModel: NlModel?) {
     accessoryPanel.setModel(model)
-    return super.setModel(newModel)
+    super.setModel(newModel)
   }
 
   override fun dispose() {
@@ -368,14 +378,14 @@ internal constructor(
     return sceneManagers.any { it.renderResult != null }
   }
 
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> {
+  override fun forceUserRequestedRefresh() {
     // When the user initiates the refresh, give some feedback via progress indicator.
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
-    return requestSequentialRender {
-      it.forceReinflate()
-      it.requestUserInitiatedRenderAsync()
-    }
+    requestSequentialRender {
+        it.sceneRenderConfiguration.needsInflation.set(true)
+        it.requestUserInitiatedRenderAsync()
+      }
       .whenComplete { _, _ -> refreshProgressIndicator.processFinish() }
   }
 
@@ -401,8 +411,7 @@ internal constructor(
         component.fillRect(componentRect)
         if (componentsArea.width < 0) {
           componentsArea.bounds = componentRect
-        }
-        else {
+        } else {
           componentsArea.add(componentRect)
         }
       }
@@ -455,8 +464,7 @@ internal constructor(
         update.previousScale,
         update.newScale,
       )
-    }
-    else {
+    } else {
       // zoom with mouse position as anchor, and considering its relative position to the existing
       // scene views
       ReferencePointScroller(
@@ -519,8 +527,7 @@ internal constructor(
 
     if (zoomController.setScale(boundedNewScale)) {
       viewportScroller = DesignSurfaceViewportScroller { scrollToCenter(sceneView, rectangle) }
-    }
-    else {
+    } else {
       // If scale hasn't changed, then just scroll to center
       scrollToCenter(sceneView, rectangle)
     }
@@ -550,12 +557,10 @@ internal constructor(
           scrollPosition,
           Point(scrollPosition.x, max(0.0, focusPoint.y.toDouble()).toInt()),
         )
-    }
-    else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
+    } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =
         createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
-    }
-    else if (layoutManager !is GridSurfaceLayoutManager) {
+    } else if (layoutManager !is GridSurfaceLayoutManager) {
       if (focusPoint.x < 0 || focusPoint.y < 0) {
         focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
       }

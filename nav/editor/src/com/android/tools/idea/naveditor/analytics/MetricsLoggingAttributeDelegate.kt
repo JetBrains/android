@@ -22,34 +22,38 @@ import kotlin.reflect.KProperty1
 
 /**
  * A property delegate that wraps another delegate (specifically an attribute-based delegate, e.g.
- * [com.android.tools.idea.common.model.BooleanAttributeDelegate]) and provides an additional method that sets the value and logs a metrics
- * event.
+ * [com.android.tools.idea.common.model.BooleanAttributeDelegate]) and provides an additional method
+ * that sets the value and logs a metrics event.
  *
- * Since we need both the attribute name (required for creating the delegate) and the wrapped delegate itself, the visible constructors
- * take the attribute name and namespace and the delegate constructor rather than the delegate object itself, to avoid redundancy or
- * potential accidental inconsistency between the logged property and the actually modified one.
+ * Since we need both the attribute name (required for creating the delegate) and the wrapped
+ * delegate itself, the visible constructors take the attribute name and namespace and the delegate
+ * constructor rather than the delegate object itself, to avoid redundancy or potential accidental
+ * inconsistency between the logged property and the actually modified one.
  *
- * Since we're invoking get and set on the wrapped delegate directly in [set] we need a reference to the associated [KProperty1], in case
- * the wrapped property relies on that being set correctly.
+ * Since we're invoking get and set on the wrapped delegate directly in [set] we need a reference to
+ * the associated [KProperty1], in case the wrapped property relies on that being set correctly.
  */
 @Suppress("UNCHECKED_CAST")
-class MetricsLoggingAttributeDelegate<T> private constructor(
+class MetricsLoggingAttributeDelegate<T>
+private constructor(
   val attrName: String,
   val delegate: ReadWriteProperty<NlComponent, T>,
-  val property: KProperty1<NlComponent, T>) : ReadWriteProperty<NlComponent, T> by delegate
-{
-  constructor(delegateConstructor: (String) -> ReadWriteProperty<NlComponent, T>, attrName: String, p: KProperty1<NlComponent, T>)
-    : this(attrName, delegateConstructor(attrName), p)
+  val property: KProperty1<NlComponent, T>,
+) : ReadWriteProperty<NlComponent, T> by delegate {
+  constructor(
+    delegateConstructor: (String) -> ReadWriteProperty<NlComponent, T>,
+    attrName: String,
+    p: KProperty1<NlComponent, T>,
+  ) : this(attrName, delegateConstructor(attrName), p)
 
-  constructor(delegateConstructor: (String, String) -> ReadWriteProperty<NlComponent, T>,
-              namespace: String,
-              attrName: String,
-              p: KProperty1<NlComponent, T>)
-    : this(attrName, delegateConstructor(namespace, attrName), p)
+  constructor(
+    delegateConstructor: (String, String) -> ReadWriteProperty<NlComponent, T>,
+    namespace: String,
+    attrName: String,
+    p: KProperty1<NlComponent, T>,
+  ) : this(attrName, delegateConstructor(namespace, attrName), p)
 
-  fun set(component: NlComponent,
-          value: T,
-          site: NavEditorEvent.Source?) {
+  fun set(component: NlComponent, value: T, site: NavEditorEvent.Source?) {
     val initial = delegate.getValue(component, property)
     if (initial != value) {
       delegate.setValue(component, property, value)

@@ -20,6 +20,7 @@
   </change-notes>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 
@@ -68,6 +69,7 @@
   <!--<xi:include href="/META-INF/gradle-dsl.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-declarative.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-declarative-lang.xml"/>-->
   <!--<xi:include href="/META-INF/gradle-dsl-toml.xml"/>-->
   <xi:include href="/META-INF/android-device.xml"/>
   <xi:include href="/META-INF/android-avd.xml"/>

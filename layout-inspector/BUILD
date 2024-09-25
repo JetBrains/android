@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/analytics[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
     ],
 )
 
@@ -76,11 +77,11 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/android-34",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/skiaparser/test_support",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/layout-inspector/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//prebuilts/studio/skiaparser/test_support",
     ],
     test_jvm_flags = select({
         "//tools/base/bazel/platforms:macos-arm64": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/mac-arm"],
@@ -142,6 +143,7 @@ iml_module(
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
     ],
 )
 

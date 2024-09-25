@@ -21,11 +21,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.ISystemImage
+import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Path
 import java.util.EnumSet
+import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -37,22 +41,31 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   Column {
     Text("Configure device")
     Text("Add a device to device manager")
-    Tabs(configureDevicePanelState, images, onDownloadButtonClick, onImportButtonClick)
+
+    Tabs(
+      configureDevicePanelState,
+      images,
+      onDownloadButtonClick,
+      onSystemImageTableRowClick,
+      onImportButtonClick,
+    )
   }
 }
 
 @Composable
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
-  images: ImmutableList<SystemImage>,
+  images: ImmutableList<ISystemImage>,
   onDownloadButtonClick: (String) -> Unit,
+  onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
@@ -64,10 +77,21 @@ private fun Tabs(
   )
 
   val servicesSet =
-    images.mapTo(EnumSet.noneOf(Services::class.java), SystemImage::services).toImmutableSet()
+    images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
+
+  val androidVersions = images.map { it.androidVersion }.relevantVersions()
 
   // TODO: http://b/335494340
-  var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.first())) }
+  var devicePanelState by remember {
+    mutableStateOf(
+      DevicePanelState(
+        AndroidVersionSelection(
+          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+        ),
+        servicesSet.firstOrNull(),
+      )
+    )
+  }
 
   val additionalSettingsPanelState = remember {
     AdditionalSettingsPanelState(configureDevicePanelState.device)
@@ -78,10 +102,12 @@ private fun Tabs(
       DevicePanel(
         configureDevicePanelState,
         devicePanelState,
+        androidVersions,
         servicesSet,
         images,
         onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
+        onSystemImageTableRowClick,
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
@@ -92,8 +118,25 @@ private fun Tabs(
   }
 }
 
+/**
+ * Reduce this set of versions to the stable versions, plus any preview versions that are newer than
+ * the latest stable, sorted newest first. Strip extension levels.
+ */
+private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
+  val (previewVersions, stableVersions) =
+    mapTo(TreeSet()) { AndroidVersion(it.apiLevel, it.codename) }.partition { it.isPreview }
+  val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
+  return (previewVersions.filter { it > latestStableVersion } + stableVersions)
+    .sortedDescending()
+    .toImmutableList()
+}
+
 internal class ConfigureDevicePanelState
-internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, image: SystemImage) {
+internal constructor(
+  device: VirtualDevice,
+  skins: ImmutableCollection<Skin>,
+  image: ISystemImage?,
+) {
   internal var device by mutableStateOf(device)
 
   internal var skins by mutableStateOf(skins)
@@ -105,15 +148,19 @@ internal constructor(device: VirtualDevice, skins: ImmutableCollection<Skin>, im
     device = device.copy(name = deviceName)
   }
 
-  internal fun importSkin(path: Path) {
-    var skin = skins.find { it.path() == path }
+  internal fun setSkin(path: Path) {
+    device = device.copy(skin = getSkin(path))
+  }
+
+  private fun getSkin(path: Path): Skin {
+    var skin = skins.firstOrNull { it.path() == path }
 
     if (skin == null) {
       skin = DefaultSkin(path)
       skins = (skins + skin).sorted().toImmutableList()
     }
 
-    device = device.copy(skin = skin)
+    return skin
   }
 }
 

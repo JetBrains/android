@@ -14,5 +14,5 @@ public final class AndroidAIPluginIcons {
   private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
     return IconManager.getInstance().loadRasterizedIcon(path, AndroidAIPluginIcons.class.getClassLoader(), cacheKey, flags);
   }
-  /** 16x16 */ public static final @NotNull Icon GeminiLogo = load("icons/gemini-logo.svg", 351137742, 0);
+  /** 16x16 */ public static final @NotNull Icon Logo = load("icons/gemini-logo.svg", 351137742, 0);
 }

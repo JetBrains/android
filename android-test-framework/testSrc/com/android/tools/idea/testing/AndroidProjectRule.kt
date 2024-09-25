@@ -36,7 +36,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileTypes.impl.FileTypeBean
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -57,8 +59,6 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.indexing.FileBasedIndex
-import com.intellij.util.indexing.FileBasedIndexImpl
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -536,8 +536,27 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
 
+    // TODO(b/353167525): remove this after https://youtrack.jetbrains.com/issue/KT-69891 is fixed.
+    suppressKlibManifestFileType()
+
     // Wait for indexing to finish, especially if an SDK was added to the classpath.
     IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
+  }
+
+  @Suppress("UnstableApiUsage", "Deprecation")
+  private fun suppressKlibManifestFileType() {
+    val fileTypeEpName = ExtensionPointName<FileTypeBean>("com.intellij.fileType")
+    val klibManifestFileTypeExt = fileTypeEpName.extensionList.firstOrNull { ext ->
+      ext.implementationClass == "org.jetbrains.kotlin.idea.base.projectStructure.KlibManifestFileType"
+    }
+    if (klibManifestFileTypeExt != null) {
+      // Suppress KlibManifestFileType for the entire lifetime of the application.
+      thisLogger().warn("Suppressing class KlibManifestFileType to work around https://youtrack.jetbrains.com/issue/KT-69891")
+      val fileTypeEp = ApplicationManager.getApplication().extensionArea.getExtensionPoint(fileTypeEpName)
+      WriteAction.runAndWait<Throwable> {
+        fileTypeEp.unregisterExtension(klibManifestFileTypeExt)
+      }
+    }
   }
 
   private fun <T : Facet<C>, C : FacetConfiguration> addFacet(type: FacetType<T, C>, facetName: String): T {

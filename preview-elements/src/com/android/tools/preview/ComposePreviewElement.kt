@@ -175,6 +175,8 @@ class SingleComposePreviewElementInstance<T>(
     fun <T> forTesting(
       composableMethodFqn: String,
       displayName: String = "",
+      baseName: String = "",
+      parameterName: String? = null,
       groupName: String? = null,
       showDecorations: Boolean = false,
       showBackground: Boolean = false,
@@ -186,6 +188,8 @@ class SingleComposePreviewElementInstance<T>(
         composableMethodFqn,
         PreviewDisplaySettings(
           displayName,
+          baseName,
+          parameterName,
           groupName,
           showDecorations,
           showBackground,
@@ -233,6 +237,8 @@ class ParametrizedComposePreviewElementInstance<T>(
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
       getDisplayName(parameterName),
+      basePreviewElement.displaySettings.name,
+      getParameterName(parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
@@ -252,13 +258,17 @@ class ParametrizedComposePreviewElementInstance<T>(
       // This case corresponds to the parameter already having been added to the display name,
       // so it should not be added again.
       basePreviewElement.displaySettings.name
-    } else {
-      "${basePreviewElement.displaySettings.name} ($parameterName ${
-        // Make all index numbers to use the same number of digits,
-        // so that they can be properly sorted later.
-        index.toString().padStart(maxIndex.toString().length, '0')
-      })"
     }
+    else {
+      // TODO(b/241699422) Allow customization of preview name.
+      "${basePreviewElement.displaySettings.name} (${getParameterName(parameterName)})"
+    }
+  }
+
+  private fun getParameterName(parameterName: String?): String {
+    // Make all index numbers to use the same number of digits,
+    // so that they can be properly sorted later.
+    return "$parameterName ${index.toString().padStart(maxIndex.toString().length, '0')}"
   }
 }
 
@@ -361,7 +371,8 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     return sequenceOf(
       SingleComposePreviewElementInstance(
         fakeElementFqn,
-        PreviewDisplaySettings(basePreviewElement.displaySettings.name, null, false, false, null),
+        PreviewDisplaySettings(basePreviewElement.displaySettings.name, basePreviewElement.displaySettings.name,
+                               null, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),

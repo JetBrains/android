@@ -24,7 +24,13 @@ import icons.StudioIcons.NavEditor.Properties.ARGUMENT
 import javax.swing.JList
 
 class ArgumentCellRenderer : NavListCellRenderer(ARGUMENT) {
-  override fun customizeCellRenderer(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    list: JList<out NlComponent>,
+    value: NlComponent?,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean,
+  ) {
     super.customizeCellRenderer(list, value, index, selected, hasFocus)
 
     val name = value?.argumentName ?: "<missing name>"

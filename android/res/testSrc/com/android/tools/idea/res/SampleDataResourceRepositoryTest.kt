@@ -46,6 +46,7 @@ import java.io.File
 import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -436,6 +437,11 @@ class SampleDataResourceRepositoryTest {
           .trimIndent(),
       )
     val layout = addLayoutFile()
+
+    // The resource resolver uses app resources internally, so wait for it to be ready.
+    val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
+    waitForUpdates(appResources)
+
     val resolver =
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
@@ -554,6 +560,11 @@ class SampleDataResourceRepositoryTest {
     assertThat(repo.getSampleDataResources("transitive.csv/name")).hasSize(1)
 
     val layout = addLayoutFile()
+
+    // The resource resolver uses app resources internally, so wait for it to be ready.
+    val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
+    waitForUpdates(appResources)
+
     val configuration =
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)
@@ -605,6 +616,11 @@ class SampleDataResourceRepositoryTest {
     // a last one for users/phone
     assertThat(repo.getSampleDataResources()).hasSize(3)
     assertThat(repo.getSampleDataResources("users.csv/name")).hasSize(1)
+
+    // The resource resolver uses app resources internally, so wait for it to be ready.
+    val appResources = requireNotNull(StudioResourceRepositoryManager.getInstance(projectRule.module)).appResources
+    waitForUpdates(appResources)
+
     val configuration =
       ConfigurationManager.getOrCreateInstance(projectRule.module)
         .getConfiguration(layout.virtualFile)

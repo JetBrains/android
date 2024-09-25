@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import org.mockito.ArgumentMatcher
 import java.awt.BasicStroke
 import java.awt.Stroke
+import org.mockito.ArgumentMatcher
 
 class StrokeArgumentMatcher(private val expected: Stroke) : ArgumentMatcher<Stroke> {
   override fun matches(argument: Stroke?): Boolean {
@@ -27,5 +27,6 @@ class StrokeArgumentMatcher(private val expected: Stroke) : ArgumentMatcher<Stro
     }
   }
 
-  private fun matchBasicStroke(stroke: BasicStroke) = (expected as? BasicStroke)?.lineWidth == stroke.lineWidth
+  private fun matchBasicStroke(stroke: BasicStroke) =
+    (expected as? BasicStroke)?.lineWidth == stroke.lineWidth
 }

@@ -1,9 +1,9 @@
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin:build-visibility.bzl",
+    "//tools/adt/idea/aswb:build-visibility.bzl",
     "PLUGIN_PACKAGES_VISIBILITY",
 )
 load(
-    "//tools/vendor/google3/aswb/third_party/intellij/plugin/build_defs:build_defs.bzl",
+    "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "intellij_plugin_library",
     "optional_plugin_xml",
 )
@@ -15,15 +15,15 @@ java_library(
     srcs = glob(["src/**/*.java"]),
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/util:transactions",
+        "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:artifact",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:devkit",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/java",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:artifact",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/experiments",
-        "//tools/vendor/google3/aswb/third_party/intellij/plugin/common/util:transactions",
     ],
 )
 

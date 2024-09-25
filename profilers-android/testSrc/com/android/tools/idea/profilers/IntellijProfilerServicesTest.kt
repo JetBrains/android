@@ -70,6 +70,7 @@ class IntellijProfilerServicesTest {
     fun tearDown() {
       StudioFlags.PROFILER_TRACEBOX.clearOverride()
       StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
+      StudioFlags.PROFILER_LEAKCANARY.clearOverride()
     }
   }
 
@@ -83,6 +84,18 @@ class IntellijProfilerServicesTest {
   fun featureFlagConfigTraceBoxDisabled() {
     StudioFlags.PROFILER_TRACEBOX.override(false)
     assertFalse(IntellijProfilerServices.FeatureConfigProd().isTraceboxEnabled)
+  }
+
+  @Test
+  fun featureFlagConfigLeakCanaryEnabled() {
+    StudioFlags.PROFILER_LEAKCANARY.override(true)
+    assertTrue(IntellijProfilerServices.FeatureConfigProd().isLeakCanaryEnabled)
+  }
+
+  @Test
+  fun featureFlagConfigLeakCanaryDisabled() {
+    StudioFlags.PROFILER_LEAKCANARY.override(false)
+    assertFalse(IntellijProfilerServices.FeatureConfigProd().isLeakCanaryEnabled)
   }
 
   @Test

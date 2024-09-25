@@ -33,6 +33,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,8 +63,6 @@ internal class WearHealthServicesStateManagerImpl(
   private val stateStalenessThreshold: Duration = STATE_STALENESS_THRESHOLD,
 ) : WearHealthServicesStateManager, Disposable {
 
-  override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
-
   override val capabilitiesList = deviceManager.getCapabilities()
 
   private val capabilityToState =
@@ -88,6 +87,10 @@ internal class WearHealthServicesStateManagerImpl(
       value?.let {
         eventLogger.logBindEmulator()
         deviceManager.setSerialNumber(it)
+        // First time this runs, make status idle
+        if (_status.value == WhsStateManagerStatus.Initializing) {
+          _status.value = WhsStateManagerStatus.Idle
+        }
         field = value
       }
     }
@@ -100,25 +103,6 @@ internal class WearHealthServicesStateManagerImpl(
       while (true) {
         updateState()
         delay(pollingIntervalMillis.milliseconds)
-      }
-    }
-    workerScope.launch {
-      preset.collect {
-        when (it) {
-          Preset.STANDARD ->
-            for (capability in capabilityToState.keys) {
-              setCapabilityEnabled(capability, capability.isStandardCapability)
-            }
-          Preset.ALL ->
-            for (capability in capabilityToState.keys) {
-              setCapabilityEnabled(capability, true)
-            }
-          Preset.CUSTOM -> {}
-        }
-        // First time this runs, make status idle
-        if (_status.value == WhsStateManagerStatus.Initializing) {
-          _status.value = WhsStateManagerStatus.Idle
-        }
       }
     }
     workerScope.launch {
@@ -193,6 +177,21 @@ internal class WearHealthServicesStateManagerImpl(
     runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
       deviceManager.triggerEvent(eventTrigger)
     }
+
+  override fun loadPreset(preset: Preset): Job {
+    return workerScope.launch {
+      when (preset) {
+        Preset.STANDARD ->
+          for (capability in capabilityToState.keys) {
+            setCapabilityEnabled(capability, capability.isStandardCapability)
+          }
+        Preset.ALL ->
+          for (capability in capabilityToState.keys) {
+            setCapabilityEnabled(capability, true)
+          }
+      }
+    }
+  }
 
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
@@ -300,8 +299,8 @@ internal class WearHealthServicesStateManagerImpl(
     runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
       val reset =
         if (!ongoingExercise.value) {
-          preset.value = Preset.ALL
-          deviceManager.clearContentProvider()
+          val loadPresetJob = loadPreset(Preset.ALL)
+          deviceManager.clearContentProvider().also { loadPresetJob.join() }
         } else {
           resetOverrides()
         }

@@ -31,31 +31,40 @@ import org.mockito.Mockito.verify
 
 class AddGlobalActionTest {
 
-  @get:Rule
-  val navRule = NavEditorRule()
+  @get:Rule val navRule = NavEditorRule()
 
   @Test
   fun testRun() {
-    val model = navRule.model("nav.xml") {
-      navigation {
-        fragment("f1")
-        fragment("f2")
+    val model =
+      navRule.model("nav.xml") {
+        navigation {
+          fragment("f1")
+          fragment("f2")
+        }
       }
-    }
     TestNavUsageTracker.create(model).use { tracker ->
-      AddGlobalAction(model.treeReader.find("f2")!!).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
+      AddGlobalAction(model.treeReader.find("f2")!!)
+        .actionPerformed(
+          TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null }
+        )
       val root = model.treeReader.components[0]
       val action = root.children.first { it.isAction }
       assertThat(action.actionDestination).isEqualTo(model.treeReader.find("f2"))
       assertThat(model.surface.selectionModel.selection).containsExactly(action)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
-                                 .setActionInfo(NavActionInfo.newBuilder()
-                                                  .setCountFromSource(1)
-                                                  .setCountSame(1)
-                                                  .setCountToDestination(1)
-                                                  .setType(NavActionInfo.ActionType.GLOBAL))
-                                 .setSource(NavEditorEvent.Source.CONTEXT_MENU).build())
+      verify(tracker)
+        .logEvent(
+          NavEditorEvent.newBuilder()
+            .setType(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+            .setActionInfo(
+              NavActionInfo.newBuilder()
+                .setCountFromSource(1)
+                .setCountSame(1)
+                .setCountToDestination(1)
+                .setType(NavActionInfo.ActionType.GLOBAL)
+            )
+            .setSource(NavEditorEvent.Source.CONTEXT_MENU)
+            .build()
+        )
     }
   }
 }

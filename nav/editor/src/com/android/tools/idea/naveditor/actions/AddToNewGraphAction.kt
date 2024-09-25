@@ -35,7 +35,8 @@ class AddToNewGraphAction : AnAction("New Graph") {
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
-      NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
+      NavUsageTracker.getInstance(surface.model)
+        .createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
         .withSource(NavEditorEvent.Source.CONTEXT_MENU)
         .log()
     }

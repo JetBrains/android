@@ -128,26 +128,10 @@ def _sources(ctx, use_short_path):
         ix += 1
     return sources, files
 
-def _jps_library_impl(ctx):
-    # This library can be executed both as `bazel build` and as `bazel run`. The paths in those modes must be different,
-    # so we construct two sets of sources arguments (one with short_path and one with path). Additionally, when building
-    # we need to declare the output.
-    run_sources, run_files = _sources(ctx, True)
-    run_cmd = [
-        ctx.attr._jps_build.files_to_run.executable.short_path,
-    ] + ["--source=" + s.short_path for s in run_sources]
-
-    build_sources, build_files = _sources(ctx, False)
-    build_args = [
-        "--out_file",
-        ctx.outputs.zip.path,
-    ] + ["--source=" + s.path for s in build_sources]
-
+def _jps_build(cmd, module):
     args = [
-        "--download_cache",
-        ctx.attr.download_cache,
         "--command",
-        ctx.attr.cmd,
+        cmd,
         "--working_directory",
         "tools/idea",
         "--output_dir",
@@ -156,7 +140,7 @@ def _jps_library_impl(ctx):
         "tools/idea/build/jps-bootstrap-work/",
     ]
     bootstrap_args = [
-        "-Didea.test.module=" + ctx.attr.module,
+        "-Didea.test.module=" + module,
         "-Dintellij.build.output.root={jps_bin_cwd}/out/studio",
         "-Dkotlin.plugin.kind=AS",
         "-Dintellij.build.dev.mode=false",
@@ -166,9 +150,31 @@ def _jps_library_impl(ctx):
         "TestModuleTarget",
     ]
     args.extend(["--arg=" + a for a in bootstrap_args])
+    return args
+
+def _jps_update_library_impl(ctx):
+    args = _jps_build(ctx.attr.cmd, ctx.attr.module)
+    args.extend([
+        "--download_cache",
+        ctx.attr.download_cache,
+    ])
+    run_sources, run_files = _sources(ctx, True)
+    run_cmd = [
+        ctx.attr._jps_build.files_to_run.executable.short_path,
+    ] + ["--source=" + s.short_path for s in run_sources]
+
     ctx.actions.write(output = ctx.outputs.executable, content = " ".join(run_cmd + args), is_executable = True)
     runfiles = ctx.runfiles(files = run_files)
     runfiles = runfiles.merge(ctx.attr._jps_build.default_runfiles)
+    return [DefaultInfo(files = depset([ctx.outputs.executable]), executable = ctx.outputs.executable, runfiles = runfiles)]
+
+def _jps_library_impl(ctx):
+    args = _jps_build(ctx.attr.cmd, ctx.attr.module)
+    build_sources, build_files = _sources(ctx, False)
+    build_args = [
+        "--out_file",
+        ctx.outputs.zip.path,
+    ] + ["--source=" + s.path for s in build_sources]
     ctx.actions.run(
         outputs = [ctx.outputs.zip],
         inputs = build_files,
@@ -177,13 +183,67 @@ def _jps_library_impl(ctx):
         arguments = build_args + args,
         mnemonic = "JpsBuild",
     )
-
+    ctx.actions.run(
+        outputs = [ctx.outputs.jar],
+        inputs = [ctx.outputs.zip],
+        tools = [ctx.executable._jps_import],
+        executable = ctx.executable._jps_import,
+        arguments = [
+            "--src",
+            ctx.outputs.zip.path,
+            "--dest",
+            ctx.outputs.jar.path,
+            "--module",
+            ctx.attr.module,
+        ],
+        mnemonic = "JpsImport",
+    )
     return [
-        DefaultInfo(files = depset([ctx.outputs.executable]), executable = ctx.outputs.executable, runfiles = runfiles),
+        DefaultInfo(files = depset([ctx.outputs.zip])),
         JpsSourceInfo(files = [], strip_prefix = "", zips = [ctx.outputs.zip]),
     ]
 
-jps_library = rule(
+def jps_library(
+        name,
+        download_cache,
+        visibility = None,
+        **kwargs):
+    _jps_library(
+        name = name,
+        visibility = visibility,
+        **kwargs
+    )
+
+    native.java_import(
+        name = name + "_import",
+        jars = [":%s.jar" % name],
+        neverlink = 1,
+        visibility = visibility,
+    )
+
+    _jps_update_library(
+        name = name + "_update_cache",
+        download_cache = download_cache,
+        visibility = visibility,
+        **kwargs
+    )
+
+_jps_library = rule(
+    attrs = {
+        "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build", executable = True, cfg = "exec"),
+        "_jps_import": attr.label(default = "//tools/adt/idea/jps-build:jps_import", executable = True, cfg = "exec"),
+        "deps": attr.label_list(allow_files = True),
+        "module": attr.string(),
+        "cmd": attr.string(default = "platform/jps-bootstrap/jps-bootstrap.sh"),
+    },
+    outputs = {
+        "zip": "%{name}.zip",
+        "jar": "%{name}.jar",
+    },
+    implementation = _jps_library_impl,
+)
+
+_jps_update_library = rule(
     attrs = {
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build", executable = True, cfg = "exec"),
         "deps": attr.label_list(allow_files = True),
@@ -191,11 +251,8 @@ jps_library = rule(
         "download_cache": attr.string(),
         "cmd": attr.string(default = "platform/jps-bootstrap/jps-bootstrap.sh"),
     },
-    outputs = {
-        "zip": "%{name}.zip",
-    },
     executable = True,
-    implementation = _jps_library_impl,
+    implementation = _jps_update_library_impl,
 )
 
 def _jps_test_impl(ctx):
@@ -203,6 +260,9 @@ def _jps_test_impl(ctx):
 
     jvmargs_file = ctx.actions.declare_file("%s.jvmargs" % ctx.attr.name)
     ctx.actions.write(output = jvmargs_file, content = "".join([o + "\n" for o in ctx.fragments.java.default_jvm_opts]))
+
+    runtime_deps = [ctx.file._bazel_runner] + ctx.files.runtime_deps
+    runtime_deps_paths = ["$PWD/" + f.short_path for f in runtime_deps]
 
     cmd = [
         ctx.attr._jps_build.files_to_run.executable.short_path,
@@ -228,7 +288,7 @@ def _jps_test_impl(ctx):
         "home/.cache",
         "--download_cache",
         ctx.attr.download_cache,
-        "--env BAZEL_RUNNER $PWD/" + ctx.file._bazel_runner.short_path,
+        "--env RUNTIME_DEPS " + ":".join(runtime_deps_paths),
         "--env JVM_ARGS_FILE $PWD/" + jvmargs_file.short_path,
         "--env JAVA_BIN $PWD/" + ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path,
         "--env TEST_SUITE '" + ctx.attr.test_suite + "'",
@@ -237,9 +297,11 @@ def _jps_test_impl(ctx):
         "--env TEST_MODULE '" + ctx.attr.module + "'",
     ]
 
-    files = [
+    if ctx.attr.expected_failures_file:
+        cmd += ["--env EXPECTED_FAILURES_FILE '" + ctx.expand_location("$(location " + ctx.attr.expected_failures_file + ")") + "'"]
+
+    files = runtime_deps + [
         ctx.file._test_runner,
-        ctx.file._bazel_runner,
         jvmargs_file,
     ] + files
 
@@ -263,6 +325,8 @@ _jps_test = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "deps": attr.label_list(allow_files = True),
+        "runtime_deps": attr.label_list(providers = [JavaInfo]),
+        "expected_failures_file": attr.string(default = ""),
         "test_exclude_filter": attr.string_list(default = []),
         "test_filter": attr.string_list(default = []),
         "_jps_build": attr.label(default = "//tools/adt/idea/jps-build:jps_build"),
@@ -284,6 +348,9 @@ def split(
 
 def jps_test(
         name,
+        shard_count = None,
+        expected_failures_file = None,
+        test_include_filter = None,
         split_tests = None,
         test_exclude_filter = None,
         env = None,
@@ -302,6 +369,9 @@ def jps_test(
                      a test filter, and a shard_count. A target is created per split, with one additional
                      target suffixed '_empty' that asserts that no tests were left out of the splits.
     """
+    if split_tests and expected_failures_file:
+        fail("Can't use 'split_tests' and 'expected_failures_file' together")
+
     if split_tests:
         names = []
         splits = []
@@ -337,8 +407,11 @@ def jps_test(
     else:
         _jps_test(
             name = name,
-            env = env,
+            expected_failures_file = expected_failures_file,
             test_exclude_filter = test_exclude_filter,
+            env = env,
+            test_filter = test_include_filter,
+            shard_count = shard_count,
             **kwargs
         )
 

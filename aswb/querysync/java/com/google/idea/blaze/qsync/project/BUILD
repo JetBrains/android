@@ -12,9 +12,9 @@ java_proto_library(
     name = "language_class_java_proto",
     visibility = [
         "//tools/adt/idea/aswb/base:__subpackages__",
+        "//tools/adt/idea/aswb/cpp:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/cpp:__subpackages__",
     ],
     deps = [":language_class_proto"],
 )
@@ -29,8 +29,8 @@ java_proto_library(
     name = "project_java_proto",
     visibility = [
         "//tools/adt/idea/aswb/base:__subpackages__",
+        "//tools/adt/idea/aswb/cpp:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/cpp:__subpackages__",
     ],
     deps = [":project_proto"],
 )
@@ -60,10 +60,10 @@ java_library(
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
+        "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/shared:vcs",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared",
-        "//tools/vendor/google3/aswb/third_party/intellij/bazel/plugin/shared:vcs",
         "@maven//:com.google.guava.guava",
         "@maven//:io.grpc.grpc-protobuf",
         "@maven//:io.grpc.grpc-protobuf-lite",

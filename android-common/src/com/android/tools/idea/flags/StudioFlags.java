@@ -258,6 +258,10 @@ public final class StudioFlags {
                                                                              "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
                                                                              true);
 
+  public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(PROFILER, "leakcanary", "LeakCanary",
+                                                                          "Enables the integration of leakCanary and display of leaks",
+                                                                          false);
+
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android", false);
   //endregion
@@ -1592,7 +1596,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_ANIMATION_INSPECTOR = new BooleanFlag(
     WEAR_SURFACES, "wear.tile.preview.animation.inspector.enabled", "Enable Wear Tile Preview Animation Inspector",
     "If enabled, a Wear Tile Animation Inspector functionality is available in Preview",
-    false);
+    ChannelDefault.enabledUpTo(CANARY));
   // endregion
 
   // region Wear Health Services
@@ -1996,12 +2000,6 @@ public final class StudioFlags {
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
                     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_CUSTOM_TRANSFORM_V2_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.v2.enabled",
-                    "Use updated APIs to perform custom transform action in the editor.",
-                    "When enabled, the custom transform action will use newer APIs. This is an internal migration flag.",
-                    ChannelDefault.enabledUpTo(DEV));
-
   public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
                     "Enable the transform history in the transform diff.",
@@ -2063,10 +2061,17 @@ public final class StudioFlags {
                     false);
 
 
+  public static final Flag<Boolean> AI_RETHINK_ACTION =
+    new BooleanFlag(STUDIOBOT, "ai.rethink.action",
+                    "Use AI to suggest better variable names",
+                    "Enables AI to provide better variable renaming functionalities",
+                    ChannelDefault.enabledUpTo(CANARY));
+
+
   public static final Flag<Boolean> AI_RENAME_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
-                    "Use ML model to rename variable names",
-                    "Enables AI renaming functionalities",
+                    "Use AI to suggest a better identifier name",
+                    "Enables AI rename suggestion functionality",
                     false);
 
 

@@ -653,4 +653,9 @@
         activeInHeadlessMode="false" activeInTestMode="false"
         topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </projectListeners>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <indexedRootsProvider implementation="com.google.idea.blaze.base.project.indexing.WarmUpTriggeringIndexableSetContributor" />
+  </extensions>
+
 </idea-plugin>

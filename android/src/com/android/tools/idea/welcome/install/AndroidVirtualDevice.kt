@@ -104,7 +104,7 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
       displayName = avdManager.uniquifyDisplayName(AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version))
       avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(displayName))
       systemImage = systemImageDescription.systemImage
-      sdCard = InternalSdCard(EmulatedProperties.DEFAULT_INTERNAL_STORAGE.size)
+      sdCard = InternalSdCard(EmulatedProperties.defaultInternalStorage(device).size)
       skin = device.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }?.let { defaultHardwareSkin ->
         OnDiskSkin(DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get())
       } ?: device.defaultGenericSkin()

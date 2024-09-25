@@ -21,17 +21,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.Executor
+import java.util.function.Consumer
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.util.concurrent.Executor
-import java.util.function.Consumer
 
 class NavUsageTrackerImplTest : AndroidTestCase() {
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   @RunsInEdt

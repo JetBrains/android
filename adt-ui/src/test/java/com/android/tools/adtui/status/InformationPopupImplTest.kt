@@ -18,7 +18,6 @@ package com.android.tools.adtui.status
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -26,7 +25,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.putUserData
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -178,7 +176,7 @@ class InformationPopupImplTest {
     }
 
     val fakeUi = FakeUi(parent, 1.0, true)
-    popup.showPopup(disposableRule.disposable, parent)
+    popup.showPopup(disposableRule.disposable , parent)
 
     assertEquals(
       "Action 1, Action 2",

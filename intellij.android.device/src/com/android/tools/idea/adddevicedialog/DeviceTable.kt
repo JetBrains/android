@@ -43,9 +43,10 @@ import org.jetbrains.jewel.ui.component.TextField
 @Composable
 internal fun DeviceTable(
   devices: List<DeviceProfile>,
+  filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
-  filterState: DeviceFilterState = remember { DeviceFilterState(devices) },
+  filterState: DeviceFilterState = remember { DeviceFilterState() },
 ) {
   var showDetails by remember { mutableStateOf(false) }
 
@@ -54,14 +55,7 @@ internal fun DeviceTable(
       TableColumn("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) },
       TableTextColumn("OEM", attribute = { it.manufacturer }),
       TableTextColumn("Name", TableColumnWidth.Weighted(2f), attribute = { it.name }, maxLines = 2),
-      TableTextColumn(
-        "API",
-        attribute = {
-          // This case is a bit strange, because we adjust the display based on the API filter.
-          filterState.apiLevelFilter.apiLevelSelection.apply(it)?.getApiStringWithoutExtension()
-            ?: ""
-        },
-      ),
+      TableTextColumn("API", attribute = { it.apiLevels.last().apiStringWithExtension }),
       TableTextColumn("Width", attribute = { it.resolution.width.toString() }),
       TableTextColumn("Height", attribute = { it.resolution.height.toString() }),
       TableTextColumn("Density", attribute = { "${it.displayDensity} dpi" }),
@@ -98,7 +92,7 @@ internal fun DeviceTable(
       )
     } else {
       HorizontalSplitLayout(
-        first = { DeviceFilters(filterState, modifier = it) },
+        first = { DeviceFiltersPanel(it) { filterContent() } },
         second = {
           Row(modifier = it) {
             val filteredDevices = devices.filter(filterState::apply)
@@ -119,11 +113,7 @@ internal fun DeviceTable(
                 when (val selection = tableSelectionState.selection) {
                   null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
                   else ->
-                    DeviceDetails(
-                      selection,
-                      filterState.apiLevelFilter.apiLevelSelection,
-                      modifier = Modifier.width(200.dp).fillMaxHeight(),
-                    )
+                    DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
                 }
               }
             }

@@ -17,8 +17,15 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.config.REFERENCE_FOLDABLE_SPEC
+import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
 import com.intellij.codeInspection.InspectionProfileEntry
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement
+import com.intellij.codeInspection.ex.QuickFixWrapper
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.CommandProcessor
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -633,5 +640,83 @@ class InspectionsTest {
         " so please double-check you're calling the intended function",
       fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().descriptionWithLineNumber(),
     )
+  }
+
+  @Test
+  fun testInvalidLegacyDeviceSpec() {
+    fixture.enableInspections(PreviewDeviceShouldUseNewSpec() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      // Phone constant with old spec
+      const val PHONE = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"
+      // Foldable with new spec
+      const val FOLDABLE = "$REFERENCE_FOLDABLE_SPEC"
+
+      @Composable
+      @Preview(name = "Preview 1", device = PHONE)
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 2", device = FOLDABLE)
+      fun Preview2() {
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        .sortedByDescending { -it.startOffset }
+        .map { it.descriptionWithLineNumber() }
+
+    assertEquals(1, inspections.size)
+    assertEquals(
+      "9: This constant uses a legacy device spec, which is no longer supported",
+      inspections[0],
+    ) // Preview 1 error
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContentAfterFix =
+      """
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      // Phone constant with old spec
+      const val PHONE = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"
+      // Foldable with new spec
+      const val FOLDABLE = "$REFERENCE_FOLDABLE_SPEC"
+
+      @Composable
+      @Preview(name = "Preview 1", device = "$REFERENCE_PHONE_SPEC")
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 2", device = FOLDABLE)
+      fun Preview2() {
+      }
+    """
+        .trimIndent()
+    val quickFix =
+      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
+    ApplicationManager.getApplication().invokeAndWait {
+      CommandProcessor.getInstance()
+        .executeCommand(
+          fixture.project,
+          { runWriteAction { quickFix.applyFix() } },
+          "Replace with new device spec",
+          null,
+        )
+    }
+    fixture.checkResult(fileContentAfterFix)
   }
 }

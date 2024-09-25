@@ -1,0 +1,5 @@
+/bazel-bin
+/bazel-out
+/bazel-projects
+/bazel-testlogs
+MODULE.bazel.lock

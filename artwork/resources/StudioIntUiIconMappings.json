@@ -55,6 +55,7 @@
         "delete.svg": "studio/icons/common/delete.svg",
         "edit.svg": "studio/icons/common/edit.svg",
         "error-decorator.svg": "studio/icons/common/error-decorator.svg",
+        "error-inline.svg": "studio/icons/common/error-inline.svg",
         "error-stack.svg": "studio/icons/common/error-stack.svg",
         "error.svg": "studio/icons/common/error.svg",
         "export.svg": "studio/icons/common/export.svg",
@@ -63,6 +64,7 @@
         "group.svg": "studio/icons/common/group.svg",
         "help.svg": "studio/icons/common/help.svg",
         "import-data.svg": "studio/icons/common/import-data.svg",
+        "info-inline.svg": "studio/icons/common/info-inline.svg",
         "info.svg": "studio/icons/common/info.svg",
         "link.svg": "studio/icons/common/link.svg",
         "list-view.svg": "studio/icons/common/list-view.svg",
@@ -78,10 +80,12 @@
         "screenshot.svg": "studio/icons/common/screenshot.svg",
         "search.svg": "studio/icons/common/search.svg",
         "settings.svg": "studio/icons/common/settings.svg",
+        "success-inline.svg": "studio/icons/common/success-inline.svg",
         "success.svg": "studio/icons/common/success.svg",
         "typo-stack.svg": "studio/icons/common/typo-stack.svg",
         "video-capture.svg": "studio/icons/common/video-capture.svg",
         "visibility-inline.svg": "studio/icons/common/visibility-inline.svg",
+        "warning-inline.svg": "studio/icons/common/warning-inline.svg",
         "warning-stack.svg": "studio/icons/common/warning-stack.svg",
         "warning.svg": "studio/icons/common/warning.svg",
         "weak-warning-stack.svg": "studio/icons/common/weak-warning-stack.svg",
@@ -683,9 +687,9 @@
           "upload.svg": "studio/icons/profiler/toolbar/upload.svg"
         },
         "memoryleakstask": {
-          "leaking-maybe.svg": "studio/icons/profiler/memoryleakstask/leaking-maybe.svg",
-          "leaking-no.svg": "studio/icons/profiler/memoryleakstask/leaking-no.svg",
-          "leaking-yes.svg": "studio/icons/profiler/memoryleakstask/leaking-yes.svg"
+          "leak-maybe.svg": "studio/icons/profiler/memoryleakstask/leak-maybe.svg",
+          "leak-no.svg": "studio/icons/profiler/memoryleakstask/leak-no.svg",
+          "leak-yes.svg": "studio/icons/profiler/memoryleakstask/leak-yes.svg"
         },
         "tasks": {
           "app-startup-insights.svg": "studio/icons/profiler/tasks/app-startup-insights.svg",

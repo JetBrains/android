@@ -24,9 +24,15 @@ import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.Notification
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class SdkIndexIssuesSyncListenerTest {
   private val blockingDependency = "com.google.android.gms:play-services-ads-lite:9.8.0"
@@ -39,11 +45,18 @@ class SdkIndexIssuesSyncListenerTest {
     IdeGooglePlaySdkIndex.initialize(null)
   }
 
+  private fun consumeLatestNotification(project: Project): Notification? {
+    return runBlocking {
+      withTimeout(80.seconds) {
+        project.service<SdkIndexIssuesSyncListener.EventStreamForTesting>().notifications.receive()
+      }
+    }
+  }
+
   @Test
   fun `Notification is not created when issues are not present`() {
     projectRule.openTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION) { project -> // Check no notifications were created
-      val listener = SdkIndexIssuesSyncListener()
-      assertThat(listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)).isNull()
+      assertThat(consumeLatestNotification(project)).isNull()
     }
   }
 
@@ -60,8 +73,7 @@ class SdkIndexIssuesSyncListenerTest {
     """)
     preparedProject.open(updateOptions = {it.copy(expectedSyncIssues = setOf(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY))}) {
       // Check a notification was created
-      val listener = SdkIndexIssuesSyncListener()
-      val notification = listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)
+      val notification = consumeLatestNotification(project)
       assertThat(notification).isNotNull()
       assertThat(notification!!.content).isEqualTo(expectedContent)
     }
@@ -81,19 +93,19 @@ class SdkIndexIssuesSyncListenerTest {
     """)
     preparedProject.open(updateOptions = {it.copy(expectedSyncIssues = setOf(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY))}) { project ->
       // Check a notification was created
-      val listener = SdkIndexIssuesSyncListener()
-      val notification = listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)
+      val notification = consumeLatestNotification(project)
       assertThat(notification).isNotNull()
       assertThat(notification!!.content).isEqualTo(expectedContent)
       // Dismiss notification
       notification.expire()
       // Notification should not be generated again
-      assertThat(listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)).isNull()
+      project.requestSyncAndWait()
+      assertThat(consumeLatestNotification(project)).isNull()
       // Remove dependency
       buildFile.writeText(originalBuildContent)
       project.requestSyncAndWait()
       // Verify notification was not shown
-      assertThat(listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)).isNull()
+      assertThat(consumeLatestNotification(project)).isNull()
       // Add dependency back
       buildFile.writeText(originalBuildContent + """
         dependencies {
@@ -102,7 +114,7 @@ class SdkIndexIssuesSyncListenerTest {
       """)
       project.requestSyncAndWait()
       // Verify notification was shown
-      val secondNotification = listener.notifyBlockingIssuesIfNeeded(project, IdeGooglePlaySdkIndex)
+      val secondNotification = consumeLatestNotification(project)
       assertThat(secondNotification).isNotNull()
       assertThat(secondNotification!!.content).isEqualTo(expectedContent)
     }

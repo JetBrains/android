@@ -112,4 +112,5 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>
