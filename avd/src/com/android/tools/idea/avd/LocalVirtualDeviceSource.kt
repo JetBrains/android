@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
@@ -35,14 +33,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
-import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
@@ -88,24 +84,12 @@ internal class LocalVirtualDeviceSource(
     callbackFlow {
         send(LoadingState.Loading)
 
-        // Note that we don't care about systemImages being updated; the only way it changes is if
-        // we download an image, thus converting an image from remote to local, and we only care
-        // about API levels here.
-        val systemImages = ISystemImages.systemImageFlow(sdkHandler).first()
         val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
 
         fun sendDevices() {
           val profiles =
-            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNullTo(mutableListOf()) {
-              device ->
-              val androidVersions =
-                systemImages
-                  .filter { DeviceSystemImageMatcher.matches(device, it) }
-                  .mapTo(TreeSet()) { it.androidVersion }
-
-              // If there are no system images for a device, we can't create it.
-              if (androidVersions.isEmpty()) null
-              else device.toVirtualDeviceProfile(androidVersions)
+            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) {
+              it.toVirtualDeviceProfile()
             }
           profiles.sortWith(compareBy(NameComparator()) { it.device })
 
@@ -123,9 +107,5 @@ internal class LocalVirtualDeviceSource(
       .conflate()
 }
 
-internal fun Device.toVirtualDeviceProfile(
-  androidVersions: Set<AndroidVersion>
-): VirtualDeviceProfile =
-  VirtualDeviceProfile.Builder()
-    .apply { initializeFromDevice(this@toVirtualDeviceProfile, androidVersions) }
-    .build()
+private fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
+  VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()
