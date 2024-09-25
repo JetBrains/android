@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -72,27 +72,27 @@ class LayoutInspectorSessionMetrics(
       else -> {}
     }
 
-    val builder =
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-        dynamicLayoutInspectorEventBuilder.apply {
-          type = eventType
-          if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
-            stats.save(sessionBuilder)
-          }
-          snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
-          if (errorState != null) {
-            errorInfoBuilder.apply {
-              attachErrorState = errorState
-              attachErrorCode = errorCode
-            }
-          }
-        }
-        process?.let { deviceInfo = it.device.toDeviceInfo() }
-        withProjectId(project)
-      }
-
-    UsageTracker.log(builder)
+    //val builder =
+    //  AndroidStudioEvent.newBuilder().apply {
+    //    kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+    //    dynamicLayoutInspectorEventBuilder.apply {
+    //      type = eventType
+    //      if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
+    //        stats.save(sessionBuilder)
+    //      }
+    //      snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
+    //      if (errorState != null) {
+    //        errorInfoBuilder.apply {
+    //          attachErrorState = errorState
+    //          attachErrorCode = errorCode
+    //        }
+    //      }
+    //    }
+    //    process?.let { deviceInfo = it.device.toDeviceInfo() }
+    //    withProjectId(project)
+    //  }
+    //
+    //UsageTracker.log(builder)
   }
 
   /** Update session stats according to [eventType]. */

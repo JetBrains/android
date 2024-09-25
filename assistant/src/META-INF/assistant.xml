@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
+  <!--extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="com.android.tools.idea.assistant.AssistantToolWindowService"
                     serviceImplementation="com.android.tools.idea.assistant.AssistantToolWindowServiceImpl"/>
-  </extensions>
+  </extensions-->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.assistant.navlistener"
                     interface="com.android.tools.idea.assistant.AssistNavListener"/>

@@ -3,7 +3,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.actions.ExportProjectZip
+//import com.android.tools.idea.actions.ExportProjectZip
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -119,7 +119,7 @@ Do you want to proceed with the migration?
  * Shows a dialog offering to create a zip file with the project contents.
  *
  * Depending on the user action choice it then may run refactoring, optionally invoking [ExportProjectZip] first.
- */
+ *//*
 fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: () -> Unit) {
   val okCancelResult = Messages.showCheckboxMessageDialog(
     ACTION_WARNING_TEXT.trim(),
@@ -152,7 +152,7 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
     else -> runRefactoring()
   }
 }
-
+*/
 /**
  * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
  */

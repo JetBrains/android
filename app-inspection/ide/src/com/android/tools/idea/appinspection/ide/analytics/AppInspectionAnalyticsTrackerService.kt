@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.analytics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
+//import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionAnalyticsTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -25,7 +25,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-@Service
+@Service(Service.Level.PROJECT)
 class AppInspectionAnalyticsTrackerService(private val project: Project) :
   AppInspectionAnalyticsTracker {
   companion object {
@@ -77,15 +77,15 @@ class AppInspectionAnalyticsTrackerService(private val project: Project) :
   )
 
   private fun track(type: AppInspectionEvent.Type, addMetadataTo: (Events) -> Unit = {}) {
-    val appInspectionEvent = AppInspectionEvent.newBuilder().setType(type)
-    val studioEvent =
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-        .withProjectId(project)
-
-    addMetadataTo(Events(studioEvent, appInspectionEvent))
-    studioEvent.setAppInspectionEvent(appInspectionEvent)
-
-    UsageTracker.log(studioEvent)
+    //val appInspectionEvent = AppInspectionEvent.newBuilder().setType(type)
+    //val studioEvent =
+    //  AndroidStudioEvent.newBuilder()
+    //    .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+    //    .withProjectId(project)
+    //
+    //addMetadataTo(Events(studioEvent, appInspectionEvent))
+    //studioEvent.setAppInspectionEvent(appInspectionEvent)
+    //
+    //UsageTracker.log(studioEvent)
   }
 }
