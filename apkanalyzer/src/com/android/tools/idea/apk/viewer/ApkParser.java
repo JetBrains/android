@@ -127,7 +127,7 @@ public class ApkParser {
   @NotNull
   private ArchiveNode createTreeNode() throws IOException {
     ArchiveNode node = ArchiveTreeStructure.create(myArchiveContext);
-    ArchiveTreeStructure.updateRawFileSizes(node, myApkSizeCalculator);
+    ArchiveTreeStructure.updateFileInfo(node, myApkSizeCalculator);
     return node;
   }
 

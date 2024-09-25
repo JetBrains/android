@@ -287,8 +287,19 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new PercentRenderer(percentProvider))
-      );
+                   .setRenderer(new PercentRenderer(percentProvider)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Alignment")
+                   .setPreferredWidth(50)
+                   .setHeaderAlignment(SwingConstants.LEADING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                   .setRenderer(new AlignmentRenderer()))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Compression")
+                   .setPreferredWidth(50)
+                   .setHeaderAlignment(SwingConstants.LEADING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                   .setRenderer(new CompressionRenderer()));
     myColumnTreePane = builder.build();
     myTree.addTreeSelectionListener(this);
   }
@@ -512,6 +523,57 @@ public class ApkViewPanel implements TreeSelectionListener {
       long size = myUseDownloadSize ? data.getDownloadFileSize() : data.getRawFileSize();
       if (size > 0) {
         append(HumanReadableUtil.getHumanizedSize(size));
+      }
+    }
+  }
+
+  private static class AlignmentRenderer extends ColoredTreeCellRenderer {
+    public AlignmentRenderer() {
+      setTextAlign(SwingConstants.RIGHT);
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (!(value instanceof ArchiveTreeNode)) {
+        return;
+      }
+
+      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      append(data.getFileAlignment().text);
+    }
+  }
+
+  private static class CompressionRenderer extends ColoredTreeCellRenderer {
+    public CompressionRenderer() {
+      setTextAlign(SwingConstants.RIGHT);
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (!(value instanceof ArchiveTreeNode)) {
+        return;
+      }
+
+      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      if (!Files.isDirectory(data.getPath())) {
+        if (data.isFileCompressed()) {
+          append("Compressed");
+        }
+        else {
+          append("Uncompressed");
+        }
       }
     }
   }
