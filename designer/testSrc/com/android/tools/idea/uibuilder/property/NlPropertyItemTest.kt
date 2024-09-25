@@ -1116,7 +1116,7 @@ class NlPropertyItemTest {
       property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
     // Given that some default values are forced/hardcoded in some tests, it's needed to avoid
     // refreshing on resource changes to avoid losing those forced values.
-    manager.setListenResourceChange(false)
+    manager.listenResourceChange = false
     return manager
   }
 }

@@ -240,8 +240,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
                 config.useShrinkRendering = true
                 config.renderingTopic = renderingTopic
               }
-              setListenResourceChange(false) // don't re-render on resource changes
-              setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+              listenResourceChange = false // don't re-render on resource changes
+              updateAndRenderWhenActivated = false // don't re-render on activation
             }
           }
           .setInteractionHandlerProvider {
