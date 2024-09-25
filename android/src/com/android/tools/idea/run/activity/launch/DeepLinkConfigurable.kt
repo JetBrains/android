@@ -43,13 +43,13 @@ class DeepLinkConfigurable(project: Project, context: LaunchOptionConfigurableCo
         Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
         return@addActionListener
       }
-      val dialog = DeepLinkChooserDialog(project, module)
-      dialog.title = "Select URL"
-      dialog.show()
-      val deepLinkSelected = dialog.selectedDeepLink
-      if (!deepLinkSelected.isNullOrEmpty()) {
-        childComponent.setText(deepLinkSelected)
-      }
+      //val dialog = DeepLinkChooserDialog(project, module)
+      //dialog.title = "Select URL"
+      //dialog.show()
+      //val deepLinkSelected = dialog.selectedDeepLink
+      //if (!deepLinkSelected.isNullOrEmpty()) {
+      //  childComponent.setText(deepLinkSelected)
+      //}
     }
     childComponent.emptyText.text = "Specify URL declared in the manifest"
   }

@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
+//import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
 import com.google.common.io.Files
@@ -252,38 +252,38 @@ object TemplateUtils {
   }
 }
 
-/**
- * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository,
- * returning a Dependency object with the version replaced with a concrete (required) version, if
- * found, or the minimum revision, if provided. If no version is found or provided, the given
- * identifier is returned as a Dependency. If a version is found and the minimum is provided, the
- * found version is used if it is accepted by the minimum.
- *
- * @param minRev the minimum revision to accept
- * @see RepositoryUrlManager.resolveDependency
- */
-fun resolveDependency(
-  repo: RepositoryUrlManager,
-  dependencyIdentifier: String,
-  minRev: String? = null
-): Dependency {
-  val dependency = Dependency.parse(dependencyIdentifier)
-  val group = dependency.group
-  val version = dependency.version
-  if (group == null || version == null)
-    throw InvalidParameterException("Invalid dependency: $dependency")
-
-  val resolvedVersion = repo.resolveDependency(dependency, null, null)?.version
-  val minRichVersion = minRev?.let { RichVersion.parse(it) }
-  return when {
-    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) }
-        ?: dependency
-    minRichVersion == null -> dependency.copy(version = RichVersion.require(resolvedVersion))
-    minRichVersion.accepts(resolvedVersion) ->
-      dependency.copy(version = RichVersion.require(resolvedVersion))
-    else -> dependency.copy(version = minRichVersion)
-  }
-}
+///**
+// * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository,
+// * returning a Dependency object with the version replaced with a concrete (required) version, if
+// * found, or the minimum revision, if provided. If no version is found or provided, the given
+// * identifier is returned as a Dependency. If a version is found and the minimum is provided, the
+// * found version is used if it is accepted by the minimum.
+// *
+// * @param minRev the minimum revision to accept
+// * @see RepositoryUrlManager.resolveDependency
+// */
+//fun resolveDependency(
+//  repo: RepositoryUrlManager,
+//  dependencyIdentifier: String,
+//  minRev: String? = null
+//): Dependency {
+//  val dependency = Dependency.parse(dependencyIdentifier)
+//  val group = dependency.group
+//  val version = dependency.version
+//  if (group == null || version == null)
+//    throw InvalidParameterException("Invalid dependency: $dependency")
+//
+//  val resolvedVersion = repo.resolveDependency(dependency, null, null)?.version
+//  val minRichVersion = minRev?.let { RichVersion.parse(it) }
+//  return when {
+//    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) }
+//        ?: dependency
+//    minRichVersion == null -> dependency.copy(version = RichVersion.require(resolvedVersion))
+//    minRichVersion.accepts(resolvedVersion) ->
+//      dependency.copy(version = RichVersion.require(resolvedVersion))
+//    else -> dependency.copy(version = minRichVersion)
+//  }
+//}
 
 fun getAppNameForTheme(appName: String): String {
   val result = appName.split(" ").joinToString("") { it.usLocaleCapitalize() }

@@ -33,7 +33,7 @@
 
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>
+<!--    <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>-->
     <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinApkModuleConfigurator"/>
     <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
     <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>

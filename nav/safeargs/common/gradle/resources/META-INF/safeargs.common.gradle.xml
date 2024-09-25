@@ -15,6 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.nav.safeargs.module">
-    <safeArgsModeToken implementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeGradleToken"/>
+<!--    <safeArgsModeToken implementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeGradleToken"/>-->
   </extensions>
 </idea-plugin>

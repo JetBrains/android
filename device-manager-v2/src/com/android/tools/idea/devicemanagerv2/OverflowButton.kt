@@ -27,29 +27,26 @@ import icons.StudioIcons
 
 class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
 
-  companion object {
-    private val reservationActions =
-      DefaultActionGroup(
-        CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
-        CustomActionsSchema.getInstance()
-          .getCorrectedAction("android.device.reservation.extend.half.hour"),
-      )
-    private val wearableActions =
-      DefaultActionGroup(
-        PairWearableDeviceAction(),
-        ViewPairedDevicesAction(),
-        UnpairWearableDeviceAction(),
-      )
-  }
-
-  val actions =
+  private fun getReservationActions() =
     DefaultActionGroup(
-      reservationActions,
+      CustomActionsSchema.getInstance().getCorrectedAction("android.device.reservation.end"),
+      CustomActionsSchema.getInstance()
+        .getCorrectedAction("android.device.reservation.extend.quarter.hour"),
+      CustomActionsSchema.getInstance()
+        .getCorrectedAction("android.device.reservation.extend.half.hour"),
+    )
+  private fun getWearableActions() =
+    DefaultActionGroup(
+      PairWearableDeviceAction(),
+      ViewPairedDevicesAction(),
+      UnpairWearableDeviceAction(),
+    )
+  private fun getActions() =
+    DefaultActionGroup(
+      getReservationActions(),
       Separator.create(),
       ColdBootAction(),
-      wearableActions,
+      getWearableActions(),
       Separator.create(),
       EditDeviceAction(),
       DuplicateDeviceAction(),
@@ -65,13 +62,13 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
   init {
     val contributorsActions =
       DeviceManagerOverflowActionContributor.EP_NAME.extensionList.map { it.getAction() }
-    actions.addAll(contributorsActions)
+    getActions().addAll(contributorsActions)
 
     addActionListener {
       JBPopupFactory.getInstance()
         .createActionGroupPopup(
           null,
-          actions,
+          getActions(),
           DataManager.getInstance().getDataContext(this@OverflowButton),
           true,
           null,

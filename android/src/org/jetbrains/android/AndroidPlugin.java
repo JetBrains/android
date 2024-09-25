@@ -4,7 +4,6 @@ package org.jetbrains.android;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -39,7 +38,7 @@ public final class AndroidPlugin {
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
-    Actions.moveAction(actionManager, "Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
-                       new Constraints(Anchor.LAST, null));
+    //Actions.moveAction(actionManager, "Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
+    //                   new Constraints(Anchor.LAST, null));
   }
 }

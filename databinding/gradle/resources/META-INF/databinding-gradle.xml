@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <extensions defaultExtensionNs="com.android.tools.idea.databinding">
-    <bindingLayoutToken implementation="com.android.tools.idea.databinding.BindingLayoutGradleToken"/>
-  </extensions>
+<!--  <extensions defaultExtensionNs="com.android.tools.idea.databinding">-->
+<!--    <bindingLayoutToken implementation="com.android.tools.idea.databinding.BindingLayoutGradleToken"/>-->
+<!--  </extensions>-->
 </idea-plugin>

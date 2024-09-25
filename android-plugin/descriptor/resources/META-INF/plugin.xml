@@ -47,7 +47,7 @@
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>
   <xi:include href="/META-INF/apkanalyzer.xml" />
-  <xi:include href="/META-INF/apkanalyzer-gradle.xml" />
+<!--  <xi:include href="/META-INF/apkanalyzer-gradle.xml" />-->
   <xi:include href="/META-INF/apkanalyzer-apk.xml" />
 <!--  <xi:include href="/META-INF/app-insights-api.xml"/>-->
 <!--  <xi:include href="/META-INF/app-insights.xml"/>-->
@@ -108,5 +108,5 @@
   <xi:include href="/META-INF/server-flags.xml"/>
 <!--  <xi:include href="/META-INF/studio-labs.xml" />-->
 <!--  <xi:include href="/META-INF/settings-sync.xml" />-->
-  <xi:include href="/META-INF/screenshot-testing.xml" />
+<!--  <xi:include href="/META-INF/screenshot-testing.xml" />-->
 </idea-plugin>

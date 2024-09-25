@@ -79,9 +79,9 @@ open class CreateTypedResourceFileAction(
     val view = LangDataKeys.IDE_VIEW.getData(dataContext) ?: return PsiElement.EMPTY_ARRAY
     // If you're in the Android View, we want to ask you not just the filename but also let you
     // create other resource folder configurations
-    if (ProjectView.getInstance(project).currentProjectViewPane.id == com.android.tools.idea.navigator.ID) {
-      return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext)
-    }
+    //if (ProjectView.getInstance(project).currentProjectViewPane.id == com.android.tools.idea.navigator.ID) {
+    //  return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext)
+    //}
 
     val directory = view.getOrChooseDirectory() ?: return PsiElement.EMPTY_ARRAY
 
