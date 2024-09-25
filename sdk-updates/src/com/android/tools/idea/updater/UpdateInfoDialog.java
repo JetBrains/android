@@ -191,7 +191,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       myRootPanel.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
       final JBLabel jBLabel1 = new JBLabel();
       jBLabel1.setText(
-        "<html>Updates are available for the Android SDK and Tools<br><br>Android SDK updates ensure you have the latest features and enhancements.<br>Android Studio will update the following components:</html>");
+        "<html>Updates are available for the Android SDK and Tools<br><br>Android SDK updates ensure you have the latest features and enhancements.<br>JetBrains Rider will update the following components:</html>");
       myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                     false));

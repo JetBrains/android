@@ -81,12 +81,12 @@ public final class FirstRunWelcomeStepForm {
                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
                                                     null, 0, false));
     final JLabel label1 = new JLabel();
-    label1.setText("Welcome! This wizard will set up your development environment for Android Studio.");
+    label1.setText("Welcome! This wizard will set up your development environment for JetBrains Rider.");
     myNewSdkMessage.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                     false));
     final JLabel label2 = new JLabel();
-    label2.setText("Additionally, the wizard will help port existing Android apps into Android Studio");
+    label2.setText("Additionally, the wizard will help port existing Android apps into JetBrains Rider");
     myNewSdkMessage.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                     false));
@@ -117,7 +117,7 @@ public final class FirstRunWelcomeStepForm {
                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                          null, 0, false));
     final JLabel label7 = new JLabel();
-    label7.setText("import an existing Android app into Android Studio or start a new Android project.");
+    label7.setText("import an existing Android app into JetBrains Rider or start a new Android project.");
     myExistingSdkMessage.add(label7, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                          null, 0, false));

@@ -30,7 +30,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
-import com.android.tools.analytics.UsageTrackerUtils;
+//import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureParser;
@@ -726,21 +726,21 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackNetworkMigrationDialogSelected() {
-    UsageTracker.log(
-      UsageTrackerUtils.withProjectId(
-        AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-          .setAppInspectionEvent(
-            AppInspectionEvent.newBuilder()
-              .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
-              .setNetworkInspectorEvent(
-                AppInspectionEvent.NetworkInspectorEvent.newBuilder()
-                  .setType(AppInspectionEvent.NetworkInspectorEvent.Type.MIGRATION_LINK_SELECTED)
-              )
-          ),
-        myTrackingProject
-      )
-    );
+    //UsageTracker.log(
+    //  UsageTrackerUtils.withProjectId(
+    //    AndroidStudioEvent.newBuilder()
+    //      .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+    //      .setAppInspectionEvent(
+    //        AppInspectionEvent.newBuilder()
+    //          .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
+    //          .setNetworkInspectorEvent(
+    //            AppInspectionEvent.NetworkInspectorEvent.newBuilder()
+    //              .setType(AppInspectionEvent.NetworkInspectorEvent.Type.MIGRATION_LINK_SELECTED)
+    //          )
+    //      ),
+    //    myTrackingProject
+    //  )
+    //);
   }
 
   @Override
@@ -1197,7 +1197,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .build());
       }
 
-      UsageTracker.log(UsageTrackerUtils.withProjectId(event, myTrackingProject));
+      //UsageTracker.log(UsageTrackerUtils.withProjectId(event, myTrackingProject));
     }
 
     private void populateMemoryInstanceFilterMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
