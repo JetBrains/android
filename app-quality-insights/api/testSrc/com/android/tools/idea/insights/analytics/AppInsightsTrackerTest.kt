@@ -335,7 +335,12 @@ class AppInsightsTrackerTest {
     insightFetch.transition(testState, controllerRule.tracker, TEST_KEY)
 
     verify(controllerRule.tracker, times(1))
-      .logInsightFetch(any(), eq(ISSUE1.issueDetails.fatality), eq(InsightExperiment.CONTROL))
+      .logInsightFetch(
+        any(),
+        eq(ISSUE1.issueDetails.fatality),
+        eq(InsightExperiment.CONTROL),
+        eq(false),
+      )
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {

@@ -224,7 +224,11 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight? {
-    return compositeIssuesCache.getIfPresent(connection)?.getIfPresent(issueId)?.aiInsight
+    return compositeIssuesCache
+      .getIfPresent(connection)
+      ?.getIfPresent(issueId)
+      ?.aiInsight
+      ?.copy(isCached = true)
   }
 
   override fun putAiInsight(connection: Connection, issueId: IssueId, aiInsight: AiInsight) {

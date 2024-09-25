@@ -564,10 +564,12 @@ class AppInsightsCacheTest {
     assertThat(cache.getAiInsight(connection, ISSUE1.id)).isNull()
 
     cache.putAiInsight(connection, ISSUE1.id, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id)).isEqualTo(DEFAULT_AI_INSIGHT)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
     val newInsight = AiInsight("blah", Experiment.TOP_THREE_SOURCES)
     cache.putAiInsight(connection, ISSUE1.id, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id)).isEqualTo(newInsight)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+      .isEqualTo(newInsight.copy(isCached = true))
   }
 }

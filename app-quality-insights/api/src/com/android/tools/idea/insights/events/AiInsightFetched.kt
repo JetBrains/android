@@ -32,9 +32,9 @@ data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsi
   ): StateTransition<Action> {
     val crashType = state.selectedIssue?.issueDetails?.fatality
     val appId = state.connections.selected?.appId
-    val experiment = (fetchedInsight as? LoadingState.Ready)?.value?.experiment
-    if (experiment != null && crashType != null && appId != null) {
-      tracker.logInsightFetch(appId, crashType, experiment.toProto())
+    val insight = (fetchedInsight as? LoadingState.Ready)?.value
+    if (insight != null && crashType != null && appId != null) {
+      tracker.logInsightFetch(appId, crashType, insight.experiment.toProto(), insight.isCached)
     }
     return StateTransition(newState = state.copy(currentInsight = fetchedInsight), Action.NONE)
   }
