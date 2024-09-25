@@ -1,4 +1,0 @@
-android.defaultConfig.applicationIdSuffix = 'xyz'
-
-[android.defaultConfig]
-applicationId = 'abc.def'
