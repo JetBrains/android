@@ -16,15 +16,19 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.resources.Density
+import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicInteger
 
 private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
 
@@ -58,4 +62,64 @@ abstract class NewLayoutlibSceneManager(
    */
   override val sceneScalingFactor: Float
     get() = model.configuration.density.dpiValue / Density.DEFAULT_DENSITY.toFloat()
+
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField
+  protected val selectionChangeListener = SelectionListener { _, _ ->
+    updateTargets()
+    scene.needsRebuildList()
+  }
+
+  /** Variables to track previous values of the configuration bar for tracking purposes. */
+  private val configurationUpdatedFlags = AtomicInteger(0)
+  private var currentDpi = 0
+    set(value) {
+      if (field != value) {
+        field = value
+        // Update from the model to update the dpi
+        this@NewLayoutlibSceneManager.update()
+      }
+    }
+
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField
+  protected val configurationChangeListener = ConfigurationListener { flags ->
+    configurationUpdatedFlags.getAndUpdate { it or flags }
+    if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
+      currentDpi = model.configuration.getDensity().dpiValue
+    }
+    true
+  }
+
+  // TODO(b/369573219): make this method private
+  protected fun updateTargets() {
+    val updateAgain = Runnable { this.updateTargets() }
+    scene.root?.let {
+      updateTargetProviders(it, updateAgain)
+      it.updateTargets()
+    }
+  }
+
+  // TODO(b/369573219): make this method private
+  protected fun logConfigurationChange(surface: DesignSurface<*>) {
+    val flags: Int = configurationUpdatedFlags.getAndSet(0) // Get and reset the saved flags
+    if (flags != 0) {
+      // usage tracking (we only pay attention to individual changes where only one item is affected
+      // since those are likely to be triggered by the user
+      val analyticsManager = (surface.analyticsManager) as NlAnalyticsManager
+
+      if ((flags and ConfigurationListener.CFG_THEME) != 0) {
+        analyticsManager.trackThemeChange()
+      }
+      if ((flags and ConfigurationListener.CFG_TARGET) != 0) {
+        analyticsManager.trackApiLevelChange()
+      }
+      if ((flags and ConfigurationListener.CFG_LOCALE) != 0) {
+        analyticsManager.trackLanguageChange()
+      }
+      if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
+        analyticsManager.trackDeviceChange()
+      }
+    }
+  }
 }
