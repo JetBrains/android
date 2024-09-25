@@ -50,7 +50,7 @@ class MenuFixture {
   /**
    * Invokes an action by menu path
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Assemble Project ")}
    */
   void invokeMenuPath(int timeToWaitAtStepMs, @NotNull String... path) {
     doInvokeMenuPath(path, false, timeToWaitAtStepMs);
@@ -59,7 +59,7 @@ class MenuFixture {
   /**
    * Invokes an action by menu path in a contextual menu
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Assemble Project ")}
    */
   void invokeContextualMenuPath(@NotNull String... path) {
     doInvokeMenuPath(path, true, 10);

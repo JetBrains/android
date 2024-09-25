@@ -153,7 +153,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public BuildStatus invokeProjectMake(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Make Project"));
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Assemble Project"));
   }
 
   @NotNull
@@ -178,7 +178,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       throw new ExternalSystemException(failure);
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
-    waitAndInvokeMenuPath("Build", "Make Project");
+    waitAndInvokeMenuPath("Build", "Assemble Project");
     return this;
   }
 
@@ -324,7 +324,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Invokes an action by menu path
    *
    * @param path the series of menu names, e.g.
-   *             {@link invokeActionByMenuPath("Build", "Make Project")}
+   *             {@link invokeActionByMenuPath("Build", "Assemble Project")}
    */
   public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
     getMenuFixture().invokeMenuPath(10, path);
@@ -346,7 +346,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * that might be disabled or not available at first
    *
    * @param path the series of menu names, e.g.
-   *             {@link invokeActionByMenuPath("Build", "Make Project")}
+   *             {@link invokeActionByMenuPath("Build", "Assemble Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
     waitAndInvokeMenuPath(20, path);
