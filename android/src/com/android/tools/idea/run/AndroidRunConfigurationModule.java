@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidRunConfiguration;
-import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
+//import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidRunConfiguration;
+//import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
 
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
@@ -42,11 +42,11 @@ public class AndroidRunConfigurationModule extends JavaRunConfigurationModule {
   public @NotNull GlobalSearchScope getSearchScope() {
     Module module = getModule();
     if (module != null) {
-      if (myIsTestConfiguration) {
-        module = getModuleForAndroidTestRunConfiguration(module);
-      } else {
-        module = getModuleForAndroidRunConfiguration(module);
-      }
+      //if (myIsTestConfiguration) {
+      //  module = getModuleForAndroidTestRunConfiguration(module);
+      //} else {
+      //  module = getModuleForAndroidRunConfiguration(module);
+      //}
       if (module != null) {
         return GlobalSearchScope.moduleWithDependenciesScope(module);
       }
@@ -55,8 +55,8 @@ public class AndroidRunConfigurationModule extends JavaRunConfigurationModule {
     return GlobalSearchScope.projectScope(getProject());
   }
 
-  public @Nullable Module getAndroidTestModule() {
-    Module module = getModule();
-    return module == null ? null : getModuleForAndroidTestRunConfiguration(module);
-  }
+  //public @Nullable Module getAndroidTestModule() {
+  //  Module module = getModule();
+  //  return module == null ? null : getModuleForAndroidTestRunConfiguration(module);
+  //}
 }

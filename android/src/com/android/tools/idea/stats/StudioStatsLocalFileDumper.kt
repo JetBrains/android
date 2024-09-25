@@ -33,7 +33,7 @@ object StudioStatsLocalFileDumper {
 
   @JvmStatic
   fun registerStudioEventFileDumper(disposable: Disposable) {
-    StatisticsViewerListener.register(disposable, ::dumpStudioEventToDirectory)
+    //StatisticsViewerListener.register(disposable, ::dumpStudioEventToDirectory)
   }
 
   @Suppress("SpellCheckingInspection")
