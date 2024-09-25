@@ -48,8 +48,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
@@ -90,9 +90,9 @@ class AppInsightsProjectLevelControllerRule(
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl()
-    client = Mockito.spy(TestAppInsightsClient(cache))
+    client = spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
-    tracker = mock(AppInsightsTracker::class.java)
+    tracker = mock<AppInsightsTracker>()
     controller =
       AppInsightsProjectLevelControllerImpl(
         key,
