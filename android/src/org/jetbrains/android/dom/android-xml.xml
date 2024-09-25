@@ -143,7 +143,6 @@
 
 
     <!-- Documentation providers: -->
-    <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlDocumentationProvider" order="first"/>
     <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.lint.IssueIdDocumentationProvider" />
 
     <!-- Inspections related to the DOM structure: -->

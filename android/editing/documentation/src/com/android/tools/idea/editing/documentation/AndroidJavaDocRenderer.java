@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.javadoc;
+package com.android.tools.idea.editing.documentation;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.DOT_PNG;

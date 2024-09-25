@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.quickDefinitions
+package com.android.tools.idea.editing.documentation
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_TEXT
@@ -53,7 +53,9 @@ class AndroidImplementationViewSessionTest {
 
   private val fixture by lazy {
     edtRule.projectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+      testDataPath =
+        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/documentation/testData")
+          .toString()
     } as JavaCodeInsightTestFixture
   }
 

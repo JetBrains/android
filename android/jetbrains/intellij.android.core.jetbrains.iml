@@ -32,6 +32,7 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

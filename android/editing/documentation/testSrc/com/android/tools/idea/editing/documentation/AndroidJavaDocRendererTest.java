@@ -21,7 +21,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.SnapshotComparisonTest;

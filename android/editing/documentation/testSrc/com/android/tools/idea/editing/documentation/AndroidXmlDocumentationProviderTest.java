@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom;
+package com.android.tools.idea.editing.documentation;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -48,7 +48,7 @@ public class AndroidXmlDocumentationProviderTest {
   @Before
   public void setUp() {
     myFixture = projectRule.getFixture();
-    myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
+    myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/documentation/testData").toString());
   }
 
   @Test
