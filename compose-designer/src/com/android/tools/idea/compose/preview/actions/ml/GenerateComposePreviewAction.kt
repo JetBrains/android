@@ -60,7 +60,10 @@ class GenerateComposePreviewAction :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    if (e.place != ActionPlaces.EDITOR_POPUP) {
+    if (
+      e.place != ActionPlaces.EDITOR_POPUP &&
+        !e.place.contains(ActionPlaces.EDITOR_FLOATING_TOOLBAR)
+    ) {
       e.presentation.icon = AipluginIcons.Logo
     }
     e.presentation.text =
