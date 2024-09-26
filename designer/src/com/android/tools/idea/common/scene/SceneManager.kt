@@ -58,21 +58,23 @@ abstract class SceneManager(
   @GuardedBy("myActivationLock") private var isActivated = false
 
   // This will be initialized when constructor calls updateSceneView().
-  private var sceneView: SceneView? = null
+  protected var sceneView: SceneView? = null
+    set(value) {
+      field?.let { Disposer.dispose(it) }
+      field = value
+    }
 
   /** Optional secondary scene view. Null by default, but could be set by subclasses. */
   protected var secondarySceneView: SceneView? = null
-
-  /** Creates a new [SceneView] and returns it. */
-  protected abstract fun doCreateSceneView(): SceneView
-
-  /** Update the [SceneView] of [SceneManager]. The [SceneView] will be recreated if needed. */
-  fun updateSceneView() {
-    if (sceneView != null) {
-      Disposer.dispose(sceneView!!)
+    set(value) {
+      field?.let { Disposer.dispose(it) }
+      field = value
     }
-    sceneView = doCreateSceneView()
-  }
+
+  /**
+   * Update the [SceneView]s of this [SceneManager]. The [SceneView]s will be recreated if needed.
+   */
+  abstract fun updateSceneViews()
 
   /**
    * A list of not null scene views. The first element is always the primary scene view, and the
@@ -80,7 +82,7 @@ abstract class SceneManager(
    */
   val sceneViews: List<SceneView>
     get() {
-      checkNotNull(sceneView) { "updateSceneView was not called" }
+      checkNotNull(sceneView) { "updateSceneViews was not called" }
       val builder = ImmutableList.builder<SceneView>().add(sceneView!!)
       secondarySceneView?.let { builder.add(it) }
       return builder.build()

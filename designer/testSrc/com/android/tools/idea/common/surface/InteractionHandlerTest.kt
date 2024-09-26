@@ -142,7 +142,7 @@ private class Surface(
     get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
   override fun createSceneManager(model: NlModel) =
-    TestSceneManager(model, this).apply { updateSceneView() }
+    TestSceneManager(model, this).apply { updateSceneViews() }
 
   override fun scrollToCenter(list: List<NlComponent>) {}
 
