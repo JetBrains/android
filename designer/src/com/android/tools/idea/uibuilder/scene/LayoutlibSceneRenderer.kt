@@ -210,18 +210,26 @@ class LayoutlibSceneRenderer(
     scope.launch {
       requestsChannel.receiveAsFlow().collect {
         renderIsRunning.set(true)
-        if (isActive.get()) {
-          val reverseUpdate = AtomicBoolean(false)
-          val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
-          doRender(it, reverseUpdate)
-          if (rerenderIfNeeded && reverseUpdate.get()) {
+        try {
+          if (isActive.get()) {
+            val reverseUpdate = AtomicBoolean(false)
+            val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
             doRender(it, reverseUpdate)
-          }
-        } else log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
-        lastProcessedRenderRequestTime.emit(
-          maxOf(lastProcessedRenderRequestTime.value, it.requestTime)
-        )
-        renderIsRunning.set(false)
+            if (rerenderIfNeeded && reverseUpdate.get()) {
+              doRender(it, reverseUpdate)
+            }
+          } else
+            log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
+        } catch (t: CancellationException) {
+          log.debug(t)
+        } catch (t: Throwable) {
+          log.warn(t)
+        } finally {
+          lastProcessedRenderRequestTime.tryEmit(
+            maxOf(lastProcessedRenderRequestTime.value, it.requestTime)
+          )
+          renderIsRunning.set(false)
+        }
       }
     }
   }
