@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.Any
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionMessage
@@ -42,6 +43,7 @@ class TitanAiInsightClientTest {
     val projectId = "project-id"
     val insight = client.fetchCrashInsight(projectId, Any.getDefaultInstance())
     assertThat(insight.rawInsight).isEqualTo("Task Complete Response")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.CRASHLYTICS_TITAN)
   }
 }
 

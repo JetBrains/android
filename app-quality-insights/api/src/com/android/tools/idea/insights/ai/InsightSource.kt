@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.supportsContextSharing
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AiInsightSource
 
-data class AiInsight(
-  val rawInsight: String,
-  /** The experiment that was conducted to generate this insight. */
-  val experiment: Experiment = Experiment.UNKNOWN,
-  val isCached: Boolean = false,
-  val insightSource: InsightSource = InsightSource.UNKNOWN,
-) {
-  fun isEnhancedWithCodeContext() = experiment.supportsContextSharing()
+enum class InsightSource {
+  UNKNOWN,
+  STUDIO_BOT,
+  CRASHLYTICS_TITAN;
+
+  fun toProto(): AiInsightSource =
+    when (this) {
+      UNKNOWN -> AiInsightSource.UNKNOWN_SOURCE
+      STUDIO_BOT -> AiInsightSource.AI_INSIGHT_SOURCE_STUDIO_BOT
+      CRASHLYTICS_TITAN -> AiInsightSource.AI_INSIGHT_SOURCE_CRASHLYTICS_TITAN
+    }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.Experiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
@@ -75,14 +76,9 @@ interface AppInsightsTracker {
     isFetched: Boolean,
   )
 
-  fun logInsightSentiment(sentiment: Sentiment, experiment: InsightExperiment, crashType: CrashType)
+  fun logInsightSentiment(sentiment: Sentiment, crashType: CrashType, insight: AiInsight)
 
-  fun logInsightFetch(
-    unanonymizedAppId: String,
-    crashType: FailureType,
-    experiment: InsightExperiment,
-    isCached: Boolean,
-  )
+  fun logInsightFetch(unanonymizedAppId: String, crashType: FailureType, insight: AiInsight)
 
   enum class ProductType {
     CRASHLYTICS,

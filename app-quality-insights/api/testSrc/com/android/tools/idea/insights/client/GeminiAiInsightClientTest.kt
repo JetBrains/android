@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.Content
@@ -96,5 +97,6 @@ class GeminiAiInsightClientTest {
     val insight = client.fetchCrashInsight("", request)
 
     assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
   }
 }

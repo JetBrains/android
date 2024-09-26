@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.StudioBot
@@ -53,7 +54,7 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
           }
         }
         .trim()
-    return AiInsight(response)
+    return AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
   }
 
   private fun createPrompt(request: GeminiInsightsRequest) =
