@@ -44,6 +44,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.annotations.TestOnly
@@ -256,6 +257,42 @@ abstract class NewLayoutlibSceneManager(
 
   override fun requestRenderAsync() =
     requestRenderAsync(getTriggerFromChangeType(model.lastChangeType))
+
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("requestLayout after LayoutlibSceneManager has been disposed")
+    }
+    val currentTask =
+      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+    return currentTask.layout().thenAccept { result: RenderResult? ->
+      result
+        ?.takeUnless { isDisposed.get() }
+        ?.let {
+          layoutlibSceneRenderer.updateHierarchy(it)
+          model.notifyListenersModelChangedOnLayout(animate)
+        }
+    }
+  }
+
+  /**
+   * Executes the given block under a [RenderSession]. This allows the given block to access
+   * resources since they are set up before executing it.
+   *
+   * @param block the [Runnable] to be executed in the Render thread.
+   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
+   *   will be used (see [RenderAsyncActionExecutor])
+   * @param timeUnit the [TimeUnit] of the given timeout.
+   */
+  open fun executeInRenderSessionAsync(
+    block: Runnable,
+    timeout: Long,
+    timeUnit: TimeUnit,
+  ): CompletableFuture<Void> {
+    val currentTask =
+      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+    return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit)
+  }
 
   // TODO(b/369573219): make this method private
   protected fun updateTargets() {

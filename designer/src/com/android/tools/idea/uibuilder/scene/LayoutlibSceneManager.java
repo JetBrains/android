@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 
-import com.android.ide.common.rendering.api.RenderSession;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -38,8 +37,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.rendering.RenderAsyncActionExecutor;
-import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
@@ -47,10 +44,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -195,46 +189,5 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager {
 
     getDesignSurface().updateErrorDisplay();
     return sceneView;
-  }
-
-  @Override
-  @NotNull
-  public CompletableFuture<Void> requestLayoutAsync(boolean animate) {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
-    }
-
-    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
-    if (currentTask == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return currentTask.layout()
-      .thenAccept(result -> {
-        if (result != null && !isDisposed.get()) {
-          layoutlibSceneRenderer.updateHierarchy(result);
-          getModel().notifyListenersModelChangedOnLayout(animate);
-        }
-      });
-  }
-
-  /**
-   * Executes the given block under a {@link RenderSession}. This allows the given block to access resources since they are set up
-   * before executing it.
-   *
-   * @param block the {@link Callable} to be executed in the Render thread.
-   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
-   *                will be used (see {@link RenderAsyncActionExecutor).
-   * @param timeUnit   the {@link TimeUnit} for the timeout.
-   *
-   * @return A {@link CompletableFuture} that completes when the block finalizes.
-   * @see RenderTask#runAsyncRenderActionWithSession(Runnable, long, TimeUnit)
-   */
-  @NotNull
-  public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block, long timeout, TimeUnit timeUnit) {
-    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
-    if (currentTask == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-    return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
   }
 }
