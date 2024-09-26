@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.RenderSession.TouchEventType
 import com.android.resources.Density
 import com.android.sdklib.AndroidCoordinate
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.ModelListener
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
@@ -27,18 +29,29 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
+import com.android.tools.idea.common.surface.LayoutScannerEnabled
+import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
+import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
+import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.ExecuteCallbacksResult
 import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent
@@ -54,7 +67,7 @@ private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
 /**
  * [SceneManager] that creates a Scene from an NlModel representing a layout using layoutlib.
  *
- * @param model the [NlModel] to be rendered by this [NewLayoutlibSceneManager].
+ * @param model the [NlModel] to be rendered by this [LayoutlibSceneManager].
  * @param designSurface the [DesignSurface] used to present the result of the renders.
  * @param renderTaskDisposerExecutor the [Executor] to be used for running the slow [dispose] calls.
  * @param sceneComponentProvider the [SceneComponentHierarchyProvider] providing the mapping from
@@ -62,22 +75,23 @@ private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
  * @param layoutScannerConfig the [LayoutScannerConfiguration] for layout validation from
  *   Accessibility Testing Framework.
  */
-abstract class NewLayoutlibSceneManager(
+open class LayoutlibSceneManager(
   model: NlModel,
   designSurface: DesignSurface<*>,
-  renderTaskDisposerExecutor: Executor,
-  sceneComponentProvider: SceneComponentHierarchyProvider,
-  layoutScannerConfig: LayoutScannerConfiguration,
+  renderTaskDisposerExecutor: Executor = AppExecutorUtil.getAppExecutorService(),
+  sceneComponentProvider: SceneComponentHierarchyProvider =
+    LayoutlibSceneManagerHierarchyProvider(),
+  layoutScannerConfig: LayoutScannerConfiguration = LayoutScannerEnabled(),
 ) : SceneManager(model, designSurface, sceneComponentProvider), InteractiveSceneManager {
 
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField protected val isDisposed = AtomicBoolean(false)
+  private val isDisposed = AtomicBoolean(false)
 
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField protected var areListenersRegistered = false
+  private var areListenersRegistered = false
 
   override val designSurface: NlDesignSurface
     get() = super.designSurface as NlDesignSurface
+
+  val viewEditor: ViewEditor = ViewEditorImpl(model, scene)
 
   override val sceneDecoratorFactory: SceneDecoratorFactory = DECORATOR_FACTORY
 
@@ -92,9 +106,7 @@ abstract class NewLayoutlibSceneManager(
   /** Helper class in charge of some render related responsibilities */
   // TODO(b/335424569): add a better explanation after moving more responsibilities to
   // LayoutlibSceneRenderer
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField
-  protected val layoutlibSceneRenderer: LayoutlibSceneRenderer =
+  private val layoutlibSceneRenderer: LayoutlibSceneRenderer =
     LayoutlibSceneRenderer(
       this,
       renderTaskDisposerExecutor,
@@ -143,9 +155,49 @@ abstract class NewLayoutlibSceneManager(
     }
   }
 
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField
-  protected val selectionChangeListener = SelectionListener { _, _ ->
+  override fun doCreateSceneView(): SceneView {
+    if (model.type === MenuFileType) return createSceneViewsForMenu()
+
+    val primarySceneView: SceneView
+    designSurface.screenViewProvider.let {
+      primarySceneView = it.createPrimarySceneView(designSurface, this)
+      secondarySceneView = it.createSecondarySceneView(designSurface, this)
+    }
+    designSurface.updateErrorDisplay()
+    return primarySceneView
+  }
+
+  private fun createSceneViewsForMenu(): SceneView {
+    // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the
+    // view objects?
+    val newSceneView: SceneView =
+      model.file.rootTag
+        ?.takeIf {
+          it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) ==
+            NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+        }
+        ?.let {
+          ScreenView.newBuilder(designSurface, this)
+            .withLayersProvider { sv: ScreenView? ->
+              val colorBlindMode = designSurface.screenViewProvider.colorBlindFilter
+              ImmutableList.of(
+                ScreenViewLayer(
+                  sv!!,
+                  colorBlindMode,
+                  designSurface,
+                  designSurface::rotateSurfaceDegree,
+                )
+              )
+            }
+            .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
+            .withShapePolicy(SQUARE_SHAPE_POLICY)
+            .build()
+        } ?: ScreenView.newBuilder(designSurface, this).build()
+    designSurface.updateErrorDisplay()
+    return newSceneView
+  }
+
+  private val selectionChangeListener = SelectionListener { _, _ ->
     updateTargets()
     scene.needsRebuildList()
   }
@@ -157,13 +209,11 @@ abstract class NewLayoutlibSceneManager(
       if (field != value) {
         field = value
         // Update from the model to update the dpi
-        this@NewLayoutlibSceneManager.update()
+        this@LayoutlibSceneManager.update()
       }
     }
 
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField
-  protected val configurationChangeListener = ConfigurationListener { flags ->
+  private val configurationChangeListener = ConfigurationListener { flags ->
     configurationUpdatedFlags.getAndUpdate { it or flags }
     if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
       currentDpi = model.configuration.getDensity().dpiValue
@@ -171,14 +221,12 @@ abstract class NewLayoutlibSceneManager(
     true
   }
 
-  // TODO(b/369573219): make this field private and remove JvmField annotation
-  @JvmField
-  protected val modelChangeListener =
+  private val modelChangeListener =
     object : ModelListener {
       override fun modelDerivedDataChanged(model: NlModel) {
         // After the model derived data is changed, we need to update the selection in Edt thread.
         // Changing selection should run in UI thread to avoid race condition.
-        val surface: NlDesignSurface = this@NewLayoutlibSceneManager.designSurface
+        val surface: NlDesignSurface = this@LayoutlibSceneManager.designSurface
         CompletableFuture.runAsync(
           {
             // Ensure the new derived that is passed to the Scene components hierarchy
@@ -196,7 +244,7 @@ abstract class NewLayoutlibSceneManager(
       }
 
       override fun modelChanged(model: NlModel) {
-        val surface: NlDesignSurface = this@NewLayoutlibSceneManager.designSurface
+        val surface: NlDesignSurface = this@LayoutlibSceneManager.designSurface
         // The structure might have changed, force a re-inflate
         sceneRenderConfiguration.needsInflation.set(true)
         // If the update is reversed (namely, we update the View hierarchy from the component
@@ -232,6 +280,29 @@ abstract class NewLayoutlibSceneManager(
         requestRenderAsync()
       }
     }
+
+  init {
+    updateSceneView()
+    designSurface.selectionModel.addListener(selectionChangeListener)
+    model.configuration.addListener(configurationChangeListener)
+    val components: List<NlComponent> = model.treeReader.components
+    if (components.isNotEmpty()) {
+      val rootComponent = components.first().root
+      val previous = scene.isAnimated
+      scene.isAnimated = false
+      val hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent)
+      hierarchy.firstOrNull()?.let {
+        updateFromComponent(it, HashSet())
+        scene.root = it
+        updateTargets()
+        scene.isAnimated = previous
+      } ?: Logger.getInstance(LayoutlibSceneManager::class.java).warn("No root component")
+    }
+    model.addListener(modelChangeListener)
+    areListenersRegistered = true
+    // let's make sure the selection is correct
+    scene.selectionChanged(designSurface.selectionModel, designSurface.selectionModel.selection)
+  }
 
   /**
    * Adds a new render request to the queue.
@@ -294,8 +365,7 @@ abstract class NewLayoutlibSceneManager(
     return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit)
   }
 
-  // TODO(b/369573219): make this method private
-  protected fun updateTargets() {
+  private fun updateTargets() {
     val updateAgain = Runnable { this.updateTargets() }
     scene.root?.let {
       updateTargetProviders(it, updateAgain)
