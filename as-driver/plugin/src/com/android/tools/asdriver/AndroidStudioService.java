@@ -172,7 +172,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       ScreenshotCapturer screenshotCapturer = new ScreenshotCapturer(destination, screenshotNameFormat);
       screenshotCapturer.start();
       builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.OK);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       builder.setErrorMessage(e.getMessage());
       builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.ERROR);
     }
@@ -227,7 +227,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, dataContext);
         ActionUtil.performActionDumbAwareWithCallbacks(action, event);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         e.printStackTrace();
         if (!StringUtil.isEmpty(e.getMessage())) {
           errorMessage = e.getMessage();
@@ -382,7 +382,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       studioInteractionService.findAndInvokeComponent(request.getMatchersList());
       builder.setResult(ASDriver.InvokeComponentResponse.Result.OK);
     }
-    catch (Exception e) {
+    catch (Throwable e) {
       e.printStackTrace();
       builder.setResult(ASDriver.InvokeComponentResponse.Result.ERROR);
       if (!StringUtil.isEmpty(e.getMessage())) {
@@ -483,7 +483,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.OK);
       }
-      catch (Exception e) {
+      catch (Throwable e) {
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
         e.printStackTrace();
       }
@@ -656,7 +656,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
         builder.setResult(ASDriver.EditFileResponse.Result.OK);
       }
-      catch (Exception e) {
+      catch (Throwable e) {
         e.printStackTrace();
         if (!StringUtil.isEmpty(e.getMessage())) {
           errorMessage = e.getMessage();
@@ -704,7 +704,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         caretModel.moveToOffset(offset);
 
         builder.setResult(ASDriver.MoveCaretResponse.Result.OK);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         e.printStackTrace();
         if (!StringUtil.isEmpty(e.getMessage())) {
           errorMessage = e.getMessage();
@@ -752,7 +752,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       studioInteractionService.waitForComponent(request.getMatchersList(), request.getWaitForEnabled());
       builder.setResult(ASDriver.WaitForComponentResponse.Result.OK);
     }
-    catch (Exception e) {
+    catch (Throwable e) {
       e.printStackTrace();
       builder.setResult(ASDriver.WaitForComponentResponse.Result.ERROR);
       if (!StringUtil.isEmpty(e.getMessage())) {
@@ -806,7 +806,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         }
       }
       responseObserver.onNext(ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.OK).build());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       ASDriver.TakeBleakSnapshotResponse.Builder builder =
         ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.ERROR);
       if (!StringUtil.isEmpty(e.getMessage())) {
@@ -895,7 +895,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
 
       responseBuilder.setResult(ASDriver.OpenProjectResponse.Result.OK);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       responseBuilder.setErrorMessage(e.toString());
     }
 
