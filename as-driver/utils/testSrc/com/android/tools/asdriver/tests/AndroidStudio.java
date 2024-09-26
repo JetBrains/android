@@ -205,17 +205,6 @@ public class AndroidStudio implements AutoCloseable {
     return response.getVersion();
   }
 
-  public void validatePluginConfiguration() {
-    var request = ASDriver.ValidatePluginConfigurationRequest.newBuilder().build();
-    var response = androidStudio.validatePluginConfiguration(request);
-    switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new AssertionError(response.getErrorMessage());
-    }
-  }
-
   public String getSystemProperty(String systemProperty) {
     ASDriver.GetSystemPropertyRequest rq = ASDriver.GetSystemPropertyRequest.newBuilder().setSystemProperty(systemProperty).build();
     ASDriver.GetSystemPropertyResponse response = androidStudio.getSystemProperty(rq);
