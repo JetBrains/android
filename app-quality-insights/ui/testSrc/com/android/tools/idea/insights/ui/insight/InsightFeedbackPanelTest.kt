@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
@@ -87,13 +88,13 @@ class InsightFeedbackPanelTest {
   @Test
   fun `test sentiment tracked when feedback clicked`() = runBlocking {
     val (upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
-
+    var insight = AiInsight("", Experiment.CONTROL, insightSource = InsightSource.CRASHLYTICS_TITAN)
     val upvoteEvent =
       TestActionEvent.createTestEvent { key ->
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.ANR
-          INSIGHT_KEY.name -> AiInsight("", Experiment.CONTROL)
+          INSIGHT_KEY.name -> insight
           else -> null
         }
       }
@@ -101,16 +102,17 @@ class InsightFeedbackPanelTest {
     verify(controllerRule.tracker)
       .logInsightSentiment(
         AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_UP,
-        AppQualityInsightsUsageEvent.InsightExperiment.CONTROL,
         AppQualityInsightsUsageEvent.CrashType.ANR,
+        insight,
       )
 
+    insight = AiInsight("", Experiment.TOP_SOURCE)
     val downvoteEvent =
       TestActionEvent.createTestEvent { key ->
         when (key) {
           APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
           FAILURE_TYPE_KEY.name -> FailureType.FATAL
-          INSIGHT_KEY.name -> AiInsight("", Experiment.TOP_SOURCE)
+          INSIGHT_KEY.name -> insight
           else -> null
         }
       }
@@ -118,8 +120,8 @@ class InsightFeedbackPanelTest {
     verify(controllerRule.tracker)
       .logInsightSentiment(
         AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_DOWN,
-        AppQualityInsightsUsageEvent.InsightExperiment.TOP_SOURCE,
         AppQualityInsightsUsageEvent.CrashType.FATAL,
+        insight,
       )
   }
 

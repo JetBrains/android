@@ -19,11 +19,11 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.intellij.openapi.project.Project
 
@@ -167,8 +167,8 @@ class AppInsightsTrackerImpl(
 
   override fun logInsightSentiment(
     sentiment: Sentiment,
-    experiment: InsightExperiment,
     crashType: AppQualityInsightsUsageEvent.CrashType,
+    insight: AiInsight,
   ) {
     log(project.name) {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.INSIGHT_SENTIMENT
@@ -176,8 +176,9 @@ class AppInsightsTrackerImpl(
         AppQualityInsightsUsageEvent.InsightSentiment.newBuilder()
           .apply {
             this.sentiment = sentiment
-            this.experiment = experiment
+            this.experiment = insight.experiment.toProto()
             this.crashType = crashType
+            this.source = insight.insightSource.toProto()
           }
           .build()
     }
@@ -186,8 +187,7 @@ class AppInsightsTrackerImpl(
   override fun logInsightFetch(
     unanonymizedAppId: String,
     crashType: FailureType,
-    experiment: InsightExperiment,
-    isCached: Boolean,
+    insight: AiInsight,
   ) {
     log(unanonymizedAppId) {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.INSIGHT_FETCH
@@ -195,8 +195,9 @@ class AppInsightsTrackerImpl(
         AppQualityInsightsUsageEvent.InsightFetchDetails.newBuilder()
           .apply {
             this.crashType = crashType.toCrashType()
-            this.experiment = experiment
+            this.experiment = insight.experiment.toProto()
             this.isCached = isCached
+            this.source = insight.insightSource.toProto()
           }
           .build()
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.protobuf.Any
@@ -71,7 +72,10 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
         }
         .build()
     val response = taskCompletionService.completeTask(request).await()
-    return AiInsight(response.output.messagesList.first().content)
+    return AiInsight(
+      response.output.messagesList.first().content,
+      insightSource = InsightSource.CRASHLYTICS_TITAN,
+    )
   }
 
   companion object {

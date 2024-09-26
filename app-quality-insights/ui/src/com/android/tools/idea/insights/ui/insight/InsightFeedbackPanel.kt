@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.analytics.toProto
-import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
 import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
@@ -100,9 +98,9 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
   private fun logFeedback(sentiment: Sentiment, e: AnActionEvent) {
     val tracker = e.getData(APP_INSIGHTS_TRACKER_KEY) ?: return
     val crashType = e.getData(FAILURE_TYPE_KEY)?.toCrashType() ?: return
-    val experiment = e.getData(INSIGHT_KEY)?.experiment ?: Experiment.UNKNOWN
+    val insight = e.getData(INSIGHT_KEY) ?: return
 
-    tracker.logInsightSentiment(sentiment, experiment.toProto(), crashType)
+    tracker.logInsightSentiment(sentiment, crashType, insight)
   }
 
   private enum class InsightFeedback {
