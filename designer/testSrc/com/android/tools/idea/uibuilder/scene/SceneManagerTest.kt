@@ -28,7 +28,6 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -53,7 +52,9 @@ class TestSceneManager(
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider = DefaultSceneManagerHierarchyProvider(),
 ) : SceneManager(model, surface, sceneComponentProvider) {
-  override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
+  override fun updateSceneViews() {
+    this.sceneView = TestSceneView(100, 100, this)
+  }
 
   override val sceneScalingFactor: Float = 1f
 
@@ -121,7 +122,7 @@ class SceneManagerTest {
         },
       )
 
-    sceneManager.updateSceneView()
+    sceneManager.updateSceneViews()
     sceneManager.update()
     assertEquals(4, sceneManager.scene.root!!.childCount)
     assertEquals(20, sceneManager.scene.root!!.drawX)
@@ -143,7 +144,7 @@ class SceneManagerTest {
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelWithoutRender(model)
     val sceneManager = TestSceneManager(model, surface)
-    sceneManager.updateSceneView()
+    sceneManager.updateSceneViews()
     sceneManager.update()
 
     val source = Object()
@@ -169,7 +170,7 @@ class SceneManagerTest {
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelWithoutRender(model)
     val sceneManager = TestSceneManager(model, surface)
-    sceneManager.updateSceneView()
+    sceneManager.updateSceneViews()
     sceneManager.update()
 
     var modelChangedCount = 0

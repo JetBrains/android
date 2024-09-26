@@ -106,7 +106,7 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     get() = designSurface.currentNavigation.children.none { it.isDestination }
 
   init {
-    updateSceneView()
+    updateSceneViews()
     updateHierarchy(model, null)
     model.addListener(ModelChangeListener())
     designSurface.selectionModel.addListener { _, _ -> scene.needsRebuildList() }
@@ -122,7 +122,9 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
   override val designSurface: NavDesignSurface
     get() = super.designSurface as NavDesignSurface
 
-  override fun doCreateSceneView(): NavView = NavView(designSurface, this)
+  override fun updateSceneViews() {
+    this.sceneView = NavView(designSurface, this)
+  }
 
   override fun update() {
     val rootBounds: Rectangle? = scene.root?.fillDrawRect(0, null)
