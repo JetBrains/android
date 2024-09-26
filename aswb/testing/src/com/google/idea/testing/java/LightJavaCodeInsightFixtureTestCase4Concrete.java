@@ -19,10 +19,10 @@ import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase4;
 
 /** Compat base class for LightJavaCodeInsightFixtureTestCase4 */
-public class CompatLightJavaCodeInsightFixtureTestCase4
+public class LightJavaCodeInsightFixtureTestCase4Concrete
     extends LightJavaCodeInsightFixtureTestCase4 {
 
-  public CompatLightJavaCodeInsightFixtureTestCase4() {
+  public LightJavaCodeInsightFixtureTestCase4Concrete() {
     super(new DefaultLightProjectDescriptor(), null);
   }
 }

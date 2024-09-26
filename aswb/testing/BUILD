@@ -18,10 +18,6 @@ java_library(
         "src/**/*.java",
         "studio/**/*.java",
         "cidr/**/*.java",
-    ]) + glob([
-        "testcompat/v233/com/google/idea/cidr/**/*.java",
-        "testcompat/v233/com/google/idea/sdkcompat/**/*.java",
-        "testcompat/v233/com/google/idea/testing/**/*.java",
     ]),
     exports = ["//tools/adt/idea/aswb/testing/src/com/google/idea/testing/runfiles"],
     deps = [

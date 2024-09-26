@@ -46,9 +46,9 @@ import com.google.idea.blaze.java.sync.model.BlazeJavaImportResult;
 import com.google.idea.blaze.java.sync.model.BlazeJavaSyncData;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
-import com.google.idea.sdkcompat.roots.ex.ProjectRootManagerExWrapper;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.OrderEnumerator;
@@ -231,8 +231,26 @@ public class BlazeAndroidSyncPluginTest extends BlazeTestCase {
   }
 
   /** Stores a project sdk so that it can be obtained later for verification. */
-  private static class MockProjectRootManagerEx extends ProjectRootManagerExWrapper {
+  private static class MockProjectRootManagerEx extends ProjectRootManagerEx {
     Sdk projectSdk;
+
+    @Override
+    public void makeRootsChange(
+      @NotNull Runnable runnable, @NotNull RootsChangeRescanningInfo rootsChangeRescanningInfo) {}
+
+    @Override
+    public @NotNull AutoCloseable withRootsChange(
+      @NotNull RootsChangeRescanningInfo rootsChangeRescanningInfo) {
+      return new AutoCloseable() {
+        @Override
+        public void close() throws Exception {}
+      };
+    }
+
+    @Override
+    public List<VirtualFile> markRootsForRefresh() {
+      return null;
+    }
 
     @Nullable
     @Override

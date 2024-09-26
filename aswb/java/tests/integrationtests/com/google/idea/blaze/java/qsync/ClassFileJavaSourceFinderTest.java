@@ -38,7 +38,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.testing.EdtRule;
-import com.google.idea.testing.java.CompatLightJavaCodeInsightFixtureTestCase4;
+import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
 import com.google.protobuf.TextFormat;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -56,7 +56,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class ClassFileJavaSourceFinderTest extends CompatLightJavaCodeInsightFixtureTestCase4 {
+public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTestCase4Concrete {
 
   @Rule public final EdtRule edtRule = new EdtRule();
   @Rule public final Expect expect = Expect.create();

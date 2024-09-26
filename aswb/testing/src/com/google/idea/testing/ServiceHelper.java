@@ -15,7 +15,6 @@
  */
 package com.google.idea.testing;
 
-import com.google.idea.sdkcompat.BaseSdkTestCompat;
 import com.intellij.lang.LanguageExtensionPoint;
 import com.intellij.mock.MockApplication;
 import com.intellij.mock.MockProject;
@@ -167,6 +166,6 @@ public class ServiceHelper {
       Disposer.register(parentDisposable, (Disposable) implementation);
     }
     Disposer.register(
-        parentDisposable, () -> BaseSdkTestCompat.unregisterComponent(componentManager, key));
+        parentDisposable, () -> ((ComponentManagerImpl) componentManager).unregisterComponent(key));
   }
 }
