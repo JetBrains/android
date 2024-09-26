@@ -1584,7 +1584,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.AnimationInspection -> {
         currentAnimationPreview?.let {
-          Disposer.dispose(it)
+          withContext(uiThread) { Disposer.dispose(it) }
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null
