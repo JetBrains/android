@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.resources.Density
 import com.android.tools.configurations.ConfigurationListener
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.scene.SceneComponentHierarchyProvider
@@ -31,7 +32,13 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.UIUtil
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.annotations.TestOnly
 
@@ -55,6 +62,13 @@ abstract class NewLayoutlibSceneManager(
   sceneComponentProvider: SceneComponentHierarchyProvider,
   layoutScannerConfig: LayoutScannerConfiguration,
 ) : SceneManager(model, designSurface, sceneComponentProvider) {
+
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField protected val isDisposed = AtomicBoolean(false)
+
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField protected var areListenersRegistered = false
+
   override val designSurface: NlDesignSurface
     get() = super.designSurface as NlDesignSurface
 
@@ -151,6 +165,93 @@ abstract class NewLayoutlibSceneManager(
     true
   }
 
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField
+  protected val modelChangeListener =
+    object : ModelListener {
+      override fun modelDerivedDataChanged(model: NlModel) {
+        // After the model derived data is changed, we need to update the selection in Edt thread.
+        // Changing selection should run in UI thread to avoid race condition.
+        val surface: NlDesignSurface = this@NewLayoutlibSceneManager.designSurface
+        CompletableFuture.runAsync(
+          {
+            // Ensure the new derived that is passed to the Scene components hierarchy
+            if (!isDisposed.get()) update()
+
+            // Selection change listener should run in UI thread not in the layoublib rendering
+            // thread. This avoids race condition.
+            selectionChangeListener.selectionChanged(
+              surface.selectionModel,
+              surface.selectionModel.selection,
+            )
+          },
+          EdtExecutorService.getInstance(),
+        )
+      }
+
+      override fun modelChanged(model: NlModel) {
+        val surface: NlDesignSurface = this@NewLayoutlibSceneManager.designSurface
+        // The structure might have changed, force a re-inflate
+        sceneRenderConfiguration.needsInflation.set(true)
+        // If the update is reversed (namely, we update the View hierarchy from the component
+        // hierarchy because information about scrolling is located in the component hierarchy and
+        // is lost in the view hierarchy) we need to run render again to propagate the change
+        // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and
+        // render the updated result.
+        layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
+        requestRenderAsync(getTriggerFromChangeType(model.lastChangeType))
+          .thenRunAsync(
+            {
+              selectionChangeListener.selectionChanged(
+                surface.selectionModel,
+                surface.selectionModel.selection,
+              )
+            },
+            EdtExecutorService.getInstance(),
+          )
+      }
+
+      override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
+        UIUtil.invokeLaterIfNeeded {
+          if (!isDisposed.get()) {
+            val previous: Boolean = scene.isAnimated
+            scene.isAnimated = animate
+            update()
+            scene.isAnimated = previous
+          }
+        }
+      }
+
+      override fun modelLiveUpdate(model: NlModel) {
+        requestRenderAsync()
+      }
+    }
+
+  /**
+   * Adds a new render request to the queue.
+   *
+   * @param trigger render trigger for reporting purposes
+   * @return [CompletableFuture] that will be completed once the render has been done.
+   */
+  protected open fun requestRenderAsync(
+    trigger: LayoutEditorRenderResult.Trigger?
+  ): CompletableFuture<Void> {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("requestRender after LayoutlibSceneManager has been disposed")
+      return CompletableFuture.completedFuture(null)
+    }
+
+    logConfigurationChange(designSurface)
+    model.resetLastChange()
+    return layoutlibSceneRenderer.renderAsync(trigger).thenCompose {
+      CompletableFuture.completedFuture(null)
+    }
+  }
+
+  override fun requestRenderAsync() =
+    requestRenderAsync(getTriggerFromChangeType(model.lastChangeType))
+
   // TODO(b/369573219): make this method private
   protected fun updateTargets() {
     val updateAgain = Runnable { this.updateTargets() }
@@ -160,8 +261,7 @@ abstract class NewLayoutlibSceneManager(
     }
   }
 
-  // TODO(b/369573219): make this method private
-  protected fun logConfigurationChange(surface: DesignSurface<*>) {
+  private fun logConfigurationChange(surface: DesignSurface<*>) {
     val flags: Int = configurationUpdatedFlags.getAndSet(0) // Get and reset the saved flags
     if (flags != 0) {
       // usage tracking (we only pay attention to individual changes where only one item is affected
@@ -180,6 +280,20 @@ abstract class NewLayoutlibSceneManager(
       if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
         analyticsManager.trackDeviceChange()
       }
+    }
+  }
+
+  override fun dispose() {
+    if (isDisposed.getAndSet(true)) return
+    try {
+      if (areListenersRegistered) {
+        val model = model
+        designSurface.selectionModel.removeListener(selectionChangeListener)
+        model.configuration.removeListener(configurationChangeListener)
+        model.removeListener(modelChangeListener)
+      }
+    } finally {
+      super.dispose()
     }
   }
 }

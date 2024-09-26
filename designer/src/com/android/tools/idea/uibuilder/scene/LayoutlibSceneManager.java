@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.scene;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
-import static com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt.getTriggerFromChangeType;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.sdklib.AndroidCoordinate;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -38,7 +36,6 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
@@ -48,12 +45,9 @@ import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
@@ -62,20 +56,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
 public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements InteractiveSceneManager {
-  private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
-  private final boolean myAreListenersRegistered;
   @NotNull private final ViewEditor myViewEditor;
-
-  private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   /** Counter for user events during the interactive session. */
   private final AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
@@ -125,8 +113,8 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       }
     }
 
-    model.addListener(myModelChangeListener);
-    myAreListenersRegistered = true;
+    model.addListener(modelChangeListener);
+    areListenersRegistered = true;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -175,25 +163,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     return myViewEditor;
   }
 
-  @Override
-  public void dispose() {
-    if (isDisposed.getAndSet(true)) {
-      return;
-    }
-
-    try {
-      if (myAreListenersRegistered) {
-        NlModel model = getModel();
-        getDesignSurface().getSelectionModel().removeListener(selectionChangeListener);
-        model.getConfiguration().removeListener(configurationChangeListener);
-        model.removeListener(myModelChangeListener);
-      }
-    }
-    finally {
-      super.dispose();
-    }
-  }
-
   @NotNull
   @Override
   protected SceneView doCreateSceneView() {
@@ -235,81 +204,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
 
     getDesignSurface().updateErrorDisplay();
     return sceneView;
-  }
-
-  private class ModelChangeListener implements ModelListener {
-    @Override
-    public void modelDerivedDataChanged(@NotNull NlModel model) {
-      // After the model derived data is changed, we need to update the selection in Edt thread.
-      // Changing selection should run in UI thread to avoid race condition.
-      NlDesignSurface surface = getDesignSurface();
-      CompletableFuture.runAsync(() -> {
-        // Ensure the new derived that is passed to the Scene components hierarchy
-        if (!isDisposed.get()) {
-          update();
-        }
-
-        // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
-        selectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
-      }, EdtExecutorService.getInstance());
-    }
-
-    @Override
-    public void modelChanged(@NotNull NlModel model) {
-      NlDesignSurface surface = getDesignSurface();
-      // The structure might have changed, force a re-inflate
-      getSceneRenderConfiguration().getNeedsInflation().set(true);
-      // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
-      // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
-      // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
-      layoutlibSceneRenderer.getSceneRenderConfiguration().getDoubleRenderIfNeeded().set(true);
-      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
-        .thenRunAsync(() ->
-                        selectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
-          , EdtExecutorService.getInstance());
-    }
-
-    @Override
-    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      UIUtil.invokeLaterIfNeeded(() -> {
-        if (!isDisposed.get()) {
-          boolean previous = getScene().isAnimated();
-          getScene().setAnimated(animate);
-          update();
-          getScene().setAnimated(previous);
-        }
-      });
-    }
-
-    @Override
-    public void modelLiveUpdate(@NotNull NlModel model) {
-      requestRenderAsync();
-    }
-  }
-
-  /**
-   * Adds a new render request to the queue.
-   * @param trigger build trigger for reporting purposes
-   * @return {@link CompletableFuture} that will be completed once the render has been done.
-   */
-  @NotNull
-  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
-      return CompletableFuture.completedFuture(null);
-    }
-
-    NlDesignSurface surface = getDesignSurface();
-    logConfigurationChange(surface);
-    getModel().resetLastChange();
-
-    return layoutlibSceneRenderer.renderAsync(trigger).thenCompose((unit) -> CompletableFuture.completedFuture(null));
-  }
-
-  @Override
-  @NotNull
-  public CompletableFuture<Void> requestRenderAsync() {
-    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   @Override
