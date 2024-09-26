@@ -45,7 +45,7 @@ public class ExpectedFailuresRunNotifier extends RunNotifierWrapper {
   static {
     String expectedFailuresFile = System.getenv("EXPECTED_FAILURES_FILE");
     if (expectedFailuresFile != null && !expectedFailuresFile.isEmpty()) {
-      Path path = Path.of(System.getenv("RUNFILES_DIR")).resolve("__main__").resolve(expectedFailuresFile);
+      Path path = Path.of(System.getenv("RUNFILES_DIR")).resolve("_main").resolve(expectedFailuresFile);
       try {
         expectedFailures.addAll(Files.readAllLines(path));
       }

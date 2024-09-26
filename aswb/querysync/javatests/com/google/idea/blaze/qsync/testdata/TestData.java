@@ -56,7 +56,7 @@ public enum TestData {
     this.srcPaths = stream(paths).map(Path::of).collect(toImmutableList());
   }
 
-  private static final String WORKSPACE_NAME = "__main__";
+  private static final String WORKSPACE_NAME = "_main";
 
   public static final Path ROOT =
       Path.of(
