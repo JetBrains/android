@@ -30,6 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.guava.await
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val INSTANCE_FORMAT = "projects/%s/locations/global/instances/default"
@@ -51,7 +52,7 @@ class TitanAiInsightClient
 internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : AiInsightClient {
 
   private val taskCompletionService =
-    TaskCompletionServiceGrpc.newBlockingStub(channel).withInterceptors(interceptor)
+    TaskCompletionServiceGrpc.newFutureStub(channel).withInterceptors(interceptor)
 
   override suspend fun fetchCrashInsight(
     projectId: String,
@@ -69,7 +70,7 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
               .build()
         }
         .build()
-    val response = taskCompletionService.completeTask(request)
+    val response = taskCompletionService.completeTask(request).await()
     return AiInsight(response.output.messagesList.first().content)
   }
 
