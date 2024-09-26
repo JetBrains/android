@@ -18,7 +18,6 @@ package com.android.tools.idea.project
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.getPathFromFqcn
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module

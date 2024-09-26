@@ -57,3 +57,5 @@ fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == thi
 fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
 fun Module.isHolderModule() : Boolean = getHolderModule() == this
 fun Module.isMainModule() : Boolean = getMainModule() == this
+fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
+fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this

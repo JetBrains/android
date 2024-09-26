@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider

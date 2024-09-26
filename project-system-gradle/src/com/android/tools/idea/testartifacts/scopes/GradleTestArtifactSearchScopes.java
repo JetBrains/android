@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getAndroidTestModule;
+import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getAndroidTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getScreenshotTestModule;
 import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getUnitTestModule;

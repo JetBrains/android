@@ -20,7 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TEST
-import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.run.AndroidRunConfiguration

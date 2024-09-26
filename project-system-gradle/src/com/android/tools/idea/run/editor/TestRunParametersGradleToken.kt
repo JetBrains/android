@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.editor
 
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.module.Module
 
