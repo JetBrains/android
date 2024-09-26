@@ -97,7 +97,7 @@ open class SyncLayoutlibSceneManager(
   override fun executeInRenderSessionAsync(
     block: Runnable,
     timeout: Long,
-    timeUnit: TimeUnit?,
+    timeUnit: TimeUnit,
   ): CompletableFuture<Void> {
     block.run()
     return CompletableFuture.completedFuture(null)
