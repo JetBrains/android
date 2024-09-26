@@ -83,6 +83,11 @@
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
 
+    <action internal="true"
+            text="Validate Plugin Configuration"
+            id="Android.ValidatePluginConfiguration"
+            class="com.android.tools.idea.actions.ValidatePluginConfigurationAction"/>
+
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />

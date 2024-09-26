@@ -40,6 +40,7 @@ public class StartUpTest {
   public void startUpTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
     AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
+    install.addVmOption("-Didea.is.internal=true"); // Allows executing internal actions in the test.
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display)) {
       // Check that AndroidStudioApplicationInfo.xml was patched properly, and that it is not overridden by
@@ -56,7 +57,7 @@ public class StartUpTest {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
 
-      studio.validatePluginConfiguration();
+      studio.executeAction("Android.ValidatePluginConfiguration");
 
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",
