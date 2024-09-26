@@ -171,7 +171,7 @@ class VisualizationForm(
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
       NlSurfaceBuilder.builder(project, this@VisualizationForm) { surface, model ->
-          LayoutlibSceneManager(model, surface, config).apply {
+          LayoutlibSceneManager(model, surface, layoutScannerConfig = config).apply {
             listenResourceChange = false
             updateAndRenderWhenActivated = false
             sceneRenderConfiguration.let {
