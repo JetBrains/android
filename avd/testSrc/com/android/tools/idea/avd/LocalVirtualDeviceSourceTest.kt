@@ -29,6 +29,7 @@ import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
@@ -102,6 +103,7 @@ class LocalVirtualDeviceSourceTest {
           CompositionLocalProvider(
             LocalComponent provides swingPanel,
             LocalFileSystem provides sdkRoot.fileSystem,
+            LocalProject provides null,
           ) {
             wizard.Content()
           }

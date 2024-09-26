@@ -30,8 +30,8 @@ import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
-import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
@@ -50,7 +50,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -79,18 +78,17 @@ internal fun WizardPageScope.ConfigurationPage(
   sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
-  val allImages: LoadingState<List<ISystemImage>> by
-    remember { ISystemImages.systemImageFlow(sdkHandler).map { LoadingState.Ready(it) } }
-      .collectAsState(LoadingState.Loading)
-  val readyImages =
-    allImages as? LoadingState.Ready<List<ISystemImage>>
-      ?: run {
-        Box(Modifier.fillMaxSize()) {
-          Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
-        }
-        return
-      }
-  val images = readyImages.value.filter { matches(device, it) }.toImmutableList()
+  val project = LocalProject.current
+  val imagesState: SystemImageState by
+    remember { ISystemImages.systemImageFlow(sdkHandler, project) }
+      .collectAsState(SystemImageState.INITIAL)
+  val images = imagesState.images.filter { matches(device, it) }.toImmutableList()
+  if (!imagesState.hasLocal || (images.isEmpty() && !imagesState.hasRemote)) {
+    Box(Modifier.fillMaxSize()) {
+      Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
+    }
+    return
+  }
   if (images.isEmpty()) {
     Box(Modifier.fillMaxSize()) {
       Text("No system images available.", modifier = Modifier.align(Alignment.Center))
