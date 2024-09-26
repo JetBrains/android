@@ -23,6 +23,7 @@ import androidx.compose.ui.test.performClick
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
@@ -59,6 +60,7 @@ class AddDeviceWizardTest {
           CompositionLocalProvider(
             LocalComponent provides swingPanel,
             LocalFileSystem provides fileSystem,
+            LocalProject provides null,
           ) {
             wizard.Content()
           }

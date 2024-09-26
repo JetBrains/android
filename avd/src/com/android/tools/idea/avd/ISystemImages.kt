@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.repository.api.RepoManager
+import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.SystemImageTags
@@ -24,62 +24,91 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
 import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.transform
+
+private sealed class SystemImageLoadingEvent
+
+private object LocalImagesLoaded : SystemImageLoadingEvent()
+
+private object RemoteImagesLoaded : SystemImageLoadingEvent()
+
+private object Error : SystemImageLoadingEvent()
+
+internal data class SystemImageState(
+  val hasLocal: Boolean,
+  val hasRemote: Boolean,
+  val images: ImmutableList<ISystemImage>,
+  val error: String? = null,
+) {
+  companion object {
+    val INITIAL = SystemImageState(false, false, persistentListOf(), null)
+  }
+}
 
 internal object ISystemImages {
-  fun systemImageFlow(sdkHandler: AndroidSdkHandler): Flow<ImmutableList<ISystemImage>> =
-    callbackFlow {
-        val indicator = StudioLoggerProgressIndicator(ISystemImages::class.java)
-        val repoManager = sdkHandler.getSdkManager(indicator)
+  fun systemImageFlow(sdkHandler: AndroidSdkHandler, project: Project?): Flow<SystemImageState> {
+    val indicator = StudioLoggerProgressIndicator(ISystemImages::class.java)
+    val repoManager = sdkHandler.getSdkManager(indicator)
 
-        fun systemImages(): ImmutableList<ISystemImage> {
-          // The SystemImageManager gets destroyed and recreated every time the packages change; do
-          // not cache it.
-          return SystemImageSupplier(
-              repoManager,
-              sdkHandler.getSystemImageManager(indicator),
-              LogWrapper(ISystemImages.thisLogger<ISystemImages>()),
-            )
-            .get()
-            .toImmutableList()
-        }
+    fun systemImages(): ImmutableList<ISystemImage> {
+      // The SystemImageManager gets destroyed and recreated every time the packages change; do
+      // not cache it.
+      return SystemImageSupplier(
+          repoManager,
+          sdkHandler.getSystemImageManager(indicator),
+          LogWrapper(ISystemImages.thisLogger<ISystemImages>()),
+        )
+        .get()
+        .toImmutableList()
+    }
+    var state = SystemImageState.INITIAL
 
-        val listener =
-          RepoManager.RepoLoadedListener {
-            // Due to conflate() below, this should always succeed
-            trySend(systemImages())
-          }
-        repoManager.addLocalChangeListener(listener)
-        repoManager.addRemoteChangeListener(listener)
-
+    // Transform callbacks from RepoManager to SystemImageLoadingEvents that are processed serially.
+    return callbackFlow {
         repoManager.loadSynchronously(
           1.days.inWholeMilliseconds,
-          indicator,
+          listOf(RepoLoadedListener { trySend(LocalImagesLoaded) }),
+          listOf(RepoLoadedListener { trySend(RemoteImagesLoaded) }),
+          listOf(Runnable { trySend(Error) }),
+          StudioProgressRunner(false, false, "Loading Images", project),
           StudioDownloader(),
           StudioSettingsController.getInstance(),
         )
 
-        send(systemImages())
-
-        awaitClose {
-          repoManager.removeLocalChangeListener(listener)
-          repoManager.removeRemoteChangeListener(listener)
-        }
+        // At this point, we've sent local and remote images (or an error). Now just listen for
+        // package downloads.
+        val listener = RepoLoadedListener { trySend(LocalImagesLoaded) }
+        repoManager.addLocalChangeListener(listener)
+        awaitClose { repoManager.removeLocalChangeListener(listener) }
+      }
+      .transform { event ->
+        state =
+          when (event) {
+            is LocalImagesLoaded -> state.copy(hasLocal = true, images = systemImages())
+            is RemoteImagesLoaded -> state.copy(hasRemote = true, images = systemImages())
+            is Error -> state.copy(error = "Error loading remote images.")
+          }
+        emit(state)
       }
       .flowOn(AndroidDispatchers.workerThread)
       .conflate()
+  }
 }
 
 internal fun ISystemImage.getServices(): Services {
