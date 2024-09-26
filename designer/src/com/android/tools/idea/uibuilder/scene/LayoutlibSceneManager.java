@@ -20,7 +20,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
 
 import com.android.ide.common.rendering.api.RenderSession;
-import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -40,15 +39,12 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.rendering.ExecuteCallbacksResult;
-import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -56,17 +52,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
-public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements InteractiveSceneManager {
+public class LayoutlibSceneManager extends NewLayoutlibSceneManager {
   @NotNull private final ViewEditor myViewEditor;
-
-  /** Counter for user events during the interactive session. */
-  private final AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
 
   /**
    * Creates a new LayoutlibSceneManager.
@@ -227,22 +219,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
   }
 
   /**
-   * Triggers execution of the Handler and frame callbacks in the layoutlib
-   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
-   */
-  @NotNull
-  public CompletableFuture<ExecuteCallbacksResult> executeCallbacksAsync() {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
-    }
-    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
-    if (currentTask == null) {
-      return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
-    }
-    return currentTask.executeCallbacks(currentTimeNanos());
-  }
-
-  /**
    * Executes the given block under a {@link RenderSession}. This allows the given block to access resources since they are set up
    * before executing it.
    *
@@ -261,75 +237,6 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
       return CompletableFuture.completedFuture(null);
     }
     return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
-  }
-
-  private long currentTimeNanos() {
-    return layoutlibSceneRenderer.getSessionClock().getTimeNanos();
-  }
-
-  /**
-   * Pauses session clock, so that session time stops advancing.
-   */
-  @Override
-  public void pauseSessionClock() {
-    layoutlibSceneRenderer.getSessionClock().pause();
-  }
-
-  /**
-   * Resumes session clock, so that session time keeps advancing.
-   */
-  @Override
-  public void resumeSessionClock() {
-    layoutlibSceneRenderer.getSessionClock().resume();
-  }
-
-  /**
-   * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a particular point
-   * @param type type of touch event
-   * @param x horizontal android coordinate of the detected touch event
-   * @param y vertical android coordinate of the detected touch event
-   * @return a future that is completed when layoutlib handled the touch event
-   */
-  @NotNull
-  public CompletableFuture<InteractionEventResult> triggerTouchEventAsync(
-    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed");
-    }
-
-    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
-    if (currentTask == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-    myInteractiveEventsCounter.incrementAndGet();
-    return currentTask.triggerTouchEvent(type, x, y, currentTimeNanos());
-  }
-
-  /**
-   * Passes a Java KeyEvent from the surface to layoutlib.
-   *
-   * @return a future that is completed when layoutlib handled the key event
-   */
-  @NotNull
-  public CompletableFuture<InteractionEventResult> triggerKeyEventAsync(@NotNull KeyEvent event) {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed");
-    }
-
-    RenderTask currentTask = layoutlibSceneRenderer.getRenderTask();
-    if (currentTask == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-    myInteractiveEventsCounter.incrementAndGet();
-    return currentTask.triggerKeyEvent(event, currentTimeNanos());
-  }
-
-  /**
-   * Executes the given {@link Runnable} callback synchronously with a 30ms timeout.
-   */
-  @Override
-  public @NotNull CompletableFuture<Void> executeCallbacksAndRequestRender() {
-    return executeCallbacksAsync().thenCompose(b -> requestRenderAsync());
   }
 
   @Override
@@ -357,21 +264,5 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager implements I
     }
 
     return deactivated;
-  }
-
-  /**
-   * Resets the counter of user events received by this scene to 0.
-   */
-  @Override
-  public void resetInteractiveEventsCounter() {
-    myInteractiveEventsCounter.set(0);
-  }
-
-  /**
-   * @return number of user touch or key events received by this scene since last reset.
-   */
-  @Override
-  public int getInteractiveEventsCount() {
-    return myInteractiveEventsCounter.get();
   }
 }
