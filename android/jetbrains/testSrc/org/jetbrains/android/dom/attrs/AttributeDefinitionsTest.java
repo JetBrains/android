@@ -30,14 +30,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.Set;
-import org.junit.Ignore;
 
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test for {@link AttributeDefinitions} and related classes.
  */
-@Ignore("b/369567771")
 public class AttributeDefinitionsTest extends AndroidTestCase {
   private LocalResourceManager myResourceManager;
 
