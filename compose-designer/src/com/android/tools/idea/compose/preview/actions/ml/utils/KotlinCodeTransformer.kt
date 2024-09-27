@@ -75,15 +75,23 @@ internal fun transformAndShowDiff(
       withContext(AndroidDispatchers.uiThread) {
         val psiFile = filePointer.element ?: return@withContext
         val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
-
-        val modifiedDocument: Document = mergeOrAppendResponse(psiFile, parsedBlock)
-        showDiff(project, psiFile, modifiedDocument.text)
+        mergeBlockAndShowDiff(project, psiFile, parsedBlock)
       }
     }
   }
 }
 
-private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: String) {
+/**
+ * Modifies a [Document] given a [kotlinCodeBlock] and shows a diff view to compare the resulting
+ * document with a given [psiFile].
+ */
+private fun mergeBlockAndShowDiff(
+  project: Project,
+  psiFile: PsiFile,
+  kotlinCodeBlock: KotlinCodeBlock,
+) {
+  val modifiedDocument: Document = mergeOrAppendResponse(psiFile, kotlinCodeBlock)
+
   val diffFactory = DiffContentFactory.getInstance()
   val originalContent = diffFactory.create(project, psiFile.virtualFile)
   val modifiedContent = diffFactory.create(project, modifiedDocument, psiFile.fileType)
