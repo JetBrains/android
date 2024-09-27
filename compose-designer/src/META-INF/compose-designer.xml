@@ -163,15 +163,18 @@
       <add-to-group group-id="Android.Designer.IssuePanel.ToolbarActions" anchor="first"/>
     </action>
 
-    <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
-            id="Android.Designer.GenerateComposePreviewAction">
-      <add-to-group group-id="sml.studiobot.gemini.editor.group"/>
-      <add-to-group group-id="GenerateGroup" anchor="first"/>
-    </action>
-    <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
-            id="Android.Designer.GenerateComposePreviewsForFileAction">
+    <group id="Android.Designer.ComposePreviewActionGroup">
+      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
+              id="Android.Designer.GenerateComposePreviewAction">
+        <add-to-group group-id="GenerateGroup" anchor="first"/>
+      </action>
+      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
+              id="Android.Designer.GenerateComposePreviewsForFileAction">
+      </action>
+      <separator/>
       <add-to-group group-id="sml.studiobot.gemini.editor.group" />
-    </action>
+    </group>
+
   </actions>
 
 </idea-plugin>
