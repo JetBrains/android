@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
-import com.android.utils.GrabProcessOutput
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
 import org.junit.Assert.assertFalse
