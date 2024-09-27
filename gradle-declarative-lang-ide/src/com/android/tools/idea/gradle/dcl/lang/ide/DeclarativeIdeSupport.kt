@@ -19,13 +19,13 @@ import com.intellij.openapi.util.registry.Registry
 import org.jetbrains.annotations.TestOnly
 
 object DeclarativeIdeSupport {
-  private var override: Boolean? = null
+  private fun getRegistryValue() = Registry.get("gradle.declarative.ide.support")
 
-  fun isEnabled(): Boolean = override ?: Registry.`is`("gradle.declarative.ide.support")
-
-  @TestOnly
-  fun override(value: Boolean) { override = value }
+  fun isEnabled(): Boolean = getRegistryValue().asBoolean()
 
   @TestOnly
-  fun clearOverride() { override = null }
+  fun override(value: Boolean) { getRegistryValue().setValue(value) }
+
+  @TestOnly
+  fun clearOverride() { getRegistryValue().resetToDefault() }
 }

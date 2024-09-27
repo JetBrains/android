@@ -55,6 +55,12 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
+  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_APP =
+    new PropertiesElementDescription<>("androidApp", AndroidDslElement.class, AndroidDslElement::new);
+
+  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_LIBRARY =
+    new PropertiesElementDescription<>("androidLibrary", AndroidDslElement.class, AndroidDslElement::new);
+
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
     {"androidResources", AndroidResourcesDslElement.ANDROID_RESOURCES},
