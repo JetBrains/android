@@ -450,6 +450,7 @@ public final class AndroidStudioSystemHealthMonitor {
       case "ConcurrentMarkSweep": return GcPauseInfo.GcType.CMS_OLD;
       case "G1 Young Generation": return GcPauseInfo.GcType.G1_YOUNG;
       case "G1 Old Generation": return GcPauseInfo.GcType.G1_OLD;
+      case "G1 Concurrent": return GcPauseInfo.GcType.G1_CONCURRENT;
       default: return GcPauseInfo.GcType.UNKNOWN;
     }
   }
