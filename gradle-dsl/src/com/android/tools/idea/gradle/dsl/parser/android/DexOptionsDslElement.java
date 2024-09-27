@@ -15,22 +15,30 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.ADDITIONAL_PARAMETERS;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.JAVA_MAX_HEAP_SIZE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.JUMBO_MODE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.KEEP_RUNTIME_ANNOTATED_CLASSES;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.MAX_PROCESS_COUNT;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.OPTIMIZE;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.PRE_DEX_LIBRARIES;
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.THREAD_COUNT;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DexOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -84,8 +92,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DexOptionsDslElement> DEX_OPTIONS =
     new PropertiesElementDescription<>("dexOptions",
                                        DexOptionsDslElement.class,
-                                       DexOptionsDslElement::new,
-                                       DexOptionsDslElementSchema::new);
+                                       DexOptionsDslElement::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
@@ -96,17 +103,4 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     super(parent, name);
   }
 
-  public static final class DexOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.DexOptions";
-    }
-  }
 }

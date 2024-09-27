@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElemen
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -34,8 +33,7 @@ public class SplitsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SplitsDslElement> SPLITS =
     new PropertiesElementDescription<>("splits",
                                        SplitsDslElement.class,
-                                       SplitsDslElement::new,
-                                       SplitsDslElementSchema::new);
+                                       SplitsDslElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"abi", AbiDslElement.ABI},
@@ -53,18 +51,5 @@ public class SplitsDslElement extends GradleDslBlockElement {
 
   public SplitsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class SplitsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.Splits";
-    }
   }
 }

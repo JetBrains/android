@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.DO_NOT_STRIP;
+import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.EXCLUDES;
+import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.MERGES;
+import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.PICK_FIRSTS;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -29,25 +33,21 @@ import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.Resourc
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
     new PropertiesElementDescription<>("packagingOptions",
                                        PackagingOptionsDslElement.class,
-                                       PackagingOptionsDslElement::new,
-                                       PackagingOptionsDslElementSchema::new);
+                                       PackagingOptionsDslElement::new);
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING =
     new PropertiesElementDescription<>("packaging",
                                        PackagingOptionsDslElement.class,
-                                       PackagingOptionsDslElement::new,
-                                       PackagingOptionsDslElementSchema::new);
+                                       PackagingOptionsDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"doNotStrip", property, DO_NOT_STRIP, VAR},
@@ -98,25 +98,5 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class PackagingOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.Packaging";
-    }
   }
 }

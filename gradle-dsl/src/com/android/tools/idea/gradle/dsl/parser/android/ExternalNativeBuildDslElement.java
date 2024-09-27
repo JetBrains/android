@@ -23,20 +23,16 @@ import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkB
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ExternalNativeBuildDslElement> EXTERNAL_NATIVE_BUILD =
     new PropertiesElementDescription<>("externalNativeBuild",
                                        ExternalNativeBuildDslElement.class,
-                                       ExternalNativeBuildDslElement::new,
-                                       ExternalNativeBuildDslElementSchema::new);
+                                       ExternalNativeBuildDslElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"cmake", CMakeDslElement.CMAKE},
@@ -55,22 +51,4 @@ public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
     super(parent, name);
   }
 
-  static final class ExternalNativeBuildDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, ExternalToModelMap.empty, ExternalToModelMap.empty, ExternalToModelMap.empty);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.ExternalNativeBuild";
-    }
-  }
 }

@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -50,7 +49,7 @@ public class KotlinDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   public static final PropertiesElementDescription<KotlinDslElement> KOTLIN =
-    new PropertiesElementDescription<>("kotlin", KotlinDslElement.class, KotlinDslElement::new, KotlinGradlePropertiesDslElementSchema::new);
+    new PropertiesElementDescription<>("kotlin", KotlinDslElement.class, KotlinDslElement::new);
 
   @Override
   @NotNull
@@ -67,18 +66,5 @@ public class KotlinDslElement extends GradleDslBlockElement {
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
-  }
-
-  public static final class KotlinGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap);
-    }
   }
 }
