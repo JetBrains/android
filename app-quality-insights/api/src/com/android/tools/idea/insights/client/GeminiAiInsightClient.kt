@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.StudioBot
@@ -88,3 +90,38 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
     fun create(project: Project) = GeminiAiInsightClient(project)
   }
 }
+
+fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
+  GeminiInsightsRequest.newBuilder()
+    .apply {
+      val device = event.eventData.device.let { "${it.manufacturer} ${it.model}" }
+      val api = event.eventData.operatingSystemInfo.displayVersion
+      val eventStackTrace = event.prettyStackTrace()
+
+      deviceName = device
+      apiLevel = api
+      stackTrace = eventStackTrace
+
+      addAllCodeSnippets(
+        codeContextData.codeContext.map { context ->
+          CodeSnippet.newBuilder()
+            .apply {
+              codeSnippet = context.content
+              filePath = context.filePath
+            }
+            .build()
+        }
+      )
+    }
+    .build()
+
+private fun Event.prettyStackTrace() =
+  buildString {
+      stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
+        if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
+          appendLine(exception.rawExceptionMessage)
+          append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
+        }
+      }
+    }
+    .trim()

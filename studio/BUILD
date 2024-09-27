@@ -96,7 +96,8 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:titan_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
         "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
@@ -524,6 +525,7 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:firebase_java_proto",
+        "//tools/vendor/google/firebase:gemini_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
