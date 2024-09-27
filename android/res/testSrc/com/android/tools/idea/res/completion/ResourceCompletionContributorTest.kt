@@ -16,8 +16,6 @@
 package com.android.tools.idea.res.completion
 
 import com.android.SdkConstants
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
@@ -48,15 +46,11 @@ private val COLORS = mapOf("red" to JBColor.RED, "green" to JBColor.GREEN, "blue
 class ResourceCompletionContributorTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk().onEdt()
 
-  @get:Rule val restoreFlagRule = FlagRule(StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED)
-
   private val fixture by lazy { projectRule.fixture }
   private val module by lazy { projectRule.projectRule.module }
 
   @Before
   fun setUp() {
-    StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.override(true)
-    StudioFlags.RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED.override(true)
     addManifest(fixture)
     val fileName = "res/drawable/my_great_%s_icon.xml"
     // language=XML

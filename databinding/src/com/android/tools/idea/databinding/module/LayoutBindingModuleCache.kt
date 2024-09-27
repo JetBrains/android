@@ -33,7 +33,6 @@ import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -263,15 +262,12 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
       }
     }
 
-    // If we are evaluating config when it's constructed, wrap the above config objects in an
-    // implementation that will eagerly evaluate their data now.
-    val wrappedConfigs =
-      if (StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION.get())
-        configs.map(::EagerLightBindingClassConfig)
-      else configs
-
     val psiManager = PsiManager.getInstance(facet.module.project)
-    return wrappedConfigs.map { LightBindingClass(psiManager, it).withMarkedBackingFile() }
+    return configs.map {
+      // Wrap the config object in an implementation that will eagerly evaluate its data now.
+      val wrappedConfig = EagerLightBindingClassConfig(it)
+      LightBindingClass(psiManager, wrappedConfig).withMarkedBackingFile()
+    }
   }
 
   override fun dispose() {}
