@@ -17,13 +17,13 @@ package com.android.tools.idea.tests.gui.customview
 
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.timing.Wait
 import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
@@ -60,17 +60,17 @@ class CustomViewPreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/CustomViews.kt"
 
+    fixture.invokeProjectMake(null)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     editor.open(file)
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
+    guiTest.robot().waitForIdle()
+
     val multiRepresentationFixture = editor.getSplitEditorFixture().apply {
       setSplitMode()
-      setRepresentation("Custom views")
       waitForRenderToFinish()
     }
-    guiTest.robot().waitForIdle()
-    fixture.invokeProjectMake(Wait.seconds(300))
-
-    multiRepresentationFixture.waitForRenderToFinish()
-    guiTest.robot().waitForIdle()
 
     assertFalse(multiRepresentationFixture.hasRenderErrors())
 
