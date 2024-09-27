@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -133,8 +134,7 @@ abstract class NewLayoutlibSceneManager(
    * If true, automatically update (if needed) and re-render when being activated. Which happens
    * after [activate] is called. Note that if it is activated already, then it will not re-render.
    */
-  // TODO(b/369573219): remove JvmField annotation
-  @JvmField var updateAndRenderWhenActivated = true
+  var updateAndRenderWhenActivated = true
 
   override fun resourcesChanged(reasons: ImmutableSet<ResourceNotificationManager.Reason>) {
     if (listenResourceChange) {
@@ -287,6 +287,23 @@ abstract class NewLayoutlibSceneManager(
       }
     }
   }
+
+  override fun activate(source: Any): Boolean {
+    val active = super.activate(source)
+    layoutlibSceneRenderer.activate()
+    if (active && updateAndRenderWhenActivated) {
+      val manager = getInstance(model.project)
+      val version = manager.getCurrentVersion(model.facet, model.file, model.configuration)
+      if (version != layoutlibSceneRenderer.renderedVersion) {
+        sceneRenderConfiguration.needsInflation.set(true)
+      }
+      requestRenderAsync()
+    }
+    return active
+  }
+
+  override fun deactivate(source: Any): Boolean =
+    super.deactivate(source).also { if (it) layoutlibSceneRenderer.deactivate() }
 
   override fun dispose() {
     if (isDisposed.getAndSet(true)) return
