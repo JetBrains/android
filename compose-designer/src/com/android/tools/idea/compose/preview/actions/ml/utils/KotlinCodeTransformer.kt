@@ -41,15 +41,16 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
- * Given a [Prompt] with instructions to modify a given file, show a diff view so the user can
- * compare the changes and decide which part(s) to merge.
+ * Given a [Prompt] with instructions to modify a given file, this method queries a model and
+ * applies the given [callback] with the generated code and original [PsiFile].
  */
-internal fun transformAndShowDiff(
+internal fun generateCodeAndExecuteCallback(
   prompt: Prompt,
   filePointer: SmartPsiElementPointer<PsiFile>,
   disposable: Disposable,
   modelType: ModelType = ModelType.CHAT,
   progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
+  callback: (Project, PsiFile, KotlinCodeBlock) -> Unit = ::mergeBlockAndShowDiff,
 ) {
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
@@ -75,7 +76,7 @@ internal fun transformAndShowDiff(
       withContext(AndroidDispatchers.uiThread) {
         val psiFile = filePointer.element ?: return@withContext
         val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
-        mergeBlockAndShowDiff(project, psiFile, parsedBlock)
+        callback(project, psiFile, parsedBlock)
       }
     }
   }

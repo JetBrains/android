@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions.ml
 
-import com.android.tools.idea.compose.preview.actions.ml.utils.transformAndShowDiff
+import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
@@ -97,7 +97,7 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
     composableFunctions().run {
       if (isEmpty()) return@generateComposePreviews
       val prompt = buildPrompt(filePointer, this@run)
-      transformAndShowDiff(
+      generateCodeAndExecuteCallback(
         prompt = prompt,
         filePointer = filePointer,
         disposable = editor.disposable,
