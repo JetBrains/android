@@ -456,8 +456,8 @@ private fun EmulatedPerformanceGroup(
       Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
-        device.simulatedRam,
-        onValueChange = { onDeviceChange(device.copy(simulatedRam = it)) },
+        device.ram,
+        onValueChange = { onDeviceChange(device.copy(ram = it)) },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 

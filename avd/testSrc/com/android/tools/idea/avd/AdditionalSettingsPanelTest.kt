@@ -68,7 +68,7 @@ class AdditionalSettingsPanelTest {
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
-        simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        ram = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
       )
 

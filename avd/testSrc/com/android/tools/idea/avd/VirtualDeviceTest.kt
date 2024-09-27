@@ -67,7 +67,7 @@ class VirtualDeviceTest {
       assertThat(skin.path().toString()).isEqualTo("pixel_8")
       assertThat(orientation).isEqualTo(ScreenOrientation.LANDSCAPE)
       assertThat(cpuCoreCount).isEqualTo(2)
-      assertThat(simulatedRam).isEqualTo(StorageCapacity(16, StorageCapacity.Unit.GB))
+      assertThat(ram).isEqualTo(StorageCapacity(16, StorageCapacity.Unit.GB))
       assertThat(vmHeapSize).isEqualTo(StorageCapacity(500, StorageCapacity.Unit.MB))
       assertThat(internalStorage).isEqualTo(StorageCapacity(128, StorageCapacity.Unit.GB))
       assertThat(frontCamera).isEqualTo(AvdCamera.WEBCAM)
@@ -94,7 +94,7 @@ class VirtualDeviceTest {
         skin = DefaultSkin(Paths.get("pixel_8")),
         orientation = ScreenOrientation.LANDSCAPE,
         cpuCoreCount = 2,
-        simulatedRam = StorageCapacity(16, StorageCapacity.Unit.GB),
+        ram = StorageCapacity(16, StorageCapacity.Unit.GB),
         vmHeapSize = StorageCapacity(500, StorageCapacity.Unit.MB),
         internalStorage = StorageCapacity(128, StorageCapacity.Unit.GB),
         frontCamera = AvdCamera.WEBCAM,
