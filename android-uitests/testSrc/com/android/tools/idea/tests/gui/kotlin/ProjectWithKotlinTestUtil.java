@@ -94,7 +94,7 @@ public class ProjectWithKotlinTestUtil {
       });
     }
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
+    ideFrameFixture.invokeMenuPath("Build", "Assemble Project");
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
