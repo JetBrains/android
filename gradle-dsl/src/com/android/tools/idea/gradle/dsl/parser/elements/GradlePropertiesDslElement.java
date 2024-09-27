@@ -15,44 +15,55 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.APPLIED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.DEFAULT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.EXISTING;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.HIDDEN;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_ADDED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_REMOVED;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
-import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Predicates;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -387,19 +398,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @NotNull
   private static final ImmutableMap<String,PropertiesElementDescription<?>> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
-
-  public static final class EmptyGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return NO_CHILD_PROPERTIES_ELEMENTS;
-    }
-
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(Kind kind) {
-      return ExternalToModelMap.empty;
-    }
-  }
 
   /**
    * a helper for the default implementation for getChildPropertiesElementDescription: a common implementation will involve a Dsl element

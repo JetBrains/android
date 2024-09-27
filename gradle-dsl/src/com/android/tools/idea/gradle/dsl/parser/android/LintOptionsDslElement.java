@@ -25,23 +25,45 @@ import static com.android.tools.idea.gradle.dsl.model.android.LintModelImpl.TEXT
 import static com.android.tools.idea.gradle.dsl.model.android.LintModelImpl.TEXT_REPORT;
 import static com.android.tools.idea.gradle.dsl.model.android.LintModelImpl.XML_OUTPUT;
 import static com.android.tools.idea.gradle.dsl.model.android.LintModelImpl.XML_REPORT;
-import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.ABORT_ON_ERROR;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.ABSOLUTE_PATHS;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK_ALL_WARNINGS;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK_GENERATED_SOURCES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK_RELEASE_BUILDS;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.CHECK_TEST_SOURCES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.DISABLE;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.ENABLE;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.ERROR;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.EXPLAIN_ISSUES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.FATAL;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.IGNORE;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.IGNORE_TEST_SOURCES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.IGNORE_WARNINGS;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.INFORMATIONAL;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.NO_LINES;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.QUIET;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.SHOW_ALL;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.WARNING;
+import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.WARNINGS_AS_ERRORS;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -180,8 +202,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
     new PropertiesElementDescription<>("lintOptions",
                                        LintOptionsDslElement.class,
-                                       LintOptionsDslElement::new,
-                                       LintOptionsDslElementSchema::new);
+                                       LintOptionsDslElement::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
@@ -199,20 +220,6 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     //  assigning a completely new set.  (Also, there might be some other properties like that lurking: check other Set<String> Dsl
     //  properties)
     super.setParsedElement(element);
-  }
-
-  public static final class LintOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.LintOptions";
-    }
   }
 
 }

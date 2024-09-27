@@ -23,20 +23,16 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<ProductFlavorsDslElement> PRODUCT_FLAVORS =
     new PropertiesElementDescription<>("productFlavors",
                                        ProductFlavorsDslElement.class,
-                                       ProductFlavorsDslElement::new,
-                                       ProductFlavorsDslElementSchema::new);
+                                       ProductFlavorsDslElement::new);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(
@@ -64,13 +60,5 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
       }
     }
     return result;
-  }
-
-  public static final class ProductFlavorsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @Nullable
-    public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
-      return PRODUCT_FLAVOR;
-    }
   }
 }

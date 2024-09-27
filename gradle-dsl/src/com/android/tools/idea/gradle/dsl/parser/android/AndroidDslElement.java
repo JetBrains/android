@@ -15,19 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.ASSET_PACKS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DYNAMIC_FEATURES;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.FLAVOR_DIMENSIONS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.GENERATE_PURE_SPLITS;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NAMESPACE;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NDK_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.PUBLISH_NON_DEFAULT;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.RESOURCE_PREFIX;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TEST_NAMESPACE;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
@@ -37,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
-    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new, AndroidGradlePropertiesDslElementSchema::new);
+    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
@@ -157,25 +173,6 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-  }
-
-  public static final class AndroidGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.ApplicationExtension";
-    }
   }
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

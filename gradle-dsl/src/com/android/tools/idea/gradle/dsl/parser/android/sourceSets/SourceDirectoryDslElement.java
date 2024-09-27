@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -41,18 +40,15 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SourceDirectoryDslElement> AIDL =
     new PropertiesElementDescription<>("aidl",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> ASSETS =
     new PropertiesElementDescription<>("assets",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> JAVA =
     new PropertiesElementDescription<>("java",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> JNI =
     new PropertiesElementDescription<>("jni",
                                        SourceDirectoryDslElement.class,
@@ -60,33 +56,27 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SourceDirectoryDslElement> JNI_LIBS =
     new PropertiesElementDescription<>("jniLibs",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> ML_MODELS =
     new PropertiesElementDescription<>("mlModels",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RENDERSCRIPT =
     new PropertiesElementDescription<>("renderscript",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RES =
     new PropertiesElementDescription<>("res",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RESOURCES =
     new PropertiesElementDescription<>("resources",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> SHADERS =
     new PropertiesElementDescription<>("shaders",
                                        SourceDirectoryDslElement.class,
-                                       SourceDirectoryDslElement::new,
-                                       SourceDirectoryDslElementSchema::new);
+                                       SourceDirectoryDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"excludes", property, EXCLUDES, VAL},
@@ -150,19 +140,5 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
     }
 
     super.addParsedElement(element);
-  }
-
-  public static final class SourceDirectoryDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.AndroidSourceDirectorySet";
-    }
   }
 }
