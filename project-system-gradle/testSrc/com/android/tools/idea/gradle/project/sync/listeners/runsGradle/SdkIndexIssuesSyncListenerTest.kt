@@ -32,12 +32,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_IN
 import com.intellij.notification.Notification
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import kotlin.time.Duration.Companion.seconds
 
 class SdkIndexIssuesSyncListenerTest {
@@ -163,6 +166,39 @@ class SdkIndexIssuesSyncListenerTest {
       assertThat(secondNotification).isNotNull()
       assertThat(secondNotification!!.content).isEqualTo(expectedContent)
       checkProjectStats(1, 1, 0, 0, 0, 1)
+    }
+  }
+
+  @Test
+  fun `Disposed project does not show notification`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
+    val originalBuildContent = buildFile.readText()
+    buildFile.writeText(originalBuildContent + """
+      dependencies {
+        implementation("$blockingCritical")
+      }
+    """)
+    preparedProject.open(updateOptions = {it.copy(expectedSyncIssues = setOf(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY))}) { project ->
+      val notification = consumeLatestNotification(project)
+      assertThat(notification).isNotNull()
+      checkProjectStats(1, 1, 0, 1, 0, 0)
+      // Dismiss notification
+      notification!!.expire()
+
+      val testListener = SdkIndexIssuesSyncListener(MainScope())
+      val spyProject = spy(project)
+      testListener.wasNotificationShown = false
+
+      // Disposed while waiting for SDK index to be ready
+      `when`(spyProject.isDisposed).thenReturn(false, true, true)
+      testListener.syncSucceeded(spyProject, project.projectFilePath!!)
+      assertThat(consumeLatestNotification(spyProject)).isNull()
+
+      // Disposed already when calling syncSucceeded
+      `when`(spyProject.isDisposed).thenReturn(true)
+      testListener.syncSucceeded(spyProject, project.projectFilePath!!)
+      assertThat(consumeLatestNotification(spyProject)).isNull()
     }
   }
 

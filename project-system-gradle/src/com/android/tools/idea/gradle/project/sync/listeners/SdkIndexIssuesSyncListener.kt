@@ -48,7 +48,8 @@ import org.jetbrains.annotations.VisibleForTesting
  * Notify users is there is any dependency with blocking issues in the project
  */
 class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : GradleSyncListenerWithRoot {
-  private var wasNotificationShown = false
+  @VisibleForTesting
+  var wasNotificationShown = false
 
   companion object {
     const val SDK_INDEX_NOTIFICATION_GROUP = "Google Play SDK Index Notifications"
@@ -77,6 +78,20 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
   }
 
   private suspend fun notifyBlockingIssuesIfNeeded(project: Project, sdkIndex: GooglePlaySdkIndex): Notification? {
+    // SdkIndexIssuesSyncListenerTest.`Disposed project does not show notification` spy project isDisposed returns need to be changed if
+    // this function calls to isDisposed changes
+    if (project.isDisposed) {
+      return null
+    }
+    // Wait for SDK Index to be ready up to one minute (it might need to download data)
+    var maxRetries = 60
+    while (!sdkIndex.isReady() && maxRetries > 0) {
+      delay(1000)
+      maxRetries -= 1
+      if (project.isDisposed) {
+        break
+      }
+    }
     if (project.isDisposed) {
       return null
     }
@@ -89,12 +104,6 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       .filterIsInstance<IdeArtifactLibrary>()
       .mapNotNull { it.component }
       .toSet()
-    // Wait for SDK Index to be ready up to one minute (it might need to download data)
-    var maxRetries = 60
-    while (!sdkIndex.isReady() && maxRetries > 0) {
-      delay(1000)
-      maxRetries -= 1
-    }
     var numErrorsAndWarnings = 0
     var numBlockingIssues = 0
     var numPolicyIssues = 0
