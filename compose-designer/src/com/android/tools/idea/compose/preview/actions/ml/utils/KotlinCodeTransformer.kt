@@ -50,13 +50,14 @@ internal fun transformAndShowDiff(
   filePointer: SmartPsiElementPointer<PsiFile>,
   disposable: Disposable,
   modelType: ModelType = ModelType.CHAT,
+  progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
 ): Job {
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
 
   // Send the prompt + code directly to the model, with a progress indicator
   return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
-    withBackgroundProgress(project, message("ml.actions.sending.query"), true) {
+    withBackgroundProgress(project, progressIndicatorText, true) {
       val botResponse =
         studioBot
           .model(project, modelType)
