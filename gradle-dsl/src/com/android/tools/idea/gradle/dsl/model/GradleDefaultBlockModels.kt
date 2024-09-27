@@ -54,7 +54,10 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuildFile> {
 
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleBuildFile>> {
-    return DEFAULT_ROOT_AVAILABLE_MODELS;
+    return when(kind) {
+      GradleDslNameConverter.Kind.DECLARATIVE -> DECLARATIVE_ROOT_AVAILABLE_MODELS
+      else -> DEFAULT_ROOT_AVAILABLE_MODELS
+    }
   }
 
   override val parentClass = GradleBuildModel::class.java
@@ -81,14 +84,26 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "plugins" to PluginsDslElement.PLUGINS)
 
     private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
-      "androidApplication" to AndroidDslElement.ANDROID,
-      "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
-      "configurations" to ConfigurationsDslElement.CONFIGURATIONS,
-      "declarativeDependencies" to DependenciesDslElement.DEPENDENCIES,
-      "java" to JavaDslElement.JAVA,
-      "repositories" to RepositoriesDslElement.REPOSITORIES,
-      "subprojects" to SubProjectsDslElement.SUBPROJECTS,
-      "plugins" to PluginsDslElement.PLUGINS)
+      "androidApp" to AndroidDslElement.ANDROID_APP,
+      "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY
+    )
+
+    private fun declarativeBuilder(file: GradleBuildFile): AndroidModel {
+      file.getPropertyElement(AndroidDslElement.ANDROID_APP)?.let { element ->
+        return AndroidModelImpl(element)
+      }
+      file.getPropertyElement(AndroidDslElement.ANDROID_LIBRARY)?.let { element ->
+        return AndroidModelImpl(element)
+      }
+      // TODO throw exception for now but need to create add element mechanism
+      throw IllegalStateException("Cannot create android[App|Library] dsl element")
+    }
+
+    private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
+      AndroidModel::class.java from {
+        declarativeBuilder(it)
+      }
+    )
 
     private val DEFAULT_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
       AndroidModel::class.java from {

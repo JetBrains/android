@@ -28,18 +28,24 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import com.jetbrains.rd.util.first
+import org.junit.Ignore
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito
 
+@RunWith(JUnit4::class)
 class DeclarativeDslChangerTest : LightPlatformTestCase() {
 
+  @Test
   fun testUpdateAssignmentIntValue() {
     val file = """
-      androidApplication {
+      androidApp {
         compileSdk = 33
       }
     """.trimIndent()
     val expected = """
-      androidApplication {
+      androidApp {
         compileSdk = 34
       }
     """.trimIndent()
@@ -49,14 +55,15 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
   fun testUpdateAssignmentStringValue() {
     val file = """
-      androidApplication {
+      androidApp {
         namespace = "abc"
       }
     """.trimIndent()
     val expected = """
-      androidApplication {
+      androidApp {
         namespace = "bcd"
       }
     """.trimIndent()
@@ -66,6 +73,8 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
+  @Ignore("Dependencies fo android element will be added in future")
   fun testUpdateFactoryParameter() {
     val file = """
       declarativeDependencies {
@@ -83,6 +92,8 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
+  @Ignore("Dependencies fo android element will be added in future")
   fun testUpdateFactoryName() {
     val file = """
       declarativeDependencies {
@@ -100,15 +111,16 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
   fun testDeleteAssignment() {
     val file = """
-      androidApplication {
+      androidApp {
           namespace = "abc"
           compileSdk = 33
       }
     """.trimIndent()
     val expected = """
-      androidApplication {
+      androidApp {
           compileSdk = 33
       }
     """.trimIndent()
@@ -118,6 +130,8 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
+  @Ignore("Dependencies fo android element will be added in future")
   fun testAppendDependencyToBlock(){
     val file = """
       declarativeDependencies {

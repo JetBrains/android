@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -25,6 +27,8 @@ import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMake
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 
@@ -32,6 +36,19 @@ import java.io.File
  * Tests for [AndroidModelImpl].
  */
 class AndroidModelTest : GradleFileModelTestCase() {
+
+  @Before
+  override fun before(){
+    DeclarativeIdeSupport.override(true)
+    DeclarativeStudioSupport.override(true)
+    super.before()
+  }
+
+  @After
+  fun onAfter(){
+    DeclarativeIdeSupport.clearOverride()
+    DeclarativeStudioSupport.clearOverride()
+  }
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
     writeToBuildFile(buildFile)
@@ -69,27 +86,40 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithApplicationStatements() {
+    isIrrelevantForDeclarative("only assignment available for properties in declarative")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS)
   }
 
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
     isIrrelevantForKotlinScript("no distinction between method calls and application statements")
+    isIrrelevantForDeclarative("no distinction between method calls and application statements")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
-  @Test
-  fun testAndroidBlockWithAssignmentStatements() {
-    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  private fun runAssignmentTest(buildFile: TestFileName){
+    writeToBuildFile(buildFile)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
-    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+    if(!isGradleDeclarative) assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
+  }
+
+  @Test
+  fun testAndroidBlockWithAssignmentStatements() {
+    runAssignmentTest(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  }
+
+  @Test
+  fun testAndroidLibraryBlockWithAssignmentStatements() {
+    isIrrelevantForKotlinScript("android library element is only in Declarative")
+    isIrrelevantForGroovy("android library element is only in Declarative")
+    runAssignmentTest(TestFile.ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
   }
 
   @Test
@@ -2022,6 +2052,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
+    ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),
     ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS("androidBlockWithOverrideStatements"),
