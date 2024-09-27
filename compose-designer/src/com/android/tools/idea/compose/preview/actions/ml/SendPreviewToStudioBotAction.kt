@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.actions.ml
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.actions.ml.utils.Blob
 import com.android.tools.idea.compose.preview.actions.ml.utils.ContextualEditorBalloon.Companion.contextualEditorBalloon
-import com.android.tools.idea.compose.preview.actions.ml.utils.transformAndShowDiff
+import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -102,7 +102,7 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
           icon = StudioIcons.Compose.Toolbar.RUN_CONFIGURATION,
           placeholderText = message("circle.to.fix.balloon.placeholder"),
         ) { userQuery ->
-          transformAndShowDiff(
+          generateCodeAndExecuteCallback(
             buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
             filePointer,
             diffDisposable,
