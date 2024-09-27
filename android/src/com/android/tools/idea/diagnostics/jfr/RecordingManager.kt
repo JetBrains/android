@@ -120,8 +120,8 @@ class RecordingManager : Disposable {
 
   private fun createReportManagers() {
     JfrFreezeReports.createFreezeReportManager(this)
-    if (StudioFlags.JFR_MANIFEST_MERGE_ENABLED.get()) JfrManifestMergerReports.createReportManager(this)
-    if (StudioFlags.JFR_TYPING_LATENCY_ENABLED.get()) JfrTypingLatencyReports.createReportManager(this, ServerFlagService.instance)
+    JfrManifestMergerReports.createReportManager(this)
+    JfrTypingLatencyReports.createReportManager(this, ServerFlagService.instance)
   }
 
   private fun setupActionEvents() {
