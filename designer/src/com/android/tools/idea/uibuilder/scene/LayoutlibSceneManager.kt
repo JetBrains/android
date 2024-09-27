@@ -49,7 +49,6 @@ import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
@@ -253,7 +252,7 @@ open class LayoutlibSceneManager(
         // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and
         // render the updated result.
         layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
-        requestRenderAsync(getTriggerFromChangeType(model.lastChangeType))
+        requestRenderAsync()
           .thenRunAsync(
             {
               selectionChangeListener.selectionChanged(
@@ -307,27 +306,21 @@ open class LayoutlibSceneManager(
   /**
    * Adds a new render request to the queue.
    *
-   * @param trigger render trigger for reporting purposes
    * @return [CompletableFuture] that will be completed once the render has been done.
    */
-  protected open fun requestRenderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?
-  ): CompletableFuture<Void> {
+  override fun requestRenderAsync(): CompletableFuture<Void> {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("requestRender after LayoutlibSceneManager has been disposed")
       return CompletableFuture.completedFuture(null)
     }
-
+    val trigger = getTriggerFromChangeType(model.lastChangeType)
     logConfigurationChange(designSurface)
     model.resetLastChange()
     return layoutlibSceneRenderer.renderAsync(trigger).thenCompose {
       CompletableFuture.completedFuture(null)
     }
   }
-
-  override fun requestRenderAsync() =
-    requestRenderAsync(getTriggerFromChangeType(model.lastChangeType))
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
     if (isDisposed.get()) {
