@@ -6,6 +6,7 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.lang.documentation.DocumentationProvider
@@ -63,7 +64,11 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
     docUrls: List<String>,
     onHover: Boolean,
   ): String? {
-    if (!isMyContext(element, project)) return null
+    if (
+      StudioFlags.ENABLE_SDK_DOCUMENTATION_TARGET_PROVIDER.get() || !isMyContext(element, project)
+    )
+      return null
+
     return JavaDocumentationProvider.fetchExternalJavadoc(
       element,
       docUrls,
