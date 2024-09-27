@@ -24,6 +24,7 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
   @Nullable public final String name;
   @NotNull public final Class<T> clazz;
   @NotNull public final GradlePropertiesDslElementConstructor<T> constructor;
+  @Nullable public final String namedObjectAssociatedName;
 
   /**
    * Creates PropertiesElementDescription instance with empty property schema constructor
@@ -33,9 +34,20 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
     @NotNull Class<T> clazz,
     @NotNull GradlePropertiesDslElementConstructor<T> constructor
   ) {
+    this(name, clazz, constructor, null);
+  }
+
+
+  public PropertiesElementDescription(
+    @Nullable String name,
+    @NotNull Class<T> clazz,
+    @NotNull GradlePropertiesDslElementConstructor<T> constructor,
+    @Nullable String namedObjectAssociatedName
+  ) {
     this.name = name;
     this.clazz = clazz;
     this.constructor = constructor;
+    this.namedObjectAssociatedName = namedObjectAssociatedName;
   }
 
   public PropertiesElementDescription<T> copyWithName(@NotNull String name) {

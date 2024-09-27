@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<BuildTypeDslElement> BUILD_TYPE =
-    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new);
+    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new, "buildType");
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isCrunchPngs", property, CRUNCH_PNGS, VAR},

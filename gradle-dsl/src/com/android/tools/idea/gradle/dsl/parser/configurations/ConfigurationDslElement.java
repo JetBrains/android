@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ConfigurationDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<ConfigurationDslElement> CONFIGURATION =
-    new PropertiesElementDescription<>(null, ConfigurationDslElement.class, ConfigurationDslElement::new);
+    new PropertiesElementDescription<>(null, ConfigurationDslElement.class, ConfigurationDslElement::new, "configuration");
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isTransitive", property, TRANSITIVE, VAR},
