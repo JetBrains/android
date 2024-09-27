@@ -1174,14 +1174,6 @@ public final class StudioFlags {
   //region Editor
   private static final FlagGroup EDITOR = new FlagGroup(FLAGS, "editor", "Editor features");
 
-  public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = new BooleanFlag(
-    EDITOR, "advanced.jni.assistance",
-    "Enable advanced JNI assistance",
-    "If enabled, additional inspection, completion, and refactoring supports are provided related to JNI. If disabled, some " +
-    "inspections related to JNI may stop working.",
-    true
-  );
-
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = new BooleanFlag(
     EDITOR, "translations.editor.synchronization",
     "Synchronize translations editor with resource file updates",
