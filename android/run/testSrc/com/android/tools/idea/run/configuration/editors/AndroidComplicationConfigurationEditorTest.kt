@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.editors
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.TreeWalker
@@ -73,8 +74,10 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 
-@IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
 class AndroidComplicationConfigurationEditorTest {
+  @get:Rule
+  val ignoreTestRule = IgnoreTestRule()
+
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule val fakeAdb = FakeAdbRule()
@@ -246,6 +249,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testResetFromEmptyConfiguration() = runBlocking {
     setModuleAndChooseAllTypesComplications()
     assertThat(runConfiguration.module).isNull()
@@ -253,6 +257,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testResetWithMissingModule() = runBlocking {
     setModuleAndChooseAllTypesComplications()
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
@@ -261,6 +266,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testPMFlags() {
     runConfiguration.deployOptions.pmInstallFlags = ""
     val textField = TreeWalker(editor).descendants().filterIsInstance<JBTextField>()[0]
@@ -271,6 +277,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testResetFromConfigurationWithChosenSlots() = runBlocking {
     runConfiguration.componentLaunchOptions.watchFaceInfo =
       object : ComplicationWatchFaceInfo {
@@ -301,6 +308,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testCleanupComplicationNameOnModuleChange() = runBlocking {
     setModuleAndChooseAllTypesComplications()
     componentComboBox.item = "com.example.MyLongShortTextComplication"
@@ -316,6 +324,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testFilterComponentTypes() = runBlocking {
     val watchInfo =
       object : ComplicationWatchFaceInfo {
@@ -390,6 +399,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun `test update slot type from invalid to first available`() = runBlocking {
     runConfiguration.componentLaunchOptions.watchFaceInfo =
       object : ComplicationWatchFaceInfo {
@@ -443,6 +453,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testNullType() = runBlocking {
     runConfiguration.componentLaunchOptions.watchFaceInfo =
       object : ComplicationWatchFaceInfo {
@@ -492,6 +503,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testClearSlotsOnComplicationNameChange() = runBlocking {
     runConfiguration.componentLaunchOptions.watchFaceInfo =
       object : ComplicationWatchFaceInfo {
@@ -532,6 +544,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testResetFromAndApplyTo() = runBlocking {
     runConfiguration.setModule(module)
     runConfiguration.componentLaunchOptions.componentName =
@@ -632,6 +645,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testRestoreComponentName() = runBlocking {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
     runConfiguration.setModule(module)
@@ -640,6 +654,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testApkFound() = runBlocking {
     assertThat(
         Files.isRegularFile(Paths.get(runConfiguration.componentLaunchOptions.watchFaceInfo.apk))
@@ -648,6 +663,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun slotsAreDisabledWhenNoComponentIsSelected() = runBlocking {
     // the module and component are null, all the slots should be disabled
     assertThat(componentComboBox.item).isNull()
@@ -662,6 +678,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun selectedSlotsAreResetWhenNoComponentIsSelected() = runBlocking {
     setModuleAndChooseAllTypesComplications()
     val checkBox = getPanelForSlot(0).getCheckBox()
@@ -692,6 +709,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
   fun testSlotsAreDisplayedInASingleConfigurableEditor() = runBlocking {
     enableHeadlessDialogs(fixture.testRootDisposable)
     runConfiguration.componentLaunchOptions.watchFaceInfo =
