@@ -196,7 +196,7 @@ public class JavaToKotlinConversionTest {
 
     //Invoking project make.
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300),
-                                         "Build", "Rebuild Project");
+                                         "Build", "Assemble Project");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }
