@@ -116,6 +116,13 @@ class ComposeWizard(
     return arrayOf(cancelAction, prevButton, nextButton, finishButton)
   }
 
+  // Don't include the default border; our banners need to span the entire width
+  override fun createContentPaneBorder() = null
+
+  // Add the default border to the button panel
+  override fun createSouthPanel(): JComponent =
+    super.createSouthPanel().apply { border = super.createContentPaneBorder() }
+
   override fun createCenterPanel(): JComponent {
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
     val component = StudioComposePanel {

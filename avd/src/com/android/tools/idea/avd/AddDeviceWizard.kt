@@ -151,7 +151,10 @@ internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project
           )
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+          Modifier.padding(horizontal = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
           OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
             Text("New hardware profile...")
           }
