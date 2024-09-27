@@ -36,7 +36,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -51,12 +50,12 @@ internal fun transformAndShowDiff(
   disposable: Disposable,
   modelType: ModelType = ModelType.CHAT,
   progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
-): Job {
+) {
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
 
   // Send the prompt + code directly to the model, with a progress indicator
-  return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
+  AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
     withBackgroundProgress(project, progressIndicatorText, true) {
       val botResponse =
         studioBot
