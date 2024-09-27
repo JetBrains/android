@@ -28,7 +28,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:titan_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
     ],
 )
 
@@ -41,7 +41,7 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "titan_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto.jar"],
+    name = "gemini_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

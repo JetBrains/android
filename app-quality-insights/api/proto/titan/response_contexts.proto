@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package google.cloud.cloudaicompanion.v1;
 
-import "citation_metadata.proto";
+import "titan/citation_metadata.proto";
 import "google/protobuf/any.proto";
 
 option java_multiple_files = true;
