@@ -57,7 +57,8 @@ class KotlinSourceSetDslElement(
     val KOTLIN_SOURCE_SET = PropertiesElementDescription(
       null,
       KotlinSourceSetDslElement::class.java,
-      { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetDslElement(parent, name) }
+      { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetDslElement(parent, name) },
+      "kotlinSourceSet"
     )
 
     val CHILD_PROPERTIES_ELEMENTS_MAP: ImmutableMap<String, PropertiesElementDescription<*>> =

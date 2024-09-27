@@ -39,7 +39,8 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
   public static final PropertiesElementDescription<ProductFlavorDslElement> PRODUCT_FLAVOR =
     new PropertiesElementDescription<>(null,
                                        ProductFlavorDslElement.class,
-                                       ProductFlavorDslElement::new);
+                                       ProductFlavorDslElement::new,
+                                       "productFlavor");
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"initWith", exactly(1), INIT_WITH, OTHER},
