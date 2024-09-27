@@ -57,6 +57,7 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
+import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
@@ -235,7 +236,8 @@ class VitalsClient(
     }
     val cachedInsight = cache.getAiInsight(connection, issueId)
     return if (cachedInsight == null || forceFetch) {
-      val insight = aiInsightClient.fetchCrashInsight("", event.toGeminiInsightRequest())
+      val insight =
+        aiInsightClient.fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
       cache.putAiInsight(connection, issueId, insight)
       LoadingState.Ready(insight)
     } else {
@@ -416,16 +418,27 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
 
-private fun Event.toGeminiInsightRequest() =
+private fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
   GeminiInsightsRequest.newBuilder()
     .apply {
-      val device = eventData.device.let { "${it.manufacturer} ${it.model}" }
-      val api = eventData.operatingSystemInfo.displayVersion
-      val eventStackTrace = prettyStackTrace()
+      val device = event.eventData.device.let { "${it.manufacturer} ${it.model}" }
+      val api = event.eventData.operatingSystemInfo.displayVersion
+      val eventStackTrace = event.prettyStackTrace()
 
       deviceName = device
       apiLevel = api
       stackTrace = eventStackTrace
+
+      addAllCodeSnippets(
+        codeContextData.codeContext.map { context ->
+          CodeSnippet.newBuilder()
+            .apply {
+              codeSnippet = context.content
+              filePath = context.filePath
+            }
+            .build()
+        }
+      )
     }
     .build()
 

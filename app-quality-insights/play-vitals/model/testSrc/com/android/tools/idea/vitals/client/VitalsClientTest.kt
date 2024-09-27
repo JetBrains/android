@@ -39,7 +39,9 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -48,6 +50,7 @@ import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.zeroCounts
 import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.testing.disposable
@@ -65,6 +68,7 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.Freshness
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
+import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
@@ -72,6 +76,7 @@ import com.google.play.developer.reporting.DateTime
 import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule
+import kotlin.collections.listOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -476,7 +481,23 @@ class VitalsClientTest {
         ISSUE1.issueDetails.fatality,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.EMPTY,
+        CodeContextData(
+          listOf(
+            CodeContext(
+              "com.example.MainActivity",
+              "src/com/example/MainActivity.kt",
+              "class MainActivity {}",
+              Language.KOTLIN,
+            ),
+            CodeContext(
+              "com.example.lib.Library",
+              "src/com/example/lib/Library.kt",
+              "class Library {}",
+              Language.KOTLIN,
+            ),
+          ),
+          Experiment.TOP_SOURCE,
+        ),
       )
 
     val value = (insight as LoadingState.Ready).value
@@ -489,6 +510,22 @@ class VitalsClientTest {
           "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)" +
           "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)"
       )
+    assertThat(request.codeSnippetsList)
+      .containsExactly(
+        CodeSnippet.newBuilder()
+          .apply {
+            codeSnippet = "class MainActivity {}"
+            filePath = "src/com/example/MainActivity.kt"
+          }
+          .build(),
+        CodeSnippet.newBuilder()
+          .apply {
+            codeSnippet = "class Library {}"
+            filePath = "src/com/example/lib/Library.kt"
+          }
+          .build(),
+      )
+      .inOrder()
   }
 
   @Test
