@@ -57,6 +57,8 @@ create a separate function and call the `UserProfile` function with the necessar
 For the example above, the code for a generated Compose Preview would look like this:
 
 ```
+import androidx.compose.ui.tooling.preview.Preview
+
 @Preview
 @Composable
 fun UserProfilePreview() {
