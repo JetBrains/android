@@ -24,7 +24,6 @@
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
   <depends>org.toml.lang</depends>
-  <depends>com.android.tools.gradle.dcl</depends>
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
@@ -652,7 +651,6 @@
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
-    <registryKey key="gradle.declarative.studio.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
