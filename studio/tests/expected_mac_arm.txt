@@ -111,6 +111,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/c-libutl.m
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/cldr.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/icu.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/public_suffix.md
+Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/siphash.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/unicode.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.base/zlib.md
 Android Studio Preview.app/Contents/jbr/Contents/Home/legal/java.compiler/ADDITIONAL_LICENSE_INFO
