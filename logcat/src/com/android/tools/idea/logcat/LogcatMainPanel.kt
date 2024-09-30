@@ -368,10 +368,10 @@ constructor(
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
       UserInputHandlers(this).install()
-      editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     }
 
     editor.settings.isUseSoftWraps = state?.isSoftWrap ?: false
+    messageFormatter.setSoftWrapEnabled(editor.settings.isUseSoftWraps)
     addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
@@ -721,7 +721,6 @@ constructor(
 
   @UiThread
   override fun reloadMessages() {
-    editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     clearDocument()
     coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
@@ -817,6 +816,7 @@ constructor(
 
   override fun setSoftWrapEnabled(state: Boolean) {
     editor.settings.isUseSoftWraps = state
+    messageFormatter.setSoftWrapEnabled(state)
     reloadMessages()
   }
 
