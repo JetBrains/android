@@ -28,7 +28,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunCo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import icons.StudioIcons
+import icons.StudioIcons.Shell.Toolbar.BUILD_RUN_CONFIGURATION
 import org.jetbrains.kotlin.idea.base.projectStructure.externalProjectPath
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
@@ -40,7 +40,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 class BuildRunConfigurationAction : AbstractBuildRunConfigurationAction()
 
 abstract class AbstractBuildRunConfigurationAction :
-  AndroidStudioGradleAction("Build Selected Run Configuration", "Build selected Run Configuration", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
+  AndroidStudioGradleAction("Build Selected Run Configuration", "Build selected Run Configuration", BUILD_RUN_CONFIGURATION) {
 
   open fun getRunConfigNameToBuild(e: AnActionEvent, project: Project): String? = extractRunConfigurationName(project)
 
