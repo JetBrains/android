@@ -25,6 +25,7 @@ import com.intellij.configurationStore.serialize
 import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -130,17 +131,12 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       log.debug("createEditor file=${file.path}")
     }
 
-    val psiFile =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable { PsiManager.getInstance(project).findFile(file)!! }
-      )
-
-    val textEditor =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable {
-          TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-        }
-      )
+    val psiFile = SlowOperations.knownIssue("IDEA-359566").use {
+      runReadAction { PsiManager.getInstance(project).findFile(file)!! }
+    }
+    val textEditor = SlowOperations.knownIssue("IDEA-359566").use {
+      TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    }
 
     return buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
   }
