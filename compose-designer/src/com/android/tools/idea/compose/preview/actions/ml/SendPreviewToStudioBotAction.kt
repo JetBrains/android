@@ -21,6 +21,8 @@ import com.android.tools.idea.compose.preview.actions.ml.utils.ContextualEditorB
 import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.containingFile
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.ModelType
@@ -41,6 +43,7 @@ import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.psi.KtFunction
 
 // TODO: create a second class to send only a portion of the preview as the image context, e.g.
@@ -102,12 +105,13 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
           icon = StudioIcons.Compose.Toolbar.RUN_CONFIGURATION,
           placeholderText = message("circle.to.fix.balloon.placeholder"),
         ) { userQuery ->
-          generateCodeAndExecuteCallback(
-            buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
-            filePointer,
-            diffDisposable,
-            ModelType.EXPERIMENTAL_LONG_CONTEXT,
-          )
+          AndroidCoroutineScope(diffDisposable).launch(AndroidDispatchers.workerThread) {
+            generateCodeAndExecuteCallback(
+              buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
+              filePointer,
+              ModelType.EXPERIMENTAL_LONG_CONTEXT,
+            )
+          }
         }
       }
       .show(dataContext)
