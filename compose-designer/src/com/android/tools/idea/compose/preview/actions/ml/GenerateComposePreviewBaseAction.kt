@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions.ml
 
+import com.android.tools.idea.compose.preview.actions.ml.utils.appendBlock
 import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -104,6 +105,14 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
           prompt = buildPrompt(filePointer, this@run),
           filePointer = filePointer,
           progressIndicatorText = message("ml.actions.progress.indicator.generating.previews"),
+          callback = { project, psiFile, kotlinCodeBlock ->
+            appendBlock(
+              project = project,
+              psiFile = psiFile,
+              kotlinCodeBlock = kotlinCodeBlock,
+              inline = true,
+            )
+          },
         )
       }
     }
