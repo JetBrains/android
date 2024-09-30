@@ -65,8 +65,7 @@ class CustomViewPreviewTest {
 
     editor.open(file)
     GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
-    guiTest.robot().waitForIdle()
-
+    editor.waitUntilErrorAnalysisFinishes()
     val multiRepresentationFixture = editor.getSplitEditorFixture().apply {
       setSplitMode()
       waitForRenderToFinish()
