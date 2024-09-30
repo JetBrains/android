@@ -33,6 +33,7 @@ import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
+import com.android.tools.idea.projectsystem.gradle.isTestFixturesModule
 import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -363,6 +364,7 @@ private fun ModuleAndMode.getTasksBy(
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }.takeIf { module.isScreenshotTestModule() || module.isHolderModule() })
         addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { module.isAndroidTestModule() || module.isHolderModule() })
+        addIfNotNull(variant.testFixturesArtifact.takeIf { module.isTestFixturesModule() || module.isHolderModule() })
       }
       artifacts.flatMap { by.invoke(it) }.toSet()
   }.orEmpty()
