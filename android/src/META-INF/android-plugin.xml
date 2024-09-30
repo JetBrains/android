@@ -452,6 +452,8 @@
     <!-- `language=""` means this is applicable to Language.ANY which is what images and other binary files use. -->
     <lang.findUsagesProvider language="" implementationClass="org.jetbrains.android.refactoring.AndroidFallbackFindUsagesProvider" />
 
+    <lang.inferredAnnotationProvider implementation="com.android.tools.idea.lang.AndroidSdkInferredAnnotationProvider" />
+
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidBinaryResourceFileUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceXmlUsageProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceReferenceInCodeUsageTypeProvider" order="first" />
