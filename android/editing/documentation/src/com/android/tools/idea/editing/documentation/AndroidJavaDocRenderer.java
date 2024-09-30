@@ -116,6 +116,7 @@ import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a resource of given type and name. */
@@ -177,8 +178,8 @@ public class AndroidJavaDocRenderer {
   }
 
   /** Combines external javadoc into the documentation rendered by the {@link #render} method */
-  @Nullable
-  public static String injectExternalDocumentation(@Nullable String rendered, @Nullable String external) {
+  @VisibleForTesting
+  static String injectExternalDocumentation(@Nullable String rendered, @Nullable String external) {
     if (rendered == null) {
       return external;
     } else if (external == null) {
