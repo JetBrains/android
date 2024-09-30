@@ -1504,11 +1504,11 @@ class AppInsightsProjectLevelControllerTest {
             Permission.READ_ONLY,
           )
         ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc")),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2")), "abc")),
       )
 
       controllerRule.controller.nextEvent()
-      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("2")), "")))
+      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("3")), "")))
       val state = controllerRule.consumeNext()
 
       assertThat(state.selectedEvent).isEqualTo(Event("2"))
