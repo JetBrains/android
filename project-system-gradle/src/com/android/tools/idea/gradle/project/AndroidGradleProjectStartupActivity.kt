@@ -84,6 +84,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -133,14 +134,10 @@ private suspend fun performActivity(project: Project) {
     return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
   }
 
-  // Also, make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
-  // But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
-  // This would also make sure that we do not even try to create configurations using JUnit.
-  addJUnitProducersToIgnoredList(project)
-
   if (shouldSyncOrAttachModels()) {
     withContext(Dispatchers.EDT) {
       removePointlessModules(project)
+      addJUnitProducersToIgnoredList(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
       subscribeToGradleSettingChanges(project)
     }
@@ -412,12 +409,16 @@ private fun additionalProjectSetup(project: Project) {
   GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
 }
 
-private fun addJUnitProducersToIgnoredList(project: Project) {
+// Make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
+// But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
+// This would also make sure that we do not even try to create configurations using JUnit.
+@VisibleForTesting
+fun addJUnitProducersToIgnoredList(project: Project) {
   val producerService = RunConfigurationProducerService.getInstance(project)
   val allJUnitProducers = DumbService.getInstance(project).filterByDumbAwareness(
     RunConfigurationProducer.EP_NAME.extensionList).filter { it.configurationType == JUnitConfigurationType.getInstance() }
   for (producer in allJUnitProducers) {
-    producerService.state.ignoredProducers.add (producer::class.java.name)
+    producerService.state.ignoredProducers.add(producer::class.java.name)
   }
 }
 
