@@ -20,7 +20,6 @@
   </change-notes>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 

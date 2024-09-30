@@ -20,7 +20,6 @@
     <codeinsight.quickfix.registrar implementation="com.android.tools.compose.aa.intentions.ComposeIdePluginQuickFixRegistrar"/>
     <extractFunctionDescriptorModifier implementation="com.android.tools.compose.aa.ComposableFunctionExtractableAnalyser"/>
     <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
-    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 
