@@ -641,6 +641,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon LOAD_OVERLAY = load("studio/icons/layout-inspector/toolbar/load-overlay.svg", "intui/icons/layout-inspector/toolbar/load-overlay.svg", 1255383941, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_2D = load("studio/icons/layout-inspector/toolbar/mode-2d.svg", "intui/icons/layout-inspector/toolbar/mode-2d.svg", -1147798209, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_3D = load("studio/icons/layout-inspector/toolbar/mode-3d.svg", "intui/icons/layout-inspector/toolbar/mode-3d.svg", -1509657011, 2);
+      /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_CHILDREN_COUNT = load("studio/icons/layout-inspector/toolbar/recomposition-children-count.svg", "intui/icons/layout-inspector/toolbar/recomposition-children-count.svg", -1911998265, 2);
       /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_COUNT = load("studio/icons/layout-inspector/toolbar/recomposition-count.svg", "intui/icons/layout-inspector/toolbar/recomposition-count.svg", 874662391, 2);
       /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_SKIPPED = load("studio/icons/layout-inspector/toolbar/recomposition-skipped.svg", "intui/icons/layout-inspector/toolbar/recomposition-skipped.svg", -1158058756, 2);
       /** 16x16 */ public static final @NotNull Icon RESET_VIEW = load("studio/icons/layout-inspector/toolbar/reset-view.svg", "intui/icons/layout-inspector/toolbar/reset-view.svg", 626597057, 2);
