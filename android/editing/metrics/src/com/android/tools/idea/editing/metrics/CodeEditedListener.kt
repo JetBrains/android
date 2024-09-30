@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.editing.metrics
 
-import com.google.common.truth.Truth.assertThat
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
+import com.intellij.openapi.extensions.ExtensionPointName
 
-/** Placeholder test, will be removed when real tests are added. */
-@RunWith(JUnit4::class)
-class SourceTest {
-  @Test
-  fun unknownExists() {
-    assertThat(Source.entries).hasSize(1)
-    assertThat(Source.entries.single()).isEqualTo(Source.UNKNOWN)
+/** Listener for [CodeEdited] events. */
+interface CodeEditedListener {
+  fun onCodeEdited(event: CodeEdited)
+
+  companion object {
+    val EP_NAME: ExtensionPointName<CodeEditedListener> =
+      ExtensionPointName.create("com.android.tools.idea.editing.metrics.codeEditedListener")
   }
 }
