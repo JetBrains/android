@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.actions.ml.utils
 
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.GenerationConfig
 import com.android.tools.idea.studiobot.MimeType
@@ -29,14 +28,12 @@ import com.intellij.diff.DiffManager
 import com.intellij.diff.chains.SimpleDiffRequestChain
 import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.diff.util.DiffUserDataKeysEx
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
@@ -44,10 +41,9 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
  * Given a [Prompt] with instructions to modify a given file, this method queries a model and
  * applies the given [callback] with the generated code and original [PsiFile].
  */
-internal fun generateCodeAndExecuteCallback(
+internal suspend fun generateCodeAndExecuteCallback(
   prompt: Prompt,
   filePointer: SmartPsiElementPointer<PsiFile>,
-  disposable: Disposable,
   modelType: ModelType = ModelType.CHAT,
   progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
   callback: (Project, PsiFile, KotlinCodeBlock) -> Unit = ::mergeBlockAndShowDiff,
@@ -55,8 +51,8 @@ internal fun generateCodeAndExecuteCallback(
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
 
-  // Send the prompt + code directly to the model, with a progress indicator
-  AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
+  withContext(AndroidDispatchers.workerThread) {
+    // Send the prompt + code directly to the model, with a progress indicator
     withBackgroundProgress(project, progressIndicatorText, true) {
       val botResponse =
         studioBot
@@ -73,8 +69,8 @@ internal fun generateCodeAndExecuteCallback(
           .first()
           .text
 
-      withContext(AndroidDispatchers.uiThread) {
-        val psiFile = filePointer.element ?: return@withContext
+      withContext(AndroidDispatchers.uiThread) uiThread@{
+        val psiFile = filePointer.element ?: return@uiThread
         val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
         callback(project, psiFile, parsedBlock)
       }
