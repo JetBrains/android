@@ -39,6 +39,5 @@
     <orderEntry type="library" exported="" scope="TEST" name="intellij-test-framework" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
   </component>
 </module>

@@ -27,6 +27,7 @@ iml_module(
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
