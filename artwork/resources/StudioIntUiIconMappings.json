@@ -786,6 +786,7 @@
           "apply-code-swap.svg": "studio/icons/shell/toolbar/apply-code-swap.svg",
           "attach-debugger.svg": "studio/icons/shell/toolbar/attach-debugger.svg",
           "build-module.svg": "studio/icons/shell/toolbar/build-module.svg",
+          "build-run-configuration.svg": "studio/icons/shell/toolbar/build-run-configuration.svg",
           "device-manager.svg": "studio/icons/shell/toolbar/device-manager.svg",
           "gradle-sync.svg": "studio/icons/shell/toolbar/gradle-sync.svg",
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
