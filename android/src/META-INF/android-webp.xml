@@ -30,8 +30,4 @@
       <reference ref="ConvertToWebp" />
     </group>
   </actions>
-
-  <extensions defaultExtensionNs="com.android">
-    <rendering.renderSecurityManagerOverrides implementation="com.android.tools.idea.rendering.webp.WebpRenderSecurityManagerOverrides"/>
-  </extensions>
 </idea-plugin>
