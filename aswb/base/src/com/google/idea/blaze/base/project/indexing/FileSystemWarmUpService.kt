@@ -130,7 +130,7 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
         }
         when {
           !file.isInLocalFileSystem -> return@readAction arrayOf()
-          file.isDirectory -> file.children
+          file.exists() && file.isDirectory -> file.children
           else -> {
             file.fileType
             arrayOf()
