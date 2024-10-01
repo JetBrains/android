@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperTest
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.studiobot.StudioBot
@@ -99,7 +100,7 @@ class TomlErrorParserTest {
     setStudioBotInstanceAvailability(true)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
-    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser())
+    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser(), BuildOutputParserWrapperTest.ID)
     val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
     val consumer = TestMessageEventConsumer()
 

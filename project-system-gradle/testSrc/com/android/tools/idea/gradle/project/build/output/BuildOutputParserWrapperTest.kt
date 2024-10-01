@@ -60,7 +60,6 @@ class BuildOutputParserWrapperTest {
 
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
-  private lateinit var outputParserManager: BuildOutputParserManager
 
   @Before
   fun setUp() {
@@ -71,8 +70,7 @@ class BuildOutputParserWrapperTest {
       messageConsumer?.accept(messageEvent)
       true
     }
-    myParserWrapper = BuildOutputParserWrapper(parser)
-    outputParserManager = BuildOutputParserManager(myProject, listOf(myParserWrapper))
+    myParserWrapper = BuildOutputParserWrapper(parser, ID)
 
     whenever(myProject.basePath).thenReturn("test")
 
