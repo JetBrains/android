@@ -55,6 +55,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -106,9 +107,11 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
   class StartupService(private val project: Project) : AndroidGradleProjectStartupService<Unit>() {
 
     suspend fun performStartupActivity(isJpsProjectLoaded: Boolean = false) {
+      LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity(isJpsProjectLoaded = $isJpsProjectLoaded)" }
       if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
 
       runInitialization {
+        LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity runInitialization" }
         // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
         // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
         // programming I'd probably use an atomic integer and wait for the count to reach 3.
@@ -121,6 +124,7 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
           whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
           awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
+          LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity awaited all" }
         }
 
         performActivity(project)
@@ -242,6 +246,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     //  path individually.
     LOG.info("Requesting Gradle sync (${e.reason}).")
     val trigger = if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN
+    LOG.info("Requesting Gradle sync with trigger (${trigger}).")
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 }
