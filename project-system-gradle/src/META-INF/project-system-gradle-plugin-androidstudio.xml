@@ -50,6 +50,8 @@
     <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
     <!-- Disable Gradle auto-import by overriding the corresponding registry flag. -->
     <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
+    <!-- Disable phased sync as we've found it to be slower and there is currently no benefit for Android Studio. Context: b/360851078 -->
+    <registryKey key="gradle.phased.sync.enabled" defaultValue="false" description="Enable the phased Gradle sync execution"/>
     <!-- Disable Kotlin not configured banner. -->
     <registryKey key="kotlin.not.configured.show.notification" defaultValue="false" description="Show notification about Kotlin missing configuration"/>
   </extensions>

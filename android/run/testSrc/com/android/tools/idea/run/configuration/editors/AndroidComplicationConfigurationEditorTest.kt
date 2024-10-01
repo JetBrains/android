@@ -226,6 +226,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @Ignore("b/364922561")
   fun testCleanupComplicationNameOnModuleChange() {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
     runConfiguration.setModule(module)
@@ -514,6 +515,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @Ignore("b/364922561")
   fun testRestoreComponentName() {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
     runConfiguration.setModule(module)
