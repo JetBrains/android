@@ -97,7 +97,7 @@ public class BlazeAndroidLaunchTasksProvider implements BlazeLaunchTasksProvider
         pmInstallOption = userIdFlags;
       }
       DeployOptions deployOptions =
-          new DeployOptions(Collections.emptyList(), pmInstallOption, false, false);
+          new DeployOptions(Collections.emptyList(), pmInstallOption, false, false, false);
       ImmutableList<BlazeLaunchTask> deployTasks = runContext.getDeployTasks(device, deployOptions);
       launchTasks.addAll(deployTasks);
     }

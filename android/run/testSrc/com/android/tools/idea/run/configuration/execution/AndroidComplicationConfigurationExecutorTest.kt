@@ -113,7 +113,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                                  activitiesName = emptyList())
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = ComplicationLaunchOptions().apply {
         watchFaceInfo = TestWatchFaceInfo
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
@@ -214,7 +214,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                                  activitiesName = emptyList())
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = ComplicationLaunchOptions().apply {
         watchFaceInfo = TestWatchFaceInfo
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
@@ -305,7 +305,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
                                  activitiesName = emptyList())
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = ComplicationLaunchOptions().apply {
         watchFaceInfo = TestWatchFaceInfo
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
@@ -374,7 +374,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val settings = object : AppRunSettings {
-      override val deployOptions = DeployOptions(emptyList(), "", true, true)
+      override val deployOptions = DeployOptions(emptyList(), "", true, true, false)
       override val componentLaunchOptions = ComplicationLaunchOptions().apply {
         watchFaceInfo = TestWatchFaceInfo
         componentName = this@AndroidComplicationConfigurationExecutorTest.componentName
