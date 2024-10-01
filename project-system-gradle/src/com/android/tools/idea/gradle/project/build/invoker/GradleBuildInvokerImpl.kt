@@ -201,6 +201,13 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   }
 
   /**
+   * Execute Gradle tasks that compile the relevant Java sources for thew whole project.
+   */
+  override fun compileJava(): ListenableFuture<GradleMultiInvocationResult> {
+    return compileJava(ModuleManager.getInstance(project).modules)
+  }
+
+  /**
    * Execute Gradle tasks that compile the relevant Java sources.
    *
    * @param modules         Modules that need to be compiled
