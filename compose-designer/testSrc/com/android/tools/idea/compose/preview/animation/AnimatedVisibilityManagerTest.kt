@@ -21,7 +21,6 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -31,6 +30,7 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -205,7 +205,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     runBlocking {
-      surface.sceneManagers.forEach { it.render() }
+      surface.sceneManagers.forEach { it.requestRenderAsync().await() }
       animationPreview.addAnimation(animation).join()
 
       withContext(uiThread) {
