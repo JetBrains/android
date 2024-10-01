@@ -16,7 +16,7 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -79,59 +79,72 @@ fun DeviceScreenDiagram(
     modifier
       // Constrain the minimum size so that the draw area doesn't go negative on inset()
       .requiredSizeIn(minWidth = 50.dp, minHeight = 50.dp)
-      .aspectRatio(aspectRatio, matchHeightConstraintsFirst = aspectRatio < 1f)
+      .fillMaxSize()
   ) {
-    inset(left = heightTextMeasurement.size.height.toFloat(), top = 0f, bottom = 0f, right = 0f) {
-      drawText(
-        widthTextMeasurement,
-        topLeft = Offset((size.width - widthTextMeasurement.size.width) / 2, 0f),
-        color = contentColor,
-      )
+    // While there is an aspectRatio modifier, it constrains the entire diagram including labels,
+    // and we want the inner screen portion to have the correct aspect ratio.
+    var verticalInset = 0f
+    var horizontalInset = 0f
+    val innerWidth = (size.width - heightTextMeasurement.size.height.toFloat()).coerceAtLeast(0f)
+    val innerHeight = (size.height - widthTextMeasurement.size.height.toFloat()).coerceAtLeast(0f)
+    if (innerHeight * aspectRatio > innerWidth) {
+      verticalInset = (innerHeight - (innerWidth / aspectRatio)) / 2
+    } else {
+      horizontalInset = (innerWidth - (innerHeight * aspectRatio)) / 2
     }
-    inset(top = widthTextMeasurement.size.height.toFloat(), left = 0f, bottom = 0f, right = 0f) {
-      rotate(-90f, pivot = Offset.Zero) {
+    inset(horizontal = horizontalInset, vertical = verticalInset) {
+      inset(left = heightTextMeasurement.size.height.toFloat(), top = 0f, bottom = 0f, right = 0f) {
         drawText(
-          heightTextMeasurement,
-          topLeft = Offset(-(size.height + heightTextMeasurement.size.width) / 2, 0f),
+          widthTextMeasurement,
+          topLeft = Offset((size.width - widthTextMeasurement.size.width) / 2, 0f),
           color = contentColor,
         )
       }
-    }
-    inset(
-      left = heightTextMeasurement.size.height.toFloat(),
-      top = widthTextMeasurement.size.height.toFloat(),
-      right = 0f,
-      bottom = 0f,
-    ) {
-      inset(4.dp.toPx()) {
-        if (diagonalLength.isNotEmpty()) {
-          val radius = if (round) (size.width / 2) else 12.dp.toPx()
-          val lineOffset = (radius * (1 - 1 / Math.sqrt(2.0))).toFloat() + 4.dp.toPx()
-          val textTopLeft = center - diagonalTextMeasurement.size.center.toOffset()
-          drawText(diagonalTextMeasurement, topLeft = textTopLeft, color = contentColor)
-          clipRect(
-            left = textTopLeft.x,
-            top = textTopLeft.y,
-            right = textTopLeft.x + diagonalTextMeasurement.size.width,
-            bottom = textTopLeft.y + diagonalTextMeasurement.size.height,
-            clipOp = ClipOp.Difference,
-          ) {
-            drawLine(
-              color = contentColor,
-              start = Offset(lineOffset, size.height - lineOffset),
-              end = Offset(size.width - lineOffset, lineOffset),
-              strokeWidth = 2.dp.toPx(),
+      inset(top = widthTextMeasurement.size.height.toFloat(), left = 0f, bottom = 0f, right = 0f) {
+        rotate(-90f, pivot = Offset.Zero) {
+          drawText(
+            heightTextMeasurement,
+            topLeft = Offset(-(size.height + heightTextMeasurement.size.width) / 2, 0f),
+            color = contentColor,
+          )
+        }
+      }
+      inset(
+        left = heightTextMeasurement.size.height.toFloat(),
+        top = widthTextMeasurement.size.height.toFloat(),
+        right = 0f,
+        bottom = 0f,
+      ) {
+        inset(4.dp.toPx()) {
+          if (diagonalLength.isNotEmpty()) {
+            val radius = if (round) (size.width / 2) else 12.dp.toPx()
+            val lineOffset = (radius * (1 - 1 / Math.sqrt(2.0))).toFloat() + 4.dp.toPx()
+            val textTopLeft = center - diagonalTextMeasurement.size.center.toOffset()
+            drawText(diagonalTextMeasurement, topLeft = textTopLeft, color = contentColor)
+            clipRect(
+              left = textTopLeft.x,
+              top = textTopLeft.y,
+              right = textTopLeft.x + diagonalTextMeasurement.size.width,
+              bottom = textTopLeft.y + diagonalTextMeasurement.size.height,
+              clipOp = ClipOp.Difference,
+            ) {
+              drawLine(
+                color = contentColor,
+                start = Offset(lineOffset, size.height - lineOffset),
+                end = Offset(size.width - lineOffset, lineOffset),
+                strokeWidth = 2.dp.toPx(),
+              )
+            }
+          }
+          if (round) {
+            drawCircle(contentColor, style = Stroke(width = 4.dp.toPx()))
+          } else {
+            drawRoundRect(
+              contentColor,
+              cornerRadius = CornerRadius(12.dp.toPx()),
+              style = Stroke(width = 4.dp.toPx()),
             )
           }
-        }
-        if (round) {
-          drawCircle(contentColor, style = Stroke(width = 4.dp.toPx()))
-        } else {
-          drawRoundRect(
-            contentColor,
-            cornerRadius = CornerRadius(12.dp.toPx()),
-            style = Stroke(width = 4.dp.toPx()),
-          )
         }
       }
     }
