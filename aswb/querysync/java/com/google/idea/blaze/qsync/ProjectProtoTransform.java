@@ -23,7 +23,6 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadataProvider;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
@@ -31,8 +30,15 @@ import java.util.List;
 
 /** Applies a transform to a project proto instance, yielding a new instance. */
 @FunctionalInterface
-public interface ProjectProtoTransform extends ArtifactMetadataProvider {
+public interface ProjectProtoTransform {
 
+  /**
+   * Indicates which metadata are needed for the given target.
+   *
+   * @param forTarget The target in question, which has just been built.
+   * @return A map of build artifacts to required metadata types. The keys in this map must
+   *     correspond to build artifacts from {@code forTarget}.
+   */
   default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
       TargetBuildInfo forTarget) {
     return ImmutableSetMultimap.of();

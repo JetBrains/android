@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
@@ -55,6 +56,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -75,7 +77,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   private static final Logger logger = Logger.getLogger(NewArtifactTracker.class.getName());
 
   private final BuildArtifactCache artifactCache;
-  private final ArtifactMetadataProvider artifactMetadataProvider;
+  private final Function<TargetBuildInfo, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> targetToMetadataFn;
   private final Executor executor;
   private final Path stateFile;
 
@@ -93,10 +95,10 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   public NewArtifactTracker(
       Path projectDirectory,
       BuildArtifactCache artifactCache,
-      ArtifactMetadataProvider artifactMetadataProvider,
+      Function<TargetBuildInfo, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> targetToMetadataFn,
       Executor executor) {
     this.artifactCache = artifactCache;
-    this.artifactMetadataProvider = artifactMetadataProvider;
+    this.targetToMetadataFn = targetToMetadataFn;
     this.stateFile = projectDirectory.resolve("artifact_state");
     this.executor = executor;
     loadState();
@@ -123,7 +125,9 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     saveState();
   }
 
-  record LabelMetadataKey(Label target, Path artifactPath, String extractorKey) {}
+  record LabelMetadataKey(Label target, Path artifactPath, String extractorKey) {
+
+  }
 
   private static ImmutableCollection<TargetBuildInfo> getTargetBuildInfo(
       OutputInfo outputInfo, DigestMap digestMap) {
@@ -167,7 +171,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     Map<LabelMetadataKey, ListenableFuture<String>> metadataFutures = Maps.newHashMap();
     for (TargetBuildInfo targetInfo : targetBuildInfo) {
       for (Map.Entry<BuildArtifact, ArtifactMetadata> entry :
-          artifactMetadataProvider.getRequiredArtifactMetadata(targetInfo).entries()) {
+          targetToMetadataFn.apply(targetInfo).entries()) {
         LabelMetadataKey key =
             new LabelMetadataKey(
                 targetInfo.label(), entry.getKey().artifactPath(), entry.getValue().key());
