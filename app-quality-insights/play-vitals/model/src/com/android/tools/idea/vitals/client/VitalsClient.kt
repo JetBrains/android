@@ -236,7 +236,9 @@ class VitalsClient(
     val cachedInsight = cache.getAiInsight(connection, issueId)
     return if (cachedInsight == null || forceFetch) {
       val insight =
-        aiInsightClient.fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
+        aiInsightClient
+          .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
+          .copy(experiment = codeContextData.experimentType)
       cache.putAiInsight(connection, issueId, insight)
       LoadingState.Ready(insight)
     } else {
