@@ -85,6 +85,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.util.function.Supplier
 import java.util.stream.Collectors
+import javax.swing.JLayeredPane
+import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.future.await
@@ -145,7 +147,12 @@ internal constructor(
     }
 
   init {
-    add(listDeprecationBanner, BorderLayout.NORTH)
+    val deprecationBannerPanel =
+      JPanel(BorderLayout()).apply {
+        add(listDeprecationBanner, BorderLayout.NORTH)
+        isOpaque = false
+      }
+    layeredPane.add(deprecationBannerPanel, JLayeredPane.DEFAULT_LAYER)
     viewport.addChangeListener {
       val scroller = viewportScroller
       viewportScroller = null
