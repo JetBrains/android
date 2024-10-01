@@ -18,6 +18,8 @@ package com.android.tools.idea.run.configuration.editors
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -51,6 +53,15 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
+import org.w3c.dom.Element
 import java.awt.event.ActionEvent
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
@@ -61,16 +72,8 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
-import org.w3c.dom.Element
 
+@IgnoreWithCondition(reason = "b/368132759", condition = OnWindows::class)
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
