@@ -55,5 +55,6 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="intellij.android.device.tests" scope="TEST" />
   </component>
 </module>
