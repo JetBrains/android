@@ -315,7 +315,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     return sceneView;
   }
 
-  public void updateTargets() {
+  private void updateTargets() {
     Runnable updateAgain = this::updateTargets;
     SceneComponent root = getScene().getRoot();
     if (root != null) {
