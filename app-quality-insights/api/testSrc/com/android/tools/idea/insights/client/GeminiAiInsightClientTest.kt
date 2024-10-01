@@ -57,8 +57,12 @@ class GeminiAiInsightClientTest {
           override fun config() = ModelConfig(emptySet(), 1000, 1000, true)
 
           override fun generateContent(prompt: Prompt, config: GenerationConfig) = flow {
-            assertThat(prompt.messages.size).isEqualTo(1)
-            val message = prompt.messages[0]
+            assertThat(prompt.messages.size).isEqualTo(2)
+            val preamble = prompt.messages[0]
+            assertThat(preamble.chunks.size).isEqualTo(1)
+            val systemChunk = preamble.chunks[0] as Prompt.TextChunk
+            assertThat(systemChunk.text).isEqualTo(GEMINI_PREAMBLE)
+            val message = prompt.messages[1]
             assertThat(message.chunks.size).isEqualTo(1)
             val chunk = message.chunks[0] as Prompt.TextChunk
             assertThat(chunk.filesUsed).isEmpty()
