@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
+import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
 import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
@@ -63,98 +65,99 @@ import org.jetbrains.jewel.ui.component.Text
 
 internal class AddDeviceWizard(val source: LocalVirtualDeviceSource, val project: Project?) {
   fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") {
-      val component = LocalComponent.current
-      val density = LocalDensity.current
+    return ComposeWizard(project, "Add Device") { DeviceGridPage() }
+  }
 
-      val filterState = getOrCreateState { VirtualDeviceFilterState() }
-      val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
+  @Composable
+  internal fun WizardPageScope.DeviceGridPage() {
+    val component = LocalComponent.current
+    val density = LocalDensity.current
 
-      DeviceLoadingPage(source) { profiles ->
-        // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
-        // Device is created, we select it automatically.
-        var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
-        val deviceProvider =
-          object : DeviceUiAction.DeviceProvider {
-            override fun getDevice(): Device? = selectionState.selection?.device
+    val filterState = getOrCreateState { VirtualDeviceFilterState() }
+    val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
-            override fun refreshDevices() {}
+    DeviceLoadingPage(source) { profiles ->
+      // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
+      // Device is created, we select it automatically.
+      var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
+      val deviceProvider =
+        object : DeviceUiAction.DeviceProvider {
+          override fun getDevice(): Device? = selectionState.selection?.device
 
-            override fun setDevice(device: Device?) {
-              dialogSelectedDevice = device
-            }
+          override fun refreshDevices() {}
 
-            override fun selectDefaultDevice() {
-              selectionState.selection = null
-            }
-
-            override fun getProject(): Project? = this@AddDeviceWizard.project
+          override fun setDevice(device: Device?) {
+            dialogSelectedDevice = device
           }
-        if (dialogSelectedDevice != null) {
-          profiles
-            .find { it.device == dialogSelectedDevice }
-            ?.let {
-              dialogSelectedDevice = null
-              selectionState.selection = it
-            }
+
+          override fun selectDefaultDevice() {
+            selectionState.selection = null
+          }
+
+          override fun getProject(): Project? = this@AddDeviceWizard.project
+        }
+      if (dialogSelectedDevice != null) {
+        profiles
+          .find { it.device == dialogSelectedDevice }
+          ?.let {
+            dialogSelectedDevice = null
+            selectionState.selection = it
+          }
+      }
+
+      Column {
+        DeviceGridPage(
+          filterState = filterState,
+          selectionState = selectionState,
+          onSelectionUpdated = { with(source) { selectionUpdated(it) } },
+        ) {
+          DeviceTable(
+            profiles,
+            avdColumns,
+            filterContent = {
+              SingleSelectionRadioButtons(
+                FormFactor.uniqueValuesOf(profiles),
+                filterState.formFactorFilter,
+              )
+              Divider(orientation = Orientation.Horizontal, Modifier.padding(16.dp))
+              CheckboxRow(
+                "Show obsolete device profiles",
+                checked = filterState.showDeprecated,
+                onCheckedChange = { filterState.showDeprecated = it },
+              )
+            },
+            tableSelectionState = selectionState,
+            filterState = filterState,
+            onRowSecondaryClick = { device, offset ->
+              selectionState.selection = device
+
+              val menu = JBPopupMenu()
+
+              fun createMenuItem(action: DeviceUiAction) =
+                JBMenuItem(action).apply { text = action.text }
+
+              menu.add(createMenuItem(CloneDeviceAction(deviceProvider)))
+              menu.add(createMenuItem(EditDeviceAction(deviceProvider)))
+              menu.add(createMenuItem(ExportDeviceAction(deviceProvider)))
+              menu.add(createMenuItem(DeleteDeviceAction(deviceProvider)))
+
+              menu.show(
+                component,
+                (offset.x / density.density).toInt(),
+                (offset.y / density.density).toInt(),
+              )
+            },
+            modifier = Modifier.weight(1f),
+          )
         }
 
-        Column {
-          DeviceGridPage(
-            filterState = filterState,
-            selectionState = selectionState,
-            onSelectionUpdated = { with(source) { selectionUpdated(it) } },
-          ) {
-            DeviceTable(
-              profiles,
-              avdColumns,
-              filterContent = {
-                SingleSelectionRadioButtons(
-                  FormFactor.uniqueValuesOf(profiles),
-                  filterState.formFactorFilter,
-                )
-                Divider(orientation = Orientation.Horizontal, Modifier.padding(16.dp))
-                CheckboxRow(
-                  "Show obsolete device profiles",
-                  checked = filterState.showDeprecated,
-                  onCheckedChange = { filterState.showDeprecated = it },
-                )
-              },
-              tableSelectionState = selectionState,
-              filterState = filterState,
-              onRowSecondaryClick = { device, offset ->
-                selectionState.selection = device
-
-                val menu = JBPopupMenu()
-
-                fun createMenuItem(action: DeviceUiAction) =
-                  JBMenuItem(action).apply { text = action.text }
-
-                menu.add(createMenuItem(CloneDeviceAction(deviceProvider)))
-                menu.add(createMenuItem(EditDeviceAction(deviceProvider)))
-                menu.add(createMenuItem(ExportDeviceAction(deviceProvider)))
-                menu.add(createMenuItem(DeleteDeviceAction(deviceProvider)))
-
-                menu.show(
-                  component,
-                  (offset.x / density.density).toInt(),
-                  (offset.y / density.density).toInt(),
-                )
-              },
-              modifier = Modifier.weight(1f),
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
+            Text("New hardware profile...")
           }
 
-          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
-              Text("New hardware profile...")
-            }
-
-            OutlinedButton(
-              onClick = { ImportDevicesAction(deviceProvider).actionPerformed(null) }
-            ) {
-              Text("Import hardware profile...")
-            }
+          OutlinedButton(onClick = { ImportDevicesAction(deviceProvider).actionPerformed(null) }) {
+            Text("Import hardware profile...")
           }
         }
       }

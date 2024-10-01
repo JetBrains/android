@@ -31,6 +31,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.LoadingState
+import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
@@ -44,6 +45,7 @@ import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
 import java.awt.Component
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -60,11 +62,12 @@ private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
 
 private fun resolve(sdkHandler: AndroidSdkHandler, deviceSkin: Path, imageSkins: Iterable<Path>) =
   DeviceSkinResolver.resolve(
-    deviceSkin,
-    imageSkins,
-    sdkHandler.location,
-    DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath(),
-  )
+      deviceSkin,
+      imageSkins,
+      sdkHandler.location,
+      DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath(),
+    )
+    .takeIf { Files.exists(it) } ?: SkinUtils.noSkin()
 
 @Composable
 internal fun WizardPageScope.ConfigurationPage(
@@ -94,6 +97,7 @@ internal fun WizardPageScope.ConfigurationPage(
     return
   }
 
+  val fileSystem = LocalFileSystem.current
   val state =
     remember(device) {
       if (image == null) {
@@ -107,7 +111,11 @@ internal fun WizardPageScope.ConfigurationPage(
 
         val skin = device.device.defaultHardware.skinFile
         state.setSkin(
-          resolve(sdkHandler, if (skin == null) SkinUtils.noSkin() else skin.toPath(), emptyList())
+          resolve(
+            sdkHandler,
+            if (skin == null) SkinUtils.noSkin(fileSystem) else fileSystem.getPath(skin.path),
+            emptyList(),
+          )
         )
 
         state
