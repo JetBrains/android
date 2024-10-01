@@ -337,10 +337,10 @@
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
     </action>
     <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
-    <group id="GradleProjectStructureActions">
+    <group>
       <separator/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
-      <add-to-group group-id="BuildMenu" anchor="last"/>
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="com.android.build.attribution.ui.OpenBuildAnalyzerAction"/>
       <separator/>
     </group>
     <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Build App Bundle(s) / APK(s)" popup="true">
