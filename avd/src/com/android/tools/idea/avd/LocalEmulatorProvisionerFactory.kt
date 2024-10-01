@@ -119,12 +119,24 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun editAvd(avdInfo: AvdInfo): Boolean {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      return EditVirtualDeviceDialog(project).show(avdInfo)
+      return EditVirtualDeviceDialog(project)
+        .show(avdInfo, mode = EditVirtualDeviceDialog.Mode.EDIT)
     } else {
       return withContext(uiThread) {
         val avdOptionsModel = AvdOptionsModel(avdInfo)
         AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
         avdOptionsModel.createdAvd.isPresent
+      }
+    }
+  }
+
+  override suspend fun duplicateAvd(avdInfo: AvdInfo) {
+    if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
+      EditVirtualDeviceDialog(project).show(avdInfo, mode = EditVirtualDeviceDialog.Mode.DUPLICATE)
+    } else {
+      withContext(uiThread) {
+        AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))
+          .showAndGet()
       }
     }
   }
@@ -156,13 +168,6 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun showOnDisk(avdInfo: AvdInfo) {
     RevealFileAction.openDirectory(avdInfo.dataFolderPath)
-  }
-
-  override suspend fun duplicateAvd(avdInfo: AvdInfo) {
-    withContext(uiThread) {
-      AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))
-        .showAndGet()
-    }
   }
 
   override suspend fun wipeData(avdInfo: AvdInfo) {
