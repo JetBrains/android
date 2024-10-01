@@ -48,7 +48,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
@@ -139,7 +138,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig) {
     super(model, designSurface, sceneComponentProvider);
     myLayoutlibSceneRenderer = new LayoutlibSceneRenderer(this, renderTaskDisposerExecutor, model, (NlDesignSurface) designSurface, layoutScannerConfig);
-    createSceneView();
+    updateSceneView();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
 
@@ -284,7 +283,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
 
     SceneView primarySceneView = getDesignSurface().getScreenViewProvider().createPrimarySceneView(getDesignSurface(), this);
-    mySecondarySceneView = getDesignSurface().getScreenViewProvider().createSecondarySceneView(getDesignSurface(), this);
+    setSecondarySceneView(getDesignSurface().getScreenViewProvider().createSecondarySceneView(getDesignSurface(), this));
 
     getDesignSurface().updateErrorDisplay();
 

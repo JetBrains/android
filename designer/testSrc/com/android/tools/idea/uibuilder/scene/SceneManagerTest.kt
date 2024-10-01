@@ -55,7 +55,7 @@ class TestSceneManager(
 ) : SceneManager(model, surface, sceneComponentProvider) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
-  override fun getSceneScalingFactor(): Float = 1f
+  override val sceneScalingFactor: Float = 1f
 
   override fun requestRenderAsync(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
@@ -63,7 +63,7 @@ class TestSceneManager(
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
 
-  override fun getSceneDecoratorFactory(): SceneDecoratorFactory =
+  override val sceneDecoratorFactory: SceneDecoratorFactory =
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
     }
