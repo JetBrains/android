@@ -48,6 +48,9 @@ iml_module(
         "AndroidLintCustomCheckTest": {
             "test_filter": "com.android.tools.idea.lint.AndroidLintCustomCheckTest",
         },
+        "AppLinksValidDetectorGradleTest": {
+            "test_filter": "com.android.tools.idea.lint.AppLinksValidDetectorGradleTest",
+        },
         "LintModelSnapshotComparisonTest": {
             # keep sorted
             "data": [
