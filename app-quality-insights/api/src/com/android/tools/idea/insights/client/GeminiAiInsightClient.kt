@@ -26,6 +26,14 @@ import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.VisibleForTesting
+
+/** Guidelines for the model to provide context and fine tune the response. */
+@VisibleForTesting
+const val GEMINI_PREAMBLE =
+  """
+    Begin with the explanation directly. Do not add fillers at the start of response.
+  """
 
 private val GEMINI_INSIGHT_PROMPT_FORMAT =
   """
@@ -55,7 +63,11 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
     additionalContextMsg: Message,
   ): AiInsight {
     val request = GeminiInsightsRequest.parser().parseFrom(additionalContextMsg.toByteArray())
-    val prompt = buildPrompt(project) { userMessage { text(createPrompt(request), emptyList()) } }
+    val prompt =
+      buildPrompt(project) {
+        systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
+        userMessage { text(createPrompt(request), emptyList()) }
+      }
     val generateContentFlow = StudioBot.getInstance().model(project).generateContent(prompt)
     val response =
       buildString {
