@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.EnableBitmapScreenshotCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.EnableXrInspectionCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
@@ -256,6 +257,13 @@ class ViewLayoutInspectorClient(
     messenger.sendCommand {
       enableBitmapScreenshotCommand =
         EnableBitmapScreenshotCommand.newBuilder().apply { this.enable = enable }.build()
+    }
+  }
+
+  suspend fun enableXrInspection(enable: Boolean) {
+    messenger.sendCommand {
+      enableXrInspectionCommand =
+        EnableXrInspectionCommand.newBuilder().apply { this.enable = enable }.build()
     }
   }
 

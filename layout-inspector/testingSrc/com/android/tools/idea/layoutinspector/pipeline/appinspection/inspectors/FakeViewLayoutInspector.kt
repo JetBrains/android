@@ -105,6 +105,13 @@ class FakeViewLayoutInspector(connection: Connection<Event>) :
           )
           .build()
       }
+      Command.SpecializedCase.ENABLE_XR_INSPECTION_COMMAND -> {
+        Response.newBuilder()
+          .setEnableXrInspectionResponse(
+            LayoutInspectorViewProtocol.EnableXrInspectionResponse.getDefaultInstance()
+          )
+          .build()
+      }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }

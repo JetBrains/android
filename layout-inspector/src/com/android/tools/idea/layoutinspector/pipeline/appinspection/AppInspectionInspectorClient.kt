@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashExce
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -188,10 +189,12 @@ class AppInspectionInspectorClient(
 
         val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
         val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
+        val enableXrInspectionDeferred = coroutineScope.async { enableXrInspection() }
 
         // Perform setup operations in parallel.
         debugViewAttributesDeferred.await()
         enableBitmapScreenshotsDeferred.await()
+        enableXrInspectionDeferred.await()
 
         val viewUpdateDeferred = CompletableDeferred<Unit>()
         val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
@@ -224,6 +227,13 @@ class AppInspectionInspectorClient(
   private suspend fun enableBitmapScreenshots() {
     if (inspectorClientSettings.enableBitmapScreenshot) {
       enableBitmapScreenshots(true)
+    }
+  }
+
+  private suspend fun enableXrInspection() {
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.get()) {
+      // TODO: check if the device is an XR device before doing this.
+      enableXrInspection(true)
     }
   }
 
@@ -339,6 +349,10 @@ class AppInspectionInspectorClient(
   private suspend fun enableBitmapScreenshots(enable: Boolean) {
     // TODO(b/265150325) enableBitmapScreenshots to stats
     viewInspector?.enableBitmapScreenshots(enable)
+  }
+
+  private suspend fun enableXrInspection(enable: Boolean) {
+    viewInspector?.enableXrInspection(enable)
   }
 
   override suspend fun stopFetching() {
