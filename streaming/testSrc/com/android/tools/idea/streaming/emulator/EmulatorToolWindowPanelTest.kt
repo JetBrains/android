@@ -371,7 +371,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: fail()
-    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -435,7 +435,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: fail()
-    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -475,7 +475,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: fail()
-    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -540,7 +540,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: fail()
-    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -576,7 +576,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: fail()
-    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber

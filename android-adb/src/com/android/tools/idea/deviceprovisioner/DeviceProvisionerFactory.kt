@@ -63,6 +63,7 @@ val StudioDefaultDeviceIcons =
     wear = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR,
     tv = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV,
     automotive = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR,
+    headset = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET,
   )
 
 class DefaultDeviceProvisionerFactory : DeviceProvisionerFactory {

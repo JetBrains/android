@@ -58,6 +58,7 @@ internal data class VirtualDeviceProfile(
         FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv
         FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
         FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear
+        FormFactors.XR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceHeadset
         // TODO: Add icon for tablet
         else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
