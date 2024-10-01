@@ -35,10 +35,10 @@ import icons.StudioIcons
 import org.jetbrains.kotlin.idea.base.util.isGradleModule
 
 /** Action added to the "Build" menu. If the new UI is used, it is also added to the toolbar. */
-class MakeGradleModuleAction : AbstractMakeGradleModuleAction()
+class AssembleGradleModuleAction : AbstractAssembleGradleModuleAction()
 
 /** If the new UI is not used, this action is added to the toolbar in the split button. */
-class MakeGradleModuleActionFromGroupAction : AbstractMakeGradleModuleAction() {
+class AssembleGradleModuleActionFromGroupAction : AbstractAssembleGradleModuleAction() {
 
   private var moduleNamesToBuildFromGroupAction: List<String>? = null
 
@@ -58,8 +58,8 @@ class MakeGradleModuleActionFromGroupAction : AbstractMakeGradleModuleAction() {
   }
 }
 
-abstract class AbstractMakeGradleModuleAction :
-  AndroidStudioGradleAction("Make Module(s)", "Build selected modules", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
+abstract class AbstractAssembleGradleModuleAction :
+  AndroidStudioGradleAction("Assemble Module(s)", "Build selected modules", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
 
   private var previouslySelectedModules: List<String> = emptyList()
 
@@ -139,7 +139,7 @@ abstract class AbstractMakeGradleModuleAction :
     }
 
     private fun extractModuleNames(e: AnActionEvent, project: Project): List<String> =
-      Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
+      Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name.replace('.', ':') }
 
     private fun updatePresentation(e: AnActionEvent, project: Project, moduleNames: List<String?>) {
       val moduleCount = moduleNames.size
@@ -148,13 +148,13 @@ abstract class AbstractMakeGradleModuleAction :
       presentation.isEnabled = moduleCount > 0 && !isCompilationActive
       val presentationText: String
       if (moduleCount > 0) {
-        var text = StringBuilder("Make Module")
+        var text = StringBuilder("Assemble Module")
         if (moduleCount > 1) {
           text.append("s")
         }
         for (i in 0 until moduleCount) {
           if (text.length > 30) {
-            text = StringBuilder("Make Selected Modules")
+            text = StringBuilder("Assemble Selected Modules")
             break
           }
           val toMake = moduleNames[i]
@@ -165,7 +165,7 @@ abstract class AbstractMakeGradleModuleAction :
         }
         presentationText = text.toString()
       } else {
-        presentationText = "Make (No Modules Selected)"
+        presentationText = "Assemble (No Modules Selected)"
       }
       presentation.text = presentationText
       presentation.isVisible = moduleCount > 0 || ActionPlaces.PROJECT_VIEW_POPUP != e.place

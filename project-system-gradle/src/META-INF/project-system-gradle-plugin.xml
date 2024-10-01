@@ -343,10 +343,10 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="com.android.build.attribution.ui.OpenBuildAnalyzerAction"/>
       <separator/>
     </group>
-    <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Build App Bundle(s) / APK(s)" popup="true">
+    <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Generate App Bundle(s) / APK(s)" popup="true">
       <add-to-group group-id="BuildMenu" anchor="last"/>
-      <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction"/>
-      <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction"/>
+      <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.GenerateApkAction"/>
+      <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.GenerateBundleAction"/>
     </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
