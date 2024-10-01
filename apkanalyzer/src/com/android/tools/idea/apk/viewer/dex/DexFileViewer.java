@@ -238,7 +238,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     actionGroup.add(new ShowRemovedNodesAction(myTree, myDexFilters));
     actionGroup.add(new DeobfuscateNodesAction());
     actionGroup.add(new LoadProguardAction());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DexFileViewer", actionGroup, true);
+    toolbar.setTargetComponent(myTopPanel);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     ActionGroup group = createPopupActionGroup(myTree);
