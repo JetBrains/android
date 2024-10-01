@@ -326,6 +326,9 @@
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
       <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
     </action>
+    <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="Android.SyncProject"/>
+    </action>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
@@ -348,9 +351,6 @@
     </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
-    </action>
-    <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
     </action>
 
     <action internal="true" id="Android.DumpProject"
