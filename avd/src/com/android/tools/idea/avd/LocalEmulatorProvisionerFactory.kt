@@ -23,6 +23,7 @@ import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -119,8 +120,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun editAvd(avdInfo: AvdInfo): Boolean {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      return EditVirtualDeviceDialog(project)
-        .show(avdInfo, mode = EditVirtualDeviceDialog.Mode.EDIT)
+      return EditVirtualDeviceDialog.show(project, avdInfo, Mode.EDIT)
     } else {
       return withContext(uiThread) {
         val avdOptionsModel = AvdOptionsModel(avdInfo)
@@ -132,7 +132,7 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun duplicateAvd(avdInfo: AvdInfo) {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      EditVirtualDeviceDialog(project).show(avdInfo, mode = EditVirtualDeviceDialog.Mode.DUPLICATE)
+      EditVirtualDeviceDialog.show(project, avdInfo, mode = Mode.DUPLICATE)
     } else {
       withContext(uiThread) {
         AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))

@@ -46,13 +46,8 @@ class SdkFixture {
   val repoManager = FakeRepoManager(sdkRoot, repoPackages)
   val sdkHandler = AndroidSdkHandler(sdkRoot, avdRoot, repoManager)
   private val logger = StdLogger(StdLogger.Level.INFO)
-  val avdManager =
-    AvdManager.createInstance(
-      sdkHandler,
-      avdRoot,
-      DeviceManager.createInstance(sdkHandler, logger),
-      logger,
-    )
+  val deviceManager = DeviceManager.createInstance(sdkHandler, logger)
+  val avdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger)
 
   fun createLocalSystemImage(
     path: String,
