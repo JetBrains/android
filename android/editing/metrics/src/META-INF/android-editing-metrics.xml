@@ -26,5 +26,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.editing.metrics.CodeEditedMetricsServiceImpl"
                         serviceInterface="com.android.tools.idea.editing.metrics.CodeEditedMetricsService"/>
+
+    <typedHandler implementation="com.android.tools.idea.editing.metrics.CodeEditedTypedHandlerDelegate"/>
   </extensions>
 </idea-plugin>
