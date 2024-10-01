@@ -6,6 +6,7 @@ import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PAC
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ClassBinaryCache;
 import com.android.tools.rendering.classloading.ClassBinaryCacheManager;
@@ -400,7 +401,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       }
 
       // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingTopic.CLEAN, () -> {
         for (ThreadLocal<?> threadLocal : threadLocals) {
           try {
             threadLocal.remove();
