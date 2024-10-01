@@ -19,13 +19,13 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.ScheduledExecutorService
@@ -191,27 +191,24 @@ class InspectorModel(
   /** The dimension of the screen, if available. Otherwise, the dimension of the roo node. */
   val screenDimension: Dimension
     get() {
-      // Use the screen size from the resource lookup if available for embedded.
-      // Use the window size from the resource lookup if available for standalone.
       // This will make sure the screen size is correct even if there are windows we don't know
       // about yet.
       //
       // Example: If the initial screen has a dialog open, we may receive the dialog first. We do
       // not want to zoom to fit the dialog size since it is often smaller than the screen size.
-      if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-        resourceLookup.screenDimension?.let {
-          return it
-        }
-      } else {
-        resourceLookup.windowBounds?.size?.let {
-          return it
-        }
+      resourceLookup.screenDimension?.let {
+        return it
       }
 
       // For the legacy inspector and for old snapshots loaded from file, we do not have the screen
       // size,
       // but we know that all windows are loaded. New snapshots have the screen size.
       return Dimension(root.layoutBounds.width, root.layoutBounds.height)
+    }
+
+  val windowBounds: Rectangle?
+    get() {
+      return resourceLookup.windowBounds
     }
 
   private val hiddenNodes = ConcurrentHashMap.newKeySet<ViewNode>()
@@ -577,4 +574,8 @@ class InspectorModel(
       } ?: true
     }
   }
+}
+
+fun Rectangle.toDimension(): Dimension {
+  return Dimension(width, height)
 }
