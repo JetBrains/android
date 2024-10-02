@@ -41,7 +41,8 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public static final PropertiesElementDescription<SigningConfigDslElement> SIGNING_CONFIG =
     new PropertiesElementDescription<>(null,
                                        SigningConfigDslElement.class,
-                                       SigningConfigDslElement::new);
+                                       SigningConfigDslElement::new,
+                                       "signingConfig");
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
@@ -105,4 +106,9 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     // the debug signingConfig is automatically created
     return getName().equals("debug");
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return SIGNING_CONFIG.namedObjectAssociatedName; }
+
 }

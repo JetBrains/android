@@ -210,4 +210,11 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(factory).isInstanceOf(DeclarativeFactory::class.java)
     assertThat(factory.text).isEqualTo("factory()")
   }
+
+  fun testOneParameterFactoryBlock() {
+    val factory = DeclarativePsiFactory(project).createOneParameterFactoryBlock("factory", "stringParameter")
+    assertThat(factory).isNotNull()
+    assertThat(factory).isInstanceOf(DeclarativeBlock::class.java)
+    assertThat(factory.text).isEqualTo("factory(\"stringParameter\"){ }")
+  }
 }

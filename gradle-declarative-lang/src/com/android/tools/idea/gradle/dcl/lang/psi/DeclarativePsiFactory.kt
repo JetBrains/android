@@ -129,6 +129,12 @@ class DeclarativePsiFactory(private val project: Project) {
     return factory ?: error("Failed to create createFactory `$identifier( )`")
   }
 
+  fun createOneParameterFactoryBlock(identifier: String, parameter: String): DeclarativeBlock {
+    val param = createLiteral(parameter).text
+    val factory = createFromText<DeclarativeBlock>("$identifier($param){ }")
+    return factory ?: error("Failed to create createFactory `$identifier($param){}`")
+  }
+
   fun createOneParameterFactory(identifier: String,
                                 plainParameter: Any,
                                 parameterIdentifier: String? = null): DeclarativeFactory {

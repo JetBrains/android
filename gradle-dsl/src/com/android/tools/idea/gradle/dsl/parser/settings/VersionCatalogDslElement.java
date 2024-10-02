@@ -77,4 +77,8 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
     }
     return false;
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return VERSION_CATALOG.namedObjectAssociatedName; }
 }
