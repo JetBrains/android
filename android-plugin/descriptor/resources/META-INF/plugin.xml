@@ -10,10 +10,10 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Ladybug Canary 7.
+    This release contains updates from Android Studio Ladybug RC 1.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2024/08/android-studio-ladybug-202421-canary-7.html">Android Studio Ladybug Canary 7</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2024/09/android-studio-ladybug-202421-rc-1-now.html">Android Studio Ladybug RC 1</a>.]]>
   </change-notes>
 
   <dependencies>
