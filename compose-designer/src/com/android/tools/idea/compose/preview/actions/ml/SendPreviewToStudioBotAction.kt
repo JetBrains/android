@@ -46,8 +46,6 @@ import javax.imageio.ImageIO
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.psi.KtFunction
 
-// TODO: create a second class to send only a portion of the preview as the image context, e.g.
-//  highlighting a toolbar when the user right-clicks it and ask to fix something related.
 class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.gemini")) {
 
   override fun update(e: AnActionEvent) {
