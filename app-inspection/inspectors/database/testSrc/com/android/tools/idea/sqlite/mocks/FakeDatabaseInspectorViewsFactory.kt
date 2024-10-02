@@ -33,19 +33,23 @@ import org.mockito.Mockito.spy
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: FakeSqliteEvaluatorView = spy(FakeSqliteEvaluatorView::class.java)
-  val tableView: FakeTableView = spy(FakeTableView())
+  val tableViews = mutableListOf<FakeTableView>()
+  val tableView: FakeTableView
+    get() = tableViews.last()
+
   val parametersBindingDialogView: FakeParametersBindingDialogView =
     spy(FakeParametersBindingDialogView())
   val databaseInspectorView: FakeDatabaseInspectorView = spy(FakeDatabaseInspectorView())
   private val exportToFileDialogView: ExportToFileDialogView = mock()
   private val exportInProgressView: ExportInProgressView = mock()
 
-  init {
-    whenever(tableView.component).thenReturn(mock<JComponent>())
-    whenever(sqliteEvaluatorView.tableView).thenReturn(tableView)
+  override fun createTableView(): TableView {
+    val fakeTableView = spy<FakeTableView>()
+    whenever(fakeTableView.component).thenReturn(mock<JComponent>())
+    whenever(sqliteEvaluatorView.tableView).thenReturn(fakeTableView)
+    tableViews.add(fakeTableView)
+    return fakeTableView
   }
-
-  override fun createTableView(): TableView = tableView
 
   override fun createEvaluatorView(
     project: Project,

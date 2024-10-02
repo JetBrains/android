@@ -1218,9 +1218,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // enable live updates in table tab
-    viewsFactory.tableView.listeners[0].toggleLiveUpdatesInvoked()
+    viewsFactory.tableViews[0].listeners[0].toggleLiveUpdatesInvoked()
     // enable live updates in evaluator tab
-    viewsFactory.tableView.listeners[1].toggleLiveUpdatesInvoked()
+    viewsFactory.tableViews[1].listeners[0].toggleLiveUpdatesInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -1241,18 +1241,19 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())),
       )
 
-    // update tabs
-    // each invocation is repeated twice because there are two tabs open
-    // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked, 3rd by dataPossiblyChanged
-    verify(viewsFactory.tableView, times(6))
+    verify(viewsFactory.tableViews[0], times(3))
+      .showTableColumns(sqliteResultSet._columns.toViewColumns())
+    verify(viewsFactory.tableViews[1], times(3))
       .showTableColumns(sqliteResultSet._columns.toViewColumns())
     // invocation by setUp
-    verify(viewsFactory.tableView, times(2))
+    verify(viewsFactory.tableViews[0])
+      .updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    verify(viewsFactory.tableViews[1])
       .updateRows(sqliteResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     // 1st invocation by toggleLiveUpdatesInvoked, 2nd by dataPossiblyChanged
-    verify(viewsFactory.tableView, times(4)).updateRows(emptyList())
+    verify(viewsFactory.tableViews[0], times(2)).updateRows(emptyList())
     // invocation by setUp
-    verify(viewsFactory.tableView, times(2)).startTableLoading()
+    verify(viewsFactory.tableViews[1]).startTableLoading()
   }
 
   fun testTableTabsAreRestored() {
@@ -1274,6 +1275,13 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseInspectorView.viewListeners.single().tableNodeActionInvoked(databaseId1, table2)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
+    viewsFactory.tableViews[0].showPageSizeValue(1)
+    viewsFactory.tableViews[0].setLiveUpdatesEnabled(true)
+    viewsFactory.tableViews[1].showPageSizeValue(2)
+    viewsFactory.tableViews[1].setLiveUpdatesEnabled(true)
+    viewsFactory.tableViews[2].showPageSizeValue(3)
+    viewsFactory.tableViews[2].setLiveUpdatesEnabled(false)
+
     runDispatching { databaseInspectorController.closeDatabase(databaseId1) }
 
     // Assert that tabs closed
@@ -1293,7 +1301,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component,
+        viewsFactory.tableViews[3].component,
       )
 
     verify(databaseInspectorView)
@@ -1301,7 +1309,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, table1.name),
         table1.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component,
+        viewsFactory.tableViews[4].component,
       )
 
     verify(databaseInspectorView)
@@ -1309,8 +1317,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, table2.name),
         table2.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component,
+        viewsFactory.tableViews[5].component,
       )
+
+    assertThat(viewsFactory.tableViews[3].getPageSize()).isEqualTo(1)
+    assertThat(viewsFactory.tableViews[3].isLiveUpdatesEnabled()).isTrue()
+    assertThat(viewsFactory.tableViews[4].getPageSize()).isEqualTo(2)
+    assertThat(viewsFactory.tableViews[4].isLiveUpdatesEnabled()).isTrue()
+    assertThat(viewsFactory.tableViews[5].getPageSize()).isEqualTo(3)
+    assertThat(viewsFactory.tableViews[5].isLiveUpdatesEnabled()).isFalse()
   }
 
   fun testInMemoryDbsTableTabsAreNotRestored() {
@@ -1376,6 +1391,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.runSqlStatement(id, insertStatement)
     }
 
+    viewsFactory.tableViews[0].showPageSizeValue(1)
+    viewsFactory.tableViews[0].setLiveUpdatesEnabled(true)
+
     // Close database and re-open it
     runDispatching { databaseInspectorController.closeDatabase(id) }
 
@@ -1398,6 +1416,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Check that INSERT statement was not executed, even though tab was restored
     assertThat(databaseConnection.executedSqliteStatements)
       .containsExactly(selectStatement.sqliteStatementText)
+
+    assertThat(viewsFactory.tableViews[2].getPageSize()).isEqualTo(1)
+    assertThat(viewsFactory.tableViews[2].isLiveUpdatesEnabled()).isTrue()
   }
 
   fun testUpdateSchemaAddsNewTableOnlyOnceIfCalledConcurrently() {
@@ -1616,14 +1637,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         TabId.TableTab(databaseId1, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component,
+        viewsFactory.tableViews[0].component,
       )
     verify(databaseInspectorView)
       .openTab(
         TabId.TableTab(databaseId2, testSqliteTable.name),
         testSqliteTable.name,
         StudioIcons.DatabaseInspector.TABLE,
-        viewsFactory.tableView.component,
+        viewsFactory.tableViews[1].component,
       )
 
     // Act

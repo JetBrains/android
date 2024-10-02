@@ -138,6 +138,7 @@ class SqliteEvaluatorControllerTest {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, mockDatabaseConnection) }
     databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
     sqliteUtil.setUp()
+    viewFactory.createTableView()
   }
 
   @After
