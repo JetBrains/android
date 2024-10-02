@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.GenerationConfig
 import com.android.tools.idea.studiobot.MimeType
-import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.intellij.diff.DiffContentFactory
@@ -44,7 +43,6 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 internal suspend fun generateCodeAndExecuteCallback(
   prompt: Prompt,
   filePointer: SmartPsiElementPointer<PsiFile>,
-  modelType: ModelType = ModelType.CHAT,
   progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
   callback: (Project, PsiFile, KotlinCodeBlock) -> Unit = ::mergeBlockAndShowDiff,
 ) {
@@ -56,7 +54,7 @@ internal suspend fun generateCodeAndExecuteCallback(
     withBackgroundProgress(project, progressIndicatorText, true) {
       val botResponse =
         studioBot
-          .model(project, modelType)
+          .model(project)
           .generateCode(
             legacyClientSidePrompt = prompt,
             language = MimeType.KOTLIN,
