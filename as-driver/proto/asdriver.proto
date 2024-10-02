@@ -7,6 +7,8 @@ option java_outer_classname = "ASDriver";
 service AndroidStudio {
   rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
 
+  rpc ValidatePluginConfiguration(ValidatePluginConfigurationRequest) returns (ValidatePluginConfigurationResponse) {}
+
   rpc Quit(QuitRequest) returns (QuitResponse) {}
 
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
@@ -40,6 +42,17 @@ message GetVersionRequest {}
 
 message GetVersionResponse {
   string version = 1;
+}
+
+message ValidatePluginConfigurationRequest {}
+
+message ValidatePluginConfigurationResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  ValidatePluginConfigurationResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message QuitRequest {
