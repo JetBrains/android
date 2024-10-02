@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
@@ -54,7 +55,7 @@ internal fun ConfigureDevicePanel(
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  Column {
+  Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
     Text(
       "Configure virtual device",
       fontWeight = FontWeight.SemiBold,
