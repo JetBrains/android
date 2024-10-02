@@ -21,12 +21,14 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Lists;
 import com.google.idea.blaze.common.PrintOutput;
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
@@ -36,35 +38,31 @@ import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Adds generated java and kotlin source files to the project proto.
  *
- * <p>This class also resolves conflicts between multiple generated source files that resolve to the
- * same output path, i.e. that have the same java class name.
+ * <p>This class also resolves conflicts between multiple generated source files that resolve to
+ * the same output path, i.e. that have the same java class name.
  */
 public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
 
   private static final ImmutableSet<String> JAVA_SRC_EXTENSIONS = ImmutableSet.of("java", "kt");
 
-  private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
-  private final PackageStatementParser packageReader;
+  private final JavaSourcePackageNameMetadata packageReader;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcs(
-      ProjectDefinition projectDefinition,
-      BuildArtifactCache buildCache,
-      PackageStatementParser packageReader) {
+      ProjectDefinition projectDefinition, JavaSourcePackageNameMetadata packageReader) {
     this.projectDefinition = projectDefinition;
-    this.buildCache = buildCache;
     this.packageReader = packageReader;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
   }
@@ -75,6 +73,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
    */
   @AutoValue
   abstract static class ArtifactWithOrigin {
+
     abstract BuildArtifact artifact();
 
     abstract DependencyBuildContext origin();
@@ -100,6 +99,32 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
     }
   }
 
+  private ImmutableList<BuildArtifact> getSourceFileArtifacts(TargetBuildInfo target) {
+    if (target.javaInfo().isEmpty()) {
+      return ImmutableList.of();
+    }
+    JavaArtifactInfo javaInfo = target.javaInfo().get();
+    if (!projectDefinition.isIncluded(javaInfo.label())) {
+      return ImmutableList.of();
+    }
+    ImmutableList.Builder<BuildArtifact> srcs = ImmutableList.builder();
+    for (BuildArtifact genSrc : javaInfo.genSrcs()) {
+      if (JAVA_SRC_EXTENSIONS.contains(genSrc.getExtension())) {
+        srcs.add(genSrc);
+      }
+    }
+    return srcs.build();
+  }
+
+  @Override
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+      TargetBuildInfo forTarget) {
+    ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> required =
+        ImmutableSetMultimap.builder();
+    getSourceFileArtifacts(forTarget).forEach(p -> required.put(p, packageReader));
+    return required.build();
+  }
+
   @Override
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
       throws BuildException {
@@ -107,22 +132,33 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
     ArtifactDirectoryBuilder javatestsSrc =
         update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
     ArrayListMultimap<Path, ArtifactWithOrigin> srcsByJavaPath = ArrayListMultimap.create();
+    List<BuildArtifact> missingPackageArtifacts = Lists.newArrayList();
     for (TargetBuildInfo target : artifactState.depsMap().values()) {
-      if (target.javaInfo().isEmpty()) {
-        continue;
-      }
-      JavaArtifactInfo javaInfo = target.javaInfo().get();
-      if (!projectDefinition.isIncluded(javaInfo.label())) {
-        continue;
-      }
-      for (BuildArtifact genSrc : javaInfo.genSrcs()) {
-        if (JAVA_SRC_EXTENSIONS.contains(genSrc.getExtension())) {
-          String javaPackage = readJavaPackage(genSrc);
+      for (BuildArtifact genSrc : getSourceFileArtifacts(target)) {
+        String javaPackage = target.getMetadata(genSrc, packageReader.key());
+        if (javaPackage == null) {
+          missingPackageArtifacts.add(genSrc);
+        } else {
           Path finalDest =
-            Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().getFileName());
+              Path.of(javaPackage.replace('.', '/')).resolve(genSrc.artifactPath().getFileName());
           srcsByJavaPath.put(finalDest, ArtifactWithOrigin.create(genSrc, target.buildContext()));
         }
       }
+    }
+    if (!missingPackageArtifacts.isEmpty()) {
+      final int showSourcesLimit = 10;
+      update.context().output(PrintOutput.error(
+          "WARNING: Ignoring %d generated source file(s) due to missing package info:\n  %s",
+          missingPackageArtifacts.size(),
+          missingPackageArtifacts.stream().limit(showSourcesLimit).map(BuildArtifact::artifactPath)
+              .map(Path::toString)
+              .collect(Collectors.joining("\n  "))));
+      if (missingPackageArtifacts.size() > showSourcesLimit) {
+        update.context().output(
+            PrintOutput.error("  (and %d more)",
+                missingPackageArtifacts.size() - showSourcesLimit));
+      }
+      update.context().setHasWarnings();
     }
     for (var entry : srcsByJavaPath.asMap().entrySet()) {
       Path finalDest = entry.getKey();
@@ -137,24 +173,24 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
               .count();
       if (uniqueDigests > 1) {
         update
-          .context()
-          .output(
-            PrintOutput.error(
-              "WARNING: your project contains conflicting generated java sources for:\n"
-              + "  %s\n"
-              + "From:\n"
-              + "  %s",
-              finalDest,
-              candidates.stream()
-                .map(
-                  a ->
-                    String.format(
-                      "%s (%s built %s ago)",
-                      a.artifact().artifactPath(),
-                      a.artifact().target(),
-                      formatDuration(
-                        Duration.between(a.origin().startTime(), Instant.now()))))
-                .collect(joining("\n  "))));
+            .context()
+            .output(
+                PrintOutput.error(
+                    "WARNING: your project contains conflicting generated java sources for:\n"
+                        + "  %s\n"
+                        + "From:\n"
+                        + "  %s",
+                    finalDest,
+                    candidates.stream()
+                        .map(
+                            a ->
+                                String.format(
+                                    "%s (%s built %s ago)",
+                                    a.artifact().artifactPath(),
+                                    a.artifact().target(),
+                                    formatDuration(
+                                        Duration.between(a.origin().startTime(), Instant.now()))))
+                        .collect(joining("\n  "))));
         update.context().setHasWarnings();
       }
 
@@ -181,6 +217,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
     }
   }
 
+
   /**
    * A simple inexact duration format, returning a duration in whichever unit of (days, hours,
    * minutes, seconds) is the first to get a non-zero figure.
@@ -194,14 +231,5 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
       }
     }
     return String.format("%d seconds", p.getSeconds());
-  }
-
-  /** Parses the java package statement from a build artifact. */
-  private String readJavaPackage(BuildArtifact genSrc) throws BuildException {
-    try (InputStream javaSrcStream = genSrc.blockingGetFrom(buildCache).byteSource().openStream()) {
-      return packageReader.readPackage(javaSrcStream);
-    } catch (IOException e) {
-      throw new BuildException("Failed to read package name for " + genSrc, e);
-    }
   }
 }
