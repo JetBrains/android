@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
-import static com.android.tools.idea.gradle.dsl.model.android.splits.DensityModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.DensityModelImpl.AUTO;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.DensityModelImpl.COMPATIBLE_SCREENS;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -34,8 +37,7 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
   public static final PropertiesElementDescription<DensityDslElement> DENSITY =
     new PropertiesElementDescription<>("density",
                                        DensityDslElement.class,
-                                       DensityDslElement::new,
-                                       DensityDslElementSchema::new);
+                                       DensityDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"setAuto", exactly(1), AUTO, SET},
@@ -72,19 +74,5 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
     }
 
     super.addParsedElement(element);
-  }
-
-  public static final class DensityDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.DensitySplit";
-    }
   }
 }

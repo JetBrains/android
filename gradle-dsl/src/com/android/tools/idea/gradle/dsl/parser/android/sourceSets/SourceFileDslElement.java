@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -36,8 +35,7 @@ public class SourceFileDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SourceFileDslElement> MANIFEST =
     new PropertiesElementDescription<>("manifest",
                                        SourceFileDslElement.class,
-                                       SourceFileDslElement::new,
-                                       SourceFileDslElementSchema::new);
+                                       SourceFileDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"srcFile", property, SRC_FILE, VAL},
@@ -62,17 +60,4 @@ public class SourceFileDslElement extends GradleDslBlockElement {
     super(parent, name);
   }
 
-  public static final class SourceFileDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.AndroidSourceFile";
-    }
-  }
 }

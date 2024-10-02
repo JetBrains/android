@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinSourceSetModel
-import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinSourceSetsDslElement.KotlinSourceSetsDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 
 class KotlinSourceSetsDslElement(
@@ -46,11 +44,6 @@ class KotlinSourceSetsDslElement(
 
   override fun implicitlyExists(name: String): Boolean = existingSourceSets.contains(name)
 
-  class KotlinSourceSetsDslElementSchema : GradlePropertiesDslElementSchema() {
-    override fun getBlockElementDescription(kind: GradleDslNameConverter.Kind?, name: String?): PropertiesElementDescription<*> =
-      KotlinSourceSetDslElement.KOTLIN_SOURCE_SET
-  }
-
   companion object {
 
     @JvmField
@@ -58,7 +51,7 @@ class KotlinSourceSetsDslElement(
       "sourceSets",
       KotlinSourceSetsDslElement::class.java,
       { parent: GradleDslElement, name: GradleNameElement -> KotlinSourceSetsDslElement(parent, name) }
-    ) { KotlinSourceSetsDslElementSchema() }
+    )
 
     private val existingSourceSets = listOf("commonMain", "commonTest")
   }
