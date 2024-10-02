@@ -29,13 +29,14 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import java.util.function.Consumer
 
 
 /**
  * A wrapper class for all the build output parsers so we can inject StudioBot help link.
  */
-class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParser {
+class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: ExternalSystemTaskId) : BuildOutputParser {
 
   private val explainerAvailable
     get() = StudioBot.getInstance().isAvailable()
