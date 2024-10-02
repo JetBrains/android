@@ -99,6 +99,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public static final BoolExperiment fetchArtifactInfoInParallel =
       new BoolExperiment("qsync.parallel.artifact.info.fetch", true);
 
+  public static final BoolExperiment buildGeneratedSrcJars =
+      new BoolExperiment("qsync.build.generated.src.jars", true);
+
   /**
    * Logs message if the number of artifact info files fetched is greater than
    * FILE_NUMBER_LOG_THRESHOLD
@@ -200,7 +203,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
               .addBlazeFlags(
                   String.format(
                       "--aspects_parameters=use_generated_srcjars=%s",
-                      ArtifactDirectoryUpdate.buildGeneratedSrcJars.getValue() ? "True" : "False"))
+                      buildGeneratedSrcJars.getValue() ? "True" : "False"))
               .addBlazeFlags("--noexperimental_run_validations")
               .addBlazeFlags("--keep_going");
       outputGroups.stream()
