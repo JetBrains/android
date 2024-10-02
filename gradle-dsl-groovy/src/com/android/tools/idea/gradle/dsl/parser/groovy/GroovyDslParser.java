@@ -327,6 +327,19 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       }
     }
 
+    // If the reference has multiple parts ending in set(..), treat it as assignment
+    if (referenceExpression.getFirstChild() instanceof GrReferenceExpression lvalue &&
+        "set".equals(referenceExpression.getReferenceName()) &&
+        expression.getExpressionArguments().length == 1) {
+      GrExpression rvalue = expression.getExpressionArguments()[0];
+      GradleNameElement name = GradleNameElement.from(lvalue, this);
+      GradleDslElement element = getExpressionElement(dslElement, expression, name, rvalue);
+      element.setExternalSyntax(ASSIGNMENT);
+      element.setElementType(REGULAR);
+      dslElement.addParsedElement(element);
+      return true;
+    }
+
     // If the reference has multiple parts i.e google().with then strip the end as these kind of calls are not supported.
     if (expression.getChildren().length > 1 &&
         referenceExpression.getChildren().length == 1 &&
