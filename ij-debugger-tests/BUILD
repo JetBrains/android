@@ -22,6 +22,7 @@ debugger_test(
     suite = "com.android.tools.test.ModuleTestSuite",
     art_env = {
         "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.ArtAttacher",
+        "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "$PWD/dex_cache",
     },
     tags = ["ci:studio-linux-large"],
     runtime_deps = [":attacher"],
