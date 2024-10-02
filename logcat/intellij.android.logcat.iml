@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="module-library">
       <library name="logcat-proto">
         <CLASSES>
@@ -42,6 +41,7 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/r8/r8.jar!/" />
         </CLASSES>
         <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
