@@ -46,13 +46,13 @@ public class GradleSettingsFile extends GradleScriptFile {
     populateGlobalProperties();
   }
 
+  // org.gradle.api.initialization.resolve.RepositoriesMode
+  public static Map<String,String> REPOSITORIES_MODE_ENUM_MAP = Stream.of("FAIL_ON_PROJECT_REPOS", "PREFER_PROJECT", "PREFER_SETTINGS")
+    .map(s -> new String[] { s, "RepositoriesMode." + s })
+    .collect(toImmutableMap(o -> o[0], o -> o[1]));
+
   private void populateGlobalProperties() {
-    // org.gradle.api.initialization.resolve.RepositoriesMode
-    ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
-    Arrays.asList("FAIL_ON_PROJECT_REPOS", "PREFER_PROJECT", "PREFER_SETTINGS")
-      .forEach(s -> builder.put(s, "RepositoriesMode." + s));
-    Map<String,String> repositoriesModeValues = builder.build();
-    GradleDslElement repositoriesMode = new GradleDslElementEnum(this, GradleNameElement.fake("RepositoriesMode"), repositoriesModeValues);
+    GradleDslElement repositoriesMode = new GradleDslElementEnum(this, GradleNameElement.fake("RepositoriesMode"), REPOSITORIES_MODE_ENUM_MAP);
     myGlobalProperties.addElement(repositoriesMode, ElementState.DEFAULT, false);
   }
 

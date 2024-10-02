@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsD
 
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.RepositoriesModePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
@@ -39,10 +40,17 @@ public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel
     super(element);
   }
 
+  public static String REPOSITORIES_MODE_NAME = "mRepositoriesMode";
+
   @Override
   public @NotNull RepositoriesModel repositories() {
     RepositoriesDslElement repositoriesElement = myDslElement.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES);
     return new RepositoriesModelImpl(repositoriesElement);
+  }
+
+  @Override
+  public @NotNull RepositoriesModePropertyModel repositoriesMode() {
+    return getRepositoriesModeModelForProperty(REPOSITORIES_MODE_NAME);
   }
 
   @Override

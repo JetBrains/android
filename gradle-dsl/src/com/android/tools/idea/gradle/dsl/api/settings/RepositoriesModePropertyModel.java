@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.api.settings;
 
-import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
-import java.util.List;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DependencyResolutionManagementModel extends GradleBlockModel {
-  @NotNull
-  RepositoriesModel repositories();
-
-  RepositoriesModePropertyModel repositoriesMode();
-
-  @NotNull List<VersionCatalogModel> versionCatalogs();
-
-  @NotNull String catalogDefaultName();
-
-  @NotNull VersionCatalogModel addVersionCatalog(@NotNull String name);
-
-  void removeVersionCatalog(@NotNull String name);
+public interface RepositoriesModePropertyModel extends ResolvedPropertyModel {
+  String getRepositoriesMode();
+  void setRepositoriesMode(@NotNull String value);
 }
