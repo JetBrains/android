@@ -928,6 +928,7 @@ object StudioIconsCompose {
       val ApplyCodeSwap: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/apply-code-swap.svg", "/intui/icons/shell/toolbar/apply-code-swap.svg", StudioIconsCompose.javaClass) // 16x16
       val AttachDebugger: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/attach-debugger.svg", "/intui/icons/shell/toolbar/attach-debugger.svg", StudioIconsCompose.javaClass) // 16x16
       val BuildModule: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/build-module.svg", "/intui/icons/shell/toolbar/build-module.svg", StudioIconsCompose.javaClass) // 16x16
+      val BuildRunConfiguration: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/build-run-configuration.svg", "/intui/icons/shell/toolbar/build-run-configuration.svg", StudioIconsCompose.javaClass) // 16x16
       val Debug: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/debug.svg", "/intui/icons/shell/toolbar/debug.svg", StudioIconsCompose.javaClass) // 16x16
       val DeviceManager: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/device-manager.svg", "/intui/icons/shell/toolbar/device-manager.svg", StudioIconsCompose.javaClass) // 16x16
       val GradleSync: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/toolbar/gradle-sync.svg", "/intui/icons/shell/toolbar/gradle-sync.svg", StudioIconsCompose.javaClass) // 16x16

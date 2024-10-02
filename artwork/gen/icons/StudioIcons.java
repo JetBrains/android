@@ -931,6 +931,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("studio/icons/shell/toolbar/apply-code-swap.svg", "intui/icons/shell/toolbar/apply-code-swap.svg", 76680901, 2);
       /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("studio/icons/shell/toolbar/attach-debugger.svg", "intui/icons/shell/toolbar/attach-debugger.svg", 13949104, 2);
       /** 16x16 */ public static final @NotNull Icon BUILD_MODULE = load("studio/icons/shell/toolbar/build-module.svg", "intui/icons/shell/toolbar/build-module.svg", -1925160451, 2);
+      /** 16x16 */ public static final @NotNull Icon BUILD_RUN_CONFIGURATION = load("studio/icons/shell/toolbar/build-run-configuration.svg", "intui/icons/shell/toolbar/build-run-configuration.svg", 1041663503, 2);
       /** 16x16 */ public static final @NotNull Icon DEBUG = load("studio/icons/shell/toolbar/debug.svg", -99692157, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("studio/icons/shell/toolbar/device-manager.svg", "intui/icons/shell/toolbar/device-manager.svg", -1910046491, 2);
       /** 16x16 */ public static final @NotNull Icon GRADLE_SYNC = load("studio/icons/shell/toolbar/gradle-sync.svg", "intui/icons/shell/toolbar/gradle-sync.svg", 1294995316, 2);
