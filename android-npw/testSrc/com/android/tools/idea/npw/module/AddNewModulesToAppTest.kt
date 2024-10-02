@@ -17,18 +17,20 @@ package com.android.tools.idea.npw.module
 
 
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.npw.dynamicapp.DynamicFeatureModel
+import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.junit.Assert.assertTrue
@@ -36,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.util.Optional
 
 
 @RunWith(Parameterized::class)
@@ -114,6 +117,31 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts) // Base module is always kts for this test
 
     assembleDebugProject()
+  }
+
+  @Test
+  fun addNewPureLibraryModuleInKotlinHasJvmCompatibility() {
+    if (useVersionCatalog) {
+      // TODO (b/369979748): Kotlin version mismatch with Version Catalog
+      return
+    }
+
+    loadInitialProject()
+
+    val project = projectRule.project
+
+    val libModuleModel = NewLibraryModuleModel(project, ":", emptyProjectSyncInvoker)
+    libModuleModel.language.set(Optional.of(Language.Kotlin))
+    generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts)
+
+    assembleDebugProject()
+
+    // Also run :mylibrary:compileKotlin to ensure there is no JVM target compatibility issue,
+    // because assembling just the project doesn't trigger this error
+    projectRule.invokeTasks(":mylibrary:compileKotlin").apply {
+      buildError?.printStackTrace()
+      assertTrue("Library didn't compile correctly", isBuildSuccessful)
+    }
   }
 
   private fun assembleDebugProject() {
