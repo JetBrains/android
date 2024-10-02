@@ -246,6 +246,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               delegate = NavigatingInteractionHandler(it, navigationHandler)
             }
           }
+          .shouldZoomOnFirstComponentResize(false)
           .setDelegateDataProvider {
             when (it) {
               PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
