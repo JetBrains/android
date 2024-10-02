@@ -26,6 +26,7 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -88,7 +89,13 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
       val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
       return withContext(uiThread) {
-        val created = AddDeviceWizard(source, project).createDialog().showAndGet()
+        val wizard =
+          AddDeviceWizard(
+            source,
+            project,
+            accelerationCheck = { checkAcceleration(source.sdkHandler) },
+          )
+        val created = wizard.createDialog().showAndGet()
         if (created) {
           UsageTracker.log(
             AndroidStudioEvent.newBuilder()

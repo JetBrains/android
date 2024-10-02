@@ -43,7 +43,7 @@ import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
-  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
 ) : DeviceSource<VirtualDeviceProfile> {
 
