@@ -389,8 +389,8 @@ PROJECT                       : My Application
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :generateBaselineProfile
     RUN_CONFIGURATION             : My_Application
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : My_Application.main
-        Module                        : My_Application.main
+        ModuleName                    : My_Application
+        Module                        : My_Application
     LIBRARY_TABLE
         LIBRARY                       : Gradle: ./lib1/liba.jar
             *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/

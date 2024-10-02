@@ -1975,8 +1975,8 @@ PROJECT                       : Kotlin Multiplatform
                 COMPILE_JAVA                  : :kmpSecondLib:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : Kotlin_Multiplatform.app.main
-        Module                        : Kotlin_Multiplatform.app.main
+        ModuleName                    : Kotlin_Multiplatform.app
+        Module                        : Kotlin_Multiplatform.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/AndroidManifest.xml

@@ -558,8 +558,8 @@ PROJECT                       : MultiFlavor
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : MultiFlavor.app.main
-        Module                        : MultiFlavor.app.main
+        ModuleName                    : MultiFlavor.app
+        Module                        : MultiFlavor.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
