@@ -1943,12 +1943,6 @@ public final class StudioFlags {
                     "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.",
                     ChannelDefault.enabledUpTo(DEV));
 
-  public static final Flag<Boolean> STUDIOBOT_EDITOR_AI_ACTIONS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.actions.enabled",
-                    "Enable AI Actions in the editor.",
-                    "When enabled, shows the 'AI Actions' item in the editor popup menu along with allowing individual actions to be enabled.",
-                    ChannelDefault.enabledUpTo(DEV));
-
   public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
                     "Enable the transform actions.",
