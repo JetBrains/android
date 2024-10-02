@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.qsync.ProjectProtoTransform;
+import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.List;
 
@@ -29,12 +30,12 @@ public interface ProjectProtoTransformProvider {
   ExtensionPointName<ProjectProtoTransformProvider> EP_NAME =
       new ExtensionPointName<>("com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider");
 
-  static ImmutableList<ProjectProtoTransform> getAll(QuerySyncProject project) {
+  static ImmutableList<ProjectProtoTransform> getAll(ProjectDefinition projectDef) {
     return EP_NAME.getExtensionList().stream()
-        .map(ep -> ep.createTransforms(project))
+        .map(ep -> ep.createTransforms(projectDef))
         .flatMap(List::stream)
         .collect(ImmutableList.toImmutableList());
   }
 
-  List<ProjectProtoTransform> createTransforms(QuerySyncProject project);
+  List<ProjectProtoTransform> createTransforms(ProjectDefinition projectDef);
 }
