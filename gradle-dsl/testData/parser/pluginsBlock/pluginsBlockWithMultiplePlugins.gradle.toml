@@ -1,8 +1,0 @@
-[[plugins]]
-id = "org.jetbrains.kotlin.android"
-apply = false
-version = "1.3.7"
-[[plugins]]
-id = "com.android.application"
-apply = false
-version = "7.1.0"

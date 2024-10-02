@@ -1,3 +1,0 @@
-[android.externalNativeBuild.cmake]
-path = "foo/bar"
-version = "1.2.3"
