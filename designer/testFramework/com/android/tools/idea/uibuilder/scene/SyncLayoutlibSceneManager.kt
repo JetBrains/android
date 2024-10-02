@@ -25,7 +25,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableSet
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
@@ -83,15 +82,6 @@ open class SyncLayoutlibSceneManager(
     }
     val result = waitForFutureWithoutBlockingUiThread(super.requestRenderAsync())
     return result
-  }
-
-  override fun requestRenderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?
-  ): CompletableFuture<Void> {
-    if (ignoreRenderRequests) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger))
   }
 
   override fun executeInRenderSessionAsync(
