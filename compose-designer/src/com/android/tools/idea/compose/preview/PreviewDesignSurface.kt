@@ -61,8 +61,8 @@ private fun createPreviewDesignSurfaceBuilder(
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(model, surface, sceneComponentProvider).also {
-        it.setListenResourceChange(false) // don't re-render on resource changes
-        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+        it.listenResourceChange = false // don't re-render on resource changes
+        it.updateAndRenderWhenActivated = false // don't re-render on activation
         it.sceneRenderConfiguration.renderingTopic =
           RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
       }

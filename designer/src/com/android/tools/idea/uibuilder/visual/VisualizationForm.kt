@@ -172,8 +172,8 @@ class VisualizationForm(
     surface =
       NlSurfaceBuilder.builder(project, this@VisualizationForm) { surface, model ->
           LayoutlibSceneManager(model, surface, config).apply {
-            setListenResourceChange(false)
-            setUpdateAndRenderWhenActivated(false)
+            listenResourceChange = false
+            updateAndRenderWhenActivated = false
             sceneRenderConfiguration.let {
               it.showDecorations =
                 VisualizationToolSettings.getInstance().globalState.showDecoration

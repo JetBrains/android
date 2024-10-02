@@ -24,11 +24,16 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
+import com.android.tools.rendering.RenderResult
+import com.google.common.collect.ImmutableSet
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.annotations.TestOnly
 
 private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
 
@@ -62,6 +67,61 @@ abstract class NewLayoutlibSceneManager(
    */
   override val sceneScalingFactor: Float
     get() = model.configuration.density.dpiValue / Density.DEFAULT_DENSITY.toFloat()
+
+  /** Helper class in charge of some render related responsibilities */
+  // TODO(b/335424569): add a better explanation after moving more responsibilities to
+  // LayoutlibSceneRenderer
+  // TODO(b/369573219): make this field private and remove JvmField annotation
+  @JvmField
+  protected val layoutlibSceneRenderer: LayoutlibSceneRenderer =
+    LayoutlibSceneRenderer(
+      this,
+      renderTaskDisposerExecutor,
+      model,
+      designSurface as NlDesignSurface,
+      layoutScannerConfig,
+    )
+
+  /** The configuration to use when inflating and rendering. */
+  val sceneRenderConfiguration: LayoutlibSceneRenderConfiguration
+    get() = layoutlibSceneRenderer.sceneRenderConfiguration
+
+  /** Returns if there are any pending render requests. */
+  @get:TestOnly
+  val isRendering: Boolean
+    get() = layoutlibSceneRenderer.isRendering()
+
+  /** The [RenderResult] of the latest render. */
+  val renderResult: RenderResult?
+    get() = layoutlibSceneRenderer.renderResult
+
+  /** The quality used in the latest render. */
+  val lastRenderQuality: Float
+    get() = layoutlibSceneRenderer.lastRenderQuality
+
+  /** Reset the last [RenderResult] to avoid using it as part of the cache in the next render. */
+  fun invalidateCachedResponse() {
+    layoutlibSceneRenderer.renderResult = null
+  }
+
+  /** The [VisualLintMode] currently set for the model associated with this scene manager. */
+  var visualLintMode = VisualLintMode.DISABLED
+
+  /** If true, listen to resource changes by processing calls to [resourcesChanged]. */
+  var listenResourceChange = true
+
+  /**
+   * If true, automatically update (if needed) and re-render when being activated. Which happens
+   * after [activate] is called. Note that if it is activated already, then it will not re-render.
+   */
+  // TODO(b/369573219): remove JvmField annotation
+  @JvmField var updateAndRenderWhenActivated = true
+
+  override fun resourcesChanged(reasons: ImmutableSet<ResourceNotificationManager.Reason>) {
+    if (listenResourceChange) {
+      super.resourcesChanged(reasons)
+    }
+  }
 
   // TODO(b/369573219): make this field private and remove JvmField annotation
   @JvmField
