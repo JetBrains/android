@@ -16,11 +16,17 @@
 package com.google.idea.blaze.base.qsync.action;
 
 import com.google.idea.blaze.base.qsync.QuerySyncPromo;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 
 /** Internal action to manually show the querysync promo. */
 public class ShowPromoAction extends AnAction {
+
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
 
   @Override
   public void actionPerformed(AnActionEvent anActionEvent) {
