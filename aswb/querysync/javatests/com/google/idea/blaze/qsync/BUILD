@@ -25,7 +25,7 @@ java_library(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
     ],
 )
