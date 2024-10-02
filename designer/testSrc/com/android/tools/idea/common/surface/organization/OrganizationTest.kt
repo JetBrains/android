@@ -150,11 +150,11 @@ class OrganizationTest {
       scope = testScope,
       sceneView = sceneView,
       labelPanel = object : JPanel() {},
-      sceneViewStatusIconAction = null,
-      sceneViewToolbarActions = emptyList(),
-      sceneViewLeftBar = null,
-      sceneViewRightBar = null,
-      sceneViewErrorsPanel = null,
+      statusIconAction = null,
+      toolbarActions = emptyList(),
+      leftPanel = null,
+      rightPanel = null,
+      errorsPanel = null,
       isOrganizationEnabled = MutableStateFlow(true),
     )
   }
