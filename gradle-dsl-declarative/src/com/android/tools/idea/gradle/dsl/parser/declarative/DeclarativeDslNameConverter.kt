@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
@@ -24,13 +25,18 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription
 import com.intellij.psi.PsiElement
-import java.util.Arrays
 
 interface DeclarativeDslNameConverter : GradleDslNameConverter {
 
   override fun getKind() = GradleDslNameConverter.Kind.DECLARATIVE
 
-  override fun psiToName(element: PsiElement): String = GradleNameElement.escape(element.text)
+  override fun psiToName(element: PsiElement): String {
+    val text = if (element is DeclarativeLiteral)
+      element.value.toString()
+    else
+      element.text
+    return GradleNameElement.escape(text)
+  }
 
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
     return referenceText
