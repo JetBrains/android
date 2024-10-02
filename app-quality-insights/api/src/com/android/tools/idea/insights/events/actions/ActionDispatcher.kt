@@ -100,7 +100,7 @@ class ActionDispatcher(
     scope.launch {
       var lastToken = CancellationToken.noop(Action.NONE)
       for (ctx in actions.batchWithTimeout(scope, 200)) {
-        LOG.info("Dispatching actions ${ctx.action}")
+        LOG.debug("Dispatching actions ${ctx.action}")
         val newToken = doDispatch(ctx)
         // We keep holding on to not cancelled tokens since we may need to cancel them in the
         // future.
