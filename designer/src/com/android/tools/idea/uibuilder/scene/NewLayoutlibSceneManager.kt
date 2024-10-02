@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.ide.common.rendering.api.RenderSession.TouchEventType
 import com.android.resources.Density
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
@@ -30,12 +32,15 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
+import com.android.tools.rendering.ExecuteCallbacksResult
+import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.UIUtil
+import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
@@ -61,7 +66,7 @@ abstract class NewLayoutlibSceneManager(
   renderTaskDisposerExecutor: Executor,
   sceneComponentProvider: SceneComponentHierarchyProvider,
   layoutScannerConfig: LayoutScannerConfiguration,
-) : SceneManager(model, designSurface, sceneComponentProvider) {
+) : SceneManager(model, designSurface, sceneComponentProvider), InteractiveSceneManager {
 
   // TODO(b/369573219): make this field private and remove JvmField annotation
   @JvmField protected val isDisposed = AtomicBoolean(false)
@@ -295,5 +300,85 @@ abstract class NewLayoutlibSceneManager(
     } finally {
       super.dispose()
     }
+  }
+
+  /** Count of user events received by this scene since last reset. */
+  final override var interactiveEventsCount = 0
+    private set
+
+  private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock.timeNanos
+
+  /**
+   * Triggers execution of the Handler and frame callbacks in the layoutlib.
+   *
+   * @return a future that is completed when callbacks are executed.
+   */
+  private fun executeCallbacksAsync(): CompletableFuture<ExecuteCallbacksResult> {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("executeCallbacks after LayoutlibSceneManager has been disposed")
+    }
+    val currentTask =
+      layoutlibSceneRenderer.renderTask
+        ?: return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY)
+    return currentTask.executeCallbacks(currentTimeNanos())
+  }
+
+  /**
+   * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a
+   * particular point
+   *
+   * @param type type of touch event
+   * @param x horizontal android coordinate of the detected touch event
+   * @param y vertical android coordinate of the detected touch event
+   * @return a future that is completed when layoutlib handled the touch event
+   */
+  fun triggerTouchEventAsync(
+    type: TouchEventType,
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+  ): CompletableFuture<InteractionEventResult?> {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
+    }
+
+    val currentTask =
+      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+    interactiveEventsCount++
+    return currentTask.triggerTouchEvent(type, x, y, currentTimeNanos())
+  }
+
+  /**
+   * Passes an AWT KeyEvent from the surface to layoutlib.
+   *
+   * @return a future that is completed when layoutlib handled the key event
+   */
+  fun triggerKeyEventAsync(event: KeyEvent): CompletableFuture<InteractionEventResult?> {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager::class.java)
+        .warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
+    }
+
+    val currentTask =
+      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
+    interactiveEventsCount++
+    return currentTask.triggerKeyEvent(event, currentTimeNanos())
+  }
+
+  /** Executes the given [Runnable] callback synchronously with a 30ms timeout. */
+  override fun executeCallbacksAndRequestRender(): CompletableFuture<Void> {
+    return executeCallbacksAsync().thenCompose { requestRenderAsync() }
+  }
+
+  /** Pauses session clock, so that session time stops advancing. */
+  override fun pauseSessionClock(): Unit = layoutlibSceneRenderer.sessionClock.pause()
+
+  /** Resumes session clock, so that session time keeps advancing. */
+  override fun resumeSessionClock(): Unit = layoutlibSceneRenderer.sessionClock.resume()
+
+  /** Resets the counter of user events received by this scene to 0. */
+  override fun resetInteractiveEventsCounter() {
+    interactiveEventsCount = 0
   }
 }
