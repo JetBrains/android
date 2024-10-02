@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -165,7 +164,6 @@ private fun decorateColor(
   resourceLightField: ResourceLightField,
   original: LookupElement,
 ): LookupElement? {
-  if (!StudioFlags.RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED.get()) return null
   return computeColor(resourceLightField)?.let { ColorResourceLookupElement(original, it) }
 }
 
@@ -199,7 +197,6 @@ private fun decorateDrawable(
   psiFile: PsiFile,
   original: LookupElement,
 ): LookupElement? {
-  if (!StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get()) return null
   val module = ModuleUtilCore.findModuleForPsiElement(resourceLightField) ?: return null
   val file =
     resourceLightField.getResourceItems(module)?.firstNotNullOfOrNull {
