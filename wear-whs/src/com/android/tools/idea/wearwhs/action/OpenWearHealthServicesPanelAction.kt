@@ -16,27 +16,30 @@
 package com.android.tools.idea.wearwhs.action
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.findRelativePoint
-import com.android.tools.idea.wearwhs.view.WearHealthServicesPanelManager
+import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
+import com.android.tools.idea.wearwhs.view.WearHealthServicesPanelController
+import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManagerImpl
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.service
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.getOrCreateUserData
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+
+private val PANEL_CONTROLLER_KEY =
+  Key.create<WearHealthServicesPanelController>("WearHealthServicesPanelController")
 
 /** Opens the Wear Health Services Tool Window */
 class OpenWearHealthServicesPanelAction :
@@ -68,26 +71,25 @@ class OpenWearHealthServicesPanelAction :
     val emulatorView = EMULATOR_VIEW_KEY.getData(event.dataContext) ?: return
     val project = event.project ?: return
 
-    val panel = project.service<WearHealthServicesPanelManager>().getOrCreate(emulatorView.emulator)
-
-    val balloon =
-      JBPopupFactory.getInstance()
-        .createBalloonBuilder(panel.component)
-        .setShadow(true)
-        .setHideOnAction(false)
-        .setBlockClicksThroughBalloon(true)
-        .setRequestFocus(true)
-        .setAnimationCycle(200)
-        .setFillColor(secondaryPanelBackground)
-        .setBorderColor(secondaryPanelBackground)
-        .createBalloon()
-
-    AndroidCoroutineScope(balloon).launch {
-      panel.onUserApplyChangesFlow.collect { balloon.hide() }
-    }
-    AndroidCoroutineScope(balloon).launch {
-      panel.onUserTriggerEventFlow.collect { balloon.hide() }
-    }
+    val emulatorController = emulatorView.emulator
+    val panelController =
+      emulatorController.getOrCreateUserData(PANEL_CONTROLLER_KEY) {
+        val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, workerThread)
+        val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorController, uiThread)
+        val adbSessionProvider = { AdbLibService.getSession(project) }
+        val serialNumber = emulatorController.emulatorId.serialNumber
+        val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
+        val stateManager =
+          WearHealthServicesStateManagerImpl(deviceManager, workerScope = workerScope).also {
+            Disposer.register(emulatorController, it)
+            it.serialNumber = serialNumber
+          }
+        WearHealthServicesPanelController(
+          stateManager = stateManager,
+          workerScope = workerScope,
+          uiScope = uiScope,
+        )
+      }
 
     // Show the UI settings popup relative to the ActionButton.
     // If such a component is not found use the displayView. The action was likely activated from
@@ -95,23 +97,6 @@ class OpenWearHealthServicesPanelAction :
     val component = event.findComponentForAction(action) as? JComponent ?: emulatorView
     val position = findRelativePoint(component, emulatorView)
 
-    // Hide the balloon if Studio looses focus:
-    val window = SwingUtilities.windowForComponent(position.component)
-    if (window != null) {
-      val listener =
-        object : WindowAdapter() {
-          override fun windowLostFocus(event: WindowEvent) {
-            balloon.hide()
-          }
-        }
-      window.addWindowFocusListener(listener)
-      Disposer.register(balloon) { window.removeWindowFocusListener(listener) }
-    }
-
-    // Hide the balloon when the device window closes:
-    Disposer.register(emulatorView, balloon)
-
-    // Show the balloon above the component if there is room, otherwise below:
-    balloon.show(position, Balloon.Position.above)
+    panelController.showWearHealthServicesToolPopup(emulatorView, position)
   }
 }
