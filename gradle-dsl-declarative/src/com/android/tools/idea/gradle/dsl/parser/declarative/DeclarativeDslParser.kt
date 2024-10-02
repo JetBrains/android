@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
-import java.util.Arrays
 
 class DeclarativeDslParser(
   private val psiFile: DeclarativeFile,
@@ -92,7 +90,8 @@ class DeclarativeDslParser(
               getDomainNameDslElement(psi, description, context)
             }
             else {
-              context.ensurePropertyElement(description)
+              val identifier = psi.identifier ?: return
+              createElement(description, context, identifier)
             }
           if (block != null) {
             block.psiElement = psi
@@ -127,12 +126,19 @@ class DeclarativeDslParser(
     return arguments?.argumentList?.firstOrNull()?.let { literal ->
       val value = (literal.value as? DeclarativeLiteral)?.value
       if (value is String) {
-        val element = description.constructor.construct(context, GradleNameElement.from(literal, this@DeclarativeDslParser))
-        context.addParsedElement(element)
-        element
+        createElement(description, context, literal)
       }
       else null
     }
+  }
+
+  private fun createElement(description: PropertiesElementDescription<*>,
+                            context: GradlePropertiesDslElement,
+                            idetifier: PsiElement,
+                            ):GradlePropertiesDslElement{
+    val element = description.constructor.construct(context, GradleNameElement.from(idetifier, this@DeclarativeDslParser))
+    context.addParsedElement(element)
+    return element
   }
 
   private fun getFunctionParametersVisitor(list: GradleDslExpressionList, context: GradlePropertiesDslElement): DeclarativeRecursiveVisitor =
