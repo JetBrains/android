@@ -74,7 +74,7 @@ class ComposePreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+    fixture.invokeProjectMake(Wait.seconds(300))
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
 
