@@ -1711,6 +1711,14 @@ public final class StudioFlags {
       "monitoring.googleapis.com"
     );
 
+  public static final Flag<Boolean> SHOW_OEM_LAB_DEVICES =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.show.oem.lab.devices",
+      "Show OEM lab devices",
+      "OEM lab devices are available to users.",
+      false);
+
   // endregion Firebase Test Lab
 
   // region App Insights
