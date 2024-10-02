@@ -72,12 +72,12 @@ internal constructor(
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         orientation = device.defaultState.orientation,
         defaultBoot = Boot.QUICK,
-        internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
+        internalStorage = EmulatedProperties.defaultInternalStorage(device).toStorageCapacity(),
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
-        simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
+        simulatedRam = EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
+        vmHeapSize = EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity(),
       )
   }
 }
