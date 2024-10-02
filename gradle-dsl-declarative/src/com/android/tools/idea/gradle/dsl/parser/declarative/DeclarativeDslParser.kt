@@ -128,7 +128,7 @@ class DeclarativeDslParser(
       val value = (literal.value as? DeclarativeLiteral)?.value
       if (value is String) {
         val element = description.constructor.construct(context, GradleNameElement.from(literal, this@DeclarativeDslParser))
-        context.setNewElement(element)
+        context.addParsedElement(element)
         element
       }
       else null
