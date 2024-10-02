@@ -28,6 +28,7 @@ import com.android.tools.idea.wear.preview.animation.state.WearTileAnimationStat
 import com.android.tools.idea.wear.preview.animation.state.WearTileColorPickerState
 import com.android.tools.idea.wear.preview.animation.state.WearTileFloatState
 import com.android.tools.idea.wear.preview.animation.state.WearTileIntState
+import java.awt.Color
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 
@@ -117,8 +118,8 @@ private fun ProtoAnimation.createStateManager(
     TYPE.COLOR -> {
       WearTileColorPickerState(
         tracker,
-        ColorUnit.parseColorUnit(startValueInt),
-        ColorUnit.parseColorUnit(endValueInt),
+        ColorUnit.parseColorUnit(startValueInt ?: Color.BLACK.rgb),
+        ColorUnit.parseColorUnit(endValueInt ?: Color.WHITE.rgb),
       )
     }
     else -> NoopAnimationState
