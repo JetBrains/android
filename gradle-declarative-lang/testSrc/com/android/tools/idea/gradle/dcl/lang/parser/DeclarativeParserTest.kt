@@ -18,6 +18,11 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
 
@@ -140,5 +145,38 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true,true)
   }
 
+  fun testEscapedAndSingleQuote() {
+    doTest(true, true)
+
+    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
+    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
+    val entries = (psiFile as DeclarativeFile).getEntries()
+
+    assertThat(entries).hasSize(1)
+    assertThat(entries[0]).isInstanceOf(DeclarativeBlock::class.java)
+    // checking that getName removes wrapping ``
+    assertThat((entries[0] as DeclarativeBlock).identifier!!.name).isEqualTo("block")
+
+    val functions = (entries[0] as DeclarativeBlock).entries
+    assertThat(functions).hasSize(2)
+
+    assertThat(functions[0]).isInstanceOf(DeclarativeFactory::class.java)
+    // checking that getName removes wrapping ``
+    assertThat((functions[0] as DeclarativeFactory).identifier.name).isEqualTo("function")
+
+    assertThat(functions[1]).isInstanceOf(DeclarativeBlock::class.java)
+    // checking that getName removes wrapping `` and unescapes
+    assertThat((functions[1] as DeclarativeBlock).identifier!!.name).isEqualTo("AnotherFunction")
+    assertThat((functions[1] as DeclarativeBlock).embeddedFactory).isNotNull()
+
+    val factoryBlock = (functions[1] as DeclarativeBlock).embeddedFactory!!
+    assertThat(factoryBlock.argumentsList).isNotNull()
+    assertThat(factoryBlock.argumentsList!!.argumentList).hasSize(1)
+    val argument = factoryBlock.argumentsList!!.argumentList[0]
+
+    assertThat(argument.value).isInstanceOf(DeclarativeLiteral::class.java)
+    // getValue removes quotation marks
+    assertThat((argument.value as DeclarativeLiteral).value).isEqualTo("string")
+  }
   override fun getTestDataPath(): String = resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
 }
