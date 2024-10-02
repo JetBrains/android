@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/profilers-android/gradle:intellij.android.profilersAndroid.gradle",
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
+        "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
