@@ -31,7 +31,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
@@ -237,32 +236,5 @@ public class LayoutlibSceneManager extends NewLayoutlibSceneManager {
       return CompletableFuture.completedFuture(null);
     }
     return currentTask.runAsyncRenderActionWithSession(block, timeout, timeUnit);
-  }
-
-  @Override
-  public boolean activate(@NotNull Object source) {
-    boolean active = super.activate(source);
-    layoutlibSceneRenderer.activate();
-    if (active && updateAndRenderWhenActivated) {
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
-      ResourceNotificationManager.ResourceVersion version =
-        manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
-      if (!version.equals(layoutlibSceneRenderer.getRenderedVersion())) {
-        getSceneRenderConfiguration().getNeedsInflation().set(true);
-      }
-      requestRenderAsync();
-    }
-
-    return active;
-  }
-
-  @Override
-  public boolean deactivate(@NotNull Object source) {
-    boolean deactivated = super.deactivate(source);
-    if (deactivated) {
-      layoutlibSceneRenderer.deactivate();
-    }
-
-    return deactivated;
   }
 }
