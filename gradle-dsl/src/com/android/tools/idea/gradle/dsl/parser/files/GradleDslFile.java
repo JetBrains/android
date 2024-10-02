@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
   private static final Logger LOG = Logger.getInstance(GradleDslFile.class);
 
-  @NotNull private final ElementList myGlobalProperties = new ElementList();
+  @NotNull protected final ElementList myGlobalProperties = new ElementList();
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final GradleDslWriter myGradleDslWriter;
