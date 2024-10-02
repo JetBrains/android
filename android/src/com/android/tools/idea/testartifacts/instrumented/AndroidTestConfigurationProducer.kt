@@ -202,9 +202,9 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
       return false
     }
 
-    val androidTestModule = AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration(module) ?: return false
+    val project = module.project
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+      project, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }

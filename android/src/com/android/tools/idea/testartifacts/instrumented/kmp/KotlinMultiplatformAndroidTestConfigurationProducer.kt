@@ -180,13 +180,13 @@ private class KotlinMultiplatformAndroidTestConfigurator(private val facet: Andr
    * @param sourceElementRef the most relevant [PsiElement] such as test method, test class, or package is set back to the caller
    * for reference
    */
-  fun configureKMP(configuration: AndroidTestRunConfiguration,  context: ConfigurationContext, sourceElementRef: Ref<PsiElement>): Boolean {
+  fun configureKMP(configuration: AndroidTestRunConfiguration, context: ConfigurationContext, sourceElementRef: Ref<PsiElement>): Boolean {
 
     val contextModule = context.module ?: return false
     val androidTestModule = contextModule.implementingModules.find { it.isAndroidTestModule() } ?: return false
 
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+      androidTestModule.project, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }
