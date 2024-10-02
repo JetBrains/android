@@ -84,7 +84,8 @@ public class SnapshotBuilder {
     QuerySummary querySummary = postQuerySyncData.querySummary();
     BuildGraphData graph = new BlazeQueryParser(querySummary, context, handledRuleKinds).parse();
     Project project =
-        projectProtoTransform.apply(graphToProjectConverter.createProject(graph), graph, context);
+        projectProtoTransform.apply(
+            graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
     return QuerySyncProjectSnapshot.builder()
         .queryData(postQuerySyncData)
         .graph(graph)

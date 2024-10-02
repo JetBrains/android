@@ -17,12 +17,11 @@ package com.google.idea.blaze.qsync.java;
 
 import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes.ALLOW_NON_EMPTY_PACKAGE_PREFIXES;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableCollection;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -40,18 +39,15 @@ import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
  */
 public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
-  private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
   private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
   private final SrcJarInnerPathFinder srcJarInnerPathFinder;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcJars(
-      Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
       ProjectDefinition projectDefinition,
       BuildArtifactCache buildCache,
       SrcJarInnerPathFinder srcJarInnerPathFinder) {
-    this.builtTargetsSupplier = builtTargetsSupplier;
     this.projectDefinition = projectDefinition;
     this.buildCache = buildCache;
     this.srcJarInnerPathFinder = srcJarInnerPathFinder;
@@ -59,8 +55,9 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update) throws BuildException {
-    for (TargetBuildInfo target : builtTargetsSupplier.get()) {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+      throws BuildException {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
       if (target.javaInfo().isEmpty()) {
         continue;
       }

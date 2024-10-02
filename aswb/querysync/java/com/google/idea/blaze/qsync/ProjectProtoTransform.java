@@ -23,12 +23,18 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import java.util.List;
 
-/** Applies a transform to a project proto instance, yielding a new instance. */
+/**
+ * Applies a transform to a project proto instance, yielding a new instance.
+ *
+ * <p>Implementation of this interface must not depend on any project state other then {@link
+ * com.google.idea.blaze.qsync.project.ProjectDefinition}.
+ */
 @FunctionalInterface
 public interface ProjectProtoTransform {
 
@@ -54,7 +60,9 @@ public interface ProjectProtoTransform {
    * @return A project proto instance to replace the existing one. May return {@code proto}
    *     unchanged if this transform doesn't need to change anything.
    */
-  Project apply(Project proto, BuildGraphData graph, Context<?> context) throws BuildException;
+  Project apply(
+      Project proto, BuildGraphData graph, ArtifactTracker.State artifactState, Context<?> context)
+      throws BuildException;
 
   static ProjectProtoTransform compose(Iterable<ProjectProtoTransform> transforms) {
     return new ProjectProtoTransform() {
@@ -70,10 +78,14 @@ public interface ProjectProtoTransform {
       }
 
       @Override
-      public Project apply(Project proto, BuildGraphData graph, Context<?> context)
+      public Project apply(
+          Project proto,
+          BuildGraphData graph,
+          ArtifactTracker.State artifactState,
+          Context<?> context)
           throws BuildException {
         for (ProjectProtoTransform transform : transforms) {
-          proto = transform.apply(proto, graph, context);
+          proto = transform.apply(proto, graph, artifactState, context);
         }
         return proto;
       }
@@ -84,6 +96,7 @@ public interface ProjectProtoTransform {
    * Simple registry for transforms that also supports returning all transforms combined into one.
    */
   class Registry {
+
     private final List<ProjectProtoTransform> transforms = Lists.newArrayList();
 
     public void add(ProjectProtoTransform transform) {

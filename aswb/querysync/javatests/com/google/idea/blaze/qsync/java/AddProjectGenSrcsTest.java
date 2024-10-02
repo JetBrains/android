@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
@@ -34,6 +35,7 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
@@ -57,6 +59,7 @@ import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class AddProjectGenSrcsTest {
+
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
   @Mock public BuildArtifactCache cache;
@@ -78,8 +81,8 @@ public class AddProjectGenSrcsTest {
                     new MockArtifact(
                         ByteSource.wrap("package com.org;\nclass Class {}".getBytes(UTF_8))))));
 
-    TargetBuildInfo builtDep =
-        TargetBuildInfo.forJavaTarget(
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forJavaArtifacts(
             JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
                 .setGenSrcs(
                     ImmutableList.of(
@@ -87,19 +90,17 @@ public class AddProjectGenSrcsTest {
                             "gensrcdigest",
                             Path.of("output/path/com/org/Class.java"),
                             testData.getAssumedOnlyLabel())))
-                .build(),
-            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
+                .build());
 
     AddProjectGenSrcs addGensrcs =
         new AddProjectGenSrcs(
-            () -> ImmutableList.of(builtDep),
             original.queryData().projectDefinition(),
             cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGensrcs.update(update);
+    addGensrcs.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
     Module workspace = newProject.getModules(0);
@@ -188,16 +189,19 @@ public class AddProjectGenSrcsTest {
                 .build(),
             DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
 
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.create(
+            ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of());
+
     AddProjectGenSrcs addGenSrcs =
         new AddProjectGenSrcs(
-            () -> ImmutableList.of(genSrc1, genSrc2),
             original.queryData().projectDefinition(),
             cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGenSrcs.update(update);
+    addGenSrcs.update(update, artifactState);
     ProjectProto.Project newProject = update.build();
 
     Module workspace = newProject.getModules(0);
@@ -280,16 +284,19 @@ public class AddProjectGenSrcsTest {
                 .build(),
             DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
 
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.create(
+            ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of());
+
     AddProjectGenSrcs addGenSrcs =
         new AddProjectGenSrcs(
-            () -> ImmutableList.of(genSrc1, genSrc2),
             original.queryData().projectDefinition(),
             cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGenSrcs.update(update);
+    addGenSrcs.update(update, artifactState);
     verify(context, never()).setHasWarnings();
   }
 }
