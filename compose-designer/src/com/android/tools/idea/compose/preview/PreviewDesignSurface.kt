@@ -60,7 +60,8 @@ private fun createPreviewDesignSurfaceBuilder(
   NlSurfaceBuilder.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(model, surface, sceneComponentProvider).also {
+      LayoutlibSceneManager(model, surface, sceneComponentProvider = sceneComponentProvider).also {
+        it.sceneRenderConfiguration.layoutScannerConfig.isLayoutScannerEnabled = false
         it.listenResourceChange = false // don't re-render on resource changes
         it.updateAndRenderWhenActivated = false // don't re-render on activation
         it.sceneRenderConfiguration.renderingTopic =
