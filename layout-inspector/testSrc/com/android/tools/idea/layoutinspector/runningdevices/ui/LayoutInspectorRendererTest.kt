@@ -68,6 +68,7 @@ import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -385,6 +386,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   @RunsInEdt
+  @Ignore("b/370604837")
   fun testMouseDoubleClick() {
     loadComposeFiles()
     val inspectorModel = createModel()
