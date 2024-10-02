@@ -20,7 +20,9 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.elements.ElementState;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementEnum;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
@@ -30,6 +32,8 @@ import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElem
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +43,17 @@ public class GradleSettingsFile extends GradleScriptFile {
                             @NotNull String moduleName,
                             @NotNull BuildModelContext context) {
     super(file, project, moduleName, context);
+    populateGlobalProperties();
+  }
+
+  private void populateGlobalProperties() {
+    // org.gradle.api.initialization.resolve.RepositoriesMode
+    ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
+    Arrays.asList("FAIL_ON_PROJECT_REPOS", "PREFER_PROJECT", "PREFER_SETTINGS")
+      .forEach(s -> builder.put(s, "RepositoriesMode." + s));
+    Map<String,String> repositoriesModeValues = builder.build();
+    GradleDslElement repositoriesMode = new GradleDslElementEnum(this, GradleNameElement.fake("RepositoriesMode"), repositoriesModeValues);
+    myGlobalProperties.addElement(repositoriesMode, ElementState.DEFAULT, false);
   }
 
   public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
