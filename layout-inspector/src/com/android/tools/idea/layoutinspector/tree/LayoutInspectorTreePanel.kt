@@ -266,8 +266,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun createChildCountsHeader(): TableCellRenderer {
     return createIconHeader(
-      // TODO(b/343503792) Add a separate icon
-      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
+      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_CHILDREN_COUNT,
       toolTipText = "Number of times children of this composable has been recomposed",
     )
   }
