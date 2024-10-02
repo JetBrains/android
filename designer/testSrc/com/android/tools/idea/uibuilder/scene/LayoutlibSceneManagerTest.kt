@@ -50,15 +50,15 @@ class LayoutlibSceneManagerTest : SceneTest() {
     val nlSurface = myScene.designSurface as NlDesignSurface
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-    myLayoutlibSceneManager.updateSceneView()
+    myLayoutlibSceneManager.updateSceneViews()
     assertEquals(1, myLayoutlibSceneManager.sceneViews.size)
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
-    myLayoutlibSceneManager.updateSceneView()
+    myLayoutlibSceneManager.updateSceneViews()
     assertEquals(1, myLayoutlibSceneManager.sceneViews.size)
 
     whenever(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
-    myLayoutlibSceneManager.updateSceneView()
+    myLayoutlibSceneManager.updateSceneViews()
     // Secondary scene view should be present now
     assertEquals(2, myLayoutlibSceneManager.sceneViews.size)
   }

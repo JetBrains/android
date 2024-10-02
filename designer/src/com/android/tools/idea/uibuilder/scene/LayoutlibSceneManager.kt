@@ -154,16 +154,17 @@ open class LayoutlibSceneManager(
     }
   }
 
-  override fun doCreateSceneView(): SceneView {
-    if (model.type === MenuFileType) return createSceneViewsForMenu()
-
-    val primarySceneView: SceneView
+  override fun updateSceneViews() {
+    if (model.type === MenuFileType) {
+      this.sceneView = createSceneViewsForMenu()
+      this.secondarySceneView = null
+      return
+    }
     designSurface.screenViewProvider.let {
-      primarySceneView = it.createPrimarySceneView(designSurface, this)
-      secondarySceneView = it.createSecondarySceneView(designSurface, this)
+      this.sceneView = it.createPrimarySceneView(designSurface, this)
+      this.secondarySceneView = it.createSecondarySceneView(designSurface, this)
     }
     designSurface.updateErrorDisplay()
-    return primarySceneView
   }
 
   private fun createSceneViewsForMenu(): SceneView {
@@ -281,7 +282,7 @@ open class LayoutlibSceneManager(
     }
 
   init {
-    updateSceneView()
+    updateSceneViews()
     designSurface.selectionModel.addListener(selectionChangeListener)
     model.configuration.addListener(configurationChangeListener)
     val components: List<NlComponent> = model.treeReader.components

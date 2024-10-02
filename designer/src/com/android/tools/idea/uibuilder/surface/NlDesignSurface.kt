@@ -160,7 +160,7 @@ internal constructor(
         field = value
 
         for (manager in sceneManagers) {
-          manager.updateSceneView()
+          manager.updateSceneViews()
           manager.requestRenderAsync()
         }
         revalidateScrollArea()
@@ -292,7 +292,7 @@ internal constructor(
   fun setColorBlindMode(mode: ColorBlindMode) {
     screenViewProvider.colorBlindFilter = mode
     for (manager in sceneManagers) {
-      manager.updateSceneView()
+      manager.updateSceneViews()
       manager.requestRenderAsync()
     }
     revalidateScrollArea()

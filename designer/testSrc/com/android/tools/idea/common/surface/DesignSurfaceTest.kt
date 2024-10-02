@@ -365,7 +365,7 @@ class TestDesignSurface(
     get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
   override fun createSceneManager(model: NlModel) = runBlocking {
-    createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
+    createSceneManager(model, this@TestDesignSurface).apply { updateSceneViews() }
   }
 
   override fun scrollToCenter(list: List<NlComponent>) {}
