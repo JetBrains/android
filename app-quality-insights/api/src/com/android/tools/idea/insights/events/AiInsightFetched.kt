@@ -20,7 +20,6 @@ import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.analytics.toProto
 import com.android.tools.idea.insights.events.actions.Action
 
 data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsight>) :
@@ -34,7 +33,7 @@ data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsi
     val appId = state.connections.selected?.appId
     val insight = (fetchedInsight as? LoadingState.Ready)?.value
     if (insight != null && crashType != null && appId != null) {
-      tracker.logInsightFetch(appId, crashType, insight.experiment.toProto(), insight.isCached)
+      tracker.logInsightFetch(appId, crashType, insight)
     }
     return StateTransition(newState = state.copy(currentInsight = fetchedInsight), Action.NONE)
   }

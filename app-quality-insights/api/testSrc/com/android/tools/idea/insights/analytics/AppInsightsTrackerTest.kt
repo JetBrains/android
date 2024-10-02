@@ -44,6 +44,7 @@ import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.SelectedIssueChanged
@@ -51,7 +52,6 @@ import com.android.tools.idea.insights.experiments.Experiment
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightExperiment
 import com.intellij.testFramework.ProjectRule
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
@@ -330,17 +330,12 @@ class AppInsightsTrackerTest {
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
-    val insight = AiInsight("", Experiment.CONTROL)
+    val insight = AiInsight("", Experiment.CONTROL, insightSource = InsightSource.STUDIO_BOT)
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
     insightFetch.transition(testState, controllerRule.tracker, TEST_KEY)
 
     verify(controllerRule.tracker, times(1))
-      .logInsightFetch(
-        any(),
-        eq(ISSUE1.issueDetails.fatality),
-        eq(InsightExperiment.CONTROL),
-        eq(false),
-      )
+      .logInsightFetch(any(), eq(ISSUE1.issueDetails.fatality), eq(insight))
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {

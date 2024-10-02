@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 object TestAppInsightsTracker : AppInsightsTracker {
@@ -77,14 +78,13 @@ object TestAppInsightsTracker : AppInsightsTracker {
 
   override fun logInsightSentiment(
     sentiment: AppQualityInsightsUsageEvent.InsightSentiment.Sentiment,
-    experiment: AppQualityInsightsUsageEvent.InsightExperiment,
     crashType: AppQualityInsightsUsageEvent.CrashType,
+    insight: AiInsight,
   ) = Unit
 
   override fun logInsightFetch(
     unanonymizedAppId: String,
     crashType: FailureType,
-    experiment: AppQualityInsightsUsageEvent.InsightExperiment,
-    isCached: Boolean,
+    insight: AiInsight,
   ) = Unit
 }
