@@ -62,6 +62,12 @@ public abstract class TargetBuildInfo {
     return builder().buildContext(buildContext).ccInfo(targetInfo).build();
   }
 
+  public TargetBuildInfo withArtifactMetadata(MetadataKey key, String metadata) {
+    Builder b = toBuilder();
+    b.artifactMetadataBuilder().put(key, metadata);
+    return b.build();
+  }
+
   static Builder builder() {
     return new AutoValue_TargetBuildInfo.Builder();
   }

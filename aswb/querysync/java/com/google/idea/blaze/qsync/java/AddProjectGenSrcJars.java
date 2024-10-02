@@ -15,12 +15,10 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackagePrefixes.ALLOW_NON_EMPTY_PACKAGE_PREFIXES;
-
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.exception.BuildException;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
+import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
@@ -32,6 +30,8 @@ import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.ArtifactTransform;
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Adds in-project generated {@code .srcjar} files to the project proto. This allows these sources
@@ -39,65 +39,72 @@ import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
  */
 public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
-  private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
-  private final SrcJarInnerPathFinder srcJarInnerPathFinder;
+  private final SourceJarInnerPathsAndPackagePrefixes srcJarPathMetadata;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcJars(
       ProjectDefinition projectDefinition,
-      BuildArtifactCache buildCache,
-      SrcJarInnerPathFinder srcJarInnerPathFinder) {
+      SourceJarInnerPathsAndPackagePrefixes srcJarPathMetadata) {
     this.projectDefinition = projectDefinition;
-    this.buildCache = buildCache;
-    this.srcJarInnerPathFinder = srcJarInnerPathFinder;
+    this.srcJarPathMetadata = srcJarPathMetadata;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
   }
 
-  @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
-      throws BuildException {
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
-      if (target.javaInfo().isEmpty()) {
-        continue;
-      }
-      JavaArtifactInfo javaInfo = target.javaInfo().get();
-      if (!projectDefinition.isIncluded(javaInfo.label())) {
-        continue;
-      }
-      for (BuildArtifact genSrc : javaInfo.genSrcs()) {
-        if (JAVA_ARCHIVE_EXTENSIONS.contains(genSrc.getExtension())) {
-          // a zip of generated sources
-          ProjectPath added =
-              update
-                  .artifactDirectory(ArtifactDirectories.DEFAULT)
-                  .addIfNewer(
-                      genSrc.artifactPath(),
-                      genSrc,
-                      target.buildContext(),
-                      ArtifactTransform.STRIP_SUPPORTED_GENERATED_SOURCES)
-                  .orElse(null);
-          if (added != null) {
-            ProjectProto.ContentEntry.Builder genSrcJarContentEntry =
-                ProjectProto.ContentEntry.newBuilder().setRoot(added.toProto());
-            for (JarPath innerPath :
-                srcJarInnerPathFinder.findInnerJarPaths(
-                    genSrc.blockingGetFrom(buildCache),
-                    ALLOW_NON_EMPTY_PACKAGE_PREFIXES,
-                    genSrc.artifactPath().toString())) {
+  private Stream<BuildArtifact> getProjectGenSrcJars(TargetBuildInfo target) {
+    if (target.javaInfo().isEmpty()) {
+      return Stream.empty();
+    }
+    JavaArtifactInfo javaInfo = target.javaInfo().get();
+    if (!projectDefinition.isIncluded(javaInfo.label())) {
+      return Stream.empty();
+    }
+    return javaInfo.genSrcs().stream()
+        .filter(genSrc -> JAVA_ARCHIVE_EXTENSIONS.contains(genSrc.getExtension()));
+  }
 
-              genSrcJarContentEntry.addSources(
-                  ProjectProto.SourceFolder.newBuilder()
-                      .setProjectPath(added.withInnerJarPath(innerPath.path()).toProto())
-                      .setIsGenerated(true)
-                      .setIsTest(testSourceMatcher.matches(genSrc.target().getPackage()))
-                      .setPackagePrefix(innerPath.packagePrefix())
-                      .build());
-            }
-            update.workspaceModule().addContentEntries(genSrcJarContentEntry.build());
-          }
-        }
-      }
+  @Override
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+      TargetBuildInfo forTarget) {
+    return getProjectGenSrcJars(forTarget)
+        .collect(
+            ImmutableSetMultimap.toImmutableSetMultimap(
+                Function.identity(), unused -> srcJarPathMetadata));
+  }
+
+  @Override
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+      getProjectGenSrcJars(target)
+          .forEach(
+              genSrc -> {
+                // a zip of generated sources
+                ProjectPath added =
+                    update
+                        .artifactDirectory(ArtifactDirectories.DEFAULT)
+                        .addIfNewer(
+                            genSrc.artifactPath(),
+                            genSrc,
+                            target.buildContext(),
+                            ArtifactTransform.STRIP_SUPPORTED_GENERATED_SOURCES)
+                        .orElse(null);
+                if (added != null) {
+                  ProjectProto.ContentEntry.Builder genSrcJarContentEntry =
+                      ProjectProto.ContentEntry.newBuilder().setRoot(added.toProto());
+
+                  for (JarPath innerPath : srcJarPathMetadata.from(target, genSrc)) {
+
+                    genSrcJarContentEntry.addSources(
+                        ProjectProto.SourceFolder.newBuilder()
+                            .setProjectPath(added.withInnerJarPath(innerPath.path()).toProto())
+                            .setIsGenerated(true)
+                            .setIsTest(testSourceMatcher.matches(genSrc.target().getPackage()))
+                            .setPackagePrefix(innerPath.packagePrefix())
+                            .build());
+                  }
+                  update.workspaceModule().addContentEntries(genSrcJarContentEntry.build());
+                }
+              });
     }
   }
 }
