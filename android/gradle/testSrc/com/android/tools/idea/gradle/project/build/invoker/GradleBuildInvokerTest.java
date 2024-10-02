@@ -99,6 +99,17 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     }
   }
 
+  public void testBuildRunConfiguration() {
+    setupTestProjectFromAndroidModel(myProject,
+                                     Projects.getBaseDirPath(myProject),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()));
+
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
+    verifyCanBuildRunConfigurationInBundleMode(buildInvoker);
+    verifyCanBuildRunConfigurationInAssembleMode(buildInvoker);
+  }
+
   public void testCleanUp() {
     setupTestProjectFromAndroidModel(myProject,
                                      getTempDir().createDir().toFile(),
@@ -419,4 +430,34 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertThat(request.getCommandLineArguments()).isEmpty();
     assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
   }
+  private void verifyCanBuildRunConfigurationInBundleMode(GradleBuildInvoker buildInvoker) {
+    buildInvoker.buildConfiguration(
+      ImmutableList.of(Objects.requireNonNull(gradleModule(myProject, ":app"))).toArray(new Module[0]),
+      true
+    );
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":app:bundleDebug"
+    ));
+
+    verifyInteractionWithMocks(BUNDLE);
+  }
+
+  private void verifyCanBuildRunConfigurationInAssembleMode(GradleBuildInvoker buildInvoker) {
+    buildInvoker.buildConfiguration(
+      ImmutableList.of(Objects.requireNonNull(gradleModule(myProject, ":app"))).toArray(new Module[0]),
+      false
+    );
+
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNotNull();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":app:assembleDebug",
+      ":app:assembleDebugUnitTest",
+      ":app:assembleDebugAndroidTest"
+    ));
+  }
+
 }
