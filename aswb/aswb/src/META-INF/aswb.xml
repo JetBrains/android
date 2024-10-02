@@ -132,4 +132,9 @@
     <ProjectProtoTransformProvider implementation="com.google.idea.blaze.android.qsync.AndroidProjectProtoTransform$Provider" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <projectsystem.ApplicationProjectContextProvider
+            implementation="com.google.idea.blaze.android.run.BazelApplicationProjectContextProvider"/>
+  </extensions>
+
 </idea-plugin>
