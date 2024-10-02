@@ -14,9 +14,7 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>
-                <arg>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</arg>
-              </args>
+              <args>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
@@ -36,24 +34,24 @@
     <orderEntry type="module-library" exported="">
       <library name="jewel-ide">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-242/0.24.2/jewel-foundation-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.24.2/jewel-ide-laf-bridge-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-242/0.24.2/jewel-ui-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-242/0.24.2/jewel-markdown-core-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-242/0.24.2/jewel-markdown-extension-autolink-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-242/0.24.2/jewel-markdown-extension-gfm-alerts-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.24.2/jewel-markdown-ide-laf-bridge-styling-242-0.24.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-242/0.25.0/jewel-foundation-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.25.0/jewel-ide-laf-bridge-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-242/0.25.0/jewel-ui-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-242/0.25.0/jewel-markdown-core-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-242/0.25.0/jewel-markdown-extension-autolink-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-242/0.25.0/jewel-markdown-extension-gfm-alerts-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.25.0/jewel-markdown-ide-laf-bridge-styling-242-0.25.0.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-242/0.24.2/jewel-foundation-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.24.2/jewel-ide-laf-bridge-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-242/0.24.2/jewel-ui-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-242/0.24.2/jewel-markdown-core-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-242/0.24.2/jewel-markdown-extension-autolink-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-242/0.24.2/jewel-markdown-extension-gfm-alerts-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.24.2/jewel-markdown-ide-laf-bridge-styling-242-0.24.2-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-242/0.25.0/jewel-foundation-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0.25.0/jewel-ide-laf-bridge-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-242/0.25.0/jewel-ui-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-242/0.25.0/jewel-markdown-core-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-autolink-242/0.25.0/jewel-markdown-extension-autolink-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-242/0.25.0/jewel-markdown-extension-gfm-alerts-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0.25.0/jewel-markdown-ide-laf-bridge-styling-242-0.25.0-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0-sources.jar!/" />
         </SOURCES>
       </library>
@@ -61,24 +59,26 @@
     <orderEntry type="module-library" exported="">
       <library name="compose-desktop">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-desktop/1.7.0-beta01/animation-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-core-desktop/1.7.0-beta01/animation-core-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.7.0-beta01/runtime-saveable-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-desktop/1.7.0-beta01/runtime-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-layout-desktop/1.7.0-beta01/foundation-layout-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-desktop/1.7.0-beta01/foundation-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-unit-desktop/1.7.0-beta01/ui-unit-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-text-desktop/1.7.0-beta01/ui-text-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-util-desktop/1.7.0-beta01/ui-util-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-graphics-desktop/1.7.0-beta01/ui-graphics-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.7.0-beta01/ui-geometry-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta01/ui-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt/0.8.11/skiko-awt-0.8.11.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.8.11/skiko-awt-runtime-linux-x64-0.8.11.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.8.11/skiko-awt-runtime-macos-arm64-0.8.11.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-x64/0.8.11/skiko-awt-runtime-macos-x64-0.8.11.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.8.11/skiko-awt-runtime-windows-x64-0.8.11.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.1/lifecycle-runtime-compose-desktop-2.8.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-desktop/1.7.0-beta02/animation-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-core-desktop/1.7.0-beta02/animation-core-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/components/components-resources/1.7.0-beta02/components-resources-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/components/components-resources-desktop/1.7.0-beta02/components-resources-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.7.0-beta02/runtime-saveable-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-desktop/1.7.0-beta02/runtime-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-layout-desktop/1.7.0-beta02/foundation-layout-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-desktop/1.7.0-beta02/foundation-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-unit-desktop/1.7.0-beta02/ui-unit-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-text-desktop/1.7.0-beta02/ui-text-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-util-desktop/1.7.0-beta02/ui-util-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-graphics-desktop/1.7.0-beta02/ui-graphics-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.7.0-beta02/ui-geometry-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta02/ui-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt/0.8.12/skiko-awt-0.8.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.8.12/skiko-awt-runtime-linux-x64-0.8.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.8.12/skiko-awt-runtime-macos-arm64-0.8.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-x64/0.8.12/skiko-awt-runtime-macos-x64-0.8.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.8.12/skiko-awt-runtime-windows-x64-0.8.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.2/lifecycle-runtime-compose-desktop-2.8.2.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-runtime-desktop/2.8.4/lifecycle-runtime-desktop-2.8.4.jar!/" />
@@ -87,50 +87,52 @@
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-core-desktop/1.7.0-beta01/animation-core-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-desktop/1.7.0-beta01/animation-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-desktop/1.7.0-beta01/foundation-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-layout-desktop/1.7.0-beta01/foundation-layout-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-desktop/1.7.0-beta01/runtime-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.7.0-beta01/runtime-saveable-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta01/ui-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.7.0-beta01/ui-geometry-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-graphics-desktop/1.7.0-beta01/ui-graphics-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-text-desktop/1.7.0-beta01/ui-text-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-unit-desktop/1.7.0-beta01/ui-unit-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-util-desktop/1.7.0-beta01/ui-util-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.1/lifecycle-runtime-compose-desktop-2.8.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-core-desktop/1.7.0-beta02/animation-core-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/animation/animation-desktop/1.7.0-beta02/animation-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/components/components-resources/1.7.0-beta02/components-resources-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/components/components-resources-desktop/1.7.0-beta02/components-resources-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-desktop/1.7.0-beta02/foundation-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/foundation/foundation-layout-desktop/1.7.0-beta02/foundation-layout-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-desktop/1.7.0-beta02/runtime-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.7.0-beta02/runtime-saveable-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta02/ui-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.7.0-beta02/ui-geometry-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-graphics-desktop/1.7.0-beta02/ui-graphics-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-text-desktop/1.7.0-beta02/ui-text-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-unit-desktop/1.7.0-beta02/ui-unit-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-util-desktop/1.7.0-beta02/ui-util-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.2/lifecycle-runtime-compose-desktop-2.8.2.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-runtime-desktop/2.8.4/lifecycle-runtime-desktop-2.8.4-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-common-jvm/2.8.4/lifecycle-common-jvm-2.8.4-sources.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-viewmodel-desktop/2.8.4/lifecycle-viewmodel-desktop-2.8.4-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta01/ui-desktop-1.7.0-beta01-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.0-beta02/ui-desktop-1.7.0-beta02-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jewel-standalone">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.24.2/jewel-int-ui-standalone-242-0.24.2.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.24.2/jewel-markdown-int-ui-standalone-styling-242-0.24.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.25.0/jewel-int-ui-standalone-242-0.25.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.25.0/jewel-markdown-int-ui-standalone-styling-242-0.25.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.24.2/jewel-int-ui-standalone-242-0.24.2-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.24.2/jewel-markdown-int-ui-standalone-styling-242-0.24.2-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.25.0/jewel-int-ui-standalone-242-0.25.0-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.25.0/jewel-markdown-int-ui-standalone-styling-242-0.25.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="compose-desktop-test">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta01/ui-test-junit4-desktop-1.7.0-beta01.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta01/ui-test-desktop-1.7.0-beta01.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta02/ui-test-junit4-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta02/ui-test-desktop-1.7.0-beta02.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta01/ui-test-junit4-desktop-1.7.0-beta01-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta01/ui-test-desktop-1.7.0-beta01-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta02/ui-test-junit4-desktop-1.7.0-beta02-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta02/ui-test-desktop-1.7.0-beta02-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
