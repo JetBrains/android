@@ -76,8 +76,10 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.scale.JBUIScale.sysScale
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -128,7 +130,22 @@ internal constructor(
   ),
   NlDiagnosticKey {
 
+  /**
+   * [EditorNotificationPanel] to indicate List mode is deprecated. It should only be visible if
+   * List is selected.
+   *
+   * TODO(b/369564706): remove this banner when List mode is removed
+   */
+  private val listDeprecationBanner =
+    object : EditorNotificationPanel(Status.Warning) {
+      init {
+        text = "List mode will be deprecated in the next release. Please use Grid mode if possible."
+        isVisible = false
+      }
+    }
+
   init {
+    add(listDeprecationBanner, BorderLayout.NORTH)
     viewport.addChangeListener {
       val scroller = viewportScroller
       viewportScroller = null
@@ -218,6 +235,11 @@ internal constructor(
     setSceneViewAlignment(layoutOption.sceneViewAlignment)
     setScrollPosition(0, 0)
     revalidateScrollArea()
+  }
+
+  @UiThread
+  fun updateLayoutDeprecationBannerVisibility(visible: Boolean) {
+    listDeprecationBanner.isVisible = visible
   }
 
   /** Triggers a re-inflation and re-render, but it doesn't wait for it to finish. */
