@@ -61,6 +61,7 @@ import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.TestModuleProperties
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.openapi.util.Version
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
@@ -399,7 +400,7 @@ private fun ProjectDumper.dump(ndkFacetConfiguration: NdkFacetConfiguration) {
 
 private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {
   with(kotlinFacetConfiguration.settings) {
-    prop("ApiLevel") { apiLevel?.toString() }
+    prop("ApiLevel") { apiLevel?.toString()?.replaceKotlinMajorMinorVersion() }
     compilerArguments?.let { compilerArguments ->
       head("CompilerArguments") { null }
       dump(compilerArguments)
@@ -412,7 +413,7 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
     implementedModuleNames.forEach { prop("- ImplementedModuleName") { it } }
     prop("IsTestModule") { isTestModule.toString() }
     prop("Kind") { kind.toString() }
-    prop("LanguageLevel") { languageLevel?.toString() }
+    prop("LanguageLevel") { languageLevel?.toString()?.replaceKotlinMajorMinorVersion() }
 
     // The Kotlin plugin invokes this workaround in several places including where it is read by JPS build.
     // It doesn't look like we need to do it when opening a project, but we need to refresh them before
@@ -434,7 +435,7 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
 private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
   nest {
     prop("allowKotlinPackage") { compilerArguments.allowKotlinPackage.takeIf { it }?.toString() }
-    prop("apiVersion") { compilerArguments.apiVersion }
+    prop("apiVersion") { compilerArguments.apiVersion?.replaceKotlinMajorMinorVersion() }
     prop("autoAdvanceApiVersion") { compilerArguments.autoAdvanceApiVersion.takeIf { it }?.toString() }
     prop("autoAdvanceLanguageVersion") { compilerArguments.autoAdvanceLanguageVersion.takeIf { it }?.toString() }
     compilerArguments.commonSources?.forEach { prop("- commonSources") { it } }
@@ -442,7 +443,7 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     prop("dumpPerf") { compilerArguments.dumpPerf }
     prop("intellijPluginRoot") { compilerArguments.intellijPluginRoot }
     prop("kotlinHome") { compilerArguments.kotlinHome }
-    prop("languageVersion") { compilerArguments.languageVersion }
+    prop("languageVersion") { compilerArguments.languageVersion?.replaceKotlinMajorMinorVersion() }
     prop("legacySmartCastAfterTry") { compilerArguments.legacySmartCastAfterTry.takeIf { it }?.toString() }
     prop("listPhases") { compilerArguments.listPhases.takeIf { it }?.toString() }
     prop("metadataVersion") { compilerArguments.metadataVersion }
@@ -466,6 +467,11 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     compilerArguments.verbosePhases?.forEach { prop("- verbosePhases") { it } }
   }
 }
+
+/** Returns Kotlin major.minor version (e.g., given "2.1.0-Beta1", return "2.1"). */
+private fun getKotlinMajorMinorVersion(): String = Version.parseVersion(KOTLIN_VERSION_FOR_TESTS)!!.run { "$major.$minor" }
+
+private fun String.replaceKotlinMajorMinorVersion() = replace(getKotlinMajorMinorVersion(), "<KOTLIN-MAJOR-MINOR-VERSION>")
 
 private fun String.nullizePrefixedWith(vararg prefixes: String): String? = if (prefixes.any { this.startsWith(it) }) null else this
 

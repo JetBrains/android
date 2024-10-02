@@ -712,7 +712,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -838,9 +837,7 @@ MODULE                        : kotlinMultiPlatform
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     - taskArtifacts               : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                     configurationArtifacts
-                        allInstrumentedTestSourceSetsCompileDependenciesMetadata    : <empty>
                         allSourceSetsCompileDependenciesMetadata          : <empty>
-                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
                         androidApis                   : <empty>
                         androidDebugAndroidTestCompilationApi   : <empty>
                         androidDebugAndroidTestCompilationCompileOnly     : <empty>
@@ -1023,7 +1020,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -2387,7 +2383,6 @@ MODULE                        : kotlinMultiPlatform.module2
             ResDirectories                : <ROOT>/module2/src/androidDebug/res [-]
             AssetsDirectories             : <ROOT>/module2/src/debug/assets [-]
             AssetsDirectories             : <ROOT>/module2/src/androidDebug/assets [-]
-            AssetsDirectories             : <ROOT>/module2/build/generated/assets/debugAssetsCopyForAGP [-]
             JniLibsDirectories            : <ROOT>/module2/src/debug/jniLibs [-]
             JniLibsDirectories            : <ROOT>/module2/src/androidDebug/jniLibs [-]
             ShadersDirectories            : <ROOT>/module2/src/debug/shaders [-]
@@ -2466,7 +2461,6 @@ MODULE                        : kotlinMultiPlatform.module2
             ResDirectories                : <ROOT>/module2/src/androidRelease/res [-]
             AssetsDirectories             : <ROOT>/module2/src/release/assets [-]
             AssetsDirectories             : <ROOT>/module2/src/androidRelease/assets [-]
-            AssetsDirectories             : <ROOT>/module2/build/generated/assets/releaseAssetsCopyForAGP [-]
             JniLibsDirectories            : <ROOT>/module2/src/release/jniLibs [-]
             JniLibsDirectories            : <ROOT>/module2/src/androidRelease/jniLibs [-]
             ShadersDirectories            : <ROOT>/module2/src/release/shaders [-]
@@ -2670,7 +2664,7 @@ MODULE                        : kotlinMultiPlatform.module2
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
-            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
+            versionString                 : 1.9.23
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : androidMain (KotlinSourceSetImpl)
@@ -2718,9 +2712,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : androidDebug:commonMain
-                    - fragments                   : androidDebug
-                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2792,7 +2783,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragments                   : androidInstrumentedTestDebug
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2865,9 +2855,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - fragmentRefines             : androidUnitTestDebug:commonTest
-                    - fragments                   : androidUnitTestDebug
-                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
