@@ -1,4 +1,4 @@
-package org.jetbrains.android.dom;
+package com.android.tools.idea.editing.documentation;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
@@ -22,7 +22,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.dom.attrs.AttributeDefinitions;
-import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.utils.DataBindingUtils;
@@ -64,6 +63,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
+import org.jetbrains.android.dom.ProvidedDocumentationPsiElement;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
