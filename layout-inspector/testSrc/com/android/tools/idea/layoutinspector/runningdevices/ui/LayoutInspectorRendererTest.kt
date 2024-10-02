@@ -386,7 +386,6 @@ class LayoutInspectorRendererTest {
 
   @Test
   @RunsInEdt
-  @Ignore("b/370604837")
   fun testMouseDoubleClick() {
     loadComposeFiles()
     val inspectorModel = createModel()
