@@ -30,7 +30,6 @@ import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -43,7 +42,6 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
@@ -76,7 +74,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -121,39 +118,6 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ApplicationInfo info = ApplicationInfo.getInstance();
     String version = info.getFullApplicationName() + " @ " + info.getBuild();
     responseObserver.onNext(ASDriver.GetVersionResponse.newBuilder().setVersion(version).build());
-    responseObserver.onCompleted();
-  }
-
-  @SuppressWarnings("UnstableApiUsage")
-  @Override
-  public void validatePluginConfiguration(ASDriver.ValidatePluginConfigurationRequest request,
-                                          StreamObserver<ASDriver.ValidatePluginConfigurationResponse> responseObserver) {
-    // Until JetBrains fixes https://youtrack.jetbrains.com/issue/IJPL-6075 upstream, we want to ensure all Android plugin
-    // dependencies are marked 'essential' so they cannot be disabled (see b/202048599, b/365493089). If this assertion fails,
-    // then AndroidStudioApplicationInfo.xml needs to be adjusted to list additional essential plugins.
-    var appInfoEx = ApplicationInfoEx.getInstanceEx();
-    var essentialPlugins = new HashSet<>(appInfoEx.getEssentialPluginIds());
-    var errors = new ArrayList<String>();
-    for (var plugin : essentialPlugins) {
-      var descriptor = PluginManagerCore.findPlugin(plugin);
-      java.util.Objects.requireNonNull(descriptor, "Failed to find descriptor for essential plugin: " + plugin);
-      for (var dependency : PluginManagerCore.INSTANCE.getNonOptionalDependenciesIds(descriptor)) {
-        // No need to worry about dependencies like "com.intellij.modules.*" because they are not true plugins (they cannot be disabled).
-        if (!essentialPlugins.contains(dependency) && !dependency.getIdString().startsWith("com.intellij.modules.")) {
-          errors.add("Essential plugin '" + plugin + "' depends on non-essential plugin '" + dependency + "'");
-        }
-      }
-    }
-    var responseBuilder = ASDriver.ValidatePluginConfigurationResponse.newBuilder();
-    if (errors.isEmpty()) {
-      responseBuilder.setResult(ASDriver.ValidatePluginConfigurationResponse.Result.OK);
-    }
-    else {
-      var msg = "The essential plugins in AndroidStudioApplicationInfo.xml do not form a transitive closure:\n" + String.join("\n", errors);
-      responseBuilder.setResult(ASDriver.ValidatePluginConfigurationResponse.Result.ERROR);
-      responseBuilder.setErrorMessage(msg);
-    }
-    responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
 
