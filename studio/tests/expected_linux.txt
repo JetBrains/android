@@ -107,6 +107,7 @@ android-studio/jbr/legal/java.base/c-libutl.md
 android-studio/jbr/legal/java.base/cldr.md
 android-studio/jbr/legal/java.base/icu.md
 android-studio/jbr/legal/java.base/public_suffix.md
+android-studio/jbr/legal/java.base/siphash.md
 android-studio/jbr/legal/java.base/unicode.md
 android-studio/jbr/legal/java.base/zlib.md
 android-studio/jbr/legal/java.compiler/ADDITIONAL_LICENSE_INFO
