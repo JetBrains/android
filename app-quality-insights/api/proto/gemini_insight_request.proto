@@ -15,4 +15,15 @@ message GeminiInsightsRequest {
 
   // Stack trace of the event
   string stack_trace = 3;
+
+  // Relevant code context.
+  repeated CodeSnippet code_snippets = 4;
+}
+
+message CodeSnippet {
+  // The code snippet
+  string code_snippet = 1;
+  // The fully qualified path to the file name from which the code snippet was
+  // extracted
+  string file_path = 2;
 }

@@ -21,12 +21,24 @@ import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.intellij.openapi.project.Project
 
 private val GEMINI_INSIGHT_PROMPT_FORMAT =
   """
     Explain this exception from my app running on %s with Android version %s:
+    Exception:
+    ```
+    %s
+    ```
+  """
+    .trimIndent()
+
+private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
+  """
+    Explain this exception from my app running on %s with Android version %s.
+    Please reference the provided source code if they are helpful.
     Exception:
     ```
     %s
@@ -58,13 +70,19 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
   }
 
   private fun createPrompt(request: GeminiInsightsRequest) =
-    String.format(
-        GEMINI_INSIGHT_PROMPT_FORMAT,
+    "${
+      String.format(
+        if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
         request.deviceName,
         request.apiLevel,
         request.stackTrace,
       )
-      .trim()
+        .trim()
+    }${request.codeSnippetsList.toPromptString()}"
+
+  private fun List<CodeSnippet>.toPromptString() =
+    if (isEmpty()) ""
+    else "\n" + joinToString("\n") { "${it.filePath}:\n```\n${it.codeSnippet}\n```" }
 
   companion object {
     fun create(project: Project) = GeminiAiInsightClient(project)
