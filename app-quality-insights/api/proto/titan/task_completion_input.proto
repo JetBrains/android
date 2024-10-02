@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package google.cloud.cloudaicompanion.v1;
 
-import "task_completion_message.proto";
+import "titan/task_completion_message.proto";
 
 option java_multiple_files = true;
 option java_package = "com.google.cloud.cloudaicompanion.v1main";

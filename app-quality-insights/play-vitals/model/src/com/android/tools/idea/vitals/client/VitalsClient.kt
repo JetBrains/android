@@ -46,6 +46,7 @@ import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatching
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
@@ -57,8 +58,6 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
-import com.google.android.studio.gemini.CodeSnippet
-import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -417,38 +416,3 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     }
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
-
-private fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
-  GeminiInsightsRequest.newBuilder()
-    .apply {
-      val device = event.eventData.device.let { "${it.manufacturer} ${it.model}" }
-      val api = event.eventData.operatingSystemInfo.displayVersion
-      val eventStackTrace = event.prettyStackTrace()
-
-      deviceName = device
-      apiLevel = api
-      stackTrace = eventStackTrace
-
-      addAllCodeSnippets(
-        codeContextData.codeContext.map { context ->
-          CodeSnippet.newBuilder()
-            .apply {
-              codeSnippet = context.content
-              filePath = context.filePath
-            }
-            .build()
-        }
-      )
-    }
-    .build()
-
-private fun Event.prettyStackTrace() =
-  buildString {
-      stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
-        if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
-          appendLine(exception.rawExceptionMessage)
-          append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
-        }
-      }
-    }
-    .trim()
