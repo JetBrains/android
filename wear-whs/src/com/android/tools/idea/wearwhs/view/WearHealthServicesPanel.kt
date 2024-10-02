@@ -23,8 +23,6 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.notification.Notification
-import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -32,7 +30,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.JBPopupMenu
-import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
@@ -59,19 +56,13 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 private const val MAX_OVERRIDE_VALUE_LENGTH = 50
@@ -81,8 +72,6 @@ private val floatPattern = Regex("^(0|0?[1-9]\\d*)?(\\.[0-9]*)?\$")
 
 private const val PADDING = 15
 private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
-private const val NOTIFICATION_GROUP_ID = "Wear Health Services Notification"
-private val TEMPORARY_MESSAGE_DISPLAY_DURATION = 2.seconds
 
 internal const val LEARN_MORE_URL =
   "https://developer.android.com/health-and-fitness/guides/health-services/simulated-data#use_the_health_services_sensor_panel"
@@ -351,86 +340,23 @@ private fun createWearHealthServicesPanelHeader(
 /** Container for the Wear Health Services panel. */
 data class WearHealthServicesPanel(
   /** The UI component containing the Wear Health Services panel. */
-  val component: JComponent,
-  /**
-   * Flow receiving an element when the user applies changes. The changes might still fail to be
-   * applied.
-   */
-  val onUserApplyChangesFlow: Flow<Unit>,
-  /**
-   * Flow receiving an element when the user triggers an event. The event might still fail to be
-   * triggered.
-   */
-  val onUserTriggerEventFlow: Flow<Unit>,
+  val component: JComponent
 )
-
-private sealed class PanelInformation(val message: String) {
-  class Message(message: String) : PanelInformation(message)
-
-  class TemporaryMessage(
-    message: String,
-    val duration: Duration = TEMPORARY_MESSAGE_DISPLAY_DURATION,
-  ) : PanelInformation(message)
-
-  data object EmptyMessage : PanelInformation("")
-}
 
 internal fun createWearHealthServicesPanel(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
+  informationLabelFlow: Flow<String>,
+  reset: () -> Unit,
+  applyChanges: () -> Unit,
+  triggerEvent: (EventTrigger) -> Unit,
 ): WearHealthServicesPanel {
 
   // Display current state e.g. we encountered an error, if there's work in progress, or if an
   // action was successful
-  val informationFlow = MutableStateFlow<PanelInformation>(PanelInformation.EmptyMessage)
   val informationLabel = JLabel()
-  val onApplyChangesChannel = Channel<Unit>()
-  val onTriggerEventChannel = Channel<Unit>()
-
-  fun notifyUser(message: String, type: MessageType) {
-    uiScope.launch {
-      val isPanelShowing = informationLabel.topLevelAncestor != null
-      if (isPanelShowing) {
-        informationFlow.value = PanelInformation.TemporaryMessage(message)
-      } else {
-        informationFlow.value = PanelInformation.EmptyMessage
-        Notifications.Bus.notify(
-          Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
-        )
-      }
-    }
-  }
-
-  fun applyChanges() {
-    workerScope.launch {
-      onApplyChangesChannel.send(Unit)
-      val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
-      stateManager
-        .applyChanges()
-        .onSuccess { notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO) }
-        .onFailure { notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR) }
-    }
-  }
-
-  fun triggerEvent(eventTrigger: EventTrigger) {
-    workerScope.launch {
-      onTriggerEventChannel.send(Unit)
-      stateManager
-        .triggerEvent(eventTrigger)
-        .onSuccess { notifyUser(message("wear.whs.event.trigger.success"), MessageType.INFO) }
-        .onFailure { notifyUser(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
-    }
-  }
-
-  fun reset() {
-    workerScope.launch {
-      stateManager
-        .reset()
-        .onSuccess { notifyUser(message("wear.whs.panel.reset.success"), MessageType.INFO) }
-        .onFailure { notifyUser(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
-    }
-  }
+  uiScope.launch { informationLabelFlow.collectLatest { informationLabel.text = it } }
 
   val content =
     JBScrollPane().apply {
@@ -469,30 +395,15 @@ internal fun createWearHealthServicesPanel(
       )
     }
 
-  stateManager.status
-    .onEach {
-      if (it is WhsStateManagerStatus.Syncing) {
-          informationFlow.value =
-            PanelInformation.Message(message("wear.whs.panel.capabilities.syncing"))
-      }
-    }
-    .launchIn(uiScope)
-
-  uiScope.launch {
-    informationFlow.collectLatest {
-      informationLabel.text = it.message
-      if (it is PanelInformation.TemporaryMessage) {
-        delay(it.duration)
-        informationFlow.value = PanelInformation.EmptyMessage
-      }
-    }
-  }
-
   return WearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
         add(
-          createWearHealthServicesPanelHeader(stateManager, uiScope, ::triggerEvent),
+          createWearHealthServicesPanelHeader(
+            stateManager = stateManager,
+            uiScope = uiScope,
+            triggerEvent = { triggerEvent(it) },
+          ),
           BorderLayout.NORTH,
         )
         add(content, BorderLayout.CENTER)
@@ -501,9 +412,7 @@ internal fun createWearHealthServicesPanel(
         isFocusCycleRoot = true
         isFocusTraversalPolicyProvider = true
         focusTraversalPolicy = LayoutFocusTraversalPolicy()
-      },
-    onUserApplyChangesFlow = onApplyChangesChannel.receiveAsFlow(),
-    onUserTriggerEventFlow = onTriggerEventChannel.receiveAsFlow(),
+      }
   )
 }
 

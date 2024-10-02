@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
+import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsDataType
@@ -35,9 +36,6 @@ import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationType
-import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
@@ -45,14 +43,12 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
@@ -60,13 +56,12 @@ import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -91,22 +86,18 @@ class WearHealthServicesPanelTest {
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
 
-  private val notifications
-    get() =
-      NotificationsManager.getNotificationsManager()
-        .getNotificationsOfType(Notification::class.java, projectRule.project)
-        .toList()
-
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
   private lateinit var whsPanel: WearHealthServicesPanel
   private lateinit var fakePopup: FakeActionPopupMenu
+  private lateinit var uiScope: CoroutineScope
+  private lateinit var workerScope: CoroutineScope
+  private val informationLabelFlow = MutableStateFlow("")
 
   @Before
   fun setUp() {
-    val testUiScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    val testWorkerScope =
+    uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
+    workerScope =
       AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
     deviceManager = FakeDeviceManager()
 
@@ -114,12 +105,12 @@ class WearHealthServicesPanelTest {
       WearHealthServicesStateManagerImpl(
           deviceManager = deviceManager,
           pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
-          workerScope = testWorkerScope,
+          workerScope = workerScope,
           stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
-    whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
+    whsPanel = createWhsPanel()
 
     ApplicationManager.getApplication()
       .replaceService(
@@ -323,6 +314,8 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
+    val whsPanel =
+      createWhsPanel(applyChanges = { workerScope.launch { stateManager.applyChanges() } })
     val fakeUi = FakeUi(whsPanel.component)
 
     val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
@@ -385,9 +378,34 @@ class WearHealthServicesPanelTest {
     }
 
   @Test
-  fun `test apply button flow notification`(): Unit = runBlocking {
+  fun `test information label shows in panel`(): Unit = runBlocking {
     val fakeUi = FakeUi(whsPanel.component)
-    val userApplyChanges = whsPanel.onUserApplyChangesFlow
+
+    informationLabelFlow.value = "some information label"
+
+    fakeUi.waitForDescendant<JLabel> { it.text == "some information label" }
+  }
+
+  @Test
+  fun `test reset button`(): Unit = runBlocking {
+    val completableDeferred = CompletableDeferred<Unit>()
+    val whsPanel = createWhsPanel(reset = { completableDeferred.complete(Unit) })
+    val fakeUi = FakeUi(whsPanel.component)
+
+    deviceManager.activeExercise = true
+
+    val resetJButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reset") }
+    resetJButton.doClick()
+
+    completableDeferred.await()
+  }
+
+  @Test
+  fun `test apply button`(): Unit = runBlocking {
+    val completableDeferred = CompletableDeferred<Unit>()
+    val whsPanel = createWhsPanel(applyChanges = { completableDeferred.complete(Unit) })
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = true
 
@@ -398,228 +416,8 @@ class WearHealthServicesPanelTest {
       fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
     applyButton.doClick()
 
-    userApplyChanges.take(1).collect {}
+    completableDeferred.await()
   }
-
-  @Test
-  fun `test successful apply and reapply shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-      // without user changes
-      run {
-        fakeUi.clickOnApplyButton()
-
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.success") }
-      }
-
-      // with user changes
-      run {
-        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-
-        fakeUi.clickOnApplyButton()
-
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
-      }
-    }
-
-  @Test
-  fun `test failed apply changes shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-      deviceManager.failState = true
-
-      // without user changes
-      run {
-        fakeUi.clickOnApplyButton()
-
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.failure") }
-      }
-
-      // with user changes
-      run {
-        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-
-        fakeUi.clickOnApplyButton()
-
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
-      }
-    }
-
-  @Test
-  fun `test user is notified of successful apply changes when panel is not showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-      // without user changes
-      run {
-        fakeUi.clickOnApplyButton()
-
-        waitForCondition(2, TimeUnit.SECONDS) {
-          notifications.any {
-            it.content == message("wear.whs.panel.reapply.success") &&
-              it.type == NotificationType.INFORMATION
-          }
-        }
-      }
-
-      // with user changes
-      run {
-        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-
-        fakeUi.clickOnApplyButton()
-
-        waitForCondition(2, TimeUnit.SECONDS) {
-          notifications.any {
-            it.content == message("wear.whs.panel.apply.success") &&
-              it.type == NotificationType.INFORMATION
-          }
-        }
-      }
-    }
-
-  @Test
-  fun `test user is notified of failed apply changes when panel is not showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-      deviceManager.failState = true
-
-      // without user changes
-      run {
-        fakeUi.clickOnApplyButton()
-
-        waitForCondition(2, TimeUnit.SECONDS) {
-          notifications.any {
-            it.content == message("wear.whs.panel.reapply.failure") &&
-              it.type == NotificationType.ERROR
-          }
-        }
-      }
-
-      // with user changes
-      run {
-        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-
-        fakeUi.clickOnApplyButton()
-
-        waitForCondition(2, TimeUnit.SECONDS) {
-          notifications.any {
-            it.content == message("wear.whs.panel.apply.failure") &&
-              it.type == NotificationType.ERROR
-          }
-        }
-      }
-    }
-
-  @Test
-  fun `test successful reset shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-      val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
-      resetButton.doClick()
-
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.success") }
-    }
-
-  @Test
-  fun `test failed reset shows in information label when panel is showing`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-    deviceManager.failState = true
-
-    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
-    resetButton.doClick()
-
-    fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reset.failure") }
-  }
-
-  @Test
-  fun `test user is notified of successful reset when panel is not showing`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
-    resetButton.doClick()
-
-    waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.reset.success") &&
-          it.type == NotificationType.INFORMATION
-      }
-    }
-  }
-
-  @Test
-  fun `test user is notified of failed reset when panel is not showing`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-    deviceManager.failState = true
-
-    val resetButton = fakeUi.waitForDescendant<JButton> { it.text == "Reset" }
-    resetButton.doClick()
-
-    waitForCondition(2, TimeUnit.SECONDS) {
-      notifications.any {
-        it.content == message("wear.whs.panel.reset.failure") && it.type == NotificationType.ERROR
-      }
-    }
-  }
-
-  @Test
-  fun `test successful trigger event shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-      fakeUi.clickOnTriggerEvent()
-
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
-    }
-
-  @Test
-  fun `test failed trigger event shows in information label when panel is showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
-
-      deviceManager.failState = true
-
-      fakeUi.clickOnTriggerEvent()
-
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
-    }
-
-  @Test
-  fun `test user is notified of successful trigger event when panel is not showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-      fakeUi.clickOnTriggerEvent()
-
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.event.trigger.success") &&
-            it.type == NotificationType.INFORMATION
-        }
-      }
-    }
-
-  @Test
-  fun `test user is notified of failed trigger event when panel is not showing`(): Unit =
-    runBlocking {
-      val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
-
-      deviceManager.failState = true
-
-      fakeUi.clickOnTriggerEvent()
-
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.event.trigger.failure") &&
-            it.type == NotificationType.ERROR
-        }
-      }
-    }
 
   @Test
   fun `stale data is shown as a warning icon`(): Unit = runBlocking {
@@ -706,13 +504,19 @@ class WearHealthServicesPanelTest {
     }
 
   @Test
-  fun `test trigger event flow notification`(): Unit = runBlocking {
+  fun `test trigger event button`(): Unit = runBlocking {
+    val completableDeferred = CompletableDeferred<EventTrigger>()
+    val whsPanel = createWhsPanel(triggerEvent = { completableDeferred.complete(it) })
     val fakeUi = FakeUi(whsPanel.component)
-    val triggerEventFlow = whsPanel.onUserTriggerEventFlow
 
-    fakeUi.clickOnTriggerEvent(consumeTriggerEventFlow = false)
+    fakeUi.clickOnTriggerEvent(
+      { fakePopup },
+      eventName = message("wear.whs.event.trigger.golf.shot.partial"),
+    )
 
-    withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
+    val triggeredEvent = completableDeferred.await()
+    assertThat(triggeredEvent.eventLabel)
+      .isEqualTo(message("wear.whs.event.trigger.golf.shot.partial"))
   }
 
   @Test
@@ -739,6 +543,8 @@ class WearHealthServicesPanelTest {
   @Test
   fun `an asterisk only shows if a capability has a different value than what is on the device`():
     Unit = runBlocking {
+    val whsPanel =
+      createWhsPanel(applyChanges = { workerScope.launch { stateManager.applyChanges() } })
     val fakeUi = FakeUi(whsPanel.component)
 
     val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
@@ -863,42 +669,18 @@ class WearHealthServicesPanelTest {
   private fun JCheckBox.hasLabel(text: String) =
     parent.findDescendant<JLabel> { it.text == text } != null
 
-  private suspend fun FakeUi.clickOnApplyButton() {
-    val applyButton =
-      waitForDescendant<JButton> {
-        it.text == message("wear.whs.panel.reapply") || it.text == message("wear.whs.panel.apply")
-      }
-    applyButton.doClick()
-    // we need to consume this flow to allow calling StateManager.applyChanges
-    whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
-  }
-
-  // The UI loads on asynchronous coroutine, we need to wait
-  private inline fun <reified T> FakeUi.waitForDescendant(
-    crossinline predicate: (T) -> Boolean = { true }
-  ): T {
-    waitForCondition(TEST_MAX_WAIT_TIME_SECONDS, TimeUnit.SECONDS) {
-      root.findDescendant(predicate) != null
-    }
-    return root.findDescendant(predicate)!!
-  }
-
-  private fun FakeUi.triggerEventsButton() =
-    waitForDescendant<JButton> { it.text == message("wear.whs.panel.trigger.events") }
-
-  private suspend fun FakeUi.clickOnTriggerEvent(consumeTriggerEventFlow: Boolean = true) {
-    val triggerEventsButton = triggerEventsButton()
-    triggerEventsButton.doClick()
-
-    val triggerEventGroupAction = fakePopup.getActions().firstOrNull() as? DropDownAction
-    assertNotNull("An event trigger group action was expected", triggerEventGroupAction)
-
-    val triggerEventAction = triggerEventGroupAction!!.childActionsOrStubs.firstOrNull()
-    assertNotNull("An event trigger action was expected", triggerEventAction)
-
-    triggerEventAction!!.actionPerformed(createTestEvent())
-    if (consumeTriggerEventFlow) {
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
-    }
-  }
+  private fun createWhsPanel(
+    reset: () -> Unit = {},
+    applyChanges: () -> Unit = {},
+    triggerEvent: (EventTrigger) -> Unit = {},
+  ) =
+    createWearHealthServicesPanel(
+      stateManager = stateManager,
+      uiScope = uiScope,
+      workerScope = workerScope,
+      informationLabelFlow = informationLabelFlow,
+      reset = { reset() },
+      applyChanges = { applyChanges() },
+      triggerEvent = { triggerEvent(it) },
+    )
 }
