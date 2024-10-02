@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +37,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
@@ -47,6 +51,7 @@ import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -70,6 +75,14 @@ fun <DeviceT : DeviceProfile> DeviceTable(
       TextField(
         textState,
         leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
+        trailingIcon = {
+          Icon(
+            AllIconsKeys.General.CloseSmall,
+            contentDescription = "Clear search",
+            Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
+              .pointerHoverIcon(PointerIcon.Default),
+          )
+        },
         placeholder = {
           Text(
             filterState.textFilter.description,
