@@ -196,7 +196,7 @@ class AppInsightsTrackerImpl(
           .apply {
             this.crashType = crashType.toCrashType()
             this.experiment = insight.experiment.toProto()
-            this.isCached = isCached
+            this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
           }
           .build()

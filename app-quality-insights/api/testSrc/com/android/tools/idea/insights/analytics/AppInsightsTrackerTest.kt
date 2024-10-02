@@ -330,7 +330,8 @@ class AppInsightsTrackerTest {
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
-    val insight = AiInsight("", Experiment.CONTROL, insightSource = InsightSource.STUDIO_BOT)
+    val insight =
+      AiInsight("", Experiment.CONTROL, insightSource = InsightSource.STUDIO_BOT, isCached = true)
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
     insightFetch.transition(testState, controllerRule.tracker, TEST_KEY)
 
