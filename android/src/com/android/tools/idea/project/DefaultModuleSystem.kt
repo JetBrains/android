@@ -43,7 +43,6 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
@@ -85,7 +84,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
-import java.nio.file.Path
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -98,7 +96,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   private val registeredDependencies = mutableListOf<GradleCoordinate>()
 
-  override val moduleClassFileFinder: ClassFileFinder = ModuleBasedClassFileFinder(module)
+  override val moduleClassFileFinder: ClassFileFinder = ProductionModuleClassFileFinder(module)
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
     return CapabilityNotSupported()
