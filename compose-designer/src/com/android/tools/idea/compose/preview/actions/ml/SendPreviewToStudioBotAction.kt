@@ -109,7 +109,7 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
             generateCodeAndExecuteCallback(
               buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
               filePointer,
-              ModelType.EXPERIMENTAL_LONG_CONTEXT,
+              ModelType.CHAT,
             )
           }
         }
