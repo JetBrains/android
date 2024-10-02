@@ -2003,6 +2003,12 @@ public final class StudioFlags {
                     "Attach the currently open files' paths and contents with chat queries.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library",
+                    "Enable Prompt Library",
+                    "When enabled, add prompt library settings screen.",
+                    ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",

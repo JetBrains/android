@@ -77,6 +77,7 @@ interface StudioBot {
     PLAY_VITALS,
     CRASHLYTICS,
     LOGCAT,
+    PROMPT_LIBRARY,
     OTHER,
   }
 
