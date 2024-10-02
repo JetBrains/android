@@ -21,7 +21,6 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
-import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
@@ -33,6 +32,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
+import com.android.tools.idea.rendering.isSuccess
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -46,8 +46,8 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import com.intellij.util.io.await
 import com.jetbrains.rd.util.getOrCreate
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -373,7 +373,8 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
-    renderAndTrack(sceneManager, refreshEventBuilder) { if (it == null) previewsRendered++ }
+    renderAndTrack(sceneManager, refreshEventBuilder)
+    if (sceneManager.renderResult.isSuccess()) previewsRendered++
   }
   onRenderCompleted(previewsRendered)
 
@@ -385,20 +386,17 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 private suspend fun renderAndTrack(
   sceneManager: LayoutlibSceneManager,
   refreshEventBuilder: PreviewRefreshEventBuilder?,
-  onCompleteCallback: (Throwable?) -> Unit = {},
 ) {
   val inflate = sceneManager.sceneRenderConfiguration.needsInflation.get()
   val quality = sceneManager.sceneRenderConfiguration.quality
   val startMs = System.currentTimeMillis()
-  sceneManager.render {
-    onCompleteCallback(it)
-    val renderResult = sceneManager.renderResult
-    refreshEventBuilder?.addPreviewRenderDetails(
-      renderResult?.isErrorResult() ?: false,
-      inflate,
-      quality,
-      System.currentTimeMillis() - startMs,
-      renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
-    )
-  }
+  sceneManager.requestRenderAsync().await()
+  val renderResult = sceneManager.renderResult
+  refreshEventBuilder?.addPreviewRenderDetails(
+    renderResult?.isErrorResult() ?: false,
+    inflate,
+    quality,
+    System.currentTimeMillis() - startMs,
+    renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
+  )
 }
