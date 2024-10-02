@@ -560,7 +560,7 @@ class VitalsClientTest {
       false,
     )
     assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true, experiment = Experiment.CONTROL))
   }
 
   @Test
@@ -627,7 +627,7 @@ class VitalsClientTest {
           true,
         )
       )
-      .isEqualTo(LoadingState.Ready(newInsight))
+      .isEqualTo(LoadingState.Ready(newInsight.copy(experiment = Experiment.CONTROL)))
   }
 
   @Test
@@ -656,5 +656,35 @@ class VitalsClientTest {
       .isEqualTo(
         LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
       )
+  }
+
+  @Test
+  fun `fetch insight returns AiInsight with experiment set`() = runBlocking {
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message) =
+          DEFAULT_AI_INSIGHT
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        ISSUE1.issueDetails.fatality,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData(emptyList(), Experiment.TOP_SOURCE),
+      )
+    assertThat(insight)
+      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(experiment = Experiment.TOP_SOURCE)))
   }
 }
