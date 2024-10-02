@@ -34,6 +34,9 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
+        "@maven//:com.google.dagger.dagger_2.52",
+        "@maven//:com.google.dagger.hilt-core_2.44.2",
+        "@maven//:javax.inject.javax.inject_1",
     ],
     test_friends = ["//tools/adt/idea/dagger:intellij.android.dagger"],
     test_srcs = ["testSrc"],
