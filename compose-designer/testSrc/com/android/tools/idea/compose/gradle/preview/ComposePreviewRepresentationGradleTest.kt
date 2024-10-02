@@ -243,6 +243,7 @@ class ComposePreviewRepresentationGradleTest {
       }
     }
     withContext(uiThread) { fakeUi.root.validate() }
+    delayUntilCondition(100, 1.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 4 }
 
     assertEquals(
       listOf("DefaultPreview", "MyPreviewWithInline", "OnlyATextNavigation", "TwoElementsPreview"),

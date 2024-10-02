@@ -18,11 +18,11 @@ package com.android.tools.idea.common.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
@@ -37,7 +37,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.intellij.openapi.Disposable
 import java.awt.Component
 import java.awt.Dimension
@@ -47,12 +46,16 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -71,7 +74,7 @@ class SceneViewPanel(
   private val interactionLayersProvider: () -> Collection<Layer>,
   private val actionManagerProvider: () -> ActionManager<*>,
   private val shouldRenderErrorsPanel: () -> Boolean,
-  layoutManager: PositionableContentLayoutManager,
+  private val layoutManager: PositionableContentLayoutManager,
 ) : JPanel(layoutManager), Disposable.Default {
 
   private val scope = AndroidCoroutineScope(this)
@@ -99,115 +102,136 @@ class SceneViewPanel(
         .map { it.positionableAdapter }
         .toList()
 
-  /** Remove any components associated to the given model. */
-  fun removeSceneViewForModel(modelToRemove: NlModel) {
-    val toRemove =
-      components
-        .filterIsInstance<SceneViewPeerPanel>()
-        .filter { it.sceneView.scene.sceneManager.model == modelToRemove }
-        .toList()
-
-    toRemove.forEach { remove(it) }
-    // Remove components from groups.
-    groups.forEach { group -> group.value.removeIf { toRemove.contains(it) } }
-    groups.filter { it.value.isEmpty() }.forEach { groups.remove(it.key) }
-    invalidate()
-  }
-
-  val groups = mutableMapOf<OrganizationGroup, MutableList<JComponent>>()
+  /** Called everytime when the list of [components] is updated. */
+  val componentsUpdated: MutableSharedFlow<Unit> = MutableSharedFlow()
 
   /** True if layout supports organization. */
   private val isOrganizationEnabled = MutableStateFlow(false)
 
-  override fun remove(comp: Component?) {
-    (comp as? SceneViewPeerPanel)?.scope?.cancel()
-    super.remove(comp)
-  }
+  /** List of [SceneView] to display. */
+  private val sceneViews = MutableStateFlow<Collection<SceneView>>(emptyList())
 
-  override fun removeAll() {
-    components.filterIsInstance<SceneViewPeerPanel>().forEach { it.scope.cancel() }
-    super.removeAll()
-  }
+  /** List of [OrganizationGroup] to display. */
+  private val activeGroups = MutableStateFlow<Collection<OrganizationGroup>>(emptyList())
 
   init {
-    (layoutManager as? NlDesignSurfacePositionableContentLayoutManager)?.let {
-      scope.launch(uiThread) {
+    launchOrganizationUpdate()
+    launchLayoutUpdate()
+  }
+
+  /**
+   * Listen for changes in [layoutManager] to update [isOrganizationEnabled] - if organization is
+   * enabled at the moment.
+   */
+  private fun launchOrganizationUpdate() {
+    (layoutManager as? LayoutManagerSwitcher)?.let {
+      scope.launch {
         it.currentLayout.collect { layoutOption ->
-          if (layoutOption.organizationEnabled) {
-            // TODO(b/289994157) Add headers if layout supports it
-          } else {
-            // Remove existing groups.
-            val headers = components.filterIsInstance<SceneViewHeader>()
-            headers.forEach { remove(it) }
-            groups.clear()
-          }
           isOrganizationEnabled.value = layoutOption.organizationEnabled
         }
       }
     }
   }
 
-  private var organizationWasEnabled = false
+  /**
+   * Listen for changes in [isOrganizationEnabled] and [sceneViews] to updates [activeGroups] and
+   * the list of [components]. If [componets] are created - call [componentsUpdated] to let know
+   * what layout is created.
+   */
+  private fun launchLayoutUpdate() {
+    scope.launch {
+      combine(isOrganizationEnabled, sceneViews) { p1, p2 -> Pair(p1, p2) }
+        .collectLatest { collected ->
+          val isOrganizationEnabled = collected.first
+          val sceneViews = collected.second
+          activeGroups.value =
+            if (isOrganizationEnabled) sceneViews.findGroups() else persistentSetOf()
 
-  private var activeGroups: ImmutableSet<OrganizationGroup> = persistentSetOf()
+          // Remove old scenes.
+          val existingScenePanels = components.filterIsInstance<SceneViewPeerPanel>()
+          val panelsToRemove =
+            existingScenePanels.filter { panel -> !sceneViews.contains(panel.sceneView) }
+          panelsToRemove.forEach { panel ->
+            panel.scope.cancel()
+            withContext(uiThread) { remove(panel) }
+          }
 
-  @UiThread
-  private fun revalidateSceneViews() {
-    // Check if the SceneViews are still valid
-    val designSurfaceSceneViews = sceneViewProvider()
-    val currentSceneViews = findSceneViews()
+          // Remove old headers
+          val existingHeaders = components.filterIsInstance<SceneViewHeader>()
+          val headerToRemove =
+            existingHeaders.filter {
+              !activeGroups.value.contains(it.positionableAdapter.organizationGroup)
+            }
+          headerToRemove.forEach { header -> withContext(uiThread) { remove(header) } }
 
-    if (
-      designSurfaceSceneViews == currentSceneViews &&
-        organizationWasEnabled == isOrganizationEnabled.value
-    )
-      return // No updates
+          // Create or reuse scene panels.
+          val orderedComponents: MutableList<Component> =
+            sceneViews
+              .mapIndexed { index, sceneView ->
+                existingScenePanels.firstOrNull { it.sceneView == sceneView }
+                  ?: withContext(uiThread) {
+                    createScenePanel(sceneView, index, scope.createChildScope())
+                  }
+              }
+              .toMutableList()
 
-    // Invalidate the current components
-    removeAll()
+          // Create or reuse headers.
+          activeGroups.value
+            .map { group ->
+              components.filterIsInstance<SceneViewHeader>().firstOrNull {
+                it.positionableAdapter.organizationGroup == group
+              } ?: withContext(uiThread) { createHeader(group) }
+            }
+            .forEach { header ->
+              orderedComponents
+                .indexOfFirst {
+                  (it as? SceneViewPeerPanel)?.positionableAdapter?.organizationGroup ==
+                    header.positionableAdapter.organizationGroup
+                }
+                .takeIf { index -> index >= 0 }
+                ?.let { index -> orderedComponents.add(index, header) }
+            }
 
-    // Headers to be added.
-    organizationWasEnabled = isOrganizationEnabled.value
-    activeGroups =
-      if (organizationWasEnabled) designSurfaceSceneViews.findGroups() else persistentSetOf()
-    val headers =
-      if (organizationWasEnabled) activeGroups.associateWith { createHeader(it) }.toMutableMap()
-      else mutableMapOf()
+          // Set correct order to components.
+          withContext(uiThread) {
+            removeAll()
+            orderedComponents.forEach { this@SceneViewPanel.add(it) }
+          }
 
-    groups.clear()
+          if (orderedComponents.isNotEmpty()) {
+            componentsUpdated.emit(Unit)
+          }
 
-    designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val peerPanel =
-        createScenePanel(sceneView, index, this.scope.createChildScope(), activeGroups)
-      // Add header to layout and store information about created group.
-      sceneView.scene.sceneManager.model.organizationGroup?.let { organizationGroup ->
-        headers.remove(organizationGroup)?.let {
-          add(it)
-          groups.putIfAbsent(organizationGroup, mutableListOf())
+          withContext(uiThread) { invalidate() }
         }
-        groups[organizationGroup]?.add(peerPanel)
-      }
-      add(peerPanel)
     }
   }
 
-  private fun createScenePanel(
+  /**
+   * Create [SceneViewPeerPanel] for target [sceneView]
+   *
+   * @param index of the [sceneView] in layout
+   * @param sceneScope [CoroutineScope] of the [SceneViewPeerPanel]. Should be cancelled if
+   *   [SceneViewPeerPanel] is removed
+   */
+  @UiThread
+  private suspend fun createScenePanel(
     sceneView: SceneView,
     index: Int,
     sceneScope: CoroutineScope,
-    activeGroups: Collection<OrganizationGroup>,
   ): SceneViewPeerPanel {
-    val partOfTheGroup = activeGroups.contains(sceneView.scene.sceneManager.model.organizationGroup)
+    val partOfTheGroup =
+      combine(activeGroups, isOrganizationEnabled) { activeGroups, isOrganizationEnabled ->
+          isOrganizationEnabled &&
+            activeGroups.contains(sceneView.sceneManager.model.organizationGroup)
+        }
+        .stateIn(sceneScope)
+
     return SceneViewPeerPanel(
         scope = sceneScope,
         sceneView = sceneView,
         labelPanel =
-          actionManagerProvider()
-            .createSceneViewLabel(
-              sceneView,
-              sceneScope,
-              if (partOfTheGroup) isOrganizationEnabled else MutableStateFlow(false),
-            ),
+          actionManagerProvider().createSceneViewLabel(sceneView, sceneScope, partOfTheGroup),
         statusIconAction = actionManagerProvider().sceneViewStatusIconAction,
         toolbarActions = actionManagerProvider().sceneViewContextToolbarActions,
         // The left bar is only added for the first panel
@@ -217,12 +241,13 @@ class SceneViewPanel(
         errorsPanel =
           if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView)
           else null,
-        isOrganizationEnabled = isOrganizationEnabled,
+        isOrganizationEnabled = partOfTheGroup,
       )
       .also { it.alignmentX = sceneViewAlignment }
   }
 
-  private fun createHeader(group: OrganizationGroup): JComponent {
+  @UiThread
+  private fun createHeader(group: OrganizationGroup): SceneViewHeader {
     return SceneViewHeader(
       this@SceneViewPanel,
       group,
@@ -246,7 +271,7 @@ class SceneViewPanel(
   }
 
   override fun doLayout() {
-    revalidateSceneViews()
+    sceneViews.value = sceneViewProvider()
     super.doLayout()
   }
 
@@ -258,7 +283,7 @@ class SceneViewPanel(
       return
     }
 
-    groups.values.paintLines(graphics.create() as Graphics2D)
+    findComponentGroups().paintLines(graphics.create() as Graphics2D)
 
     val g2d = graphics.create() as Graphics2D
     try {
@@ -341,8 +366,16 @@ class SceneViewPanel(
     }
   }
 
-  private fun findSceneViews(): List<SceneView> =
-    components.filterIsInstance<SceneViewPeerPanel>().map { it.sceneView }.toList()
+  /**
+   * Find collection of component's groups. Each component group - Collection<JComponent> -
+   * corrsepond to the components with same OrnanizationGroup.
+   */
+  private fun findComponentGroups(): Collection<Collection<JComponent>> =
+    components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .groupBy { it.positionableAdapter.organizationGroup }
+      .filter { activeGroups.value.contains(it.key) }
+      .values
 
   fun findSceneViewRectangle(sceneView: SceneView): Rectangle? =
     components

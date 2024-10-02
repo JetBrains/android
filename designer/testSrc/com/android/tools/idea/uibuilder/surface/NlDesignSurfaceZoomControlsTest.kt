@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -46,6 +47,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
@@ -56,6 +58,8 @@ import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.nio.file.Paths
 import javax.swing.JPanel
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
@@ -164,6 +168,7 @@ class NlDesignSurfaceZoomControlsTest {
   @After
   fun tearDown() {
     ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
+    Disposer.dispose(surface)
   }
 
   private fun getGoldenImagePath(testName: String) =
@@ -233,7 +238,7 @@ class NlDesignSurfaceZoomControlsTest {
   }
 
   @Test
-  fun testZoomControlsKeyboardInteractions() {
+  fun testZoomControlsKeyboardInteractions() = runBlocking {
     val zoomActionsToolbar =
       fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
@@ -271,7 +276,7 @@ class NlDesignSurfaceZoomControlsTest {
             )
         }
       }
-      assertTrue(surface.zoomController.scale > originalScale)
+      delayUntilCondition(10, 100.milliseconds) { surface.zoomController.scale > originalScale }
     }
 
     // Verify zoom to fit
@@ -295,7 +300,9 @@ class NlDesignSurfaceZoomControlsTest {
             )
           )
       }
-      assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
+      delayUntilCondition(10, 100.milliseconds) {
+        abs(zoomToFitScale - surface.zoomController.scale) < 0.01
+      }
     }
 
     // Verify zoom out
@@ -322,7 +329,7 @@ class NlDesignSurfaceZoomControlsTest {
             )
         }
       }
-      assertTrue(surface.zoomController.scale < originalScale)
+      delayUntilCondition(10, 100.milliseconds) { surface.zoomController.scale < originalScale }
     }
   }
 }

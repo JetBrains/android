@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
 import com.android.flags.junit.FlagRule
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
@@ -72,6 +73,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -411,7 +413,7 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `create compose view with two elements`() {
+  fun `create compose view with two elements`() = runBlocking {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
@@ -431,6 +433,7 @@ class ComposePreviewViewImplTest {
       previewView.mainSurface.zoomController.zoomToFit()
       fakeUi.root.validate()
     }
+    delayUntilCondition(100, 1.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 2 }
 
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)

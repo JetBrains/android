@@ -167,12 +167,15 @@ abstract class DesignSurface<T : SceneManager>(
   /** The expected bitwise mask value for when we want to restore the zoom. */
   private val expectedRestoreZoomMask: Int =
     if (waitForRenderBeforeRestoringZoom) {
-      // We should wait for rendering and to DesignSurface to resize.
+      // We should wait for rendering, layout to be created and to DesignSurface to resize.
       ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK or
-        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
+        ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
     } else {
-      // There is no need to wait for rendering we can restore zoom whenever DesignSurface resizes.
-      ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+      // There is no need to wait for rendering we can restore zoom whenever DesignSurface resizes
+      // and layout is created.
+      ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
+        ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
     }
 
   init {
@@ -233,6 +236,13 @@ abstract class DesignSurface<T : SceneManager>(
         Disposer.register(this@DesignSurface, this)
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
+        scope.launch(uiThread) {
+          componentsUpdated.collect {
+            if (readyToRestoreZoomMask.get() != ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK) {
+              checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+            }
+          }
+        }
       }
 
   /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
@@ -635,11 +645,16 @@ abstract class DesignSurface<T : SceneManager>(
     checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
   }
 
+  @TestOnly
+  fun notifyLayoutCreatedForTest() {
+    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+  }
+
   /**
    * Synchronized function that checks if we can call [restoreZoomOrZoomToFit]. We can call it only
-   * when [bitwiseNumber] has received both "1" and "2". This function solves a race condition of
-   * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
-   * causing a wrong fitScale value.
+   * when [bitwiseNumber] has received both "1" and "2" and "4". This function solves a race
+   * condition of when the sizes of the content to show and the sizes of [DesignSurface] aren't yet
+   * synchronized causing a wrong fitScale value.
    *
    * Note: if [waitForRenderBeforeRestoringZoom] is enabled it will wait
    * DesignSurface.notifyRestoreZoom() to be performed at least once. if
@@ -697,7 +712,7 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private fun notifyPanningChanged() {
+  protected fun notifyPanningChanged() {
     for (listener in getZoomListeners()) {
       listener.panningChanged()
     }
@@ -989,7 +1004,6 @@ abstract class DesignSurface<T : SceneManager>(
     val manager: SceneManager?
     modelToSceneManagersLock.writeLock().withLock { manager = modelToSceneManagers.remove(model) }
     // Mark the scene view panel as invalid to force the scene views to be updated
-    sceneViewPanel.removeSceneViewForModel(model)
 
     if (manager == null) {
       return false
@@ -1364,11 +1378,19 @@ abstract class DesignSurface<T : SceneManager>(
        */
       const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
+      const val NOTIFY_LAYOUT_CREATED_INT_MASK = 4
+
       /**
-       * The expected bitwise Integer when both [DesignSurface] sizes and preview renders are
-       * updated.
+       * The expected bitwise Integer when
+       * * [DesignSurface] sizes is updated
+       * * preview renders and
+       * * layout is created
+       *
+       * It indicates that the zooming has been done already and should not have shared bits with
+       * [NOTIFY_RESTORE_ZOOM_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] or
+       * [NOTIFY_LAYOUT_CREATED_INT_MASK].
        */
-      const val RESTORE_ZOOM_DONE_INT_MASK = 4
+      const val RESTORE_ZOOM_DONE_INT_MASK = 8
     }
   }
 }

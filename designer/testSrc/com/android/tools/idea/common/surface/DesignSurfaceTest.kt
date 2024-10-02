@@ -303,6 +303,10 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyComponentResizedForTest()
 
+    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyLayoutCreatedForTest()
     // We check that zoom-to-fit has been restored.
     assertEquals(fitScaleValue, surface.zoomController.scale)
   }
@@ -331,6 +335,10 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(1.0, surface.zoomController.scale)
     surface.notifyRestoreZoom()
 
+    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyLayoutCreatedForTest()
     // We check that zoom-to-fit has been restored
     assertEquals(fitScaleValue, surface.zoomController.scale)
   }
@@ -347,6 +355,12 @@ class DesignSurfaceTest : LayoutTestCase() {
         waitForRenderBeforeRestoringZoom = false,
       )
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    surface.notifyLayoutCreatedForTest()
+
+    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
 
     // We notify that we are ready to restore the zoom with a bitwiseNumber of
     // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
