@@ -100,7 +100,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       )
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
+    val sortedEntries = sortModuleEntries(moduleDescriptions, ":").map { it.name }
 
     val expectedEntries =
       listOf(
@@ -132,14 +132,38 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }
 
-  private fun sort(vararg entries: String): List<String> {
+  fun testKMPOnlyInTopLevel() {
+    assertThat(
+        sort(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.kotlin.multiplatform.library"),
+          moduleParent = ":",
+        )
+      )
+      .containsExactly(
+        message("android.wizard.module.new.mobile"),
+        message("android.wizard.module.new.kotlin.multiplatform.library"),
+      )
+      .inOrder()
+
+    assertThat(
+        sort(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.kotlin.multiplatform.library"),
+          moduleParent = ":app",
+        )
+      )
+      .containsExactly(message("android.wizard.module.new.mobile"))
+      .inOrder()
+  }
+
+  private fun sort(vararg entries: String, moduleParent: String = ":"): List<String> {
     val moduleDescriptions =
       entries.map {
         Mockito.mock(ModuleGalleryEntry::class.java).apply { whenever(name).thenReturn(it) }
       }
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions)
-    assertEquals(entries.size, sortedEntries.size)
+    val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent)
 
     return sortedEntries.map { it.name }
   }
