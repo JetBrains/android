@@ -148,7 +148,7 @@ maven_repository(
         "@maven//:junit.junit_4.13.2",
         "@maven//:net.sf.proguard.proguard-gradle_6.0.3",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.14",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.11",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.12",
         "@maven//:org.jacoco.org.jacoco.ant_0.8.7",
         "@maven//:org.jacoco.org.jacoco.ant_0.8.8",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.4.32",
