@@ -19,13 +19,10 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipFile;
 
-/**
- * A build artifact that has been cached locally. Provides access to the artifacts contents.
- */
+/** A build artifact that has been cached locally. Provides access to the artifacts contents. */
 public class CachedArtifact {
 
   private final Path path;
@@ -49,16 +46,5 @@ public class CachedArtifact {
   @MustBeClosed
   public ZipFile openAsZipFile() throws IOException {
     return new ZipFile(path.toFile());
-  }
-
-  /**
-   * Provides access to a build artifact that has been cached locally. Previously we only expect
-   * CachedArtifact contains the path to .buildcache. So that file would always be a zipped file.
-   * But as we are providing a temporary fixing for artifact missing from buildcache, we may return
-   * CacheArtifact with a path to .bazel/ directory. In that case, the file can be zipped/ unzipped.
-   * So we need the path to that file to check before reading its content.
-   */
-  public Path getPath() {
-    return path;
   }
 }

@@ -19,6 +19,7 @@ import static com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.AllowPackag
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
+import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
@@ -40,7 +41,7 @@ import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
 public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
   private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
-  private final CachedArtifactProvider cachedArtifactProvider;
+  private final BuildArtifactCache buildCache;
   private final ProjectDefinition projectDefinition;
   private final SrcJarInnerPathFinder srcJarInnerPathFinder;
   private final TestSourceGlobMatcher testSourceMatcher;
@@ -48,11 +49,11 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
   public AddProjectGenSrcJars(
       Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier,
       ProjectDefinition projectDefinition,
-      CachedArtifactProvider cachedArtifactProvider,
+      BuildArtifactCache buildCache,
       SrcJarInnerPathFinder srcJarInnerPathFinder) {
     this.builtTargetsSupplier = builtTargetsSupplier;
     this.projectDefinition = projectDefinition;
-    this.cachedArtifactProvider = cachedArtifactProvider;
+    this.buildCache = buildCache;
     this.srcJarInnerPathFinder = srcJarInnerPathFinder;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
   }
@@ -82,15 +83,9 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
           if (added != null) {
             ProjectProto.ContentEntry.Builder genSrcJarContentEntry =
                 ProjectProto.ContentEntry.newBuilder().setRoot(added.toProto());
-            // When cachedArtifactProvider.apply return an artifact stored in artifact directory (.bazel/buildout/xxx), it may has been
-            // copied and unzipped if ArtifactDirectoryUpdate.buildGeneratedSrcJars is enabled and ArtifactTransform is
-            // STRIP_SUPPORTED_GENERATED_SOURCES. It will lead to srcJarInnerPathFinder.findInnerJarPaths throw
-            // ioexception as the file is not a zip file. But since we have disabled ArtifactDirectoryUpdate.buildGeneratedSrcJars for all
-            // users, it should be pretty rare. Consider that we only use this fix as a temp workaround and there will be official fixing
-            // soon, we will use srcJarInnerPathFinder directly without careful checking.
             for (JarPath innerPath :
                 srcJarInnerPathFinder.findInnerJarPaths(
-                    cachedArtifactProvider.apply(genSrc, ArtifactDirectories.DEFAULT),
+                    genSrc.blockingGetFrom(buildCache),
                     ALLOW_NON_EMPTY_PACKAGE_PREFIXES,
                     genSrc.artifactPath().toString())) {
 

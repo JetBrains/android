@@ -24,23 +24,19 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.MockArtifact;
-import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
-import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
@@ -50,7 +46,6 @@ import com.google.idea.blaze.qsync.testdata.TestData;
 import com.google.protobuf.TextFormat;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
@@ -99,7 +94,7 @@ public class AddProjectGenSrcsTest {
         new AddProjectGenSrcs(
             () -> ImmutableList.of(builtDep),
             original.queryData().projectDefinition(),
-            getCachedArtifactProvider(cache, ImmutableMap.of(ArtifactDirectories.JAVA_GEN_SRC, ImmutableMap.of())),
+            cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
@@ -144,81 +139,6 @@ public class AddProjectGenSrcsTest {
                         "      }",
                         "    }"),
                 ArtifactDirectoryContents.class));
-    verify(context, never()).setHasWarnings();
-  }
-
-
-  @Test
-  public void generated_source_buildcache_missing_artifact_added() throws Exception {
-    TestData testData = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY;
-    QuerySyncProjectSnapshot original = syncer.sync(testData);
-
-    when(cache.get("gensrcdigest")).thenReturn(Optional.empty());
-
-    TargetBuildInfo builtDep =
-      TargetBuildInfo.forJavaTarget(
-        JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
-          .setGenSrcs(
-            ImmutableList.of(
-              BuildArtifact.create(
-                "gensrcdigest",
-                Path.of("output/path/com/org/Class.java"),
-                testData.getAssumedOnlyLabel())))
-          .build(),
-        DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
-
-    AddProjectGenSrcs addGensrcs =
-      new AddProjectGenSrcs(
-        () -> ImmutableList.of(builtDep),
-        original.queryData().projectDefinition(),
-        getCachedArtifactProvider(cache, ImmutableMap.of(ArtifactDirectories.JAVA_GEN_SRC,
-                                                         ImmutableMap.of("gensrcdigest",
-                                                                         new MockArtifact(ByteSource.wrap(
-                                                                           "package com.org;\nclass Class {}".getBytes(UTF_8)))))),
-        new PackageStatementParser());
-
-    ProjectProtoUpdate update =
-      new ProjectProtoUpdate(original.project(), original.graph(), context);
-    addGensrcs.update(update);
-    ProjectProto.Project newProject = update.build();
-
-    Module workspace = newProject.getModules(0);
-    // check our above assumption:
-    assertThat(workspace.getName()).isEqualTo(".workspace");
-    assertThat(workspace.getContentEntriesList())
-      .contains(
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "root {",
-              "      path: \".bazel/gensrc/java\"",
-              "      base: PROJECT",
-              "    }",
-              "    sources {",
-              "      is_generated: true",
-              "      project_path {",
-              "        path: \".bazel/gensrc/java\"",
-              "        base: PROJECT",
-              "      }",
-              "    }"),
-          ContentEntry.class));
-    assertThat(newProject.getArtifactDirectories().getDirectoriesMap())
-      .containsEntry(
-        ".bazel/gensrc/java",
-        TextFormat.parse(
-          Joiner.on("\n")
-            .join(
-              "contents {",
-              "      key: \"com/org/Class.java\"",
-              "      value {",
-              "        transform: COPY",
-              "        build_artifact {",
-              "          digest: \"gensrcdigest\"",
-              "        }",
-              "        target: \"" + testData.getAssumedOnlyLabel() + "\"",
-              "      }",
-              "    }"),
-          ArtifactDirectoryContents.class));
     verify(context, never()).setHasWarnings();
   }
 
@@ -272,7 +192,7 @@ public class AddProjectGenSrcsTest {
         new AddProjectGenSrcs(
             () -> ImmutableList.of(genSrc1, genSrc2),
             original.queryData().projectDefinition(),
-            getCachedArtifactProvider(cache, ImmutableMap.of(ArtifactDirectories.JAVA_GEN_SRC, ImmutableMap.of())),
+            cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
@@ -364,29 +284,12 @@ public class AddProjectGenSrcsTest {
         new AddProjectGenSrcs(
             () -> ImmutableList.of(genSrc1, genSrc2),
             original.queryData().projectDefinition(),
-            getCachedArtifactProvider(cache, ImmutableMap.of(ArtifactDirectories.JAVA_GEN_SRC, ImmutableMap.of())),
+            cache,
             new PackageStatementParser());
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
     addGenSrcs.update(update);
     verify(context, never()).setHasWarnings();
-  }
-
-  private ProjectProtoUpdateOperation.CachedArtifactProvider getCachedArtifactProvider(BuildArtifactCache artifactCache,
-                                                                                       Map<com.google.idea.blaze.qsync.project.ProjectPath, Map<String, MockArtifact>> existingArtifactDirectoriesContents) {
-    return (buildArtifact, artifactDirectory) -> {
-      if (artifactCache.get(buildArtifact.digest()).isPresent()) {
-        return buildArtifact.blockingGetFrom(artifactCache);
-      }
-      if (existingArtifactDirectoriesContents.containsKey(artifactDirectory)) {
-        MockArtifact mockArtifact = existingArtifactDirectoriesContents.get(artifactDirectory).get(buildArtifact.digest());
-        if (mockArtifact != null) {
-          return mockArtifact;
-        }
-      }
-      throw new BuildException(
-        "Artifact" + buildArtifact.artifactPath() + " missing from the cache: " + artifactCache + " and " + artifactDirectory);
-    };
   }
 }
