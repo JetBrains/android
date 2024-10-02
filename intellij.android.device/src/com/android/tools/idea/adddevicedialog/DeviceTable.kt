@@ -148,10 +148,7 @@ object DeviceTableColumns {
       maxLines = 2,
     )
   val api =
-    TableTextColumn<DeviceProfile>(
-      "API",
-      attribute = { it.apiLevels.last().apiStringWithExtension },
-    )
+    TableTextColumn<DeviceProfile>("API", attribute = { it.apiRange.lowerEndpoint().toString() })
   val width =
     TableTextColumn<DeviceProfile>("Width", attribute = { it.resolution.width.toString() })
   val height =

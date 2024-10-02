@@ -17,12 +17,10 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.google.common.collect.Range
 import icons.StudioIconsCompose
-import java.util.NavigableSet
-import java.util.TreeSet
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -42,11 +40,8 @@ open class TestDeviceSource : DeviceSource<TestDevice> {
   }
 }
 
-fun androidVersionRange(from: Int, to: Int): NavigableSet<AndroidVersion> =
-  (from..to).mapTo(TreeSet()) { AndroidVersion(it) }
-
 data class TestDevice(
-  override val apiLevels: NavigableSet<AndroidVersion> = androidVersionRange(24, 34),
+  override val apiRange: Range<Int> = Range.closed(24, 34),
   override val manufacturer: String = "Google",
   override val name: String,
   override val resolution: Resolution = Resolution(2000, 1200),
@@ -83,7 +78,7 @@ data class TestDevice(
 
     override fun build(): TestDevice =
       TestDevice(
-        apiLevels = apiLevels,
+        apiRange = apiRange,
         manufacturer = manufacturer,
         name = name,
         resolution = resolution,
