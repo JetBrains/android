@@ -30,6 +30,7 @@ import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -62,7 +63,8 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
       return
     }
     e.getData(VIRTUAL_FILE)?.let {
-      if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it)) {
+      val file = if (it is BackedVirtualFile) it.originFile else it
+      if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(file)) {
         // The file is excluded, so it can't be used by AI services. Don't display the action.
         return@update
       }
