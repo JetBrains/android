@@ -276,6 +276,7 @@ class AppInsightsTrackerImpl(
     unanonymizedAppId: String,
     crashType: FailureType,
     experiment: InsightExperiment,
+    isCached: Boolean,
   ) {
     UsageTracker.log(
       generateAndroidStudioEventBuilder()
@@ -288,6 +289,7 @@ class AppInsightsTrackerImpl(
                 .apply {
                   this.crashType = crashType.toCrashType()
                   this.experiment = experiment
+                  this.isCached = isCached
                 }
                 .build()
           }

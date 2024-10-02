@@ -81,6 +81,7 @@ interface AppInsightsTracker {
     unanonymizedAppId: String,
     crashType: FailureType,
     experiment: InsightExperiment,
+    isCached: Boolean,
   )
 
   enum class ProductType {

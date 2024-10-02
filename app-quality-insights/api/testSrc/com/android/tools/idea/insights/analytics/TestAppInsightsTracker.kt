@@ -85,5 +85,6 @@ object TestAppInsightsTracker : AppInsightsTracker {
     unanonymizedAppId: String,
     crashType: FailureType,
     experiment: AppQualityInsightsUsageEvent.InsightExperiment,
+    isCached: Boolean,
   ) = Unit
 }
