@@ -204,7 +204,7 @@ val GRID_LAYOUT_OPTION =
 val GRID_EXPERIMENTAL_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.grid.experimental.layout.title"),
-    GridLayoutManager(organizationGridPadding, GROUP_BY_BASE_COMPONENT),
+    GridLayoutManager(padding = organizationGridPadding, transform = GROUP_BY_BASE_COMPONENT),
     true,
     SceneViewAlignment.LEFT,
   )

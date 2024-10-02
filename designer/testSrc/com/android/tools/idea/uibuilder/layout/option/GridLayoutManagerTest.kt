@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
+import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
@@ -28,6 +30,7 @@ import com.android.tools.idea.uibuilder.layout.positionable.content
 import java.awt.Dimension
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
@@ -280,7 +283,7 @@ class GridLayoutManagerTest {
       val initialScale = 1.0
 
       // Whenever we call createLayoutGroups we organize the positionable group in grid.
-      // If the content is not the same (like this case) we would invalidate update the cache with
+      // If the content is not the same (as this case) we would invalidate update the cache with
       // the new items
       val newLayoutGroupWithDifferentContent: List<GridLayoutGroup> =
         gridLayoutManager.createLayoutGroups(
@@ -412,6 +415,154 @@ class GridLayoutManagerTest {
     assertNotEquals(1.0, scale, tolerance)
   }
 
+  @Test
+  fun testGroupedContentZoomToFitFitsAvailableSpace() {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
+
+    val manager = createGridLayoutManager()
+
+    // Given a group organized in two groups.
+    val contents =
+      mutableListOf<PositionableContent>(
+        HeaderTestPositionableContent(group1),
+        TestPositionableContent(group1, Dimension(400, 400)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        TestPositionableContent(group1, Dimension(600, 1000)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        HeaderTestPositionableContent(group2),
+        TestPositionableContent(group2, Dimension(400, 400)),
+        TestPositionableContent(group2, Dimension(400, 500)),
+        TestPositionableContent(group2, Dimension(600, 1000)),
+        TestPositionableContent(group2, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size.
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize =
+      manager.getSizeForTestOnly(
+        contents,
+        { fitScale },
+        availableSize.width,
+        { contentSize.scaleOf(fitScale) },
+      )
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content (headers excluded), if the test
+    // fails means fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta =
+      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+
+    // We expect the results to fit the available space, since it is organized in groups we have
+    // wider groups than others. It's important that width is still within the available space.
+    assertTrue(fitScaleSize.width < availableSize.width)
+  }
+
+  @Test
+  fun testUngroupedContentZoomToFitFitsAvailableSpace() {
+    val manager = createGridLayoutManager()
+
+    // Given a content that is not organised, and it should show as a grid.
+    val contents =
+      mutableListOf<PositionableContent>(
+        TestPositionableContent(null, Dimension(400, 400)),
+        TestPositionableContent(null, Dimension(1400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(400, 800)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize =
+      manager.getSizeForTestOnly(
+        contents,
+        { fitScale },
+        availableSize.width,
+        { contentSize.scaleOf(fitScale) },
+      )
+
+    // Because it shows a grid we expect the width is not smaller than the available space.
+    // Delta value is chosen by the minimum height of the content, if the test fails means
+    // fitScale is not properly calculated as there were more space to fill-in.
+    assertTrue(fitScaleSize.width < availableSize.width)
+    val widthDelta = contents.minOf { it.contentSize.width }
+    assertTrue(fitScaleSize.width + widthDelta >= availableSize.width)
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content, if the test fails means
+    // fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta = contents.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+  }
+
+  @Test
+  fun testMixedContentZoomToFitFitsAvailableSpace() {
+    val group1 = OrganizationGroup("1", "1")
+
+    val manager = createGridLayoutManager()
+
+    // Given a group organized in two groups.
+    val contents =
+      mutableListOf<PositionableContent>(
+        TestPositionableContent(null, Dimension(400, 400)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        HeaderTestPositionableContent(group1),
+        TestPositionableContent(group1, Dimension(400, 400)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        TestPositionableContent(group1, Dimension(600, 1000)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window.
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size.
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize =
+      manager.getSizeForTestOnly(
+        contents,
+        { fitScale },
+        availableSize.width,
+        { contentSize.scaleOf(fitScale) },
+      )
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content (headers excluded), if the test
+    // fails means fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta =
+      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+
+    // We expect the results to fit the available space, since we have mixed grouped and ungrouped
+    // content we could have wider groups than others.
+    // It's important that width is still within the available space
+    assertTrue(fitScaleSize.width < availableSize.width)
+  }
+
   private fun createGroups(): List<PositionableGroup> {
     return listOf(getPositionableGroup1(), getPositionableGroup2())
   }
@@ -461,9 +612,60 @@ class GridLayoutManagerTest {
         previewPaddingProvider = { (it * framePadding).toInt() },
         previewRightPadding = { _, _ -> 0 },
         previewBottomPadding = { _, _ -> 0 },
-      )
-    ) {
-      listOf(PositionableGroup(it.toList()))
-    }
+      ),
+      GROUP_BY_BASE_COMPONENT,
+    )
+  }
+
+  companion object {
+    // We need to copy this because we want to organize the content in grid,
+    // we can't use the original lambda because of circular dependency
+    // with compose-designer module.
+    val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
+      { contents ->
+        val groups = mutableMapOf<Any?, MutableList<PositionableContent>>()
+        for (content in contents) {
+          groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
+        }
+
+        groups.values
+          .fold(Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>())) {
+            temp,
+            next ->
+            val hasHeader = next.any { it is HeaderPositionableContent }
+            // If next is not in its own group - keep it in temp.second
+            if (!hasHeader) {
+              temp.second.addAll(next)
+            }
+
+            // Temp.second contains all consecutive previews without its own group.
+            // If next is not in a group or if it is the last element, group all collected
+            // previews as one group
+            if (hasHeader || groups.values.last() == next) {
+              if (temp.second.isNotEmpty()) {
+                temp.first.add(
+                  PositionableGroup(
+                    temp.second.filter { it !is HeaderPositionableContent },
+                    temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+                  )
+                )
+                temp.second.clear()
+              }
+            }
+
+            // If next has its own group - it will have its own PositionableGroup
+            if (hasHeader) {
+              temp.first.add(
+                PositionableGroup(
+                  next.filter { it !is HeaderPositionableContent },
+                  next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+                )
+              )
+            }
+
+            temp
+          }
+          .first
+      }
   }
 }

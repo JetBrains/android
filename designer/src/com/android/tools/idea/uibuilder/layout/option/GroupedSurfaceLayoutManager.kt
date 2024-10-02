@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Dimension
 import java.awt.Point
+import org.jetbrains.annotations.TestOnly
 
 /**
  * This layout puts the previews in the same group together using the [transform] function.
@@ -85,6 +86,14 @@ abstract class GroupedSurfaceLayoutManager(
     availableWidth: Int,
     dimension: Dimension?,
   ): Dimension
+
+  @TestOnly
+  fun getSizeForTestOnly(
+    content: Collection<PositionableContent>,
+    scaleFunc: PositionableContent.() -> Double,
+    availableWidth: Int,
+    sizeFunc: PositionableContent.() -> Dimension,
+  ) = getSize(content, sizeFunc, scaleFunc, availableWidth, null)
 
   protected abstract val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
 }
