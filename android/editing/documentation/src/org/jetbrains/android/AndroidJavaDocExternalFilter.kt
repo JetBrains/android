@@ -19,6 +19,8 @@ import com.android.tools.idea.util.fsm.StateMachine.Companion.stateMachine
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import java.io.BufferedReader
+import java.io.Reader
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.ABORTED
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_CLASS_DATA
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_DESCRIPTION
@@ -27,8 +29,6 @@ import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_DESCRIPTION
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.SUCCESS
 import org.jetbrains.annotations.NonNls
-import java.io.BufferedReader
-import java.io.Reader
 
 internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternalFilter(project) {
   public override fun doBuildFromStream(url: String, input: Reader, data: StringBuilder) {

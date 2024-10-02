@@ -42,9 +42,7 @@ private fun isMyContext(element: PsiElement, project: Project): Boolean {
   return runReadAction {
     val vFile = element.containingFile?.virtualFile ?: return@runReadAction false
     val path = FileUtil.toSystemIndependentName(vFile.path)
-    return@runReadAction path
-      .lowercase()
-      .contains("/${SdkConstants.FN_FRAMEWORK_LIBRARY}!/") &&
+    return@runReadAction path.lowercase().contains("/${SdkConstants.FN_FRAMEWORK_LIBRARY}!/") &&
       CommonAndroidUtil.getInstance().isAndroidProject(project) &&
       JarFileSystem.getInstance().getVirtualFileForJar(vFile)?.name ==
         SdkConstants.FN_FRAMEWORK_LIBRARY
@@ -70,7 +68,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
         // Creating a basic configuration in case rendering of webp or xml drawables.
         Configuration.create(
           ConfigurationManager.getOrCreateInstance(it.module),
-          FolderConfiguration.createDefault()
+          FolderConfiguration.createDefault(),
         )
       }
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.resourceUrl)
@@ -80,7 +78,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
     project: Project,
     element: PsiElement,
     docUrls: List<String>,
-    onHover: Boolean
+    onHover: Boolean,
   ): String? {
     // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
     // never get a chance to provide documentation for it via generateDoc, presumably because the
@@ -94,7 +92,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
     return JavaDocumentationProvider.fetchExternalJavadoc(
       element,
       docUrls,
-      AndroidJavaDocExternalFilter(project)
+      AndroidJavaDocExternalFilter(project),
     )
   }
 
@@ -115,7 +113,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
         .error(
           "Got null for name of containing class. Field: %s, containing class: %s",
           field.toString(),
-          field.containingClass.toString()
+          field.containingClass.toString(),
         )
       return false
     }
@@ -126,7 +124,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
       JavaDocumentationProvider.fetchExternalJavadoc(
         element,
         docUrls,
-        AndroidJavaDocExternalFilter(project)
+        AndroidJavaDocExternalFilter(project),
       )
     return AndroidJavaDocRenderer.injectExternalDocumentation(render, external) != null
   }
