@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -48,10 +49,10 @@ interface CodeEditedMetricsService {
 @VisibleForTesting
 class CodeEditedMetricsServiceImpl
 @TestOnly
-constructor(
-  private val coroutineScope: CoroutineScope,
-  private val dispatcher: CoroutineDispatcher,
-) : CodeEditedMetricsService, Disposable.Default {
+constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
+  CodeEditedMetricsService, Disposable.Default {
+  private val eventChannel = Channel<CodeEdited>(Channel.UNLIMITED)
+
   /**
    * Stores the ongoing action which will add the next piece of code. This allows added code to be
    * tagged for metrics.
@@ -65,13 +66,20 @@ constructor(
     application.addApplicationListener(
       object : ApplicationListener {
         override fun afterWriteActionFinished(action: Any) {
-          // Whenever a write action finishes, the source for any code that was added is no longer
-          // valid.
+          // Whenever a write action finishes, the source for any added code is no longer valid.
           clearCodeEditingAction()
         }
       },
       this,
     )
+
+    coroutineScope.launch(dispatcher) {
+      for (codeEditedEvent in eventChannel) {
+        for (listener in CodeEditedListener.EP_NAME.extensionList) {
+          listener.onCodeEdited(codeEditedEvent)
+        }
+      }
+    }
   }
 
   override fun setCodeEditingAction(action: CodeEditingAction) {
@@ -87,17 +95,11 @@ constructor(
     val oldFragment = event.oldFragment
     if (newFragment.isEmpty() && oldFragment.isEmpty()) return
 
-    val codeEditedEvents =
-      codeEditingAction.get().getCodeEditedEvents(newFragment.toString(), oldFragment.toString())
-
-    // We're on the event thread; move to the background for further processing.
-    coroutineScope.launch(dispatcher) {
-      for (listener in CodeEditedListener.EP_NAME.extensionList) {
-        for (codeEditedEvent in codeEditedEvents) {
-          listener.onCodeEdited(codeEditedEvent)
-        }
-      }
-    }
+    codeEditingAction
+      .get()
+      .getCodeEditedEvents(newFragment.toString(), oldFragment.toString())
+      // trySend _always_ succeeds because we are using Channel.UNLIMITED above.
+      .forEach(eventChannel::trySend)
   }
 }
 
