@@ -127,7 +127,7 @@ class GradleApplicationIdProvider private constructor(
 
     return result
       ?: throw ApkProvisionException("[${androidFacet.module.name}] Unable to obtain test package.")
-        .also { logger.error(it) }
+        .also { logger.warn(it) }
   }
 
   // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.kmp
 
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer.Companion.OPTIONS_EP
@@ -89,12 +90,9 @@ class KotlinMultiplatformAndroidTestConfigurationProducer : JavaRunConfiguration
     // If true, then we can set up a AndroidTestRunConfiguration using the context data to create the RunConfiguration and relying on the
     // AndroidTest implementing module to get the AndroidFacet information.
     return if (contextModule != null && contextModule.isMultiPlatformModule) {
-      contextModule.implementingModules.find { it.isAndroidTestModule() }
+      contextModule.implementingModules.find { it.isAndroidTestModule() }?.getHolderModule()
     }
-    else if (configuration.configurationModule.module != null) {
-      configuration.configurationModule.module
-    }
-    else null
+    else configuration.configurationModule.module
   }
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {
