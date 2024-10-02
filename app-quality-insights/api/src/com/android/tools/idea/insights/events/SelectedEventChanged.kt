@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.EventMovement
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.intellij.openapi.diagnostic.Logger
 
@@ -29,6 +30,7 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val selection =
       (state.currentEvents as? LoadingState.Ready)?.value

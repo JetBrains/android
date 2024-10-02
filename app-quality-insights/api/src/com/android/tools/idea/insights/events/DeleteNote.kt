@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.NoteState
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
@@ -31,6 +32,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     check(!isCreatingNoteInProgress()) {
       "Deleting on \"creating in progress\" note is not allowed."
@@ -62,6 +64,7 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     return StateTransition(
       newState =
@@ -92,6 +95,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(

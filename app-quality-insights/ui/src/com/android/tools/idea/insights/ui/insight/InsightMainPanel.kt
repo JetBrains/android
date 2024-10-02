@@ -21,7 +21,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
-import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.insights.ui.transparentPanel
@@ -61,7 +60,7 @@ class InsightMainPanel(
     InsightContentPanel(
       controller,
       scope,
-      controller.state.map { it.currentInsight },
+      controller.state.map { it.currentInsight }.distinctUntilChanged(),
       parentDisposable,
       permissionDeniedHandler,
       enableInsightHandler,
@@ -111,7 +110,6 @@ class InsightMainPanel(
 
   override fun getData(dataId: String): Any? =
     when {
-      FAILURE_TYPE_KEY.`is`(dataId) -> issueFlow.value?.issueDetails?.fatality
       INSIGHT_KEY.`is`(dataId) -> insightFlow.value
       else -> null
     }

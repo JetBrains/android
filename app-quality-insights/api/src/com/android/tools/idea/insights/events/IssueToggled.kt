@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
@@ -34,6 +35,7 @@ data class IssueToggled(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if ((issueState == IssueState.OPEN || issueState == IssueState.CLOSED) && !isUndo) {
       state.connections.selected?.appId?.let { appId ->

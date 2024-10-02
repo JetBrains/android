@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
@@ -28,6 +29,7 @@ object EnterOfflineMode : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(
@@ -58,6 +60,7 @@ object EnterOnlineMode : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(

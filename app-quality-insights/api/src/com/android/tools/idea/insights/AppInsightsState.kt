@@ -4,6 +4,8 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.events.StateTransition
+import com.android.tools.idea.insights.events.actions.Action
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -121,6 +123,8 @@ data class AppInsightsState(
   /** Returns a new state with a new [FirebaseConnection] selected. */
   fun selectConnection(value: Connection): AppInsightsState =
     copy(connections = connections.select(value))
+
+  fun toEmptyTransition() = StateTransition(this, Action.NONE)
 }
 
 fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
