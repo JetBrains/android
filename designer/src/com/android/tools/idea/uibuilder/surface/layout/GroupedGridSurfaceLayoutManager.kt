@@ -245,7 +245,7 @@ open class GroupedGridSurfaceLayoutManager(
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
     val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
-    return if (dim.height <= height) {
+    return if (dim.height <= height && dim.width <= width) {
       // We want the resulting content fitting into the height we try to lower the scale
       getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
     } else {
