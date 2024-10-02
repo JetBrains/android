@@ -98,8 +98,8 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
         false -> addQuickFix("Open Gradle Daemon documentation", stopGradleDaemonQuickFix)
       }
       addDescriptionOnNewLine("Your project may be using a third-party plugin which is not compatible with the other " +
-                              "plugins in the project or the version of Gradle requested by the project.\n\n" +
-                              "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
+                                         "plugins in the project or the version of Gradle requested by the project.\n\n" +
+                                         "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
     }
 
     return buildIssueComposer.composeBuildIssue()

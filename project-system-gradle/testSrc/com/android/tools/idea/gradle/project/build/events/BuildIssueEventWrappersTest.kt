@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.events
 
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
@@ -32,6 +33,9 @@ import java.io.File
 
 class BuildIssueEventWrappersTest {
   private val buildIssueFix = OpenStudioBotBuildIssueQuickFix(GradleErrorContext(null, "some error message", null, null))
+  private val additionalDescription = BuildIssueDescriptionComposer().apply {
+    addQuickFix(buildIssueFix)
+  }
 
   @Test
   fun testWrappedEventAddsQuickFixAndPreservesFileMessageEventImplFields() {
@@ -44,7 +48,7 @@ class BuildIssueEventWrappersTest {
       FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
     )
 
-    val wrappedEvent = FileMessageBuildIssueEvent(originalEvent, buildIssueFix)
+    val wrappedEvent = FileMessageBuildIssueEvent(originalEvent, additionalDescription)
 
     assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(1)
     assertThat(wrappedEvent.issue.quickFixes.first()).isSameAs(buildIssueFix)
@@ -65,7 +69,7 @@ class BuildIssueEventWrappersTest {
       "message",
       "detailed message")
 
-    val wrappedEvent = MessageBuildIssueEvent(originalEvent, buildIssueFix)
+    val wrappedEvent = MessageBuildIssueEvent(originalEvent, additionalDescription)
 
     assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(1)
     assertThat(wrappedEvent.issue.quickFixes.first()).isSameAs(buildIssueFix)
@@ -85,7 +89,7 @@ class BuildIssueEventWrappersTest {
         .composeBuildIssue(),
       MessageEvent.Kind.ERROR,)
 
-    val wrappedEvent = originalEvent.copyWithQuickFix(buildIssueFix)
+    val wrappedEvent = originalEvent.copyWithQuickFix(additionalDescription)
 
     assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(2)
     assertThat(wrappedEvent.issue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
@@ -114,7 +118,7 @@ class BuildIssueEventWrappersTest {
         ),
       MessageEvent.Kind.ERROR,)
 
-    val wrappedEvent = originalEvent.copyWithQuickFix(buildIssueFix)
+    val wrappedEvent = originalEvent.copyWithQuickFix(additionalDescription)
 
     assertThat(wrappedEvent.issue).isInstanceOf(ErrorMessageAwareBuildIssue::class.java)
     assertThat((wrappedEvent.issue as ErrorMessageAwareBuildIssue).buildErrorMessage).isEqualTo(buildErrorMessage)

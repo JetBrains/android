@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueE
 import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.extractTaskNameFromId
 import com.android.tools.idea.gradle.project.build.events.copyWithQuickFix
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.StudioBot
@@ -85,11 +86,14 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
  */
 @Suppress("UnstableApiUsage")
 private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildEvent {
+  val additionalDescription = BuildIssueDescriptionComposer().apply {
+    addQuickFix(quickFix)
+  }
   return when(this) {
     // TODO(b/316057751) : Map other implementations of MessageEvents.
-    is BuildIssueEventImpl -> this.copyWithQuickFix(quickFix)
-    is FileMessageEventImpl -> FileMessageBuildIssueEvent(this, quickFix)
-    is MessageEventImpl ->  MessageBuildIssueEvent(this, quickFix)
+    is BuildIssueEventImpl -> this.copyWithQuickFix(additionalDescription)
+    is FileMessageEventImpl -> FileMessageBuildIssueEvent(this, additionalDescription)
+    is MessageEventImpl ->  MessageBuildIssueEvent(this, additionalDescription)
     else -> this
   }
 }
