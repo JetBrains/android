@@ -101,25 +101,24 @@ private fun Tabs(
 
   val androidVersions = images.map { it.androidVersion }.relevantVersions()
 
-  // TODO: http://b/335494340
-  var devicePanelState by remember {
-    mutableStateOf(
-      if (initialSystemImage == null) {
-        DevicePanelState(
-          AndroidVersionSelection(
-            androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-          ),
-          servicesSet.firstOrNull(),
-        )
-      } else {
-        DevicePanelState(
-          AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
-          initialSystemImage.getServices(),
-          sdkExtensionSystemImagesVisible = !initialSystemImage.androidVersion.isBaseExtension,
-          onlyRecommendedSystemImages = initialSystemImage.isRecommended(),
-        )
-      }
-    )
+  val devicePanelState = remember {
+    if (initialSystemImage == null) {
+      DevicePanelState(
+        AndroidVersionSelection(
+          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+        ),
+        servicesSet.firstOrNull(),
+        images,
+      )
+    } else {
+      DevicePanelState(
+        AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
+        initialSystemImage.getServices(),
+        images,
+        !initialSystemImage.androidVersion.isBaseExtension,
+        initialSystemImage.isRecommended(),
+      )
+    }
   }
 
   val additionalSettingsPanelState = remember {
@@ -133,9 +132,7 @@ private fun Tabs(
         devicePanelState,
         androidVersions,
         servicesSet,
-        images,
         deviceNameValidator,
-        onDevicePanelStateChange = { devicePanelState = it },
         onDownloadButtonClick,
         onSystemImageTableRowClick,
         Modifier.padding(Padding.SMALL),

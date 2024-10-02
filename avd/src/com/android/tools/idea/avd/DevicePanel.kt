@@ -68,9 +68,7 @@ internal fun DevicePanel(
   devicePanelState: DevicePanelState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
-  images: ImmutableList<ISystemImage>,
   deviceNameValidator: DeviceNameValidator,
-  onDevicePanelStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
@@ -109,26 +107,21 @@ internal fun DevicePanel(
     Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
       ApiFilter(
         androidVersions,
-        selectedApiLevel = devicePanelState.selectedApiLevel,
-        onApiLevelChange = {
-          onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it))
-        },
+        devicePanelState.selectedApi,
+        devicePanelState::setSelectedApi,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
         devicePanelState.selectedServices,
         servicesCollection,
-        onSelectedServicesChange = {
-          onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
-        },
+        devicePanelState::setSelectedServices,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
     }
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
-      val filteredImages = images.filter(devicePanelState::test)
-      if (filteredImages.isEmpty()) {
+      if (devicePanelState.filteredSystemImages.isEmpty()) {
         Box(Modifier.fillMaxSize()) {
           Text(
             "No system images available matching the current set of filters.",
@@ -137,7 +130,7 @@ internal fun DevicePanel(
         }
       } else {
         SystemImageTable(
-          filteredImages,
+          devicePanelState.filteredSystemImages,
           configureDevicePanelState.systemImageTableSelectionState,
           configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,
@@ -147,19 +140,15 @@ internal fun DevicePanel(
     }
 
     ShowSdkExtensionSystemImagesCheckbox(
-      devicePanelState.sdkExtensionSystemImagesVisible,
-      onSdkExtensionSystemImagesVisibleChange = {
-        onDevicePanelStateChange(devicePanelState.copy(sdkExtensionSystemImagesVisible = it))
-      },
+      devicePanelState.showSdkExtensionSystemImages,
+      devicePanelState::setShowSdkExtensionSystemImages,
       Modifier.padding(bottom = Padding.SMALL),
     )
 
     CheckboxRow(
       "Show only recommended system images",
-      devicePanelState.onlyRecommendedSystemImages,
-      onCheckedChange = {
-        onDevicePanelStateChange(devicePanelState.copy(onlyRecommendedSystemImages = it))
-      },
+      devicePanelState.showOnlyRecommendedSystemImages,
+      devicePanelState::setShowOnlyRecommendedSystemImages,
     )
   }
 }
@@ -268,23 +257,60 @@ private fun SystemImageTable(
   )
 }
 
-internal data class DevicePanelState
+internal class DevicePanelState
 internal constructor(
-  internal val selectedApiLevel: AndroidVersionSelection,
-  internal val selectedServices: Services?,
-  internal val sdkExtensionSystemImagesVisible: Boolean = false,
-  internal val onlyRecommendedSystemImages: Boolean = true,
+  selectedApi: AndroidVersionSelection,
+  selectedServices: Services?,
+  private val systemImages: List<ISystemImage>,
+  showSdkExtensionSystemImages: Boolean = false,
+  showOnlyRecommendedSystemImages: Boolean = true,
 ) {
-  internal fun test(image: ISystemImage): Boolean {
-    val servicesMatch = selectedServices == null || image.getServices() == selectedServices
+  internal var selectedApi by mutableStateOf(selectedApi)
+    private set
 
-    val androidVersionMatches =
-      (sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension) &&
-        selectedApiLevel.matches(image.androidVersion)
+  internal var selectedServices by mutableStateOf(selectedServices)
+    private set
 
-    return servicesMatch &&
-      androidVersionMatches &&
-      (!onlyRecommendedSystemImages || image.isRecommended())
+  internal var filteredSystemImages by mutableStateOf(systemImages)
+    private set
+
+  internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
+    private set
+
+  internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
+    private set
+
+  init {
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
+    this.selectedApi = selectedApi
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setSelectedServices(selectedServices: Services?) {
+    this.selectedServices = selectedServices
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
+    this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
+    this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  private fun matches(image: ISystemImage): Boolean {
+    val apiMatches = selectedApi.matches(image.androidVersion)
+    val servicesMatches = selectedServices == null || image.getServices() == selectedServices
+    val isSdkExtensionMatches = showSdkExtensionSystemImages || image.androidVersion.isBaseExtension
+    val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
+
+    return apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
   }
 }
 
