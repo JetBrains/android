@@ -12,5 +12,6 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="RUNTIME" />
   </component>
 </module>
