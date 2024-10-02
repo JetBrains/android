@@ -120,16 +120,13 @@ class SceneViewPanel(
   /** True if layout supports organization. */
   private val isOrganizationEnabled = MutableStateFlow(false)
 
-  private val sceneScopes = mutableMapOf<JComponent, CoroutineScope>()
-
   override fun remove(comp: Component?) {
-    sceneScopes.remove(comp)?.cancel()
+    (comp as? SceneViewPeerPanel)?.scope?.cancel()
     super.remove(comp)
   }
 
   override fun removeAll() {
-    sceneScopes.values.forEach { it.cancel() }
-    sceneScopes.clear()
+    components.filterIsInstance<SceneViewPeerPanel>().forEach { it.scope.cancel() }
     super.removeAll()
   }
 
@@ -186,40 +183,8 @@ class SceneViewPanel(
     groups.clear()
 
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
-      val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
-
-      // The left bar is only added for the first panel
-      val leftBar = if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null
-      val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
-
-      val errorsPanel =
-        if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
-
-      val sceneScope = this.scope.createChildScope()
-      val partOfTheGroup =
-        activeGroups.contains(sceneView.scene.sceneManager.model.organizationGroup)
-      val labelPanel =
-        actionManagerProvider()
-          .createSceneViewLabel(
-            sceneView,
-            sceneScope,
-            if (partOfTheGroup) isOrganizationEnabled else MutableStateFlow(false),
-          )
       val peerPanel =
-        SceneViewPeerPanel(
-            sceneScope,
-            sceneView,
-            labelPanel,
-            statusIconAction,
-            toolbarActions,
-            leftBar,
-            rightBar,
-            errorsPanel,
-            isOrganizationEnabled,
-          )
-          .also { it.alignmentX = sceneViewAlignment }
-
+        createScenePanel(sceneView, index, this.scope.createChildScope(), activeGroups)
       // Add header to layout and store information about created group.
       sceneView.scene.sceneManager.model.organizationGroup?.let { organizationGroup ->
         headers.remove(organizationGroup)?.let {
@@ -229,8 +194,38 @@ class SceneViewPanel(
         groups[organizationGroup]?.add(peerPanel)
       }
       add(peerPanel)
-      sceneScopes[peerPanel] = sceneScope
     }
+  }
+
+  private fun createScenePanel(
+    sceneView: SceneView,
+    index: Int,
+    sceneScope: CoroutineScope,
+    activeGroups: Collection<OrganizationGroup>,
+  ): SceneViewPeerPanel {
+    val partOfTheGroup = activeGroups.contains(sceneView.scene.sceneManager.model.organizationGroup)
+    return SceneViewPeerPanel(
+        scope = sceneScope,
+        sceneView = sceneView,
+        labelPanel =
+          actionManagerProvider()
+            .createSceneViewLabel(
+              sceneView,
+              sceneScope,
+              if (partOfTheGroup) isOrganizationEnabled else MutableStateFlow(false),
+            ),
+        statusIconAction = actionManagerProvider().sceneViewStatusIconAction,
+        toolbarActions = actionManagerProvider().sceneViewContextToolbarActions,
+        // The left bar is only added for the first panel
+        leftPanel =
+          if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null,
+        rightPanel = actionManagerProvider().getSceneViewRightBar(sceneView),
+        errorsPanel =
+          if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView)
+          else null,
+        isOrganizationEnabled = isOrganizationEnabled,
+      )
+      .also { it.alignmentX = sceneViewAlignment }
   }
 
   /** Use [createTestOrganizationHeader] instead of [createOrganizationHeader] if true. */

@@ -59,11 +59,11 @@ class SceneViewPeerPanel(
   val scope: CoroutineScope,
   val sceneView: SceneView,
   private val labelPanel: JComponent,
-  sceneViewStatusIconAction: AnAction?,
-  sceneViewToolbarActions: List<AnAction>,
-  sceneViewLeftBar: JComponent?,
-  sceneViewRightBar: JComponent?,
-  private val sceneViewErrorsPanel: JComponent?,
+  statusIconAction: AnAction?,
+  toolbarActions: List<AnAction>,
+  leftPanel: JComponent?,
+  rightPanel: JComponent?,
+  private val errorsPanel: JComponent?,
   private val isOrganizationEnabled: StateFlow<Boolean>,
 ) : JPanel(), PositionablePanel, DataProvider {
 
@@ -112,7 +112,7 @@ class SceneViewPeerPanel(
             /* right */ sceneViewRightPanel.preferredSize.width,
           )
 
-        if (sceneViewErrorsPanel?.isVisible == true) {
+        if (errorsPanel?.isVisible == true) {
           margin.bottom += sceneViewCenterPanel.preferredSize.height
         }
 
@@ -167,12 +167,11 @@ class SceneViewPeerPanel(
    * aligned (the toolbar).
    */
   @VisibleForTesting
-  val sceneViewTopPanel =
-    SceneViewTopPanel(this, sceneViewStatusIconAction, sceneViewToolbarActions, labelPanel)
+  val sceneViewTopPanel = SceneViewTopPanel(this, statusIconAction, toolbarActions, labelPanel)
 
-  val sceneViewLeftPanel = wrapPanel(sceneViewLeftBar)
-  val sceneViewRightPanel = wrapPanel(sceneViewRightBar)
-  val sceneViewCenterPanel = wrapPanel(sceneViewErrorsPanel)
+  val sceneViewLeftPanel = wrapPanel(leftPanel)
+  val sceneViewRightPanel = wrapPanel(rightPanel)
+  val sceneViewCenterPanel = wrapPanel(errorsPanel)
 
   private fun wrapPanel(panel: JComponent?) =
     JPanel(BorderLayout()).apply {
