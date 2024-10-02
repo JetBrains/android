@@ -16,6 +16,13 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgument
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
@@ -30,13 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgumentsList
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.findParentOfType
@@ -81,7 +81,6 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
           factory.createArgument(function)
         else function
       }
-
       else -> null
     }
     psiElement ?: return null
@@ -137,7 +136,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   }
 
   override fun deleteDslElement(element: GradleDslElement) {
-    element.psiElement?.delete()
+    deletePsiElement(element)
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
@@ -201,5 +200,35 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     }
   }
   private fun GradleDslElement.isAlreadyCreated(): Boolean = psiElement?.findParentOfType<DeclarativeFile>(strict = false) != null
+
+  /**
+   * Delete the psiElement for the given dslElement.
+   */
+  private fun deletePsiElement(dslElement : GradleDslElement) {
+    val psiElement = dslElement.psiElement
+    if (psiElement == null || !psiElement.isValid) return
+
+    val parent = psiElement.parent
+    psiElement.delete()
+
+    maybeDeleteIfEmpty(parent, dslElement)
+  }
+
+  private fun maybeDeleteIfEmpty(element: PsiElement?, dslElement: GradleDslElement) {
+    val dslParent = dslElement.parent
+    if (element?.isValid == false) {
+      // Skip deleting
+    }
+    else {
+      when (element) {
+        is DeclarativeBlockGroup -> {
+          if((dslParent == null || dslParent.isInsignificantIfEmpty) && element.isNullExpressionOrEmptyBlock()){
+            element.parent.delete()
+          }
+        }
+      }
+    }
+  }
+  private fun DeclarativeBlockGroup.isNullExpressionOrEmptyBlock():Boolean = entries.isEmpty()
 
 }
