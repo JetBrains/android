@@ -121,7 +121,7 @@ private fun mergeOrAppendResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock
   if (merged != null) {
     return merged
   }
-  return codeMerger.appendBlock(parsedBlock, psiFile)
+  return appendBlock(project, psiFile, parsedBlock)
 }
 
 private fun generateKotlinCodeBlock(
