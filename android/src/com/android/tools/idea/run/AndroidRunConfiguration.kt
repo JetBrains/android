@@ -28,8 +28,6 @@ import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
-import com.android.tools.idea.projectsystem.getHolderModule
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
@@ -41,6 +39,8 @@ import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidTestRunConfiguration
 import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
@@ -147,10 +147,14 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
 
   /**
    * Coordinate with the (Gradle Project System) MakeBeforeRunTaskProvider to build the appropriate artifacts: if
-   * we are a test configuration, then make sure to build the test artifacts as well as the main one.
+   * we are a test configuration, then make sure to build the test artifacts as well as the main one.  (Compose Preview
+   * sets up a generalized instance of AndroidRunConfiguration with isTestConfiguration set to true.)
    */
   override fun getModules(): Array<Module> {
-    return super.getModules().mapNotNull { if (isTestConfiguration) it.getHolderModule() else it.getMainModule() }.toTypedArray()
+    return super.getModules().mapNotNull {
+      // if getModuleForAndroidTestRunConfiguration(it) is null, we are (probably) not in a Gradle project: use the base module.
+      if (isTestConfiguration) (getModuleForAndroidTestRunConfiguration(it) ?: it) else getModuleForAndroidRunConfiguration(it)
+    }.toTypedArray()
   }
 
   override fun validate(executor: Executor?, quickFixCallback: Runnable?): MutableList<ValidationError> {
