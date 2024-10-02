@@ -25,12 +25,16 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.jetbrains.annotations.TestOnly
 
 /** [CodeEditedListener] that reports results to Clearcut lazily. */
-class ClearcutCodeEditedListener(
-  private val windowDuration: Duration = 1.minutes,
-  private val clock: Clock = Clock.System,
-) : CodeEditedListener, Disposable {
+class ClearcutCodeEditedListener
+@TestOnly
+internal constructor(private val windowDuration: Duration, private val clock: Clock) :
+  CodeEditedListener, Disposable {
+
+  constructor() : this(windowDuration = 1.minutes, clock = Clock.System)
+
   private var isDisposed = false
   private var window = Window(clock.now())
 
