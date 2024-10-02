@@ -19,10 +19,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.settings.RepositoriesModePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinJvmTargetPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.settings.RepositoriesModePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -237,6 +239,10 @@ public class GradlePropertyModelBuilder {
 
   public LanguageLevelPropertyModel buildKotlinJvmTarget() {
     return new KotlinJvmTargetPropertyModelImpl(build());
+  }
+
+  public RepositoriesModePropertyModel buildRepositoriesMode() {
+    return new RepositoriesModePropertyModelImpl(build());
   }
 
   /**
