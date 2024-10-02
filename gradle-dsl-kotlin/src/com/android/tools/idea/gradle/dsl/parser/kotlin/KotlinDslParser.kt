@@ -261,9 +261,32 @@ class KotlinDslParser(
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
 
-    val referenceExpression = expression.calleeExpression
-    var name =
-      if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
+    fun computeName(): GradleNameElement {
+      val referenceExpression = expression.calleeExpression
+      return if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
+    }
+
+    var name = computeName()
+
+    // Translate property setters into (effectively) assignment
+    if (referenceName == "set") {
+      fun computeSetterName(): GradleNameElement? {
+        val dotQualifiedExpression = expression.parent as? KtDotQualifiedExpression ?: return null
+        val receiver = dotQualifiedExpression.receiverExpression as? KtNameReferenceExpression ?: return null
+        return GradleNameElement.from(receiver, this)
+      }
+      computeSetterName()?.also {
+        name = it
+        val argumentsList = expression.valueArgumentList ?: return
+        val expression = getCallExpression(parent, expression, name, argumentsList, referenceName, true)
+        if (expression is GradleDslLiteral) {
+          expression.externalSyntax = ASSIGNMENT
+          expression.elementType = REGULAR
+          parent.setNewElement(expression)
+          return
+        }
+      }
+    }
 
     // If expression is a pure block element and not an expression.
     if (expression.isBlockElement(this, parent)) {
@@ -693,7 +716,6 @@ class KotlinDslParser(
     }
 
     return when (propertyExpression) {
-      // Ex: versionName = 1.0. isQualified = false.
       is KtStringTemplateExpression ->
         GradleDslLiteral(
           parentElement,
@@ -701,6 +723,7 @@ class KotlinDslParser(
           propertyName,
           propertyExpression,
           if (propertyExpression.hasInterpolation()) GradleDslLiteral.LiteralType.INTERPOLATION else GradleDslLiteral.LiteralType.LITERAL)
+      // Ex: versionName = 1.0. isQualified = false.
       is KtConstantExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression, GradleDslLiteral.LiteralType.LITERAL)
       // Ex: compileSdkVersion(SDK_VERSION).
