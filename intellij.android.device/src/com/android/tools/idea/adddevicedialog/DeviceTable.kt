@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,15 +38,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
-import icons.StudioIcons
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 import org.jetbrains.jewel.ui.icon.PathIconKey
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <DeviceT : DeviceProfile> DeviceTable(
   devices: List<DeviceT>,
@@ -66,12 +69,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
     Row {
       TextField(
         textState,
-        leadingIcon = {
-          Icon(
-            key = PathIconKey("studio/icons/common/search.svg", StudioIcons::class.java),
-            contentDescription = "Search",
-          )
-        },
+        leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
         placeholder = {
           Text(
             filterState.textFilter.description,
@@ -81,15 +79,17 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         },
         modifier = Modifier.weight(1f).padding(2.dp),
       )
-      IconButton(
-        onClick = { showDetails = !showDetails },
-        Modifier.align(Alignment.CenterVertically).padding(2.dp),
-      ) {
-        Icon(
-          key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
-          contentDescription = "Details",
-          modifier = Modifier.size(20.dp),
-        )
+      Tooltip(tooltip = { Text("Show device details") }) {
+        IconButton(
+          onClick = { showDetails = !showDetails },
+          Modifier.align(Alignment.CenterVertically).padding(2.dp),
+        ) {
+          Icon(
+            key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
+            contentDescription = "Details",
+            modifier = Modifier.size(20.dp),
+          )
+        }
       }
     }
     if (devices.none(filterState.textFilter::apply)) {
