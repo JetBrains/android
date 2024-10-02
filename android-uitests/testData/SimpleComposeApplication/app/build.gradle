@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+plugins {
+  id 'com.android.application'
+  id 'org.jetbrains.kotlin.android'
+  id 'org.jetbrains.kotlin.plugin.compose' version "$kotlin_version"
+}
 
 android {
     namespace "google.simpleapplication"
@@ -52,11 +55,6 @@ android {
         freeCompilerArgs += [
           "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
         ]
-    }
-    composeOptions {
-        // Keep it in sync with ComposePreviewTest#KOTLIN_VERSION according to:
-        // https://developer.android.com/jetpack/androidx/releases/compose-kotlin
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
 }
 

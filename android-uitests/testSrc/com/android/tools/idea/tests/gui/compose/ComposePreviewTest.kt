@@ -74,7 +74,7 @@ class ComposePreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    fixture.invokeProjectMake(Wait.seconds(300))
+    fixture.invokeProjectMake(null)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
 
@@ -86,14 +86,7 @@ class ComposePreviewTest {
   }
 
   private fun getSyncedProjectFixture() =
-    guiTest.importProjectAndWaitForProjectSyncToFinish(
-      "SimpleComposeApplication",
-      null,
-      null,
-      KOTLIN_VERSION,
-      null,
-      DEFAULT_IMPORT_AND_SYNC_WAIT
-    )
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
 
   @Test
   @Throws(Exception::class)
