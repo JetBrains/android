@@ -19,12 +19,10 @@ import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.GenerationConfig
-import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.Model
 import com.android.tools.idea.studiobot.ModelConfig
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.FileWithSelection
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.testing.disposable
 import com.google.android.studio.gemini.GeminiInsightsRequest
@@ -54,18 +52,6 @@ class GeminiAiInsightClientTest {
       override fun model(project: Project, modelType: ModelType) =
         object : Model {
           override fun config() = ModelConfig(emptySet(), 1000, 1000, true)
-
-          override suspend fun generateCode(
-            userQuery: String,
-            fileContext: FileWithSelection?,
-            language: MimeType,
-            config: GenerationConfig,
-            history: Prompt?,
-            legacyClientSidePrompt: Prompt?,
-            isTransformUseCase: Boolean,
-          ): List<Content> {
-            return emptyList()
-          }
 
           override fun generateContent(prompt: Prompt, config: GenerationConfig) = flow {
             assertThat(prompt.messages.size).isEqualTo(1)
