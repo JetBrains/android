@@ -29,9 +29,14 @@ internal class MessageFormatter(
   private val zoneId: ZoneId,
 ) {
   private var proguardMessageRewriter = ProguardMessageRewriter()
+  private var softWrapEnabled = false
 
   fun setProguardMap(path: Path) {
     proguardMessageRewriter.loadProguardMap(path)
+  }
+
+  fun setSoftWrapEnabled(value: Boolean) {
+    softWrapEnabled = value
   }
 
   // Keeps track of the previous tag, so we can omit on consecutive lines
@@ -47,7 +52,7 @@ internal class MessageFormatter(
   ) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val headerWidth = formattingOptions.getHeaderWidth()
-    val newline = "\n".padEnd(headerWidth + 1)
+    val newline = if (softWrapEnabled) "\n" else "\n".padEnd(headerWidth + 1)
     for (message in messages) {
       val start = textAccumulator.getTextLength()
       val header = message.header

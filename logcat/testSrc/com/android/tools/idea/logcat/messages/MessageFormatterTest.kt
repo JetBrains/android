@@ -670,6 +670,33 @@ class MessageFormatterTest {
           "                                                                                                    \tat com.example(File.kt:1)"
       )
   }
+
+  @Test
+  fun formatMessages_softWrap() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.timestampFormat = TimestampFormat(TIME, enabled = true)
+    messageFormatter.setSoftWrapEnabled(true)
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
+          "multiline\nmessage",
+        )
+      ),
+    )
+
+    assertThat(textAccumulator.text)
+      .isEqualTo(
+        """
+          04:00:01.000     1-2     Tag1                    com.example.app1                     W  multiline
+          message
+
+        """
+          .trimIndent()
+      )
+  }
 }
 
 private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)
