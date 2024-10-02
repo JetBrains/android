@@ -29,7 +29,6 @@ enum class ExperimentGroup(val description: String, val experiments: List<Experi
   CODE_CONTEXT(
     "Code Context Experiments",
     listOf(
-      Experiment.UNKNOWN,
       Experiment.CONTROL,
       Experiment.TOP_SOURCE,
       Experiment.TOP_THREE_SOURCES,
