@@ -35,5 +35,8 @@ java_binary(
     srcs = glob(["jps-test-runner/**"]),
     main_class = "com.google.testing.junit.runner.BazelTestRunner",
     visibility = ["//visibility:public"],
-    deps = ["@bazel_tools//tools/jdk:TestRunner"],
+    deps = [
+        "@bazel_tools//tools/jdk:TestRunner",
+        "@maven//:org.opentest4j.opentest4j",
+    ],
 )
