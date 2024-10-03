@@ -440,7 +440,8 @@ class CustomViewPreviewRepresentation(
         }
 
         surface.models.forEach { surface.removeModel(it) }
-        surface.addAndRenderModel(model).await()
+        val newSceneManager = surface.addModelWithoutRender(model).await()
+        newSceneManager.requestRenderAsync().await()
         surface.activate()
 
         stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
