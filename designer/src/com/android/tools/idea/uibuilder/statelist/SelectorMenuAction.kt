@@ -206,7 +206,7 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
           0,
           TimeUnit.SECONDS,
         )
-        .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
+        .whenComplete { _, _ -> sceneManager.requestRender() }
     }
   } else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
@@ -216,6 +216,6 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
         0,
         TimeUnit.SECONDS,
       )
-      .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
+      .whenComplete { _, _ -> sceneManager.requestRender() }
   }
 }

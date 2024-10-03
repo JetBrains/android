@@ -47,9 +47,9 @@ import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -61,7 +61,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -251,21 +250,6 @@ class LayoutlibSceneRenderer(
   }
 
   /**
-   * Adds a new [RenderRequest] to the queue and returns a future that will be completed once this
-   * request or some other newer request is completed.
-   *
-   * Note that it's not guaranteed that this specific request will be executed, as it could be
-   * replaced by a newer request that arrives later, before this one starts to execute.
-   *
-   * @param trigger reason that triggered the render, used for tracking purposes
-   */
-  // TODO(b/335424569): remove this method and make clients use requestRender or
-  //  requestRenderAndWait
-  fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?): CompletableFuture<Unit> {
-    return scope.launch { requestRenderAndWait(trigger) }.asCompletableFuture()
-  }
-
-  /**
    * Adds a new [RenderRequest] to the queue and returns immediately.
    *
    * Note that it's not guaranteed that this specific request will be executed, as it could be
@@ -285,6 +269,7 @@ class LayoutlibSceneRenderer(
    *
    * @param trigger reason that triggered the render, used for tracking purposes
    */
+  @RequiresBackgroundThread
   suspend fun requestRenderAndWait(trigger: LayoutEditorRenderResult.Trigger?) {
     val request = enqueueRenderRequest(trigger)
     // Suspends until this or any newer request is processed
@@ -306,6 +291,7 @@ class LayoutlibSceneRenderer(
    * This method will also [inflate] the model when forced or needed (i.e. when
    * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
    */
+  @RequiresBackgroundThread
   private suspend fun doRender(
     request: RenderRequest,
     executeCallbacksBeforeRendering: Boolean,
@@ -385,6 +371,7 @@ class LayoutlibSceneRenderer(
    *
    * It throws a [CancellationException] if cancelled midway.
    */
+  @RequiresBackgroundThread
   private suspend fun inflate(reverseUpdate: AtomicBoolean): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
@@ -455,6 +442,7 @@ class LayoutlibSceneRenderer(
    *
    * Returns the result if successful, or throws an exception if inflation fails or gets cancelled.
    */
+  @RequiresBackgroundThread
   private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult {
     newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
     try {

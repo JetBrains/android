@@ -398,7 +398,7 @@ private suspend fun renderAndTrack(
   val inflate = sceneManager.sceneRenderConfiguration.needsInflation.get()
   val quality = sceneManager.sceneRenderConfiguration.quality
   val startMs = System.currentTimeMillis()
-  sceneManager.requestRenderAsync().await()
+  sceneManager.requestRenderAndWait()
   val renderResult = sceneManager.renderResult
   refreshEventBuilder?.addPreviewRenderDetails(
     renderResult?.isErrorResult() ?: false,

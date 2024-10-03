@@ -40,7 +40,6 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -55,7 +54,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
 
   private suspend fun subscribeAnimations(animations: List<ComposeAnimation>) {
-    surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+    surface.sceneManagers.forEach { it.requestRenderAndWait() }
     animations.forEach { animationPreview.addAnimation(it).join() }
   }
 

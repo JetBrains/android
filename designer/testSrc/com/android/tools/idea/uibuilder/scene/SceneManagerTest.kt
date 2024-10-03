@@ -58,8 +58,9 @@ class TestSceneManager(
 
   override val sceneScalingFactor: Float = 1f
 
-  override fun requestRenderAsync(): CompletableFuture<Void> =
-    CompletableFuture.completedFuture(null)
+  override suspend fun requestRenderAndWait() {}
+
+  override fun requestRender() {}
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)

@@ -54,7 +54,7 @@ class AutoArrangeActionTest : NavTestCase() {
         CompletableFuture.completedFuture(null)
       }
       .whenever(manager)
-      .requestRenderAsync()
+      .requestRender()
 
     whenever(surface.getSceneManager(MockitoKt.any())).thenReturn(manager)
     whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())
@@ -64,7 +64,7 @@ class AutoArrangeActionTest : NavTestCase() {
     root.children.forEach { component ->
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
     }
-    verify(manager).requestRenderAsync()
+    verify(manager).requestRender()
     verify(surface.zoomController).zoomToFit()
   }
 }

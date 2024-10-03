@@ -487,7 +487,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
         component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
         // explicitly update so the new SceneComponent is created
-        model?.let { surface.getSceneManager(it) }!!.requestRenderAsync()
+        model?.let { surface.getSceneManager(it) }!!.requestRender()
       },
       model?.file,
     )

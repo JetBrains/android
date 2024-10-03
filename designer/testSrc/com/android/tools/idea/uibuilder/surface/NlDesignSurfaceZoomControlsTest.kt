@@ -133,7 +133,7 @@ class NlDesignSurfaceZoomControlsTest {
         .build()
 
     val newSceneManager = surface.addModelWithoutRender(model).await()
-    newSceneManager.requestRenderAsync().await()
+    newSceneManager.requestRenderAndWait()
 
     // Verify successful render
     assertEquals(1, surface.sceneManagers.size)

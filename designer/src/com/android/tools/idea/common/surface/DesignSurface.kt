@@ -111,7 +111,6 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -1087,7 +1086,7 @@ abstract class DesignSurface<T : SceneManager>(
 
     scope.launch {
       addModel(newModel)
-      sceneManagers.forEach { it.requestRenderAsync().await() }
+      sceneManagers.forEach { it.requestRenderAndWait() }
       // Mark the scene view panel as invalid to force the scene views to be updated
       sceneViewPanel.invalidate()
 

@@ -34,7 +34,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
-import com.intellij.util.io.await
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -305,7 +304,7 @@ abstract class AnimationPreview<T : AnimationManager>(
       it.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
         LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
       )
-      it.requestRenderAsync().await()
+      it.requestRenderAndWait()
     }
   }
 

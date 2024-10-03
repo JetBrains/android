@@ -89,7 +89,6 @@ import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
 /**
@@ -168,7 +167,7 @@ internal constructor(
 
         for (manager in sceneManagers) {
           manager.updateSceneViews()
-          manager.requestRenderAsync()
+          manager.requestRender()
         }
         revalidateScrollArea()
       }
@@ -254,7 +253,7 @@ internal constructor(
     scope.launch {
       sceneManagers.forEach {
         it.sceneRenderConfiguration.needsInflation.set(true)
-        it.requestRenderAsync()
+        it.requestRender()
       }
     }
   }
@@ -300,7 +299,7 @@ internal constructor(
     screenViewProvider.colorBlindFilter = mode
     for (manager in sceneManagers) {
       manager.updateSceneViews()
-      manager.requestRenderAsync()
+      manager.requestRender()
     }
     revalidateScrollArea()
   }
@@ -409,7 +408,7 @@ internal constructor(
       .launch {
         sceneManagers.forEach {
           it.sceneRenderConfiguration.needsInflation.set(true)
-          it.requestRenderAsync().await()
+          it.requestRenderAndWait()
         }
       }
       .invokeOnCompletion { refreshProgressIndicator.processFinish() }
