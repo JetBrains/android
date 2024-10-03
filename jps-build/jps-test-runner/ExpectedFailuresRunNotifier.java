@@ -15,16 +15,21 @@
  */
 package com.android.tools.test;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.testing.junit.junit4.runner.RunNotifierWrapper;
-import junit.framework.AssertionFailedError;
-import org.junit.runner.Description;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import junit.framework.AssertionFailedError;
+import junit.framework.ComparisonCompactor;
+import org.junit.runner.Description;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 
 /**
  * A {@link RunNotifierWrapper} that supports expected failures
@@ -59,6 +64,11 @@ public class ExpectedFailuresRunNotifier extends RunNotifierWrapper {
     String name = getTestFullName(failure.getDescription());
     failures.add(name);
     if (!expectedFailures.contains(name)) {
+      Throwable exception = failure.getException();
+      if (exception instanceof org.opentest4j.AssertionFailedError) {
+        String message = getDetailedErrorMessage((org.opentest4j.AssertionFailedError)exception);
+        super.fireTestFailure(new Failure(failure.getDescription(), new AssertionFailedError(message)));
+      }
       super.fireTestFailure(failure);
     }
   }
@@ -74,5 +84,52 @@ public class ExpectedFailuresRunNotifier extends RunNotifierWrapper {
 
   public String getTestFullName(Description description) {
     return description.getClassName() + "." + description.getMethodName();
+  }
+
+  private String getDetailedErrorMessage(org.opentest4j.AssertionFailedError error) {
+    String expected = error.isExpectedDefined() ? error.getExpected().getStringRepresentation() : "";
+    String actual = error.isActualDefined() ? error.getActual().getStringRepresentation() : "";
+    if (expected.equals(actual)) {
+      return error.getMessage();
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append(error.getMessage());
+    sb.append("\n");
+    sb.append("---- expected -------------------------------\n");
+    sb.append(expected);
+    sb.append("---- actual ---------------------------------\n");
+    sb.append(actual);
+
+    sb.append("---- diff -----------------------------------\n");
+    try {
+      File expectedFile = writeToTempFile(expected, "expected");
+      File actualFile = writeToTempFile(actual, "actual");
+      try {
+        Process process = Runtime.getRuntime().exec("diff " + expectedFile.getPath() + " " + actualFile.getPath());
+        process.waitFor();
+        String diff = new String(process.getInputStream().readAllBytes());
+        sb.append(diff);
+      }
+      finally {
+        //noinspection ResultOfMethodCallIgnored
+        expectedFile.delete();
+        //noinspection ResultOfMethodCallIgnored
+        actualFile.delete();
+      }
+    }
+    catch (IOException | InterruptedException e) {
+      ComparisonCompactor compactor = new ComparisonCompactor(30, expected, actual);
+      sb.append(compactor.compact(""));
+    }
+    sb.append("---------------------------------------------\n");
+    return sb.toString();
+  }
+
+  private static File writeToTempFile(String content, String prefix) throws IOException {
+    File file = File.createTempFile(prefix, ".txt");
+    try (FileOutputStream out = new FileOutputStream(file)) {
+      out.write(content.getBytes(UTF_8));
+    }
+    return file;
   }
 }
