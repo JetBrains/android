@@ -31,7 +31,6 @@ java_library(
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/proto:proto_deps",
-        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep

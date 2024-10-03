@@ -36,7 +36,6 @@ java_library(
         "//tools/adt/idea/aswb/common/util:transactions",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/querysync",
-        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:exception",
@@ -84,7 +83,6 @@ java_library(
     neverlink = 1,
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
-        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
@@ -483,7 +481,6 @@ java_library(
         ":base",
         ":unit_test_utils",
         "//tools/adt/idea/aswb/proto:proto_deps",
-        "//tools/adt/idea/aswb/sdkcompat",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:vcs",
         "//tools/adt/idea/aswb/testing:lib",

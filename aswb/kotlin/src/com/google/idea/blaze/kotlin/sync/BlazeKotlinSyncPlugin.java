@@ -37,15 +37,17 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.libraries.LibrarySource;
 import com.google.idea.blaze.java.sync.JavaLanguageLevelHelper;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.sdkcompat.kotlin.KotlinCompat;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.pom.java.LanguageLevel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,14 +56,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
+import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.config.CompilerSettings;
 import org.jetbrains.kotlin.config.LanguageVersion;
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCompilerSettings;
+import org.jetbrains.kotlin.idea.configuration.KotlinJavaModuleConfigurator;
+import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector;
 import org.jetbrains.kotlin.idea.facet.KotlinFacet;
 import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
 
@@ -122,9 +129,8 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
     LanguageVersion languageLevel = getLanguageVersion(kotlinToolchainIdeInfo);
     String versionString = languageLevel.getVersionString();
     CommonCompilerArguments settings =
-        (CommonCompilerArguments)
-            KotlinCompat.unfreezeSettings(
-                KotlinCommonCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
+        FreezableKt.unfrozen(
+          KotlinCommonCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
     boolean updated = false;
     String apiVersion = settings.getApiVersion();
     String languageVersion = settings.getLanguageVersion();
@@ -142,9 +148,8 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
 
     if (setCompilerFlagsExperiment.getValue()) {
       CompilerSettings compilerSettings =
-          (CompilerSettings)
-              KotlinCompat.unfreezeSettings(
-                  KotlinCompilerSettings.Companion.getInstance(project).getSettings());
+          FreezableKt.unfrozen(
+                KotlinCompilerSettings.Companion.getInstance(project).getSettings());
       // Order matters since we have parameter like -jvm-target 1.8 where two parameters must be
       // aligned in order.
       // Currently, we list all common compiler flags in settings even though it may be duplicated
@@ -286,9 +291,8 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
 
   private static void setProjectJvmTarget(Project project, LanguageLevel javaLanguageLevel) {
     K2JVMCompilerArguments k2JVMCompilerArguments =
-        (K2JVMCompilerArguments)
-            KotlinCompat.unfreezeSettings(
-                Kotlin2JvmCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
+        FreezableKt.unfrozen(
+              Kotlin2JvmCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
 
     String javaVersion = javaLanguageLevel.toJavaVersion().toString();
     k2JVMCompilerArguments.setJvmTarget(javaVersion);
@@ -316,7 +320,39 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
       if (workspaceModule == null) {
         return;
       }
-      KotlinCompat.configureModule(project, workspaceModule);
+      configureModule(project, workspaceModule);
+    }
+  }
+
+  public static void configureModule(Project project, Module module) {
+    KotlinJavaModuleConfigurator configurator =
+      KotlinJavaModuleConfigurator.Companion.getInstance();
+    NotificationMessageCollector collector =
+      new NotificationMessageCollector(project, "Configuring Kotlin", "Configuring Kotlin");
+    Application application = ApplicationManager.getApplication();
+
+    application.invokeAndWait(
+      () -> {
+        configurator.getOrCreateKotlinLibrary(project, collector);
+      });
+
+    List<Function0<Unit>> writeActions = new ArrayList<>();
+    application.runReadAction(
+      () -> {
+        configurator.configureModule(module, collector, writeActions);
+      });
+
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // do not invoke it later since serviceContainer may be disposed before it get completed
+      application.invokeAndWait(
+        () -> {
+          writeActions.stream().forEach(Function0::invoke);
+        });
+    } else {
+      application.invokeLater(
+        () -> {
+          writeActions.stream().forEach(Function0::invoke);
+        });
     }
   }
 }
