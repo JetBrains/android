@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 
 const val VIEW_NOT_FOUND_KEY = "view.not.found"
 const val NO_COMPOSE_SOURCE_INFO_NODE_KEY = "no.compose.source.info.node"
+const val NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY = "no.compose.source.info.node.inlined"
 
 /** Action for navigating to the currently selected node in the layout inspector. */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
@@ -115,8 +116,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       navigatable == null && node.viewId == null && layout != null && !node.isSystemNode ->
         reportViewNotFound(notificationModel, node, layout)
       else -> {
-        notificationModel.removeNotification(VIEW_NOT_FOUND_KEY)
-        notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
+        notificationModel.removeWarnings()
       }
     }
   }
@@ -126,12 +126,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     node: ViewNode,
     layout: String,
   ) {
-    notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
-    notificationModel.addNotification(
-      VIEW_NOT_FOUND_KEY,
-      LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
-      Status.Warning,
-    )
+    notificationModel.showWarning(VIEW_NOT_FOUND_KEY, node, layout)
   }
 
   private fun reportMissingSourceInformation(
@@ -139,23 +134,37 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     client: InspectorClient,
     node: ComposeViewNode,
   ) {
-    notificationModel.removeNotification(VIEW_NOT_FOUND_KEY)
     val appHasNoSourceInformation =
       client.capabilities.contains(InspectorClient.Capability.SUPPORTS_COMPOSE) &&
         !client.capabilities.contains(InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION)
     if (appHasNoSourceInformation) {
-      notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
-      notificationModel.addNotification(
-        NO_COMPOSE_SOURCE_INFO_APP_KEY,
-        LayoutInspectorBundle.message(NO_COMPOSE_SOURCE_INFO_APP_KEY),
-        Status.Warning,
-      )
+      notificationModel.showWarning(NO_COMPOSE_SOURCE_INFO_APP_KEY, node)
+    } else if (node.isInlined) {
+      notificationModel.showWarning(NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY, node)
     } else {
-      notificationModel.addNotification(
+      notificationModel.showWarning(NO_COMPOSE_SOURCE_INFO_NODE_KEY, node)
+    }
+  }
+
+  private fun NotificationModel.showWarning(key: String, node: ViewNode, layout: String = "") {
+    removeWarnings(key)
+    addNotification(
+      key,
+      LayoutInspectorBundle.message(key, node.unqualifiedName, layout),
+      Status.Warning,
+    )
+  }
+
+  private fun NotificationModel.removeWarnings(except: String = "") {
+    for (msg in
+      listOf(
+        VIEW_NOT_FOUND_KEY,
         NO_COMPOSE_SOURCE_INFO_NODE_KEY,
-        LayoutInspectorBundle.message(NO_COMPOSE_SOURCE_INFO_NODE_KEY, node.unqualifiedName),
-        Status.Warning,
-      )
+        NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY,
+      )) {
+      if (msg != except) {
+        removeNotification(msg)
+      }
     }
   }
 }
