@@ -75,11 +75,16 @@ public abstract class BuildGraphData {
   @Memoized
   public PackageSet packages() {
     PackageSet.Builder packages = new PackageSet.Builder();
-    // TODO(b/347866096) support BUILD.bazel too
-    locations().values().stream()
-        .filter(l -> l.file.endsWith(Path.of("BUILD")) && l.file.getParent() != null)
-        .map(l -> l.file.getParent())
-        .forEach(packages::add);
+    for (Location location : locations().values()) {
+      if (location.file.endsWith(Path.of("BUILD")) || location.file.endsWith(Path.of("BUILD.bazel"))) {
+        if (location.file.getParent() == null) {
+          // to support the `directories: .` case
+          packages.add(Path.of(""));
+        } else {
+          packages.add(location.file.getParent());
+        }
+      }
+    }
     return packages.build();
   }
 

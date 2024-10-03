@@ -214,7 +214,7 @@ public class GraphToProjectConverter {
       ImmutableMap.Builder<Path, String> inRoot = ImmutableMap.builder();
       for (Entry<Path, String> pkg : prefixes.entrySet()) {
         Path rel = pkg.getKey();
-        if (rel.startsWith(root)) {
+        if (root.toString().isEmpty() || rel.startsWith(root)) {
           Path relToRoot = root.relativize(rel);
           inRoot.put(relToRoot, pkg.getValue());
         }
