@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
+import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
@@ -211,27 +212,36 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val psiElement = dslElement.psiElement
     if (psiElement == null || !psiElement.isValid) return
 
-    val parent = psiElement.parent
+    val parentDsl = dslElement.parent ?: return
     psiElement.delete()
-
-    maybeDeleteIfEmpty(parent, dslElement)
+    maybeDeleteIfEmpty(parentDsl)
   }
 
-  private fun maybeDeleteIfEmpty(element: PsiElement?, dslElement: GradleDslElement) {
-    val dslParent = dslElement.parent
-    if (element?.isValid == false) {
+  private fun maybeDeleteIfEmpty(dslElement: GradleDslElement) {
+    val element = dslElement.psiElement
+
+    element ?: return
+    if (!element.isValid) {
       // Skip deleting
     }
     else {
       when (element) {
-        is DeclarativeBlockGroup -> {
-          if((dslParent == null || dslParent.isInsignificantIfEmpty) && element.isNullExpressionOrEmptyBlock()){
-            element.parent.delete()
+        is DeclarativeBlock -> {
+          if(element.isEmptyBlock()){
+            element.delete()
+          } else {
+            return
           }
         }
+        is DeclarativeFile -> return
       }
     }
+
+    val dslParent = getNextValidParent(dslElement)
+    if (dslParent != null && dslParent.isInsignificantIfEmpty) {
+      maybeDeleteIfEmpty(dslParent)
+    }
   }
-  private fun DeclarativeBlockGroup.isNullExpressionOrEmptyBlock():Boolean = entries.isEmpty()
+  private fun DeclarativeBlock.isEmptyBlock():Boolean = entries.isEmpty()
 
 }
