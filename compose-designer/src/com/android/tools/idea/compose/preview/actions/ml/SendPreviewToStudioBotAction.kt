@@ -132,17 +132,18 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
     blob: Blob?,
     query: String,
   ): Prompt {
-    val defaultPrompt =
-      """
-      |You are an expert Android programmer knowledgeable in Kotlin and Java.
-      |You follow all the best coding practices.
-      """
-        .trimMargin()
     return com.android.tools.idea.studiobot.prompts.buildPrompt(filePointer.project) {
+      systemMessage {
+        text(
+          """
+          |You are an expert Android programmer knowledgeable in Kotlin and Java.
+          |You follow all the best coding practices.
+          """
+            .trimMargin(),
+          listOf(),
+        )
+      }
       userMessage {
-        // TODO: This was supposed to be a systemMessage, but the current model (Vision) doesn't
-        //  support multi-turn
-        text(defaultPrompt, listOf())
         text("This is the code corresponding to the following Compose Preview:", listOf())
         filePointer.element?.let {
           code(previewFunctionCode, MimeType.KOTLIN, listOf(it.virtualFile))
