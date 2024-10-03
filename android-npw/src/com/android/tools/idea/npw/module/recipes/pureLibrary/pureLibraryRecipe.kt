@@ -40,7 +40,7 @@ fun RecipeExecutor.generatePureLibrary(
   addIncludeToSettings(moduleData.name)
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-  save(buildGradle(getJavaVersion(), isKts = useGradleKts, useVersionCatalog = useVersionCatalog), moduleOut.resolve(buildFile))
+  save(buildGradle(language == Language.Kotlin), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),

@@ -16,13 +16,30 @@
 package com.android.tools.idea.npw.module.recipes.pureLibrary
 
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
+import com.android.tools.idea.wizard.template.renderIf
 
-fun buildGradle(javaVersion: String, isKts: Boolean, useVersionCatalog: Boolean): String =
-  """
+// The syntax below works for both KTS and Groovy build script
+fun buildGradle(isKotlin: Boolean): String {
+  // Kotlin jvmTarget must match Java source/target
+  val kotlinBlock =
+    renderIf(isKotlin) {
+      """
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
+}
+"""
+    }
+
+  return """
 ${emptyPluginsBlock()}
 
 java {
   sourceCompatibility = JavaVersion.VERSION_11
   targetCompatibility = JavaVersion.VERSION_11
 }
+
+$kotlinBlock
 """
+}
