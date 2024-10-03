@@ -2085,6 +2085,12 @@ public final class StudioFlags {
     new BooleanFlag(EXPERIMENTAL_UI, "enabled", "Enable Experimental UI Survey", "Enable the experimental UI survey.", true);
   // endregion EXPERIMENTAL_UI
 
+  // region STUDIO_LABS
+  private static final FlagGroup STUDIO_LABS = new FlagGroup(FLAGS, "studiolabs", "Studio Labs");
+  public static final Flag<Boolean> STUDIO_LABS_SETTINGS_ENABLED =
+    new BooleanFlag(STUDIO_LABS, "enabled", "Enable Studio Labs in settings", "Enables studio labs in settings.", ChannelDefault.enabledUpTo(DEV));
+  // endregion STUDIO_LABS
+
   // region WEAR_RUN_CONFIGS_AUTOCREATE
   private static final FlagGroup WEAR_RUN_CONFIGS_AUTOCREATE =
     new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");
