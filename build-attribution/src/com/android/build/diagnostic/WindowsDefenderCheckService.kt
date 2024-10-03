@@ -179,14 +179,14 @@ class WindowsDefenderCheckService(
     if (!project.isTrusted()) return
     val pathList = importantPaths.joinToString(separator = "<br>&nbsp;&nbsp;", prefix = "<br>&nbsp;&nbsp;") { it.toString() }
     val ignoreForProject = DiagnosticBundle.message("defender.config.suppress1")
-    val auto = DiagnosticBundle.message("defender.config.auto")
+    val auto = DiagnosticBundle.message("exclude.folders")
     val manual = DiagnosticBundle.message("defender.config.manual")
     notification(AndroidBundle.message("android.defender.config.prompt", pathList, auto, ignoreForProject), NotificationType.INFORMATION)
       .also {
         it.isImportant = true
         it.collapseDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
       }
-      .addAction(NotificationAction.createSimpleExpiring(auto) {
+      .addAction(NotificationAction.createSimple(auto) {
         runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::showResultNotification)
       })
       .addAction(NotificationAction.createSimple(manual, ::showManualInstructions))
