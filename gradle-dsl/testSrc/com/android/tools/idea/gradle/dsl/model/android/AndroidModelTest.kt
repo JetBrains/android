@@ -907,7 +907,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDottedBuildTypeBlock() {
-    isIrrelevantForDeclarative("No dotted notation for blocks in Declarative")
     doTestAddAndApplyOneBuildTypeBlock("dotted.buildtype", TestFile.ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
