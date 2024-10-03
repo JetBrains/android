@@ -289,17 +289,8 @@ class LayoutlibSceneRenderer(
    *
    * This method will also [inflate] the model when forced or needed (i.e. when
    * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
-   *
-   * Returns the [RenderResult] of the render operation, which might be an error result, or null if
-   * the model could not be rendered (e.g. because the inflation failed).
-   *
-   * Note that [CancellationException]s will be caught by this method and cause the returned
-   * [RenderResult] to be an error result.
    */
-  private suspend fun doRender(
-    request: RenderRequest,
-    reverseUpdate: AtomicBoolean,
-  ): RenderResult? {
+  private suspend fun doRender(request: RenderRequest, reverseUpdate: AtomicBoolean) {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
 
@@ -318,7 +309,7 @@ class LayoutlibSceneRenderer(
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
-        return null
+        return
       }
       renderTask?.let {
         if (sceneRenderConfiguration.elapsedFrameTimeMs != -1L) {
@@ -338,30 +329,28 @@ class LayoutlibSceneRenderer(
         }
       }
     } catch (throwable: Throwable) {
-      // Note that CancellationExceptions are not being propagated here, but an error result is
-      // created instead when cancellations or other errors happen.
       if (!model.isDisposed) {
         result =
           createRenderTaskErrorResult(file, (throwable as? CompletionException)?.cause ?: throwable)
       }
-    }
+      throw throwable
+    } finally {
+      result?.let { renderResult = result }
 
-    result?.let { renderResult = result }
-
-    // Notify surface and track metrics async
-    val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
-    executeOnPooledThread {
-      surface.modelRendered()
-      result?.let {
-        // In an unlikely event when result is disposed we can still safely request the size of the
-        // image
-        NlDiagnosticsManager.getWriteInstance(surface)
-          .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
-        CommonUsageTracker.getInstance(surface)
-          .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
+      // Notify surface and track metrics async
+      val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
+      executeOnPooledThread {
+        surface.modelRendered()
+        result?.let {
+          // In an unlikely event when result is disposed we can still safely request the size of
+          // the image
+          NlDiagnosticsManager.getWriteInstance(surface)
+            .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
+          CommonUsageTracker.getInstance(surface)
+            .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
+        }
       }
     }
-    return result
   }
 
   /**
