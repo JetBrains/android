@@ -103,16 +103,16 @@ class CodeEditedTypedHandlerDelegateTest {
 
     assertThat(fakeCodeEditedMetricsService.actions).containsExactly(CodeEditingAction.Typing)
   }
-}
 
-private class FakeCodeEditedMetricsService : CodeEditedMetricsService {
-  val actions = mutableListOf<CodeEditingAction>()
+  private class FakeCodeEditedMetricsService : CodeEditedMetricsService {
+    val actions = mutableListOf<CodeEditingAction>()
 
-  override fun setCodeEditingAction(action: CodeEditingAction) {
-    actions.add(action)
+    override fun setCodeEditingAction(action: CodeEditingAction) {
+      actions.add(action)
+    }
+
+    override fun clearCodeEditingAction() {}
+
+    override fun recordCodeEdited(event: DocumentEvent) {}
   }
-
-  override fun clearCodeEditingAction() {}
-
-  override fun recordCodeEdited(event: DocumentEvent) {}
 }

@@ -21,12 +21,13 @@
   </extensionPoints>
   <extensions defaultExtensionNs="com.android.tools.idea">
     <editing.metrics.codeEditedListener
-      implementation="com.android.tools.idea.editing.metrics.clearcut.ClearcutCodeEditedListener" />
+      implementation="com.android.tools.idea.editing.metrics.clearcut.ClearcutCodeEditedListener"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.editing.metrics.CodeEditedMetricsServiceImpl"
                         serviceInterface="com.android.tools.idea.editing.metrics.CodeEditedMetricsService"/>
 
     <typedHandler implementation="com.android.tools.idea.editing.metrics.CodeEditedTypedHandlerDelegate"/>
+    <editorFactoryListener implementation="com.android.tools.idea.editing.metrics.CodeEditedEditorFactoryListener"/>
   </extensions>
 </idea-plugin>
