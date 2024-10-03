@@ -254,15 +254,6 @@ open class LayoutlibSceneManager(
         // render the updated result.
         layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
         requestRenderAsync()
-          .thenRunAsync(
-            {
-              selectionChangeListener.selectionChanged(
-                surface.selectionModel,
-                surface.selectionModel.selection,
-              )
-            },
-            EdtExecutorService.getInstance(),
-          )
       }
 
       override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
