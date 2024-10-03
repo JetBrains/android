@@ -1291,6 +1291,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyBlockStatements() {
+    isIrrelevantForDeclarative("No such grammar")
     writeToBuildFile(TestFile.ADD_AND_APPLY_BLOCK_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()

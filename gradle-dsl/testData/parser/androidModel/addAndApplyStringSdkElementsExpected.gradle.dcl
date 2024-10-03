@@ -1,0 +1,3 @@
+androidApp {
+  compileSdkPreview = "S"
+}
