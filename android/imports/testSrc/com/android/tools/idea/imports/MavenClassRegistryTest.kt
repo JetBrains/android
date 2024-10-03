@@ -523,24 +523,24 @@ class MavenClassRegistryTest {
       mavenClassRegistry.lookup.classNameMap.let {
         assertThat(it.size).isAtLeast(6000)
         assertThat(it).containsEntry(
-          "ComponentActivity",
+          "HintConstants",
           listOf(
             LibraryImportData(
-              artifact = "androidx.activity:activity",
-              importedItemFqName = "androidx.activity.ComponentActivity",
-              importedItemPackageName = "androidx.activity",
-              version = "1.9.0"
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.HintConstants",
+              importedItemPackageName = "androidx.autofill",
+              version = "1.1.0"
             )
           )
         )
         assertThat(it).containsEntry(
-          "OnBackPressedDispatcher",
+          "ImageViewStyle",
           listOf(
             LibraryImportData(
-              artifact = "androidx.activity:activity",
-              importedItemFqName = "androidx.activity.OnBackPressedDispatcher",
-              importedItemPackageName = "androidx.activity",
-              version = "1.9.0"
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.inline.common.ImageViewStyle",
+              importedItemPackageName = "androidx.autofill.inline.common",
+              version = "1.1.0"
             )
           )
         )
