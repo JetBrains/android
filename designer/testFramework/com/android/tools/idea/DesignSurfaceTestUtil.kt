@@ -118,8 +118,6 @@ object DesignSurfaceTestUtil {
     Mockito.`when`(surface.models).thenReturn(ImmutableList.of(model))
     Mockito.`when`(surface.addModelWithoutRender(any()))
       .thenReturn(CompletableFuture.completedFuture<Nothing?>(null))
-    Mockito.`when`(surface.addAndRenderModel(any()))
-      .thenReturn(CompletableFuture.completedFuture(null))
     Mockito.`when`(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 
     // TODO: NlDesignSurface should not be referenced from here.

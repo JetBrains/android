@@ -841,7 +841,6 @@ abstract class DesignSurface<T : SceneManager>(
    * be moved to the last position which might affect rendering.
    *
    * @param model the added [NlModel]
-   * @see [addAndRenderModel]
    */
   @Slow
   private fun addModel(model: NlModel): T {
@@ -1070,7 +1069,6 @@ abstract class DesignSurface<T : SceneManager>(
   /**
    * Sets the current [NlModel] to [DesignSurface].
    *
-   * @see [addAndRenderModel]
    * @see [removeModel]
    */
   open fun setModel(newModel: NlModel?) {
@@ -1104,52 +1102,16 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Add an [NlModel] to [DesignSurface] and refreshes the rendering of the model. If the model was
-   * already part of the surface, it will be moved to the bottom of the list and a refresh will be
-   * triggered. The scene views are updated before starting to render and the callback
-   * [DesignSurfaceListener.modelChanged] is triggered after rendering. The method returns a
-   * [CompletableFuture] that will complete when the render of the new model has finished. Note that
-   * the order of the addition might be important for the rendering order.
-   * [PositionableContentLayoutManager] will receive the models in the order they are added.
-   *
-   * @param model the added [NlModel]
-   * @see [addModel]
-   */
-  fun addAndRenderModel(model: NlModel): CompletableFuture<Void> {
-    val modelSceneManager = addModel(model)
-
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    sceneViewPanel.invalidate()
-
-    // We probably do not need to request a render for all models but it is currently the
-    // only point subclasses can override to disable the layoutlib render behaviour.
-    return modelSceneManager
-      .requestRenderAsync()
-      .whenCompleteAsync(
-        { _, _ ->
-          reactivateGuiInputHandler()
-          revalidateScrollArea()
-          notifyModelChanged(model)
-        },
-        EdtExecutorService.getInstance(),
-      )
-  }
-
-  /**
    * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
    * then it just returns the associated [SceneManager] which created before. In this function, the
    * scene views are not updated and [DesignSurfaceListener.modelChanged] callback is triggered
-   * immediately. In the opposite, [addAndRenderModel] updates the scene views and triggers
-   * [DesignSurfaceListener.modelChanged] when render is completed.
+   * immediately.
    *
    * Note that the order of the addition might be important for the rendering order.
    * [PositionableContentLayoutManager] will receive the models in the order they are added.
    *
    * @param model the added [NlModel]
    * @see [addModel]
-   * @see [addAndRenderModel]
-   *
-   * TODO(b/147225165): Remove [addAndRenderModel] function and rename this function as [addModel]
    */
   fun addModelWithoutRender(modelToAdd: NlModel): CompletableFuture<T> {
     return CompletableFuture.supplyAsync(

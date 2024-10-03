@@ -56,6 +56,8 @@ import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.nio.file.Paths
 import javax.swing.JPanel
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -83,7 +85,7 @@ class NlDesignSurfaceZoomControlsTest {
   private lateinit var fakeUi: FakeUi
 
   @Before
-  fun setup() {
+  fun setup(): Unit = runBlocking {
     androidProjectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
@@ -130,7 +132,8 @@ class NlDesignSurfaceZoomControlsTest {
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
 
-    surface.addAndRenderModel(model).join()
+    val newSceneManager = surface.addModelWithoutRender(model).await()
+    newSceneManager.requestRenderAsync().await()
 
     // Verify successful render
     assertEquals(1, surface.sceneManagers.size)
