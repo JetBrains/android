@@ -50,10 +50,10 @@ fun actionsForSelectedIssue(
 
 private fun useIssueSampleEvent(key: InsightsProviderKey) = key == VITALS_KEY
 
-fun AppInsightsTracker.trackEventView(state: AppInsightsState, isFetched: Boolean) {
+fun AppInsightsTracker.trackEventView(state: AppInsightsState) {
   val issueId = state.selectedIssue?.id?.value ?: return
   val eventId = state.selectedEvent?.name ?: return
   val appId = state.connections.selected?.appId ?: return
 
-  logEventViewed(appId, state.mode, issueId, eventId, isFetched)
+  logEventViewed(appId, state.mode, issueId, eventId)
 }

@@ -61,5 +61,5 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
   }
 
   private fun trackEventView(tracker: AppInsightsTracker, transition: StateTransition<Action>) =
-    tracker.trackEventView(transition.newState, false)
+    tracker.trackEventView(transition.newState)
 }

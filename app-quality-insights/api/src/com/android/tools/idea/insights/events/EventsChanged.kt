@@ -60,10 +60,17 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
           ),
         action = Action.NONE,
       )
-      .also {
-        if (it.newState.currentEvents is LoadingState.Ready) {
-          tracker.trackEventView(it.newState, true)
-        }
-      }
+      .also { trackEventFetched(tracker, it.newState, state.currentEvents is LoadingState.Loading) }
+  }
+
+  private fun trackEventFetched(
+    tracker: AppInsightsTracker,
+    state: AppInsightsState,
+    isFirstFetch: Boolean,
+  ) {
+    val appId = state.connections.selected?.appId ?: return
+    val issue = state.selectedIssue ?: return
+
+    tracker.logEventsFetched(appId, issue.id.value, issue.issueDetails.fatality, isFirstFetch)
   }
 }
