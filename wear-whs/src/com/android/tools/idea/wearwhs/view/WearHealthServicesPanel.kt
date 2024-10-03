@@ -299,9 +299,7 @@ private fun createCenterPanel(
 private fun createWearHealthServicesPanelHeader(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
-  workerScope: CoroutineScope,
-  notifyUser: (String, MessageType) -> Unit,
-  onTriggerEventChannel: Channel<Unit>,
+  triggerEvent: (EventTrigger) -> Unit,
 ): JPanel = panel {
   row(
     JBLabel(message("wear.whs.panel.title")).apply { foreground = UIUtil.getInactiveTextColor() }
@@ -344,14 +342,7 @@ private fun createWearHealthServicesPanelHeader(
   twoColumnsRow(
     {
       cell(createLoadCapabilityPresetButton(stateManager = stateManager, uiScope = uiScope))
-      cell(
-        createTriggerEventGroupsButton(
-          workerScope = workerScope,
-          onTriggerEventChannel = onTriggerEventChannel,
-          stateManager = stateManager,
-          notifyUser = notifyUser,
-        )
-      )
+      cell(createTriggerEventGroupsButton(triggerEvent = { triggerEvent(it) }))
     },
     { cell(statusLabel) },
   )
@@ -394,6 +385,8 @@ internal fun createWearHealthServicesPanel(
   // action was successful
   val informationFlow = MutableStateFlow<PanelInformation>(PanelInformation.EmptyMessage)
   val informationLabel = JLabel()
+  val onApplyChangesChannel = Channel<Unit>()
+  val onTriggerEventChannel = Channel<Unit>()
 
   fun notifyUser(message: String, type: MessageType) {
     uiScope.launch {
@@ -409,6 +402,36 @@ internal fun createWearHealthServicesPanel(
     }
   }
 
+  fun applyChanges() {
+    workerScope.launch {
+      onApplyChangesChannel.send(Unit)
+      val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
+      stateManager
+        .applyChanges()
+        .onSuccess { notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO) }
+        .onFailure { notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR) }
+    }
+  }
+
+  fun triggerEvent(eventTrigger: EventTrigger) {
+    workerScope.launch {
+      onTriggerEventChannel.send(Unit)
+      stateManager
+        .triggerEvent(eventTrigger)
+        .onSuccess { notifyUser(message("wear.whs.event.trigger.success"), MessageType.INFO) }
+        .onFailure { notifyUser(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
+    }
+  }
+
+  fun reset() {
+    workerScope.launch {
+      stateManager
+        .reset()
+        .onSuccess { notifyUser(message("wear.whs.panel.reset.success"), MessageType.INFO) }
+        .onFailure { notifyUser(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
+    }
+  }
+
   val content =
     JBScrollPane().apply {
       setViewportView(
@@ -416,27 +439,12 @@ internal fun createWearHealthServicesPanel(
       )
     }
 
-  val onApplyChangesChannel = Channel<Unit>()
-  val onTriggerEventChannel = Channel<Unit>()
   val footer =
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
 
       add(informationLabel)
-      add(
-        JButton(message("wear.whs.panel.reset")).apply {
-          addActionListener {
-            workerScope.launch {
-              stateManager
-                .reset()
-                .onSuccess { notifyUser(message("wear.whs.panel.reset.success"), MessageType.INFO) }
-                .onFailure {
-                  notifyUser(message("wear.whs.panel.reset.failure"), MessageType.ERROR)
-                }
-            }
-          }
-        }
-      )
+      add(JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } })
       add(
         JButton(message("wear.whs.panel.reapply")).apply {
           stateManager.hasUserChanges
@@ -453,25 +461,10 @@ internal fun createWearHealthServicesPanel(
             .launchIn(uiScope)
 
           stateManager.status
-            .onEach {
-              isEnabled = it !is WhsStateManagerStatus.Syncing
-            }
+            .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
             .launchIn(uiScope)
 
-          addActionListener {
-            workerScope.launch {
-              onApplyChangesChannel.send(Unit)
-              val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
-              stateManager
-                .applyChanges()
-                .onSuccess {
-                  notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO)
-                }
-                .onFailure {
-                  notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR)
-                }
-            }
-          }
+          addActionListener { applyChanges() }
         }
       )
     }
@@ -509,13 +502,7 @@ internal fun createWearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
         add(
-          createWearHealthServicesPanelHeader(
-            stateManager,
-            uiScope,
-            workerScope,
-            ::notifyUser,
-            onTriggerEventChannel,
-          ),
+          createWearHealthServicesPanelHeader(stateManager, uiScope, ::triggerEvent),
           BorderLayout.NORTH,
         )
         add(content, BorderLayout.CENTER)
@@ -530,23 +517,12 @@ internal fun createWearHealthServicesPanel(
   )
 }
 
-private fun createTriggerEventGroupsButton(
-  workerScope: CoroutineScope,
-  onTriggerEventChannel: Channel<Unit>,
-  stateManager: WearHealthServicesStateManager,
-  notifyUser: (String, MessageType) -> Unit,
-): JButton {
+private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit): JButton {
   val eventTriggerGroupActions =
     EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
       val eventTriggerActions =
         eventTriggerGroup.eventTriggers.map { eventTrigger ->
-          createEventTriggerAction(
-            eventTrigger = eventTrigger,
-            workerScope = workerScope,
-            onTriggerEventChannel = onTriggerEventChannel,
-            stateManager = stateManager,
-            notifyUser = notifyUser,
-          )
+          createEventTriggerAction(eventTrigger = eventTrigger, triggerEvent = { triggerEvent(it) })
         }
       DropDownAction(eventTriggerGroup.eventGroupLabel, null, null).apply {
         addAll(eventTriggerActions)
@@ -568,22 +544,13 @@ private fun createTriggerEventGroupsButton(
 
 private fun createEventTriggerAction(
   eventTrigger: EventTrigger,
-  workerScope: CoroutineScope,
-  onTriggerEventChannel: Channel<Unit>,
-  stateManager: WearHealthServicesStateManager,
-  notifyUser: (String, MessageType) -> Unit,
+  triggerEvent: (EventTrigger) -> Unit,
 ) =
   object : AnAction(eventTrigger.eventLabel, null, null) {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-      workerScope.launch {
-        onTriggerEventChannel.send(Unit)
-        stateManager
-          .triggerEvent(eventTrigger)
-          .onSuccess { notifyUser(message("wear.whs.event.trigger.success"), MessageType.INFO) }
-          .onFailure { notifyUser(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
-      }
+      triggerEvent(eventTrigger)
     }
   }
 
