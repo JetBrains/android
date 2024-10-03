@@ -80,10 +80,10 @@ public class BlazeKotlinProjectConfigurator implements KotlinProjectConfigurator
   @Override
   public void updateLanguageVersion(
     @NotNull Module module,
-    @Nullable String s,
-    @Nullable String s1,
-    @NotNull ApiVersion apiVersion,
-    boolean b) {}
+    @Nullable String languageVersion,
+    @Nullable String apiVersion,
+    @NotNull ApiVersion requiredStdlibVersion,
+    boolean forTests) {}
 
   @NotNull
   public ConfigureKotlinStatus getStatus(@NotNull Module module) {
