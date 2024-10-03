@@ -19,6 +19,7 @@ import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
+import com.android.sdklib.internal.avd.uniquifyAvdFolder
 import com.android.sdklib.internal.avd.uniquifyAvdName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adddevicedialog.ComposeWizard
@@ -39,7 +40,12 @@ internal class EditVirtualDeviceDialog(
   val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
 ) {
-  suspend fun show(avdInfo: AvdInfo): Boolean {
+  enum class Mode {
+    EDIT,
+    DUPLICATE,
+  }
+
+  suspend fun show(avdInfo: AvdInfo, mode: Mode): Boolean {
     val skins =
       withContext(AndroidDispatchers.workerThread) {
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
@@ -60,32 +66,45 @@ internal class EditVirtualDeviceDialog(
         return@withContext false
       }
 
+      val deviceNameValidator =
+        DeviceNameValidator.createForAvdManager(
+          avdManager,
+          currentName = avdInfo.displayName.takeIf { mode == Mode.EDIT },
+        )
       val builder = AvdBuilder.createForExistingDevice(baseDevice, avdInfo)
+      if (mode == Mode.DUPLICATE) {
+        builder.displayName = deviceNameValidator.uniquify(builder.displayName)
+        builder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
+        builder.avdFolder = avdManager.uniquifyAvdFolder(builder.avdName)
+      }
+
       val device = VirtualDevice.withDefaults(baseDevice).copyFrom(builder)
 
       val wizard =
         ComposeWizard(project, "Edit Device") {
-          ConfigurationPage(
+          ConfigurationPage(device, avdInfo.systemImage, skins, deviceNameValidator, sdkHandler) {
             device,
-            avdInfo.systemImage,
-            skins,
-            DeviceNameValidatorImpl(avdManager, currentName = avdInfo.displayName),
-            sdkHandler,
-          ) { device, image ->
+            image ->
             builder.copyFrom(device, image)
 
             // At this point, builder.avdName still reflects its on-disk location. If the user
             // updated the display name, try to update avdName to reflect the new display name.
-            // We don't update the AVD folder; the device might be running.
             if (avdInfo.displayName != builder.displayName) {
               builder.avdName =
                 avdManager.uniquifyAvdName(AvdNames.cleanAvdName(builder.displayName))
-            }
-            val success =
-              withContext(AndroidDispatchers.diskIoThread) {
-                avdManager.editAvd(avdInfo, builder) != null
+              // We don't update the AVD folder in EDIT mode; the device might be running.
+              if (mode == Mode.DUPLICATE) {
+                builder.avdFolder = avdManager.uniquifyAvdFolder(builder.avdName)
               }
-            return@ConfigurationPage success
+            }
+            val newAvdInfo =
+              withContext(AndroidDispatchers.diskIoThread) {
+                when (mode) {
+                  Mode.EDIT -> avdManager.editAvd(avdInfo, builder)
+                  Mode.DUPLICATE -> avdManager.duplicateAvd(avdInfo, builder)
+                }
+              }
+            return@ConfigurationPage newAvdInfo != null
           }
         }
       return@withContext wizard.showAndGet()
