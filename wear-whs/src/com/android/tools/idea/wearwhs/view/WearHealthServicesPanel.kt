@@ -452,23 +452,24 @@ internal fun createWearHealthServicesPanel(
             }
             .launchIn(uiScope)
 
+          stateManager.status
+            .onEach {
+              isEnabled = it !is WhsStateManagerStatus.Syncing
+            }
+            .launchIn(uiScope)
+
           addActionListener {
-            isEnabled = false
             workerScope.launch {
-              try {
-                onApplyChangesChannel.send(Unit)
-                val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
-                stateManager
-                  .applyChanges()
-                  .onSuccess {
-                    notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO)
-                  }
-                  .onFailure {
-                    notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR)
-                  }
-              } finally {
-                uiScope.launch { isEnabled = true }
-              }
+              onApplyChangesChannel.send(Unit)
+              val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
+              stateManager
+                .applyChanges()
+                .onSuccess {
+                  notifyUser(message("wear.whs.panel.$applyType.success"), MessageType.INFO)
+                }
+                .onFailure {
+                  notifyUser(message("wear.whs.panel.$applyType.failure"), MessageType.ERROR)
+                }
             }
           }
         }
