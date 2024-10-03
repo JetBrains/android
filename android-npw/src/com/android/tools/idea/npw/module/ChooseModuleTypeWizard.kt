@@ -72,7 +72,7 @@ class ChooseModuleTypeWizard(
   private val importModuleGalleryEntry =
     ImportModuleGalleryEntry() // Added to the left list bottom, and as a marker for the separator
   private val moduleGalleryEntryList: List<ModuleGalleryEntry> =
-    sortModuleEntries(moduleGalleryEntries) + importModuleGalleryEntry
+    sortModuleEntries(moduleGalleryEntries, moduleParent) + importModuleGalleryEntry
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
   private val modelWizardDialog: ModelWizardDialog by lazy {
@@ -229,7 +229,10 @@ private class ImportModuleGalleryEntry : ModuleGalleryEntry {
 }
 
 @VisibleForTesting
-fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<ModuleGalleryEntry> {
+fun sortModuleEntries(
+  moduleTypeProviders: List<ModuleGalleryEntry>,
+  moduleParent: String,
+): List<ModuleGalleryEntry> {
   // To have a sequence specified by design, we hardcode the sequence. Everything else is added at
   // the end (sorted by name)
   val orderedNames =
@@ -252,6 +255,11 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
     )
 
   return moduleTypeProviders
+    .filter {
+      // Filter out KMP module when it is not called from the top level
+      moduleParent == ":" ||
+        it.name != message("android.wizard.module.new.kotlin.multiplatform.library")
+    }
     .partition { it.name in orderedNames }
     .run { first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name } }
 }
