@@ -75,6 +75,7 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       suggestedLanguageLevel: LanguageLevel
     ): BuildIssue {
       val issueComposer = BuildIssueComposer(message, title)
+      issueComposer.startNewParagraph()
       if (suggestedToolchainVersion != null) {
         issueComposer.addQuickFix(SetJavaToolchainQuickFix(suggestedToolchainVersion, listOf(modulePath)))
       }

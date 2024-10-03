@@ -55,7 +55,8 @@ class KotlincWithQuickFixesParser : BuildOutputParser {
         (originalMessage.contains(JVM_TARGET_FIX_STATIC))) {
       if (originalEvent is MessageEvent) {
         val buildIssueComposer = BuildIssueComposer(originalEvent.description!!.trim(), originalMessage)
-        buildIssueComposer.addDescription("Adding support for Java 8 language features could solve this issue.")
+        buildIssueComposer.addDescriptionOnNewLine("Adding support for Java 8 language features could solve this issue.")
+        buildIssueComposer.startNewParagraph()
         buildIssueComposer.addQuickFix(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
         buildIssueComposer.addQuickFix("More information...", OpenLinkQuickFix(JAVA_8_SUPPORT_LINK))
         return BuildIssueEventImpl(originalEvent.parentId!!, buildIssueComposer.composeBuildIssue(), originalEvent.kind)

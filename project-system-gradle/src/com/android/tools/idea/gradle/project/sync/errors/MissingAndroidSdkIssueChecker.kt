@@ -49,7 +49,8 @@ class MissingAndroidSdkIssueChecker : GradleIssueChecker {
     if (!propertiesFile.isFile) return null
 
     return BuildIssueComposer(message).apply {
-      addDescription(FIX_SDK_DIR_PROPERTY)
+      addDescriptionOnNewLine(FIX_SDK_DIR_PROPERTY)
+      startNewParagraph()
       addQuickFix("Open local.properties File", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, 0, 0)))
     }.composeBuildIssue()
   }

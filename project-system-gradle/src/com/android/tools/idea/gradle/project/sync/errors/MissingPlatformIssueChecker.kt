@@ -78,7 +78,8 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
         val logger = StudioLoggerProgressIndicator(this::class.java)
         // Get the details about the cause of the error.
         val causes = sdkHandler.getAndroidTargetManager(logger).getErrorForPackage(DetailsTypes.getPlatformPath(version))
-        buildIssueComposer.addDescription(if (causes != null) "possible cause: \n ${causes}" else "")
+        buildIssueComposer.addDescriptionOnNewLine(if (causes != null) "possible cause: \n ${causes}" else "")
+        buildIssueComposer.startNewParagraph()
         buildIssueComposer.addQuickFix("Install missing platform(s) and sync project", InstallPlatformQuickFix(listOf(version)))
       }
     }

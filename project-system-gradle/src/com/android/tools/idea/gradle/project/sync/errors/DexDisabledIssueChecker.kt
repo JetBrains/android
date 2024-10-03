@@ -66,7 +66,8 @@ class DexDisabledIssueChecker : GradleIssueChecker {
     val issueComposer = BuildIssueComposer(rootMessage, issueTitle = "Desugaring disabled")
     val buildMessage = builderException.message
     if (buildMessage != null) {
-      issueComposer.addDescription(buildMessage)
+      issueComposer.addDescriptionOnNewLine(buildMessage)
+      issueComposer.startNewParagraph()
     }
     val modulePath = extractModulePathFromError(issueData.error)
     if (modulePath != null) {
