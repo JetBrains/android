@@ -13,11 +13,36 @@ jps_library(
     ],
 )
 
+# Tests from inner classes of K1IdeK2CodeKotlinSteppingTestGenerated. Ordered as the appear in the class.
+
+# 18 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-step-into",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_into.txt",
+    shard_count = 2,
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepInto#"],
+)
+
+# 18 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-smart-step-into",
+    shard_count = 2,
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.SmartStepInto#"],
+)
+
+# 25 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-step-into-only",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_into_only.txt",
+    shard_count = 3,
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepIntoOnly#"],
+)
+
 # 9 tests
 debugger_test(
     name = "k1k2-kotlin-stepping-step-out",
     expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_out.txt",
-    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOut"],
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOut#"],
 )
 
 maven_repository(
