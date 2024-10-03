@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.actions.ml
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.compose.preview.actions.ml.utils.Blob
 import com.android.tools.idea.compose.preview.actions.ml.utils.ContextualEditorBalloon.Companion.contextualEditorBalloon
 import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
@@ -26,7 +25,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.Prompt
+import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.notebook.editor.BackedVirtualFile
@@ -106,7 +105,34 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
         ) { userQuery ->
           AndroidCoroutineScope(diffDisposable).launch(AndroidDispatchers.workerThread) {
             generateCodeAndExecuteCallback(
-              buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
+              buildPrompt(filePointer.project) {
+                systemMessage {
+                  text(
+                    """
+                    |You are an expert Android programmer knowledgeable in Kotlin and Java.
+                    |You follow all the best coding practices.
+                    """
+                      .trimMargin(),
+                    listOf(),
+                  )
+                }
+                userMessage {
+                  text("This is the code corresponding to the following Compose Preview:", listOf())
+                  filePointer.element?.let {
+                    code(previewCode, MimeType.KOTLIN, listOf(it.virtualFile))
+                  }
+                  blob(data = imageBytes, mimeType = MimeType.PNG, filesUsed = emptyList())
+                  text(
+                    """
+                    |The response must modify the code above in order to achieve the following: $userQuery
+                    |The response must contain the entire function code, not only the modified parts.
+                    |The response must only include the modified code, not any other piece of text.
+                    """
+                      .trimMargin(),
+                    listOf(),
+                  )
+                }
+              },
               filePointer,
             )
           }
@@ -120,45 +146,5 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
     val byteArrayOutputStream = ByteArrayOutputStream(8192)
     ImageIO.write(renderedImage, "png", byteArrayOutputStream)
     return byteArrayOutputStream.toByteArray()
-  }
-
-  /**
-   * Takes the code of a Compose Preview function, its corresponding image, and a custom
-   * instruction. Builds a prompt asking for the transformed function code.
-   */
-  private fun buildPrompt(
-    filePointer: SmartPsiElementPointer<PsiFile>,
-    previewFunctionCode: String,
-    blob: Blob?,
-    query: String,
-  ): Prompt {
-    return com.android.tools.idea.studiobot.prompts.buildPrompt(filePointer.project) {
-      systemMessage {
-        text(
-          """
-          |You are an expert Android programmer knowledgeable in Kotlin and Java.
-          |You follow all the best coding practices.
-          """
-            .trimMargin(),
-          listOf(),
-        )
-      }
-      userMessage {
-        text("This is the code corresponding to the following Compose Preview:", listOf())
-        filePointer.element?.let {
-          code(previewFunctionCode, MimeType.KOTLIN, listOf(it.virtualFile))
-        }
-        blob?.let { blob(data = it.data, mimeType = it.mimeType, filesUsed = emptyList()) }
-        text(
-          """
-          |The response must modify the code above in order to achieve the following: $query
-          |The response must contain the entire function code, not only the modified parts.
-          |The response must only include the modified code, not any other piece of text.
-          """
-            .trimMargin(),
-          listOf(),
-        )
-      }
-    }
   }
 }
