@@ -31,7 +31,8 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkListener
 
-const val VCS_INTEGRATION_LEARN_MORE_URL = "https://d.android.com/studio/preview/features#aqi-vcs"
+const val VCS_INTEGRATION_LEARN_MORE_URL =
+  "https://d.android.com/studio/releases/past-releases/as-iguana-release-notes#aqi-vcs"
 private const val DATA_ABSENT_CARD = "data_absent"
 private const val DATA_PRESENT_CARD = "data_present"
 
