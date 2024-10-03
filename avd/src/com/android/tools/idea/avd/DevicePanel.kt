@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
@@ -255,63 +254,6 @@ private fun SystemImageTable(
     tableSelectionState = selectionState,
     onRowClick = onRowClick,
   )
-}
-
-internal class DevicePanelState
-internal constructor(
-  selectedApi: AndroidVersionSelection,
-  selectedServices: Services?,
-  private val systemImages: List<ISystemImage>,
-  showSdkExtensionSystemImages: Boolean = false,
-  showOnlyRecommendedSystemImages: Boolean = true,
-) {
-  internal var selectedApi by mutableStateOf(selectedApi)
-    private set
-
-  internal var selectedServices by mutableStateOf(selectedServices)
-    private set
-
-  internal var filteredSystemImages by mutableStateOf(systemImages)
-    private set
-
-  internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
-    private set
-
-  internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
-    private set
-
-  init {
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
-    this.selectedApi = selectedApi
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setSelectedServices(selectedServices: Services?) {
-    this.selectedServices = selectedServices
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
-    this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
-    this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  private fun matches(image: ISystemImage): Boolean {
-    val apiMatches = selectedApi.matches(image.androidVersion)
-    val servicesMatches = selectedServices == null || image.getServices() == selectedServices
-    val isSdkExtensionMatches = showSdkExtensionSystemImages || image.androidVersion.isBaseExtension
-    val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
-
-    return apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
-  }
 }
 
 @Composable
