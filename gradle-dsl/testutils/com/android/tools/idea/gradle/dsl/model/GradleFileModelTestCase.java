@@ -164,7 +164,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected void isIrrelevantForDeclarative(String reason) {
-    assumeFalse("test irrelevant for declarative: " + reason, isKotlinScript());
+    assumeFalse("test irrelevant for declarative: " + reason, isGradleDeclarative());
   }
 
   protected void skipGradleDeclarativeTemporary() {
