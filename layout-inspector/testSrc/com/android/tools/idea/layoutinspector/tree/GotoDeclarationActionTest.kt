@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.NO_COMPOSE_SOURCE_INFO_APP_KEY
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -220,6 +221,34 @@ class GotoDeclarationActionTest {
   }
 
   @Test
+  fun testNavigateToSelectedInlinedCompose() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-3], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+
+    // Make sure an earlier missing view id or missing compose source information warning is cleared
+    notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
+    notificationModel.addNotification(
+      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
+      "Source information for composable not found",
+    )
+
+    val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
+    GotoDeclarationAction.navigateToSelectedView(
+      inspector.coroutineScope,
+      model,
+      inspector.currentClient,
+      notificationModel,
+    )
+    waitForCondition(10.seconds) {
+      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY)
+    }
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo("No source information found for inlined Text Composable.")
+  }
+
+  @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = runInEdtAndGet { createModel() }
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
@@ -261,7 +290,7 @@ class GotoDeclarationActionTest {
         DemoExample.setUpDemo(projectRule.fixture) {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
-              compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
+              compose(-3, "Text", "MyCompose.kt", -1, -1, 0, composeFlags = FLAG_IS_INLINED)
               compose(-4, "Greeting", "MyCompose.kt", -1, -1, 0) {
                 compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
               }
