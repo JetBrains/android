@@ -18,6 +18,9 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.InsightFeedback
+import com.android.tools.idea.insights.mapReady
+import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
@@ -47,8 +50,10 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
@@ -75,7 +80,16 @@ class InsightContentPanel(
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane()
-  private val feedbackPanel = InsightFeedbackPanel()
+  private val feedbackPanel =
+    InsightFeedbackPanel(
+      currentInsightFlow
+        .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
+          insight?.feedback ?: InsightFeedback.NONE
+        }
+        .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
+    ) {
+      controller.submitInsightFeedback(it)
+    }
   private val insightBottomPanel = InsightBottomPanel(controller.project) { onRefresh(it) }
 
   private val insightPanel =
@@ -192,6 +206,7 @@ class InsightContentPanel(
 
     scope.launch {
       currentInsightFlow
+        .mapReady { insight -> insight?.rawInsight }
         .distinctUntilChanged()
         .onEach { reset() }
         .collect { aiInsight ->
@@ -208,8 +223,8 @@ class InsightContentPanel(
                   showEmptyCard()
                 }
                 else -> {
-                  val insight = aiInsight.value!!
-                  if (insight.rawInsight.isEmpty()) {
+                  val insightText = aiInsight.value!!
+                  if (insightText.isEmpty()) {
                     emptyStateText.apply {
                       clear()
                       appendText("No insights", EMPTY_STATE_TITLE_FORMAT)
@@ -221,7 +236,7 @@ class InsightContentPanel(
                     }
                     showEmptyCard()
                   } else {
-                    insightTextPane.text = insight.rawInsight
+                    insightTextPane.text = insightText
                     showContentCard()
                   }
                 }

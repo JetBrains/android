@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 /** Sent when an update is requested by the user. */
@@ -29,6 +30,7 @@ object ExplicitRefresh : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> =
     StateTransition(
       state.copy(

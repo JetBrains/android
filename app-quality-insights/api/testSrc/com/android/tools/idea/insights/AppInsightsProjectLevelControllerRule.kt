@@ -108,6 +108,7 @@ class AppInsightsProjectLevelControllerRule(
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
         geminiToolkit = geminiToolkit,
+        cache = cache,
       )
     internalState = Channel(capacity = 5)
     scope.launch { controller.state.collect { internalState.send(it) } }

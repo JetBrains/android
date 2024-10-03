@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.intellij.openapi.components.service
@@ -33,8 +34,9 @@ data class PersistSettingsAdapter(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
-    val transition = delegate.transition(state, tracker, key)
+    val transition = delegate.transition(state, tracker, key, cache)
     if (
       state.filters != transition.newState.filters ||
         state.connections.selected != transition.newState.connections.selected

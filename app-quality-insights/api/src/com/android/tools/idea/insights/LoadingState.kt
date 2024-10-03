@@ -140,9 +140,16 @@ sealed class LoadingState<out T> {
    * transforming the original [T] value with [fn].
    */
   abstract fun <U> map(fn: (T) -> U): LoadingState<U>
+
+  /** Gets the ready value or null. */
+  fun valueOrNull() = if (this is LoadingState.Ready) value else null
 }
 
 fun <T, U> Flow<LoadingState<T>>.mapReady(fn: (T) -> U): Flow<LoadingState<U>> = map { it.map(fn) }
+
+fun <T, U> Flow<LoadingState<T>>.mapReadyOrDefault(defaultValue: U, fn: (T) -> U): Flow<U> = map {
+  if (it is Ready) fn(it.value) else defaultValue
+}
 
 fun <T> Flow<LoadingState<T>>.filterReady(): Flow<T> {
   return filterIsInstance<Ready<T>>().map { it.value }

@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent {
@@ -26,6 +27,7 @@ class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent 
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val issue = state.selectedIssue
     val event = state.selectedEvent

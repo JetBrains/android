@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.NoTypesSelectedException
 import com.android.tools.idea.insights.NoVersionsSelectedException
 import com.android.tools.idea.insights.UnconfiguredAppException
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
@@ -33,8 +34,9 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
-    var result = delegate.transition(state, tracker, key)
+    var result = delegate.transition(state, tracker, key, cache)
     if (result.newState.connections.selected?.isConfigured != true) {
       return StateTransition(
         result.newState.copy(

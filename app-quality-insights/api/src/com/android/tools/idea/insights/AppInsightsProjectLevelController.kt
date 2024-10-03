@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CoroutineScope
@@ -94,4 +95,6 @@ interface AppInsightsProjectLevelController {
   fun selectIssueVariant(variant: IssueVariant?)
 
   fun refreshInsight(contextSharingOverride: Boolean)
+
+  fun submitInsightFeedback(insightFeedback: InsightFeedback)
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlin.coroutines.EmptyCoroutineContext
@@ -73,4 +74,6 @@ open class StubAppInsightsProjectLevelController(
   override fun selectIssueVariant(variant: IssueVariant?) {}
 
   override fun refreshInsight(contextSharingOverride: Boolean) {}
+
+  override fun submitInsightFeedback(insightFeedback: InsightFeedback) {}
 }

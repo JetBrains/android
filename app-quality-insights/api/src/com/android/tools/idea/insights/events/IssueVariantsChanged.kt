@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVariant>>) : ChangeEvent {
@@ -28,6 +29,7 @@ data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVarian
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ) =
     StateTransition(
       state.copy(

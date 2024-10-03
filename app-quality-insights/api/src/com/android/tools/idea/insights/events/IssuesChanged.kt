@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
@@ -48,6 +49,7 @@ data class IssuesChanged(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
       return StateTransition(
@@ -84,7 +86,7 @@ data class IssuesChanged(
             defaultProject = false
             fetchSource?.let { this.fetchSource = it }
             numRetries = 0
-            cache = false
+            this.cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
             aiInsightsOptInStatus = getOptInStatus(state.connections.selected.projectId)
           }

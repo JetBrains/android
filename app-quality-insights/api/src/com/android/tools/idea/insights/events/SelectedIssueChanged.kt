@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -35,6 +36,7 @@ data class SelectedIssueChanged(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (issue == state.selectedIssue) {
       return StateTransition(state, Action.NONE)

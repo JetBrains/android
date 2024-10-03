@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 
@@ -29,8 +30,9 @@ class RestoreFilterFromSettings(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
-    val transition = delegate.transition(state, tracker, key)
+    val transition = delegate.transition(state, tracker, key, cache)
     val selectConnection =
       transition.newState.connections.items.firstOrNull {
         settings.connection?.equalsConnection(it) ?: false

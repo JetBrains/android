@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.gct.login2.GoogleLoginService
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
@@ -40,6 +41,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val sessionId = UUID.randomUUID().toString()
     val draft =
@@ -76,6 +78,7 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     return StateTransition(
       newState =
@@ -104,6 +107,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(

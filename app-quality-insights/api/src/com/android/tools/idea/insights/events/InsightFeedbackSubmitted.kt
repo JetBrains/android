@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,29 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.android.tools.idea.insights.experiments.InsightFeedback
 
-/** Operating systems changed. */
-data class OSesChanged(val oses: Set<OperatingSystemInfo>) : ChangeEvent {
+class InsightFeedbackSubmitted(val feedback: InsightFeedback) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
-    val newState = state.selectOperatingSystems(oses)
-    if (newState == state) {
-      return StateTransition(newState, Action.NONE)
-    }
-    return StateTransition(
-      newState.copy(
-        issues = LoadingState.Loading,
-        currentIssueVariants = LoadingState.Ready(null),
-        currentIssueDetails = LoadingState.Ready(null),
-        currentNotes = LoadingState.Ready(null),
-      ),
-      action =
-        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER),
+    val connection = state.connections.selected ?: return state.toEmptyTransition()
+    val currentIssue = state.selectedIssue ?: return state.toEmptyTransition()
+    val currentInsight = state.currentInsight.valueOrNull() ?: return state.toEmptyTransition()
+    val newInsight = currentInsight.copy(feedback = feedback)
+    val newState = state.copy(currentInsight = LoadingState.Ready(newInsight))
+    tracker.logInsightSentiment(
+      feedback.toSentiment(),
+      currentIssue.issueDetails.fatality.toCrashType(),
+      currentInsight,
     )
+    cache.putAiInsight(connection, currentIssue.id, newInsight)
+    return StateTransition(newState, Action.NONE)
   }
 }

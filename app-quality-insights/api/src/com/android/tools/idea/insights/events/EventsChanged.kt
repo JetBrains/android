@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.intellij.openapi.diagnostic.Logger
 
@@ -29,6 +30,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
     state: AppInsightsState,
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (eventPage is LoadingState.Failure) {
       Logger.getInstance(this::class.java).warn("Failed to load events: $eventPage")

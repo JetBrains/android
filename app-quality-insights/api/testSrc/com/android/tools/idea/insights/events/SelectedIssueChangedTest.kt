@@ -28,6 +28,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
@@ -45,7 +46,7 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)
@@ -78,7 +79,7 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE1, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
   }
@@ -94,7 +95,7 @@ class SelectedIssueChangedTest {
 
     val transition =
       SelectedIssueChanged(ISSUE2, IssueSelectionSource.LIST)
-        .transition(currentState, TestAppInsightsTracker, VITALS_KEY)
+        .transition(currentState, TestAppInsightsTracker, VITALS_KEY, AppInsightsCacheImpl())
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)

@@ -239,6 +239,7 @@ class VitalsConfigurationManager(
             },
             defaultFilters = createVitalsFilters(),
             geminiToolkit = GeminiToolkitImpl(project),
+            cache = cache,
           )
         controllerDeferred.complete(vitalsController)
       }

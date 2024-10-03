@@ -18,6 +18,7 @@ package com.android.tools.idea.insights
 import com.android.tools.idea.insights.ai.GeminiToolkit
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ActiveConnectionChanged
 import com.android.tools.idea.insights.events.AddNoteRequested
@@ -28,6 +29,7 @@ import com.android.tools.idea.insights.events.DevicesChanged
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.FatalityToggleChanged
+import com.android.tools.idea.insights.events.InsightFeedbackSubmitted
 import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
@@ -44,6 +46,7 @@ import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.intellij.openapi.components.service
@@ -87,6 +90,7 @@ class AppInsightsProjectLevelControllerImpl(
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
   geminiToolkit: GeminiToolkit,
+  private val cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 
   override val state: SharedFlow<AppInsightsState>
@@ -152,7 +156,7 @@ class AppInsightsProjectLevelControllerImpl(
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
-          val (newState, action) = event.transition(currentState, tracker, key)
+          val (newState, action) = event.transition(currentState, tracker, key, cache)
           if (currentState.issues != newState.issues) {
             project
               .service<IssuesPerFileIndex>()
@@ -242,6 +246,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun refreshInsight(contextSharingOverride: Boolean) {
     emit(RefreshInsight(contextSharingOverride))
+  }
+
+  override fun submitInsightFeedback(insightFeedback: InsightFeedback) {
+    emit(InsightFeedbackSubmitted(insightFeedback))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {
