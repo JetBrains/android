@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
@@ -300,7 +301,12 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   /** Triggers a render/update of the displayed preview. */
   protected suspend fun renderAnimation() {
-    sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
+    sceneManagerProvider()?.let {
+      it.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
+        LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
+      )
+      it.requestRenderAsync().await()
+    }
   }
 
   private fun updateTimelineMaximum() {

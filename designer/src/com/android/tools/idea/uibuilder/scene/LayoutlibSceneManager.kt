@@ -44,7 +44,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
-import com.android.tools.rendering.ExecuteCallbacksResult
 import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
@@ -418,22 +417,6 @@ open class LayoutlibSceneManager(
   private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock.timeNanos
 
   /**
-   * Triggers execution of the Handler and frame callbacks in the layoutlib.
-   *
-   * @return a future that is completed when callbacks are executed.
-   */
-  private fun executeCallbacksAsync(): CompletableFuture<ExecuteCallbacksResult> {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("executeCallbacks after LayoutlibSceneManager has been disposed")
-    }
-    val currentTask =
-      layoutlibSceneRenderer.renderTask
-        ?: return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY)
-    return currentTask.executeCallbacks(currentTimeNanos())
-  }
-
-  /**
    * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a
    * particular point
    *
@@ -476,8 +459,11 @@ open class LayoutlibSceneManager(
   }
 
   /** Executes the given [Runnable] callback synchronously with a 30ms timeout. */
-  override fun executeCallbacksAndRequestRender(): CompletableFuture<Void> {
-    return executeCallbacksAsync().thenCompose { requestRenderAsync() }
+  override fun executeCallbacksAndRequestRender() {
+    sceneRenderConfiguration.layoutlibCallbacksConfig.set(
+      LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
+    )
+    requestRenderAsync()
   }
 
   /** Pauses session clock, so that session time stops advancing. */
