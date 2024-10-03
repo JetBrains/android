@@ -19,16 +19,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.common.Interners;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * C/C++ compilation information. This stores information required to compile C or C++ targets. The
@@ -51,6 +49,16 @@ public abstract class CcCompilationInfo {
   public abstract ImmutableList<BuildArtifact> genHeaders();
 
   public abstract String toolchainId();
+
+  public CcCompilationInfo withMetadata(
+      ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> metadata) {
+    if (metadata.isEmpty()) {
+      return this;
+    }
+    return toBuilder().genHeaders(BuildArtifact.addMetadata(genHeaders(), metadata)).build();
+  }
+
+  abstract Builder toBuilder();
 
   public static CcCompilationInfo.Builder builder() {
     return new AutoValue_CcCompilationInfo.Builder();

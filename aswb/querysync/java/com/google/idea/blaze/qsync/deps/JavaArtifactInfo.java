@@ -20,8 +20,10 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
@@ -60,6 +62,18 @@ public abstract class JavaArtifactInfo {
   public abstract String androidResourcesPackage();
 
   public abstract Builder toBuilder();
+
+  public JavaArtifactInfo withMetadata(
+      ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> metadata) {
+    if (metadata.isEmpty()) {
+      return this;
+    }
+    return toBuilder()
+        .setGenSrcs(BuildArtifact.addMetadata(genSrcs(), metadata))
+        .setIdeAars(BuildArtifact.addMetadata(ideAars(), metadata))
+        .setJars(BuildArtifact.addMetadata(jars(), metadata))
+        .build();
+  }
 
   public static Builder builder() {
     return new AutoValue_JavaArtifactInfo.Builder();
@@ -102,7 +116,11 @@ public abstract class JavaArtifactInfo {
 
     public abstract Builder setIdeAars(ImmutableList<BuildArtifact> value);
 
+    public abstract Builder setIdeAars(BuildArtifact... value);
+
     public abstract Builder setGenSrcs(ImmutableList<BuildArtifact> value);
+
+    public abstract Builder setGenSrcs(BuildArtifact... value);
 
     public abstract Builder setSources(ImmutableSet<Path> value);
 

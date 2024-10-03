@@ -56,6 +56,7 @@ import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
@@ -159,6 +160,7 @@ public class ProjectLoader {
             artifactCache,
             // don't pass the composed transform directly as it's not fully constructed yet:
             t -> projectTransformRegistry.getComposedTransform().getRequiredArtifactMetadata(t),
+            new JavaArtifactMetadata.Factory(),
             executor);
     projectTransformRegistry.add(
         new DependenciesProjectProtoUpdater(

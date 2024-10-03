@@ -24,7 +24,7 @@ import com.google.idea.blaze.qsync.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
-import com.google.idea.blaze.qsync.java.AarPackageNameMetaData;
+import com.google.idea.blaze.qsync.java.AarPackageNameExtractor;
 import com.google.idea.blaze.qsync.java.AddAndroidResPackages;
 import com.google.idea.blaze.qsync.java.AddDependencyAars;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
@@ -54,7 +54,7 @@ public class AndroidProjectProtoTransform implements ProjectProtoTransform {
         ImmutableList.of(
             new AddDependencyAars(
                 projectDefinition,
-                new AarPackageNameMetaData(
+                new AarPackageNameExtractor(
                     in -> ManifestParser.parseManifestFromInputStream(in).packageName)),
             new AddAndroidResPackages());
   }

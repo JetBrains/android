@@ -17,29 +17,32 @@ package com.google.idea.blaze.qsync.java;
 
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.JavaSourcePackage;
 import java.io.IOException;
 
 /** Package name as read from a Java source file. */
-public class JavaSourcePackageNameMetadata implements ArtifactMetadata {
+public class JavaSourcePackageExtractor implements ArtifactMetadata.Extractor<JavaSourcePackage> {
 
   private final PackageStatementParser packageParser;
 
-  public JavaSourcePackageNameMetadata(PackageStatementParser packageParser) {
+  public JavaSourcePackageExtractor(PackageStatementParser packageParser) {
     this.packageParser = packageParser;
   }
 
   @Override
-  public String key() {
-    return "JavaSourcePackageName";
-  }
-
-  @Override
-  public String extract(CachedArtifact buildArtifact, Object nameForLogs) throws BuildException {
+  public JavaSourcePackage extractFrom(CachedArtifact buildArtifact, Object nameForLogs)
+      throws BuildException {
     try {
-      return packageParser.readPackage(buildArtifact.byteSource().openStream());
+      return new JavaSourcePackage(
+          packageParser.readPackage(buildArtifact.byteSource().openStream()));
     } catch (IOException e) {
       throw new BuildException("Failed to read package statement from " + nameForLogs, e);
     }
+  }
+
+  @Override
+  public Class<JavaSourcePackage> metadataClass() {
+    return JavaSourcePackage.class;
   }
 }

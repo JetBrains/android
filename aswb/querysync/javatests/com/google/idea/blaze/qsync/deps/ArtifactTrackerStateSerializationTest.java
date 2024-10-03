@@ -23,8 +23,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.ArtifactTrackerState;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.JavaSourcePackage;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots;
+import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -48,7 +53,8 @@ public class ArtifactTrackerStateSerializationTest {
             .visitDepsMap(depsMap)
             .visitToolchainMap(toolchainMap)
             .toProto();
-    ArtifactTrackerStateDeserializer deserializer = new ArtifactTrackerStateDeserializer();
+    ArtifactTrackerStateDeserializer deserializer =
+        new ArtifactTrackerStateDeserializer(new JavaArtifactMetadata.Factory());
     deserializer.visit(proto);
     return ArtifactTracker.State.create(
         deserializer.getBuiltDepsMap(), deserializer.getCcToolchainMap());
@@ -170,23 +176,33 @@ public class ArtifactTrackerStateSerializationTest {
             Optional.of(new VcsState("workspaceId", "12345", ImmutableSet.of(), Optional.empty())));
     TargetBuildInfo.Builder targetInfo =
         TargetBuildInfo.forJavaTarget(
-            JavaArtifactInfo.empty(Label.of("//my/package:target")), buildContext)
+            JavaArtifactInfo.empty(Label.of("//my/package:target")).toBuilder()
+                .setGenSrcs(
+                    BuildArtifact.create(
+                            "abc",
+                            Path.of("//my/package/Generated.java"),
+                            Label.of("//my/package:target"))
+                        .withMetadata(new JavaSourcePackage("com.my.package")),
+                    BuildArtifact.create(
+                            "abc",
+                            Path.of("//my/package/libtarget.srcjar"),
+                            Label.of("//my/package:target"))
+                        .withMetadata(
+                            new SrcJarJavaPackageRoots(
+                                ImmutableSet.of(Path.of("root1"), Path.of("root2"))),
+                            new SrcJarPrefixedJavaPackageRoots(
+                                ImmutableSet.of(
+                                    JarPath.create("root1", "com.my.package"),
+                                    JarPath.create("root2", "com.other.package")))))
+                .setIdeAars(
+                    BuildArtifact.create(
+                            "bcd",
+                            Path.of("//my/package/libtarget.aar"),
+                            Label.of("//my/package:target"))
+                        .withMetadata(new AarResPackage("com.aar.package")))
+                .build(),
+            buildContext)
             .toBuilder();
-    targetInfo
-        .artifactMetadataBuilder()
-        .put(
-            new MetadataKey("key", Path.of("/build-out/my/package/artifact.txt")),
-            "metadata contents");
-    targetInfo
-        .artifactMetadataBuilder()
-        .put(
-            new MetadataKey("other-key", Path.of("/build-out/my/package/artifact.txt")),
-            "some other metadata contents");
-    targetInfo
-        .artifactMetadataBuilder()
-        .put(
-            new MetadataKey("key", Path.of("/build-out/my/package/another-artifact.srcjar")),
-            "more metadata contents");
     ImmutableMap<Label, TargetBuildInfo> depsMap =
         ImmutableMap.of(Label.of("//my/package:target"), targetInfo.build());
 
