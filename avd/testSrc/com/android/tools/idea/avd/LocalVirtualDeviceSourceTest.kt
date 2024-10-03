@@ -17,13 +17,18 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
+import com.android.SdkConstants
+import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
@@ -54,6 +59,18 @@ class LocalVirtualDeviceSourceTest {
       listOf(SystemImageTags.GOOGLE_APIS_TAG),
       AndroidVersion(34),
     )
+
+  private fun SdkFixture.api34RiscV() =
+    createSystemImage(
+      isRemote = false,
+      path = "google_apis_riscv",
+      tags = listOf(SystemImageTags.GOOGLE_APIS_TAG),
+      androidVersion = AndroidVersion(34),
+      displayName = "Google APIs with RISC-V Translation",
+      abis = listOf(recommendedAbiForHost()),
+      translatedAbis = listOf(SdkConstants.ABI_RISCV64),
+    )
+      as FakeLocalPackage
 
   private fun SdkFixture.remoteApi34() =
     createRemoteSystemImage(
@@ -136,7 +153,6 @@ class LocalVirtualDeviceSourceTest {
     }
   }
 
-  @OptIn(ExperimentalTestApi::class)
   @Test
   fun configurationPage_nameValidation() {
     with(SdkFixture()) {
@@ -173,6 +189,58 @@ class LocalVirtualDeviceSourceTest {
         val files = Files.list(avdRoot).map { it.fileName.toString() }.toList()
         assertThat(files)
           .containsExactly("Pixel_8.avd", "Pixel_8.ini", "My_Pixel.avd", "My_Pixel.ini")
+      }
+    }
+  }
+
+  @Test
+  fun configurationPage_preferredAbi() {
+    with(SdkFixture()) {
+      val api34Image = api34()
+      repoPackages.setLocalPkgInfos(listOf(api34Image, api34RiscV()))
+
+      with(ConfigurationPageFixture(this)) {
+        // Select system image with RISC-V translation
+        composeTestRule.onNodeWithText("Google APIs with RISC-V Translation").performClick()
+        composeTestRule.onNodeWithText("Additional settings").performClick()
+
+        // Select RISC-V preferred ABI
+        composeTestRule.onNodeWithText("Optimal").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(SdkConstants.ABI_RISCV64).performClick()
+
+        // We should have no validation error
+        composeTestRule.waitForIdle()
+        assertThat(wizard.finishAction.action).isNotNull()
+
+        // Select a different system image without RISC-V
+        composeTestRule.onNodeWithText("Device").performClick()
+        composeTestRule.onNodeWithText(api34Image.displayName).performClick()
+
+        // We get an error banner and cannot proceed
+        composeTestRule.waitForIdle()
+        assertThat(wizard.finishAction.action).isNull()
+        composeTestRule
+          .onNodeWithText(
+            "Preferred ABI \"${SdkConstants.ABI_RISCV64}\" is not available with selected system image"
+          )
+          .assertIsDisplayed()
+
+        // Change the preferred ABI to something we have
+        composeTestRule.onNodeWithText("Additional settings").performClick()
+        composeTestRule.onNodeWithText(SdkConstants.ABI_RISCV64).performScrollTo().performClick()
+        composeTestRule.onNodeWithText(recommendedAbiForHost()).performClick()
+
+        // We should be able to finish the edit
+        composeTestRule
+          .onNodeWithText("is not available with selected system image", substring = true)
+          .assertDoesNotExist()
+        composeTestRule.waitForIdle()
+        wizard.performAction(wizard.finishAction)
+        wizard.awaitClose()
+
+        // The preferred ABI is written to disk
+        assertThat(Files.readString(avdRoot.resolve("Pixel_8.avd").resolve("user-settings.ini")))
+          .contains("${UserSettingsKey.PREFERRED_ABI}=${recommendedAbiForHost()}")
       }
     }
   }

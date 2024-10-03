@@ -33,8 +33,11 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -135,3 +138,6 @@ internal fun ISystemImage.isRecommendedForHost(): Boolean =
 
 internal fun ISystemImage.isRecommended(): Boolean =
   isRecommendedForHost() && !SystemImageTags.isAtd(tags)
+
+internal fun ISystemImage?.allAbiTypes(): PersistentList<String> =
+  if (this == null) persistentListOf() else abiTypes.toPersistentList().plus(translatedAbiTypes)

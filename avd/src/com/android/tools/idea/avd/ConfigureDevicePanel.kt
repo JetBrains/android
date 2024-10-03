@@ -185,6 +185,26 @@ internal constructor(
     device = device.copy(name = deviceName)
   }
 
+  internal fun setSystemImageSelection(systemImage: ISystemImage) {
+    systemImageTableSelectionState.selection = systemImage
+    updatePreferredAbiValidity()
+  }
+
+  internal fun setPreferredAbi(preferredAbi: String?) {
+    device = device.copy(preferredAbi = preferredAbi)
+    updatePreferredAbiValidity()
+  }
+
+  private fun updatePreferredAbiValidity() {
+    validity =
+      validity.copy(
+        isPreferredAbiValid =
+          device.preferredAbi == null ||
+            systemImageTableSelectionState.selection == null ||
+            systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
+      )
+  }
+
   internal fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
     validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
   }
@@ -219,9 +239,14 @@ internal constructor(
   private val isSystemImageTableSelectionValid: Boolean = true,
   internal val isExpandedStorageValid: Boolean = true,
   private val isDeviceNameValid: Boolean = true,
+  val isPreferredAbiValid: Boolean = true,
 ) {
   internal val isValid
-    get() = isSystemImageTableSelectionValid && isExpandedStorageValid && isDeviceNameValid
+    get() =
+      isSystemImageTableSelectionValid &&
+        isExpandedStorageValid &&
+        isDeviceNameValid &&
+        isPreferredAbiValid
 }
 
 private enum class Tab(val text: String) {
