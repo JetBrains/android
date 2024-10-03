@@ -18,7 +18,6 @@ package com.android.tools.idea.bleak;
 import com.android.tools.idea.bleak.expander.Expander;
 import com.android.tools.idea.bleak.expander.SmartFMapExpander;
 import com.android.tools.idea.bleak.expander.SmartListExpander;
-import gnu.trove.TObjectHash;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -114,7 +113,7 @@ public class StudioBleakOptions {
 
   private static final Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
 
-  private static final List<Object> forbiddenObjects = List.of(TObjectHash.REMOVED);
+  private static final List<Object> forbiddenObjects = List.of();
 
   public static BleakOptions getDefaults() {
     return new BleakOptions().withCheck(new MainBleakCheck(globalIgnoreList, customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
