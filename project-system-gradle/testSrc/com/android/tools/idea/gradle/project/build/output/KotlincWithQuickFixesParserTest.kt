@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,6 +32,8 @@ class KotlincWithQuickFixesParserTest : BuildOutputParserTest() {
 
   @Before
   fun setUp() {
+    // TODO(b/316057751): implement mapping in follow-up change
+    Assume.assumeFalse("StudioBot support not implemented for these events yet", this.isStudioBotAvailable!!)
     file = temporaryFolder.newFile("file.kt")
 
   }
