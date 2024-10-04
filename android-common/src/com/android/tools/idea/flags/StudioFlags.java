@@ -372,9 +372,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = new BooleanFlag(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting " +
-    Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) +
-    ".",
+    "Changing the value of this flag requires restarting Android Studio.",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
@@ -780,8 +778,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = new BooleanFlag(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running " +
-    Cancellation.forceNonCancellableSectionInClassInitializer(() -> getFullProductName()) +
-    " internally.", false);
+    "Android Studio internally.", false);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = new BooleanFlag(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
@@ -2206,10 +2203,6 @@ public final class StudioFlags {
 
   private static boolean isAndroidStudio() {
     return "AndroidStudio".equals(getPlatformPrefix());
-  }
-
-  private static String getFullProductName() {
-    return StudioPathManager.isRunningFromSources() ? "IntelliJ IDEA" : ApplicationNamesInfo.getInstance().getFullProductName();
   }
 
   private StudioFlags() { }
