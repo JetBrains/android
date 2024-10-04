@@ -43,7 +43,7 @@ import com.intellij.pom.Navigatable
  * @param describedBuildIssueQuickFix The `BuildIssueQuickFix` associated with the file message event.
  */
 @Suppress("UnstableApiUsage")
-class FileMessageBuildIssueEvent(
+open class FileMessageBuildIssueEvent(
   private val fileMessageEvent: FileMessageEvent,
   private val additionalDescriptions: List<BuildIssueDescriptionComposer>
 ): FileMessageEvent, BuildIssueEvent {
@@ -139,7 +139,7 @@ class FileMessageBuildIssueEvent(
  * @param describedBuildIssueQuickFix The `BuildIssueQuickFix` associated with the message event.
  */
 @Suppress("UnstableApiUsage")
-class MessageBuildIssueEvent(
+open class MessageBuildIssueEvent(
   private val messageEvent: MessageEvent,
   private val additionalDescriptions: List<BuildIssueDescriptionComposer>
 ): MessageEvent, BuildIssueEvent {

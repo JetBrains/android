@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssu
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.DuplicateMessageAware
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
@@ -33,6 +35,7 @@ import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.function.Consumer
 
 
@@ -84,18 +87,33 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: Extern
 /**
  * Extends the BuildEvent to BuildIssueEvent, so that quick fix link can be added.
  */
-@Suppress("UnstableApiUsage")
 private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildEvent {
+  if (this !is MessageEvent) return this
   val additionalDescription = BuildIssueDescriptionComposer().apply {
     addQuickFix(quickFix)
   }
+  return toBuildIssueEventWithAdditionalDescription(additionalDescription)
+}
+
+@VisibleForTesting
+@Suppress("UnstableApiUsage")
+fun MessageEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription: BuildIssueDescriptionComposer): MessageEvent {
+  val duplicateMessageAware = this is DuplicateMessageAware
   return when(this) {
     // TODO(b/316057751) : Map other implementations of MessageEvents.
-    is FileMessageBuildIssueEvent -> FileMessageBuildIssueEvent(this, additionalDescription)
-    is MessageBuildIssueEvent -> MessageBuildIssueEvent(this, additionalDescription)
+    is FileMessageBuildIssueEvent -> if (duplicateMessageAware)
+      object : FileMessageBuildIssueEvent(this, additionalDescription),  DuplicateMessageAware {}
+      else FileMessageBuildIssueEvent(this, additionalDescription)
+    is MessageBuildIssueEvent -> if (duplicateMessageAware)
+      object : MessageBuildIssueEvent(this, additionalDescription),  DuplicateMessageAware {}
+      else MessageBuildIssueEvent(this, additionalDescription)
     is BuildIssueEventImpl -> this.copyWithQuickFix(additionalDescription)
-    is FileMessageEventImpl -> FileMessageBuildIssueEvent(this, additionalDescription)
-    is MessageEventImpl ->  MessageBuildIssueEvent(this, additionalDescription)
+    is FileMessageEventImpl -> if (duplicateMessageAware)
+      object : FileMessageBuildIssueEvent(this, additionalDescription),  DuplicateMessageAware {}
+      else FileMessageBuildIssueEvent(this, additionalDescription)
+    is MessageEventImpl ->  if (duplicateMessageAware)
+      object : MessageBuildIssueEvent(this, additionalDescription),  DuplicateMessageAware {}
+      else MessageBuildIssueEvent(this, additionalDescription)
     else -> this
   }
 }
