@@ -128,7 +128,7 @@ class DeclarativeDslParser(
     return arguments?.argumentList?.firstOrNull()?.let { literal ->
       val value = (literal.value as? DeclarativeLiteral)?.value
       if (value is String) {
-        createElement(description, context, literal)
+        createElement(description, context, literal.value)
       }
       else null
     }
