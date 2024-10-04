@@ -81,6 +81,77 @@ class BuildIssueEventWrappersTest {
   }
 
   @Test
+  fun testDoubleWrappedEventAddsQuickFixAndPreservesFileMessageEventImplFields() {
+    val originalEvent = FileMessageEventImpl(
+      "parentId",
+      MessageEvent.Kind.ERROR,
+      "title",
+      "message",
+      "detailed message",
+      FilePosition(File.createTempFile("someprefix", "some suffix"), 1, 1)
+    )
+    val openLinkQuickFix = OpenLinkQuickFix("https://docs.gradle.org")
+    val additionalDescription1 = BuildIssueDescriptionComposer().apply {
+      addDescription("Additional line")
+      newLine()
+      addQuickFix("Open docs", openLinkQuickFix)
+    }
+
+    val wrappedEvent = FileMessageBuildIssueEvent(FileMessageBuildIssueEvent(originalEvent, additionalDescription1), additionalDescription)
+
+    assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(2)
+    assertThat(wrappedEvent.issue.quickFixes[0]).isSameAs(openLinkQuickFix)
+    assertThat(wrappedEvent.issue.quickFixes[1]).isSameAs(buildIssueFix)
+    assertThat(wrappedEvent.result.filePosition).isEqualTo(originalEvent.result.filePosition)
+    assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
+                                                      + "\nAdditional line"
+                                                      + "\n<a href=\"open.more.details\">Open docs</a>"
+                                                      + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.filePosition).isEqualTo(originalEvent.filePosition)
+    assertThat(wrappedEvent.hint).isEqualTo(originalEvent.hint)
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
+                                                   + "\nAdditional line"
+                                                   + "\n<a href=\"open.more.details\">Open docs</a>"
+                                                   + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+  }
+
+  @Test
+  fun testDoubleWrappedEventAddsQuickFixAndPreservesMessageEventImplFields() {
+    val originalEvent = MessageEventImpl(
+      "parentId",
+      MessageEvent.Kind.ERROR,
+      "title",
+      "message",
+      "detailed message")
+
+    val openLinkQuickFix = OpenLinkQuickFix("https://docs.gradle.org")
+    val additionalDescription1 = BuildIssueDescriptionComposer().apply {
+      addDescription("Additional line")
+      newLine()
+      addQuickFix("Open docs", openLinkQuickFix)
+    }
+    val wrappedEvent = MessageBuildIssueEvent(MessageBuildIssueEvent(originalEvent, additionalDescription1), additionalDescription)
+
+    assertThat(wrappedEvent.issue.quickFixes.size).isEqualTo(2)
+    assertThat(wrappedEvent.issue.quickFixes[0]).isSameAs(openLinkQuickFix)
+    assertThat(wrappedEvent.issue.quickFixes[1]).isSameAs(buildIssueFix)
+    assertThat(wrappedEvent.kind).isEqualTo(originalEvent.kind)
+    assertThat(wrappedEvent.group).isEqualTo(originalEvent.group)
+    assertThat(wrappedEvent.result.kind).isEqualTo(originalEvent.result.kind)
+    assertThat(wrappedEvent.result.details).isEqualTo(originalEvent.result.details
+                                                      + "\nAdditional line"
+                                                      + "\n<a href=\"open.more.details\">Open docs</a>"
+                                                      + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+    assertThat(wrappedEvent.description).isEqualTo(originalEvent.description
+                                                   + "\nAdditional line"
+                                                   + "\n<a href=\"open.more.details\">Open docs</a>"
+                                                   + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+  }
+
+//TODO add tests for the case when details is null.
+//TODO add tests for the DuplicateMessageAware.
+  @Test
   fun testWrappedEventAddsQuickFixAndPreservesBuildIssueEventImplFields() {
     val originalEvent = BuildIssueEventImpl(
       "parentId",
