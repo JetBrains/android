@@ -25,23 +25,16 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.RunConfigurationProducerService;
-import com.intellij.execution.actions.LazyRunConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfiguration;
-import com.intellij.execution.junit.JUnitConfigurationProducer;
-import com.intellij.execution.testframework.AbstractPatternBasedConfigurationProducer;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
-import io.github.classgraph.ClassGraph;
-import java.lang.reflect.Modifier;
 import java.util.Collections;
-import java.util.Objects;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.NotNull;
@@ -150,33 +143,14 @@ public class AndroidGradleProjectStartupActivityTest {
     catch(InterruptedException ignored) { }
 
     Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
-    Set<ClassLoader> classLoaders = PluginManager.getLoadedPlugins().stream().map(PluginDescriptor::getClassLoader).collect(Collectors.toSet());
-    Class<JUnitConfigurationProducer> junitProducerClass = JUnitConfigurationProducer.class;
-    ClassGraph graph = new ClassGraph();
-    for (ClassLoader loader : classLoaders)
-    {
-      graph.addClassLoader(loader);
-    }
-    Set<String> jUnitProducersNames = graph.enableClassInfo()
-      .scan()
-      .getAllClasses()
-      .stream()
-      .map( n -> {
-        try {
-          return n.loadClass();
-        } catch (Throwable e) {
-          return null;
-        }
 
-      })
-      .filter(Objects::nonNull)
-      .filter(junitProducerClass::isAssignableFrom)
-      .filter(it -> !Modifier.isAbstract(it.getModifiers()))
-      .map(Class::getName)
-      .collect(Collectors.toSet());
+    List<String> allJUnitProducers =
+      RunConfigurationProducer.EP_NAME.getExtensionList().stream()
+        .filter(it ->it.getConfigurationType() == JUnitConfigurationType.getInstance())
+        .map(it -> it.getClass().getName()).toList();
 
-    // TODO(b/366168599): add all the other producers that do not inherit JUnitConfigurationProducer.
-    assertThat(ignoredProducersService).containsAllIn(jUnitProducersNames);
+
+    assertThat(ignoredProducersService).containsAllIn(allJUnitProducers);
   }
 
   @Test
