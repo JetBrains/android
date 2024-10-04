@@ -138,8 +138,18 @@ public class AndroidGradleProjectStartupActivityTest {
 
   @Test
   public void testJunitProducersAreIgnored() {
-    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio()) return;
 
+    when(myInfo.isBuildWithGradle()).thenReturn(true);
+    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
+    try {
+      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
+                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
+    }
+    catch(InterruptedException ignored) { }
+
+    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
     Set<ClassLoader> classLoaders = PluginManager.getLoadedPlugins().stream().map(PluginDescriptor::getClassLoader).collect(Collectors.toSet());
     Class<JUnitConfigurationProducer> junitProducerClass = JUnitConfigurationProducer.class;
     ClassGraph graph = new ClassGraph();

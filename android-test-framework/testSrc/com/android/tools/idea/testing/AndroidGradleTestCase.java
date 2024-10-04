@@ -20,6 +20,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivityKt.addJUnitProducersToIgnoredList;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.migratePackageAttribute;
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
@@ -35,6 +36,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivityKt;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -154,6 +156,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     AndroidTestCase.registerLongRunningThreads();
     if (createDefaultProject()) {
       setUpFixture();
+
+      // This is normally done from AndroidGradleProjectStartupActivity, but that is guarded by `isBuiltWithGradle`, and that
+      // gives the wrong answer (or rather, the right answer that will later turn out to have been wrong) for the default project.
+      addJUnitProducersToIgnoredList(getProject());
 
       // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
       // This is normally done within an AndroidStartupActivity but these are not run in tests.
