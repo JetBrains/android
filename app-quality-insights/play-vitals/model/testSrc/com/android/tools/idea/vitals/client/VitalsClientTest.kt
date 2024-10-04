@@ -72,7 +72,7 @@ import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
-import com.google.play.developer.reporting.DateTime
+import com.google.type.DateTime
 import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule

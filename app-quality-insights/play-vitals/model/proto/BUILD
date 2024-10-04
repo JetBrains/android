@@ -5,5 +5,6 @@ android_java_proto_library(
     srcs = glob(["**/*.proto"]),
     grpc_support = True,
     java_deps = ["@maven//:io.grpc.grpc-all"],
+    proto_deps = ["//tools/base/bazel:grpc-common-java_proto_srcs"],
     visibility = ["//visibility:public"],
 )
