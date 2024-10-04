@@ -143,6 +143,9 @@ suspend fun <T> runGrpcCatching(
       }
     } catch (exception: TimeoutCancellationException) {
       LoadingState.NetworkFailure(exception.message, exception)
+    } catch (exception: Exception) {
+      log().warn("Got exception: ${exception.message}")
+      LoadingState.UnknownFailure(exception.message, exception)
     }
   }
 
