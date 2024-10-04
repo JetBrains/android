@@ -45,8 +45,7 @@ class EventsChangedTest {
   }
 
   @Test
-  fun `loading new page of events appends to previous list of events and advanced index`() {
-    LoadingState.Ready(EventPage(listOf(Event("event1")), ""))
+  fun `loading new page of events appends to previous list of events`() {
     val currentState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -60,7 +59,7 @@ class EventsChangedTest {
       event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(
-        LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 1, ""))
+        LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 0, ""))
       )
     assertThat(transition.action).isEqualTo(Action.NONE)
   }

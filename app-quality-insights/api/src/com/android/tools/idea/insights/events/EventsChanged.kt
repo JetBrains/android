@@ -50,7 +50,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
                       )
                     DynamicEventGallery(newEvents.events, 0, newEvents.token)
                   } else {
-                    currentEvents.appendEventPage(newEvents).next()
+                    currentEvents.appendEventPage(newEvents)
                   }
                 }
               } else {
