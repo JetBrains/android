@@ -1121,12 +1121,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty(android.defaultConfig().applicationId())
     checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
-    buildModel.reparse()
-    android = buildModel.android()
-    assertNotNull(android)
+    if (!isGradleDeclarative) { // to create android element for declarative, we need to know whether it's app or library
+      buildModel.reparse()
+      android = buildModel.android()
+      assertNotNull(android)
 
-    assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+      assertMissingProperty(android.defaultConfig().applicationId())
+      checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    }
   }
 
   @Test
@@ -1263,6 +1265,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyBlockApplicationStatements() {
+    isIrrelevantForDeclarative("Grammar is not supported in declarative")
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
