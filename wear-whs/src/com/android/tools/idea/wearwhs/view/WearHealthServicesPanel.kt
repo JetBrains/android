@@ -471,19 +471,9 @@ internal fun createWearHealthServicesPanel(
 
   stateManager.status
     .onEach {
-      when (it) {
-        is WhsStateManagerStatus.Syncing ->
+      if (it is WhsStateManagerStatus.Syncing) {
           informationFlow.value =
             PanelInformation.Message(message("wear.whs.panel.capabilities.syncing"))
-        is WhsStateManagerStatus.ConnectionLost ->
-          informationFlow.value =
-            PanelInformation.Message(message("wear.whs.panel.connection.lost"))
-        is WhsStateManagerStatus.Idle ->
-          if (informationFlow.value.message == message("wear.whs.panel.connection.lost")) {
-            // the connection is restored
-            informationFlow.value = PanelInformation.EmptyMessage
-          }
-        else -> {}
       }
     }
     .launchIn(uiScope)
