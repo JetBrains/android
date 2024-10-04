@@ -178,4 +178,22 @@ public class AndroidGradleProjectStartupActivityTest {
     // TODO(b/366168599): add all the other producers that do not inherit JUnitConfigurationProducer.
     assertThat(ignoredProducersService).containsAllIn(jUnitProducersNames);
   }
+
+  @Test
+  public void testJunitProducersAreNotIgnoredInNonGradleProjects() {
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio()) return;
+
+    when(myInfo.isBuildWithGradle()).thenReturn(false);
+    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
+    Set<String> ignoredProducers = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
+    assertThat(ignoredProducers).isEmpty(); // arguably this test is too strong, but it works.
+    try {
+      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
+                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
+    }
+    catch (InterruptedException ignored) {
+    }
+    assertThat(RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers).isEmpty();
+  }
 }
