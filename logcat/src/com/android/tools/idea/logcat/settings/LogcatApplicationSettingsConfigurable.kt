@@ -157,7 +157,7 @@ internal class LogcatApplicationSettingsConfigurable(
             MAX_BUFFER_SIZE_KB.toString(),
             MAX_BUFFER_SIZE_MB.toString(),
           )
-        value > FileSizeLimit.getContentLoadLimit() / 1024 ->
+        value > FileSizeLimit.getDefaultContentLoadLimit() / 1024 ->
           LogcatBundle.message("logcat.settings.buffer.warning.tooLarge")
         else -> ""
       }

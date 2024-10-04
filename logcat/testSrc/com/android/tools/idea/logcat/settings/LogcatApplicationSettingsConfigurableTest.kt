@@ -88,7 +88,7 @@ class LogcatApplicationSettingsConfigurableTest {
   fun bufferSize_large() {
     val configurable = logcatApplicationSettingsConfigurable()
 
-    configurable.cycleBufferSizeTextField.text = (FileSizeLimit.getContentLoadLimit() / 1024 + 1).toString()
+    configurable.cycleBufferSizeTextField.text = (FileSizeLimit.getDefaultContentLoadLimit() / 1024 + 1).toString()
 
     assertThat(configurable.isModified).isTrue()
     assertThat(configurable.cyclicBufferSizeWarningLabel.text)
