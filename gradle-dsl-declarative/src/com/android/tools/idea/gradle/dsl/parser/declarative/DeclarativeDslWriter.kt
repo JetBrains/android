@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -53,7 +53,8 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       return null // Avoid creation of an empty block statement.
     }
 
-    val psiElementOfParent = element.parent?.create() ?: return null
+    val parent = element.parent ?: return null
+    val psiElementOfParent = parent.create() ?: return null
     val parentPsiElement = when (psiElementOfParent) {
       is DeclarativeBlock -> psiElementOfParent.blockGroup
       else -> psiElementOfParent
@@ -62,15 +63,15 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val project = parentPsiElement.project
     val factory = DeclarativePsiFactory(project)
     val name = getNameTrimmedForParent(element)
-
+    val externalNameInfo = maybeTrimForParent(element, this)
     val psiElement = when (element) {
       is GradleDslLiteral ->
         if (parentPsiElement is DeclarativeArgumentsList)
           factory.createArgument(factory.createLiteral(element.value))
-        else if (element.externalSyntax == ASSIGNMENT)
-          factory.createAssignment(name, "\"placeholder\"")
-        else
+        else if (externalNameInfo.syntax == METHOD)
           factory.createOneParameterFactory(name, "\"placeholder\"")
+        else // default syntax
+          factory.createAssignment(name, "\"placeholder\"")
       is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
       is GradleDslElementList, is GradleDslBlockElement, is GradleDslNamedDomainContainer -> factory.createBlock(name)
       is GradleDslMethodCall -> {
