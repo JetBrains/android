@@ -359,10 +359,12 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   public void testAddAndApplyDependencyResolutionManagement() throws IOException {
     writeToSettingsFile(TestFile.ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
-    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
 
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    dependencyResolutionManagementModel.repositoriesMode().setRepositoriesMode("FAIL_ON_PROJECT_REPOS");
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
     repositoriesModel.addGoogleMavenRepository();
+
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
   }
@@ -374,10 +376,24 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
     RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
 
+    assertEquals("FAIL_ON_PROJECT_REPOS", dependencyResolutionManagementModel.repositoriesMode().getRepositoriesMode());
+    dependencyResolutionManagementModel.repositoriesMode().setRepositoriesMode("PREFER_SETTINGS");
+
     repositoriesModel.removeRepository(repositoriesModel.repositories().get(0));
     repositoriesModel.addGoogleMavenRepository();
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
+  }
+
+  @Test
+  public void testRemoveAndApplyRepositoriesModeFromDependencyResolutionManagement() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    dependencyResolutionManagementModel.repositoriesMode().delete();
+    applyChanges(settingsModel);
+
+    verifyFileContents(mySettingsFile, TestFile.REMOVE_AND_APPLY_REPOSITORIES_MODE_FROM_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED);
   }
 
   @Test
@@ -670,6 +686,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("addAndApplyDependencyResolutionManagementExpected"),
     EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("editAndApplyDependencyResolutionManagement"),
     EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("editAndApplyDependencyResolutionManagementExpected"),
+    REMOVE_AND_APPLY_REPOSITORIES_MODE_FROM_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("removeAndApplyRepositoriesModeFromDependencyResolutionManagementExpected"),
     PARSE_PLUGIN_MANAGEMENT("parsePluginManagement"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT("addAndApplyPluginManagement"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("addAndApplyPluginManagementExpected"),
