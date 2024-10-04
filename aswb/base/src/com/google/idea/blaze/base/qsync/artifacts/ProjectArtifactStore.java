@@ -19,6 +19,7 @@ package com.google.idea.blaze.base.qsync.artifacts;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.idea.blaze.base.qsync.BazelDependencyBuilder;
 import com.google.idea.blaze.base.qsync.FileRefresher;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
@@ -97,7 +98,7 @@ public class ProjectArtifactStore {
       Path root = projectDir.resolve(entry.getKey());
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
-              artifactCache, workspacePath, root, entry.getValue(), sourcesStripper);
+            artifactCache, workspacePath, root, entry.getValue(), sourcesStripper, BazelDependencyBuilder.buildGeneratedSrcJars::getValue);
       try {
         dirUpdate.update();
       } catch (IOException e) {

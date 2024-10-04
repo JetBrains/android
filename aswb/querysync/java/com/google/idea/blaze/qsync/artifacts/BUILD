@@ -8,7 +8,6 @@ java_library(
     deps = [
         ":build_artifact_java_proto",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
-        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/shared",

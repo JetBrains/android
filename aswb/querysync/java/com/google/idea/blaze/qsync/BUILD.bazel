@@ -7,7 +7,6 @@ java_library(
     ],
     deps = [
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
-        "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",

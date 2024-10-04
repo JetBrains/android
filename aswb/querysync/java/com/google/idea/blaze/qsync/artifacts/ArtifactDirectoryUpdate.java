@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.artifacts;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -29,7 +30,6 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.query.PackageSet;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.google.protobuf.ExtensionRegistryLite;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,28 +54,38 @@ import javax.annotation.Nullable;
  */
 public class ArtifactDirectoryUpdate {
 
-  public static final BoolExperiment buildGeneratedSrcJars =
-    new BoolExperiment("qsync.build.generated.src.jars", false);
-
   private final BuildArtifactCache artifactCache;
   private final Path workspaceRoot;
   private final Path root;
   private final ArtifactDirectoryContents contents;
   private final Set<Path> updatedPaths;
   private final FileTransform stripGeneratedSourcesTransform;
+  private final Supplier<Boolean> buildGeneratedSrcJars;
 
   public ArtifactDirectoryUpdate(
       BuildArtifactCache artifactCache,
       Path workspaceRoot,
       Path root,
       ArtifactDirectoryContents contents,
-      FileTransform stripGeneratedSourcesTransform) {
+      FileTransform stripGeneratedSourcesTransform,
+      Supplier<Boolean> buildGeneratedSrcJars) {
     this.artifactCache = artifactCache;
     this.workspaceRoot = workspaceRoot;
     this.root = root;
     this.contents = contents;
     updatedPaths = Sets.newHashSet();
     this.stripGeneratedSourcesTransform = stripGeneratedSourcesTransform;
+    this.buildGeneratedSrcJars = buildGeneratedSrcJars;
+  }
+
+  public ArtifactDirectoryUpdate(
+    BuildArtifactCache artifactCache,
+    Path workspaceRoot,
+    Path root,
+    ArtifactDirectoryContents contents,
+    FileTransform stripGeneratedSourcesTransform,
+    Boolean buildGeneratedSrcJarsVal) {
+    this(artifactCache, workspaceRoot, root, contents, stripGeneratedSourcesTransform, () -> buildGeneratedSrcJarsVal);
   }
 
   public void update() throws IOException {
@@ -188,7 +198,7 @@ public class ArtifactDirectoryUpdate {
           updatedPaths.addAll(FileTransform.UNZIP.copyWithTransform(src, dest));
           break;
         case STRIP_SUPPORTED_GENERATED_SOURCES:
-          if (buildGeneratedSrcJars.getValue()) {
+          if (buildGeneratedSrcJars.get()) {
             updatedPaths.addAll(stripGeneratedSourcesTransform.copyWithTransform(src, dest));
           } else {
             updatedPaths.addAll(FileTransform.COPY.copyWithTransform(src, dest));
