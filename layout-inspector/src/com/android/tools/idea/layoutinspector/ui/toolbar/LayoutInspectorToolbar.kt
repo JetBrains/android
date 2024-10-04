@@ -70,7 +70,7 @@ fun createEmbeddedLayoutInspectorToolbar(
       selectProcessAction,
       extraActions,
     )
-  actionToolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+  actionToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY)
   actionToolbar.setReservePlaceAutoPopupIcon(false)
   actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
 
