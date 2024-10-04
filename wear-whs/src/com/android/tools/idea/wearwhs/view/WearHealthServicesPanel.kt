@@ -107,6 +107,7 @@ private fun createCenterPanel(
           JPanel(FlowLayout()).apply {
             add(
               JLabel(message("wear.whs.panel.override")).apply {
+                isVisible = stateManager.ongoingExercise.value == true
                 elementsToDisplayDuringExercise.add(this)
                 font = font.deriveFont(Font.BOLD)
               }
@@ -166,6 +167,7 @@ private fun createCenterPanel(
           add(label, BorderLayout.CENTER)
           add(
             JPanel(FlowLayout()).apply {
+              isVisible = stateManager.ongoingExercise.value == true
               elementsToDisplayDuringExercise.add(this)
               add(
                 JTextField().also { textField ->
