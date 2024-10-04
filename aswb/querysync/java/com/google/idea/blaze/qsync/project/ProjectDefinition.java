@@ -100,7 +100,8 @@ public abstract class ProjectDefinition {
    */
   private static boolean isValidPathForQuery(Context<?> context, Path candidate)
       throws IOException {
-    if (Files.exists(candidate.resolve("BUILD"))) {
+    if (Files.exists(candidate.resolve("BUILD")) ||
+            Files.exists(candidate.resolve("BUILD.bazel"))) {
       return true;
     }
     if (!Files.isDirectory(candidate)) {

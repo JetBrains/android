@@ -27,6 +27,7 @@ public final class RuleKinds {
           "java_library",
           "java_binary",
           "kt_jvm_library",
+          "kt_jvm_binary",
           "kt_jvm_library_helper",
           "java_test",
           "java_proto_library",
