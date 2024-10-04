@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.google.common.base.CharMatcher
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -22,6 +23,7 @@ import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.childrenOfType
+import org.apache.commons.lang.StringUtils
 
 class PsiImplUtil {
   companion object {
@@ -47,8 +49,11 @@ class PsiImplUtil {
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
     @JvmStatic
-    fun getName(property: DeclarativeIdentifier): String? {
-      return StringUtil.unescapeStringCharacters(property.text)
+    fun getName(property: DeclarativeIdentifier): String {
+      var text = property.text
+      if(text.startsWith("`") && text.endsWith("`"))
+        text = text.drop(1).dropLast(1)
+      return StringUtil.unescapeStringCharacters(text)
     }
 
     @JvmStatic
