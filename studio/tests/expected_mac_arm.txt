@@ -2779,7 +2779,7 @@ Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.so.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-cloudbilling-v1-rev20240119-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-monitoring-v3-rev20230806-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20240213-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/libadb_proxy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/libftl_client_java_proto.jar
@@ -2788,7 +2788,7 @@ Android Studio Preview.app/Contents/plugins/editorconfig/lib/editorconfig.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/firebase-testing.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/gmd-code-completion.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-testing-v1-rev20240213-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-testing-v1-rev20240917-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
