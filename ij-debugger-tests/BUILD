@@ -45,6 +45,24 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOut#"],
 )
 
+# 11 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-step-over",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_over.txt",
+    test_include_filter = [
+        "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Coroutines#",
+        "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.SteppingThroughInlineLambdas#",
+    ],
+)
+
+# 114 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-step-over-uncategorized",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_over_uncategorized.txt",
+    shard_count = 10,
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Uncategorized#"],
+)
+
 maven_repository(
     name = "test_repo",
     # keep sorted: for buildifier
