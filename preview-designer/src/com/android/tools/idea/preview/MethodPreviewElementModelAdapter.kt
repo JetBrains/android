@@ -45,10 +45,12 @@ abstract class MethodPreviewElementModelAdapter<T : MethodPreviewElement<*>, M :
     }
   }
 
-  override fun modelToElement(model: M): T? =
-    if (!Disposer.isDisposed(model)) {
+  override fun modelToElement(model: M): T? {
+    return if (!Disposer.isDisposed(model)) {
       model.dataContext.getData(elementKey)
-    } else null
+    }
+    else null
+  }
 
   /**
    * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
