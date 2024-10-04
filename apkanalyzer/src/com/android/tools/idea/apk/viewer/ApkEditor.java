@@ -30,7 +30,6 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,11 +47,11 @@ import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.limits.FileSizeLimit;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.ui.JBSplitter;
@@ -416,7 +415,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (archive.isBaselineProfile(p, content)) {
-      String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileUtilRt.LARGE_FOR_CONTENT_LOADING);
+      String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileSizeLimit.getContentLoadLimit(myBaseFile.getExtension()));
       if (text != null) {
         return ApkVirtualFile.createText(p, text);
       }

@@ -20,7 +20,7 @@ import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.util.io.FileUtilRt.LARGE_FOR_CONTENT_LOADING
+import com.intellij.openapi.vfs.limits.FileSizeLimit
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.JBColor
@@ -157,7 +157,7 @@ internal class LogcatApplicationSettingsConfigurable(
             MAX_BUFFER_SIZE_KB.toString(),
             MAX_BUFFER_SIZE_MB.toString(),
           )
-        value > LARGE_FOR_CONTENT_LOADING / 1024 ->
+        value > FileSizeLimit.getContentLoadLimit() / 1024 ->
           LogcatBundle.message("logcat.settings.buffer.warning.tooLarge")
         else -> ""
       }
