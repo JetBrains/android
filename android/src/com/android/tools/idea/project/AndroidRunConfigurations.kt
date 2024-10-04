@@ -81,7 +81,7 @@ class AndroidRunConfigurations {
     val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
     for (configuration in configurations) {
       if (configuration is AndroidRunConfiguration && configuration.configurationModule.module == module) {
-        LOG.debug { "There is already a run configuration for module $module" }
+        LOG.debug { "There is already a run configuration for module $module: $configuration" }
         return
       }
     }
