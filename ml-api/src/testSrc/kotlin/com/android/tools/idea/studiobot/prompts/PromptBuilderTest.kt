@@ -87,7 +87,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
       buildPrompt(project) {
         userMessage {
           text("What is in this image?", emptyList())
-          blob(data, MimeType.JPEG, emptyList())
+          blob(data, MimeType.JPEG, emptyList(), emptyMap())
         }
       }
     assertThat(prompt.messages.size).isEqualTo(1)

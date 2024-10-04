@@ -136,8 +136,15 @@ interface PromptBuilder {
      *
      * @param mimeType The type of the data.
      * @param data The raw data bytes.
+     * @param filesUsed The files used as implicit context. Can be empty.
+     * @param extraData A map containing extra data used to build the underlying chunk. Can be empty
      */
-    fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>)
+    fun blob(
+      data: ByteArray,
+      mimeType: MimeType,
+      filesUsed: Collection<VirtualFile>,
+      extraData: Map<String, Any>,
+    )
   }
 
   interface ContextBuilder : MessageBuilder {
