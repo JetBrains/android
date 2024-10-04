@@ -22,6 +22,7 @@ import com.android.flags.FlagGroup;
 import com.android.flags.FlagOverrides;
 import com.android.flags.ImmutableFlagOverrides;
 import com.android.flags.overrides.DefaultFlagOverrides;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -39,12 +40,14 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeCoreBundle;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.DocumentAdapter;
@@ -56,19 +59,21 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -179,8 +184,12 @@ public final class StudioFlagsDialog extends DialogWrapper {
     myContentPanel.removeAll();
     myContentPanel.setLayout(getFlagsPanelDefaultLayout());
 
+    boolean isAndroidStudio = IdeInfo.getInstance().isAndroidStudio();
     // Add flags components (by group)
     myGroupedFlags.asMap().entrySet().stream()
+      .filter(flag -> {
+        return isAndroidStudio || shouldBeIncludedInIDEA(flag);
+      })
       .sorted(Comparator.comparing(entry -> entry.getKey().getDisplayName()))
       .forEach(entry -> {
         FlagGroup group = entry.getKey();
@@ -201,13 +210,13 @@ public final class StudioFlagsDialog extends DialogWrapper {
             flagPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
           }
 
-          JBLabel name = new JBLabel(flag.getDisplayName());
+          JBLabel name = new JBLabel(normalizeFlagText(flag.getDisplayName()));
           name.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
           JBLabel id = new JBLabel("(" + flag.getId() + ")");
           id.setFont(EditorUtil.getEditorFont());
 
-          JTextArea description = new JTextArea(flag.getDescription());
+          JTextArea description = new JTextArea(normalizeFlagText(flag.getDescription()));
           description.setFont(StartupUiUtil.getLabelFont());
           description.setLineWrap(true);
           description.setWrapStyleWord(true);
@@ -262,6 +271,21 @@ public final class StudioFlagsDialog extends DialogWrapper {
       myContentPanel.setLayout(new BorderLayout());
       myContentPanel.add(label, BorderLayout.CENTER);
     }
+  }
+
+  private static boolean shouldBeIncludedInIDEA(Map.Entry<FlagGroup, Collection<Flag<?>>> flag) {
+    String flagName = flag.getKey().getDisplayName();
+    List<String> flagGroupsToExclude = List.of("App Insights", "Cloud Integration", "Firebase Test Lab", "Gemini", "Google Login");
+
+    return !ContainerUtil.exists(flagGroupsToExclude, flagName::contains);
+  }
+
+  @SuppressWarnings("HardCodedStringLiteral")
+  private @NotNull @NlsContexts.Label String normalizeFlagText(@NlsContexts.Label String flagText) {
+    if (IdeInfo.getInstance().isAndroidStudio()) return flagText;
+
+    String productName = ApplicationNamesInfo.getInstance().getFullProductName();
+    return flagText.replace("Android Studio", productName).replace("Studio", productName);
   }
 
   private static boolean showFlag(@NotNull Flag<?> flag, @Nullable String searchText) {
