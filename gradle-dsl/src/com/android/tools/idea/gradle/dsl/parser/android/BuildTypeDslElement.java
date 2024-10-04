@@ -173,6 +173,10 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     this.methodName = methodName;
   }
 
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return BUILD_TYPE.namedObjectAssociatedName; }
+
   @Nullable
   @Override
   public String getMethodName() {

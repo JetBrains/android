@@ -33,6 +33,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
@@ -69,8 +71,8 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
           factory.createAssignment(name, "\"placeholder\"")
         else
           factory.createOneParameterFactory(name, "\"placeholder\"")
-
-      is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
+      is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
+      is GradleDslElementList, is GradleDslBlockElement, is GradleDslNamedDomainContainer -> factory.createBlock(name)
       is GradleDslMethodCall -> {
         val function = if (element.isDoubleFunction()) {
           val internal = factory.createFactory(element.methodName)

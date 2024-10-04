@@ -89,4 +89,8 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
   public String getMethodName() {
     return methodName;
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return PRODUCT_FLAVOR.namedObjectAssociatedName; }
 }
