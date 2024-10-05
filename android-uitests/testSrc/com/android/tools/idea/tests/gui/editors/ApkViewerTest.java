@@ -84,7 +84,8 @@ public class ApkViewerTest {
     // Open source code and make some changes, then trigger a build.
     // Build should be successful.
     editor
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java");
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+        .waitForFileToActivate();
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     editor.moveBetween("super.onCreate(savedInstanceState);", "")
