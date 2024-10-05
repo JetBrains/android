@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.Splitter;
 import java.awt.Component;
 import java.awt.Container;
+import java.io.File;
 import java.nio.file.Path;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,8 +45,7 @@ public class ApkViewerFixture extends EditorFixture {
   }
 
   private static final JTreeCellReader TREE_NODE_CELL_READER =
-    (tree, modelValue) -> method("getPath").withReturnType(Path.class).in(((DefaultMutableTreeNode)modelValue).getUserObject()).invoke()
-      .getFileName().toString();
+    (tree, modelValue) -> method("getPath").withReturnType(Path.class).in(((DefaultMutableTreeNode)modelValue).getUserObject()).invoke().toString();
 
   @NotNull
   public ImmutableList<String> getApkEntries() {
@@ -54,7 +54,7 @@ public class ApkViewerFixture extends EditorFixture {
     JTreeFixture treeFixture = new JTreeFixture(robot, tree);
     treeFixture.replaceCellReader(TREE_NODE_CELL_READER);
     for (int i = 0; i < tree.getRowCount(); i++) {
-      builder.add(treeFixture.valueAt(i));
+      builder.add(treeFixture.valueAt(i).replaceAll(File.separator, ""));
     }
     return builder.build();
   }
@@ -64,7 +64,7 @@ public class ApkViewerFixture extends EditorFixture {
     JTreeFixture treeFixture = new JTreeFixture(robot, tree);
     treeFixture.replaceCellReader(TREE_NODE_CELL_READER);
     for (int i = 0; i < tree.getRowCount(); i++) {
-      if (treeFixture.valueAt(i).equals(entryName)) {
+      if (treeFixture.valueAt(i).replaceAll(File.separator, "").equals(entryName)) {
         treeFixture.clickRow(i);
       }
     }
