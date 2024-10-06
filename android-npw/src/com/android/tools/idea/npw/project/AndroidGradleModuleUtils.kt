@@ -48,12 +48,9 @@ fun NamedModuleTemplate.getSourceProvider() = SourceProviderAdapter(name, paths)
  * If the file is not contained by any project then return null
  */
 fun getContainingModule(file: File?, project: Project): Module? {
-  if (project.isDisposed) return null
-  val vFile = VfsUtil.findFileByIoFile(file!!, false)
-  return if (vFile == null || vFile.isDirectory)
-    null
-  else
-    ProjectFileIndex.getInstance(project).getModuleForFile(vFile, false)
+  if (project.isDisposed || file == null) return null
+  val vFile = VfsUtil.findFileByIoFile(file, false) ?: return null
+  return if (vFile.isDirectory) null else ProjectFileIndex.getInstance(project).getModuleForFile(vFile, false)
 }
 
 /**
