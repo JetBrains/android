@@ -30,10 +30,13 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiFileRange
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtImportList
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtScript
@@ -188,6 +191,8 @@ internal class CodeMerger(private val project: Project) {
           codeStyleManager.reformatRange(psiFile, range.startOffset, range.endOffset)
         }
       }
+
+      addImportsFromBlock(block, psiFile)
     }
     return document
   }
@@ -209,18 +214,25 @@ internal fun appendBlock(
     documentManager.getDocument(psiFile)
       ?: throw RuntimeException("No document associated with ${psiFile.name}")
 
-  val documentToModify =
-    if (inline) originalDocument
+  val (documentFile, documentToModify) =
+    if (inline) psiFile to originalDocument
     else {
-      val copiedDocument =
+      val copiedDocumentFile =
         PsiFileFactory.getInstance(project)
           .createFileFromText(psiFile.language, originalDocument.text)
-      PsiDocumentManager.getInstance(project).getDocument(copiedDocument)!!
+      copiedDocumentFile to
+        PsiDocumentManager.getInstance(project).getDocument(copiedDocumentFile)!!
     }
 
   WriteCommandAction.runWriteCommandAction(project) {
-    documentToModify.insertString(documentToModify.textLength, kotlinCodeBlock.text)
+    kotlinCodeBlock.fragments
+      .filter { it.type != KotlinCodeFragmentType.IMPORTS }
+      // We don't want to append the imports at the end of the document. We will add them to the
+      // import list afterward
+      .forEach { documentToModify.insertString(documentToModify.textLength, it.text) }
     documentManager.commitDocument(documentToModify)
+
+    addImportsFromBlock(kotlinCodeBlock, documentFile)
   }
 
   return documentToModify
@@ -292,4 +304,15 @@ private fun KtDeclaration.getSignature(): String {
     return "$nested$name$args"
   }
   return "$nested$name"
+}
+
+private fun addImportsFromBlock(block: KotlinCodeBlock, userFile: PsiFile) {
+  val ktFile = userFile as? KtFile ?: error("Expected file to be of type KtFile")
+  val blockImportFqns =
+    block.fragments
+      .filter { it.type == KotlinCodeFragmentType.IMPORTS }
+      .flatMap { (it.getPsi(userFile) as? KtImportList)?.imports ?: emptyList() }
+      .mapNotNull { it.importedFqName }
+
+  blockImportFqns.forEach { ktFile.addImport(it) }
 }
