@@ -88,7 +88,6 @@ class WearHealthServicesPanelTest {
 
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
-  private lateinit var whsPanel: WearHealthServicesPanel
   private lateinit var fakePopup: FakeActionPopupMenu
   private lateinit var uiScope: CoroutineScope
   private lateinit var workerScope: CoroutineScope
@@ -110,7 +109,6 @@ class WearHealthServicesPanelTest {
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
-    whsPanel = createWhsPanel()
 
     ApplicationManager.getApplication()
       .replaceService(
@@ -128,7 +126,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     deviceManager.setCapabilities(
       mapOf(
@@ -169,7 +167,7 @@ class WearHealthServicesPanelTest {
       stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
       stateManager.applyChanges()
 
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
 
       fakeUi.waitForCheckbox("Heart rate", true)
       fakeUi.waitForCheckbox("Location", false)
@@ -188,7 +186,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test override value doesn't get reformatted from int to float`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     deviceManager.activeExercise = true
 
@@ -204,7 +202,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test override value allows numbers and decimals and rejects invalid text`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     deviceManager.activeExercise = true
 
@@ -265,7 +263,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test panel displays a popup for event triggers`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
     val eventsButton = fakeUi.triggerEventsButton()
     assertThat(eventsButton).isNotNull()
 
@@ -287,7 +285,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `test panel disables checkboxes and load preset button during an exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
 
       fakeUi.waitForDescendant<JButton> {
         it.text == message("wear.whs.panel.load.preset") && it.isEnabled
@@ -342,7 +340,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `test enabled sensors have enabled override value fields and units during exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
 
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
@@ -360,7 +358,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `test disabled sensors have disabled override value fields and units during exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
 
       val heartRateCapability = WHS_CAPABILITIES[0]
       stateManager.setCapabilityEnabled(heartRateCapability, false)
@@ -379,7 +377,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `test information label shows in panel`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     informationLabelFlow.value = "some information label"
 
@@ -421,7 +419,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `stale data is shown as a warning icon`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
+    val fakeUi = FakeUi(createWhsPanel().component, createFakeWindow = false)
 
     val label =
       fakeUi.waitForDescendant<JLabel> {
@@ -445,7 +443,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `the apply button has tooltip texts`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     deviceManager.activeExercise = false
     val applyButton =
@@ -462,7 +460,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `the apply button has the label 'Reapply' when there no pending user changes and 'Apply' when there are`():
     Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     val applyButton =
       fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
@@ -479,7 +477,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `while ongoing exercise location has note explaining that it cannot be overridden`(): Unit =
     runBlocking {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
       deviceManager.activeExercise = true
       stateManager.forceUpdateState()
 
@@ -521,7 +519,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `has learn more link`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     val learnMoreLink =
       fakeUi.waitForDescendant<ActionLink> { it.text == message("wear.whs.panel.learn.more") }
@@ -588,7 +586,7 @@ class WearHealthServicesPanelTest {
   @Suppress("UnstableApiUsage")
   fun `override text fields handle backspaces and clears overrides when empty`(): Unit =
     runBlocking {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
 
@@ -631,7 +629,7 @@ class WearHealthServicesPanelTest {
 
   @Test
   fun `when an exercise is started pending capability changes are hidden`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel.component)
+    val fakeUi = FakeUi(createWhsPanel().component)
 
     val heartRateCapability = WHS_CAPABILITIES[0]
     stateManager.setCapabilityEnabled(heartRateCapability, false)
@@ -648,7 +646,7 @@ class WearHealthServicesPanelTest {
   @Test
   fun `when an exercise is stopped pending user override changes are not shown`(): Unit =
     runBlocking {
-      val fakeUi = FakeUi(whsPanel.component)
+      val fakeUi = FakeUi(createWhsPanel().component)
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
 
@@ -669,18 +667,28 @@ class WearHealthServicesPanelTest {
   private fun JCheckBox.hasLabel(text: String) =
     parent.findDescendant<JLabel> { it.text == text } != null
 
+  private var whsPanelCreated = false
+
   private fun createWhsPanel(
     reset: () -> Unit = {},
     applyChanges: () -> Unit = {},
     triggerEvent: (EventTrigger) -> Unit = {},
-  ) =
-    createWearHealthServicesPanel(
-      stateManager = stateManager,
-      uiScope = uiScope,
-      workerScope = workerScope,
-      informationLabelFlow = informationLabelFlow,
-      reset = { reset() },
-      applyChanges = { applyChanges() },
-      triggerEvent = { triggerEvent(it) },
-    )
+  ): WearHealthServicesPanel {
+    if (whsPanelCreated) {
+      throw IllegalStateException(
+        "The WHS Panel should only be created once per test. " +
+          "This is because the coroutines will end up interfering with each other if there are more than one panel at a time."
+      )
+    }
+    return createWearHealthServicesPanel(
+        stateManager = stateManager,
+        uiScope = uiScope,
+        workerScope = workerScope,
+        informationLabelFlow = informationLabelFlow,
+        reset = { reset() },
+        applyChanges = { applyChanges() },
+        triggerEvent = { triggerEvent(it) },
+      )
+      .also { whsPanelCreated = true }
+  }
 }
