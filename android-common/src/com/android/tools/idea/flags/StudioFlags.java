@@ -37,7 +37,6 @@ import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -736,7 +735,7 @@ public final class StudioFlags {
     "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
     "in the new project templates and for determining which versions of AGP are available for the upgrade assistant.\n" +
     "Note: repositories set in gradle.ide.development.offline.repo.location are always respected, even if this flag is disabled.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<String> DEVELOPMENT_OFFLINE_REPO_LOCATION = new StringFlag(
     GRADLE_IDE, "development.offline.repo.location", "Development offline repository location",
@@ -957,7 +956,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
     "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
