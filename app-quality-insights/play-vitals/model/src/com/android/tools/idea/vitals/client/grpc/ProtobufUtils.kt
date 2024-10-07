@@ -17,9 +17,9 @@ package com.android.tools.idea.vitals.client.grpc
 
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
-import com.google.play.developer.reporting.DateTime
 import com.google.play.developer.reporting.DateTimeInterval
-import com.google.play.developer.reporting.TimeZone
+import com.google.type.DateTime
+import com.google.type.TimeZone
 import java.time.Instant
 import java.time.ZoneId
 

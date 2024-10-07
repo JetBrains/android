@@ -48,9 +48,9 @@ import com.google.play.developer.reporting.ReportingServiceGrpc
 import com.google.play.developer.reporting.SearchAccessibleAppsRequest
 import com.google.play.developer.reporting.SearchErrorIssuesRequest
 import com.google.play.developer.reporting.SearchErrorReportsRequest
-import com.google.play.developer.reporting.TimeZone
 import com.google.play.developer.reporting.TimelineSpec
 import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
+import com.google.type.TimeZone
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
