@@ -24,7 +24,6 @@ import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.RenderProblem
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
@@ -59,8 +58,6 @@ interface EnvironmentContext {
   ): RenderSecurityManager
 
   fun getOriginalFile(psiFile: PsiFile): PsiFile
-
-  fun getModuleClassLoaderManager(): ModuleClassLoaderManager<*>
 
   fun getCrashReporter(): CrashReporter
 

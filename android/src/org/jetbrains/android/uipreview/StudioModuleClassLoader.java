@@ -28,7 +28,6 @@ import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
@@ -176,7 +175,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   private final ClassLoader myParentAtConstruction;
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+  StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull StudioModuleRenderContext renderContext,
                           @NotNull ClassTransform projectTransformations,
                           @NotNull ClassTransform nonProjectTransformations,
                           @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
@@ -186,7 +185,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   }
 
   private StudioModuleClassLoader(@Nullable ClassLoader parent,
-                                  @NotNull ModuleRenderContext renderContext,
+                                  @NotNull StudioModuleRenderContext renderContext,
                                   @NotNull ModuleClassLoaderImpl loader,
                                   @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(
@@ -217,7 +216,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return getProjectLoadedClasses().contains(fqcn) || getNonProjectLoadedClasses().contains(fqcn);
   }
 
-  private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+  private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull StudioModuleRenderContext renderContext,
                                   @NotNull ClassTransform projectTransformations,
                                   @NotNull ClassTransform nonProjectTransformations,
                                   @NotNull ClassBinaryCache cache,
@@ -334,7 +333,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   }
 
   @Nullable
-  public ModuleRenderContext getModuleContext() {
+  public StudioModuleRenderContext getModuleContext() {
     Module module = getModule();
     return module == null ? null : StudioModuleRenderContext.forFile(module, myPsiFileProvider);
   }
@@ -377,7 +376,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
 
   @Nullable
   StudioModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    ModuleRenderContext renderContext = getModuleContext();
+    StudioModuleRenderContext renderContext = getModuleContext();
     if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
     return new StudioModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
                                        diagnostics);

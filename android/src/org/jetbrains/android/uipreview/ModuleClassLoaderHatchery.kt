@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -40,7 +40,7 @@ private const val COPIES = 1
  */
 data class StudioModuleClassLoaderCreationContext(
   val parent: ClassLoader?,
-  val moduleRenderContext: ModuleRenderContext,
+  val moduleRenderContext: StudioModuleRenderContext,
   val classesToPreload: Set<String>,
   val projectTransform: ClassTransform,
   val nonProjectTransformation: ClassTransform,

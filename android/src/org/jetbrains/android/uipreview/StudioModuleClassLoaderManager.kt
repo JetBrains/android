@@ -19,8 +19,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoadedDiagnosticsImpl
 import com.android.tools.rendering.classloading.ModuleClassLoader
@@ -32,6 +32,7 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
@@ -41,11 +42,13 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.removeUserData
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.intellij.util.application
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.lang.ref.WeakReference
 
 private fun throwIfNotUnitTest(e: Exception) =
   if (!ApplicationManager.getApplication().isUnitTestMode) {
@@ -80,7 +83,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
         result.mode == ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
     ) {
       ModuleManager.getInstance(project).modules.forEach {
-        ModuleClassLoaderManager.get().clearCache(it)
+        StudioModuleClassLoaderManager.get().clearCache(it)
       }
     }
   }
@@ -145,12 +148,13 @@ class StudioModuleClassLoaderManager :
    * sessions.
    */
   @Synchronized
-  override fun getShared(
+  @JvmOverloads
+  fun getShared(
     parent: ClassLoader?,
-    moduleRenderContext: ModuleRenderContext,
-    additionalProjectTransformation: ClassTransform,
-    additionalNonProjectTransformation: ClassTransform,
-    onNewModuleClassLoader: Runnable,
+    moduleRenderContext: StudioModuleRenderContext,
+    additionalProjectTransformation: ClassTransform = ClassTransform.identity,
+    additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
+    onNewModuleClassLoader: Runnable = Runnable {},
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     val module: Module? = moduleRenderContext.module
     var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
@@ -215,7 +219,7 @@ class StudioModuleClassLoaderManager :
       }
     }
     val newModuleClassLoaderReference =
-      ModuleClassLoaderManager.Reference(this, moduleClassLoader).also {
+      ModuleClassLoaderManager.Reference(moduleClassLoader, ModuleClassLoaderReferenceReleaser(this)).also {
         LOG.debug { "New ModuleClassLoader reference $it to $moduleClassLoader" }
       }
     holders.putValue(moduleClassLoader, newModuleClassLoaderReference)
@@ -228,11 +232,12 @@ class StudioModuleClassLoaderManager :
    * caller has full ownership of it.
    */
   @Synchronized
-  override fun getPrivate(
+  @JvmOverloads
+  fun getPrivate(
     parent: ClassLoader?,
-    moduleRenderContext: ModuleRenderContext,
-    additionalProjectTransformation: ClassTransform,
-    additionalNonProjectTransformation: ClassTransform,
+    moduleRenderContext: StudioModuleRenderContext,
+    additionalProjectTransformation: ClassTransform  = ClassTransform.identity,
+    additionalNonProjectTransformation: ClassTransform  = ClassTransform.identity,
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
     moduleRenderContext.module
@@ -260,7 +265,7 @@ class StudioModuleClassLoaderManager :
           createDiagnostics(),
         ))
       .let {
-        val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, it)
+        val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(it, ModuleClassLoaderReferenceReleaser(this))
         LOG.debug { "New ModuleClassLoader reference $newModuleClassLoaderReference to $it" }
         holders.putValue(it, newModuleClassLoaderReference)
         newModuleClassLoaderReference
@@ -338,7 +343,7 @@ class StudioModuleClassLoaderManager :
    * Inform [StudioModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and
    * therefore can be disposed if no longer managed.
    */
-  override fun release(moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>) {
+  fun release(moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>) {
     LOG.debug { "release reference $moduleClassLoaderReference" }
     val classLoader = moduleClassLoaderReference.classLoader as StudioModuleClassLoader
     unHold(moduleClassLoaderReference)
@@ -367,7 +372,14 @@ class StudioModuleClassLoaderManager :
       else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
-    fun get(): StudioModuleClassLoaderManager =
-      ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
+    fun get(): StudioModuleClassLoaderManager = application.service<StudioModuleClassLoaderManager>()
+  }
+}
+
+private class ModuleClassLoaderReferenceReleaser(moduleManager: StudioModuleClassLoaderManager): (ModuleClassLoaderManager.Reference<*>) -> Unit {
+  private val moduleRef = WeakReference(moduleManager)
+
+  override fun invoke(reference: ModuleClassLoaderManager.Reference<*>) {
+    moduleRef.get()?.release(reference)
   }
 }

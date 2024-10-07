@@ -164,7 +164,6 @@ public class RenderTask {
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
 
-  @NotNull private final ModuleClassLoaderManager<?> myClassLoaderManager;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -221,7 +220,6 @@ public class RenderTask {
    * @param topic              enum value to specify the context or tool in which the render is happening
    */
   RenderTask(@NotNull RenderContext renderContext,
-             @NotNull ModuleClassLoaderManager classLoaderManager,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Object credential,
@@ -244,7 +242,6 @@ public class RenderTask {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
-    myClassLoaderManager = classLoaderManager;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -269,20 +266,9 @@ public class RenderTask {
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    ModuleRenderContext moduleRenderContext = renderContext.getModule().createModuleRenderContext(new WeakReference<>(this));
-    if (privateClassLoader) {
-      myModuleClassLoaderReference = classLoaderManager.getPrivate(
-        myLayoutLib.getClassLoader(),
-        moduleRenderContext,
-        additionalProjectTransform, additionalNonProjectTransform);
-      onNewModuleClassLoader.run();
-    } else {
-      myModuleClassLoaderReference = classLoaderManager.getShared(myLayoutLib.getClassLoader(),
-                                                         moduleRenderContext,
-                                                         additionalProjectTransform,
-                                                         additionalNonProjectTransform,
-                                                         onNewModuleClassLoader);
-    }
+    RenderModelModule renderContextModule = renderContext.getModule();
+    myModuleClassLoaderReference = renderContextModule.getClassLoaderProvider(new WeakReference<>(this), privateClassLoader)
+      .getClassLoader(myLayoutLib.getClassLoader(), additionalProjectTransform, additionalNonProjectTransform, onNewModuleClassLoader);
     ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
@@ -290,14 +276,14 @@ public class RenderTask {
         new LayoutlibCallbackImpl(
           this,
           myLayoutLib,
-          renderContext.getModule(),
+          renderContextModule,
           myLogger,
           myCredential,
           actionBarHandler,
           parserFactory,
           moduleClassLoader,
           useCustomInflater);
-      if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
+      if (renderContextModule.getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
@@ -403,7 +389,7 @@ public class RenderTask {
   // Workaround for http://b/143378087
   private void clearClassLoader() {
     try {
-      myClassLoaderManager.release(myModuleClassLoaderReference);
+      myModuleClassLoaderReference.close();
     }
     catch (AlreadyDisposedException e) {
       // The project has already been disposed.
