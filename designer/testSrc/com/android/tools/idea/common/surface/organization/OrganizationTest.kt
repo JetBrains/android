@@ -44,7 +44,6 @@ class OrganizationTest {
 
   @Test
   fun createHeaders() = runInEdt {
-    val parent = JPanel()
     val group1 = OrganizationGroup("method1", "1")
     val group2 = OrganizationGroup("method2", "2")
     val sceneViews =
@@ -56,10 +55,6 @@ class OrganizationTest {
       )
     val groups = sceneViews.findGroups()
     assertThat(groups).hasSize(2)
-    val headers = groups.createOrganizationHeaders(parent)
-    assertThat(headers).hasSize(2)
-    assertThat(headers[group1]).isNotNull()
-    assertThat(headers[group2]).isNotNull()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)
       Disposer.dispose(it)
@@ -68,7 +63,6 @@ class OrganizationTest {
 
   @Test
   fun noHeaders() {
-    val parent = JPanel()
     val sceneViews =
       listOf(
         createSceneView(OrganizationGroup("method1", "1"), "name1"),
@@ -78,8 +72,6 @@ class OrganizationTest {
       )
     val groups = sceneViews.findGroups()
     assertThat(groups).isEmpty()
-    val headers = groups.createOrganizationHeaders(parent)
-    assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)
       Disposer.dispose(it)
@@ -88,7 +80,6 @@ class OrganizationTest {
 
   @Test
   fun nullOrganizationIsNotAGroup() {
-    val parent = JPanel()
     val sceneViews =
       listOf(
         createSceneView(null, "name1"),
@@ -98,8 +89,6 @@ class OrganizationTest {
       )
     val groups = sceneViews.findGroups()
     assertThat(groups).isEmpty()
-    val headers = groups.createOrganizationHeaders(parent)
-    assertThat(headers).isEmpty()
     sceneViews.forEach {
       Disposer.dispose(it.sceneManager)
       Disposer.dispose(it)

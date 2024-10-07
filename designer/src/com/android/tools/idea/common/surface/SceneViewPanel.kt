@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeader
-import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
 import com.android.tools.idea.common.surface.organization.findGroups
 import com.android.tools.idea.common.surface.organization.paintLines
@@ -172,12 +171,7 @@ class SceneViewPanel(
     activeGroups =
       if (organizationWasEnabled) designSurfaceSceneViews.findGroups() else persistentSetOf()
     val headers =
-      if (organizationWasEnabled)
-        activeGroups.createOrganizationHeaders(
-          this,
-          if (useTestNonComposeHeaders) ::createTestOrganizationHeader
-          else ::createOrganizationHeader,
-        )
+      if (organizationWasEnabled) activeGroups.associateWith { createHeader(it) }.toMutableMap()
       else mutableMapOf()
 
     groups.clear()
@@ -226,6 +220,14 @@ class SceneViewPanel(
         isOrganizationEnabled = isOrganizationEnabled,
       )
       .also { it.alignmentX = sceneViewAlignment }
+  }
+
+  private fun createHeader(group: OrganizationGroup): JComponent {
+    return SceneViewHeader(
+      this@SceneViewPanel,
+      group,
+      if (useTestNonComposeHeaders) ::createTestOrganizationHeader else ::createOrganizationHeader,
+    )
   }
 
   /** Use [createTestOrganizationHeader] instead of [createOrganizationHeader] if true. */
