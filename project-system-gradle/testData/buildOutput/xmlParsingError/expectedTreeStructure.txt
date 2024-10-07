@@ -1,0 +1,11 @@
+-
+ -failed
+  :clean
+  :app:clean
+  :app:preBuild
+  :app:extractProguardFiles
+  :app:preDebugBuild
+  :app:checkDebugManifest
+  -:app:generateDebugBuildConfig
+   Attribute name "sd" associated with an element type "Dsfsd" must be followed by the ' = ' character.
+  fake exception for test
