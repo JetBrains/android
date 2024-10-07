@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.annotations.concurrency.Slow
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.projectsystem.DependencyScopeType
-import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.util.androidFacet
@@ -53,11 +52,11 @@ private constructor(private val facet: AndroidFacet, parentDisposable: Disposabl
         StudioResourceRepositoryManager.getInstance(facet).testModuleResources
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
-      val holderModule = androidModuleSystem.module.getHolderModule()
+      val holderModule = androidModuleSystem.getHolderModule()
       localRepositories.addAll(
         androidModuleSystem
           .getAndroidTestDirectResourceModuleDependencies()
-          .filter { it.getHolderModule() != holderModule }
+          .filter { it.getModuleSystem().getHolderModule() != holderModule }
           .mapNotNull { it.androidFacet }
           .map { StudioResourceRepositoryManager.getModuleResources(it) }
       )

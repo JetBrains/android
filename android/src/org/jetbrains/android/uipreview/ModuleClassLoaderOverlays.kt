@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
@@ -165,6 +165,6 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
     @JvmStatic
     fun getInstance(module: Module): ModuleClassLoaderOverlays =
-      module.getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
+      module.getModuleSystem().getHolderModule().getService(ModuleClassLoaderOverlays::class.java)
   }
 }

@@ -404,6 +404,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getProductionAndroidModule(): Module? = module.takeIf { isProductionAndroidModule() }
 
   /**
+   * Given a module, return the module associated with it ("associated" by the Module system, possibly the module itself) conceptually
+   * "holding" all the other modules in its association group.
+   */
+  fun getHolderModule(): Module = module
+
+  /**
    * Is this module suitable for use in an [AndroidRunConfiguration] editor?
    */
   fun isValidForAndroidRunConfiguration() = when(type) {
