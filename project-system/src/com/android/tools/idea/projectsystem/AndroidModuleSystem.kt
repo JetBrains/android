@@ -370,7 +370,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val testRClassConstantIds: Boolean get() = true
 
   fun getTestLibrariesInUse(): TestLibraries? = null
-  fun getModuleNameForCompilation(virtualFile: VirtualFile): String = module.name
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = true

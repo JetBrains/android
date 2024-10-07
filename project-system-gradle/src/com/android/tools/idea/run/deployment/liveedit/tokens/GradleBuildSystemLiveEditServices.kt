@@ -22,8 +22,17 @@ import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.psi.KtFile
 
 class GradleBuildSystemLiveEditServices :
   BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>,
@@ -45,6 +54,28 @@ class GradleBuildSystemLiveEditServices :
         val module = ModuleUtilCore.findModuleForFile(file, project)  ?: return null
         val classContent = module.getModuleSystem().getClassFileFinderForSourceFile(file).findClassFile(className)
         return classContent
+      }
+
+      override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
+        val module = ktFile.module ?: return CompilerConfiguration.EMPTY
+        val compilerConfiguration = CompilerConfiguration().apply<CompilerConfiguration> {
+          put(
+            CommonConfigurationKeys.MODULE_NAME,
+            module.name
+          )
+          KotlinFacet.get(module)?.let { kotlinFacet ->
+            val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+              is K2JVMCompilerArguments -> compilerArguments.moduleName
+              is K2MetadataCompilerArguments -> compilerArguments.moduleName
+              else -> null
+            }
+            moduleName?.let {
+              put(CommonConfigurationKeys.MODULE_NAME, it)
+            }
+          }
+          setOptions(ktFile.languageVersionSettings)
+        }
+        return compilerConfiguration
       }
     }
   }

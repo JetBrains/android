@@ -64,7 +64,7 @@ internal class LiveEditCompilerForK2(
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
-      val result = backendCodeGenForK2(file, module, getCompilerConfiguration(module, file))
+      val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
 
       // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
