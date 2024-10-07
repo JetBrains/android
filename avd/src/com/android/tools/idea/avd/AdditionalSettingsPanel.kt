@@ -67,7 +67,10 @@ internal fun AdditionalSettingsPanel(
   modifier: Modifier = Modifier,
 ) {
   VerticallyScrollableContainer(modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
+    Column(
+      Modifier.padding(vertical = Padding.SMALL),
+      verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
+    ) {
       Row {
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
@@ -474,7 +477,7 @@ private fun EmulatedPerformanceGroup(
       StorageCapacityField(
         device.vmHeapSize,
         onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM, bottom = Padding.SMALL),
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
       InfoOutlineIcon(
