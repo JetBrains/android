@@ -34,6 +34,7 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.rendering.isSuccess
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.MethodPreviewElement
@@ -373,6 +374,13 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
+
+    // Some components (e.g. Popup) delay their content placement and wrap them into a coroutine
+    // controlled by the clock. For that reason, we need to execute layoutlib callbacks and
+    // re-render, to make sure the queued behaviors are triggered and displayed in static preview.
+    sceneManager.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
+      LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER
+    )
     renderAndTrack(sceneManager, refreshEventBuilder)
     if (sceneManager.renderResult.isSuccess()) previewsRendered++
   }

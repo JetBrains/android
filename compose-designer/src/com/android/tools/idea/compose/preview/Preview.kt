@@ -1027,15 +1027,10 @@ class ComposePreviewRepresentation(
 
   private fun onAfterRender(previewsCount: Int) {
     composeWorkBench.hasRendered = true
-    // Some Composables (e.g. Popup) delay their content placement and wrap them into a coroutine
-    // controlled by the Compose clock. For that reason, we need to call
-    // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
-    // and displayed in static preview.
     surface.sceneManagers.forEach {
       ComposeAnimationToolbarUpdater.update(this, it) {
         AnimationToolingUsageTracker.getInstance(surface)
       }
-      it.executeCallbacksAndRequestRender()
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,

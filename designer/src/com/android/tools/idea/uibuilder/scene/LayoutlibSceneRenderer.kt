@@ -214,12 +214,28 @@ class LayoutlibSceneRenderer(
           if (isActive.get()) {
             val reverseUpdate = AtomicBoolean(false)
             val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
-            doRender(it, reverseUpdate)
-            if (rerenderIfNeeded && reverseUpdate.get()) {
-              doRender(it, reverseUpdate)
+            val callbacksConfig =
+              sceneRenderConfiguration.layoutlibCallbacksConfig.getAndSet(
+                LayoutlibCallbacksConfig.DO_NOT_EXECUTE
+              )
+            doRender(
+              it,
+              callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING,
+              reverseUpdate,
+            )
+            if (
+              (rerenderIfNeeded && reverseUpdate.get()) ||
+                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER
+            ) {
+              doRender(
+                it,
+                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER,
+                reverseUpdate,
+              )
             }
-          } else
+          } else {
             log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
+          }
         } catch (t: CancellationException) {
           log.debug(t)
         } catch (t: Throwable) {
@@ -290,7 +306,11 @@ class LayoutlibSceneRenderer(
    * This method will also [inflate] the model when forced or needed (i.e. when
    * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
    */
-  private suspend fun doRender(request: RenderRequest, reverseUpdate: AtomicBoolean) {
+  private suspend fun doRender(
+    request: RenderRequest,
+    executeCallbacksBeforeRendering: Boolean,
+    reverseUpdate: AtomicBoolean,
+  ) {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
 
@@ -320,6 +340,9 @@ class LayoutlibSceneRenderer(
         // Make sure that the task's quality is up-to-date before rendering
         val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)
+        if (executeCallbacksBeforeRendering) {
+          it.executeCallbacks(sessionClock.timeNanos).await()
+        }
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
           lastRenderQuality = quality
