@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
@@ -45,8 +45,8 @@ public interface ProjectProtoTransform {
    * @return A map of build artifacts to required metadata types. The keys in this map must
    *     correspond to build artifacts from {@code forTarget}.
    */
-  default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
-      TargetBuildInfo forTarget) {
+  default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>
+      getRequiredArtifactMetadata(TargetBuildInfo forTarget) {
     return ImmutableSetMultimap.of();
   }
 
@@ -67,9 +67,9 @@ public interface ProjectProtoTransform {
   static ProjectProtoTransform compose(Iterable<ProjectProtoTransform> transforms) {
     return new ProjectProtoTransform() {
       @Override
-      public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
-          TargetBuildInfo targetInfo) {
-        ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> allArtifacts =
+      public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>
+          getRequiredArtifactMetadata(TargetBuildInfo targetInfo) {
+        ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata.Extractor<?>> allArtifacts =
             ImmutableSetMultimap.builder();
         for (ProjectProtoTransform transform : transforms) {
           allArtifacts.putAll(transform.getRequiredArtifactMetadata(targetInfo));

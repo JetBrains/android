@@ -35,7 +35,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.JavaSourcePackage;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
 import com.google.idea.blaze.qsync.project.ProjectProto.ContentEntry;
@@ -66,8 +66,8 @@ public class AddProjectGenSrcsTest {
   private final TestDataSyncRunner syncer =
       new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
 
-  private final JavaSourcePackageNameMetadata javaSourcePackageNameMetadata =
-      new JavaSourcePackageNameMetadata(null);
+  private final JavaSourcePackageExtractor javaSourcePackageExtractor =
+      new JavaSourcePackageExtractor(null);
 
   @Test
   public void generated_source_added() throws Exception {
@@ -77,24 +77,19 @@ public class AddProjectGenSrcsTest {
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.forTargets(
             TargetBuildInfo.forJavaTarget(
-                    JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
-                        .setGenSrcs(
-                            ImmutableList.of(
-                                BuildArtifact.create(
+                JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
+                    .setGenSrcs(
+                        ImmutableList.of(
+                            BuildArtifact.create(
                                     "gensrcdigest",
                                     Path.of("output/path/com/org/Class.java"),
-                                    testData.getAssumedOnlyLabel())))
-                        .build(),
-                    DependencyBuildContext.NONE)
-                .withArtifactMetadata(
-                    new MetadataKey(
-                        javaSourcePackageNameMetadata.key(),
-                        Path.of("output/path/com/org/Class.java")),
-                    "com.org"));
+                                    testData.getAssumedOnlyLabel())
+                                .withMetadata(new JavaSourcePackage("com.org"))))
+                    .build(),
+                DependencyBuildContext.NONE));
 
     AddProjectGenSrcs addGensrcs =
-        new AddProjectGenSrcs(
-            original.queryData().projectDefinition(), javaSourcePackageNameMetadata);
+        new AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
@@ -150,46 +145,38 @@ public class AddProjectGenSrcsTest {
 
     TargetBuildInfo genSrc1 =
         TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
+            JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
+                .setGenSrcs(
+                    ImmutableList.of(
+                        BuildArtifact.create(
                                 "gensrc1",
                                 Path.of("output/path/com/org/Class.java"),
-                                testLabel.siblingWithName("genSrc1"))))
-                    .build(),
-                DependencyBuildContext.create(
-                    "abc-def", Instant.now().minusSeconds(60), Optional.empty()))
-            .withArtifactMetadata(
-                new MetadataKey(
-                    javaSourcePackageNameMetadata.key(), Path.of("output/path/com/org/Class.java")),
-                "com.org");
+                                testLabel.siblingWithName("genSrc1"))
+                            .withMetadata(new JavaSourcePackage("com.org"))))
+                .build(),
+            DependencyBuildContext.create(
+                "abc-def", Instant.now().minusSeconds(60), Optional.empty()));
 
     Label genSrc2Label = testData.getAssumedOnlyLabel().siblingWithName("genSrc2");
     TargetBuildInfo genSrc2 =
         TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
+            JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
+                .setGenSrcs(
+                    ImmutableList.of(
+                        BuildArtifact.create(
                                 "gensrc2",
                                 Path.of("output/otherpath/com/org/Class.java"),
-                                genSrc2Label)))
-                    .build(),
-                DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()))
-            .withArtifactMetadata(
-                new MetadataKey(
-                    javaSourcePackageNameMetadata.key(),
-                    Path.of("output/otherpath/com/org/Class.java")),
-                "com.org");
+                                genSrc2Label)
+                            .withMetadata(new JavaSourcePackage("com.org"))))
+                .build(),
+            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
 
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.create(
             ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of());
 
     AddProjectGenSrcs addGenSrcs =
-        new AddProjectGenSrcs(
-            original.queryData().projectDefinition(), javaSourcePackageNameMetadata);
+        new AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
@@ -245,46 +232,38 @@ public class AddProjectGenSrcsTest {
 
     TargetBuildInfo genSrc1 =
         TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
+            JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc1")).toBuilder()
+                .setGenSrcs(
+                    ImmutableList.of(
+                        BuildArtifact.create(
                                 "samedigest",
                                 Path.of("output/path/com/org/Class.java"),
-                                testLabel.siblingWithName("genSrc1"))))
-                    .build(),
-                DependencyBuildContext.create(
-                    "abc-def", Instant.now().minusSeconds(60), Optional.empty()))
-            .withArtifactMetadata(
-                new MetadataKey(
-                    javaSourcePackageNameMetadata.key(), Path.of("output/path/com/org/Class.java")),
-                "com.org");
+                                testLabel.siblingWithName("genSrc1"))
+                            .withMetadata(new JavaSourcePackage("com.org"))))
+                .build(),
+            DependencyBuildContext.create(
+                "abc-def", Instant.now().minusSeconds(60), Optional.empty()));
 
     Label genSrc2Label = testData.getAssumedOnlyLabel().siblingWithName("genSrc2");
     TargetBuildInfo genSrc2 =
         TargetBuildInfo.forJavaTarget(
-                JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
-                    .setGenSrcs(
-                        ImmutableList.of(
-                            BuildArtifact.create(
+            JavaArtifactInfo.empty(testLabel.siblingWithName("genSrc2")).toBuilder()
+                .setGenSrcs(
+                    ImmutableList.of(
+                        BuildArtifact.create(
                                 "samedigest",
                                 Path.of("output/otherpath/com/org/Class.java"),
-                                genSrc2Label)))
-                    .build(),
-                DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()))
-            .withArtifactMetadata(
-                new MetadataKey(
-                    javaSourcePackageNameMetadata.key(),
-                    Path.of("output/otherpath/com/org/Class.java")),
-                "com.org");
+                                genSrc2Label)
+                            .withMetadata(new JavaSourcePackage("com.org"))))
+                .build(),
+            DependencyBuildContext.create("abc-def", Instant.now(), Optional.empty()));
 
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.create(
             ImmutableMap.of(genSrc1.label(), genSrc1, genSrc2.label(), genSrc2), ImmutableMap.of());
 
     AddProjectGenSrcs addGenSrcs =
-        new AddProjectGenSrcs(
-            original.queryData().projectDefinition(), javaSourcePackageNameMetadata);
+        new AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);
@@ -311,8 +290,7 @@ public class AddProjectGenSrcsTest {
                 DependencyBuildContext.NONE));
 
     AddProjectGenSrcs addGensrcs =
-        new AddProjectGenSrcs(
-            original.queryData().projectDefinition(), javaSourcePackageNameMetadata);
+        new AddProjectGenSrcs(original.queryData().projectDefinition(), javaSourcePackageExtractor);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), context);

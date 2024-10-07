@@ -45,7 +45,7 @@ public class SrcJarInnerPathFinder {
 
   /** Represents a path within a srcjar file, and a package prefix to use for that path. */
   public record JarPath(Path path, String packagePrefix) {
-    static JarPath create(String path, String packagePrefix) {
+    public static JarPath create(String path, String packagePrefix) {
       return new JarPath(Path.of(path), packagePrefix);
     }
 

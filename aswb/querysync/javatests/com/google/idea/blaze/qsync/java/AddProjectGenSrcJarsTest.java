@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
@@ -30,7 +31,8 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots;
+import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ContentEntry;
 import com.google.idea.blaze.qsync.project.ProjectProto.Module;
@@ -52,8 +54,8 @@ public class AddProjectGenSrcJarsTest {
   private final TestDataSyncRunner syncer =
       new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
 
-  private final SourceJarInnerPathsAndPackagePrefixes innerPathsMetadata =
-      new SourceJarInnerPathsAndPackagePrefixes(null);
+  private final SrcJarPrefixedPackageRootsExtractor innerPathsMetadata =
+      new SrcJarPrefixedPackageRootsExtractor(null);
 
   @Test
   public void external_srcjar_ignored() throws Exception {
@@ -83,26 +85,25 @@ public class AddProjectGenSrcJarsTest {
   }
 
   @Test
-  public void project_srcjar_ignored() throws Exception {
+  public void project_srcjar_added() throws Exception {
     TestData testData = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY;
     QuerySyncProjectSnapshot original = syncer.sync(testData);
 
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.forTargets(
             TargetBuildInfo.forJavaTarget(
-                    JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
-                        .setGenSrcs(
-                            ImmutableList.of(
-                                BuildArtifact.create(
+                JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
+                    .setGenSrcs(
+                        ImmutableList.of(
+                            BuildArtifact.create(
                                     "srcjardigest",
                                     Path.of("output/path/to/project.srcjar"),
-                                    testData.getAssumedOnlyLabel())))
-                        .build(),
-                    DependencyBuildContext.NONE)
-                .withArtifactMetadata(
-                    new MetadataKey(
-                        innerPathsMetadata.key(), Path.of("output/path/to/project.srcjar")),
-                    "root="));
+                                    testData.getAssumedOnlyLabel())
+                                .withMetadata(
+                                    new SrcJarPrefixedJavaPackageRoots(
+                                        ImmutableSet.of(JarPath.create("root", ""))))))
+                    .build(),
+                DependencyBuildContext.NONE));
 
     AddProjectGenSrcJars javaDeps =
         new AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata);
@@ -131,6 +132,55 @@ public class AddProjectGenSrcJarsTest {
                         "        path: \".bazel/buildout/output/path/to/project.srcjar\"",
                         "        base: PROJECT",
                         "        inner_path: \"root\"",
+                        "      }",
+                        "    }"),
+                ContentEntry.class));
+  }
+
+  @Test
+  public void missing_metadata_project_srcjar_added() throws Exception {
+    TestData testData = TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY;
+    QuerySyncProjectSnapshot original = syncer.sync(testData);
+
+    ArtifactTracker.State artifactState =
+        ArtifactTracker.State.forTargets(
+            TargetBuildInfo.forJavaTarget(
+                JavaArtifactInfo.empty(testData.getAssumedOnlyLabel()).toBuilder()
+                    .setGenSrcs(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "srcjardigest",
+                                Path.of("output/path/to/project.srcjar"),
+                                testData.getAssumedOnlyLabel())))
+                    .build(),
+                DependencyBuildContext.NONE));
+
+    AddProjectGenSrcJars javaDeps =
+        new AddProjectGenSrcJars(original.queryData().projectDefinition(), innerPathsMetadata);
+
+    ProjectProtoUpdate update =
+        new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
+    javaDeps.update(update, artifactState);
+    ProjectProto.Project newProject = update.build();
+    assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
+    Module workspace = newProject.getModules(0);
+    // check our assumptions:
+    assertThat(workspace.getName()).isEqualTo(".workspace");
+
+    assertThat(workspace.getContentEntriesList())
+        .contains(
+            TextFormat.parse(
+                Joiner.on("\n")
+                    .join(
+                        "root {",
+                        "      path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "      base: PROJECT",
+                        "    }",
+                        "    sources {",
+                        "      is_generated: true",
+                        "      project_path {",
+                        "        path: \".bazel/buildout/output/path/to/project.srcjar\"",
+                        "        base: PROJECT",
                         "      }",
                         "    }"),
                 ContentEntry.class));

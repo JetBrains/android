@@ -15,15 +15,18 @@
  */
 package com.google.idea.blaze.qsync.java;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata.Extractor;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarPrefixedJavaPackageRoots;
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
@@ -40,12 +43,12 @@ import java.util.stream.Stream;
 public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
 
   private final ProjectDefinition projectDefinition;
-  private final SourceJarInnerPathsAndPackagePrefixes srcJarPathMetadata;
+  private final Extractor<SrcJarPrefixedJavaPackageRoots> srcJarPathMetadata;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcJars(
       ProjectDefinition projectDefinition,
-      SourceJarInnerPathsAndPackagePrefixes srcJarPathMetadata) {
+      Extractor<SrcJarPrefixedJavaPackageRoots> srcJarPathMetadata) {
     this.projectDefinition = projectDefinition;
     this.srcJarPathMetadata = srcJarPathMetadata;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
@@ -64,7 +67,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(
       TargetBuildInfo forTarget) {
     return getProjectGenSrcJars(forTarget)
         .collect(
@@ -92,7 +95,12 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
                   ProjectProto.ContentEntry.Builder genSrcJarContentEntry =
                       ProjectProto.ContentEntry.newBuilder().setRoot(added.toProto());
 
-                  for (JarPath innerPath : srcJarPathMetadata.from(target, genSrc)) {
+                  ImmutableSet<JarPath> packageRoots =
+                      genSrc
+                          .getMetadata(SrcJarPrefixedJavaPackageRoots.class)
+                          .map(SrcJarPrefixedJavaPackageRoots::paths)
+                          .orElse(ImmutableSet.of(JarPath.create("", "")));
+                  for (JarPath innerPath : packageRoots) {
 
                     genSrcJarContentEntry.addSources(
                         ProjectProto.SourceFolder.newBuilder()

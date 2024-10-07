@@ -17,34 +17,28 @@ package com.google.idea.blaze.qsync.java;
 
 import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/** Package name taken from the {@code AndroidManifest.xml} file within an AAR file. */
-public class AarPackageNameMetaData implements ArtifactMetadata {
+/** Extracts the package name from the {@code AndroidManifest.xml} file within an AAR file. */
+public class AarPackageNameExtractor implements ArtifactMetadata.Extractor<AarResPackage> {
 
   private final AndroidManifestParser manifestParser;
 
-  public AarPackageNameMetaData(AndroidManifestParser manifestParser) {
+  public AarPackageNameExtractor(AndroidManifestParser manifestParser) {
     this.manifestParser = manifestParser;
   }
 
   @Override
-  public String key() {
-    return "AarPackageName";
-  }
-
-  @Override
-  public String extract(CachedArtifact buildArtifact, Object nameForLogs) throws BuildException {
+  public AarResPackage extractFrom(CachedArtifact buildArtifact, Object nameForLogs)
+      throws BuildException {
     try (ZipFile zip = buildArtifact.openAsZipFile()) {
       ZipEntry entry = zip.getEntry("AndroidManifest.xml");
       if (entry != null) {
-        return manifestParser.readPackageNameFrom(zip.getInputStream(entry));
+        return new AarResPackage(manifestParser.readPackageNameFrom(zip.getInputStream(entry)));
       }
     } catch (IOException e) {
       throw new BuildException(String.format("Failed to read aar file %s", buildArtifact), e);
@@ -53,7 +47,9 @@ public class AarPackageNameMetaData implements ArtifactMetadata {
         String.format("Failed to find AndroidManifest.xml in  %s", nameForLogs));
   }
 
-  public Optional<String> from(TargetBuildInfo target, BuildArtifact artifact) {
-    return Optional.ofNullable(target.getMetadata(artifact, key()));
+  @Override
+  public Class<AarResPackage> metadataClass() {
+    return AarResPackage.class;
   }
+
 }

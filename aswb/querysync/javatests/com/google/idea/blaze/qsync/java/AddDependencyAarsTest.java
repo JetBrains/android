@@ -32,7 +32,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ExternalAndroidLibrary;
@@ -58,7 +58,7 @@ public class AddDependencyAarsTest {
   private final TestDataSyncRunner syncer =
       new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
 
-  private final AarPackageNameMetaData aarPackageMetadata = new AarPackageNameMetaData(null);
+  private final AarPackageNameExtractor aarPackageMetadata = new AarPackageNameExtractor(null);
 
   private static ByteSource emptyAarFile() throws IOException {
     ByteArrayOutputStream aarContents = new ByteArrayOutputStream();
@@ -102,18 +102,18 @@ public class AddDependencyAarsTest {
         update,
         State.forTargets(
             TargetBuildInfo.forJavaTarget(
-                    JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-                        .setIdeAars(
-                            ImmutableList.of(
-                                BuildArtifact.create(
+                JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                    .setIdeAars(
+                        ImmutableList.of(
+                            BuildArtifact.create(
                                     "aardigest",
                                     Path.of("path/to/dep.aar"),
-                                    Label.of("//path/to:dep"))))
-                        .build(),
-                    DependencyBuildContext.NONE)
-                .withArtifactMetadata(
-                    new MetadataKey(aarPackageMetadata.key(), Path.of("path/to/dep.aar")),
-                    "com.google.idea.blaze.qsync.testdata.android")));
+                                    Label.of("//path/to:dep"))
+                                .withMetadata(
+                                    new AarResPackage(
+                                        "com.google.idea.blaze.qsync.testdata.android"))))
+                    .build(),
+                DependencyBuildContext.NONE)));
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());

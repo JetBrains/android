@@ -39,11 +39,32 @@ message TargetBuildInfo {
   JavaArtifacts java_artifacts = 2;
   // CC artifacts produced by the build
   CcCompilationInfo cc_info = 3;
-  // Information derived from build artifacts from this target.
-  // The keys in this map are of the form "metadata-key:/artifact/path" where the metadata key is
-  // the unique key for a type of artifact metadata, and the path corresponds to an artifact path
-  // from java_artifacts or cc_info.
-  map<string, string> derived_artifact_metadata = 4;
+  reserved 4;
+}
+
+message JavaSourcePackage {
+  string name = 1;
+}
+
+message SrcjarJavaPackageRoots {
+  repeated string path = 1;
+}
+
+message SrcjarPrefixedJavaPackageRoots {
+  map<string, string> path_to_package = 1;
+}
+
+message AarPackage {
+  string name = 1;
+}
+
+message Metadata {
+  oneof metadata {
+    JavaSourcePackage java_source_package = 1;
+    SrcjarJavaPackageRoots srcjar_java_package_roots = 2;
+    SrcjarPrefixedJavaPackageRoots srcjar_prefixed_java_package_roots = 3;
+    AarPackage aar_package = 4;
+  }
 }
 
 message Artifact {
@@ -53,6 +74,7 @@ message Artifact {
   reserved 2;
   // artifact path as returned by Bazel's File.path.
   string artifact_path = 3;
+  repeated Metadata metadata = 4;
 }
 
 message JavaArtifacts {

@@ -16,12 +16,12 @@
 package com.google.idea.blaze.qsync.deps;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import java.nio.file.Path;
 import java.util.Optional;
-import javax.annotation.Nullable;
 
 /** Information about a target that was extracted from the build at dependencies build time. */
 @AutoValue
@@ -36,13 +36,6 @@ public abstract class TargetBuildInfo {
   public abstract Optional<CcCompilationInfo> ccInfo();
 
   public abstract DependencyBuildContext buildContext();
-
-  public abstract ImmutableMap<MetadataKey, String> artifactMetadata();
-
-  @Nullable
-  public String getMetadata(BuildArtifact artifact, String key) {
-    return artifactMetadata().get(new MetadataKey(key, artifact.artifactPath()));
-  }
 
   public Label label() {
     return javaInfo()
@@ -62,9 +55,11 @@ public abstract class TargetBuildInfo {
     return builder().buildContext(buildContext).ccInfo(targetInfo).build();
   }
 
-  public TargetBuildInfo withArtifactMetadata(MetadataKey key, String metadata) {
+  public TargetBuildInfo withMetadata(
+      ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> metadata) {
     Builder b = toBuilder();
-    b.artifactMetadataBuilder().put(key, metadata);
+    javaInfo().map(i -> i.withMetadata(metadata)).ifPresent(b::javaInfo);
+    ccInfo().map(i -> i.withMetadata(metadata)).ifPresent(b::ccInfo);
     return b.build();
   }
 
@@ -80,8 +75,6 @@ public abstract class TargetBuildInfo {
     public abstract Builder ccInfo(CcCompilationInfo ccInfo);
 
     public abstract Builder buildContext(DependencyBuildContext buildContext);
-
-    public abstract ImmutableMap.Builder<MetadataKey, String> artifactMetadataBuilder();
 
     public abstract TargetBuildInfo build();
   }

@@ -18,10 +18,10 @@ package com.google.idea.blaze.qsync.deps;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Artifact;
@@ -36,7 +36,7 @@ import java.util.Set;
 /** Serializes {@link NewArtifactTracker} state to a proto. */
 public class ArtifactTrackerStateSerializer {
 
-  public static final int VERSION = 2;
+  public static final int VERSION = 3;
 
   private final ArtifactTrackerProto.ArtifactTrackerState.Builder proto =
       ArtifactTrackerProto.ArtifactTrackerState.newBuilder().setVersion(VERSION);
@@ -66,7 +66,6 @@ public class ArtifactTrackerStateSerializer {
     builder.setBuildId(targetBuildInfo.buildContext().buildId());
     targetBuildInfo.javaInfo().ifPresent(ji -> visitJavaInfo(ji, builder));
     targetBuildInfo.ccInfo().ifPresent(cc -> visitCcInfo(cc, builder));
-    visitMetadata(targetBuildInfo.artifactMetadata(), builder);
     proto.putBuiltDeps(target.toString(), builder.build());
   }
 
@@ -102,6 +101,10 @@ public class ArtifactTrackerStateSerializer {
                 ArtifactTrackerProto.Artifact.newBuilder()
                     .setDigest(artifact.digest())
                     .setArtifactPath(artifact.artifactPath().toString())
+                    .addAllMetadata(
+                        artifact.metadata().values().stream()
+                            .map(ArtifactMetadata::toProto)
+                            .toList())
                     .build())
         .collect(toImmutableList());
   }
@@ -152,11 +155,4 @@ public class ArtifactTrackerStateSerializer {
     return key.metadataId() + ":" + key.artifactPath();
   }
 
-  private void visitMetadata(
-      ImmutableMap<TargetBuildInfo.MetadataKey, String> map,
-      ArtifactTrackerProto.TargetBuildInfo.Builder builder) {
-    for (Map.Entry<TargetBuildInfo.MetadataKey, String> entry : map.entrySet()) {
-      builder.putDerivedArtifactMetadata(makeMapKey(entry.getKey()), entry.getValue());
-    }
-  }
 }

@@ -19,7 +19,12 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
@@ -39,14 +44,49 @@ import java.util.Optional;
 @AutoValue
 public abstract class BuildArtifact {
 
+  /** Bazel generated digets of this artifacts contents. */
   public abstract String digest();
 
+  /** Output path of the artifact. */
   public abstract Path artifactPath();
 
+  /** Label of the target that built the artifact. */
   public abstract Label target();
 
+  /** Metadata that has been extracted from the artifact by the IDE. */
+  public abstract ImmutableMap<Class<? extends ArtifactMetadata>, ? extends ArtifactMetadata>
+      metadata();
+
+  public <T extends ArtifactMetadata> Optional<T> getMetadata(Class<T> ofType) {
+    return Optional.ofNullable((T) metadata().get(ofType));
+  }
+
+  public BuildArtifact withMetadata(Iterable<ArtifactMetadata> metadata) {
+    if (Iterables.isEmpty(metadata)) {
+      return this;
+    }
+    return create(
+        digest(),
+        artifactPath(),
+        target(),
+        ImmutableMap.copyOf(Maps.uniqueIndex(metadata, ArtifactMetadata::getClass)));
+  }
+
+  @VisibleForTesting
+  public BuildArtifact withMetadata(ArtifactMetadata... metadata) {
+    return withMetadata(ImmutableList.copyOf(metadata));
+  }
+
   public static BuildArtifact create(String digest, Path artifactPath, Label target) {
-    return new AutoValue_BuildArtifact(digest, artifactPath, target);
+    return create(digest, artifactPath, target, ImmutableMap.of());
+  }
+
+  public static BuildArtifact create(
+      String digest,
+      Path artifactPath,
+      Label target,
+      ImmutableMap<Class<? extends ArtifactMetadata>, ? extends ArtifactMetadata> metadata) {
+    return new AutoValue_BuildArtifact(digest, artifactPath, target, metadata);
   }
 
   public String getExtension() {
@@ -81,5 +121,13 @@ public abstract class BuildArtifact {
               .orElse(Collections.emptySet());
       case PATH_NOT_SET -> Collections.emptySet();
     };
+  }
+
+  public static ImmutableList<BuildArtifact> addMetadata(
+      Iterable<BuildArtifact> existing,
+      ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> toAdd) {
+    return Streams.stream(existing)
+        .map(a -> a.withMetadata(toAdd.get(a)))
+        .collect(toImmutableList());
   }
 }

@@ -18,15 +18,17 @@ package com.google.idea.blaze.qsync.java;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata.Extractor;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.AarResPackage;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.ExternalAndroidLibrary;
@@ -42,10 +44,10 @@ import java.util.function.Function;
 public class AddDependencyAars implements ProjectProtoUpdateOperation {
 
   private final ProjectDefinition projectDefinition;
-  private final AarPackageNameMetaData aarPackageNameMetadata;
+  private final Extractor<AarResPackage> aarPackageNameMetadata;
 
   public AddDependencyAars(
-      ProjectDefinition projectDefinition, AarPackageNameMetaData aarPackageNameMetadata) {
+      ProjectDefinition projectDefinition, Extractor<AarResPackage> aarPackageNameMetadata) {
     this.projectDefinition = projectDefinition;
     this.aarPackageNameMetadata = aarPackageNameMetadata;
   }
@@ -61,7 +63,7 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
     return javaInfo.ideAars();
   }
 
-  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(
       TargetBuildInfo forTarget) {
     return getDependencyAars(forTarget).stream()
         .collect(
@@ -78,7 +80,8 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
         if (aarDir == null) {
           aarDir = update.artifactDirectory(ArtifactDirectories.DEFAULT);
         }
-        Optional<String> packageName = aarPackageNameMetadata.from(target, aar);
+        Optional<String> packageName =
+            aar.getMetadata(AarResPackage.class).map(AarResPackage::name);
         ProjectPath dest =
             aarDir
                 .addIfNewer(aar.artifactPath(), aar, target.buildContext(), ArtifactTransform.UNZIP)

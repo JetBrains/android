@@ -16,6 +16,7 @@
 package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Preconditions;
@@ -25,22 +26,31 @@ import com.google.common.collect.Maps;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto;
+import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Metadata;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /** Deserializes {@link NewArtifactTracker} state from a proto. */
 public class ArtifactTrackerStateDeserializer {
 
+  private final ArtifactMetadata.Factory metadataFactory;
   private final ImmutableMap.Builder<Label, TargetBuildInfo> depsMap = ImmutableMap.builder();
   private final ImmutableMap.Builder<String, CcToolchain> ccToolchainMap = ImmutableMap.builder();
   private final Map<String, DependencyBuildContext> buildContexts = Maps.newHashMap();
+
+  public ArtifactTrackerStateDeserializer(ArtifactMetadata.Factory metadataFactory) {
+    this.metadataFactory = metadataFactory;
+  }
 
   public void visit(ArtifactTrackerProto.ArtifactTrackerState proto) {
     if (proto.getVersion() != ArtifactTrackerStateSerializer.VERSION) {
@@ -90,11 +100,6 @@ public class ArtifactTrackerStateDeserializer {
     }
     if (proto.hasCcInfo()) {
       builder.ccInfo(convertCcCompilationInfo(owner, proto.getCcInfo()));
-    }
-    for (Map.Entry<String, String> metadata : proto.getDerivedArtifactMetadataMap().entrySet()) {
-      builder
-          .artifactMetadataBuilder()
-          .put(extractMetadataKey(metadata.getKey()), metadata.getValue());
     }
     depsMap.put(owner, builder.build());
   }
@@ -159,7 +164,21 @@ public class ArtifactTrackerStateDeserializer {
   private ImmutableList<BuildArtifact> toArtifactList(
       List<ArtifactTrackerProto.Artifact> protos, Label owner) {
     return protos.stream()
-        .map(a -> BuildArtifact.create(a.getDigest(), Path.of(a.getArtifactPath()), owner))
+        .map(
+            a ->
+                BuildArtifact.create(
+                    a.getDigest(),
+                    Path.of(a.getArtifactPath()),
+                    owner,
+                    toArtifactMap(a.getMetadataList())))
         .collect(toImmutableList());
+  }
+
+  private ImmutableMap<Class<? extends ArtifactMetadata>, ArtifactMetadata> toArtifactMap(
+      List<Metadata> protoList) {
+    return protoList.stream()
+        .map(metadataFactory::create)
+        .filter(Objects::nonNull)
+        .collect(toImmutableMap(ArtifactMetadata::getClass, Function.identity()));
   }
 }

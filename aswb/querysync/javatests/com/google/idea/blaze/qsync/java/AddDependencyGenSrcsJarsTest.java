@@ -20,6 +20,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
@@ -33,7 +34,7 @@ import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.Library;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath;
@@ -59,8 +60,8 @@ public class AddDependencyGenSrcsJarsTest {
   private final TestDataSyncRunner syncer =
       new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
 
-  private final SourceJarInnerPackageRoots innerRootsMetadata =
-      new SourceJarInnerPackageRoots(null);
+  private final SrcJarPackageRootsExtractor innerRootsMetadata =
+      new SrcJarPackageRootsExtractor(null);
 
   @Test
   public void no_deps_built() throws Exception {
@@ -122,20 +123,19 @@ public class AddDependencyGenSrcsJarsTest {
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.forTargets(
             TargetBuildInfo.forJavaTarget(
-                    JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
-                        .toBuilder()
-                        .setGenSrcs(
-                            ImmutableList.of(
-                                BuildArtifact.create(
+                JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
+                    .toBuilder()
+                    .setGenSrcs(
+                        ImmutableList.of(
+                            BuildArtifact.create(
                                     "srcjardigest",
                                     Path.of("output/path/to/external.srcjar"),
-                                    Label.of("//java/com/google/common/collect:collect"))))
-                        .build(),
-                    DependencyBuildContext.NONE)
-                .withArtifactMetadata(
-                    new MetadataKey(
-                        innerRootsMetadata.key(), Path.of("output/path/to/external.srcjar")),
-                    "root;root2"));
+                                    Label.of("//java/com/google/common/collect:collect"))
+                                .withMetadata(
+                                    new SrcJarJavaPackageRoots(
+                                        ImmutableSet.of(Path.of("root"), Path.of("root2"))))))
+                    .build(),
+                DependencyBuildContext.NONE));
 
     AddDependencyGenSrcsJars addGenSrcJars =
         new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
@@ -174,16 +174,16 @@ public class AddDependencyGenSrcsJarsTest {
     ArtifactTracker.State artifactState =
         ArtifactTracker.State.forTargets(
             TargetBuildInfo.forJavaTarget(
-                    JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
-                        .toBuilder()
-                        .setGenSrcs(
-                            ImmutableList.of(
-                                BuildArtifact.create(
-                                    "srcjardigest",
-                                    Path.of("output/path/to/external.srcjar"),
-                                    Label.of("//java/com/google/common/collect:collect"))))
-                        .build(),
-                    DependencyBuildContext.NONE));
+                JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect"))
+                    .toBuilder()
+                    .setGenSrcs(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "srcjardigest",
+                                Path.of("output/path/to/external.srcjar"),
+                                Label.of("//java/com/google/common/collect:collect"))))
+                    .build(),
+                DependencyBuildContext.NONE));
 
     AddDependencyGenSrcsJars addGenSrcJars =
         new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);

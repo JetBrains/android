@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.deps;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.idea.blaze.qsync.artifacts.AspectProtos.directoryArtifact;
@@ -29,7 +30,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -40,7 +40,10 @@ import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.artifact.TestOutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
+import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Metadata;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
 import java.nio.file.Path;
@@ -70,8 +73,8 @@ public class NewArtifactTrackerTest {
   @Mock(strictness = Strictness.STRICT_STUBS) BuildArtifactCache cache;
   @Captor ArgumentCaptor<ImmutableCollection<OutputArtifact>> cachedArtifactsCaptor;
 
-  private Map<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> artifactMetadataMap =
-      Maps.newHashMap();
+  private Map<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>>
+      artifactMetadataMap = Maps.newHashMap();
 
   private NewArtifactTracker<NoopContext> artifactTracker;
 
@@ -82,6 +85,7 @@ public class NewArtifactTrackerTest {
             cacheDir.getRoot().toPath(),
             cache,
             t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()),
+            new JavaArtifactMetadata.Factory(),
             MoreExecutors.directExecutor());
   }
 
@@ -374,7 +378,7 @@ public class NewArtifactTrackerTest {
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
         .containsExactly("jar_digest", "class1_digest", "class2_digest");
 
-    assertThat(Iterables.getOnlyElement(artifactTracker.getBuiltDeps()).javaInfo().get().genSrcs())
+    assertThat(getOnlyElement(artifactTracker.getBuiltDeps()).javaInfo().get().genSrcs())
         .containsExactly(
             BuildArtifact.create(
                 "class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
@@ -382,22 +386,37 @@ public class NewArtifactTrackerTest {
                 "class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")));
   }
 
-  static class TestArtifactMetadata implements ArtifactMetadata {
+  static class TestArtifactMetadata<T extends ArtifactMetadata>
+      implements ArtifactMetadata.Extractor<T> {
 
-    private final String key;
+    private final T metadata;
 
-    TestArtifactMetadata(String key) {
-      this.key = key;
+    TestArtifactMetadata(T metadata) {
+      this.metadata = metadata;
     }
 
     @Override
-    public String key() {
-      return key;
+    public T extractFrom(CachedArtifact buildArtifact, Object nameForLogs) {
+      return metadata;
     }
 
     @Override
-    public String extract(CachedArtifact buildArtifact, Object nameForLogs) {
-      return "extracted-by-" + key;
+    public Class<T> metadataClass() {
+      return (Class<T>) metadata.getClass();
+    }
+  }
+
+  record Metadata1(String content) implements ArtifactMetadata {
+    @Override
+    public Metadata toProto() {
+      return Metadata.getDefaultInstance();
+    }
+  }
+
+  record Metadata2(String content) implements ArtifactMetadata {
+    @Override
+    public Metadata toProto() {
+      return Metadata.getDefaultInstance();
     }
   }
 
@@ -412,8 +431,11 @@ public class NewArtifactTrackerTest {
         BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"));
     artifactMetadataMap.put(
         Label.of("//test:test"),
-        ImmutableSetMultimap.<BuildArtifact, ArtifactMetadata>builder()
-            .putAll(jarArtifact, new TestArtifactMetadata("key1"), new TestArtifactMetadata("key2"))
+        ImmutableSetMultimap.<BuildArtifact, ArtifactMetadata.Extractor<?>>builder()
+            .putAll(
+                jarArtifact,
+                new TestArtifactMetadata<>(new Metadata1("md1")),
+                new TestArtifactMetadata<>(new Metadata2("md2")))
             .build());
     artifactTracker.update(
         ImmutableSet.of(Label.of("//test:test")),
@@ -439,9 +461,13 @@ public class NewArtifactTrackerTest {
         new NoopContext());
 
     ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
-    assertThat(Iterables.getOnlyElement(builtDeps).getMetadata(jarArtifact, "key1"))
-        .isEqualTo("extracted-by-key1");
-    assertThat(Iterables.getOnlyElement(builtDeps).getMetadata(jarArtifact, "key2"))
-        .isEqualTo("extracted-by-key2");
+    assertThat(
+            getOnlyElement(getOnlyElement(builtDeps).javaInfo().orElseThrow().jars())
+                .getMetadata(Metadata1.class))
+        .hasValue(new Metadata1("md1"));
+    assertThat(
+            getOnlyElement(getOnlyElement(builtDeps).javaInfo().orElseThrow().jars())
+                .getMetadata(Metadata2.class))
+        .hasValue(new Metadata2("md2"));
   }
 }
