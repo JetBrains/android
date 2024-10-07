@@ -45,7 +45,6 @@ import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
-import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
@@ -58,7 +57,6 @@ import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
-import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
