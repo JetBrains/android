@@ -583,7 +583,6 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  @Suppress("UnstableApiUsage")
   fun `override text fields handle backspaces and clears overrides when empty`(): Unit =
     runBlocking {
       val fakeUi = FakeUi(createWhsPanel().component)
