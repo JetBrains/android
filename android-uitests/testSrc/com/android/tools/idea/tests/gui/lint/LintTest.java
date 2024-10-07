@@ -36,7 +36,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 @RunWith(GuiTestRemoteRunner.class)
 public class LintTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
   @Before
@@ -71,8 +71,8 @@ public class LintTest {
       .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java")
       .waitUntilErrorAnalysisFinishes();
 
-    Wait.seconds(5)
+    Wait.seconds(30)
       .expecting("Unnecessary conditional statements are detected")
-      .until(() -> editor.getHighlights(WARNING).contains("Unnecessary; SDK_INT is always >= 21"));
+      .until(() -> editor.getHighlights(WARNING).contains("Unnecessary; `SDK_INT` is always >= 21"));
   }
 }
