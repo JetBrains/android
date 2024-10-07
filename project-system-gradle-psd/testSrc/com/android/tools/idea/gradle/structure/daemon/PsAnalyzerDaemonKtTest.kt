@@ -37,7 +37,7 @@ class PsAnalyzerDaemonKtTest {
                                       TestPath("testPath"), parentModuleRootDir = null, sdkIndex = sdkIndex)
       assertThat(issues).hasSize(expectedMessages.size)
       issues.forEachIndexed {index, issue ->
-        assertThat(issue.text.replace("<br/>\n", " ")).isEqualTo(expectedMessages[index])
+        assertThat(issue.text).isEqualTo(expectedMessages[index])
       }
     }
 
@@ -45,20 +45,49 @@ class PsAnalyzerDaemonKtTest {
       const val LIBRARY_GROUP = "test-group"
       const val LIBRARY_ARTIFACT = "test-artifact"
       const val LIBRARY_VERSION = "test-version"
-      private const val MESSAGE_POLICY = "test-group:test-artifact version test-version has policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_OUTDATED = "test-group:test-artifact version test-version has been reported as outdated by its author"
-      private const val MESSAGE_OUTDATED_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as outdated by its author and will block publishing of your app to Play Console"
-      private const val MESSAGE_CRITICAL = "test-group:test-artifact version test-version has an associated message from its author"
-      private const val MESSAGE_CRITICAL_WITH_NOTE = "$MESSAGE_CRITICAL. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
-      private const val MESSAGE_CRITICAL_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has been reported as problematic by its author and will block publishing of your app to Play Console"
-      private const val MESSAGE_CRITICAL_BLOCKING_WITH_NOTE = "$MESSAGE_CRITICAL_BLOCKING. <b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
-      private const val MESSAGE_POLICY_USER = "test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_USER_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has User Data policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_POLICY_PERMISSIONS = "test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console in the future"
-      private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b> test-group:test-artifact version test-version has Permissions policy issues that will block publishing of your app to Play Console"
-      private const val MESSAGE_VULNERABILITY = "test-group:test-artifact version test-version has unspecified vulnerability issues."
-      private const val MESSAGE_VULNERABILITY_BLOCKING = "test-group:test-artifact version test-version has unspecified vulnerability issues."
+      private const val MESSAGE_POLICY = "test-group:test-artifact version test-version has<br/>\n" +
+                                         "policy issues that will block publishing of your app to<br/>\n" +
+                                         "Play Console in the future"
+      private const val MESSAGE_POLICY_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                  "test-group:test-artifact version test-version has<br/>\n" +
+                                                  "policy issues that will block publishing of your app to<br/>\n" +
+                                                  "Play Console"
+      private const val MESSAGE_OUTDATED = "test-group:test-artifact version test-version has been<br/>\n" +
+                                           "reported as outdated by its author"
+      private const val MESSAGE_OUTDATED_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                    "test-group:test-artifact version test-version has been<br/>\n" +
+                                                    "reported as outdated by its author and will block<br/>\n" +
+                                                    "publishing of your app to Play Console"
+      private const val MESSAGE_CRITICAL = "test-group:test-artifact version test-version has an<br/>\n" +
+                                           "associated message from its author"
+      private const val MESSAGE_CRITICAL_WITH_NOTE = "$MESSAGE_CRITICAL.<br/>\n" +
+                                                     "<br/>\n" +
+                                                     "<b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
+      private const val MESSAGE_CRITICAL_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                    "test-group:test-artifact version test-version has been<br/>\n" +
+                                                    "reported as problematic by its author and will block<br/>\n" +
+                                                    "publishing of your app to Play Console"
+      private const val MESSAGE_CRITICAL_BLOCKING_WITH_NOTE = "$MESSAGE_CRITICAL_BLOCKING.<br/>\n" +
+                                                              "<br/>\n" +
+                                                              "<b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
+      private const val MESSAGE_POLICY_USER = "test-group:test-artifact version test-version has User<br/>\n" +
+                                              "Data policy issues that will block publishing of your<br/>\n" +
+                                              "app to Play Console in the future"
+      private const val MESSAGE_POLICY_USER_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                       "test-group:test-artifact version test-version has User<br/>\n" +
+                                                       "Data policy issues that will block publishing of your<br/>\n" +
+                                                       "app to Play Console"
+      private const val MESSAGE_POLICY_PERMISSIONS = "test-group:test-artifact version test-version has<br/>\n" +
+                                                     "Permissions policy issues that will block publishing of<br/>\n" +
+                                                     "your app to Play Console in the future"
+      private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                              "test-group:test-artifact version test-version has<br/>\n" +
+                                                              "Permissions policy issues that will block publishing of<br/>\n" +
+                                                              "your app to Play Console"
+      private const val MESSAGE_VULNERABILITY = "test-group:test-artifact version test-version has<br/>\n" +
+                                                "unspecified vulnerability issues."
+      private const val MESSAGE_VULNERABILITY_BLOCKING = "test-group:test-artifact version test-version has<br/>\n" +
+                                                         "unspecified vulnerability issues."
 
 
       @JvmStatic
@@ -203,6 +232,16 @@ class PsAnalyzerDaemonKtTest {
                             "should be<br/>\n" +
                             "tagged and<br/>\n" +
                             "not be<br/>\n" +
+                            "broken"
+      assertThat(wrappedMessage).isEqualTo(expectedMessage)
+    }
+
+    @Test
+    fun `New lines are doubled`() {
+      val message = "Line was\nbroken"
+      val wrappedMessage = formatToPSD(message, 10)
+      val expectedMessage = "Line was<br/>\n" +
+                            "<br/>\n" +
                             "broken"
       assertThat(wrappedMessage).isEqualTo(expectedMessage)
     }

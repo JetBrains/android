@@ -36,6 +36,9 @@ class DependencyViewIssueRenderer(
       }
     }
     buffer.append(issue.text)
+    if (issue.quickFixes.isNotEmpty()) {
+      buffer.append("<br/>")
+    }
     issue.quickFixes.forEach { quickFix ->
       buffer.append(" <a href='${quickFix.getHyperlinkDestination()}'>[${quickFix.text}]</a>")
     }

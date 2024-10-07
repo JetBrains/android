@@ -65,7 +65,7 @@ class DependencyViewIssueRendererTest {
   fun testRenderIssue_quickFix() {
     testIssue = testIssue.copy(quickFixes = listOf(quickFix))
     val renderer = DependencyViewIssueRenderer(context, false)
-    assertThat(renderIssue(renderer, testIssuePath), equalTo("TEXT <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"))
+    assertThat(renderIssue(renderer, testIssuePath), equalTo("TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"))
   }
 
   @Test
@@ -79,7 +79,7 @@ class DependencyViewIssueRendererTest {
     testIssue = testIssue.copy(quickFixes = listOfNotNull(quickFix))
     val renderer = DependencyViewIssueRenderer(context, false)
     assertThat(renderIssue(renderer, null),
-               equalTo("""<a href="@/PATH">/PATH</a>: TEXT <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"""))
+               equalTo("""<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"""))
   }
 
   @Test
@@ -87,7 +87,7 @@ class DependencyViewIssueRendererTest {
     testIssue = testIssue.copy(quickFixes = listOfNotNull(quickFix, quickFix2))
     val renderer = DependencyViewIssueRenderer(context, false)
     assertThat(renderIssue(renderer, null), equalTo(
-      """<a href="@/PATH">/PATH</a>: TEXT <a href='go:QUICK_FIX'>[QUICK_FIX]</a> <a href='go:QUICK_FIX2'>[QUICK_FIX2]</a>"""))
+      """<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a> <a href='go:QUICK_FIX2'>[QUICK_FIX2]</a>"""))
   }
 
   private fun renderIssue(renderer: IssueRenderer, scope: PsPath?): String {
@@ -110,6 +110,6 @@ class DependencyViewIssueRendererTest {
   fun testRenderIssue_renderDescriptionAndQuickFix() {
     testIssue = testIssue.copy(quickFixes = listOfNotNull(quickFix))
     val renderer = DependencyViewIssueRenderer(context, true)
-    assertThat(renderIssue(renderer, testIssuePath), equalTo("""TEXT <a href='go:QUICK_FIX'>[QUICK_FIX]</a><br/><br/>DESCRIPTION"""))
+    assertThat(renderIssue(renderer, testIssuePath), equalTo("""TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a><br/><br/>DESCRIPTION"""))
   }
 }
