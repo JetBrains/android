@@ -62,6 +62,9 @@ internal constructor(
   internal val vmHeapSize: StorageCapacity,
   internal val preferredAbi: String?,
 ) {
+  internal fun hasPlayStore(image: ISystemImage) =
+    device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE
+
   companion object {
     fun withDefaults(device: Device): VirtualDevice =
       VirtualDevice(
@@ -125,7 +128,8 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
 
-  gpuMode = device.graphicsMode.toGpuMode(image)
+  val acceleration = if (device.hasPlayStore(image)) GraphicsMode.AUTO else device.graphicsMode
+  gpuMode = acceleration.toGpuMode(image)
 
   networkSpeed = device.speed
   networkLatency = device.latency

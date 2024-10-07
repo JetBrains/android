@@ -105,6 +105,7 @@ internal fun AdditionalSettingsPanel(
 
       EmulatedPerformanceGroup(
         configureDevicePanelState.device,
+        configureDevicePanelState.hasPlayStore(),
         configureDevicePanelState::device::set,
       )
 
@@ -426,6 +427,7 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 @Composable
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
+  hasGooglePlayStore: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -461,6 +463,7 @@ private fun EmulatedPerformanceGroup(
         listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
         onSelectedItemChange = { onDeviceChange(device.copy(graphicsMode = it)) },
         Modifier.alignByBaseline(),
+        !hasGooglePlayStore,
       )
     }
 
