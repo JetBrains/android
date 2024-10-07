@@ -57,7 +57,7 @@ class SdkFixture {
     displayName: String = (tags.map { it.display } + abi + "System Image").joinToString(" "),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
   ): FakeLocalPackage =
-    createSystemImage(false, path, tags, androidVersion, abi, displayName, vendor)
+    createSystemImage(false, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor)
       as FakeLocalPackage
 
   fun createRemoteSystemImage(
@@ -68,19 +68,20 @@ class SdkFixture {
     displayName: String = (tags.map { it.display } + abi + "System Image").joinToString(" "),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
   ): FakeRemotePackage =
-    createSystemImage(true, path, tags, androidVersion, abi, displayName, vendor)
+    createSystemImage(true, path, tags, androidVersion, displayName, listOf(abi), vendor = vendor)
       as FakeRemotePackage
 
-  private fun createSystemImage(
+  fun createSystemImage(
     isRemote: Boolean,
     path: String,
     tags: List<IdDisplay>,
     androidVersion: AndroidVersion,
-    abi: String,
     displayName: String,
+    abis: List<String>,
+    translatedAbis: List<String> = emptyList(),
     vendor: IdDisplay = IdDisplay.create("google", "Google"),
   ): FakePackage {
-    val fullPath = "system-images;android-${androidVersion.apiStringWithExtension};$path;$abi"
+    val fullPath = "system-images;android-${androidVersion.apiStringWithExtension};$path;${abis[0]}"
     val pkg =
       if (isRemote) {
         FakeRemotePackage(fullPath)
@@ -95,7 +96,8 @@ class SdkFixture {
     pkg.typeDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType().apply {
         this.tags.addAll(tags)
-        this.abis.add(abi)
+        this.abis.addAll(abis)
+        this.translatedAbis.addAll(translatedAbis)
         this.vendor = vendor
         this.apiLevelString = androidVersion.apiStringWithoutExtension
         this.codename = androidVersion.codename

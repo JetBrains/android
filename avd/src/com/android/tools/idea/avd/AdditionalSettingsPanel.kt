@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -46,6 +47,8 @@ import java.awt.Component
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.math.max
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -103,6 +106,12 @@ internal fun AdditionalSettingsPanel(
       EmulatedPerformanceGroup(
         configureDevicePanelState.device,
         configureDevicePanelState::device::set,
+      )
+
+      PreferredAbiGroup(
+        configureDevicePanelState.device.preferredAbi,
+        configureDevicePanelState.systemImageTableSelectionState.selection,
+        onPreferredAbiChange = configureDevicePanelState::setPreferredAbi,
       )
     }
   }
@@ -486,6 +495,29 @@ private fun EmulatedPerformanceGroup(
         Modifier.align(Alignment.CenterVertically),
       )
     }
+  }
+}
+
+@Composable
+private fun PreferredAbiGroup(
+  preferredAbi: String?,
+  systemImage: ISystemImage?,
+  onPreferredAbiChange: (String?) -> Unit,
+) {
+  val availableAbis = persistentListOf("Optimal").plus(systemImage.allAbiTypes())
+  Row {
+    Text("Preferred ABI", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+    // "Optimal" is our null value; it means we don't set a preferred ABI and use the default.
+    Dropdown(
+      preferredAbi ?: "Optimal",
+      availableAbis,
+      onSelectedItemChange = { onPreferredAbiChange(it.takeUnless { it == "Optimal" }) },
+      Modifier.alignByBaseline(),
+      enabled = availableAbis.isNotEmpty(),
+      outline =
+        if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
+    )
   }
 }
 

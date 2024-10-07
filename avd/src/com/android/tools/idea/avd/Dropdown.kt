@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
@@ -28,6 +29,7 @@ internal fun <I> Dropdown(
   onSelectedItemChange: (I) -> Unit,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  outline: Outline = Outline.None,
 ) {
   Dropdown(
     modifier,
@@ -39,6 +41,7 @@ internal fun <I> Dropdown(
         }
       }
     },
+    outline = outline,
   ) {
     Text(selectedItem.toString())
   }

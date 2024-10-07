@@ -16,7 +16,9 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
@@ -128,30 +131,38 @@ internal fun WizardPageScope.ConfigurationPage(
 
   val coroutineScope = rememberCoroutineScope()
 
-  ConfigureDevicePanel(
-    state,
-    image,
-    images,
-    deviceNameValidator,
-    onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
-    onSystemImageTableRowClick = {
-      state.systemImageTableSelectionState.selection = it
-      state.setSkin(resolve(sdkHandler, state.device.skin.path(), it.skins))
-    },
-    onImportButtonClick = {
-      // TODO Validate the skin
-      val skin =
-        FileChooser.chooseFile(
-          FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-          null, // TODO: add component from CompositionLocal?
-          null,
-          null,
-        )
+  Column {
+    if (!state.validity.isPreferredAbiValid) {
+      ErrorBanner(
+        "Preferred ABI \"${state.device.preferredAbi}\" is not available with selected system image",
+        Modifier.padding(vertical = 6.dp),
+      )
+    }
 
-      if (skin != null) state.setSkin(skin.toNioPath())
-    },
-  )
+    ConfigureDevicePanel(
+      state,
+      image,
+      images,
+      deviceNameValidator,
+      onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
+      onSystemImageTableRowClick = {
+        state.setSystemImageSelection(it)
+        state.setSkin(resolve(sdkHandler, state.device.skin.path(), it.skins))
+      },
+      onImportButtonClick = {
+        // TODO Validate the skin
+        val skin =
+          FileChooser.chooseFile(
+            FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+            null, // TODO: add component from CompositionLocal?
+            null,
+            null,
+          )
 
+        if (skin != null) state.setSkin(skin.toNioPath())
+      },
+    )
+  }
   nextAction = WizardAction.Disabled
 
   finishAction =
