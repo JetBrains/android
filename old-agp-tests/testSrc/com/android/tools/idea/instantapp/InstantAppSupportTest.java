@@ -29,10 +29,9 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import com.android.testutils.junit4.OldAgpTest;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.LaunchOptionState;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -81,7 +80,7 @@ public class InstantAppSupportTest {
   @RunsInEdt
   public void testCorrectAndroidTestRunConfigurationsCreated() throws Exception {
     projectRule.loadProject(INSTANT_APP, "feature", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
-    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(projectRule.getModule("feature")));
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(projectRule.getModule("feature")));
     assertNotNull(mainTestFacet);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     assertNotNull(runConfig);

@@ -27,6 +27,7 @@ import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENC
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder

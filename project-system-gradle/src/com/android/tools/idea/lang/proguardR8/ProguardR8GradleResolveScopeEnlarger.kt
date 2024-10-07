@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.isHolderModule

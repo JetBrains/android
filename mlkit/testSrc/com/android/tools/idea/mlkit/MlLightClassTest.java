@@ -16,7 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import static com.android.tools.idea.mlkit.MlProjectTestUtil.setupTestMlProject;
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
+import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getMainModule;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.map;
 

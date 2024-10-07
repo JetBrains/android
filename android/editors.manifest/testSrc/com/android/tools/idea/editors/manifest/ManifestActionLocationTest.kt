@@ -19,7 +19,7 @@ import com.android.ide.common.blame.SourceFilePosition
 import com.android.manifmerger.Actions
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB
 import com.android.tools.idea.util.toIoFile

@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import java.io.BufferedReader;
@@ -43,7 +43,7 @@ public class StudioAssetFileOpenerTest extends AndroidGradleTestCase {
     loadProject("aarAsset".equals(getTestName(true)) ?
                 TestProjectPaths.LOCAL_AARS_AS_MODULES :
                 TestProjectPaths.DEPENDENT_MODULES);
-    AndroidFacet facet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("app")));
+    AndroidFacet facet = AndroidFacet.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(getModule("app")));
     assertNotNull(facet);
     myAppRepo = new StudioAssetFileOpener(facet);
 

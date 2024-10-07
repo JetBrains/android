@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

@@ -513,8 +513,6 @@ val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGro
 
 fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
 
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
-
 fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem().getProductionAndroidModule() ?: module
 
 /**

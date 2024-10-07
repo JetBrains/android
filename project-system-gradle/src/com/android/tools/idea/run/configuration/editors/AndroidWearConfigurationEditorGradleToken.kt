@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
