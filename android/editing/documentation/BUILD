@@ -32,6 +32,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

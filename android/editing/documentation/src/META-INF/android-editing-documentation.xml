@@ -18,6 +18,8 @@
     <lang.documentationProvider language="JAVA" implementationClass="com.android.tools.idea.editing.documentation.AndroidDocumentationProvider" order="first"/>
     <lang.documentationProvider language="XML" implementationClass="com.android.tools.idea.editing.documentation.AndroidXmlDocumentationProvider" order="first"/>
 
+    <platform.backend.documentation.psiTargetProvider implementation="com.android.tools.idea.editing.documentation.AndroidSdkDocumentationTargetProvider" order="first" />
+
     <implementationViewSessionFactory implementation="com.android.tools.idea.editing.documentation.AndroidImplementationViewSessionFactory" order="first"/>
   </extensions>
 </idea-plugin>

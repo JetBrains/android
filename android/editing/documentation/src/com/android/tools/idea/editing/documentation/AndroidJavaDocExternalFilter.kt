@@ -98,7 +98,7 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
         ABORTED.onEnter { sb.clear() }
       }
 
-    private fun BufferedReader.filterTo(sb: StringBuilder) {
+    internal fun BufferedReader.filterTo(sb: StringBuilder) {
       use { buf ->
         var state by createStateMachine(sb)::state
         while (state != ABORTED && state != SUCCESS) {
