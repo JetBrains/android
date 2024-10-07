@@ -45,6 +45,7 @@ import com.android.tools.sdk.AndroidPlatform
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
@@ -53,8 +54,10 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.application
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import java.lang.ref.WeakReference
 
 /** Studio-specific implementation of [EnvironmentContext]. */
@@ -131,7 +134,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
     return psiFile
   }
 
-  override fun getModuleClassLoaderManager(): ModuleClassLoaderManager<*> = ModuleClassLoaderManager.get()
+  fun getModuleClassLoaderManager(): StudioModuleClassLoaderManager = application.service<StudioModuleClassLoaderManager>()
 
   override fun getCrashReporter(): CrashReporter = StudioCrashReporter.getInstance()
 

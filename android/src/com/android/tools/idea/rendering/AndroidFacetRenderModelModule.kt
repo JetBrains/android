@@ -19,20 +19,21 @@ import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.MergedManifestException
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.module.ModuleKeyManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioAssetFileOpener
+import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.idea.module.ModuleKeyManager
-import com.android.tools.idea.res.StudioResourceIdManager
-import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.api.RenderModelModuleLoggingId
+import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.AssetRepositoryBase
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
@@ -57,6 +58,7 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
   private val _isDisposed = AtomicBoolean(false)
   private val facet: AndroidFacet get() = buildTarget.facet
+
   init {
     if (!Disposer.tryRegister(facet, this)) {
       _isDisposed.set(true)
@@ -65,20 +67,18 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
 
   override fun getIdeaModule(): Module = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryBase(
-    StudioAssetFileOpener(facet))
+    StudioAssetFileOpener(facet)
+  )
     private set
   override val manifest: RenderModelManifest?
     get() {
       try {
         return RenderMergedManifest(MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS))
-      }
-      catch (e: InterruptedException) {
+      } catch (e: InterruptedException) {
         throw ProcessCanceledException(e)
-      }
-      catch (e: TimeoutException) {
+      } catch (e: TimeoutException) {
         LOG.warn(e);
-      }
-      catch (e: ExecutionException) {
+      } catch (e: ExecutionException) {
         when (val cause = e.cause) {
           is ProcessCanceledException -> throw cause
           is MergedManifestException -> LOG.warn(e)
@@ -113,10 +113,42 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
 
   override val name: String
     get() = nameFromFacet(facet)
-  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
-  override fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): ModuleRenderContext {
+  override val environment: StudioEnvironmentContext = StudioEnvironmentContext(facet.module)
+  private fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): StudioModuleRenderContext {
     return StudioModuleRenderContext.forFile(facet.module) {
       weakRenderTask.get()?.xmlFile?.get()
+    }
+  }
+
+  override fun getClassLoaderProvider(
+    weakRenderTask: WeakReference<RenderTask>,
+    privateClassLoader: Boolean
+  ): RenderModelModule.ClassLoaderProvider {
+    val moduleRenderContext = createModuleRenderContext(weakRenderTask)
+    return RenderModelModule.ClassLoaderProvider {
+        parent: ClassLoader?,
+        additionalProjectTransform: ClassTransform,
+        additionalNonProjectTransform: ClassTransform,
+        onNewModuleClassLoader: Runnable,
+      ->
+      if (privateClassLoader) {
+        environment.getModuleClassLoaderManager().getPrivate(
+          parent,
+          moduleRenderContext,
+          additionalProjectTransform,
+          additionalNonProjectTransform
+        ).also {
+          onNewModuleClassLoader.run()
+        }
+      } else {
+        environment.getModuleClassLoaderManager().getShared(
+          parent,
+          moduleRenderContext,
+          additionalProjectTransform,
+          additionalNonProjectTransform,
+          onNewModuleClassLoader
+        )
+      }
     }
   }
 

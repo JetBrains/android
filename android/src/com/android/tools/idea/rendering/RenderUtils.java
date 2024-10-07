@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import com.android.tools.sdk.AndroidTargetData;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderUtils {
@@ -39,7 +40,7 @@ public class RenderUtils {
         // Clear layoutlib bitmap cache (in case files have been modified externally)
         IAndroidTarget target = configuration.getTarget();
         Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
-        ModuleClassLoaderManager.get().clearCache(module);
+        StudioModuleClassLoaderManager.get().clearCache(module);
         StudioResourceIdManager.get(module).resetDynamicIds();
         ResourceClassRegistry.get(module.getProject()).clearCache();
         if (target != null) {

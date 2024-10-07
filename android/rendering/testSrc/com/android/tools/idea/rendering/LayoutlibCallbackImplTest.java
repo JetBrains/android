@@ -32,15 +32,14 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.resources.ResourceType;
-import com.android.tools.fonts.DownloadableFontCacheService;
-import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.fonts.ProjectFonts;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.LayoutlibCallbackImpl;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManagerKt;
@@ -140,8 +139,9 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
-      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get()
+                                                      .getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
           new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
@@ -181,7 +181,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
@@ -210,7 +210,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =

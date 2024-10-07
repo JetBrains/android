@@ -24,7 +24,8 @@ import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.TestOnly
 import com.android.tools.environment.Logger
-import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.google.common.annotations.VisibleForTesting
@@ -284,7 +285,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
   val parameterProviders: Collection<PreviewParameter>,
   private val parentClassLoader: ClassLoader =
     ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-  private val renderContextFactory: (ComposePreviewElement<T>) -> ModuleRenderContext?,
+  private val privateClassLoaderFactory: (ComposePreviewElement<T>) -> RenderModelModule.ClassLoaderProvider?,
 ) : ComposePreviewElement<T> by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
@@ -298,9 +299,13 @@ open class ParametrizedComposePreviewElementTemplate<T>(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = renderContextFactory(basePreviewElement) ?: return sequenceOf()
-    ModuleClassLoaderManager.get()
-      .getPrivate(parentClassLoader, moduleRenderContext)
+    (privateClassLoaderFactory(basePreviewElement) ?: return sequenceOf())
+      .getClassLoader(
+        parentClassLoader,
+        ClassTransform.identity,
+        ClassTransform.identity,
+        Runnable {}
+      )
       .useWithClassLoader { classLoader ->
         return parameterProviders
           .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }

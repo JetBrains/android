@@ -16,11 +16,11 @@
 package com.android.tools.idea.res
 
 import com.android.resources.aar.AarResourceRepository
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.LocalResourceRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -83,7 +83,7 @@ private constructor(
     val module = facet.module
     StudioResourceIdManager.get(module).resetDynamicIds()
     ResourceClassRegistry.get(module.project).clearCache()
-    ModuleClassLoaderManager.get().clearCache(module)
+    StudioModuleClassLoaderManager.get().clearCache(module)
   }
 
   companion object {

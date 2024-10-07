@@ -596,7 +596,7 @@ final public class RenderService implements Disposable {
         RenderTask task = null;
         try {
           task =
-            new RenderTask(myContext, myContext.getModule().getEnvironment().getModuleClassLoaderManager(), myLogger, layoutLib,
+            new RenderTask(myContext, myLogger, layoutLib,
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,

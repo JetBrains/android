@@ -267,8 +267,7 @@
     <applicationService serviceInterface="com.android.tools.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.StudioDownloadableFontCacheService" />
 
-    <applicationService serviceInterface="com.android.tools.rendering.classloading.ModuleClassLoaderManager"
-                        serviceImplementation="org.jetbrains.android.uipreview.StudioModuleClassLoaderManager"/>
+    <applicationService serviceImplementation="org.jetbrains.android.uipreview.StudioModuleClassLoaderManager"/>
     <applicationService serviceImplementation="com.android.tools.idea.stats.ExperimentalUISettings"/>
     <projectService serviceInterface="com.android.tools.idea.res.AppLanguageService"
                     serviceImplementation="com.android.tools.idea.res.AppLanguageServiceImpl" />

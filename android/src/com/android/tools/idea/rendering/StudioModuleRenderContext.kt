@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
-import com.android.tools.rendering.ModuleRenderContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
@@ -28,19 +27,19 @@ import java.lang.ref.WeakReference
 import java.util.function.Supplier
 
 /**
- * Studio specific implementation of [ModuleRenderContext].
+ * Studio specific module render context.
  */
 open class StudioModuleRenderContext protected constructor(
   module: Module,
-  override val fileProvider: Supplier<PsiFile?>
-) : ModuleRenderContext {
+  val fileProvider: Supplier<PsiFile?>
+)  {
   private val moduleWeakRef = WeakReference(module)
-  override val isDisposed: Boolean
+  val isDisposed: Boolean
     get() = module?.isDisposed ?: true
 
-  override val module: Module?
+  val module: Module?
     get() = moduleWeakRef.get()
-  override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
+  open fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     val moduleRef = WeakReference(module)
     return ProjectSystemClassLoader { fqcn ->
       val module = moduleRef.get()
@@ -66,7 +65,7 @@ open class StudioModuleRenderContext protected constructor(
     fun forModule(module: Module) = StudioModuleRenderContext(module) { null }
 
     @JvmStatic
-    fun forFile(file: PsiFile): ModuleRenderContext {
+    fun forFile(file: PsiFile): StudioModuleRenderContext {
       val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
       val module = runReadAction { file.module!! }
       return forFile(module) { runReadAction { filePointer.element } }
