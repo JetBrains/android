@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -75,11 +76,13 @@ internal class WearHealthServicesPanelController(
   }
 
   fun showWearHealthServicesToolPopup(parentDisposable: Disposable, position: RelativePoint) {
+    val panelUiScope = parentDisposable.createCoroutineScope(uiThread)
+    val panelWorkerScope = parentDisposable.createCoroutineScope(workerThread)
     val panel =
       createWearHealthServicesPanel(
         stateManager,
-        uiScope = parentDisposable.createCoroutineScope(uiThread),
-        workerScope = parentDisposable.createCoroutineScope(workerThread),
+        uiScope = panelUiScope,
+        workerScope = panelWorkerScope,
         informationLabelFlow = userInformationFlow.map { it.message },
         reset = ::reset,
         applyChanges = ::applyChanges,
@@ -113,7 +116,11 @@ internal class WearHealthServicesPanelController(
 
     // Hide the balloon when the parentDisposable is disposed
     Disposer.register(parentDisposable, balloon)
-    Disposer.register(balloon) { currentBalloon = null }
+    Disposer.register(balloon) {
+      panelUiScope.cancel()
+      panelWorkerScope.cancel()
+      currentBalloon = null
+    }
 
     currentBalloon = balloon
 
