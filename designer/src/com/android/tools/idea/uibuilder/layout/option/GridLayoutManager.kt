@@ -293,6 +293,21 @@ class GridLayoutManager(
       return emptyMap()
     }
 
+    //    Special case - position one element at the center
+    //     ←------------            availableWidth        ------------→
+    //
+    //     ___________________________________________________________
+    //     | surface                                                  |     ↑
+    //     |                                                          |     |
+    //     |                  _________________                       |     |
+    //     |                  | preview        |                      |     |
+    //     |                  |                |                      |     | availableHeight
+    //     |                  |                |                      |     |
+    //     |                  |________________|                      |     |
+    //     |                                                          |     |
+    //     |                                                          |     |
+    //     ------------------------------------------------------------     ↓
+
     if (content.size == 1 && content.first() !is HeaderPositionableContent) {
       val singleContent = content.single()
       // When there is only one visible preview, centralize it as a special case.
@@ -308,18 +323,96 @@ class GridLayoutManager(
     var maxYInRow = 0
     val positionMap = mutableMapOf<PositionableContent, Point>()
 
+    //     (1) canvasLeftPadding                      Y1 - maxYInRow for 1st row
+    //     (2) previewRightPadding                    Y1 - maxYInRow for 1st row
+    //     (3) previewBottomPadding                   Y1 - maxYInRow for 1st row
+    //     (4) groupLeftPadding
+    //
+    //    Each (preview) includes PositionableContent.margin + PositionableContent.scaledContentSize
+    //    - which is the total size of the PositionableContent for currently set scale.
+    //
+    //    -------------------------------------(X)----------------------------------------→
+    //
+    //
+    //     _______________________________________________________________
+    //     |surface                 canvasTopPadding                     |    |     |     |
+    //     |_____|______________________________________________________ |    |     |     |
+    //     |     |_________________       _________________              |    |     |     |
+    //     | (1) || preview 1      |  ↔   | preview 2      |             |    |     |     |
+    //     |     ||                | (2)  |                |             |    |     |     |
+    //     |     ||                |      |                |             |    |     |     |
+    //     |     ||________________|      |                |             |    |     |     |
+    //     |     |      ↕ (3)             |                |             |    |     |     |
+    //     |     |                        |                |             |    |     |     |
+    //     |     |                        |________________|             |    |     |     |
+    //     |     |                                  ↕ (3)                |    ↓Y1   |     |
+    //     |     |__________________                                     |          |     |
+    //     |     || header         |  ↔                                  |          |     |
+    //     |     |------------------ (2)                                 |          |     |
+    //     |     |      ↕ (3)                                            |          |     |
+    //     |     |    _________________       ____________________       |          |     |
+    //     |     | ↔  | preview 3      |  ↔   | preview 4         |  ↔   |          |     |
+    //     |     |(4) |                | (2)  |                   | (2)  |          |     |
+    //     |     |    |                |      |                   |      |          |     |
+    //     |     |    |________________|      |                   |      |          |     |
+    //     |     |         ↕ (3)              |                   |      |          |     |
+    //     |     |                            |                   |      |          |     |
+    //     |     |                            |___________________|      |          |     |
+    //     |     |                                  ↕ (3)                |          ↓Y2   |
+    //     |     |     ____________________                              |                |
+    //     |     | ↔  | preview 5         |  ↔                           |                |
+    //     |     |(4) |                   | (2)                          |                |
+    //     |     |    |                   |                              |                |
+    //     |     |    |                   |                              |                |
+    //     |     |    |                   |                              |                |
+    //     |     |    |___________________|                              |                |
+    //     |     |           ↕ (3)                                       |                ↓Y3
+    //     ---------------------------------------------------------------
+    //
+    //  There is no available groups:
+    //     _______________________________________________________________
+    //     |surface                 canvasTopPadding                     |    |     |     |
+    //     |_____|______________________________________________________ |    |     |     |
+    //     |     |_________________       _________________              |    |     |     |
+    //     | (1) || preview 1      |  ↔   | preview 2      |             |    |     |     |
+    //     |     ||                | (2)  |                |             |    |     |     |
+    //     |     ||                |      |                |             |    |     |     |
+    //     |     ||________________|      |                |             |    |     |     |
+    //     |     |      ↕ (3)             |                |             |    |     |     |
+    //     |     |                        |                |             |    |     |     |
+    //     |     |                        |________________|             |    |     |     |
+    //     |     |                                  ↕ (3)                |    ↓Y1   |     |
+    //     |     |_____________________       ____________________       |          |     |
+    //     |     || preview 3          |  ↔   | preview 4         |  ↔   |          |     |
+    //     |     ||                    | (2)  |                   | (2)  |          |     |
+    //     |     ||                    |      |                   |      |          |     |
+    //     |     ||____________________|      |                   |      |          |     |
+    //     |     |     ↕ (3)                  |                   |      |          |     |
+    //     |     |                            |                   |      |          |     |
+    //     |     |                            |___________________|      |          |     |
+    //     |     |                                  ↕ (3)                |          ↓Y2   |
+    //     |     |________________________                               |                |
+    //     |     || preview 5             |  ↔                           |                |
+    //     |     ||                       | (2)                          |                |
+    //     |     ||                       |                              |                |
+    //     |     ||                       |                              |                |
+    //     |     ||                       |                              |                |
+    //     |     ||_______________________|                              |                |
+    //     |     |       ↕ (3)                                           |                ↓Y3
+    //     ---------------------------------------------------------------
+
     groups.forEach { layoutGroup ->
-      val groupOffsetX = if (layoutGroup.header != null) padding.groupLeftPadding else 0
+      val groupLeftPadding = if (layoutGroup.header != null) padding.groupLeftPadding else 0
 
       fun measure(view: PositionableContent) {
         positionMap[view] = getContentPosition(view, nextX, nextY)
-        val framePaddingX = padding.previewRightPadding(view.scale, view)
-        val framePaddingY = padding.previewBottomPadding(view.scale, view)
-        nextX += view.scaledContentSize.width + view.margin.horizontal + framePaddingX
+        val previewRightPadding = padding.previewRightPadding(view.scale, view)
+        val previewBottomPadding = padding.previewBottomPadding(view.scale, view)
+        nextX += view.scaledContentSize.width + view.margin.horizontal + previewRightPadding
         maxYInRow =
           max(
             maxYInRow,
-            nextY + view.margin.vertical + view.scaledContentSize.height + framePaddingY,
+            nextY + view.margin.vertical + view.scaledContentSize.height + previewBottomPadding,
           )
       }
       layoutGroup.header?.let {
@@ -328,7 +421,7 @@ class GridLayoutManager(
         nextY = maxYInRow
       }
       layoutGroup.rows.forEach { row ->
-        nextX = padding.canvasLeftPadding + groupOffsetX
+        nextX = padding.canvasLeftPadding + groupLeftPadding
         row.forEach { measure(it) }
         nextY = maxYInRow
       }
