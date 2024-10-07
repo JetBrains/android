@@ -19,7 +19,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -42,6 +41,7 @@ import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
 import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -101,16 +101,24 @@ class LocalVirtualDeviceSourceTest {
   }
 
   @OptIn(ExperimentalTestApi::class)
-  inner class ConfigurationPageFixture(sdkFixture: SdkFixture) {
+  internal inner class ConfigurationPageFixture(
+    sdkFixture: SdkFixture,
+    initialSystemImageState: SystemImageState = sdkFixture.systemImageState(),
+  ) {
     val wizard: TestComposeWizard
+    internal val systemImageStateFlow: MutableStateFlow<SystemImageState> =
+      MutableStateFlow(initialSystemImageState)
 
     init {
       with(sdkFixture) {
         val source =
-          LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
-        val profiles = runBlocking {
-          LocalVirtualDeviceSource(persistentListOf(), sdkHandler, avdManager).profilesWhenReady()
-        }
+          LocalVirtualDeviceSource(
+            persistentListOf(NoSkin.INSTANCE),
+            sdkHandler,
+            avdManager,
+            systemImageStateFlow,
+          )
+        val profiles = runBlocking { source.profilesWhenReady() }
         val pixel8 = profiles.first { it.name == "Pixel 8" }
 
         wizard = TestComposeWizard { with(source) { selectionUpdated(pixel8) } }
@@ -128,7 +136,6 @@ class LocalVirtualDeviceSourceTest {
 
         wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()
-        composeTestRule.waitUntilDoesNotExist(hasText("Loading system images", substring = true))
       }
     }
   }
@@ -241,6 +248,37 @@ class LocalVirtualDeviceSourceTest {
         // The preferred ABI is written to disk
         assertThat(Files.readString(avdRoot.resolve("Pixel_8.avd").resolve("user-settings.ini")))
           .contains("${UserSettingsKey.PREFERRED_ABI}=${recommendedAbiForHost()}")
+      }
+    }
+  }
+
+  @Test
+  fun systemImageLoading_noneFound() {
+    with(SdkFixture()) {
+      with(ConfigurationPageFixture(this, SystemImageState(false, false, persistentListOf()))) {
+        composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
+
+        systemImageStateFlow.value =
+          SystemImageState(hasLocal = true, hasRemote = true, images = persistentListOf())
+
+        composeTestRule.onNodeWithText("No system images available.").assertIsDisplayed()
+      }
+    }
+  }
+
+  @Test
+  fun systemImageLoading_remoteLoading() {
+    with(SdkFixture()) {
+      val api34Image = api34()
+      repoPackages.setLocalPkgInfos(listOf(api34Image))
+
+      with(ConfigurationPageFixture(this, SystemImageState(false, false, persistentListOf()))) {
+        composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
+        composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
+
+        systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = false)
+
+        composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
       }
     }
   }

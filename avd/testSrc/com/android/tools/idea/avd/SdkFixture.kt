@@ -20,6 +20,7 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
+import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
@@ -37,6 +38,7 @@ import com.android.utils.osArchitecture
 import com.intellij.util.io.createDirectories
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlinx.collections.immutable.toImmutableList
 
 class SdkFixture {
   val fileSystem = createInMemoryFileSystem()
@@ -48,6 +50,13 @@ class SdkFixture {
   private val logger = StdLogger(StdLogger.Level.INFO)
   val deviceManager = DeviceManager.createInstance(sdkHandler, logger)
   val avdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger)
+
+  internal fun systemImageState(hasLocal: Boolean = true, hasRemote: Boolean = true) =
+    SystemImageState(
+      hasLocal = hasLocal,
+      hasRemote = hasRemote,
+      images = sdkHandler.getSystemImageManager(FakeProgressIndicator()).images.toImmutableList(),
+    )
 
   fun createLocalSystemImage(
     path: String,

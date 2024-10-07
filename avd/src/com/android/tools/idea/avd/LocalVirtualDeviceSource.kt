@@ -34,10 +34,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
+import com.intellij.openapi.components.service
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.withContext
@@ -46,6 +48,8 @@ internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
   val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+  val systemImageStateFlow: StateFlow<SystemImageState> =
+    service<SystemImageStateService>().systemImageStateFlow,
 ) : DeviceSource<VirtualDeviceProfile> {
 
   companion object {
@@ -66,6 +70,7 @@ internal class LocalVirtualDeviceSource(
           VirtualDevice.withDefaults(profile.device)
             .copy(name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))),
           null,
+          systemImageStateFlow,
           skins,
           deviceNameValidator,
           sdkHandler,
