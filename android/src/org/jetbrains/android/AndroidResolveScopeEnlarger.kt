@@ -18,8 +18,8 @@ package org.jetbrains.android
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
@@ -111,11 +111,12 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
         val modulePointer = file.getUserData(MODULE_POINTER_KEY) ?: return false
         val resourceClassModule = modulePointer.module ?: return false
         // Resource classes should be available to all modules that stem from the same Gradle project
-        if (resourceClassModule == module || resourceClassModule == module.getMainModule()) {
+        if (resourceClassModule == module || resourceClassModule == module.getModuleSystem().getProductionAndroidModule()) {
           return true
         }
         val resourceClassFacet = resourceClassModule.androidFacet ?: return false
-        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), false)
+        val facet = module.androidFacet ?: return false
+        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(facet.getProductionAndroidModule(), false)
         return androidDependencies.contains(resourceClassFacet)
       }
 

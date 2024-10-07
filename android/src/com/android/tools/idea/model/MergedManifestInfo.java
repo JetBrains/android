@@ -435,7 +435,7 @@ final class MergedManifestInfo {
     }
     SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
     if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
-      return ModuleSystemUtil.getMainModule(androidFacet.getModule());
+      return ModuleSystemUtil.getProductionAndroidModule(androidFacet);
     }
     return null;
   }
