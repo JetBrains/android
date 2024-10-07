@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.SdkConstants
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
@@ -28,6 +29,7 @@ import com.android.sdklib.internal.avd.ColdBoot
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.internal.avd.OnDiskSkin
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
@@ -59,6 +61,7 @@ class VirtualDeviceTest {
     avdBuilder.networkLatency = AvdNetworkLatency.GPRS
     avdBuilder.networkSpeed = AvdNetworkSpeed.GSM
     avdBuilder.bootMode = ColdBoot
+    avdBuilder.userSettings[UserSettingsKey.PREFERRED_ABI] = SdkConstants.ABI_RISCV64
 
     with(VirtualDevice.withDefaults(pixel8).copyFrom(avdBuilder)) {
       assertThat(device).isEqualTo(pixel8)
@@ -76,6 +79,7 @@ class VirtualDeviceTest {
       assertThat(latency).isEqualTo(AvdNetworkLatency.GPRS)
       assertThat(speed).isEqualTo(AvdNetworkSpeed.GSM)
       assertThat(defaultBoot).isEqualTo(Boot.COLD)
+      assertThat(preferredAbi).isEqualTo(SdkConstants.ABI_RISCV64)
     }
   }
 
@@ -103,6 +107,7 @@ class VirtualDeviceTest {
         latency = AvdNetworkLatency.GPRS,
         speed = AvdNetworkSpeed.GSM,
         defaultBoot = Boot.COLD,
+        preferredAbi = SdkConstants.ABI_RISCV64,
       )
 
     avdBuilder.copyFrom(device, mockSystemImage())
@@ -122,6 +127,7 @@ class VirtualDeviceTest {
       assertThat(networkLatency).isEqualTo(AvdNetworkLatency.GPRS)
       assertThat(networkSpeed).isEqualTo(AvdNetworkSpeed.GSM)
       assertThat(bootMode).isEqualTo(ColdBoot)
+      assertThat(userSettings[UserSettingsKey.PREFERRED_ABI]).isEqualTo(SdkConstants.ABI_RISCV64)
     }
   }
 
