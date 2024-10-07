@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
@@ -41,8 +43,16 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import javax.swing.JButton
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -59,20 +69,23 @@ class InsightBottomPanelTest {
   private lateinit var copyProvider: FakeCopyProvider
   private lateinit var testEvent: AnActionEvent
   private lateinit var experimentFetcher: FakeExperimentFetcher
-  private var currentInsight: AiInsight? = null
+  private lateinit var fakeUi: FakeUi
+  private val scope = CoroutineScope(EmptyCoroutineContext)
+  private val currentInsightFlow =
+    MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
 
   @Before
   fun setup() {
     studioBot = FakeStudioBot(false)
     application.replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
     copyProvider = FakeCopyProvider()
-    currentInsight = null
+    currentInsightFlow.update { LoadingState.Ready(null) }
     testEvent =
       TestActionEvent.createTestEvent {
         when {
           PlatformDataKeys.COPY_PROVIDER.`is`(it) -> copyProvider
           CommonDataKeys.PROJECT.`is`(it) -> projectRule.project
-          INSIGHT_KEY.`is`(it) -> currentInsight
+          INSIGHT_KEY.`is`(it) -> currentInsightFlow.value
           else -> null
         }
       }
@@ -84,9 +97,14 @@ class InsightBottomPanelTest {
     )
   }
 
+  @After
+  fun tearDown() {
+    scope.cancel()
+  }
+
   @Test
   fun `test copy action`() = runBlocking {
-    val bottomPanel = InsightBottomPanel(projectRule.project) {}
+    val bottomPanel = createInsightBottomPanel()
 
     val fakeUi = FakeUi(bottomPanel)
     val toolbar =
@@ -110,7 +128,7 @@ class InsightBottomPanelTest {
 
   @Test
   fun `check dialog popup content`() {
-    val bottomPanel = InsightBottomPanel(projectRule.project) {}
+    val bottomPanel = createInsightBottomPanel()
 
     var message = ""
     TestDialogManager.setTestDialog {
@@ -118,7 +136,7 @@ class InsightBottomPanelTest {
       Messages.OK
     }
 
-    bottomPanel.enableCodeContextAction.actionPerformed(testEvent)
+    fakeUi.findContextButton().doClick()
 
     assertThat(message)
       .contains(
@@ -131,58 +149,63 @@ class InsightBottomPanelTest {
   @Test
   fun `button is invisible when context is allowed by setting`() {
     studioBot.isContextAllowed = true
-    val bottomPanel = InsightBottomPanel(projectRule.project) {}
-    bottomPanel.enableCodeContextAction.update(testEvent)
-    assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
+    createInsightBottomPanel()
+    currentInsightFlow.update { LoadingState.Ready(AiInsight("")) }
+    assertThat(fakeUi.findContextButton().isVisible).isFalse()
   }
 
   @Test
   fun `enable context button disappears and callback is triggered after user clicks ok`() {
     var onCallBack = false
 
-    val bottomPanel = InsightBottomPanel(projectRule.project) { onCallBack = true }
-    currentInsight = AiInsight("", Experiment.UNKNOWN)
+    val bottomPanel = createInsightBottomPanel { onCallBack = true }
+    currentInsightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
     TestDialogManager.setTestDialog { Messages.OK }
 
-    bottomPanel.enableCodeContextAction.actionPerformed(testEvent)
-    assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
+    fakeUi.findContextButton().doClick()
+    assertThat(fakeUi.findContextButton().isVisible).isFalse()
 
-    currentInsight = AiInsight("", Experiment.TOP_SOURCE)
-    bottomPanel.enableCodeContextAction.update(testEvent)
-    assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
+    currentInsightFlow.update { LoadingState.Ready(AiInsight("", Experiment.TOP_SOURCE)) }
+    assertThat(fakeUi.findContextButton().isVisible).isFalse()
 
     assertThat(onCallBack).isTrue()
   }
 
   @Test
-  fun `enable context button is still visible after user clicks cancel`() {
-    val bottomPanel = InsightBottomPanel(projectRule.project) {}
+  fun `enable context button is still visible after user clicks cancel`() = runTest {
+    createInsightBottomPanel()
     TestDialogManager.setTestDialog { Messages.CANCEL }
-    currentInsight = AiInsight("", Experiment.UNKNOWN)
+    currentInsightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
 
-    bottomPanel.enableCodeContextAction.actionPerformed(testEvent)
-    assertThat(testEvent.presentation.isEnabledAndVisible).isTrue()
-
-    bottomPanel.enableCodeContextAction.update(testEvent)
-    assertThat(testEvent.presentation.isEnabledAndVisible).isTrue()
+    fakeUi.findContextButton().doClick()
+    assertThat(fakeUi.findContextButton().isVisible).isTrue()
   }
 
   @Test
-  fun `enable context button is only visible when user is assigned an experiment`() {
-    val bottomPanel = InsightBottomPanel(projectRule.project) {}
-    currentInsight = AiInsight("", Experiment.UNKNOWN)
+  fun `enable context button is only visible when user is assigned an experiment`() = runTest {
+    createInsightBottomPanel()
+    currentInsightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
 
     for (experiment in
       listOf(Experiment.ALL_SOURCES, Experiment.TOP_THREE_SOURCES, Experiment.TOP_SOURCE)) {
       experimentFetcher.experiment = experiment
-      bottomPanel.enableCodeContextAction.update(testEvent)
-      assertThat(testEvent.presentation.isEnabledAndVisible).isTrue()
+      currentInsightFlow.update { LoadingState.Ready(AiInsight("")) }
+      delayUntilCondition(200) { fakeUi.findContextButton().isVisible }
+      // Reset the button visibility for the next experiment
+      currentInsightFlow.update { LoadingState.Ready(AiInsight("", experiment)) }
+      delayUntilCondition(200) { !fakeUi.findContextButton().isVisible }
     }
 
     for (experiment in listOf(Experiment.CONTROL, Experiment.UNKNOWN)) {
       experimentFetcher.experiment = experiment
-      bottomPanel.enableCodeContextAction.update(testEvent)
-      assertThat(testEvent.presentation.isEnabledAndVisible).isFalse()
+      currentInsightFlow.update { LoadingState.Ready(AiInsight("")) }
+      delayUntilCondition(200) { !fakeUi.findContextButton().isVisible }
+      // Reset the button visibility for the next experiment
+      experimentFetcher.experiment = Experiment.TOP_SOURCE
+      // isCached = true is only for the flow to update.
+      // In the case of UNKNOWN, the experiment remains the same and the flow does not update
+      currentInsightFlow.update { LoadingState.Ready(AiInsight("", experiment, true)) }
+      delayUntilCondition(200) { fakeUi.findContextButton().isVisible }
     }
   }
 
@@ -204,4 +227,12 @@ class InsightBottomPanelTest {
 
     override fun isContextAllowed(project: Project) = isContextAllowed
   }
+
+  private fun createInsightBottomPanel(callback: (Boolean) -> Unit = {}) =
+    InsightBottomPanel(projectRule.project, scope, currentInsightFlow, callback).also {
+      fakeUi = FakeUi(it)
+    }
+
+  private fun FakeUi.findContextButton() =
+    findComponent<JButton>() ?: fail("Context button not found")
 }
