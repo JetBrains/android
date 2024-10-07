@@ -19,6 +19,7 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
@@ -63,7 +64,7 @@ internal class LocalVirtualDeviceSource(
         val deviceNameValidator = DeviceNameValidator.createForAvdManager(avdManager)
         ConfigurationPage(
           VirtualDevice.withDefaults(profile.device)
-            .copy(name = deviceNameValidator.uniquify(profile.name)),
+            .copy(name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))),
           null,
           skins,
           deviceNameValidator,
