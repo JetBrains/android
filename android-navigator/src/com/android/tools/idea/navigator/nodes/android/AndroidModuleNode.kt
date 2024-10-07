@@ -19,7 +19,7 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.AndroidIconProviderProjectGradleToken
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.projectView.PresentationData
