@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.java.run.coverage.BlazeCoverageData.FileData;
-import gnu.trove.TIntIntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,10 +81,10 @@ public class BlazeCoverageDataTest {
     assertThat(data.perFileData.keySet()).containsExactly("path/to/another/file.txt");
   }
 
-  private static ImmutableMap<Integer, Integer> toMap(TIntIntHashMap troveMap) {
-    return Arrays.stream(troveMap.keys())
+  private static ImmutableMap<Integer, Integer> toMap(Int2IntOpenHashMap map) {
+    return Arrays.stream(map.keySet().toIntArray())
         .boxed()
-        .collect(ImmutableMap.toImmutableMap(Function.identity(), troveMap::get));
+        .collect(ImmutableMap.toImmutableMap(Function.identity(), map::get));
   }
 
   private static InputStream inputStream(String... lines) {
