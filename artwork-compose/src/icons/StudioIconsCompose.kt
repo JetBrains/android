@@ -863,6 +863,7 @@ object StudioIconsCompose {
       val LayoutInspector: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/menu/layout-inspector.svg", "/intui/icons/shell/menu/layout-inspector.svg", StudioIconsCompose.javaClass) // 16x16
       val NetworkInspector: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/menu/network-inspector.svg", "/intui/icons/shell/menu/network-inspector.svg", StudioIconsCompose.javaClass) // 16x16
       val Profiler: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/menu/profiler.svg", "/intui/icons/shell/menu/profiler.svg", StudioIconsCompose.javaClass) // 16x16
+      val StudioLabs: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/menu/studio-labs.svg", "/studio/icons/shell/menu/studio-labs.svg", StudioIconsCompose.javaClass) // 16x16
       val ThemeEditor: IntelliJIconKey = IntelliJIconKey("/studio/icons/shell/menu/theme-editor.svg", "/intui/icons/shell/menu/theme-editor.svg", StudioIconsCompose.javaClass) // 16x16
     }
 

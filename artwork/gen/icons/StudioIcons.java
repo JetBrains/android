@@ -866,6 +866,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon LAYOUT_INSPECTOR = load("studio/icons/shell/menu/layout-inspector.svg", "intui/icons/shell/menu/layout-inspector.svg", 1956739999, 2);
       /** 16x16 */ public static final @NotNull Icon NETWORK_INSPECTOR = load("studio/icons/shell/menu/network-inspector.svg", "intui/icons/shell/menu/network-inspector.svg", -444397921, 2);
       /** 16x16 */ public static final @NotNull Icon PROFILER = load("studio/icons/shell/menu/profiler.svg", "intui/icons/shell/menu/profiler.svg", -995167893, 2);
+      /** 16x16 */ public static final @NotNull Icon STUDIO_LABS = load("studio/icons/shell/menu/studio-labs.svg", -1489449878, 2);
       /** 16x16 */ public static final @NotNull Icon THEME_EDITOR = load("studio/icons/shell/menu/theme-editor.svg", "intui/icons/shell/menu/theme-editor.svg", 1239870813, 2);
     }
 
