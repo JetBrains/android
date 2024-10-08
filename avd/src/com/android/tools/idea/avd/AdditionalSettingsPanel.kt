@@ -64,8 +64,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun AdditionalSettingsPanel(
-  configureDevicePanelState: ConfigureDevicePanelState,
-  additionalSettingsPanelState: AdditionalSettingsPanelState,
+  state: ConfigureDevicePanelState,
   onImportButtonClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -78,41 +77,34 @@ internal fun AdditionalSettingsPanel(
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
         Dropdown(
-          configureDevicePanelState.device.skin,
-          configureDevicePanelState.skins,
-          onSelectedItemChange = {
-            configureDevicePanelState.device = configureDevicePanelState.device.copy(skin = it)
-          },
+          state.device.skin,
+          state.skins,
+          onSelectedItemChange = { state.device = state.device.copy(skin = it) },
           Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
         )
       }
 
-      CameraGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
-      NetworkGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
-      StartupGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
+      CameraGroup(state.device, state::device::set)
+      NetworkGroup(state.device, state::device::set)
+      StartupGroup(state.device, state::device::set)
 
       StorageGroup(
-        configureDevicePanelState.device,
-        additionalSettingsPanelState.storageGroupState,
-        configureDevicePanelState.validity.isExpandedStorageValid,
-        configureDevicePanelState::device::set,
+        state.device,
+        state.storageGroupState,
+        state.validity.isExpandedStorageValid,
+        state::device::set,
       )
+
       LaunchedEffect(Unit) {
-        additionalSettingsPanelState.storageGroupState.expandedStorageFlow.collect(
-          configureDevicePanelState::setExpandedStorage
-        )
+        state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
       }
 
-      EmulatedPerformanceGroup(
-        configureDevicePanelState.device,
-        configureDevicePanelState.hasPlayStore(),
-        configureDevicePanelState::device::set,
-      )
+      EmulatedPerformanceGroup(state.device, state.hasPlayStore(), state::device::set)
 
       PreferredAbiGroup(
-        configureDevicePanelState.device.preferredAbi,
-        configureDevicePanelState.systemImageTableSelectionState.selection,
-        onPreferredAbiChange = configureDevicePanelState::setPreferredAbi,
+        state.device.preferredAbi,
+        state.systemImageTableSelectionState.selection,
+        onPreferredAbiChange = state::setPreferredAbi,
       )
     }
   }
@@ -522,10 +514,6 @@ private fun PreferredAbiGroup(
         if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
     )
   }
-}
-
-internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
-  internal val storageGroupState = StorageGroupState(device)
 }
 
 internal class StorageGroupState internal constructor(device: VirtualDevice) {

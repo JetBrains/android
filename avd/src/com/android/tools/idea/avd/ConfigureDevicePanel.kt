@@ -122,10 +122,6 @@ private fun Tabs(
     }
   }
 
-  val additionalSettingsPanelState = remember {
-    AdditionalSettingsPanelState(configureDevicePanelState.device)
-  }
-
   when (selectedTab) {
     Tab.DEVICE ->
       DevicePanel(
@@ -141,7 +137,6 @@ private fun Tabs(
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
         configureDevicePanelState,
-        additionalSettingsPanelState,
         onImportButtonClick,
         Modifier.padding(Padding.SMALL),
       )
@@ -173,6 +168,7 @@ internal constructor(
     private set
 
   internal val systemImageTableSelectionState = TableSelectionState(image)
+  internal val storageGroupState = StorageGroupState(device)
 
   internal var validity by mutableStateOf(Validity())
     private set
