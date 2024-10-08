@@ -130,7 +130,9 @@ class WearHealthServicesPanelControllerTest {
         // show popup again as clicking on the apply button closes it
         showWhsPopup()
 
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.success") }
+        fakeUi.waitForDescendant<JLabel> {
+          it.text == message("wear.whs.panel.reapply.capabilities.success")
+        }
       }
 
       // with user changes
@@ -142,7 +144,9 @@ class WearHealthServicesPanelControllerTest {
         // show popup again as clicking on the apply button closes it
         showWhsPopup()
 
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+        fakeUi.waitForDescendant<JLabel> {
+          it.text == message("wear.whs.panel.apply.capabilities.success")
+        }
       }
     }
 
@@ -159,7 +163,9 @@ class WearHealthServicesPanelControllerTest {
         // show popup again as clicking on the apply button closes it
         showWhsPopup()
 
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.failure") }
+        fakeUi.waitForDescendant<JLabel> {
+          it.text == message("wear.whs.panel.reapply.capabilities.failure")
+        }
       }
 
       // with user changes
@@ -172,7 +178,9 @@ class WearHealthServicesPanelControllerTest {
         // show popup again as clicking on the apply button closes it
         showWhsPopup()
 
-        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+        fakeUi.waitForDescendant<JLabel> {
+          it.text == message("wear.whs.panel.apply.capabilities.failure")
+        }
       }
     }
 
@@ -188,7 +196,7 @@ class WearHealthServicesPanelControllerTest {
 
         waitForCondition(2, TimeUnit.SECONDS) {
           notifications.any {
-            it.content == message("wear.whs.panel.reapply.success") &&
+            it.content == message("wear.whs.panel.reapply.capabilities.success") &&
               it.type == NotificationType.INFORMATION
           }
         }
@@ -204,7 +212,7 @@ class WearHealthServicesPanelControllerTest {
 
         waitForCondition(2, TimeUnit.SECONDS) {
           notifications.any {
-            it.content == message("wear.whs.panel.apply.success") &&
+            it.content == message("wear.whs.panel.apply.capabilities.success") &&
               it.type == NotificationType.INFORMATION
           }
         }
@@ -224,7 +232,7 @@ class WearHealthServicesPanelControllerTest {
 
         waitForCondition(2, TimeUnit.SECONDS) {
           notifications.any {
-            it.content == message("wear.whs.panel.reapply.failure") &&
+            it.content == message("wear.whs.panel.reapply.capabilities.failure") &&
               it.type == NotificationType.ERROR
           }
         }
@@ -240,12 +248,73 @@ class WearHealthServicesPanelControllerTest {
 
         waitForCondition(2, TimeUnit.SECONDS) {
           notifications.any {
-            it.content == message("wear.whs.panel.apply.failure") &&
+            it.content == message("wear.whs.panel.apply.capabilities.failure") &&
               it.type == NotificationType.ERROR
           }
         }
       }
     }
+
+  @Test
+  fun `test apply and reapply notifies about sensor value changes when there is an ongoing exercise`():
+    Unit = runBlocking {
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    // without user changes
+    run {
+      showWhsPopup()
+
+      deviceManager.failState = false
+      fakeUi.clickOnApplyButton()
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.reapply.sensor.values.success") &&
+            it.type == NotificationType.INFORMATION
+        }
+      }
+
+      showWhsPopup()
+      deviceManager.failState = true
+      fakeUi.clickOnApplyButton()
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.reapply.sensor.values.failure") &&
+            it.type == NotificationType.ERROR
+        }
+      }
+    }
+
+    // with user changes
+    run {
+      showWhsPopup()
+      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50)
+
+      deviceManager.failState = false
+      fakeUi.clickOnApplyButton()
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.apply.sensor.values.success") &&
+            it.type == NotificationType.INFORMATION
+        }
+      }
+
+      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 60)
+      deviceManager.failState = true
+      showWhsPopup()
+      fakeUi.clickOnApplyButton()
+
+      waitForCondition(2, TimeUnit.SECONDS) {
+        notifications.any {
+          it.content == message("wear.whs.panel.apply.sensor.values.failure") &&
+            it.type == NotificationType.ERROR
+        }
+      }
+    }
+  }
 
   @Test
   fun `test successful reset shows in information label when panel is showing`(): Unit =
