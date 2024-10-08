@@ -71,6 +71,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.facet.AndroidFacet
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,7 +89,8 @@ class AndroidRunConfigurationExecutor(
   override val configuration = env.runProfile as AndroidRunConfiguration
   private val settings = env.runnerAndConfigurationSettings as RunnerAndConfigurationSettings
 
-  val facet = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
+  val facet: AndroidFacet
+    get() = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
 
   private val LOG = Logger.getInstance(this::class.java)
 
