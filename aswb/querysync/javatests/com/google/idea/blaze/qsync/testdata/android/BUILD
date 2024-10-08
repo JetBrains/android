@@ -1,4 +1,4 @@
-load("//tools/vendor/google/aswb:android.bzl", "android_library")
+load("//tools/adt/idea/aswb:android.bzl", "android_library")
 
 android_library(
     name = "android",

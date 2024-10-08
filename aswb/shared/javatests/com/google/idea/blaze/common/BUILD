@@ -12,8 +12,8 @@ java_test(
     srcs = ["LabelTest.java"],
     deps = [
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
     ],
 )
 
@@ -25,7 +25,7 @@ java_library(
     ],
     deps = [
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
-        "//tools/vendor/google/aswb/third_party/java/flogger",
+        "//tools/adt/idea/aswb/third_party/java/flogger",
     ],
 )
 
@@ -35,8 +35,8 @@ java_test(
     srcs = ["TargetTreeTest.java"],
     deps = [
         "//tools/adt/idea/aswb/shared",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
     ],
 )
 
@@ -46,7 +46,7 @@ java_test(
     srcs = ["AtomicFileWriterTest.java"],
     deps = [
         "//tools/adt/idea/aswb/shared",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
     ],
 )
