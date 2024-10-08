@@ -133,7 +133,9 @@ fun <DeviceT : DeviceProfile> DeviceTable(
                 onRowSecondaryClick = onRowSecondaryClick,
               )
               if (showDetails) {
-                when (val selection = tableSelectionState.selection) {
+                when (
+                  val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
+                ) {
                   null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
                   else ->
                     DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
