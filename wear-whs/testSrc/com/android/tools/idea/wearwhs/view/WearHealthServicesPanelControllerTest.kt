@@ -47,7 +47,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
-import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
@@ -97,18 +96,17 @@ class WearHealthServicesPanelControllerTest {
         workerScope = workerScope,
       )
 
+    val mockActionManager = mock<ActionManager>()
+    whenever(mockActionManager.createActionPopupMenu(anyString(), any())).then { invocation ->
+      fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+      fakePopup
+    }
     ApplicationManager.getApplication()
       .replaceService(
         ActionManager::class.java,
-        org.mockito.kotlin.mock(),
+        mockActionManager,
         projectRule.testRootDisposable,
       )
-    doAnswer { invocation ->
-        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-        fakePopup
-      }
-      .whenever(ActionManager.getInstance())
-      .createActionPopupMenu(anyString(), any<ActionGroup>())
   }
 
   @Test
