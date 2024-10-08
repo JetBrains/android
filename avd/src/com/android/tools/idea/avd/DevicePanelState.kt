@@ -26,7 +26,6 @@ internal class DevicePanelState
 internal constructor(
   selectedApi: AndroidVersionSelection,
   selectedServices: Services?,
-  private val systemImages: List<ISystemImage>,
   showSdkExtensionSystemImages: Boolean = false,
   showOnlyRecommendedSystemImages: Boolean = true,
 ) {
@@ -36,68 +35,61 @@ internal constructor(
   internal var selectedServices by mutableStateOf(selectedServices)
     private set
 
-  internal var filteredSystemImages by mutableStateOf(systemImages)
-    private set
-
   internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
     private set
 
   internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
     private set
 
-  private val minExtensionLevelMap: Map<ApiLevelAndCodename, Int?>
-
-  init {
-    val comparator = Comparator.nullsFirst<Int?>(Comparator.naturalOrder())
-
-    minExtensionLevelMap =
-      systemImages
-        .map(ISystemImage::getAndroidVersion)
-        .groupBy(::ApiLevelAndCodename, AndroidVersion::getExtensionLevel)
-        .mapValues { (_, extensionLevels) -> extensionLevels.minWith(comparator) }
-
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
   internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
     this.selectedApi = selectedApi
-    filteredSystemImages = systemImages.filter(this::matches)
   }
 
   internal fun setSelectedServices(selectedServices: Services?) {
     this.selectedServices = selectedServices
-    filteredSystemImages = systemImages.filter(this::matches)
   }
 
   internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
     this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
   }
 
   internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
     this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
   }
 
-  private fun matches(image: ISystemImage): Boolean {
-    val apiMatches = selectedApi.matches(image.androidVersion)
-    val servicesMatches = selectedServices == null || image.getServices() == selectedServices
+  fun filter(
+    images: Iterable<ISystemImage>,
+    baseExtensionLevels: BaseExtensionLevels = BaseExtensionLevels(images),
+  ): List<ISystemImage> {
+    return images.filter { image ->
+      val apiMatches = selectedApi.matches(image.androidVersion)
+      val servicesMatches = selectedServices == null || image.getServices() == selectedServices
 
-    val isSdkExtensionMatches =
-      showSdkExtensionSystemImages || isBaseExtension(image.androidVersion)
+      val isSdkExtensionMatches =
+        showSdkExtensionSystemImages || baseExtensionLevels.isBaseExtension(image.androidVersion)
 
-    val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
+      val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
 
-    return apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
+      apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
+    }
   }
+}
 
-  private fun isBaseExtension(version: AndroidVersion): Boolean {
+internal class BaseExtensionLevels(images: Iterable<ISystemImage>) {
+  private val comparator = Comparator.nullsFirst<Int?>(Comparator.naturalOrder())
+  private val minExtensionLevelMap =
+    images
+      .map(ISystemImage::getAndroidVersion)
+      .groupBy(::ApiLevelAndCodename, AndroidVersion::getExtensionLevel)
+      .mapValues { (_, extensionLevels) -> extensionLevels.minWith(comparator) }
+
+  fun isBaseExtension(version: AndroidVersion): Boolean {
     val minExtensionLevel = minExtensionLevelMap[ApiLevelAndCodename(version)]
 
     return if (minExtensionLevel == null) {
-      // This branch protects against multiple base extensions with the same API level but differing
-      // extension levels (null and the expected nonnull value). The null would hide the nonnull
-      // value and the nonnull value would not be reported as a base extension.
+      // This branch protects against multiple base extensions with the same API level but
+      // differing extension levels (null and the expected nonnull value). The null would hide the
+      // nonnull value and the nonnull value would not be reported as a base extension.
       version.isBaseExtension
     } else {
       version.extensionLevel == minExtensionLevel

@@ -23,6 +23,7 @@ import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
@@ -55,7 +56,14 @@ class SdkFixture {
     SystemImageState(
       hasLocal = hasLocal,
       hasRemote = hasRemote,
-      images = sdkHandler.getSystemImageManager(FakeProgressIndicator()).images.toImmutableList(),
+      images =
+        SystemImageSupplier(
+            repoManager,
+            sdkHandler.getSystemImageManager(FakeProgressIndicator()),
+            logger,
+          )
+          .get()
+          .toImmutableList(),
     )
 
   fun createLocalSystemImage(

@@ -86,7 +86,6 @@ internal fun WizardPageScope.ConfigurationPage(
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
   val systemImageState by systemImageStateFlow.collectAsState()
-  val images = systemImageState.images.filter { matches(device, it) }.toImmutableList()
 
   // Wait a bit for remote images to arrive before we proceed, so that we make our initial
   // system image selection based on the full list, if possible.
@@ -101,7 +100,12 @@ internal fun WizardPageScope.ConfigurationPage(
     }
     return
   }
-  if (images.isEmpty()) {
+
+  val filteredImageState =
+    systemImageState.copy(
+      images = systemImageState.images.filter { matches(device, it) }.toImmutableList()
+    )
+  if (filteredImageState.images.isEmpty()) {
     Box(Modifier.fillMaxSize()) {
       Text("No system images available.", modifier = Modifier.align(Alignment.Center))
     }
@@ -117,7 +121,9 @@ internal fun WizardPageScope.ConfigurationPage(
           ConfigureDevicePanelState(
             device,
             skins,
-            images.sortedWith(SystemImageComparator).last().takeIf { it.isRecommended() },
+            filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
+              it.isRecommended()
+            },
           )
 
         val skin = device.device.defaultHardware.skinFile
@@ -151,7 +157,7 @@ internal fun WizardPageScope.ConfigurationPage(
     ConfigureDevicePanel(
       state,
       image,
-      images,
+      filteredImageState,
       deviceNameValidator,
       onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
       onSystemImageTableRowClick = {

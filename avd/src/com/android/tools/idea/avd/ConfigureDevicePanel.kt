@@ -49,7 +49,7 @@ import org.jetbrains.jewel.ui.theme.defaultTabStyle
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
-  images: ImmutableList<ISystemImage>,
+  images: SystemImageState,
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -77,7 +77,7 @@ internal fun ConfigureDevicePanel(
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
-  images: ImmutableList<ISystemImage>,
+  imageState: SystemImageState,
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
@@ -98,9 +98,11 @@ private fun Tabs(
   )
 
   val servicesSet =
-    images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
+    imageState.images
+      .mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices)
+      .toImmutableSet()
 
-  val androidVersions = images.map { it.androidVersion }.relevantVersions()
+  val androidVersions = imageState.images.map { it.androidVersion }.relevantVersions()
 
   val devicePanelState = remember {
     if (initialSystemImage == null) {
@@ -109,13 +111,11 @@ private fun Tabs(
           androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
         ),
         servicesSet.firstOrNull(),
-        images,
       )
     } else {
       DevicePanelState(
         AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
         initialSystemImage.getServices(),
-        images,
         !initialSystemImage.androidVersion.isBaseExtension,
         initialSystemImage.isRecommended(),
       )
@@ -127,6 +127,7 @@ private fun Tabs(
       DevicePanel(
         configureDevicePanelState,
         devicePanelState,
+        imageState,
         androidVersions,
         servicesSet,
         deviceNameValidator,
