@@ -181,6 +181,11 @@ internal constructor(
     setExpandedStorage(device.expandedStorage)
   }
 
+  internal fun hasPlayStore(): Boolean {
+    val image = systemImageTableSelectionState.selection
+    return if (image == null) false else device.hasPlayStore(image)
+  }
+
   internal fun setDeviceName(deviceName: String) {
     device = device.copy(name = deviceName)
   }
