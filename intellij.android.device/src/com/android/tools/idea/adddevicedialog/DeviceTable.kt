@@ -71,7 +71,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   }
 
   Column(modifier) {
-    Row {
+    Row(Modifier.padding(horizontal = 6.dp)) {
       TextField(
         textState,
         leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
