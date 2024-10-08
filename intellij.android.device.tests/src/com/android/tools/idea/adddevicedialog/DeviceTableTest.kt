@@ -40,6 +40,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -104,6 +105,32 @@ class DeviceTableTest {
     composeTestRule.onNodeWithText("Pixel 5", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Pixel Fold", useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNodeWithText("Galaxy S22", useUnmergedTree = true).assertIsDisplayed()
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun columnSort() {
+    val widths = listOf(1200, 400, 800, 20)
+    val devices =
+      widths.map {
+        TestDevices.mediumPhone.copy(name = "Phone $it", resolution = Resolution(it, 2400))
+      }
+
+    composeTestRule.setContent {
+      val source = TestDeviceSource()
+      source.apply { devices.forEach { add(it) } }
+      TestDeviceTable(source.profiles.value.value)
+    }
+
+    // Click the column header to sort by width, arrow down to the table
+    composeTestRule.onNodeWithText("Width").performClick()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
+
+    // Verify correct row order
+    for (width in widths.sorted()) {
+      composeTestRule.onNodeWithText("Phone $width").assertIsSelected()
+      composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
+    }
   }
 
   @Test

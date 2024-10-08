@@ -106,6 +106,22 @@ fun <T> TableTextColumn(
     Text(attribute(it), overflow = overflow, maxLines = maxLines)
   }
 
+/**
+ * A sortable column that displays the attribute as text via toString() and sorts via the
+ * attribute's natural order.
+ */
+fun <T, V : Comparable<V>> DefaultSortableTableColumn(
+  name: String,
+  width: TableColumnWidth = TableColumnWidth.Weighted(1f),
+  attribute: (T) -> V,
+  comparator: Comparator<T>? = compareBy(attribute),
+  overflow: TextOverflow = TextOverflow.Ellipsis,
+  maxLines: Int = 1,
+) =
+  TableColumn(name, width, comparator) {
+    Text(attribute(it).toString(), overflow = overflow, maxLines = maxLines)
+  }
+
 enum class SortOrder {
   ASCENDING,
   DESCENDING;

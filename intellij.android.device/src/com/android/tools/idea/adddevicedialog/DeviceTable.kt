@@ -163,13 +163,20 @@ object DeviceTableColumns {
       maxLines = 2,
     )
   val api =
-    TableTextColumn<DeviceProfile>("API", attribute = { it.apiRange.lowerEndpoint().toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "API",
+      attribute = { it.apiRange.lowerEndpoint() },
+    )
   val width =
-    TableTextColumn<DeviceProfile>("Width", attribute = { it.resolution.width.toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>("Width", attribute = { it.resolution.width })
   val height =
-    TableTextColumn<DeviceProfile>("Height", attribute = { it.resolution.height.toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>("Height", attribute = { it.resolution.height })
   val density =
-    TableTextColumn<DeviceProfile>("Density", attribute = { "${it.displayDensity} dpi" })
+    TableTextColumn<DeviceProfile>(
+      "Density",
+      attribute = { "${it.displayDensity} dpi" },
+      comparator = compareBy { it.displayDensity },
+    )
   val type =
     TableTextColumn<DeviceProfile>(
       "Type",
