@@ -40,7 +40,9 @@ import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.execution.actions.RunConfigurationProducer
@@ -89,6 +91,7 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettingsListener
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.io.File
 
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
@@ -217,12 +220,11 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
     //  path individually.
     LOG.info("Requesting Gradle sync (${e.reason}).")
-    val trigger = if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
   }
 }
 
-private class RequestSyncThrowable(val reason: String) : Throwable()
+private class RequestSyncThrowable(val reason: String, val trigger: Trigger) : Throwable()
 
 private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectInfo: GradleProjectInfo) {
   val moduleManager = ModuleManager.getInstance(project)
@@ -231,8 +233,10 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
   fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
     ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
 
-  fun requestSync(reason: String): Nothing {
-    throw RequestSyncThrowable(reason)
+  fun requestSync(reason: String, trigger: Trigger? = null): Nothing {
+    throw RequestSyncThrowable(reason,
+                               trigger
+                               ?: if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN)
   }
 
   val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
@@ -264,6 +268,14 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
             }
           }
         }
+        val localAndroidSdkPath = LocalProperties(File(externalProjectPath)).androidSdkPath
+        if (localAndroidSdkPath == null || localAndroidSdkPath.path.isNullOrBlank()) {
+          requestSync("No SDK path defined in local.properties.", Trigger.TRIGGER_PROJECT_MODIFIED)
+        }
+        if (localAndroidSdkPath.path != IdeSdks.getInstance().androidSdkPath?.path) {
+          requestSync("SDK path defined in local.properties is invalid.", Trigger.TRIGGER_PROJECT_MODIFIED)
+        }
+
         val moduleVariants = project.getSelectedVariantAndAbis()
         externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
           ?: requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants")
