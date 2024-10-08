@@ -16,8 +16,10 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
@@ -26,5 +28,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Composable
 internal fun InfoOutlineIcon(text: String, modifier: Modifier = Modifier) {
   @OptIn(ExperimentalFoundationApi::class)
-  Tooltip({ Text(text) }, modifier) { Icon(AllIconsKeys.General.Note, null) }
+  Tooltip({ Text(text, Modifier.widthIn(max = 300.dp)) }, modifier) {
+    Icon(AllIconsKeys.General.Note, null)
+  }
 }
