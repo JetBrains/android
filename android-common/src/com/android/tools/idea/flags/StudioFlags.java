@@ -1979,7 +1979,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "hallucination.detector.enabled",
                     "Run hallucination analysis on generated code.",
                     "When enabled, a hallucination detection utility will run on generated code snippets, and emit metrics when hallucinations are detected.",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    false);
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
     new MendelFlag(STUDIOBOT, "current.file.context", 97694800,
