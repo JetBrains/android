@@ -84,13 +84,7 @@ class AdditionalSettingsPanelTest {
         @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
         LocalProject provides null,
       ) {
-        Column {
-          AdditionalSettingsPanel(
-            state,
-            AdditionalSettingsPanelState(device),
-            onImportButtonClick = {},
-          )
-        }
+        Column { AdditionalSettingsPanel(state, onImportButtonClick = {}) }
       }
     }
 
