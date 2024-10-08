@@ -94,7 +94,10 @@ internal fun WizardPageScope.ConfigurationPage(
       delay(1.seconds)
       value = true
     }
-  if (!systemImageState.hasLocal || (!isTimedOut && !systemImageState.hasRemote)) {
+  if (
+    !systemImageState.hasLocal ||
+      (!isTimedOut && !systemImageState.hasRemote && systemImageState.error == null)
+  ) {
     Box(Modifier.fillMaxSize()) {
       Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
     }

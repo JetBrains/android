@@ -301,12 +301,14 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
         composeTestRule.mainClock.advanceTimeBy(1001)
         composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
 
         // Now the remote package arrives; it should be displayed
         repoPackages.setRemotePkgInfos(listOf(remoteApi34Image, remoteApi34PlayImage))
         systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = true)
 
         composeTestRule.onNodeWithText(remoteApi34Image.displayName).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Loading system images...").assertDoesNotExist()
 
         // We should be able to select Google Play now under Services
         composeTestRule.onNodeWithText("Google APIs").performClick()
@@ -318,6 +320,28 @@ class LocalVirtualDeviceSourceTest {
 
         composeTestRule.onNodeWithText(remoteApi34Image.displayName).assertDoesNotExist()
         composeTestRule.onNodeWithText(remoteApi34PlayImage.displayName).assertIsDisplayed()
+      }
+    }
+  }
+
+  @Test
+  fun systemImageLoading_remoteError() {
+    with(SdkFixture()) {
+      val api34Image = api34()
+      repoPackages.setLocalPkgInfos(listOf(api34Image))
+
+      composeTestRule.mainClock.autoAdvance = false
+
+      with(ConfigurationPageFixture(this, SystemImageState.INITIAL)) {
+        composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
+
+        systemImageStateFlow.value =
+          systemImageState(hasLocal = true, hasRemote = false, error = "No internet connection")
+
+        // We don't need to timeout to see this when there's an error
+        composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Loading system images...").assertDoesNotExist()
+        composeTestRule.onNodeWithText("No internet connection").assertIsDisplayed()
       }
     }
   }
