@@ -26,11 +26,11 @@ import com.intellij.ui.TitlePanel
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.ui.components.DialogPanel
-import com.intellij.ui.components.Label
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
+import org.jetbrains.annotations.Nls
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -111,6 +111,7 @@ internal class ScreenRecorderDialog(
     stopButton.isEnabled = false
   }
 
+  @Nls
   private fun recordingTimeText(timeMillis: Long): String {
     val seconds = (timeMillis / 1000).toInt()
     return AndroidAdbUiBundle.message("screenrecord.dialog.progress",
@@ -145,7 +146,7 @@ internal class ScreenRecorderDialog(
 
     val centerPanel = BorderLayoutPanel()
     centerPanel.border = JBUI.Borders.empty(15, 10)
-    recordingLabel = Label(recordingTimeText(recordingTimeMillis))
+    recordingLabel = JLabel(recordingTimeText(recordingTimeMillis))
     centerPanel.addToLeft(recordingLabel)
     centerPanel.addToCenter(Box.createRigidArea(Dimension(JBUIScale.scale(20), 0)))
     stopButton = JButton(AndroidAdbUiBundle.message("screenrecord.dialog.stop.recording"))
