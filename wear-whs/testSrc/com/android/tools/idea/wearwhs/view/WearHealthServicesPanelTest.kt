@@ -18,6 +18,7 @@ package com.android.tools.idea.wearwhs.view
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
@@ -655,6 +656,54 @@ class WearHealthServicesPanelTest {
       stateManager.ongoingExercise.waitForValue(false)
       fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     }
+
+  @Test
+  fun `reset and reapply buttons are enabled during an exercise if at least one capability is enabled`():
+    Unit = runBlocking {
+    stateManager.setCapabilityEnabled(stateManager.capabilitiesList.first(), true)
+    stateManager.capabilitiesList.drop(1).forEach { stateManager.setCapabilityEnabled(it, false) }
+    stateManager.applyChanges()
+
+    val fakeUi = FakeUi(createWhsPanel().component)
+    val resetButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reset") }
+    val reapplyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
+
+    assertThat(resetButton.isEnabled).isTrue()
+    assertThat(reapplyButton.isEnabled).isTrue()
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    assertThat(resetButton.isEnabled).isTrue()
+    assertThat(reapplyButton.isEnabled).isTrue()
+  }
+
+  // Regression test for b/371285068
+  @Test
+  fun `reset and reapply buttons are disabled during an exercise if no capabilities are enabled`():
+    Unit = runBlocking {
+    stateManager.capabilitiesList.forEach { stateManager.setCapabilityEnabled(it, false) }
+    stateManager.applyChanges()
+
+    val fakeUi = FakeUi(createWhsPanel().component)
+    val resetButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reset") }
+    val reapplyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
+
+    assertThat(resetButton.isEnabled).isTrue()
+    assertThat(reapplyButton.isEnabled).isTrue()
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    retryUntilPassing(2.seconds) {
+      assertThat(resetButton.isEnabled).isFalse()
+      assertThat(reapplyButton.isEnabled).isFalse()
+    }
+  }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
