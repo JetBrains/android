@@ -30,4 +30,8 @@
     <typedHandler implementation="com.android.tools.idea.editing.metrics.CodeEditedTypedHandlerDelegate"/>
     <editorFactoryListener implementation="com.android.tools.idea.editing.metrics.CodeEditedEditorFactoryListener"/>
   </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.editing.metrics.CodeEditedRefactoringEventListener"
+              topic="com.intellij.refactoring.listeners.RefactoringEventListener"/>
+  </projectListeners>
 </idea-plugin>

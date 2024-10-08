@@ -36,6 +36,12 @@ sealed interface CodeEditingAction {
   /** The user has pasted content into an editor. */
   data object UserPaste : SimpleCodeEditingAction(Source.USER_PASTE)
 
+  /** The user used the IDE to refactor code. */
+  data object Refactoring : SimpleCodeEditingAction(Source.REFACTORING)
+
+  /** The user accepted a deterministic, IDE-generated code /completion. */
+  data object CodeCompletion : SimpleCodeEditingAction(Source.CODE_COMPLETION)
+
   /**
    * Represents an automatically inserted closure, such as when the user types '(' and the paired
    * ')' character is inserted after the cursor.
