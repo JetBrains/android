@@ -608,6 +608,7 @@ class GridLayoutManagerTest {
       OrganizationPadding(
         canvasTopPadding = 0,
         canvasLeftPadding = 0,
+        canvasBottomPadding = 0,
         groupLeftPadding = 0,
         previewPaddingProvider = { (it * framePadding).toInt() },
         previewRightPadding = { _, _ -> 0 },

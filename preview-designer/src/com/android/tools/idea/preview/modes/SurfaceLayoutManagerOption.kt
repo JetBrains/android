@@ -127,6 +127,7 @@ private val organizationListPadding =
   OrganizationPadding(
     10,
     10,
+    10,
     24,
     PREVIEW_FRAME_PADDING_PROVIDER,
     ORGANIZATION_PREVIEW_RIGHT_PADDING,
@@ -134,6 +135,7 @@ private val organizationListPadding =
   )
 private val organizationGridPadding =
   OrganizationPadding(
+    10,
     10,
     10,
     24,
