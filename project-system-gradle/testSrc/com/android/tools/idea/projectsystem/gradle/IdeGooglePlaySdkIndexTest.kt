@@ -23,6 +23,7 @@ import com.android.tools.lint.detector.api.LintFix
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_UPDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import org.jetbrains.android.AndroidTestCase
 
@@ -58,5 +59,28 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
                       "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showNotesFromDeveloper).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER)
     assertWithMessage("The value of GooglePlayIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS and StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS should match.\n" +
                       "The difference may occur if there is a channel conditional default or one was changed but not the other").that(ideIndex.showRecommendedVersions).isEqualTo(GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS)
+  }
+
+  fun testLogUpdateLibraryGeneratesEvent() {
+    val groupId = "com.google.firebase"
+    val artifactId = "firebase-auth"
+    val oldVersion = "9.0.0"
+    val newVersion = "10.0.0"
+    val scheduler = VirtualTimeScheduler()
+    val testUsageTracker = TestUsageTracker(scheduler)
+    setWriterForTest(testUsageTracker)
+    val ideIndex = IdeGooglePlaySdkIndex
+    ideIndex.initialize()
+    ideIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, oldVersion, newVersion, file = null)
+    val loggedEvents = testUsageTracker.usages
+    val libraryEvents = loggedEvents.filter { it.studioEvent.kind == SDK_INDEX_LIBRARY_UPDATED }
+    assertThat(libraryEvents).hasSize(1)
+    assertThat(libraryEvents[0].studioEvent.hasSdkIndexLibraryDetails()).isTrue()
+    val libraryDetails = libraryEvents[0].studioEvent.sdkIndexLibraryDetails
+    assertThat(libraryDetails.groupId).isEqualTo(groupId)
+    assertThat(libraryDetails.artifactId).isEqualTo(artifactId)
+    assertThat(libraryDetails.isBlocking).isTrue()
+    assertThat(libraryDetails.versionString).isEqualTo(oldVersion)
+    assertThat(libraryDetails.updatedVersionString).isEqualTo(newVersion)
   }
 }
