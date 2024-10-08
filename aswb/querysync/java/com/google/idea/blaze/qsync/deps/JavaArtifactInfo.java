@@ -40,19 +40,19 @@ public abstract class JavaArtifactInfo {
    * The jar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
    */
-  public abstract ImmutableList<BuildArtifact> jars();
+  public abstract ImmutableSet<BuildArtifact> jars();
 
   /**
    * The aar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
    */
-  public abstract ImmutableList<BuildArtifact> ideAars();
+  public abstract ImmutableSet<BuildArtifact> ideAars();
 
   /**
    * The gensrc artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in
    * the cache.
    */
-  public abstract ImmutableList<BuildArtifact> genSrcs();
+  public abstract ImmutableSet<BuildArtifact> genSrcs();
 
   /** Workspace relative sources for this dependency, extracted at dependency build time. */
   public abstract ImmutableSet<Path> sources();

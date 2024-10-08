@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
@@ -46,7 +47,7 @@ public abstract class CcCompilationInfo {
 
   public abstract ImmutableList<ProjectPath> frameworkIncludeDirectories();
 
-  public abstract ImmutableList<BuildArtifact> genHeaders();
+  public abstract ImmutableSet<BuildArtifact> genHeaders();
 
   public abstract String toolchainId();
 

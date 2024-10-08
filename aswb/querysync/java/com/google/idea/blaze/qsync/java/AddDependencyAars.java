@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.java;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.exception.BuildException;
@@ -52,7 +53,7 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
     this.aarPackageNameMetadata = aarPackageNameMetadata;
   }
 
-  private ImmutableList<BuildArtifact> getDependencyAars(TargetBuildInfo target) {
+  private ImmutableCollection<BuildArtifact> getDependencyAars(TargetBuildInfo target) {
     if (target.javaInfo().isEmpty()) {
       return ImmutableList.of();
     }

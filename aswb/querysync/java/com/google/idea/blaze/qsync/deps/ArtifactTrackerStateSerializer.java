@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -94,7 +95,7 @@ public class ArtifactTrackerStateSerializer {
         .setAndroidResourcesPackage(javaInfo.androidResourcesPackage());
   }
 
-  private ImmutableList<Artifact> toProtos(ImmutableList<BuildArtifact> artifacts) {
+  private ImmutableList<Artifact> toProtos(ImmutableCollection<BuildArtifact> artifacts) {
     return artifacts.stream()
         .map(
             artifact ->
