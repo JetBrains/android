@@ -154,8 +154,7 @@ class GridLayoutManager(
       groupRequiredWidth = max(groupRequiredWidth, rowX)
       groupRequiredHeight += currentHeight
     }
-    groupRequiredWidth +=
-      padding.canvasLeftPadding + if (layoutGroup.header != null) padding.groupLeftPadding else 0
+    groupRequiredWidth += if (layoutGroup.header != null) padding.groupLeftPadding else 0
     return Dimension(groupRequiredWidth, groupRequiredHeight)
   }
 
