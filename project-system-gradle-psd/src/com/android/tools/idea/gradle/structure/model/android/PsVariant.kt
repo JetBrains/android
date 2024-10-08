@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.utils.combineAsCamelCase
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
@@ -26,9 +25,7 @@ import javax.swing.Icon
 
 private val LOG = Logger.getInstance(PsVariant::class.java)
 
-data class PsVariantKey(val buildType: String, val productFlavors: List<String>) {
-  val name: String get() = (productFlavors + buildType).combineAsCamelCase()
-}
+data class PsVariantKey(val buildType: String, val productFlavors: List<String>, val name: String)
 
 open class PsVariant(
   override val parent: PsAndroidModule,

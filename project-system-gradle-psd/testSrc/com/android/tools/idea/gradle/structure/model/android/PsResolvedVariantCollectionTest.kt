@@ -40,18 +40,18 @@ class PsResolvedVariantCollectionTest {
       assertThat(
         appModule.resolvedVariants.map { it.key }.toSet(), equalTo(
           setOf(
-            PsVariantKey("debug", listOf("paid", "bar")),
-            PsVariantKey("release", listOf("paid", "bar")),
-            PsVariantKey("specialRelease", listOf("paid", "bar")),
-            PsVariantKey("debug", listOf("paid", "otherBar")),
-            PsVariantKey("release", listOf("paid", "otherBar")),
-            PsVariantKey("specialRelease", listOf("paid", "otherBar")),
-            PsVariantKey("debug", listOf("basic", "bar")),
-            PsVariantKey("release", listOf("basic", "bar")),
-            PsVariantKey("specialRelease", listOf("basic", "bar")),
-            PsVariantKey("debug", listOf("basic", "otherBar")),
-            PsVariantKey("release", listOf("basic", "otherBar")),
-            PsVariantKey("specialRelease", listOf("basic", "otherBar"))
+            PsVariantKey("debug", listOf("paid", "bar"), "paidBarDebug"),
+            PsVariantKey("release", listOf("paid", "bar"), "paidBarRelease"),
+            PsVariantKey("specialRelease", listOf("paid", "bar"), "paidBarSpecialRelease"),
+            PsVariantKey("debug", listOf("paid", "otherBar"), "paidOtherBarDebug"),
+            PsVariantKey("release", listOf("paid", "otherBar"), "paidOtherBarRelease"),
+            PsVariantKey("specialRelease", listOf("paid", "otherBar"), "paidOtherBarSpecialRelease"),
+            PsVariantKey("debug", listOf("basic", "bar"), "basicBarDebug"),
+            PsVariantKey("release", listOf("basic", "bar"), "basicBarRelease"),
+            PsVariantKey("specialRelease", listOf("basic", "bar"), "basicBarSpecialRelease"),
+            PsVariantKey("debug", listOf("basic", "otherBar"), "basicOtherBarDebug"),
+            PsVariantKey("release", listOf("basic", "otherBar"), "basicOtherBarRelease"),
+            PsVariantKey("specialRelease", listOf("basic", "otherBar"), "basicOtherBarSpecialRelease")
           )
         )
       )

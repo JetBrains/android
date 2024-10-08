@@ -51,6 +51,7 @@ fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
   "com.android.feature" -> PsModuleType.ANDROID_FEATURE
   "com.android.dynamic-feature" -> PsModuleType.ANDROID_DYNAMIC_FEATURE
   "com.android.test" -> PsModuleType.ANDROID_TEST
+  "com.android.kotlin.multiplatform.library" -> PsModuleType.ANDROID_LIBRARY
   else -> PsModuleType.UNKNOWN
 }
 
