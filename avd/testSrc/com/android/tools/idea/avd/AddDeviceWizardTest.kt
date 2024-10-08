@@ -34,6 +34,7 @@ import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
 import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
@@ -54,7 +55,12 @@ class AddDeviceWizardTest {
       repoPackages.setLocalPkgInfos(listOf(api34))
 
       val source =
-        LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
+        LocalVirtualDeviceSource(
+          persistentListOf(NoSkin.INSTANCE),
+          sdkHandler,
+          avdManager,
+          MutableStateFlow(systemImageState()),
+        )
 
       fun addPixel8() {
         val wizard = TestComposeWizard {
@@ -112,7 +118,12 @@ class AddDeviceWizardTest {
       repoPackages.setLocalPkgInfos(listOf(api34))
 
       val source =
-        LocalVirtualDeviceSource(persistentListOf(NoSkin.INSTANCE), sdkHandler, avdManager)
+        LocalVirtualDeviceSource(
+          persistentListOf(NoSkin.INSTANCE),
+          sdkHandler,
+          avdManager,
+          MutableStateFlow(systemImageState()),
+        )
 
       val wizard = TestComposeWizard {
         with(AddDeviceWizard(source, null, { AccelerationErrorCode.NO_EMULATOR_INSTALLED })) {

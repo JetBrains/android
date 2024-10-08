@@ -34,7 +34,6 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
@@ -53,6 +52,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -76,17 +76,15 @@ private fun resolve(sdkHandler: AndroidSdkHandler, deviceSkin: Path, imageSkins:
 internal fun WizardPageScope.ConfigurationPage(
   device: VirtualDevice,
   image: ISystemImage?,
+  systemImageStateFlow: StateFlow<SystemImageState>,
   skins: ImmutableCollection<Skin>,
   deviceNameValidator: DeviceNameValidator,
   sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
-  val project = LocalProject.current
-  val imagesState: SystemImageState by
-    remember { ISystemImages.systemImageFlow(sdkHandler, project) }
-      .collectAsState(SystemImageState.INITIAL)
-  val images = imagesState.images.filter { matches(device, it) }.toImmutableList()
-  if (!imagesState.hasLocal || (images.isEmpty() && !imagesState.hasRemote)) {
+  val systemImageState by systemImageStateFlow.collectAsState()
+  val images = systemImageState.images.filter { matches(device, it) }.toImmutableList()
+  if (!systemImageState.hasLocal || (images.isEmpty() && !systemImageState.hasRemote)) {
     Box(Modifier.fillMaxSize()) {
       Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
     }

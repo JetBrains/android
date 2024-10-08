@@ -25,10 +25,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlin.time.Duration.Companion.days
@@ -38,11 +40,14 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 
 private sealed class SystemImageLoadingEvent
@@ -62,6 +67,13 @@ internal data class SystemImageState(
   companion object {
     val INITIAL = SystemImageState(false, false, persistentListOf(), null)
   }
+}
+
+@Service(Service.Level.APP)
+internal class SystemImageStateService(val coroutineScope: CoroutineScope) {
+  val systemImageStateFlow =
+    ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler(), null)
+      .stateIn(coroutineScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
 }
 
 internal object ISystemImages {
@@ -84,7 +96,7 @@ internal object ISystemImages {
 
     // Transform callbacks from RepoManager to SystemImageLoadingEvents that are processed serially.
     return callbackFlow {
-        repoManager.loadSynchronously(
+        repoManager.load(
           1.days.inWholeMilliseconds,
           listOf(RepoLoadedListener { trySend(LocalImagesLoaded) }),
           listOf(RepoLoadedListener { trySend(RemoteImagesLoaded) }),

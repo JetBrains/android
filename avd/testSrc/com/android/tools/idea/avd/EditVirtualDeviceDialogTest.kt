@@ -39,6 +39,7 @@ import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
 import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
@@ -72,6 +73,7 @@ class EditVirtualDeviceDialogTest {
           pixel7AvdInfo,
           pixel7,
           EditVirtualDeviceDialog.Mode.EDIT,
+          MutableStateFlow(systemImageState()),
           persistentListOf(NoSkin.INSTANCE),
           sdkHandler,
           avdManager,
@@ -132,6 +134,7 @@ class EditVirtualDeviceDialogTest {
           pixel7AvdInfo,
           pixel7,
           EditVirtualDeviceDialog.Mode.DUPLICATE,
+          MutableStateFlow(systemImageState()),
           persistentListOf(NoSkin.INSTANCE),
           sdkHandler,
           avdManager,
