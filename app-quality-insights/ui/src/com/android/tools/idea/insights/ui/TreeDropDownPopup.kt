@@ -104,15 +104,15 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
               .flatMap { it.children().asSequence().plus(it) }
               .maxOfOrNull {
                 table.getFontMetrics(table.font).stringWidth(getNodeText(it)) +
-                  80 // for 2 levels of indent + checkbox
-              } ?: 80
+                  JBUI.scale(80) // for 2 levels of indent + checkbox
+              } ?: JBUI.scale(80)
         },
         object : ColumnInfo<CheckedTreeNode, Long>(null) {
           override fun valueOf(item: CheckedTreeNode) = getIssueCount(item)
 
           override fun getWidth(table: JTable) =
             table.getFontMetrics(table.font).stringWidth(getIssueCount(root).toString()) +
-              20 // So there's space for the scrollbar on the right
+              JBUI.scale(20) // So there's space for the scrollbar on the right
         },
       )
     )
@@ -124,7 +124,10 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     val scrollPanel =
       object : ScrollablePanel(BorderLayout()) {
         override fun getPreferredSize() =
-          Dimension(treeTable.preferredSize.width + 4, treeTable.preferredSize.height + 4)
+          Dimension(
+            treeTable.preferredSize.width + JBUI.scale(4),
+            treeTable.preferredSize.height + JBUI.scale(4),
+          )
 
         override fun getPreferredScrollableViewportSize() =
           Dimension(preferredSize.width, preferredSize.height.coerceAtMost(500))
@@ -134,7 +137,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
         override fun getPreferredSize() =
           Dimension(
             scrollPanel.preferredScrollableViewportSize.width,
-            scrollPanel.preferredScrollableViewportSize.height,
+            scrollPanel.preferredScrollableViewportSize.height + JBUI.scale(4),
           )
       }
     scrollPanel.add(treeTable, BorderLayout.CENTER)
