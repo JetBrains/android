@@ -18,7 +18,6 @@ package com.android.tools.idea.editing.metrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.getEnclosing
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.refactoring.rename.RenameProcessor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.replaceService
@@ -89,26 +88,10 @@ class CodeEditedRefactoringEventListenerTest {
       refactor.run()
     }
     with(fakeCodeEditedMetricsService) {
-      assertThat(events.values.distinct()).containsExactly(CodeEditingAction.Refactoring)
-      assertThat(events).hasSize(5)
+      assertThat(eventToAction.values.distinct()).containsExactly(CodeEditingAction.Refactoring)
+      assertThat(eventToAction).hasSize(5)
     }
-    assertThat(fakeCodeEditedMetricsService.action).isEqualTo(CodeEditingAction.Unknown)
-  }
-
-  private class FakeCodeEditedMetricsService : CodeEditedMetricsService {
-    val events = mutableMapOf<DocumentEvent, CodeEditingAction>()
-    var action: CodeEditingAction = CodeEditingAction.Unknown
-
-    override fun setCodeEditingAction(action: CodeEditingAction) {
-      this.action = action
-    }
-
-    override fun clearCodeEditingAction() {
-      action = CodeEditingAction.Unknown
-    }
-
-    override fun recordCodeEdited(event: DocumentEvent) {
-      events[event] = action
-    }
+    assertThat(fakeCodeEditedMetricsService.currentCodeEditingAction)
+      .isEqualTo(CodeEditingAction.Unknown)
   }
 }

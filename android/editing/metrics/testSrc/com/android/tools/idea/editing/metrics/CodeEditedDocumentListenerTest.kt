@@ -18,7 +18,6 @@ package com.android.tools.idea.editing.metrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
@@ -59,9 +58,10 @@ class CodeEditedDocumentListenerTest {
 
     UIUtil.pump()
 
-    with(fakeCodeEditedMetricsService) {
-      assertThat(events.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
-      assertThat(events.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
+    with(fakeCodeEditedMetricsService.eventToAction) {
+      assertThat(keys.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
+      assertThat(keys.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
+      assertThat(values.distinct()).containsExactly(CodeEditingAction.Typing)
     }
   }
 
@@ -83,21 +83,10 @@ class CodeEditedDocumentListenerTest {
     UIUtil.pump()
 
     // If we're getting events from both Editors, we'll have doubles of the events.
-    with(fakeCodeEditedMetricsService) {
-      assertThat(events.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
-      assertThat(events.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
-    }
-  }
-
-  private class FakeCodeEditedMetricsService : CodeEditedMetricsService {
-    val events = mutableListOf<DocumentEvent>()
-
-    override fun setCodeEditingAction(action: CodeEditingAction) {}
-
-    override fun clearCodeEditingAction() {}
-
-    override fun recordCodeEdited(event: DocumentEvent) {
-      events.add(event)
+    with(fakeCodeEditedMetricsService.eventToAction) {
+      assertThat(keys.map { it.offset }).isEqualTo(ADDED_STRING.indices.map { it + CARET_OFFSET })
+      assertThat(keys.map { it.newFragment.toString() }).isEqualTo(ADDED_STRING.chunked(1))
+      assertThat(values.distinct()).containsExactly(CodeEditingAction.Typing)
     }
   }
 }
