@@ -75,14 +75,16 @@ fun <DeviceT : DeviceProfile> DeviceTable(
       TextField(
         textState,
         leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
-        trailingIcon = {
-          Icon(
-            AllIconsKeys.General.CloseSmall,
-            contentDescription = "Clear search",
-            Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
-              .pointerHoverIcon(PointerIcon.Default),
-          )
-        },
+        trailingIcon =
+          (@Composable {
+              Icon(
+                AllIconsKeys.General.CloseSmall,
+                contentDescription = "Clear search",
+                Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
+                  .pointerHoverIcon(PointerIcon.Default),
+              )
+            })
+            .takeIf { textState.text.isNotEmpty() },
         placeholder = {
           Text(
             filterState.textFilter.description,
