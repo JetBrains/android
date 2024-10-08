@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -198,4 +199,17 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.1.0-Beta1",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
+)
+
+java_binary(
+    name = "ide_perf_summary_tool",
+    testonly = True,
+    main_class = "com.android.tools.idea.ideperftests.IdePerfSummaryTool",
+    runtime_deps = [":ide_perf_summary_lib"],
+)
+
+kotlin_library(
+    name = "ide_perf_summary_lib",
+    srcs = ["src/com/android/tools/idea/ideperftests/IdePerfSummaryTool.kt"],
+    deps = ["@maven//:com.google.code.gson.gson"],
 )
