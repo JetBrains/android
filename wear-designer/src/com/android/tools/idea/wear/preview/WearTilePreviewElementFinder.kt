@@ -42,11 +42,14 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -55,6 +58,8 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
+import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -73,6 +78,8 @@ private val previewElementsCacheKey =
   Key<ChangeTrackerCachedValue<Collection<PsiWearTilePreviewElement>>>("previewElements")
 private val uMethodsWithTilePreviewSignatureCacheKey =
   Key<ChangeTrackerCachedValue<List<UMethod>>>("uMethodsWithTilePreviewSignature")
+private val isTileAnnotationUsedCacheKey =
+  Key<ChangeTrackerCachedValue<Boolean>>("isTileAnnotationUsed")
 
 /**
  * Object that can detect wear tile preview elements in a file.
@@ -94,6 +101,9 @@ internal class WearTilePreviewElementFinder(
    * be garbage collected, in which case the results will be recomputed.
    */
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+    if (!isTileAnnotationUsed(project, vFile)) {
+      return false
+    }
     val cachedValue =
       vFile.getOrCreateCachedValue(hasPreviewElementsCacheKey) {
         ChangeTrackerCachedValue.softReference()
@@ -323,7 +333,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   return hasSingleContextParameter
 }
 
-private fun <T> VirtualFile.getOrCreateCachedValue(
+private fun <T> UserDataHolder.getOrCreateCachedValue(
   key: Key<ChangeTrackerCachedValue<T>>,
   create: () -> ChangeTrackerCachedValue<T>,
 ) = getUserData(key) ?: create().also { putUserData(key, it) }
@@ -339,3 +349,31 @@ private fun Project.javaKotlinAndDumbChangeTrackers() =
     },
     ChangeTracker { DumbService.getInstance(this).modificationTracker.modificationCount },
   )
+
+/**
+ * This method looks up the annotations indexes in order to see if the tile preview annotation is
+ * used. If the annotation is never used, then we don't need to iterate over methods to search for
+ * previews. We search the module as well as its dependencies and libraries as a preview can be
+ * using a Multi-Preview declared in another module or library.
+ */
+@Slow
+private suspend fun isTileAnnotationUsed(project: Project, vFile: VirtualFile): Boolean {
+  val module = vFile.getModule(project) ?: return false
+  val cachedValue =
+    module.getOrCreateCachedValue(isTileAnnotationUsedCacheKey) {
+      ChangeTrackerCachedValue.weakReference()
+    }
+  return ChangeTrackerCachedValue.get(
+    cachedValue,
+    {
+      smartReadAction(project) {
+        val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
+        KotlinAnnotationsIndex[TILE_PREVIEW_ANNOTATION_NAME, project, scope].any() ||
+          JavaAnnotationIndex.getInstance()
+            .getAnnotations(TILE_PREVIEW_ANNOTATION_NAME, project, scope)
+            .any()
+      }
+    },
+    project.javaKotlinAndDumbChangeTrackers(),
+  )
+}
