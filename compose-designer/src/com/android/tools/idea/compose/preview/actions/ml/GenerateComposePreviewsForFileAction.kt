@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -95,7 +96,8 @@ class GenerateComposePreviewsForFileAction :
     override fun createCenterPanel(): JComponent {
       // [Composables][padding][Horizontal separator]
       // [Empty Panel] or [Checkboxes panel]
-      val mainPanel = JPanel(TabularLayout("Fit,5px,*", "Fit,*"))
+      val mainPanel =
+        JPanel(TabularLayout("Fit,5px,*", "Fit,*")).apply { minimumSize = JBDimension(320, 170) }
 
       mainPanel.add(
         JBLabel(message("action.generate.previews.for.file.dialog.composables.label")),
