@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.KeyInjectionScope
 import androidx.compose.ui.test.MouseButton
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnyAncestor
@@ -36,12 +39,17 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.requestFocus
+import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class DeviceTableTest {
+  @get:Rule val edtRule = EdtRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
@@ -192,6 +200,42 @@ class DeviceTableTest {
 
     assertThat(tableSelectionState.selection).isEqualTo(TestDevices.mediumPhone)
     composeTestRule.onNodeWithText(TestDevices.mediumPhone.name).assertIsSelected()
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun keyboardScrolling() {
+    val tableSelectionState = TableSelectionState<TestDevice>()
+    val devices = (1..30).map { TestDevices.mediumPhone.copy(name = "Medium Phone $it") }.toList()
+
+    composeTestRule.setContent {
+      val filterState = TestDeviceFilterState()
+      DeviceTable(
+        devices,
+        columns = testDeviceTableColumns,
+        filterContent = { TestDeviceFilters(devices, filterState) },
+        filterState = filterState,
+        tableSelectionState = tableSelectionState,
+        modifier = Modifier.size(400.dp, 100.dp),
+      )
+    }
+
+    composeTestRule.onNodeWithText(devices[0].name).performClick()
+    composeTestRule.onNodeWithText(devices[0].name).assertIsSelected()
+    composeTestRule.onNodeWithText(devices[0].name).assertIsFocused()
+
+    for (i in 1 until devices.size) {
+      composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText(devices[i].name).assertIsSelected()
+      composeTestRule.onNodeWithText(devices[i].name).assertIsFocused()
+    }
+    for (i in devices.size - 2 downTo 0) {
+      composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionUp) }
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText(devices[i].name).assertIsSelected()
+      composeTestRule.onNodeWithText(devices[i].name).assertIsFocused()
+    }
   }
 }
 
