@@ -33,12 +33,17 @@ import java.util.concurrent.CompletableFuture
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
  */
 class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle Sync issues.") {
-  private val descriptionBuilder = StringBuilder(baseMessage)
+  private val descriptionBuilder = StringBuilder(baseMessage.trimEnd())
   val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
 
-  fun addDescription(message: String): BuildIssueComposer {
+  fun addDescriptionOnNewLine(message: String): BuildIssueComposer {
     descriptionBuilder.appendLine()
-    descriptionBuilder.appendLine(message)
+    descriptionBuilder.append(message)
+    return this
+  }
+
+  fun startNewParagraph(): BuildIssueComposer {
+    descriptionBuilder.appendLine()
     return this
   }
 

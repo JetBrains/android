@@ -99,6 +99,7 @@ root > 'failed'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has removed support for compiling with source/target compatibility version 6.
+
         <a href="set.java.toolchain.8">Set Java Toolchain to 8</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -145,6 +146,7 @@ root > 'finished'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has deprecated support for compiling with source/target compatibility version 7.
+
         <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -255,6 +257,7 @@ root > 'failed'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has removed support for compiling with source/target compatibility version 7.
+
         <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -293,6 +296,7 @@ root > 'finished'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has deprecated support for compiling with source/target compatibility version 8.
+
         <a href="set.java.toolchain.17">Set Java Toolchain to 17</a>
         <a href="set.java.level.JDK_11.all">Change Java language level and jvmTarget to 11 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>

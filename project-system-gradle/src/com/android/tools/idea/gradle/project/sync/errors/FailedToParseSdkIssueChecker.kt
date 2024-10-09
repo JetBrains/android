@@ -55,14 +55,17 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
 
     val buildIssueComposer = BuildIssueComposer(message)
     val pathOfBrokenSdk = findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
-                          ?: return buildIssueComposer.apply { addDescription("The Android SDK may be missing the directory 'add-ons'.")
+                          ?: return buildIssueComposer.apply {
+                            addDescriptionOnNewLine("The Android SDK may be missing the directory 'add-ons'.")
                           }.composeBuildIssue()
 
-    buildIssueComposer.addDescription(
-      "The directory '${SdkConstants.FD_ADDONS}', in the Android SDK at '${pathOfBrokenSdk.path}', is either missing or empty")
+    buildIssueComposer.apply {
+      addDescriptionOnNewLine("The directory '${SdkConstants.FD_ADDONS}', in the Android SDK at '${pathOfBrokenSdk.path}', is either missing or empty")
+      startNewParagraph()
+    }
 
     if (!pathOfBrokenSdk.canWrite()) {
-      buildIssueComposer.addDescription("Current user ('${getUserName()}') does not have write access to the SDK directory.")
+      buildIssueComposer.addDescriptionOnNewLine("Current user ('${getUserName()}') does not have write access to the SDK directory.")
     }
 
     return buildIssueComposer.composeBuildIssue()

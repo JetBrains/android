@@ -44,8 +44,10 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
     return BuildIssueComposer(messageLines[2]).apply {
-      addDescription(expectedAndActual)
-      addDescription("Please configure the JDK to match the expected one.")
+      addDescriptionOnNewLine(expectedAndActual)
+      startNewParagraph()
+      addDescriptionOnNewLine("Please configure the JDK to match the expected one.")
+      startNewParagraph()
       addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
     }.composeBuildIssue()
   }
