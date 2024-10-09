@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-  namespace 'com.example.migratebuildconfig.lib'
+  namespace 'com.example.migrateresvalues.lib'
   compileSdk = 33
 
   defaultConfig {
@@ -11,15 +11,15 @@ android {
     targetSdk = 33
     versionCode = 1
     versionName = '1.0'
-    buildConfigField 'String', 'FOO', '"4.0"'
+    resValue("string", "res_name", "SomeResValue")
   }
 
   buildTypes {
     debug {
-      buildConfigField 'String', 'BAR', '"5.0"'
+      resValue("string", "res_name", "SomeResValue")
     }
     release {
-      buildConfigField 'String', 'BAR', '"6.0"'
+      resValue("string", "res_name", "SomeResValue")
     }
   }
 }

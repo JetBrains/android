@@ -1,0 +1,7 @@
+pluginManagement {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+
+include ':app', ':lib'
