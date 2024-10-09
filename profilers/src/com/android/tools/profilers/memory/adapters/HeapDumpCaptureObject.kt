@@ -49,6 +49,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
+import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
 import java.util.concurrent.Executor
@@ -63,7 +64,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
-  private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>()
+  private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>(16, Hash.FAST_LOAD_FACTOR)
 
   @get:VisibleForTesting
   val classDb = ClassDb()
