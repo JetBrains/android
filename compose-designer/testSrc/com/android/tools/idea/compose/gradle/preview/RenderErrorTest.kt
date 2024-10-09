@@ -244,11 +244,7 @@ class RenderErrorTest {
         // The animation preview action shouldn't be visible because the preview being used doesn't
         // contain animations, but the interactive, ui check and deploy to device actions should be
         // visible as there are no render errors.
-        val visibleActionCount = if (StudioFlags.COMPOSE_UI_CHECK_MODE.get()) 3 else 2
-        assertEquals(
-          visibleActionCount,
-          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors),
-        )
+        assertEquals(3, countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors))
       }
     }
 

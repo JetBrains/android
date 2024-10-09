@@ -1515,11 +1515,6 @@ public final class StudioFlags {
     "Enable a context-menu action that can generate Compose Previews corresponding to the @Composable functions of a file",
     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
-    COMPOSE, "ui.check.mode", "Enable UI Check mode for Compose preview",
-    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
-    true);
-
   public static final Flag<Boolean> COMPOSE_UI_CHECK_FOR_WEAR = new BooleanFlag(
     COMPOSE, "ui.check.mode.wear", "Enable UI Check mode for Compose preview for Wear OS",
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
