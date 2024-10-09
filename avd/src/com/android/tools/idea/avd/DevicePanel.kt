@@ -132,6 +132,17 @@ internal fun DevicePanel(
           )
         }
       } else {
+        if (imageState.error != null) {
+          ErrorPanel(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+            imageState.error,
+          )
+        } else if (!imageState.hasRemote) {
+          ProgressIndicatorPanel(
+            "Loading system images...",
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+          )
+        }
         SystemImageTable(
           filteredSystemImages,
           configureDevicePanelState.systemImageTableSelectionState,

@@ -52,10 +52,15 @@ class SdkFixture {
   val deviceManager = DeviceManager.createInstance(sdkHandler, logger)
   val avdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger)
 
-  internal fun systemImageState(hasLocal: Boolean = true, hasRemote: Boolean = true) =
+  internal fun systemImageState(
+    hasLocal: Boolean = true,
+    hasRemote: Boolean = true,
+    error: String? = null,
+  ) =
     SystemImageState(
       hasLocal = hasLocal,
       hasRemote = hasRemote,
+      error = error,
       images =
         SystemImageSupplier(
             repoManager,
