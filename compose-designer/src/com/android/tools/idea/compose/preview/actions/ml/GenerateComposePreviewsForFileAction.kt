@@ -28,7 +28,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -95,7 +97,7 @@ class GenerateComposePreviewsForFileAction :
 
     override fun createCenterPanel(): JComponent {
       // [Composables][padding][Horizontal separator]
-      // [Empty Panel] or [Checkboxes panel]
+      // [Empty Panel] or [Checkboxes wrapped into a scroll pane]
       val mainPanel =
         JPanel(TabularLayout("Fit,5px,*", "Fit,*")).apply { minimumSize = JBDimension(320, 170) }
 
@@ -138,7 +140,7 @@ class GenerateComposePreviewsForFileAction :
       for (checkBox in checkBoxes) {
         checkBoxesPanel.add(checkBox.value, TabularLayout.Constraint(row++, 0))
       }
-      return checkBoxesPanel
+      return JBScrollPane(checkBoxesPanel).apply { border = JBUI.Borders.empty() }
     }
   }
 }
