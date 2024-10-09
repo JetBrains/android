@@ -131,12 +131,10 @@ class GenerateComposePreviewsForFileAction :
       if (composableCandidates.isEmpty()) {
         return JBLabel(message("action.generate.previews.for.file.dialog.empty"))
       }
-      // Checkboxes are horizontally aligned to the left.
-      // Vertical alignment is Glue, checkboxes (n * Fit), Glue.
+      // Checkboxes are top-left aligned.
       val checkBoxesPanel =
-        JPanel(TabularLayout("Fit,*", "*,${"Fit,".repeat(composableCandidates.size)}*"))
-      // Skip the first row, as it will be a vertical glue
-      var row = 1
+        JPanel(TabularLayout("Fit,*", "${"Fit,".repeat(composableCandidates.size)}*"))
+      var row = 0
       for (checkBox in checkBoxes) {
         checkBoxesPanel.add(checkBox.value, TabularLayout.Constraint(row++, 0))
       }
