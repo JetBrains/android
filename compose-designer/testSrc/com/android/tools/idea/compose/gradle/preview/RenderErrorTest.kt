@@ -352,10 +352,7 @@ class RenderErrorTest {
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
 
     composePreviewRepresentation.setMode(
-      PreviewMode.UiCheck(
-        baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false),
-        atfChecksEnabled = true,
-      )
+      PreviewMode.UiCheck(baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false))
     )
     onRefreshCompletable.join()
 

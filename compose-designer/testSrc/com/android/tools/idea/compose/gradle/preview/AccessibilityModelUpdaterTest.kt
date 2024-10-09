@@ -120,10 +120,7 @@ class AccessibilityModelUpdaterTest {
       waitForAllRefreshesToFinish(30.seconds)
       val onRefreshCompletable = previewView.getOnRefreshCompletable()
       composePreviewRepresentation.setMode(
-        PreviewMode.UiCheck(
-          UiCheckInstance(uiCheckElement, isWearPreview = false),
-          atfChecksEnabled = true,
-        )
+        PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
       )
       onRefreshCompletable.join()
     }

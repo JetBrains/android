@@ -67,14 +67,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   /** Flag to indicate if the UI Check filter is enabled or not. */
   var isUiCheckFilterEnabled: Boolean
-
-  /** Flag to indicate whether ATF checks should be run on the preview. */
-  val atfChecksEnabled: Boolean
-    get() = (mode.value as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
-
-  /** Flag to indicate whether Visual Lint checks should be run on the preview. */
-  val visualLintingEnabled: Boolean
-    get() = mode.value is PreviewMode.UiCheck
 }
 
 class NopComposePreviewManager : ComposePreviewManager {

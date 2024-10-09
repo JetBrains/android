@@ -41,8 +41,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override var isUiCheckFilterEnabled: Boolean = false
 
-  override var atfChecksEnabled: Boolean = false
-
   private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default())
   override val mode = _mode.asStateFlow()
 

@@ -202,7 +202,6 @@ class ComposePreviewRepresentationTest {
 
   @After
   fun tearDown() {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.clearOverride()
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
@@ -274,8 +273,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testUiCheckMode() = runComposePreviewRepresentationTest {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-
     val originalScale = 0.6
     mainSurface.zoomController.setScale(originalScale)
     val preview = createPreviewAndCompile()
@@ -305,7 +302,6 @@ class ComposePreviewRepresentationTest {
       GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
-    assertTrue(preview.atfChecksEnabled)
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
@@ -580,8 +576,6 @@ class ComposePreviewRepresentationTest {
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
 
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
         "Test.kt",
@@ -755,7 +749,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.override(true)
 
     val testPsiFile = runWriteActionAndWait {
@@ -804,7 +797,6 @@ class ComposePreviewRepresentationTest {
         GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
       }
 
-      assertTrue(preview.atfChecksEnabled)
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Wear OS Devices")
       preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(

@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.Colors
 import com.android.tools.preview.PreviewElement
 import com.google.common.base.Objects
@@ -108,12 +107,11 @@ sealed class PreviewMode {
   class UiCheck(
     val baseInstance: UiCheckInstance,
     override val layoutOption: SurfaceLayoutOption = GRID_NO_GROUP_LAYOUT_OPTION,
-    val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
   ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
-      return UiCheck(baseInstance, layoutOption, atfChecksEnabled)
+      return UiCheck(baseInstance, layoutOption)
     }
 
     override fun equals(other: Any?): Boolean {
