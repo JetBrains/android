@@ -790,7 +790,9 @@ public class LiveEditProjectMonitor implements Disposable {
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
 
-    boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
+    LiveEditAdvancedConfiguration config = LiveEditAdvancedConfiguration.getInstance();
+    boolean useDebugMode = config.getUseDebugMode();
+    boolean useStructureRedefintion = config.getAllowClassStructuralRedefinition();
 
     int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
@@ -799,7 +801,8 @@ public class LiveEditProjectMonitor implements Disposable {
         update.supportClasses(apiLevel),
         update.getGroupIds(),
         update.getInvalidateMode(),
-        useDebugMode);
+        useDebugMode,
+        useStructureRedefintion);
 
     LiveUpdateDeployer.UpdateLiveEditResult result = null;
 

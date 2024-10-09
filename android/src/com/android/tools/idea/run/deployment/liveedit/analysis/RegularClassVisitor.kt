@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedAccess
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedField
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
@@ -74,13 +75,17 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
   // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
     if (added.filterNot { it.isSynthetic() }.isNotEmpty()) {
-      val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
-      throw unsupportedSourceModificationAddedMethod(location, msg)
+      if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
+        val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
+        throw unsupportedSourceModificationAddedMethod(location, msg)
+      }
     }
 
     if (removed.filterNot { it.isSynthetic() }.isNotEmpty()) {
-      val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
-      throw unsupportedSourceModificationRemovedMethod(location, msg)
+      if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
+        val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
+        throw unsupportedSourceModificationRemovedMethod(location, msg)
+      }
     }
 
     for (method in modified) {
