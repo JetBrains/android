@@ -32,7 +32,6 @@ import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -494,9 +493,15 @@ internal class ComposePreviewViewImpl(
    * only be visible if the containing file has Composables.
    */
   private fun createGeneratePreviewsActionData(): ActionData? {
-    if (!StudioBot.getInstance().isContextAllowed(project)) {
+    if (
+      !StudioBot.getInstance().isAvailable() || !StudioBot.getInstance().isContextAllowed(project)
+    ) {
       return null
     }
+
+    val previewGeneratorFactory =
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null
+
     try {
       ProgressManager.checkCanceled()
       if (
@@ -524,7 +529,7 @@ internal class ComposePreviewViewImpl(
           .add(CommonDataKeys.EDITOR, selectedEditor)
           .build()
       ActionUtil.invokeAction(
-        GenerateComposePreviewsForFileAction(),
+        previewGeneratorFactory.createPreviewGenerator(),
         simpleContext,
         ActionPlaces.UNKNOWN,
         null,

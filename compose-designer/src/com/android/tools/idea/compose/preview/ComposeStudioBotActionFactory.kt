@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions.ml.utils
+package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.studiobot.MimeType
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.extensions.ExtensionPointName
 
-internal data class Blob(val data: ByteArray, val mimeType: MimeType)
+interface ComposeStudioBotActionFactory {
+  fun createPreviewGenerator(): AnAction
+
+  fun createSendPreviewAction(): AnAction
+
+  companion object {
+    val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
+      ExtensionPointName.create(
+        "com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
+      )
+  }
+}

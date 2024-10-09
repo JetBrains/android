@@ -731,6 +731,7 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.android.tools.design",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.platform.vcs.impl",
