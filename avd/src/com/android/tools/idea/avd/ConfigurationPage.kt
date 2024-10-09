@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -50,8 +51,10 @@ import com.intellij.openapi.ui.Messages
 import java.awt.Component
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -84,7 +87,15 @@ internal fun WizardPageScope.ConfigurationPage(
 ) {
   val systemImageState by systemImageStateFlow.collectAsState()
   val images = systemImageState.images.filter { matches(device, it) }.toImmutableList()
-  if (!systemImageState.hasLocal || (images.isEmpty() && !systemImageState.hasRemote)) {
+
+  // Wait a bit for remote images to arrive before we proceed, so that we make our initial
+  // system image selection based on the full list, if possible.
+  val isTimedOut by
+    produceState(false) {
+      delay(1.seconds)
+      value = true
+    }
+  if (!systemImageState.hasLocal || (!isTimedOut && !systemImageState.hasRemote)) {
     Box(Modifier.fillMaxSize()) {
       Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
     }

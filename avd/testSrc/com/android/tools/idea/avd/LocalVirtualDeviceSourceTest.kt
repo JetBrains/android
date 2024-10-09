@@ -266,11 +266,14 @@ class LocalVirtualDeviceSourceTest {
     }
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun systemImageLoading_remoteLoading() {
     with(SdkFixture()) {
       val api34Image = api34()
       repoPackages.setLocalPkgInfos(listOf(api34Image))
+
+      composeTestRule.mainClock.autoAdvance = false
 
       with(ConfigurationPageFixture(this, SystemImageState(false, false, persistentListOf()))) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
@@ -278,6 +281,9 @@ class LocalVirtualDeviceSourceTest {
 
         systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = false)
 
+        // Need to wait a second before proceeding
+        composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
+        composeTestRule.mainClock.advanceTimeBy(1001)
         composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
       }
     }
