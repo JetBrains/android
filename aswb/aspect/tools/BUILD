@@ -61,9 +61,9 @@ java_library(
         ":guava",
         ":lib",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:truth",
-        "//tools/vendor/google/aswb/third_party/java/junit",
     ],
 )
 

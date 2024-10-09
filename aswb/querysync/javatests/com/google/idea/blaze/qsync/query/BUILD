@@ -27,8 +27,8 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query:querysummary_java_proto",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
         "//tools/adt/idea/aswb/shared",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
     ],
 )
 
@@ -38,7 +38,7 @@ java_test(
     srcs = ["QuerySpecTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
     ],
 )
