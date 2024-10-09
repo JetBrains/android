@@ -193,7 +193,7 @@ private object CompileScopeImpl : CompileScope {
     // file already so this is the best time to check.
     input.checkPsiErrorElement()
 
-    val compilerConfiguration = getCompilerConfiguration(moduleForAllInputs, input.first())
+    val compilerConfiguration = applicationLiveEditServices.getKotlinCompilerConfiguration(input.first())
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
