@@ -64,7 +64,6 @@ import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -415,8 +414,7 @@ private fun additionalProjectSetup(project: Project) {
 @VisibleForTesting
 fun addJUnitProducersToIgnoredList(project: Project) {
   val producerService = RunConfigurationProducerService.getInstance(project)
-  val allJUnitProducers = DumbService.getInstance(project).filterByDumbAwareness(
-    RunConfigurationProducer.EP_NAME.extensionList).filter { it.configurationType == JUnitConfigurationType.getInstance() }
+  val allJUnitProducers = RunConfigurationProducer.EP_NAME.extensionList.filter { it.configurationType == JUnitConfigurationType.getInstance() }
   for (producer in allJUnitProducers) {
     producerService.state.ignoredProducers.add(producer::class.java.name)
   }
