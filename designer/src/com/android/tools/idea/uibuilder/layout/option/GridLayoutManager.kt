@@ -76,7 +76,7 @@ class GridLayoutManager(
     val requiredHeight = groupSizes.sumOf { it.height }
     return Dimension(
       max(0, padding.canvasLeftPadding + requiredWidth),
-      max(0, padding.canvasTopPadding + requiredHeight),
+      max(0, padding.canvasVerticalPadding + requiredHeight),
     )
   }
 
@@ -133,12 +133,11 @@ class GridLayoutManager(
         val scale = view.scaleFunc()
         val scaledSize = view.sizeFunc()
         val margin = view.getMargin(scale)
-        val framePadding = padding.previewPaddingProvider(scale)
         // What we need to take into account to calculate the width:
         // * the scaled width of the view.
         // * the horizontal margin (left + right).
-        // * the padding taken for the frame of the preview (left + right).
-        rowX += scaledSize.width + margin.horizontal + framePadding
+        // * the bottom padding.
+        rowX += scaledSize.width + margin.horizontal + padding.previewRightPadding(scale, view)
         // To calculate the height that we might add in addition to currentHeight:
         // * The height with its vertical margins: vertical margins (top panel and bottom panel)
         //   aren't affected by scale change like its content, to prevent this, we use
@@ -146,9 +145,10 @@ class GridLayoutManager(
         //   with the right margins count.
         // * The bottom padding.
         // * The padding taken for the frame of the preview (top + bottom).
-        val bottomPadding = padding.previewBottomPadding(scale, view)
         val newHeight =
-          view.contentSize.scaleOf(scale).height + margin.vertical + bottomPadding + framePadding
+          view.contentSize.scaleOf(scale).height +
+            margin.vertical +
+            padding.previewBottomPadding(scale, view)
         currentHeight = max(currentHeight, newHeight)
       }
       groupRequiredWidth = max(groupRequiredWidth, rowX)
@@ -197,7 +197,7 @@ class GridLayoutManager(
       // The zoom-to-fit value cannot be smaller than 1%.
       minOf(
           (availableWidth - padding.canvasLeftPadding) / totalWidth,
-          (availableHeight - padding.canvasTopPadding) / totalHeight,
+          (availableHeight - padding.canvasVerticalPadding) / totalHeight,
         )
         .coerceAtLeast(DEFAULT_MIN_SCALE)
         .coerceAtMost(DEFAULT_MAX_SCALE)
@@ -278,17 +278,13 @@ class GridLayoutManager(
     group.content.forEach { view ->
       val scale = view.scaleFunc()
       val width = view.widthFunc()
-
-      // The padding is different if the layout has got only ungrouped items.
-      val framePadding = padding.previewPaddingProvider(scale)
-
       // The next space occupied in the row is represented by:
       //    * the left frame padding of the view.
       //    * The width of the view.
       //    * The horizontal margin of the view (it changes when scale changes).
       //    * The right frame padding of the view.
-      val nextViewWidth = framePadding + width + view.getMargin(scale).horizontal + framePadding
-
+      val nextViewWidth =
+        width + view.getMargin(scale).horizontal + padding.previewBottomPadding(scale, view)
       if (nextX + nextViewWidth > availableWidth && columnList.isNotEmpty()) {
         // If the current calculated width and the one we have calculated in the previous iterations
         // is exceeding the available space, we reset the column and nextX so we can add the view on
