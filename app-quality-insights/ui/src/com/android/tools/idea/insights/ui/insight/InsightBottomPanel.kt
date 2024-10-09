@@ -61,7 +61,7 @@ class InsightBottomPanel(
   val enableCodeContextAction =
     object :
       JButtonAction(
-        "Enable Code Context",
+        "Use code context",
         "Grant Gemini in Firebase access to your project code",
         null,
       ) {
