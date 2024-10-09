@@ -32,10 +32,7 @@ class KotlincWithQuickFixesParserTest : BuildOutputParserTest() {
 
   @Before
   fun setUp() {
-    // TODO(b/316057751): implement mapping in follow-up change
-    Assume.assumeFalse("StudioBot support not implemented for these events yet", this.isStudioBotAvailable!!)
     file = temporaryFolder.newFile("file.kt")
-
   }
 
   @Test

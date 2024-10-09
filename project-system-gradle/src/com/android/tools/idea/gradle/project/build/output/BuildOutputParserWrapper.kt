@@ -91,6 +91,8 @@ private fun BuildEvent.toBuildIssueEventWithQuickFix(quickFix: DescribedBuildIss
   }
   return when(this) {
     // TODO(b/316057751) : Map other implementations of MessageEvents.
+    is FileMessageBuildIssueEvent -> FileMessageBuildIssueEvent(this, additionalDescription)
+    is MessageBuildIssueEvent -> MessageBuildIssueEvent(this, additionalDescription)
     is BuildIssueEventImpl -> this.copyWithQuickFix(additionalDescription)
     is FileMessageEventImpl -> FileMessageBuildIssueEvent(this, additionalDescription)
     is MessageEventImpl ->  MessageBuildIssueEvent(this, additionalDescription)
