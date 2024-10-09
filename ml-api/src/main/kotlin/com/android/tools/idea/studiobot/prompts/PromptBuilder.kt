@@ -26,7 +26,9 @@ import org.jetbrains.annotations.ApiStatus.Experimental
 
 /**
  * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
- * Each part of the prompt must declare which files from the user's project, if any, it uses.
+ * Each part of the prompt must declare which files from the user's project, if any, it used as
+ * context. Files explicitly attached by the user, e.g. in chat using the attachment button, do not
+ * need to be declared.
  *
  * Prompts that used files as context cannot be constructed if the context sharing setting is not
  * enabled: check it with `StudioBot.isContextAllowed(project)`. If it is not enabled, an
@@ -108,8 +110,8 @@ interface PromptBuilder {
      * Adds [str] as text in the message.
      *
      * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and
-     * `AiExcludeService` before including any user file content into the string passed to this
-     * method.
+     * `AiExcludeService` before including any content from files not explicitly attached by the
+     * user into the string passed to this method.
      *
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService
@@ -121,8 +123,8 @@ interface PromptBuilder {
      * specified if it has a Markdown representation.
      *
      * **NOTE:** It is caller's responsibility to consult `StudioBot.isContextAllowed(project)` and
-     * `AiExcludeService` before including any user file content into the string passed to this
-     * method.
+     * `AiExcludeService` before including any content from files not explicitly attached by the
+     * user into the string passed to this method.
      *
      * @see com.android.tools.idea.studiobot.StudioBot.isContextAllowed
      * @see com.android.tools.idea.studiobot.AiExcludeService
