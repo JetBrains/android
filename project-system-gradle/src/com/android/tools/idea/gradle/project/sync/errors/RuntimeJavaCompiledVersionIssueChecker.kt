@@ -77,7 +77,7 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
   private fun createJdkVersionIncompatibleBuildIssue(agpMinCompatibleJdkVersion: String, gradleJdkVersion: String) =
     BuildIssueComposer("Gradle JVM version incompatible.").apply {
       addDescriptionOnNewLine("This project is configured to use an older Gradle JVM that supports up to version $gradleJdkVersion but the " +
-                     "current AGP requires a Gradle JVM that supports version $agpMinCompatibleJdkVersion.")
+                                         "current AGP requires a Gradle JVM that supports version $agpMinCompatibleJdkVersion.")
       startNewParagraph()
       addQuickFix(SelectJdkFromFileSystemQuickFix())
       addQuickFix("See AGP Release Notes...", OpenLinkQuickFix("https://developer.android.com/studio/releases/gradle-plugin"))
