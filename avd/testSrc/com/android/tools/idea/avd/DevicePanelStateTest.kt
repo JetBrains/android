@@ -33,10 +33,10 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 9, false)))
 
     // Act
-    val state = DevicePanelState(API, null, images, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
 
     // Assert
-    assertEquals(images, state.filteredSystemImages)
+    assertEquals(images, state.filter(images))
   }
 
   @Test
@@ -49,10 +49,10 @@ class DevicePanelStateTest {
       )
 
     // Act
-    val state = DevicePanelState(API, null, images, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
 
     // Assert
-    assertEquals(images, state.filteredSystemImages)
+    assertEquals(images, state.filter(images))
   }
 
   @Test
@@ -62,10 +62,10 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 8, false)), image)
 
     // Act
-    val state = DevicePanelState(API, null, images, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
 
     // Assert
-    assertEquals(listOf(image), state.filteredSystemImages)
+    assertEquals(listOf(image), state.filter(images))
   }
 
   @Test
@@ -75,10 +75,10 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(33, null, 3, true)), image)
 
     // Act
-    val state = DevicePanelState(API, null, images, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
 
     // Assert
-    assertEquals(listOf(image), state.filteredSystemImages)
+    assertEquals(listOf(image), state.filter(images))
   }
 
   private companion object {

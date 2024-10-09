@@ -65,6 +65,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   devicePanelState: DevicePanelState,
+  imageState: SystemImageState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
   deviceNameValidator: DeviceNameValidator,
@@ -119,8 +120,11 @@ internal fun DevicePanel(
       )
     }
 
+    val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
+    val filteredSystemImages = devicePanelState.filter(imageState.images, baseExtensionLevels)
+
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
-      if (devicePanelState.filteredSystemImages.isEmpty()) {
+      if (filteredSystemImages.isEmpty()) {
         Box(Modifier.fillMaxSize()) {
           Text(
             "No system images available matching the current set of filters.",
@@ -129,7 +133,7 @@ internal fun DevicePanel(
         }
       } else {
         SystemImageTable(
-          devicePanelState.filteredSystemImages,
+          filteredSystemImages,
           configureDevicePanelState.systemImageTableSelectionState,
           configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,

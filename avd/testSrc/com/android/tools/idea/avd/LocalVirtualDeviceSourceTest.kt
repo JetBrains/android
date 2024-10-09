@@ -19,12 +19,16 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import com.android.SdkConstants
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
+import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.UserSettingsKey
@@ -60,9 +64,13 @@ class LocalVirtualDeviceSourceTest {
       AndroidVersion(34),
     )
 
-  private fun SdkFixture.api34RiscV() =
+  private fun SdkFixture.localApi34RiscV() = api34RiscV(false) as FakeLocalPackage
+
+  private fun SdkFixture.remoteApi34RiscV() = api34RiscV(true) as FakeRemotePackage
+
+  private fun SdkFixture.api34RiscV(isRemote: Boolean) =
     createSystemImage(
-      isRemote = false,
+      isRemote = isRemote,
       path = "google_apis_riscv",
       tags = listOf(SystemImageTags.GOOGLE_APIS_TAG),
       androidVersion = AndroidVersion(34),
@@ -70,12 +78,18 @@ class LocalVirtualDeviceSourceTest {
       abis = listOf(recommendedAbiForHost()),
       translatedAbis = listOf(SdkConstants.ABI_RISCV64),
     )
-      as FakeLocalPackage
 
   private fun SdkFixture.remoteApi34() =
     createRemoteSystemImage(
       "google_apis",
       listOf(SystemImageTags.GOOGLE_APIS_TAG),
+      AndroidVersion(34),
+    )
+
+  private fun SdkFixture.remoteApi34Play() =
+    createRemoteSystemImage(
+      "google_apis_playstore",
+      listOf(SystemImageTags.PLAY_STORE_TAG),
       AndroidVersion(34),
     )
 
@@ -204,7 +218,7 @@ class LocalVirtualDeviceSourceTest {
   fun configurationPage_preferredAbi() {
     with(SdkFixture()) {
       val api34Image = api34()
-      repoPackages.setLocalPkgInfos(listOf(api34Image, api34RiscV()))
+      repoPackages.setLocalPkgInfos(listOf(api34Image, localApi34RiscV()))
 
       with(ConfigurationPageFixture(this)) {
         // Select system image with RISC-V translation
@@ -266,25 +280,44 @@ class LocalVirtualDeviceSourceTest {
     }
   }
 
-  @OptIn(ExperimentalTestApi::class)
   @Test
   fun systemImageLoading_remoteLoading() {
     with(SdkFixture()) {
       val api34Image = api34()
+      val remoteApi34Image = remoteApi34RiscV()
+      val remoteApi34PlayImage = remoteApi34Play()
+
       repoPackages.setLocalPkgInfos(listOf(api34Image))
 
       composeTestRule.mainClock.autoAdvance = false
 
-      with(ConfigurationPageFixture(this, SystemImageState(false, false, persistentListOf()))) {
+      with(ConfigurationPageFixture(this, SystemImageState.INITIAL)) {
         composeTestRule.onNodeWithText("Loading system images...").assertIsDisplayed()
         composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
 
         systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = false)
 
-        // Need to wait a second before proceeding
+        // Need to wait a second before proceeding, then we see the local package
         composeTestRule.onNodeWithText(api34Image.displayName).assertDoesNotExist()
         composeTestRule.mainClock.advanceTimeBy(1001)
         composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
+
+        // Now the remote package arrives; it should be displayed
+        repoPackages.setRemotePkgInfos(listOf(remoteApi34Image, remoteApi34PlayImage))
+        systemImageStateFlow.value = systemImageState(hasLocal = true, hasRemote = true)
+
+        composeTestRule.onNodeWithText(remoteApi34Image.displayName).assertIsDisplayed()
+
+        // We should be able to select Google Play now under Services
+        composeTestRule.onNodeWithText("Google APIs").performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule
+          .onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup()))
+          .performClick()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(remoteApi34Image.displayName).assertDoesNotExist()
+        composeTestRule.onNodeWithText(remoteApi34PlayImage.displayName).assertIsDisplayed()
       }
     }
   }
