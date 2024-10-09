@@ -117,6 +117,7 @@ internal class AddDeviceWizard(
           .find { it.device == dialogSelectedDevice }
           ?.let {
             dialogSelectedDevice = null
+            filterState.formFactorFilter.selection = it.formFactor
             selectionState.selection = it
           }
       }
