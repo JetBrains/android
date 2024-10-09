@@ -178,7 +178,7 @@ internal class AddDeviceWizard(
         }
 
         Row(
-          Modifier.padding(horizontal = 8.dp),
+          Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
           horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
           OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
