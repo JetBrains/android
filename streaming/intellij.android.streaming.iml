@@ -217,5 +217,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.platform.ide.ui" />
   </component>
 </module>
