@@ -28,6 +28,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.google.gct.login2.LoginFeatureRule
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -60,8 +61,11 @@ import org.mockito.kotlin.whenever
 @RunsInEdt
 class InsightContentPanelTest {
   private val projectRule = ProjectRule()
+  private val loginFeatureRule = LoginFeatureRule()
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(EdtRule()).around(projectRule).around(loginFeatureRule)
 
   private lateinit var currentInsightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private lateinit var insightContentPanel: InsightContentPanel
@@ -87,6 +91,7 @@ class InsightContentPanelTest {
   @Before
   fun setup() = runBlocking {
     doReturn(projectRule.project).whenever(mockController).project
+    isStudioBotAvailable = false
     application.replaceService(StudioBot::class.java, stubStudioBot, projectRule.disposable)
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
     insightContentPanel =
@@ -237,27 +242,42 @@ class InsightContentPanelTest {
   }
 
   @Test
-  fun `test gemini is not enabled`() = runBlocking {
+  fun `test gemini is not enabled due to plugin not enabled`() = runBlocking {
     currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
 
-    val fakeUi = FakeUi(insightContentPanel)
     delayUntilStatusTextVisible()
 
-    assertThat(errorText).isEqualTo("Gemini is disabled")
+    assertThat(errorText).isEqualTo(GEMINI_NOT_AVAILABLE)
     assertThat(secondaryText)
-      .isEqualTo("To see insights, please enable and authorize the Gemini plugin")
-
-    val toolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place == "GeminiOnboardingObserver" }
-        ?: fail("Toolbar not found")
-    val action =
-      toolbar.actionGroup.getChildren(null).firstOrNull() ?: fail("Observer action not found")
-
-    isStudioBotAvailable = true
-    action.update(createTestEvent())
-
-    verify(mockController).refreshInsight(false)
+      .isEqualTo("To see insights, please enable the Gemini plugin in Settings > Plugins")
   }
+
+  @Test
+  fun `show empty state text when gemini is not onboarded, refresh insight when onboarding is complete`() =
+    runBlocking {
+      currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
+
+      // Register fake Gemini plugin
+      loginFeatureRule.FEATURE1.name = "Gemini"
+
+      val fakeUi = FakeUi(insightContentPanel)
+      delayUntilStatusTextVisible()
+
+      assertThat(errorText).isEqualTo(GEMINI_NOT_AVAILABLE)
+      assertThat(secondaryText)
+        .isEqualTo("To see insights, please go through the onboarding process for Gemini")
+
+      val toolbar =
+        fakeUi.findComponent<ActionToolbarImpl> { it.place == "GeminiOnboardingObserver" }
+          ?: fail("Toolbar not found")
+      val action =
+        toolbar.actionGroup.getChildren(null).firstOrNull() ?: fail("Observer action not found")
+
+      isStudioBotAvailable = true
+      action.update(createTestEvent())
+
+      verify(mockController).refreshInsight(false)
+    }
 
   @Test
   fun `test unsupported operation`() = runBlocking {
