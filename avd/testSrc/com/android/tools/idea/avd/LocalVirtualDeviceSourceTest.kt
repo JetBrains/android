@@ -46,6 +46,7 @@ import java.nio.file.Files
 import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -106,7 +107,7 @@ class LocalVirtualDeviceSourceTest {
       repoPackages.setRemotePkgInfos(listOf(remoteApi34()))
 
       val profiles: List<VirtualDeviceProfile> = runBlocking {
-        LocalVirtualDeviceSource(persistentListOf(), sdkHandler, avdManager).profilesWhenReady()
+        createLocalVirtualDeviceSource().profilesWhenReady()
       }
       val names = profiles.map { it.name }
 
@@ -125,13 +126,7 @@ class LocalVirtualDeviceSourceTest {
 
     init {
       with(sdkFixture) {
-        val source =
-          LocalVirtualDeviceSource(
-            persistentListOf(NoSkin.INSTANCE),
-            sdkHandler,
-            avdManager,
-            systemImageStateFlow,
-          )
+        val source = createLocalVirtualDeviceSource(systemImageStateFlow)
         val profiles = runBlocking { source.profilesWhenReady() }
         val pixel8 = profiles.first { it.name == "Pixel 8" }
 
@@ -349,3 +344,13 @@ class LocalVirtualDeviceSourceTest {
 
 private suspend fun <T : DeviceProfile> DeviceSource<T>.profilesWhenReady(): List<T> =
   profiles.filterIsInstance<LoadingState.Ready<List<T>>>().first().value
+
+internal fun SdkFixture.createLocalVirtualDeviceSource(
+  systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState())
+) =
+  LocalVirtualDeviceSource(
+    persistentListOf(NoSkin.INSTANCE),
+    sdkHandler,
+    avdManager,
+    systemImageStateFlow,
+  )
