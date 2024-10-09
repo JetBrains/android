@@ -541,9 +541,7 @@ class ComposePreviewRepresentation(
     instance: PsiComposePreviewElementInstance,
     isWearPreview: Boolean,
   ) {
-    log.debug(
-      "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
-    )
+    log.debug("Starting UI check. ATF checks enabled: $atfChecksEnabled")
     val startTime = System.currentTimeMillis()
     qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, isWearPreview)
@@ -1021,7 +1019,7 @@ class ComposePreviewRepresentation(
       isInteractive = mode.value is PreviewMode.Interactive,
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = atfChecksEnabled,
-      runVisualLinting = visualLintingEnabled,
+      runVisualLinting = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
     )
 

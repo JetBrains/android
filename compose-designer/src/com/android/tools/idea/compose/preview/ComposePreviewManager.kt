@@ -74,7 +74,7 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   val visualLintingEnabled: Boolean
-    get() = (mode.value as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
+    get() = mode.value is PreviewMode.UiCheck
 }
 
 class NopComposePreviewManager : ComposePreviewManager {

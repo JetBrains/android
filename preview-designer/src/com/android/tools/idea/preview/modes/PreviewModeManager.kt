@@ -109,12 +109,11 @@ sealed class PreviewMode {
     val baseInstance: UiCheckInstance,
     override val layoutOption: SurfaceLayoutOption = GRID_NO_GROUP_LAYOUT_OPTION,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
-    val visualLintingEnabled: Boolean = StudioFlags.COMPOSE_VISUAL_LINT_RUN.get(),
   ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
 
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
-      return UiCheck(baseInstance, layoutOption, atfChecksEnabled, visualLintingEnabled)
+      return UiCheck(baseInstance, layoutOption, atfChecksEnabled)
     }
 
     override fun equals(other: Any?): Boolean {
