@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
@@ -36,21 +35,17 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
-import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
 
@@ -131,17 +126,8 @@ class LocalVirtualDeviceSourceTest {
         val pixel8 = profiles.first { it.name == "Pixel 8" }
 
         wizard = TestComposeWizard { with(source) { selectionUpdated(pixel8) } }
-        val swingPanel = JPanel()
 
-        composeTestRule.setContent {
-          CompositionLocalProvider(
-            LocalComponent provides swingPanel,
-            LocalFileSystem provides sdkRoot.fileSystem,
-            LocalProject provides null,
-          ) {
-            wizard.Content()
-          }
-        }
+        composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
         wizard.performAction(wizard.nextAction)
         composeTestRule.waitForIdle()

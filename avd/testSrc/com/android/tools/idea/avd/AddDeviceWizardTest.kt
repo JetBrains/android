@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -24,15 +23,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
-import javax.swing.JPanel
-import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
 
@@ -65,16 +60,7 @@ class AddDeviceWizardTest {
             DeviceGridPage()
           }
         }
-        val swingPanel = JPanel()
-        composeTestRule.setContent {
-          CompositionLocalProvider(
-            LocalComponent provides swingPanel,
-            LocalFileSystem provides fileSystem,
-            LocalProject provides null,
-          ) {
-            wizard.Content()
-          }
-        }
+        composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
         composeTestRule.waitUntilAtLeastOneExists(hasText("Pixel 8"))
         composeTestRule.onNodeWithText("Pixel 8").performClick()
@@ -115,16 +101,7 @@ class AddDeviceWizardTest {
           DeviceGridPage()
         }
       }
-      val swingPanel = JPanel()
-      composeTestRule.setContent {
-        CompositionLocalProvider(
-          LocalComponent provides swingPanel,
-          LocalFileSystem provides fileSystem,
-          LocalProject provides null,
-        ) {
-          wizard.Content()
-        }
-      }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
       composeTestRule.waitUntilDoesNotExist(hasText("Loading system images", substring = true))
       // The fetching of the acceleration status is asynchronous
