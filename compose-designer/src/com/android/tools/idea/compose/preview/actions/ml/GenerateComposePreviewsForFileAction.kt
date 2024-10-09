@@ -93,6 +93,7 @@ class GenerateComposePreviewsForFileAction :
     init {
       title = message("action.generate.previews.for.file.dialog.title")
       init()
+      window.maximumSize = JBDimension(window.maximumSize.width, 320)
     }
 
     override fun createCenterPanel(): JComponent {
