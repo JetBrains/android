@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.build.BuildProgressListener
@@ -25,17 +26,36 @@ import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.output.BuildOutputInstantReaderImpl
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
+import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameter
+import org.junit.runners.Parameterized.Parameters
 
 /**
  * This implementation tests output from one task, suitable for testing on partial gradle outputs.
  */
+@RunWith(Parameterized::class)
 abstract class BuildOutputParserTest {
+  companion object {
+    @JvmStatic
+    @Parameters(name="isStudioBotAvailable={0}")
+    fun parameters() = listOf(
+      arrayOf(true),
+      arrayOf(false),
+    )
+  }
+
+  @Parameter
+  @JvmField
+  var isStudioBotAvailable: Boolean? = null
 
   @get:Rule
   val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
@@ -51,6 +71,12 @@ abstract class BuildOutputParserTest {
     ExternalSystemOutputParserProvider.EP_NAME.extensions.forEach {
       parsers.addAll(it.getBuildOutputParsers(taskId))
     }
+
+    val studioBot = object : StudioBot.StubStudioBot() {
+      override fun isAvailable(): Boolean = isStudioBotAvailable!!
+    }
+    ApplicationManager.getApplication()
+      .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
   }
 
   private fun parseOutput(parentEventId: String, gradleOutput: String, expectedEvents: String) {
@@ -94,7 +120,7 @@ abstract class BuildOutputParserTest {
       buildString {
         appendLine("message: \"${it.message}\"")
         appendLine("FileMessageEvent: " + it.isFileMessageEvent)
-        appendLine("BuildIssueEvent: " + it.isBuildIssueEvent)
+        appendLine("BuildIssueEvent: " + (it.isBuildIssueEvent || expectBotLink(it)))
         appendLine("DuplicateMessageAware: " + it.isDuplicateMessageAware)
         appendLine("group: " + it.group)
         appendLine("kind: " + it.kind)
@@ -104,11 +130,16 @@ abstract class BuildOutputParserTest {
         }
         appendLine("description:")
         appendLine(it.description)
+        if (expectBotLink(it)) {
+          appendLine("<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+        }
         append("---")
       }
     }
     parseOutput(parentEventId, gradleOutput, expectedEventsDump)
   }
+
+  private fun expectBotLink(event: ExpectedEvent): Boolean = isStudioBotAvailable == true && event.kind == MessageEvent.Kind.ERROR
 
   data class ExpectedEvent(
     val message: String,

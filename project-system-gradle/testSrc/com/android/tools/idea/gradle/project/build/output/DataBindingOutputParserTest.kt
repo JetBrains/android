@@ -84,7 +84,8 @@ class DataBindingOutputParserTest : BuildOutputParserTest() {
           parentId = "testId",
           filePosition = "/src/main/res/layout/activity_main1.xml:37:29-37:33",
           description = """
-          null
+          /src/main/res/layout/activity_main1.xml:37:29
+          Identifiers must have user defined types from the XML file. var1 is missing it
           """.trimIndent()
         ),
         ExpectedEvent(
@@ -97,7 +98,8 @@ class DataBindingOutputParserTest : BuildOutputParserTest() {
           parentId = "testId",
           filePosition = "/src/main/res/layout/activity_main2.xml:59:24-59:28",
           description = """
-          null
+          /src/main/res/layout/activity_main2.xml:59:24
+          Identifiers must have user defined types from the XML file. var2 is missing it
           """.trimIndent()
         )
       )
