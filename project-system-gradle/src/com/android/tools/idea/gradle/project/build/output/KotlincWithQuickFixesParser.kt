@@ -63,10 +63,7 @@ class KotlincWithQuickFixesParser : BuildOutputParser {
         additionalDescription.newLine()
         additionalDescription.addQuickFix("More information...", OpenLinkQuickFix(JAVA_8_SUPPORT_LINK))
 
-        return when(originalEvent) {
-          is FileMessageEvent -> FileMessageBuildIssueEvent(originalEvent, additionalDescription)
-          else -> MessageBuildIssueEvent(originalEvent, additionalDescription)
-        }
+        return originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription)
       }
     }
     return originalEvent
