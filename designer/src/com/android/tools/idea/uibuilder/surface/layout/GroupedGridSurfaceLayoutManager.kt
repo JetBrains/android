@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.common.layout.positionable.calculateHeightWithOffset
+import com.android.tools.idea.common.layout.positionable.calculateHeightWithVerticalMargins
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
@@ -116,7 +116,7 @@ open class GroupedGridSurfaceLayoutManager(
       groupRequiredWidth = 2 * framePadding + it.sizeFunc().width + margin.horizontal
       groupRequiredHeight =
         2 * framePadding +
-          it.calculateHeightWithOffset(it.sizeFunc().height, scale) +
+          it.calculateHeightWithVerticalMargins(it.sizeFunc().height, scale) +
           margin.vertical
     }
 

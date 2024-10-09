@@ -103,7 +103,7 @@ fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
  *   ([PositionableContent.topPanelHeight] is not affected by this value.
  * @returns the scaled height plus the offset that is not subject for scale change.
  */
-fun PositionableContent.calculateHeightWithOffset(height: Int, scale: Double): Int {
+fun PositionableContent.calculateHeightWithVerticalMargins(height: Int, scale: Double): Int {
   // contentSize takes into account top panel, when we apply the scale we also multiply the size of
   // the top panel.
   val scaledTotalHeight = height
