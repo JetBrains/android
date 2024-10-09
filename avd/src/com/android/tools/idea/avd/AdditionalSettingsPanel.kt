@@ -36,6 +36,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -116,50 +117,58 @@ internal fun AdditionalSettingsPanel(
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+  val cameraLocations = device.device.defaultHardware.cameras.map { it.location }
+  if (cameraLocations.isEmpty()) {
+    return
+  }
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Camera")
 
-    Row {
-      Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    if (CameraLocation.FRONT in cameraLocations) {
+      Row {
+        Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.frontCamera,
-        FRONT_CAMERAS,
-        onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.frontCamera,
+          FRONT_CAMERAS,
+          onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
+          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        """
+        InfoOutlineIcon(
+          """
         None: no camera installed for AVD
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-          .trimIndent(),
-        Modifier.align(Alignment.CenterVertically),
-      )
+            .trimIndent(),
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
 
-    Row {
-      Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    if (CameraLocation.BACK in cameraLocations) {
+      Row {
+        Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.rearCamera,
-        REAR_CAMERAS,
-        onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.rearCamera,
+          REAR_CAMERAS,
+          onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
+          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        """
+        InfoOutlineIcon(
+          """
         None: no camera installed for AVD
         VirtualScene: use a virtual camera in a simulated environment
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-          .trimIndent(),
-        Modifier.align(Alignment.CenterVertically),
-      )
+            .trimIndent(),
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
   }
 }

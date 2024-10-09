@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdBuilder
@@ -71,8 +72,8 @@ internal constructor(
         name = device.displayName,
         device = device,
         skin = NoSkin.INSTANCE,
-        frontCamera = AvdCamera.EMULATED,
-        rearCamera = AvdCamera.VIRTUAL_SCENE,
+        frontCamera = if (device.hasFrontCamera()) AvdCamera.EMULATED else AvdCamera.NONE,
+        rearCamera = if (device.hasRearCamera()) AvdCamera.VIRTUAL_SCENE else AvdCamera.NONE,
         speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         orientation = device.defaultState.orientation,
@@ -87,6 +88,12 @@ internal constructor(
       )
   }
 }
+
+private fun Device.hasFrontCamera() =
+  defaultHardware.cameras.any { it.location == CameraLocation.FRONT }
+
+private fun Device.hasRearCamera() =
+  defaultHardware.cameras.any { it.location == CameraLocation.BACK }
 
 internal fun VirtualDevice.copyFrom(avdBuilder: AvdBuilder): VirtualDevice {
   // TODO: System image
