@@ -128,8 +128,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
 
-  val acceleration = if (device.hasPlayStore(image)) GraphicsMode.AUTO else device.graphicsMode
-  gpuMode = acceleration.toGpuMode(image)
+  gpuMode = device.graphicsMode.toGpuMode(image)
 
   networkSpeed = device.speed
   networkLatency = device.latency
@@ -146,7 +145,7 @@ private fun StorageCapacity.toStorage(): Storage {
   return Storage(value * unit.byteCount)
 }
 
-private fun Storage.toStorageCapacity(): StorageCapacity {
+internal fun Storage.toStorageCapacity(): StorageCapacity {
   val unit = getAppropriateUnits()
   return StorageCapacity(getSizeAsUnit(unit), StorageCapacity.Unit.valueOf(unit.displayValue))
 }

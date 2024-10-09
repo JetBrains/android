@@ -73,6 +73,8 @@ internal fun AdditionalSettingsPanel(
       Modifier.padding(vertical = Padding.SMALL),
       verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
     ) {
+      val hasPlayStore = state.hasPlayStore()
+
       Row {
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
@@ -81,6 +83,7 @@ internal fun AdditionalSettingsPanel(
           state.skins,
           onSelectedItemChange = { state.device = state.device.copy(skin = it) },
           Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
+          !hasPlayStore,
         )
       }
 
@@ -91,6 +94,7 @@ internal fun AdditionalSettingsPanel(
       StorageGroup(
         state.device,
         state.storageGroupState,
+        hasPlayStore,
         state.validity.isExpandedStorageValid,
         state::device::set,
       )
@@ -99,7 +103,7 @@ internal fun AdditionalSettingsPanel(
         state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
       }
 
-      EmulatedPerformanceGroup(state.device, state.hasPlayStore(), state::device::set)
+      EmulatedPerformanceGroup(state.device, hasPlayStore, state::device::set)
 
       PreferredAbiGroup(
         state.device.preferredAbi,
@@ -267,6 +271,7 @@ private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 private fun StorageGroup(
   device: VirtualDevice,
   storageGroupState: StorageGroupState,
+  hasPlayStore: Boolean,
   isExistingImageValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
@@ -307,6 +312,7 @@ private fun StorageGroup(
         storageGroupState.selectedRadioButton,
         onClick = { storageGroupState.selectedRadioButton = RadioButton.CUSTOM },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
+        !hasPlayStore,
       )
 
       StorageCapacityField(
@@ -326,11 +332,12 @@ private fun StorageGroup(
         storageGroupState.selectedRadioButton,
         onClick = { storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE },
         Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
+        !hasPlayStore,
       )
 
       ExistingImageField(
         storageGroupState.existingImage,
-        storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
+        storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE && !hasPlayStore,
         isExistingImageValid,
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
@@ -340,6 +347,7 @@ private fun StorageGroup(
       RadioButton.NONE,
       storageGroupState.selectedRadioButton,
       onClick = { storageGroupState.selectedRadioButton = RadioButton.NONE },
+      enabled = !hasPlayStore,
     )
   }
 }
@@ -350,8 +358,9 @@ private fun <E : Enum<E>> RadioButtonRow(
   selectedValue: Enum<E>,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
+  enabled: Boolean,
 ) {
-  RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier)
+  RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier, enabled)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -431,7 +440,7 @@ private fun EmulatedPerformanceGroup(
 
       Dropdown(
         Modifier.alignByBaseline(),
-        device.cpuCoreCount != null,
+        device.cpuCoreCount != null && !hasGooglePlayStore,
         menuContent = {
           for (count in 1..max(1, Runtime.getRuntime().availableProcessors() / 2)) {
             selectableItem(
@@ -466,6 +475,7 @@ private fun EmulatedPerformanceGroup(
         device.ram,
         onValueChange = { onDeviceChange(device.copy(ram = it)) },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        !hasGooglePlayStore,
       )
 
       InfoOutlineIcon(
@@ -482,6 +492,7 @@ private fun EmulatedPerformanceGroup(
         device.vmHeapSize,
         onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        !hasGooglePlayStore,
       )
 
       InfoOutlineIcon(

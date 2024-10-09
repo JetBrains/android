@@ -49,6 +49,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import java.awt.Component
+import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
@@ -129,15 +130,7 @@ internal fun WizardPageScope.ConfigurationPage(
             },
           )
 
-        val skin = device.device.defaultHardware.skinFile
-        state.setSkin(
-          resolve(
-            sdkHandler,
-            if (skin == null) SkinUtils.noSkin(fileSystem) else fileSystem.getPath(skin.path),
-            emptyList(),
-          )
-        )
-
+        state.setSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
         state
       } else {
         // Editing a device
@@ -187,6 +180,8 @@ internal fun WizardPageScope.ConfigurationPage(
     if (state.validity.isValid) {
       WizardAction {
         coroutineScope.launch {
+          state.resetPlayStoreFields(resolveDefaultSkin(state.device, sdkHandler, fileSystem))
+
           finish(
             state.device,
             state.systemImageTableSelectionState.selection!!,
@@ -199,6 +194,20 @@ internal fun WizardPageScope.ConfigurationPage(
     } else {
       WizardAction.Disabled
     }
+}
+
+private fun resolveDefaultSkin(
+  device: VirtualDevice,
+  sdkHandler: AndroidSdkHandler,
+  fileSystem: FileSystem,
+): Path {
+  val skin = device.device.defaultHardware.skinFile
+
+  return resolve(
+    sdkHandler,
+    if (skin == null) SkinUtils.noSkin(fileSystem) else fileSystem.getPath(skin.path),
+    emptyList(),
+  )
 }
 
 private suspend fun WizardDialogScope.finish(

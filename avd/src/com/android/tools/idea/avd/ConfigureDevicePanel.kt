@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
@@ -233,6 +234,20 @@ internal constructor(
   internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
     device = device.copy(expandedStorage = expandedStorage)
     validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid())
+  }
+
+  internal fun resetPlayStoreFields(skin: Path) {
+    if (!hasPlayStore()) return
+
+    device =
+      device.copy(
+        skin = getSkin(skin),
+        expandedStorage = Custom(storageGroupState.custom.withMaxUnit()),
+        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
+        graphicsMode = GraphicsMode.AUTO,
+        ram = EmulatedProperties.defaultRamSize(device.device).toStorageCapacity(),
+        vmHeapSize = EmulatedProperties.defaultVmHeapSize(device.device).toStorageCapacity(),
+      )
   }
 }
 
