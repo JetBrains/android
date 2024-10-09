@@ -217,7 +217,7 @@ MODULE                        : withGradleMetadata.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : 34.0.0
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : withGradleMetadata
     Namespace                     : come.example.with.gradle.metadata

@@ -573,7 +573,7 @@ MODULE                        : project
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/build [-]
-    buildToolsVersion             : 34.0.0
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       :
     Namespace                     : com.android.tests.basic
