@@ -2440,7 +2440,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.studioclasspathissue
@@ -3533,7 +3533,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-a/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.feature.a
@@ -4599,7 +4599,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-b/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.feature.b
@@ -5585,7 +5585,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies.kmp-java
     Namespace                     : test
@@ -5889,7 +5889,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : com.example.lib

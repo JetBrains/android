@@ -1083,7 +1083,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/androidLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.androidlib
@@ -1686,7 +1686,7 @@ MODULE                        : Kotlin_Multiplatform.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.app
@@ -2136,7 +2136,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.kmpfirstlib
@@ -2854,7 +2854,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/kmpSecondLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.kmpsecondlib
