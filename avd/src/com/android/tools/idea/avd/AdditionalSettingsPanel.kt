@@ -40,6 +40,7 @@ import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -490,7 +491,7 @@ private fun EmulatedPerformanceGroup(
         device.ram,
         onValueChange = { onDeviceChange(device.copy(ram = it)) },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-        !hasGooglePlayStore,
+        !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
 
       InfoOutlineIcon(
