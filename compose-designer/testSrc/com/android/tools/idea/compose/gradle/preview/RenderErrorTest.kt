@@ -355,7 +355,6 @@ class RenderErrorTest {
       PreviewMode.UiCheck(
         baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false),
         atfChecksEnabled = true,
-        visualLintingEnabled = true,
       )
     )
     onRefreshCompletable.join()
