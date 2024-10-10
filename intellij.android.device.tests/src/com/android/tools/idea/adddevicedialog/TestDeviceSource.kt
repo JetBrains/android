@@ -52,8 +52,7 @@ data class TestDevice(
   override val isRemote: Boolean = false,
   override val abis: List<Abi> = listOf(Abi.ARM64_V8A),
   override val formFactor: String = FormFactors.PHONE,
-  override val isAlreadyPresent: Boolean = false,
-  override val availabilityEstimate: Duration = Duration.ZERO,
+  val availabilityEstimate: Duration = Duration.ZERO,
 ) : DeviceProfile {
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
@@ -89,7 +88,6 @@ data class TestDevice(
         isRemote = isRemote,
         abis = abis,
         formFactor = formFactor,
-        isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
       )
   }

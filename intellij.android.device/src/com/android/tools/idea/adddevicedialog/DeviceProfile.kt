@@ -43,11 +43,6 @@ interface DeviceProfile {
   val abis: List<Abi>
   val formFactor: String
 
-  /** Indicates that the device already exists, and we cannot create another. */
-  val isAlreadyPresent: Boolean
-  /** An estimate of how long it will take to acquire the device. */
-  val availabilityEstimate: Duration
-
   fun toBuilder(): Builder
 
   @Composable fun Icon(modifier: Modifier)
@@ -85,8 +80,6 @@ interface DeviceProfile {
       isRemote = profile.isRemote
       abis = profile.abis
       formFactor = profile.formFactor
-      isAlreadyPresent = profile.isAlreadyPresent
-      availabilityEstimate = profile.availabilityEstimate
     }
   }
 }

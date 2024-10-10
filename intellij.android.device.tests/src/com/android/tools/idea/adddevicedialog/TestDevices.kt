@@ -32,7 +32,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.PHONE,
     )
 
@@ -47,7 +46,6 @@ internal object TestDevices {
       isVirtual = false,
       isRemote = true,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       availabilityEstimate = 5.minutes,
       formFactor = FormFactors.PHONE,
     )
@@ -63,7 +61,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A, Abi.RISCV64),
-      isAlreadyPresent = false,
       formFactor = FormFactors.PHONE,
     )
 
@@ -78,7 +75,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.TABLET,
     )
 
@@ -94,7 +90,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.WEAR,
     )
 
@@ -108,7 +103,6 @@ internal object TestDevices {
       isVirtual = false,
       isRemote = true,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.PHONE,
     )
 
@@ -122,7 +116,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.AUTO,
     )
 
@@ -137,7 +130,6 @@ internal object TestDevices {
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
-      isAlreadyPresent = false,
       formFactor = FormFactors.TV,
     )
 

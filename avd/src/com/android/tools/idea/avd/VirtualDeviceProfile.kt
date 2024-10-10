@@ -27,7 +27,6 @@ import com.android.tools.idea.adddevicedialog.FormFactors
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
 import kotlin.math.max
-import kotlin.time.Duration
 
 @Immutable
 internal data class VirtualDeviceProfile(
@@ -68,12 +67,6 @@ internal data class VirtualDeviceProfile(
       iconClass = StudioIconsCompose::class.java,
     )
   }
-
-  override val isAlreadyPresent: Boolean
-    get() = false
-
-  override val availabilityEstimate: Duration
-    get() = Duration.ZERO
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDeviceProfile) }
 
