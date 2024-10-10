@@ -61,7 +61,7 @@ class NavSceneManagerTest : NavTestCase() {
     // the release position isn't used
     dragTarget.mouseRelease(2, 2, listOf())
 
-    scene.sceneManager.requestRenderAsync()
+    scene.sceneManager.requestRender()
 
     assertEquals(100, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(50, scene.getSceneComponent("fragment1")!!.drawY)

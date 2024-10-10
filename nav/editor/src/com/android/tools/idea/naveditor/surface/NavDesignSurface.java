@@ -176,7 +176,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       public void componentResized(ComponentEvent e) {
         removeComponentListener(this);
         SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-        if (manager != null) manager.requestRenderAsync();
+        if (manager != null) manager.requestRender();
       }
     });
 

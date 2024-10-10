@@ -30,7 +30,6 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -205,7 +204,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     runBlocking {
-      surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+      surface.sceneManagers.forEach { it.requestRenderAndWait() }
       animationPreview.addAnimation(animation).join()
 
       withContext(uiThread) {

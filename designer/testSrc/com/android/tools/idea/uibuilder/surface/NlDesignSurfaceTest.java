@@ -577,7 +577,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
   private void refreshSurface() {
     for (SceneManager manager : mySurface.getSceneManagers()) {
-      manager.requestRenderAsync().join();
+      // TODO (b/370994254): it may be necessary to make this method suspendable and replace this
+      //  with requestRenderAndWait()
+      manager.requestRender();
     }
   }
 }

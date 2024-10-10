@@ -51,6 +51,7 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
@@ -243,7 +244,6 @@ open class LayoutlibSceneManager(
       }
 
       override fun modelChanged(model: NlModel) {
-        val surface: NlDesignSurface = this@LayoutlibSceneManager.designSurface
         // The structure might have changed, force a re-inflate
         sceneRenderConfiguration.needsInflation.set(true)
         // If the update is reversed (namely, we update the View hierarchy from the component
@@ -252,7 +252,7 @@ open class LayoutlibSceneManager(
         // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and
         // render the updated result.
         layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
-        requestRenderAsync()
+        requestRender()
       }
 
       override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
@@ -267,7 +267,7 @@ open class LayoutlibSceneManager(
       }
 
       override fun modelLiveUpdate(model: NlModel) {
-        requestRenderAsync()
+        requestRender()
       }
     }
 
@@ -294,23 +294,28 @@ open class LayoutlibSceneManager(
     scene.selectionChanged(designSurface.selectionModel, designSurface.selectionModel.selection)
   }
 
-  /**
-   * Adds a new render request to the queue.
-   *
-   * @return [CompletableFuture] that will be completed once the render has been done.
-   */
-  override fun requestRenderAsync(): CompletableFuture<Void> {
+  private fun getRenderTrigger() =
+    getTriggerFromChangeType(model.lastChangeType).also { model.resetLastChange() }
+
+  private fun onBeforeRender(): Boolean {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("requestRender after LayoutlibSceneManager has been disposed")
-      return CompletableFuture.completedFuture(null)
+        .warn("tried to render after LayoutlibSceneManager has been disposed")
+      return false
     }
-    val trigger = getTriggerFromChangeType(model.lastChangeType)
     logConfigurationChange(designSurface)
-    model.resetLastChange()
-    return layoutlibSceneRenderer.renderAsync(trigger).thenCompose {
-      CompletableFuture.completedFuture(null)
-    }
+    return true
+  }
+
+  /** Adds a new render request to the queue. */
+  override fun requestRender() {
+    layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRender(getRenderTrigger())
+  }
+
+  /** Adds a new render request to the queue and wait for it to finish. */
+  @RequiresBackgroundThread
+  override suspend fun requestRenderAndWait() {
+    layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRenderAndWait(getRenderTrigger())
   }
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
@@ -388,7 +393,7 @@ open class LayoutlibSceneManager(
       if (version != layoutlibSceneRenderer.renderedVersion) {
         sceneRenderConfiguration.needsInflation.set(true)
       }
-      requestRenderAsync()
+      requestRender()
     }
     return active
   }
@@ -463,7 +468,7 @@ open class LayoutlibSceneManager(
     sceneRenderConfiguration.layoutlibCallbacksConfig.set(
       LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
     )
-    requestRenderAsync()
+    requestRender()
   }
 
   /** Pauses session clock, so that session time stops advancing. */

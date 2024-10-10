@@ -578,8 +578,7 @@ class VisualizationForm(
     for (manager in surface.sceneManagers) {
       if (!isRenderingCanceled.get()) {
         manager.sceneRenderConfiguration.needsInflation.set(true)
-        // TODO(b/335424569): replace by requestRenderAndWait when available
-        manager.requestRenderAsync().await()
+        manager.requestRenderAndWait()
         scope.launch {
           visualLintHandler.afterRenderCompleted(manager) { !isActive || isRenderingCanceled.get() }
         }
@@ -699,8 +698,7 @@ class VisualizationForm(
         .mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.sceneRenderConfiguration.showDecorations = state }
       scope.launch {
-        // TODO(b/335424569): replace by requestRenderAndWait when available
-        surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+        surface.sceneManagers.forEach { it.requestRenderAndWait() }
         if (!Disposer.isDisposed(visualizationForm.myWorkBench)) {
           visualizationForm.myWorkBench.showContent()
         }
