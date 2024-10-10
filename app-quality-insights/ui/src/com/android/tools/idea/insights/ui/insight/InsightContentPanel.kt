@@ -22,10 +22,12 @@ import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.mapReady
 import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.EMPTY_STATE_LINK_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.studiobot.StudioBot as Gemini
+import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,6 +37,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLoadingPanel
@@ -65,6 +68,8 @@ private const val TOS_NOT_ACCEPTED = "tos_not_accepted"
 private const val RESOURCE_EXHAUSTED_MESSAGE =
   "Quota exceeded for quota metric 'Duet Task API requests' and limit 'Duet Task API requests per day per user'"
 private const val TEMPORARY_KILL_SWITCH_MESSAGE = "Cannot process request for disabled experience"
+
+@VisibleForTesting const val GEMINI_NOT_AVAILABLE = "Gemini is not available"
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
@@ -164,7 +169,7 @@ class InsightContentPanel(
       override fun update(e: AnActionEvent) {
         // This action is never visible
         e.presentation.isEnabledAndVisible = false
-        if (emptyStateText.text == "Gemini is disabled" && Gemini.getInstance().isAvailable()) {
+        if (emptyStateText.text == GEMINI_NOT_AVAILABLE && Gemini.getInstance().isAvailable()) {
           controller.refreshInsight(false)
         }
       }
@@ -250,12 +255,25 @@ class InsightContentPanel(
             is LoadingState.Unauthorized -> {
               emptyStateText.apply {
                 clear()
-                appendText("Gemini is disabled", EMPTY_STATE_TITLE_FORMAT)
-                appendLine(
-                  "To see insights, please enable and authorize the Gemini plugin",
-                  EMPTY_STATE_TEXT_FORMAT,
-                  null,
-                )
+                appendText(GEMINI_NOT_AVAILABLE, EMPTY_STATE_TITLE_FORMAT)
+                if (LoginFeature.getExtensionByName("Gemini") == null) {
+                  appendLine(
+                    "To see insights, please enable the Gemini plugin in Settings > Plugins",
+                    EMPTY_STATE_TEXT_FORMAT,
+                    null,
+                  )
+                } else {
+                  appendLine(
+                    "To see insights, please go through the onboarding process for Gemini",
+                    EMPTY_STATE_TEXT_FORMAT,
+                    null,
+                  )
+                  appendLine("Onboard Gemini", EMPTY_STATE_LINK_FORMAT) {
+                    ToolWindowManager.getInstance(controller.project)
+                      .getToolWindow("StudioBot")
+                      ?.show()
+                  }
+                }
               }
               showEmptyCard()
             }
