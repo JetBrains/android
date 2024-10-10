@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.android.sync.sdk;
 
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -33,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.jetbrains.android.sdk.AndroidPlatformCompat;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 
 /** Calculates AndroidSdkPlatform. */
 public final class AndroidSdkFromProjectView {
@@ -133,7 +134,15 @@ public final class AndroidSdkFromProjectView {
   }
 
   private static int getAndroidSdkApiLevel(Sdk sdk) {
-    return AndroidPlatformCompat.getApiLevel(sdk);
+    int androidSdkApiLevel = 1;
+    AndroidSdkAdditionalData additionalData = (AndroidSdkAdditionalData) sdk.getSdkAdditionalData();
+    if (additionalData != null) {
+      AndroidPlatform androidPlatform = additionalData.getAndroidPlatform();
+      if (androidPlatform != null) {
+        androidSdkApiLevel = androidPlatform.getApiLevel();
+      }
+    }
+    return androidSdkApiLevel;
   }
 
   private AndroidSdkFromProjectView() {}

@@ -19,6 +19,7 @@ import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.SdkConstants.RES_FOLDER;
 
 import com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.idea.blaze.android.projectview.AndroidSdkPlatformSection;
 import com.google.idea.blaze.android.sdk.BlazeSdkProvider;
 import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
@@ -43,8 +44,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import java.util.Optional;
-import org.jetbrains.android.sdk.AndroidPlatformCompat;
-import org.jetbrains.android.sdk.AndroidPlatformsCompat;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +71,7 @@ public class SdkUtil {
   }
 
   @Nullable
-  public static AndroidPlatformCompat getAndroidPlatform(@NotNull Project project) {
+  public static AndroidPlatform getAndroidPlatform(@NotNull Project project) {
     BlazeProjectData blazeProjectData =
         BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (blazeProjectData == null) {
@@ -85,7 +85,7 @@ public class SdkUtil {
     if (sdk == null) {
       return null;
     }
-    return AndroidPlatformsCompat.getInstance(sdk);
+    return AndroidPlatforms.getInstance(sdk);
   }
 
   /** Opens the SDK manager settings page */
