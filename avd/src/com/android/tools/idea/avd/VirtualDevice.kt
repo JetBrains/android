@@ -64,6 +64,7 @@ internal constructor(
   internal val preferredAbi: String?,
 ) {
   internal val isFoldable = device.defaultHardware.screen.isFoldable
+  internal val formFactor = device.formFactor
 
   internal fun hasPlayStore(image: ISystemImage) =
     device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE

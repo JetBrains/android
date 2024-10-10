@@ -133,7 +133,7 @@ private val Device.androidVersionRange: Range<Int>
       }
       .reduce(Range<Int>::span)
 
-private val Device.formFactor: String
+internal val Device.formFactor: String
   get() =
     when {
       Device.isWear(this) -> FormFactors.WEAR
