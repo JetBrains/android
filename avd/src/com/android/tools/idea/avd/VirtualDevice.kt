@@ -198,7 +198,7 @@ internal fun AvdSkin?.toSkin(): Skin =
   when (this) {
     null -> NoSkin.INSTANCE
     is OnDiskSkin -> DefaultSkin(path)
-    is GenericSkin -> DefaultSkin(Paths.get(name))
+    is GenericSkin -> NoSkin.INSTANCE
   }
 
 internal fun Boot.toBootMode() =
