@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageDialogBuilder
+import kotlinx.coroutines.withContext
 
-/** Provides functions needed by actions */
-internal interface ActionHelper {
-  /** Tries to get the application id from the active run configuration */
-  fun getApplicationId(project: Project): String?
-
-  /** Returns the number of devices selected in the deployment target selector */
-  fun getDeployTargetCount(project: Project): Int
-
-  /**
-   * Returns the serial number of the deployment target
-   *
-   * @return null if there is more than one target or if the target is not running
-   */
-  suspend fun getDeployTargetSerial(project: Project): String?
+internal class DialogFactoryImpl : DialogFactory {
+  override suspend fun showDialog(project: Project, title: String, message: String) {
+    withContext(uiThread) {
+      @Suppress("UnstableApiUsage")
+      MessageDialogBuilder.Message(title, message)
+        .buttons(CommonBundle.getOkButtonText())
+        .asWarning()
+        .show(project)
+    }
+  }
 }

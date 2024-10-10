@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.backup
+package com.android.tools.idea.backup.testing
 
+import com.android.tools.idea.backup.DialogFactory
 import com.intellij.openapi.project.Project
 
-/** Provides functions needed by actions */
-internal interface ActionHelper {
-  /** Tries to get the application id from the active run configuration */
-  fun getApplicationId(project: Project): String?
+internal class FakeDialogFactory : DialogFactory {
+  val warnings = mutableListOf<String>()
 
-  /** Returns the number of devices selected in the deployment target selector */
-  fun getDeployTargetCount(project: Project): Int
-
-  /**
-   * Returns the serial number of the deployment target
-   *
-   * @return null if there is more than one target or if the target is not running
-   */
-  suspend fun getDeployTargetSerial(project: Project): String?
+  override suspend fun showDialog(project: Project, title: String, message: String) {
+    warnings.add("$title: $message")
+  }
 }

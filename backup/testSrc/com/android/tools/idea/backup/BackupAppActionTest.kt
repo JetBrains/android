@@ -18,6 +18,7 @@ package com.android.tools.idea.backup
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.backup.testing.FakeActionHelper
+import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -91,10 +92,12 @@ internal class BackupAppActionTest {
     assertThat(presentation.isEnabled).isFalse()
   }
 
+  private val fakeDialogFactory = FakeDialogFactory()
+
   @Test
   fun actionPerformed() {
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
-    val action = BackupAppAction(actionHelper)
+    val action = BackupAppAction(actionHelper, fakeDialogFactory)
     val event = testEvent(project, "serial")
 
     action.actionPerformed(event)
@@ -103,47 +106,47 @@ internal class BackupAppActionTest {
 
     verify(mockBackupManager)
       .showBackupDialog("serial", "com.app", BACKUP_APP_ACTION, notify = true)
-    assertThat(actionHelper.warnings).isEmpty()
+    assertThat(fakeDialogFactory.warnings).isEmpty()
   }
 
   @Test
   fun actionPerformed_noTargets() {
     val actionHelper = FakeActionHelper("com.app", 0, "serial")
-    val action = BackupAppAction(actionHelper)
+    val action = BackupAppAction(actionHelper, fakeDialogFactory)
     val event = testEvent(project, "serial")
 
     action.actionPerformed(event)
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(actionHelper.warnings)
+    assertThat(fakeDialogFactory.warnings)
       .containsExactly("Cannot Backup Application: Selected device is not running")
   }
 
   @Test
   fun actionPerformed_multipleTargets() {
     val actionHelper = FakeActionHelper("com.app", 2, "serial")
-    val action = BackupAppAction(actionHelper)
+    val action = BackupAppAction(actionHelper, fakeDialogFactory)
     val event = testEvent(project, "serial")
     action.actionPerformed(event)
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(actionHelper.warnings)
+    assertThat(fakeDialogFactory.warnings)
       .containsExactly("Cannot Backup Application: Action is not supported for multiple devices")
   }
 
   @Test
   fun actionPerformed_noRunningTargets() {
     val actionHelper = FakeActionHelper("com.app", 1, null)
-    val action = BackupAppAction(actionHelper)
+    val action = BackupAppAction(actionHelper, fakeDialogFactory)
     val event = testEvent(project, "serial")
 
     action.actionPerformed(event)
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(actionHelper.warnings)
+    assertThat(fakeDialogFactory.warnings)
       .containsExactly("Cannot Backup Application: Selected device is not running")
   }
 }
