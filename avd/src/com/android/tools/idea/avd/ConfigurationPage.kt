@@ -35,6 +35,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
@@ -138,6 +139,8 @@ internal fun WizardPageScope.ConfigurationPage(
       }
     }
 
+  updateSystemImageSelection(state.systemImageTableSelectionState, filteredImageState)
+
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
   val coroutineScope = rememberCoroutineScope()
@@ -194,6 +197,23 @@ internal fun WizardPageScope.ConfigurationPage(
     } else {
       WizardAction.Disabled
     }
+}
+
+/**
+ * Updates the system image selection based on the currently-available images: if a
+ * RemoteSystemImage is selected, and is downloaded, it becomes a SystemImage, and we should select
+ * it.
+ */
+private fun updateSystemImageSelection(
+  state: TableSelectionState<ISystemImage>,
+  images: SystemImageState,
+) {
+  val selectedImage = state.selection
+  if (selectedImage is RemoteSystemImage && selectedImage !in images.images) {
+    images.images
+      .find { it.`package`.path == selectedImage.`package`.path }
+      ?.let { state.selection = it }
+  }
 }
 
 private fun resolveDefaultSkin(

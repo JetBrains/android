@@ -21,6 +21,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -323,6 +324,28 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.onNodeWithText(api34Image.displayName).assertIsDisplayed()
         composeTestRule.onNodeWithText("Loading system images...").assertDoesNotExist()
         composeTestRule.onNodeWithText("No internet connection").assertIsDisplayed()
+      }
+    }
+  }
+
+  @Test
+  fun downloadSystemImage() {
+    with(SdkFixture()) {
+      val localImage = api34()
+      val remoteImage = remoteApi34()
+      repoPackages.setRemotePkgInfos(listOf(remoteImage))
+
+      with(ConfigurationPageFixture(this)) {
+        composeTestRule.onNodeWithContentDescription("Download").assertIsDisplayed()
+        composeTestRule.onNodeWithText(remoteImage.displayName).assertIsSelected()
+
+        repoPackages.setLocalPkgInfos(listOf(localImage))
+        systemImageStateFlow.value = systemImageState()
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithContentDescription("Download").assertDoesNotExist()
+        composeTestRule.onNodeWithText(localImage.displayName).assertIsSelected()
+        assertThat(wizard.finishAction.enabled).isTrue()
       }
     }
   }
