@@ -76,6 +76,12 @@ internal fun AdditionalSettingsPanel(
     ) {
       val hasPlayStore = state.hasPlayStore()
 
+      if (hasPlayStore) {
+        WarningBanner(
+          "Some device settings cannot be configured when using a Google Play Store image"
+        )
+      }
+
       Row {
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
