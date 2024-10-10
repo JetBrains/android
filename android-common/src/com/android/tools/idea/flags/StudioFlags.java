@@ -316,11 +316,6 @@ public final class StudioFlags {
     "Include resource directories from AARs found through project system.",
     false);
 
-  public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = new BooleanFlag(
-    NELE, "atf.for.compose", "Enable ATF checks for Compose",
-    "Allow running accessibility checks for Compose using ATF.",
-    true);
-
   public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = new BooleanFlag(
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress",
