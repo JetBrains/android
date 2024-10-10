@@ -32,9 +32,6 @@ fun <DeviceT : DeviceProfile> WizardPageScope.DeviceLoadingPage(
 ) {
   val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
 
-  nextActionName = "Configure"
-  finishActionName = "Add"
-
   when (val profiles = profiles) {
     LoadingState.Loading -> {
       nextAction = WizardAction.Disabled
