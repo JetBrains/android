@@ -18,10 +18,15 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.PathFileWrapper
+import com.android.sdklib.SystemImageTags
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
@@ -49,17 +54,8 @@ class AddDeviceWizardTest {
       val source = createLocalVirtualDeviceSource()
 
       fun addPixel8() {
-        val wizard = TestComposeWizard {
-          with(
-            AddDeviceWizard(
-              source,
-              null,
-              accelerationCheck = { AccelerationErrorCode.ALREADY_INSTALLED },
-            )
-          ) {
-            DeviceGridPage()
-          }
-        }
+        val wizard = createTestAddDeviceWizard(source)
+
         composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
         composeTestRule.waitUntilAtLeastOneExists(hasText("Pixel 8"))
@@ -87,6 +83,47 @@ class AddDeviceWizardTest {
     }
   }
 
+  @Test
+  fun addAutomotiveDevice() {
+    with(SdkFixture()) {
+      val api34Ext9Auto =
+        createLocalSystemImage(
+          "android-automotive",
+          listOf(SystemImageTags.AUTOMOTIVE_TAG),
+          AndroidVersion(34, null, 9, false),
+        )
+      repoPackages.setLocalPkgInfos(listOf(api34Ext9Auto))
+
+      val source = createLocalVirtualDeviceSource()
+      val wizard = createTestAddDeviceWizard(source)
+
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      composeTestRule.onNodeWithText("Automotive").performClick()
+      composeTestRule.onNodeWithText("Automotive Portrait").performClick()
+      composeTestRule.waitForIdle()
+
+      wizard.performAction(wizard.nextAction)
+
+      composeTestRule.onNodeWithText(api34Ext9Auto.displayName).assertIsSelected()
+      composeTestRule.onNodeWithText("Additional settings").performClick()
+      composeTestRule.onNodeWithText("Camera").assertDoesNotExist()
+      composeTestRule.waitForIdle()
+
+      wizard.performAction(wizard.finishAction)
+      wizard.awaitClose()
+
+      assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
+        .containsExactly("Automotive_Portrait.avd", "Automotive_Portrait.ini")
+      val properties =
+        AvdManager.parseIniFile(
+          PathFileWrapper(avdRoot.resolve("Automotive_Portrait.avd").resolve("config.ini")),
+          null,
+        )
+      assertThat(properties[ConfigKey.CAMERA_FRONT]).isEqualTo("none")
+    }
+  }
+
   @OptIn(ExperimentalTestApi::class)
   @Test
   fun accelerationErrorCode() {
@@ -109,5 +146,13 @@ class AddDeviceWizardTest {
       composeTestRule.onNodeWithText("No emulator installed").assertIsDisplayed()
       composeTestRule.onNodeWithText("Install Emulator").assertIsEnabled()
     }
+  }
+}
+
+private fun createTestAddDeviceWizard(source: LocalVirtualDeviceSource) = TestComposeWizard {
+  with(
+    AddDeviceWizard(source, null, accelerationCheck = { AccelerationErrorCode.ALREADY_INSTALLED })
+  ) {
+    DeviceGridPage()
   }
 }
