@@ -1110,7 +1110,7 @@ MODULE                        : kotlinMultiPlatform.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : 34.0.0
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.android.kotlin
@@ -2198,7 +2198,7 @@ MODULE                        : kotlinMultiPlatform.module2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/module2/build [-]
-    buildToolsVersion             : 34.0.0
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.test.multiproject.module2

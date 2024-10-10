@@ -800,7 +800,7 @@ MODULE                        : application.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/application/app/build [-]
-    buildToolsVersion             : 34.0.0
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : application
     Namespace                     : google.simpleapplication
