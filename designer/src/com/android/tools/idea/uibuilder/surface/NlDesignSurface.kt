@@ -132,6 +132,7 @@ internal constructor(
       viewportScroller = null
       scroller?.scroll(viewport)
     }
+    scope.launch { sceneViewPanel.organizationState.collect { notifyPanningChanged() } }
   }
 
   var screenViewProvider: ScreenViewProvider = loadPreferredMode()
