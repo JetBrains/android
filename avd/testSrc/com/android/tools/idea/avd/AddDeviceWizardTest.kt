@@ -28,13 +28,10 @@ import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
-import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
 import javax.swing.JPanel
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
@@ -54,13 +51,7 @@ class AddDeviceWizardTest {
       val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
       repoPackages.setLocalPkgInfos(listOf(api34))
 
-      val source =
-        LocalVirtualDeviceSource(
-          persistentListOf(NoSkin.INSTANCE),
-          sdkHandler,
-          avdManager,
-          MutableStateFlow(systemImageState()),
-        )
+      val source = createLocalVirtualDeviceSource()
 
       fun addPixel8() {
         val wizard = TestComposeWizard {
@@ -117,13 +108,7 @@ class AddDeviceWizardTest {
       val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
       repoPackages.setLocalPkgInfos(listOf(api34))
 
-      val source =
-        LocalVirtualDeviceSource(
-          persistentListOf(NoSkin.INSTANCE),
-          sdkHandler,
-          avdManager,
-          MutableStateFlow(systemImageState()),
-        )
+      val source = createLocalVirtualDeviceSource()
 
       val wizard = TestComposeWizard {
         with(AddDeviceWizard(source, null, { AccelerationErrorCode.NO_EMULATOR_INSTALLED })) {
