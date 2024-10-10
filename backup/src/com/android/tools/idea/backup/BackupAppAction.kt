@@ -30,8 +30,10 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
 
 /** Backups the state of an app to a file */
-internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHelperImpl()) :
-  AnAction() {
+internal class BackupAppAction(
+  private val actionHelper: ActionHelper = ActionHelperImpl(),
+  private val dialogFactory: DialogFactory = DialogFactoryImpl(),
+) : AnAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -50,7 +52,7 @@ internal class BackupAppAction(private val actionHelper: ActionHelper = ActionHe
     project.coroutineScope.launch(uiThread) {
       when (val backupInfo = e.getBackupInfo()) {
         is Invalid ->
-          actionHelper.showWarning(
+          dialogFactory.showDialog(
             project,
             message("backup.app.action.error.title"),
             backupInfo.reason,

@@ -38,8 +38,10 @@ import kotlinx.coroutines.withContext
  *
  * TODO(b/348406593): Add tests
  */
-internal class RestoreFileAction(private val actionHelper: ActionHelper = ActionHelperImpl()) :
-  AnAction() {
+internal class RestoreFileAction(
+  private val actionHelper: ActionHelper = ActionHelperImpl(),
+  private val dialogFactory: DialogFactory = DialogFactoryImpl(),
+) : AnAction() {
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -60,7 +62,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
     project.coroutineScope.launch {
       when (val restoreInfo = e.getRestoreInfo()) {
         is Invalid ->
-          actionHelper.showWarning(
+          dialogFactory.showDialog(
             project,
             message("restore.file.action.error.title"),
             restoreInfo.reason,

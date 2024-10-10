@@ -18,18 +18,7 @@ package com.android.tools.idea.backup
 
 import com.intellij.openapi.project.Project
 
-/** Provides functions needed by actions */
-internal interface ActionHelper {
-  /** Tries to get the application id from the active run configuration */
-  fun getApplicationId(project: Project): String?
-
-  /** Returns the number of devices selected in the deployment target selector */
-  fun getDeployTargetCount(project: Project): Int
-
-  /**
-   * Returns the serial number of the deployment target
-   *
-   * @return null if there is more than one target or if the target is not running
-   */
-  suspend fun getDeployTargetSerial(project: Project): String?
+/** Displays a warning popup */
+internal interface DialogFactory {
+  suspend fun showDialog(project: Project, title: String, message: String)
 }

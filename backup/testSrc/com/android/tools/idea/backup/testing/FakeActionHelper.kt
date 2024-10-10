@@ -25,15 +25,9 @@ internal class FakeActionHelper(
   private val targetCount: Int,
   private val serialNumber: String?,
 ) : ActionHelper {
-  val warnings = mutableListOf<String>()
-
   override fun getApplicationId(project: Project) = applicationId
 
   override fun getDeployTargetCount(project: Project) = targetCount
 
   override suspend fun getDeployTargetSerial(project: Project) = serialNumber
-
-  override suspend fun showWarning(project: Project, title: String, message: String) {
-    warnings.add("$title: $message")
-  }
 }
