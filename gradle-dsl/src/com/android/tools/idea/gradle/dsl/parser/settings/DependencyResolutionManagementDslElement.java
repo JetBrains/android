@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.settings;
 import static com.android.tools.idea.gradle.dsl.model.settings.DependencyResolutionManagementModelImpl.REPOSITORIES_MODE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.GRADLE_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
@@ -46,7 +47,7 @@ public class DependencyResolutionManagementDslElement extends GradleDslBlockElem
 
   private static final ExternalToModelMap externalToModelMap = Stream.of(new Object[][]{
     {"defaultLibrariesExtensionName", property, DEFAULT_LIBRARIES_EXTENSION_NAME, VAR},
-    {"repositoriesMode", property, REPOSITORIES_MODE_NAME, VAR},
+    {"repositoriesMode", property, REPOSITORIES_MODE_NAME, GRADLE_PROPERTY},
   }).collect(toModelMap());
 
   @Override

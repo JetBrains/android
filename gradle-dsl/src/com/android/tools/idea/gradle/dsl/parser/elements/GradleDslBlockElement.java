@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
@@ -37,6 +38,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.GRADLE_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
@@ -91,7 +93,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     String name = element.getName();
     @NotNull ExternalToModelMap nameMapper = getExternalToModelMap(element.getDslFile().getParser());
     ExternalNameSyntax syntax = element.getExternalSyntax();
-    if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
+    if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       for (ExternalToModelMap.Entry entry : nameMapper.getEntrySet()) {
         String entryName = entry.surfaceSyntaxDescription.name;
         Integer arity = entry.surfaceSyntaxDescription.arity;
@@ -137,6 +139,11 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     }
     else if (syntax == AUGMENTED_ASSIGNMENT) {
       if (effect.property.type != MUTABLE_SET && effect.property.type != MUTABLE_LIST && effect.property.type != MUTABLE_MAP) {
+        return;
+      }
+    }
+    else if (syntax == SET_METHOD) {
+      if (description != GRADLE_PROPERTY) {
         return;
       }
     }
