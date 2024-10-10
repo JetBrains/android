@@ -44,7 +44,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
-import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -434,16 +433,16 @@ open class LayoutlibSceneManager(
     type: TouchEventType,
     @AndroidCoordinate x: Int,
     @AndroidCoordinate y: Int,
-  ): CompletableFuture<InteractionEventResult?> {
+  ) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
+      return
     }
-
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
-    interactiveEventsCount++
-    return currentTask.triggerTouchEvent(type, x, y, currentTimeNanos())
+    layoutlibSceneRenderer.renderTask?.let {
+      interactiveEventsCount++
+      it.triggerTouchEvent(type, x, y, currentTimeNanos())
+    }
   }
 
   /**
@@ -451,16 +450,16 @@ open class LayoutlibSceneManager(
    *
    * @return a future that is completed when layoutlib handled the key event
    */
-  fun triggerKeyEventAsync(event: KeyEvent): CompletableFuture<InteractionEventResult?> {
+  fun triggerKeyEventAsync(event: KeyEvent) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
+      return
     }
-
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
-    interactiveEventsCount++
-    return currentTask.triggerKeyEvent(event, currentTimeNanos())
+    layoutlibSceneRenderer.renderTask?.let {
+      interactiveEventsCount++
+      it.triggerKeyEvent(event, currentTimeNanos())
+    }
   }
 
   /** Executes the given [Runnable] callback synchronously with a 30ms timeout. */
