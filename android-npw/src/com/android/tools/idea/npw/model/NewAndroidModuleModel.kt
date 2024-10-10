@@ -51,6 +51,7 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.diagnostic.Logger
@@ -58,31 +59,46 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
+import org.jetbrains.android.util.AndroidBundle.message
 
 class ExistingProjectModelData(
   override var project: Project,
-  override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
+  override val projectSyncInvoker: ProjectSyncInvoker =
+    ProjectSyncInvoker.DefaultProjectSyncInvoker(),
 ) : ProjectModelData {
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
-  override val useVersionCatalog = BoolValueProperty(
-    determineVersionCatalogUseForNewModule(project, isNewProject = false))
-  override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
+  override val useVersionCatalog =
+    BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
+  override val viewBindingSupport =
+    OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
-  override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
-  override val agpVersion = ObjectValueProperty<AgpVersion>(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: AgpVersions.newProject.also { Logger.getInstance(ExistingProjectModelData::class.java).warn("Unable to determine AGP version for $project, using $it") })
+  override val language: OptionalValueProperty<Language> =
+    OptionalValueProperty(getInitialSourceLanguage(project))
+  override val agpVersion =
+    ObjectValueProperty<AgpVersion>(
+      GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
+        ?: AgpVersions.newProject.also {
+          Logger.getInstance(ExistingProjectModelData::class.java)
+            .warn("Unable to determine AGP version for $project, using $it")
+        }
+    )
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        renderer(project)
+    object :
+        Task.Modal(
+          project,
+          message("android.compile.messages.generating.r.java.content.name"),
+          false,
+        ) {
+        override fun run(indicator: ProgressIndicator) {
+          renderer(project)
+        }
       }
-    }.queue()
+      .queue()
     projectSyncInvoker.syncProject(project)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(false)
@@ -100,23 +116,23 @@ interface ModuleModelData : ProjectModelData {
   val moduleName: StringValueProperty
 
   /**
-   * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
-   * module, or instead modifies an existing module (for example just adding a new Activity)
+   * A template that's associated with a user's request to create a new module. This may be null if
+   * the user skips creating a module, or instead modifies an existing module (for example just
+   * adding a new Activity)
    */
   val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 
-  /**
-   * A value which will be logged for Studio usage tracking.
-   */
+  /** A value which will be logged for Studio usage tracking. */
   val loggingEvent: RenderLoggingEvent
 
   val wizardContext: WizardUiContext
 
   /**
-   * Modules with a component Render that sends metrics, should set this value to false (otherwise metrics will be duplicated).
-   * Modules without any Component Render or that have a "No Activity" selected, should leave this field set to true.
-   **/
+   * Modules with a component Render that sends metrics, should set this value to false (otherwise
+   * metrics will be duplicated). Modules without any Component Render or that have a "No Activity"
+   * selected, should leave this field set to true.
+   */
   val sendModuleMetrics: BoolValueProperty
 }
 
@@ -129,31 +145,36 @@ class NewAndroidModuleModel(
   commandName: String = "New Module",
   override val isLibrary: Boolean = false,
   wizardContext: WizardUiContext,
-  recommendedBuildSdk: AndroidVersion?
-) : ModuleModel(
-  "",
-  commandName,
-  isLibrary,
-  projectModelData,
-  template,
-  moduleParent,
-  wizardContext,
-  recommendedBuildSdk
-) {
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
-    projectTemplateDataBuilder = projectTemplateDataBuilder,
-    isNewModule = true,
-    viewBindingSupport = viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE))
+  recommendedBuildSdk: AndroidVersion?,
+) :
+  ModuleModel(
+    "",
+    commandName,
+    isLibrary,
+    projectModelData,
+    template,
+    moduleParent,
+    wizardContext,
+    recommendedBuildSdk,
+  ) {
+  override val moduleTemplateDataBuilder =
+    ModuleTemplateDataBuilder(
+      projectTemplateDataBuilder = projectTemplateDataBuilder,
+      isNewModule = true,
+      viewBindingSupport = viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE),
+    )
   override val renderer = ModuleTemplateRenderer()
 
-  val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
+  val bytecodeLevel: OptionalProperty<BytecodeLevel> =
+    OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
     if (applicationName.isEmpty.get()) {
-      val msg: String = when {
-        isLibrary -> "My Library"
-        else -> "My Application"
-      }
+      val msg: String =
+        when {
+          isLibrary -> "My Library"
+          else -> "My Application"
+        }
       applicationName.set(msg)
     }
   }
@@ -162,50 +183,62 @@ class NewAndroidModuleModel(
     get() = formFactor.get().toModuleRenderingLoggingEvent()
 
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = when(formFactor.get()) {
-      FormFactor.Mobile -> { data: TemplateData ->
-        generateAndroidModule(
-          data = data as ModuleTemplateData,
-          appTitle = applicationName.get(),
-          useKts = useGradleKts.get(),
-          useVersionCatalog = useVersionCatalog.get()
-        )
-      }
-      FormFactor.Wear -> { data: TemplateData ->
-        generateWearModule(
-          data = data as ModuleTemplateData,
-          appTitle = applicationName.get(),
-          useKts = useGradleKts.get(),
-          useVersionCatalog = useVersionCatalog.get())
-      }
-      FormFactor.Automotive -> { data: TemplateData ->
-        generateAutomotiveModule(
-          data = data as ModuleTemplateData,
-          appTitle = applicationName.get(),
-          useKts = useGradleKts.get(),
-          useVersionCatalog = useVersionCatalog.get())
-      }
-      FormFactor.Tv -> { data: TemplateData ->
-        generateTvModule(
-          data = data as ModuleTemplateData,
-          appTitle = applicationName.get(),
-          useKts = useGradleKts.get(),
-          useVersionCatalog = useVersionCatalog.get())
-      }
-      FormFactor.Generic -> { data: TemplateData ->
-        generateGenericModule(data as ModuleTemplateData)
-      }
-    }
+    override val recipe: Recipe
+      get() =
+        when (formFactor.get()) {
+          FormFactor.Mobile -> { data: TemplateData ->
+              generateAndroidModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                useKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            }
+          FormFactor.Wear -> { data: TemplateData ->
+              generateWearModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                useKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            }
+          FormFactor.Automotive -> { data: TemplateData ->
+              generateAutomotiveModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                useKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            }
+          FormFactor.Tv -> { data: TemplateData ->
+              generateTvModule(
+                data = data as ModuleTemplateData,
+                appTitle = applicationName.get(),
+                useKts = useGradleKts.get(),
+                useVersionCatalog = useVersionCatalog.get(),
+              )
+            }
+          FormFactor.Generic -> { data: TemplateData ->
+              generateGenericModule(data as ModuleTemplateData)
+            }
+        }
 
     @WorkerThread
     override fun init() {
       super.init()
 
       moduleTemplateDataBuilder.apply {
-        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
+        setModuleRoots(
+          template.get().paths,
+          project.basePath!!,
+          moduleName.get(),
+          this@NewAndroidModuleModel.packageName.get(),
+        )
       }
       val tff = formFactor.get()
-      projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
+      projectTemplateDataBuilder.includedFormFactorNames
+        .putIfAbsent(tff, mutableListOf(moduleName.get()))
+        ?.add(moduleName.get())
     }
   }
 
@@ -218,11 +251,12 @@ class NewAndroidModuleModel(
     return BytecodeLevel.default
   }
 
-  private fun saveWizardState() = with(properties) {
-    if (isLibrary) {
-      setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
+  private fun saveWizardState() =
+    with(properties) {
+      if (isLibrary) {
+        setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
+      }
     }
-  }
 
   companion object {
     fun fromExistingProject(
@@ -231,39 +265,43 @@ class NewAndroidModuleModel(
       projectSyncInvoker: ProjectSyncInvoker,
       formFactor: FormFactor,
       category: Category,
-      isLibrary: Boolean = false
-    ) : NewAndroidModuleModel = NewAndroidModuleModel(
-      projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-      template = createSampleTemplate(),
-      moduleParent = moduleParent,
-      formFactor = ObjectValueProperty(formFactor),
-      category = ObjectValueProperty(category),
-      isLibrary = isLibrary,
-      wizardContext = NEW_MODULE,
-      recommendedBuildSdk = project.findNewModuleRecommendedBuildSdk()
-    )
+      isLibrary: Boolean = false,
+    ): NewAndroidModuleModel =
+      NewAndroidModuleModel(
+        projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+        template = createSampleTemplate(),
+        moduleParent = moduleParent,
+        formFactor = ObjectValueProperty(formFactor),
+        category = ObjectValueProperty(category),
+        isLibrary = isLibrary,
+        wizardContext = NEW_MODULE,
+        recommendedBuildSdk = project.findNewModuleRecommendedBuildSdk(),
+      )
   }
 }
 
 internal fun Project.findNewModuleRecommendedBuildSdk(): AndroidVersion? =
-  modules.mapNotNull { module -> StudioAndroidModuleInfo.getInstance(module) }
+  modules
+    .mapNotNull { module -> StudioAndroidModuleInfo.getInstance(module) }
     .mapNotNull { it.buildSdkVersion }
     .maxByOrNull { it.apiLevel }
 
-private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
-  FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
-  FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
-  FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
-  FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
-  FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
-}
+private fun FormFactor.toModuleRenderingLoggingEvent() =
+  when (this) {
+    FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
+    FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
+    FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
+    FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
+    FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
+  }
 
-internal fun Project.hasKtsUsage() : Boolean {
+internal fun Project.hasKtsUsage(): Boolean {
   return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {
-  val androidPluginInfo = AndroidPluginInfo.findFromModel(this) ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
+  val androidPluginInfo =
+    AndroidPluginInfo.findFromModel(this) ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
   val agpVersion = androidPluginInfo.pluginVersion ?: return ViewBindingSupport.SUPPORTED_4_0_MORE
   return when {
     agpVersion.isAtLeast(4, 0, 0) -> ViewBindingSupport.SUPPORTED_4_0_MORE

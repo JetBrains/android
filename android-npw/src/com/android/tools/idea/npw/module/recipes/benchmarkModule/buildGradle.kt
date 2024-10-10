@@ -31,20 +31,21 @@ fun buildGradle(
   language: Language,
   agpVersion: AgpVersion,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
 
-  val releaseBlock = renderIf(isNewAGP) {
-    """
+  val releaseBlock =
+    renderIf(isNewAGP) {
+      """
 
     release {
       isDefault = true
     }
     """
-  }
+    }
 
   return """
 ${emptyPluginsBlock()}
@@ -79,5 +80,6 @@ dependencies {
     // https://developer.android.com/studio/projects/android-library#Convert
 
 }
-""".gradleToKtsIfKts(useGradleKts)
+"""
+    .gradleToKtsIfKts(useGradleKts)
 }

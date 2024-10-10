@@ -43,14 +43,12 @@ fun RecipeExecutor.generatePureLibrary(
   save(buildGradle(), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
-    if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
-    srcOut.resolve("$className.${language.extension}")
+    if (language == Language.Kotlin) placeholderKt(packageName, className)
+    else placeholderJava(packageName, className),
+    srcOut.resolve("$className.${language.extension}"),
   )
 
-  save(
-    gitignore(),
-    moduleOut.resolve(".gitignore")
-  )
+  save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)

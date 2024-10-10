@@ -22,9 +22,7 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductF
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
 fun macrobenchmarksBuildGradle(
@@ -33,7 +31,7 @@ fun macrobenchmarksBuildGradle(
   useGradleKts: Boolean,
   targetModule: Module,
   benchmarkBuildTypeName: String,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ): String {
   val packageName = newModule.packageName
   val apis = newModule.apis
@@ -53,8 +51,7 @@ fun macrobenchmarksBuildGradle(
     debugSigningConfig = """getByName("debug").signingConfig"""
     matchingFallbacks = "matchingFallbacks += listOf(\"release\")"
     addReceiverIfKts = { "it.$this" }
-  }
-  else {
+  } else {
     benchmarkBuildType = benchmarkBuildTypeName
     debugSigningConfig = "debug.signingConfig"
     matchingFallbacks = "matchingFallbacks = [\"release\"]"
@@ -101,5 +98,6 @@ androidComponents {
     }
 }
 
-""".gradleToKtsIfKts(useGradleKts)
+"""
+    .gradleToKtsIfKts(useGradleKts)
 }
