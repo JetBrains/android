@@ -373,7 +373,7 @@ private class ComponentTreePanel(
       // be saved as references)
       return (components.isNotEmpty() &&
         node.isGroup() &&
-        treeWriter.canAddComponents(components, node, null)) ||
+        treeWriter.canAddComponents(components, node, null, ignoreMissingDependencies = true)) ||
         node.getViewGroupHandler {}?.holdsReferences() == true
     }
 
@@ -401,8 +401,12 @@ private class ComponentTreePanel(
       when {
         node.isGroup() &&
           refs.isEmpty() &&
-          treeWriter.canAddComponents(components, node, before as? NlComponent) ->
-          treeWriter.addComponents(components, node, before as? NlComponent, insertType, null)
+          treeWriter.canAddComponents(
+            components,
+            node,
+            before as? NlComponent,
+            ignoreMissingDependencies = true,
+          ) -> treeWriter.addComponents(components, node, before as? NlComponent, insertType, null)
         node.getViewGroupHandler {}?.holdsReferences() == true ->
           updateReferences(node, components, refs, before as? NlComponentReference, insertType)
         else -> return false
