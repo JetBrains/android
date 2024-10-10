@@ -71,14 +71,23 @@ private class TestSingleThreadExecutorService(private val delegate: ExecutorServ
 }
 
 fun getRandomTopic(): RenderingTopic =
-  RenderingTopic.values()[Random.nextInt(0, RenderingTopic.values().size)]
+  RenderingTopic.entries[Random.nextInt(0, RenderingTopic.entries.size)]
 
 fun getLowPriorityRenderingTopicForTest(): RenderingTopic {
-  return RenderingTopic.values().minByOrNull { it.priority }!!
+  return RenderingTopic.entries.minByOrNull { it.priority }!!
 }
 
 fun getHighPriorityRenderingTopicForTest(): RenderingTopic {
-  return RenderingTopic.values().maxByOrNull { it.priority }!!
+  return RenderingTopic.entries.maxByOrNull { it.priority }!!
+}
+
+fun getMidPriorityRenderingTopicForTest(): RenderingTopic {
+  return RenderingTopic.entries
+    .filter {
+      getLowPriorityRenderingTopicForTest().priority < it.priority &&
+        it.priority < getHighPriorityRenderingTopicForTest().priority
+    }
+    .randomOrNull()!!
 }
 
 // The topic should only affect cancellations, so by default use random topics to
@@ -187,7 +196,24 @@ class RenderExecutorTest {
   }
 
   @Test
-  fun testQueueLimit() {
+  fun testQueueLimits() {
+    // In all comments below X = actions per priority band.
+    // X = 20 < softLimit / 2, none should be evicted.
+    doTestQueueLimits(20, 20, 20, 20)
+    // softLimit / 2 < X = 40 < softLimit, some low priority tasks should be evicted.
+    doTestQueueLimits(40, 40, 40, 10)
+    // softLimit < X = 270 < hardLimit, all low and some mid priority tasks should be evicted.
+    doTestQueueLimits(270, 270, 30, 0)
+    // hardLimit < X = 320, all low, all mid, and some high priority tasks should be evicted.
+    doTestQueueLimits(320, 300, 0, 0)
+  }
+
+  private fun doTestQueueLimits(
+    actionsPerPriorityBand: Int,
+    expectedHighPriorityExecuted: Int,
+    expectedMidPriorityExecuted: Int,
+    expectedLowPriorityExecuted: Int,
+  ) {
     val actionExecutor = OnDemandExecutorService()
     val timeoutExecutorProvider = VirtualTimeScheduler()
     val executor =
@@ -196,25 +222,35 @@ class RenderExecutorTest {
         scheduledExecutorService = timeoutExecutorProvider,
       )
     val counterHighPriority = AtomicInteger(0)
+    val counterMidPriority = AtomicInteger(0)
     val counterLowPriority = AtomicInteger(0)
     val lastToExecute = AtomicInteger(0)
-
-    repeat(50) {
-      executor.runAsyncActionWithTestDefault(topic = getHighPriorityRenderingTopicForTest()) {
+    repeat(actionsPerPriorityBand) {
+      // CLEAN = highest priority
+      executor.runAsyncActionWithTestDefault(topic = RenderingTopic.CLEAN) {
         counterHighPriority.incrementAndGet()
-        lastToExecute.set(2 * it + 1)
+        lastToExecute.set(3 * it + 1)
+      }
+      executor.runAsyncActionWithTestDefault(topic = getMidPriorityRenderingTopicForTest()) {
+        counterMidPriority.incrementAndGet()
+        lastToExecute.set(3 * it + 2)
       }
       executor.runAsyncActionWithTestDefault(topic = getLowPriorityRenderingTopicForTest()) {
         counterLowPriority.incrementAndGet()
-        lastToExecute.set(2 * it + 2)
+        lastToExecute.set(3 * it + 3)
       }
     }
     actionExecutor.runAll()
-    // Only a maximum of 50 tasks will be queued
-    assertEquals(50, counterHighPriority.get())
-    assertEquals(0, counterLowPriority.get())
-    // But we have evicted the ones that were waiting, so the last one should have executed (99)
-    assertEquals(99, lastToExecute.get())
+    assertEquals(expectedHighPriorityExecuted, counterHighPriority.get())
+    assertEquals(expectedMidPriorityExecuted, counterMidPriority.get())
+    assertEquals(expectedLowPriorityExecuted, counterLowPriority.get())
+    val expectedLastToExecute =
+      when {
+        counterLowPriority.get() > 0 -> actionsPerPriorityBand * 3
+        counterMidPriority.get() > 0 -> actionsPerPriorityBand * 3 - 1
+        else -> actionsPerPriorityBand * 3 - 2
+      }
+    assertEquals(expectedLastToExecute, lastToExecute.get())
   }
 
   @Test
