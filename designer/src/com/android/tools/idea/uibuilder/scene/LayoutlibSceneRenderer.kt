@@ -132,9 +132,8 @@ class LayoutlibSceneRenderer(
     Disposer.register(parentDisposable, this)
   }
 
-  // TODO(b/335424569): make this field private
   @GuardedBy("renderTaskLock")
-  var renderTask: RenderTask? = null
+  internal var renderTask: RenderTask? = null
     get() = renderTaskLock.withLock { field }
     private set(newTask) {
       val oldTask: RenderTask?
@@ -156,9 +155,8 @@ class LayoutlibSceneRenderer(
       }
     }
 
-  // TODO(b/335424569): make this field private
   @GuardedBy("renderTaskLock")
-  var sessionClock: SessionClock = RealTimeSessionClock()
+  internal var sessionClock: SessionClock = RealTimeSessionClock()
     get() = renderTaskLock.withLock { field }
     private set
 
