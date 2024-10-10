@@ -756,6 +756,14 @@ public final class GroovyDslUtil {
         psiElement.addAfter(arguments, psiElement.getLastChild());
         added = ((GrApplicationStatement)psiElement).getArgumentList().add(newLiteral);
       }
+      else if (psiElement instanceof GrMethodCallExpression) {
+        GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
+        GrMethodCallExpression fakeExpression = (GrMethodCallExpression)(factory.createExpressionFromText("a('a')"));
+        GrArgumentList arguments = fakeExpression.getArgumentList();
+        arguments.getExpressionArguments()[0].delete();
+        psiElement.addAfter(arguments, psiElement.getLastChild());
+        added = ((GrMethodCallExpression)psiElement).getArgumentList().add(newLiteral);
+      }
       else {
         added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
       }

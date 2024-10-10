@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
@@ -34,6 +35,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.GRADLE_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
@@ -143,6 +145,9 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
       if (e.modelEffectDescription.property.name.equals(modelName)) {
         if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
+        if (semantics == GRADLE_PROPERTY) {
+          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, SET_METHOD);
+        }
         if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER).contains(semantics)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
         }

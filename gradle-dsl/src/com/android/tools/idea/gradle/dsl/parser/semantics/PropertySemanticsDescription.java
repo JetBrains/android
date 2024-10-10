@@ -33,5 +33,9 @@ public enum PropertySemanticsDescription implements SemanticsDescription {
    * of expressing the correct type information in a backwards-compatible way.  TODO(b/148657110) it would be nice to be able to
    * get rid of this.
    */
-  VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS
+  VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS,
+  /**
+   * A Gradle property (i.e. Property<T>) with a setter method
+   */
+  GRADLE_PROPERTY,
 }

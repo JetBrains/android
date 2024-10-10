@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeRef
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
@@ -280,7 +281,7 @@ class KotlinDslParser(
         val argumentsList = expression.valueArgumentList ?: return
         val expression = getCallExpression(parent, expression, name, argumentsList, referenceName, true)
         if (expression is GradleDslLiteral) {
-          expression.externalSyntax = ASSIGNMENT
+          expression.externalSyntax = SET_METHOD
           expression.elementType = REGULAR
           parent.setNewElement(expression)
           return

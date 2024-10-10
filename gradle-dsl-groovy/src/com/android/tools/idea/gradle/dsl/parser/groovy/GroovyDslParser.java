@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.model.notifications.Notification
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
@@ -334,7 +335,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       GrExpression rvalue = expression.getExpressionArguments()[0];
       GradleNameElement name = GradleNameElement.from(lvalue, this);
       GradleDslElement element = getExpressionElement(dslElement, expression, name, rvalue);
-      element.setExternalSyntax(ASSIGNMENT);
+      element.setExternalSyntax(SET_METHOD);
       element.setElementType(REGULAR);
       dslElement.addParsedElement(element);
       return true;

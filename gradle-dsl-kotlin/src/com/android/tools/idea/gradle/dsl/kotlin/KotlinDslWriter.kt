@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.dsl.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
@@ -60,6 +62,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinDslNameConverter, GradleDslWriter {
 
@@ -185,7 +188,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         statementText += " {\n}"  // Can't create expression with another new line after.
       }
     }
-    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
+    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
@@ -201,6 +204,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
           when (syntax) {
             ASSIGNMENT -> statementText += " = \"abc\""
             AUGMENTED_ASSIGNMENT -> statementText += " += \"abc\""
+            SET_METHOD -> statementText += ".set(\"abc\")" // Gradle pre-8.2 doesn't(?) provide Kotlin property setters
             METHOD -> {}
             UNKNOWN -> {}
           }
@@ -268,6 +272,10 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
           val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
           delegateExpression.valueArgumentList?.removeArgument(0)
         }
+      }
+      is KtDotQualifiedExpression -> {
+        val call = statement.getChildOfType<KtCallExpression>() ?: return null
+        call.valueArgumentList?.removeArgument(0)
       }
     }
 
@@ -362,6 +370,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     }
     else if (addedElement is KtProperty) {
       element.psiElement = addedElement
+    }
+    else if (addedElement is KtDotQualifiedExpression) {
+      element.psiElement = addedElement.getChildOfType<KtCallExpression>() //?.valueArguments?.get(0)?.getArgumentExpression()
     }
 
     return element.psiElement
