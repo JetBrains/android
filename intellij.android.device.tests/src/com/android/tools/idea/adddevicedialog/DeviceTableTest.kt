@@ -264,6 +264,18 @@ class DeviceTableTest {
       composeTestRule.onNodeWithText(devices[i].name).assertIsFocused()
     }
   }
+
+  @Test
+  fun formFactorOrder() {
+    with(FormFactors) {
+      assertThat(
+          listOf(TV, TABLET, PHONE, "Shoe", AUTO, "Chrome", WEAR, DESKTOP)
+            .sortedWith(FormFactor.comparator)
+        )
+        .containsExactlyElementsIn(formFactorOrder.plus("Chrome").plus("Shoe"))
+        .inOrder()
+    }
+  }
 }
 
 private fun KeyInjectionScope.keyPress(key: Key) {
