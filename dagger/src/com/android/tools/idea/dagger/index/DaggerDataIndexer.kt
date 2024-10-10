@@ -22,6 +22,7 @@ import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -50,15 +51,12 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
 
   companion object {
     val INSTANCE = DaggerDataIndexer()
-
-    // All the indexed files contain annotations that are either in the `dagger` package, or are
-    // `javax.inject.Inject`. These annotations are specified in DaggerAnnotations.kt. If the file
-    // doesn't contain either of those tokens, we can avoid visiting its contents.
-    private val DAGGER_FILE_PATTERN = Regex("dagger|inject")
   }
 
   override fun map(inputData: FileContent): Map<String, Set<IndexValue>> {
-    if (!DAGGER_FILE_PATTERN.containsMatchIn(inputData.contentAsText)) return emptyMap()
+    ProgressManager.checkCanceled()
+    if (!hasPotentialDaggerContent(inputData.contentAsText)) return emptyMap()
+    ProgressManager.checkCanceled()
 
     val results: IndexEntries = mutableMapOf()
     val (psiFile, visitor) =
@@ -142,6 +140,19 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
       super.visitClass(aClass)
     }
   }
+}
+
+private fun hasPotentialDaggerContent(fileContents: CharSequence): Boolean {
+  // All the indexed files contain annotations that are either in the `dagger` package, or are
+  // `javax.inject.Inject`. These annotations are specified in DaggerAnnotations.kt. If the file
+  // doesn't contain either of those tokens, we can avoid visiting its contents.
+  //
+  // This can be a perf bottleneck (see b/372553554) since scanning the file takes time.
+  // Profiling has shown that String.contains is faster than a Regex for this case where the
+  // check is simple. Since there are two calls, we also check for cancelation between them.
+  if (fileContents.contains("dagger")) return true
+  ProgressManager.checkCanceled()
+  return fileContents.contains("inject")
 }
 
 /**
