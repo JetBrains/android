@@ -100,8 +100,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     showDecorations = displaySettings.showDecoration,
     isInteractive = false,
     requestPrivateClassLoader = false,
-    runAtfChecks = false,
-    runVisualLinting = false,
+    runVisualAnalysis = false,
     quality = 1f,
   )
 

@@ -218,12 +218,10 @@ private class PreviewElementDataContext(
  * @param showDecorations when true, the rendered content will be shown with the full device size
  *   specified in the device configuration and with the frame decorations.
  * @param isInteractive whether the scene displays an interactive preview.
- * @param runAtfChecks whether to run Accessibility checks on the preview after it has been
- *   rendered. This will run the ATF scanner to detect issues affecting accessibility (e.g. low
- *   contrast, missing content description...)
- * @param runVisualLinting whether to run the Visual Lint analysis on the preview after it has been
- *   rendered. This will run all the Visual Lint analyzers that are enabled and will detect design
- *   issues (e.g. components too wide, text too long...)
+ * @param runVisualAnalysis whether to run Accessibility checks and Visual Lint analysis on the
+ *   preview after it has been rendered. This will run the ATF scanner to detect issues affecting
+ *   accessibility (e.g. low contrast, missing content description...), and the Visual Lint
+ *   analyzers that are enabled to detect issues (e.g. components too wide, text too long...).
  */
 @VisibleForTesting
 fun configureLayoutlibSceneManager(
@@ -231,8 +229,7 @@ fun configureLayoutlibSceneManager(
   showDecorations: Boolean,
   isInteractive: Boolean,
   requestPrivateClassLoader: Boolean,
-  runAtfChecks: Boolean,
-  runVisualLinting: Boolean,
+  runVisualAnalysis: Boolean,
   quality: Float,
 ): LayoutlibSceneManager =
   sceneManager.apply {
@@ -252,11 +249,11 @@ fun configureLayoutlibSceneManager(
       config.reportOutOfDateUserClasses = false
       config.quality = quality
       config.customContentHierarchyParser =
-        if (runAtfChecks || runVisualLinting) accessibilityBasedHierarchyParser else null
-      config.layoutScannerConfig.isLayoutScannerEnabled = runAtfChecks
+        if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
+      config.layoutScannerConfig.isLayoutScannerEnabled = runVisualAnalysis
     }
     visualLintMode =
-      if (runVisualLinting) {
+      if (runVisualAnalysis) {
         VisualLintMode.RUN_ON_PREVIEW_ONLY
       } else {
         VisualLintMode.DISABLED
@@ -1018,8 +1015,7 @@ class ComposePreviewRepresentation(
       showDecorations = displaySettings.showDecoration,
       isInteractive = mode.value is PreviewMode.Interactive,
       requestPrivateClassLoader = usePrivateClassLoader(),
-      runAtfChecks = mode.value is PreviewMode.UiCheck,
-      runVisualLinting = mode.value is PreviewMode.UiCheck,
+      runVisualAnalysis = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
     )
 
