@@ -18,9 +18,9 @@ package com.android.tools.idea.wear.preview
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-fun CodeInsightTestFixture.stubWearTilePreviewAnnotation() {
+fun CodeInsightTestFixture.stubWearTilePreviewAnnotation(modulePath: String? = "") {
   addFileToProjectAndInvalidate(
-    "src/main/java/androidx/wear/tiles/tooling/preview/Preview.kt",
+    "${modulePath}/src/main/java/androidx/wear/tiles/tooling/preview/Preview.kt",
     // language=kotlin
     """
         package androidx.wear.tiles.tooling.preview

@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.wear.preview.WearTilePreviewElementSubject.Companion.assertThat
 import com.android.tools.preview.PreviewConfiguration
@@ -41,7 +47,26 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 class WearTilePreviewElementFinderTest {
-  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val projectRule: AndroidProjectRule =
+    AndroidProjectRule.withAndroidModels(
+      rootModuleBuilder,
+      AndroidModuleModelBuilder(
+        ":lib",
+        "debug",
+        AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY }),
+      ),
+      AndroidModuleModelBuilder(
+        ":app",
+        "debug",
+        AndroidProjectBuilder(
+          projectType = { PROJECT_TYPE_APP },
+          androidModuleDependencyList = {
+            listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug"))
+          },
+        ),
+      ),
+    )
 
   private val project
     get() = projectRule.project
@@ -54,7 +79,7 @@ class WearTilePreviewElementFinderTest {
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "android/content/Context.kt",
+      "lib/src/main/java/android/content/Context.kt",
       // language=kotlin
       """
         package android.content
@@ -63,14 +88,14 @@ class WearTilePreviewElementFinderTest {
       """
         .trimIndent(),
     )
-    fixture.stubWearTilePreviewAnnotation()
+    fixture.stubWearTilePreviewAnnotation("lib")
   }
 
   @Test
   fun testWearTileElementsFinder() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -168,7 +193,7 @@ class WearTilePreviewElementFinderTest {
 
     val otherFileTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/OtherFile.kt",
+        "app/src/main/java/com/android/test/OtherFile.kt",
         // language=kotlin
         """
         package com.android.test
@@ -186,7 +211,7 @@ class WearTilePreviewElementFinderTest {
 
     val fileWithNoPreviews =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileNone.kt",
+        "app/src/main/java/com/android/test/SourceFileNone.kt",
         // language=kotlin
         """
         package com.android.test
@@ -403,7 +428,7 @@ class WearTilePreviewElementFinderTest {
   fun testWearTileElementsFinderFindsAliasImports() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -448,7 +473,7 @@ class WearTilePreviewElementFinderTest {
   fun testWearTileElementsFinderFindsJavaPreviews() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/JavaPreview.java",
+        "app/src/main/java/com/android/test/JavaPreview.java",
         // language=java
         """
         package com.android.test;
@@ -491,7 +516,7 @@ class WearTilePreviewElementFinderTest {
   @Test
   fun testFindsMultiPreviews() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
-      "com/android/test/AllWearDevices.kt",
+      "app/src/main/java/com/android/test/AllWearDevices.kt",
       // language=kotlin
       """
         package com.android.test
@@ -510,7 +535,7 @@ class WearTilePreviewElementFinderTest {
 
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -540,7 +565,7 @@ class WearTilePreviewElementFinderTest {
 
     val previewsWithoutDirectUseOfPreviewTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/OtherSrc.kt",
+        "app/src/main/java/com/android/test/OtherSrc.kt",
         // language=kotlin
         """
         package com.android.test
@@ -698,12 +723,66 @@ class WearTilePreviewElementFinderTest {
     }
   }
 
+  @Test
+  fun testFindsMultiPreviewsFromLibrary() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "lib/src/main/java/com/android/test/AllWearDevices.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.WearDevices
+
+        @Preview
+        annotation class MultiPreview
+        """
+        .trimIndent(),
+    )
+
+    val testFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/Src.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @MultiPreview
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent(),
+      )
+
+    assertTrue(elementFinder.hasPreviewElements(project, testFile.virtualFile))
+
+    val previewElements = elementFinder.findPreviewElements(project, testFile.virtualFile)
+    assertThat(previewElements).hasSize(1)
+
+    previewElements.single().let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - MultiPreview 1",
+            baseName = "tilePreview",
+            parameterName = "MultiPreview 1",
+          )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
+      assertThat(it).previewBodyHasTextRange(testFile.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@MultiPreview")
+    }
+  }
+
   // Regression test for b/368402966
   @Test
   fun testHandlesInvalidPsiElements() = runBlocking {
     val previewFile =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Test.kt",
+        "app/src/main/java/com/android/test/Test.kt",
         // language=kotlin
         """
           package com.android.test
