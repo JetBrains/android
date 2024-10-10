@@ -37,6 +37,7 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /** Component and its layout for `All animations` tab. */
@@ -84,6 +85,8 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
 
   @VisibleForTesting val cards = mutableListOf<Card>()
 
+  private val jobsByCard = mutableMapOf<Card, Job>()
+
   constructor(parentDisposable: Disposable) : this(parentDisposable, {})
 
   init {
@@ -127,7 +130,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     )
     updateDimension()
     if (card is AnimationCard) {
-      scope.launch(uiThread) { card.expanded.collect { updateCardSize(card) } }
+      jobsByCard[card] = scope.launch(uiThread) { card.expanded.collect { updateCardSize(card) } }
     }
   }
 
@@ -145,6 +148,8 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     splitter.firstComponent.remove(card.component)
     updateDimension()
     splitter.firstComponent.revalidate()
+    jobsByCard[card]?.cancel()
+    jobsByCard.remove(card)
   }
 
   private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.TIMELINE_HEADER_HEIGHT)
