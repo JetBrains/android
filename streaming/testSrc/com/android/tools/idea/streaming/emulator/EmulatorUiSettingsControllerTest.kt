@@ -62,6 +62,8 @@ class EmulatorUiSettingsControllerTest {
 
   private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY, 33, DeviceType.HANDHELD) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
+  private val resetWithDebugLayoutAndGestureNavigation =
+    (FACTORY_RESET_COMMAND + FACTORY_RESET_DEBUG_LAYOUT + FACTORY_RESET_GESTURE_NAVIGATION).format(APPLICATION_ID1, DEFAULT_DENSITY)
 
   @Before
   fun before() {
@@ -78,13 +80,14 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
     adb.configureShellCommand(deviceSelector, "settings delete secure enabled_accessibility_services", "")
     adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
-    adb.configureShellCommand(deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
+    adb.configureShellCommand(deviceSelector, "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME", "")
     adb.configureShellCommand(deviceSelector, "settings delete secure accessibility_button_targets", "")
     adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services " +
                                                      "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
     adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services " +
                                                      "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
     adb.configureShellCommand(deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
+    adb.configureShellCommand(deviceSelector, resetWithDebugLayoutAndGestureNavigation, "")
     adb.configureShellCommand(deviceSelector, "cmd overlay enable $GESTURES_OVERLAY; cmd overlay disable $THREE_BUTTON_OVERLAY", "")
     adb.configureShellCommand(deviceSelector, "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY", "")
     adb.configureShellCommand(deviceSelector, "setprop debug.layout true; service call activity 1599295570", "")
@@ -349,7 +352,9 @@ class EmulatorUiSettingsControllerTest {
   }
 
   @Test
-  fun testReset() {
+  fun testResetWithoutDebugLayoutAndGestureNavigation() {
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(false, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(false, testRootDisposable)
     uiRule.configureUiSettings(
       darkMode = true,
       applicationId = APPLICATION_ID1,
@@ -370,6 +375,39 @@ class EmulatorUiSettingsControllerTest {
     val commands = adb.shellV2Requests.map { it.command }
     assertThat(commands).hasSize(3)
     assertThat(commands[0]).isEqualTo(FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY))
+    assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
+    assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
+    assertUsageEvent(OperationKind.RESET)
+    waitForCondition(10.seconds) { !model.differentFromDefault.value }
+  }
+
+  @Test
+  fun testResetWithDebugLayoutAndGestureNavigation() {
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
+    uiRule.configureUiSettings(
+      darkMode = true,
+      gestureOverlayInstalled = true,
+      gestureNavigation = false,
+      applicationId = APPLICATION_ID1,
+      appLocales = "da",
+      talkBackInstalled = true,
+      talkBackOn = true,
+      selectToSpeakOn = true,
+      fontScale = CUSTOM_FONT_SCALE,
+      physicalDensity = DEFAULT_DENSITY,
+      overrideDensity = CUSTOM_DENSITY,
+      debugLayout = true,
+    )
+    controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
+    adb.shellV2Requests.clear()
+    uiRule.configureUiSettings()
+    model.resetAction()
+    waitForCondition(10.seconds) { adb.shellV2Requests.size == 3 }
+    val commands = adb.shellV2Requests.map { it.command }
+    assertThat(commands).hasSize(3)
+    assertThat(commands[0]).isEqualTo(resetWithDebugLayoutAndGestureNavigation)
     assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
     assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
