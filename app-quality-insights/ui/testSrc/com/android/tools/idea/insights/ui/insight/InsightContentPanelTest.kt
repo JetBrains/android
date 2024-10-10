@@ -255,10 +255,9 @@ class InsightContentPanelTest {
   @Test
   fun `show empty state text when gemini is not onboarded, refresh insight when onboarding is complete`() =
     runBlocking {
-      currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
-
       // Register fake Gemini plugin
       loginFeatureRule.FEATURE1.name = "Gemini"
+      currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
 
       val fakeUi = FakeUi(insightContentPanel)
       delayUntilStatusTextVisible()
