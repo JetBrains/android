@@ -23,7 +23,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
-import org.jetbrains.android.facet.AndroidFacetPropertiesCompat;
 
 /** Adds the Android facet to modules imported from {@link AndroidProject}s. */
 public class AndroidFacetModuleCustomizer {
@@ -56,6 +55,5 @@ public class AndroidFacetModuleCustomizer {
     facetState.MANIFEST_FILE_RELATIVE_PATH = "";
     facetState.RES_FOLDER_RELATIVE_PATH = "";
     facetState.ASSETS_FOLDER_RELATIVE_PATH = "";
-    AndroidFacetPropertiesCompat.enableSourcesAutogeneration(facetState, false);
   }
 }
