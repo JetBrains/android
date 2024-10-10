@@ -301,6 +301,11 @@ class SceneViewPanel(
     super.doLayout()
   }
 
+  override fun dispose() {
+    super.dispose()
+    removeAll()
+  }
+
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
     val sceneViewPeerPanels = components.filterIsInstance<SceneViewPeerPanel>()
