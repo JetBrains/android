@@ -90,7 +90,7 @@ internal fun AdditionalSettingsPanel(
           state.skins,
           onSelectedItemChange = { state.device = state.device.copy(skin = it) },
           Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
-          !hasPlayStore,
+          !hasPlayStore && !state.device.isFoldable,
         )
       }
 
