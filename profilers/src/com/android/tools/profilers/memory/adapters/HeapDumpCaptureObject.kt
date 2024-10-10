@@ -64,6 +64,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
+  // A load factor of 0.5 is used for performance reasons due to the interaction of two hash tables. See b/372321482 for details.
   private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>(16, Hash.FAST_LOAD_FACTOR)
 
   @get:VisibleForTesting
