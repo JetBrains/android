@@ -290,10 +290,8 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // TODO: http://b/326294450 - Try doing this in device and system image declarations
-    if (!Device.isTablet(device)) {
-      if (imageTags.contains(SystemImageTags.TABLET_TAG)) {
-        return false;
-      }
+    if (!Device.isTablet(device) && SystemImageTags.isTabletImage(imageTags)) {
+      return false;
     }
 
     // Unknown/generic device?
