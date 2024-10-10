@@ -63,6 +63,8 @@ internal constructor(
   internal val vmHeapSize: StorageCapacity,
   internal val preferredAbi: String?,
 ) {
+  internal val isFoldable = device.defaultHardware.screen.isFoldable
+
   internal fun hasPlayStore(image: ISystemImage) =
     device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE
 
