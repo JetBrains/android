@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
@@ -30,17 +29,13 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.IdDisplay
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.nio.file.Files
-import javax.swing.JPanel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.jetbrains.jewel.bridge.LocalComponent
 import org.junit.Rule
 import org.junit.Test
 
@@ -79,16 +74,7 @@ class EditVirtualDeviceDialogTest {
           avdManager,
         )
       val wizard = TestComposeWizard { with(editDialog) { Page() } }
-      val swingPanel = JPanel()
-      composeTestRule.setContent {
-        CompositionLocalProvider(
-          LocalComponent provides swingPanel,
-          LocalFileSystem provides fileSystem,
-          LocalProject provides null,
-        ) {
-          wizard.Content()
-        }
-      }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
       composeTestRule.waitUntilDoesNotExist(hasText("Loading"))
 
@@ -140,16 +126,7 @@ class EditVirtualDeviceDialogTest {
           avdManager,
         )
       val wizard = TestComposeWizard { with(editDialog) { Page() } }
-      val swingPanel = JPanel()
-      composeTestRule.setContent {
-        CompositionLocalProvider(
-          LocalComponent provides swingPanel,
-          LocalFileSystem provides fileSystem,
-          LocalProject provides null,
-        ) {
-          wizard.Content()
-        }
-      }
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
 
       composeTestRule.waitUntilDoesNotExist(hasText("Loading"))
 

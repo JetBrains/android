@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
@@ -33,13 +36,17 @@ import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.recordExistingFile
 import com.android.testutils.file.someRoot
+import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.utils.CpuArchitecture
 import com.android.utils.StdLogger
 import com.android.utils.osArchitecture
 import com.intellij.util.io.createDirectories
 import java.nio.file.Files
 import java.nio.file.Path
+import javax.swing.JPanel
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.bridge.LocalComponent
 
 class SdkFixture {
   val fileSystem = createInMemoryFileSystem()
@@ -127,6 +134,19 @@ class SdkFixture {
         this.extensionLevel = androidVersion.extensionLevel
       } as TypeDetails
     return pkg
+  }
+
+  fun ComposeContentTestRule.setContentWithSdkLocals(content: @Composable () -> Unit) {
+    val swingPanel = JPanel()
+    setContent {
+      CompositionLocalProvider(
+        LocalComponent provides swingPanel,
+        LocalFileSystem provides fileSystem,
+        LocalProject provides null,
+      ) {
+        content()
+      }
+    }
   }
 }
 
