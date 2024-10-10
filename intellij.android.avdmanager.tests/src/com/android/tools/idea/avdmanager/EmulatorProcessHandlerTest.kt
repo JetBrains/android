@@ -51,7 +51,7 @@ class EmulatorProcessHandlerTest {
       )
     val commandLine =
       "/users/user/Android/Sdk/emulator/emulator -avd $avdId -qt-hide-window -grpc-use-token"
-    val logMessages =
+    val stdoutMessages =
       arrayOf(
         "INFO         | Informational message",
         "USER_INFO    | Informational message with user notification",
@@ -61,6 +61,8 @@ class EmulatorProcessHandlerTest {
         "USER_ERROR   | Error message with user notification",
         "FATAL        | Fatal error message",
       )
+
+    val stderrMessages = arrayOf("PANIC: Error message")
 
     val capturedLogEntries = mutableListOf<LogEntry>()
     val logCapturer =
@@ -79,7 +81,7 @@ class EmulatorProcessHandlerTest {
       .connect()
       .subscribe(EmulatorLogListener.TOPIC, logCapturer)
     val loggedMessages = executeCapturingLoggedErrorsAndWarnings {
-      val process = FakeProcess(logMessages, 0)
+      val process = FakeProcess(stdoutMessages, stderrMessages, 0)
       val processHandler = EmulatorProcessHandler(process, commandLine, avd)
       processHandler.startNotify()
       processHandler.waitFor()
@@ -87,6 +89,7 @@ class EmulatorProcessHandlerTest {
 
     assertThat(loggedMessages.warnings)
       .containsExactly(
+        "PANIC: Error message",
         "Warning message",
         "Warning message with user notification",
         "Error message",
@@ -97,6 +100,7 @@ class EmulatorProcessHandlerTest {
     assertThat(capturedLogEntries)
       .containsExactly(
         LogEntry(avd, Severity.INFO, false, commandLine),
+        LogEntry(avd, Severity.FATAL, false, "PANIC: Error message"),
         LogEntry(avd, Severity.INFO, false, "Informational message"),
         LogEntry(avd, Severity.INFO, true, "Informational message with user notification"),
         LogEntry(avd, Severity.WARNING, false, "Warning message"),
@@ -108,11 +112,15 @@ class EmulatorProcessHandlerTest {
       )
   }
 
-  private class FakeProcess(output: Array<String>, private val exitCode: Int) : Process() {
+  private class FakeProcess(
+    stdout: Array<String>,
+    stderr: Array<String>,
+    private val exitCode: Int,
+  ) : Process() {
 
     private val stdin = ByteArrayOutputStream()
-    private val stdout = CountDownByteArrayInputStream(output.joinToString("\n").toByteArray())
-    private val stderr = ByteArray(0).inputStream()
+    private val stdout = CountDownByteArrayInputStream(stdout.joinToString("\n").toByteArray())
+    private val stderr = CountDownByteArrayInputStream(stderr.joinToString("\n").toByteArray())
 
     override fun destroy() {
       TODO("Not yet implemented")
