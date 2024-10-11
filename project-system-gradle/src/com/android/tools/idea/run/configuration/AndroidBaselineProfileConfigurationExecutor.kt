@@ -36,8 +36,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
@@ -64,16 +63,7 @@ class AndroidBaselineProfileConfigurationExecutor(
   override val configuration = env.runProfile as AndroidBaselineProfileRunConfiguration
 
   private val LOG = Logger.getInstance(this::class.java)
-  private val NOTIFICATION_GROUP_ID = "Baseline Profile"
-  private val notificationGroup =
-    NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_ID)
-      ?: NotificationGroup(
-        NOTIFICATION_GROUP_ID,
-        NotificationDisplayType.BALLOON,
-        true,
-        "Baseline Profile",
-        null
-      )
+  private val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Baseline Profile")
   private val project = env.project
   private val stats = RunStats.from(env)
   private val applicationIdProvider =
