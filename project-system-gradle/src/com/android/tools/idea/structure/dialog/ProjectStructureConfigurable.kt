@@ -186,6 +186,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       if (detailsContent == null) {
         detailsContent = toSelect.createComponent()
         myConfigurables[toSelect] = detailsContent
+        (toSelect as? Disposable)?.let { configurableDisposable ->
+          Disposer.register(configurableDisposable) {
+            if (mySelectedConfigurable === toSelect) mySelectedConfigurable = null
+          }
+        }
       }
       myDetails.setContent(detailsContent)
       myUiState.lastEditedConfigurable = toSelect.displayName
@@ -381,11 +386,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   private fun initSidePanel() {
-
     mySidePanel = SidePanel(this, myHistory)
-
-    if (myDisposable.disposed) myDisposable = MyDisposable()
-
     addConfigurables()
   }
 
@@ -405,6 +406,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private fun addConfigurable(configurable: Configurable) {
     myConfigurables[configurable] = null
+    (configurable as? Disposable)?.let { configurableDisposable ->
+      Disposer.register(configurableDisposable) {
+        myConfigurables.remove(configurable)
+      }
+    }
     (configurable as? Place.Navigator)?.setHistory(myHistory)
     val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
     val validationDisplayConfigurable = configurable as? ValidationAggregateDisplayConfigurable
@@ -475,6 +481,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       Disposer.dispose(myDisposable)
     }
     finally {
+      myDisposable = MyDisposable()
       myConfigurables.clear()
       mySelectedConfigurable = null
       mySidePanel?.clear()
