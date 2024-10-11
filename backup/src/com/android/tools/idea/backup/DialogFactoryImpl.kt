@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
@@ -22,13 +23,24 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import kotlinx.coroutines.withContext
 
 internal class DialogFactoryImpl : DialogFactory {
-  override suspend fun showDialog(project: Project, title: String, message: String) {
+  override suspend fun showDialog(
+    project: Project,
+    title: String,
+    message: String,
+    buttons: List<DialogButton>,
+  ) {
     withContext(uiThread) {
+      val buttonTexts = buttons.map { it.text }
+      val actionMap = buttons.associateBy { it.text }
       @Suppress("UnstableApiUsage")
-      MessageDialogBuilder.Message(title, message)
-        .buttons(CommonBundle.getOkButtonText())
-        .asWarning()
-        .show(project)
+      val button =
+        MessageDialogBuilder.Message(title, message)
+          .buttons(*(buttonTexts + CommonBundle.getOkButtonText()).toTypedArray())
+          .asWarning()
+          .show(project)
+      if (button != null) {
+        actionMap[button]?.onClick?.invoke()
+      }
     }
   }
 }
