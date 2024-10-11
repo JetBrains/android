@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN
 import com.google.common.truth.Truth.assertThat
+import javax.swing.RowFilter.Entry
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.RowFilter.Entry
-
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests the [TranslatableRowFilter] class. */
 @RunWith(JUnit4::class)

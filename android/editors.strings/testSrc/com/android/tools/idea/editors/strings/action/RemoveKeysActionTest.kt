@@ -21,9 +21,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
 import com.android.tools.idea.editors.strings.model.StringResourceKey
@@ -45,6 +42,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RemoveKeysActionTest {
@@ -109,8 +109,7 @@ class RemoveKeysActionTest {
 
     removeKeysAction.actionPerformed(event)
 
-    verify(panel)
-      .deleteSelectedKeys()
+    verify(panel).deleteSelectedKeys()
   }
 
   companion object {

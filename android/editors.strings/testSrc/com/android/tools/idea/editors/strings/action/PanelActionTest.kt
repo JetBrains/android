@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.action
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -33,6 +31,8 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class PanelActionTest {
@@ -47,6 +47,7 @@ class PanelActionTest {
   private val dataContextBuilder = SimpleDataContext.builder()
   private val project
     get() = projectRule.project
+
   // Lazy so that actionManager is initialized.
   private val e: AnActionEvent by lazy {
     AnActionEvent(null, dataContextBuilder.build(), "place", Presentation(), actionManager, 0)
