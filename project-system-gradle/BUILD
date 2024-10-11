@@ -400,6 +400,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

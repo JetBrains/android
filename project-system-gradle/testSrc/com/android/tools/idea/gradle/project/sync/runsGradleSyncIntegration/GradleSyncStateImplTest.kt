@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.runsGradleSyncIntegration
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -31,6 +30,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class GradleSyncStateImplTest : AndroidGradleTestCase() {
 

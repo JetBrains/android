@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class AndroidCodeAndResourcesGraphTest {
 

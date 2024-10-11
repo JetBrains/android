@@ -143,6 +143,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.environment-services" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

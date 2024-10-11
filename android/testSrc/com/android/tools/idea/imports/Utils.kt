@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -26,6 +24,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.runsGradle
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mockStatic
+import com.android.mockito.kotlin.mockStatic
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener
 import com.android.tools.idea.sdk.IdeSdks
@@ -25,6 +24,7 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.eq
 
 class UseJdkAsProjectJdkListenerTest {
   @JvmField

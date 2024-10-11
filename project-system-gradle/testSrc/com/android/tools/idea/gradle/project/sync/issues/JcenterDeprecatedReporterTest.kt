@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue.Companion.TYPE_JCENTER_IS_DEPRECATED
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [JcenterDeprecatedReporter]

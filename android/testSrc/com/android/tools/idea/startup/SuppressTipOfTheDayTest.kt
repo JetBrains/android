@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup
 
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.TipAndTrickManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -24,6 +23,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import org.junit.ClassRule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class SuppressTipOfTheDayTest {
   companion object {

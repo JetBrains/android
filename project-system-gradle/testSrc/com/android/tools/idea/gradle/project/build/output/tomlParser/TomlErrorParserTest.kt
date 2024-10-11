@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
@@ -42,10 +41,10 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class TomlErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()

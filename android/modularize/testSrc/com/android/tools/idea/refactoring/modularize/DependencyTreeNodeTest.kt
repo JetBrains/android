@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -32,6 +29,9 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.withSettings
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.awt.Color
 import kotlin.random.Random

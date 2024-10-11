@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.SystemProperties
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {

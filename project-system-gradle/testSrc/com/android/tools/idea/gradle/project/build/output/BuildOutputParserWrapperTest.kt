@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
@@ -45,6 +44,7 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 class BuildOutputParserWrapperTest {
 

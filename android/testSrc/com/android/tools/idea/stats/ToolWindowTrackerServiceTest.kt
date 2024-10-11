@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -29,6 +28,7 @@ import org.junit.Ignore
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 @Ignore("TODO(b/189824635) testOpen is failing too frequently")
 class ToolWindowTrackerServiceTest : AndroidTestCase() {

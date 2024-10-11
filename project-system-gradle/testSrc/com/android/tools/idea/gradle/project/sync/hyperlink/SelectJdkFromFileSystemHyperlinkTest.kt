@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import javax.swing.event.HyperlinkEvent
 
 class SelectJdkFromFileSystemHyperlinkTest : LightPlatformTestCase() {
