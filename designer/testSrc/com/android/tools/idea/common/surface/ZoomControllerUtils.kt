@@ -33,6 +33,7 @@ fun createDesignSurfaceZoomControllerFake(
   project: Project,
   disposable: Disposable,
   trackZoom: ((ZoomType) -> Unit)? = null,
+  fitScaleProvider: () -> Double = { 1.0 },
 ): DesignSurfaceZoomController {
   val designerAnalyticsManager =
     trackZoom?.let {
@@ -48,7 +49,7 @@ fun createDesignSurfaceZoomControllerFake(
       selectionModel = null,
       scenesOwner = null,
     ) {
-    override fun getFitScale() = 1.0
+    override fun getFitScale() = fitScaleProvider()
   }
 }
 

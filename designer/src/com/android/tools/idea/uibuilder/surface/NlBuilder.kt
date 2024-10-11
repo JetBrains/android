@@ -143,7 +143,7 @@ class NlSurfaceBuilder(
 
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
-  private var _shouldZoomOnFirstComponentResize = true
+  private var _waitForRenderBeforeRestoringZoom = false
 
   private var _visualLintIssueProviderFactory:
     (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
@@ -161,10 +161,11 @@ class NlSurfaceBuilder(
   }
 
   /**
-   * The surface will calculate zoom-to-fit scale when a component is resized for the first time.
+   * The surface will wait for other events (for example preview rendering) before trying to restore
+   * zoom.
    */
-  fun shouldZoomOnFirstComponentResize(shouldZoomOnResize: Boolean): NlSurfaceBuilder {
-    _shouldZoomOnFirstComponentResize = shouldZoomOnResize
+  fun waitForRenderBeforeRestoringZoom(restoreZoomSynchronously: Boolean): NlSurfaceBuilder {
+    _waitForRenderBeforeRestoringZoom = restoreZoomSynchronously
     return this
   }
 
@@ -305,7 +306,7 @@ class NlSurfaceBuilder(
         _zoomControlsPolicy,
         _supportedActionsProvider,
         _shouldRenderErrorsPanel,
-        _shouldZoomOnFirstComponentResize,
+        _waitForRenderBeforeRestoringZoom,
         _visualLintIssueProviderFactory,
         nlDesignSurfacePositionableContentLayoutManager,
       )

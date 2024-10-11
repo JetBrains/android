@@ -97,6 +97,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
@@ -117,6 +118,25 @@ import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
+
+/**
+ * The expected bitwise Integer when both [DesignSurface] sizes and [Preview] renders are updated.
+ */
+private const val RESTORE_ZOOM_DONE_INT_MASK = 4
+
+/**
+ * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
+ *
+ * @see [DesignSurface.notifyRestoreZoom]
+ */
+private const val NOTIFY_RESTORE_ZOOM_INT_MASK = 1
+
+/**
+ * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
+ *
+ * @see also [DesignSurface.notifyRestoreZoom].
+ */
+private const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
 /** Filter got [DesignSurface.models] to avoid returning disposed elements */
 val FILTER_DISPOSED_MODELS =
@@ -153,7 +173,7 @@ abstract class DesignSurface<T : SceneManager>(
   // "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
-  private val shouldZoomOnFirstComponentResize: Boolean = true,
+  waitForRenderBeforeRestoringZoom: Boolean = false,
 ) :
   EditorDesignSurface(BorderLayout()),
   Disposable,
@@ -163,6 +183,16 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
   protected val scope = AndroidCoroutineScope(this)
+
+  /** The expected bitwise mask value for when we want to restore the zoom. */
+  private val expectedRestoreZoomMask: Int =
+    if (waitForRenderBeforeRestoringZoom) {
+      // We should wait for rendering and to DesignSurface to resize.
+      NOTIFY_RESTORE_ZOOM_INT_MASK or NOTIFY_COMPONENT_RESIZED_INT_MASK
+    } else {
+      // There is no need to wait for rendering we can restore zoom whenever DesignSurface resizes.
+      NOTIFY_COMPONENT_RESIZED_INT_MASK
+    }
 
   init {
     // TODO: handle the case when selection are from different NlModels.
@@ -405,32 +435,19 @@ abstract class DesignSurface<T : SceneManager>(
     // TODO: Do this as part of the layout/validate operation instead
     addComponentListener(
       object : ComponentAdapter() {
-        /**
-         * When surface is opened at first time, it zoom-to-fit the content to make the previews fit
-         * the initial window size. After that it leave user to control the zoom. This flag
-         * indicates if the initial zoom-to-fit is done or not.
-         */
-        private var isInitialZoomLevelDetermined = false
-
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
-            // There are conditions where it is better to skip the first zooming.
-            // For example, if we are using a Compose Preview we want to wait for the content to be
-            // rendered before we can calculate the right fit scale.
-            if (!shouldZoomOnFirstComponentResize) {
-              // We skip the zooming calculation by setting the isInitialZoomLevelDetermined flag to
-              // true.
-              isInitialZoomLevelDetermined = true
-            }
-            if (!isInitialZoomLevelDetermined && isShowing && width > 0 && height > 0) {
-              // Set previous scale when DesignSurface becomes visible at first time.
-              val hasModelAttached = restoreZoomOrZoomToFit()
+            if (
+              readyToRestoreZoomMask.get() != RESTORE_ZOOM_DONE_INT_MASK &&
+                isShowing &&
+                width > 0 &&
+                height > 0
+            ) {
+              val hasModelAttached = checkIfReadyToRestoreZoom(NOTIFY_COMPONENT_RESIZED_INT_MASK)
               if (!hasModelAttached) {
                 // No model is attached, ignore the setup of initial zoom level.
                 return
               }
-              // The default size is defined, enable the flag.
-              isInitialZoomLevelDetermined = true
             }
             // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
             sceneManagers.forEach { manager: T -> manager.scene.needsRebuildList() }
@@ -584,6 +601,51 @@ abstract class DesignSurface<T : SceneManager>(
     for (listener in listeners) {
       listener.componentSelectionChanged(this, newSelection)
     }
+  }
+
+  /**
+   * A bitwise mask used by [notifyRestoreZoom]. If the "or" operator applied to this mask gets a
+   * value of [CAN_RESTORE_ZOOM_INT_MASK] we can restore the zoom.
+   */
+  private val readyToRestoreZoomMask = AtomicInteger(0)
+
+  /**
+   * Notify to [DesignSurface] that we can now try to restore the zoom. Note: this function works
+   * only if [DesignSurface.shouldRestoreZoomSynchronously] is enabled.
+   */
+  fun notifyRestoreZoom() {
+    checkIfReadyToRestoreZoom(NOTIFY_RESTORE_ZOOM_INT_MASK)
+  }
+
+  @TestOnly
+  fun notifyComponentResizedForTest() {
+    checkIfReadyToRestoreZoom(NOTIFY_COMPONENT_RESIZED_INT_MASK)
+  }
+
+  /**
+   * Synchronized function that checks if we can call [restoreZoomOrZoomToFit]. We can call it only
+   * when [bitwiseNumber] has received both "1" and "2". This function solves a race condition of
+   * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
+   * causing a wrong fitScale value.
+   *
+   * Note: this function works only if [DesignSurface.shouldRestoreZoomSynchronously] is enabled.
+   */
+  private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
+    val newMask =
+      readyToRestoreZoomMask.updateAndGet {
+        if (it == expectedRestoreZoomMask || it == RESTORE_ZOOM_DONE_INT_MASK) {
+          // If the current value of the mask is already CAN_RESTORE_ZOOM_INT_MASK we reset the
+          // value to DONE_INT_MASK value.
+          RESTORE_ZOOM_DONE_INT_MASK
+        } else {
+          it or bitwiseNumber
+        }
+      }
+    if (newMask == expectedRestoreZoomMask) {
+      return restoreZoomOrZoomToFit()
+    }
+
+    return false
   }
 
   override fun onScaleChange(update: ScaleChange) {
