@@ -19,12 +19,12 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.HEAP_REPORTS_DIR
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
-import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport
 import com.android.tools.idea.diagnostics.report.HeapReport
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.HeapReportEvent
+import com.intellij.diagnostic.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
