@@ -96,6 +96,7 @@
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
     <notificationGroup id="Android SDK Setup Issues" displayType="STICKY_BALLOON" />
     <notificationGroup id="Android Gradle Sync Issues" displayType="STICKY_BALLOON" />
+    <notificationGroup id="Baseline Profile" displayType="BALLOON"/>
     <notificationGroup id="Detected Gradle source sets" displayType="BALLOON"/>
     <notificationGroup id="Gradle Version Catalog DSL" displayType="STICKY_BALLOON"/>
     <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" order="last"/>
