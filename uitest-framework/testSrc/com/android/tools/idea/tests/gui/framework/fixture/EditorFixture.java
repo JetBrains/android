@@ -353,6 +353,7 @@ public class EditorFixture {
 
         SelectTarget target = new SelectTarget();
         target.component = editor.getContentComponent();
+        target.component.requestFocus();
         target.startPoint = editor.logicalPositionToXY(startPosition);
         target.endPoint = editor.logicalPositionToXY(endPosition);
         return target;

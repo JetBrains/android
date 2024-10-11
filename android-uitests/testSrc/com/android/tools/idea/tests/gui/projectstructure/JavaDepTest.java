@@ -77,7 +77,7 @@ public class JavaDepTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     editor.open("/lib/build.gradle.kts")
-      .select("}\\n\\n()java \\{")
+      .moveBetween("", "java {")
       .enterText("dependencies {\n   api(\"com.google.code.gson:gson:2.6.2\")\n}\n\n");
 
     ideFrame.getProjectView()
@@ -108,9 +108,10 @@ public class JavaDepTest {
     guiTest.robot().waitForIdle();
 
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
-      .moveBetween("setContentView(R.layout.activity_main);", "")
-      .enterText("\n\t\tGson gson = new Gson();")
+      .moveBetween("", "ViewCompat.setOnApply")
+      .enterText("Gson gson = new Gson();\n")
       .select("()public class MainActivity")
+      .select("()public class MainActivity") // Reduces the flakiness of test
       .enterText("import com.google.gson.Gson;\n\n");
 
     BuildStatus result = guiTest.ideFrame().invokeProjectMake();
