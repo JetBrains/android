@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
@@ -37,6 +35,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
 

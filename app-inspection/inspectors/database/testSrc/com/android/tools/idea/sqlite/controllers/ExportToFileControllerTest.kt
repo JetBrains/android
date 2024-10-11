@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
@@ -127,6 +124,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val nonAsciiSuffix = " ąę"
 // Tests running from IntelliJ have a JNU encoding that doesn't support paths with non-ascii chars.

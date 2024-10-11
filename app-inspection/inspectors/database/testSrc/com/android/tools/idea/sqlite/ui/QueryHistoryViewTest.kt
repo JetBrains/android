@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
@@ -28,6 +26,8 @@ import com.intellij.ui.components.JBList
 import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class QueryHistoryViewTest : LightPlatformTestCase() {
   private lateinit var editorTextField: EditorTextField

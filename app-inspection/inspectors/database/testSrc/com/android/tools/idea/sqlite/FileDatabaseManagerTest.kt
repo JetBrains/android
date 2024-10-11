@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderService
-import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -34,6 +29,10 @@ import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class FileDatabaseManagerTest : LightPlatformTestCase() {
 
@@ -99,7 +98,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
             "/data/data/com.example.package/databases/db-file-wal",
           )
         ),
-        any(DownloadProgress::class.java),
+        any(),
         eq(IdeFileService("database-inspector").cacheRoot),
       )
 
