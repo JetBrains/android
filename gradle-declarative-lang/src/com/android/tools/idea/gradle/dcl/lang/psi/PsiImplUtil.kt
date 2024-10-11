@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.google.common.base.CharMatcher
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -23,7 +23,7 @@ import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.childrenOfType
-import org.apache.commons.lang.StringUtils
+import com.intellij.psi.util.elementType
 
 class PsiImplUtil {
   companion object {
@@ -101,6 +101,7 @@ class PsiImplUtil {
       literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
       literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
       literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
+      literal.elementType == NULL -> null
       else -> null
     }
 
