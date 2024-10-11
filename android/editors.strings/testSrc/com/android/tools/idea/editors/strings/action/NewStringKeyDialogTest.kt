@@ -16,8 +16,6 @@
 package com.android.tools.idea.editors.strings.action
 
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
@@ -32,6 +30,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorTextField
+import javax.swing.JButton
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.junit.Before
@@ -39,15 +38,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.JButton
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 @RunsInEdt
 class NewStringKeyDialogTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-  @get:Rule
-  val edtRule: EdtRule = EdtRule()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val edtRule: EdtRule = EdtRule()
 
   private lateinit var facet: AndroidFacet
 
@@ -93,7 +91,10 @@ class NewStringKeyDialogTest {
     val validationInfo = dialog.doValidate()
     assertThat(validationInfo).isNotNull()
     assertThat(validationInfo!!.message)
-      .isEqualTo(IdeResourceNameValidator.forResourceName(ResourceType.STRING).getErrorText(bogusResourceName))
+      .isEqualTo(
+        IdeResourceNameValidator.forResourceName(ResourceType.STRING)
+          .getErrorText(bogusResourceName)
+      )
     assertThat(dialog.isOK).isFalse()
   }
 
@@ -120,10 +121,14 @@ class NewStringKeyDialogTest {
     whenever(resourceDirectory.path).thenReturn("${projectRule.project.basePath}/$resourceDirName")
     val resourceFolderManager: ResourceFolderManager = mock()
     projectRule.module.replaceService(
-      ResourceFolderManager::class.java, resourceFolderManager, projectRule.testRootDisposable)
+      ResourceFolderManager::class.java,
+      resourceFolderManager,
+      projectRule.testRootDisposable,
+    )
     whenever(resourceFolderManager.folders).thenReturn(listOf(resourceDirectory))
     val resourceName = "my_excellent_resource_name"
-    val dialog = NewStringKeyDialog(facet, listOf(StringResourceKey(resourceName, resourceDirectory)))
+    val dialog =
+      NewStringKeyDialog(facet, listOf(StringResourceKey(resourceName, resourceDirectory)))
 
     createModalDialogAndInteractWithIt({ dialog.show() }) {
       it.keyField.text = resourceName
@@ -133,7 +138,8 @@ class NewStringKeyDialogTest {
 
     val validationInfo = dialog.doValidate()
     assertThat(validationInfo).isNotNull()
-    assertThat(validationInfo!!.message).isEqualTo("$resourceName already exists in $resourceDirName")
+    assertThat(validationInfo!!.message)
+      .isEqualTo("$resourceName already exists in $resourceDirName")
     assertThat(dialog.isOK).isFalse()
   }
 

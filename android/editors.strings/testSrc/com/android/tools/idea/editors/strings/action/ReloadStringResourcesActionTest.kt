@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.action
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -34,7 +32,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.verify
-
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Test [AddLocaleAction] methods. */
 @RunWith(JUnit4::class)
@@ -43,6 +42,7 @@ class ReloadStringResourcesActionTest {
 
   private val project: Project
     get() = projectRule.project
+
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
   private val reloadStringResourcesAction = ReloadStringResourcesAction()
@@ -50,11 +50,13 @@ class ReloadStringResourcesActionTest {
 
   @Before
   fun setUp() {
-    val dataContext = SimpleDataContext.builder()
-      .add(CommonDataKeys.PROJECT, project)
-      .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
-      .build()
-    event = AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, project)
+        .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
+        .build()
+    event =
+      AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
   }

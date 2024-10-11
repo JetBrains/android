@@ -16,19 +16,18 @@
 package com.android.tools.idea.editors.strings.table.filter
 
 import com.android.ide.common.resources.Locale
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResource
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import javax.swing.RowFilter.Entry
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.RowFilter.Entry
-
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests the [NeedsTranslationForLocaleRowFilter] class. */
 @RunWith(JUnit4::class)
@@ -36,9 +35,9 @@ class NeedsTranslationForLocaleRowFilterTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val needsTranslationForLocaleRowFilterAr =
-      NeedsTranslationForLocaleRowFilter(ARABIC_LOCALE)
+    NeedsTranslationForLocaleRowFilter(ARABIC_LOCALE)
   private val needsTranslationForLocaleRowFilterEs =
-      NeedsTranslationForLocaleRowFilter(US_SPANISH_LOCALE)
+    NeedsTranslationForLocaleRowFilter(US_SPANISH_LOCALE)
 
   private val model: StringResourceTableModel = mock()
   private val resource: StringResource = mock()
@@ -54,9 +53,9 @@ class NeedsTranslationForLocaleRowFilterTest {
   @Test
   fun getDescription() {
     assertThat(needsTranslationForLocaleRowFilterAr.getDescription())
-        .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
+      .isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(needsTranslationForLocaleRowFilterEs.getDescription())
-        .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
+      .isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
   }
 
   @Test

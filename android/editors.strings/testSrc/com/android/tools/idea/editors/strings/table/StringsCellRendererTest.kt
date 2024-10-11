@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
 import com.google.common.truth.Truth.assertThat
@@ -26,6 +23,8 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
+import java.awt.Font
+import javax.swing.JTable
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,8 +33,9 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import java.awt.Font
-import javax.swing.JTable
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val STRING_VALUE = "Hey, I'm a String value!"
 private const val PROBLEM = "Big time problem"
@@ -51,7 +51,6 @@ class StringsCellRendererTest {
   private val frozenSubTable: SubTable<StringResourceTableModel> = mock()
   private val scrollableSubTable: SubTable<StringResourceTableModel> = mock()
   private val model: StringResourceTableModel = mock()
-
 
   @Before
   fun setUp() {
@@ -155,11 +154,21 @@ class StringsCellRendererTest {
 
   /**
    * Sets some default values we don't want to change in the test. Specifically:
-   *
    * - We don't want the cell selected, otherwise the effect of the renderer is altered
    * - We don't care about the row, so it is always set to zero
    * - We don't care about whether it has focus, so just make that true
    */
-  private fun StringsCellRenderer.getTableCellRendererComponent(table: JTable, value: Any?, viewColumnIndex: Int) =
-    getTableCellRendererComponent(table, value, /* isSelected = */ false, /* hasFocus = */ true, /* row = */ 0, viewColumnIndex)
+  private fun StringsCellRenderer.getTableCellRendererComponent(
+    table: JTable,
+    value: Any?,
+    viewColumnIndex: Int,
+  ) =
+    getTableCellRendererComponent(
+      table,
+      value,
+      /* isSelected = */ false,
+      /* hasFocus = */ true,
+      /* row = */ 0,
+      viewColumnIndex,
+    )
 }
