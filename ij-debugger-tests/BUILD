@@ -63,6 +63,14 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Uncategorized#"],
 )
 
+# 12 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-filters",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_filters.txt",
+    expected_to_fail_jvm = "jvm_k1k2_kotlin_stepping_expected_failures_filters.txt",
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.Filters#"],
+)
+
 maven_repository(
     name = "test_repo",
     # keep sorted: for buildifier
