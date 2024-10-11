@@ -29,5 +29,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-org.jetbrains.kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

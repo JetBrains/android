@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +23,8 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 
@@ -32,10 +32,14 @@ import java.time.Duration
  * Tests for [MavenClassRegistry].
  */
 class MavenClassRegistryTest {
+  private var repositoryIndexContents = ""
+  private val gMavenIndexRepositoryMock: GMavenIndexRepository = mock {
+    on { loadIndexFromDisk() } doAnswer {repositoryIndexContents.byteInputStream(UTF_8)}
+  }
+
   @Test
   fun parseJsonFile() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -90,8 +94,7 @@ class MavenClassRegistryTest {
             }
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -182,15 +185,13 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noIndexKeyDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Indices": [
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -200,8 +201,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noGroupIdDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -216,8 +216,7 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -227,8 +226,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noArtifactIdDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -243,8 +241,7 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -254,8 +251,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noVersionDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -272,8 +268,7 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -283,8 +278,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noFqcnsDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -298,8 +292,7 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -309,8 +302,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noKtxTargetsDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -325,8 +317,7 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -336,8 +327,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseJsonFile_topLevelFunctionsPropertyIsOptional() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -384,8 +374,7 @@ class MavenClassRegistryTest {
             }
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
@@ -409,8 +398,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseJsonFile_skipUnknownKey() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "UnKnown1": [],
@@ -459,8 +447,7 @@ class MavenClassRegistryTest {
           ],
           "UnKnown6": "unknown content"
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """.trimIndent()
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 

@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "@intellij//:org.jetbrains.kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
