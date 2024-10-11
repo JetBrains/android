@@ -60,7 +60,7 @@ class AndroidMavenImportIntentionActionTest {
         caretPlacement = "RecyclerView|",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
-        addedImports = listOf("androidx.recyclerview.widget.RecyclerView")
+        addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
       )
       .run()
   }
@@ -235,7 +235,7 @@ class AndroidMavenImportIntentionActionTest {
           package test.pkg.imports
           val v = "foobar".extensionFunction() // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     val withoutParens =
@@ -245,7 +245,7 @@ class AndroidMavenImportIntentionActionTest {
           package test.pkg.imports
           val v = "foobar".extensionFunction // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     withParens.run()
@@ -277,7 +277,7 @@ class AndroidMavenImportIntentionActionTest {
           val s = "foobar"
           val v = s.extensionFunction() // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     val withoutParens =
@@ -288,7 +288,7 @@ class AndroidMavenImportIntentionActionTest {
           val s = "foobar"
           val v = s.extensionFunction // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     withParens.run()
@@ -435,10 +435,7 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText =
-          listOf(
-            "androidx.compose.ui:ui-tooling-preview:",
-            "androidx.compose.ui:ui-tooling:",
-          ),
+          listOf("androidx.compose.ui:ui-tooling-preview:", "androidx.compose.ui:ui-tooling:"),
         fileContents =
           """
           package test.pkg.imports;
@@ -489,10 +486,7 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText =
-          listOf(
-            "androidx.palette:palette-ktx:",
-            "androidx.room:room-runtime:",
-          ),
+          listOf("androidx.palette:palette-ktx:", "androidx.room:room-runtime:"),
         fileContents =
           """
           package test.pkg.imports
@@ -508,7 +502,7 @@ class AndroidMavenImportIntentionActionTest {
         // The deterministic order of suggestions are ensured, so the first option
         // `androidx.palette:palette` is applied.
         addedGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
-        addedImports = listOf("androidx.palette.graphics.FakeClass")
+        addedImports = listOf("androidx.palette.graphics.FakeClass"),
       )
       .runAndThen { action ->
         // Since we have added on `androidx.palette:palette`, no dependencies are to be suggested
@@ -583,14 +577,14 @@ class AndroidMavenImportIntentionActionTest {
   ) {
     private fun <T> openTestProject(
       testProject: TestProjectDefinition,
-      body: PreparedTestProject.Context.(Project) -> T
+      body: PreparedTestProject.Context.(Project) -> T,
     ) {
       return projectRule.openTestProject(testProject) {
         ApplicationManager.getApplication()
           .replaceService(
             MavenClassRegistryManager::class.java,
             fakeMavenClassRegistryManager,
-            fixture.testRootDisposable
+            fixture.testRootDisposable,
           )
         body(project)
       }
@@ -610,7 +604,7 @@ class AndroidMavenImportIntentionActionTest {
         if (fileContents.isNotEmpty()) {
           fixture.loadNewFile(
             "app/src/main/java/test/pkg/imports/MainActivity2.$fileExtension",
-            fileContents
+            fileContents,
           )
         }
         val source = fixture.editor.document.text
@@ -655,7 +649,8 @@ class AndroidMavenImportIntentionActionTest {
               .filter { it.startsWith("+ ") }
               .map { it.removePrefix("+ ") }
               .filter(String::isNotBlank)
-          val (addedImportLines, otherAddedLines) = addedLines.partition { it.startsWith("import ") }
+          val (addedImportLines, otherAddedLines) =
+            addedLines.partition { it.startsWith("import ") }
           assertWithMessage("Unexpected lines added to file.").that(otherAddedLines).isEmpty()
 
           val importedSymbols =
