@@ -33,6 +33,7 @@ import com.android.utils.osArchitecture
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
@@ -138,18 +139,38 @@ internal fun ISystemImage.getServices(): Services {
   return Services.ANDROID_OPEN_SOURCE
 }
 
-internal fun ISystemImage.isRecommendedForHost(): Boolean =
+internal fun ISystemImage.isRecommended(): Boolean = imageWarnings().isEmpty()
+
+private fun ISystemImage.incompatibleArchitectureWarning(): String? =
   when (osArchitecture) {
-    CpuArchitecture.X86_64 -> Abi.getEnum(primaryAbiType) in listOf(Abi.X86_64, Abi.X86)
+    CpuArchitecture.X86_64 ->
+      when (Abi.getEnum(primaryAbiType)) {
+        in listOf(Abi.X86_64, Abi.X86) -> null
+        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A) ->
+          "ARM images will run very slowly on x86 hosts."
+        else -> "Compatibility with $primaryAbiType images is unknown."
+      }
     // An ARM host can only run ARM64 images (not 32-bit ARM).
     CpuArchitecture.X86_ON_ARM,
-    CpuArchitecture.ARM -> Abi.getEnum(primaryAbiType) == Abi.ARM64_V8A
+    CpuArchitecture.ARM ->
+      when (Abi.getEnum(primaryAbiType)) {
+        Abi.ARM64_V8A -> null
+        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A) ->
+          if (SystemInfo.isMac) "32-bit ARM images are not supported on Apple Silicon."
+          else "Compatibility with $primaryAbiType images is unknown."
+        in listOf(Abi.X86_64, Abi.X86) -> "$primaryAbiType images are not supported on ARM hosts."
+        else -> "Compatibility with $primaryAbiType images is unknown."
+      }
     // We don't support 32-bit x86 hosts.
-    else -> false
+    else -> "The Android Emulator requires a 64-bit host."
   }
 
-internal fun ISystemImage.isRecommended(): Boolean =
-  isRecommendedForHost() && !SystemImageTags.isAtd(tags)
+private fun ISystemImage.atdWarning(): String? =
+  "Automated Test Device (ATD) images are intended for headless testing only."
+    .takeIf { SystemImageTags.isAtd(tags) }
+
+internal fun ISystemImage.imageWarnings(): List<String> =
+  listOfNotNull(incompatibleArchitectureWarning(), atdWarning())
 
 internal fun ISystemImage?.allAbiTypes(): PersistentList<String> =
   if (this == null) persistentListOf() else abiTypes.toPersistentList().plus(translatedAbiTypes)
