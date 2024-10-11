@@ -85,6 +85,7 @@ kotlin_library(
     srcs = ["ArtAttacher.kt"],
     # Disabled b/c it was causing problems w/ the coverage build, and we probably don't care about coverage of this anyways
     coverage_baseline_enabled = False,
+    lint_enabled = False,
     deps = [
         ":kotlin.jvm-debugger.test_lib_import",
         "@maven//:junit.junit",
