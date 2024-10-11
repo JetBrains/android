@@ -446,7 +446,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun reset() {
     HeavyProcessLatch.INSTANCE.performOperation(HeavyProcessLatch.Type.Processing, "Resetting Project Structure") {
-      val configurables = myConfigurables.keys
+      val configurables = myConfigurables.keys.toList()
 
       for (each in configurables) {
         each.disposeUIResources()
@@ -474,7 +474,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     try {
       myUiState.proportion = mySplitter!!.proportion
       (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
-      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
+      myConfigurables.keys.toList().forEach(Consumer<Configurable> { it.disposeUIResources() })
 
       myUiState.save(myProject)
 
