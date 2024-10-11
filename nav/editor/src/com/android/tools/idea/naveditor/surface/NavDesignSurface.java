@@ -26,8 +26,10 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.intellij.util.progress.CancellationUtil.sleepCancellable;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.actions.ZoomType;
@@ -533,7 +535,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     }
     if (id != null) {
       Configuration configuration = Iterables.getOnlyElement(getConfigurations(), null);
-      ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
+      RenderResources resolver = configuration != null ? configuration.getResourceItemResolver() : null;
       ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
       String fileName = value != null ? value.getValue() : null;
       if (fileName != null) {

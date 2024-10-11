@@ -634,11 +634,8 @@ public final class ConstraintComponentUtilities {
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
-      if (resourceResolver != null) {
-        Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
-      }
+      Integer px = ViewEditor.resolveDimensionPixelSize(value, configuration);
+      return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
     }
     return 0;
   }

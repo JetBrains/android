@@ -306,9 +306,7 @@ public class DrawTextRegion extends DrawRegion {
       //  getResourceResolver in non-smart mode.
       if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
       Configuration configuration = nlc.getModel().getConfiguration();
-      ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
-
-      Integer size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
+      Integer size = ViewEditor.resolveDimensionPixelSize(textSize, configuration);
 
       if (size != null) {
         return size;
