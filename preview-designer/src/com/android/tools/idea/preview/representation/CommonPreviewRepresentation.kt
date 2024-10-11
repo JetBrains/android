@@ -401,7 +401,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       delegateRefresh = ::invalidateAndRefresh,
     )
 
-  var currentInspector: AnimationPreview<*>? = null
+  @VisibleForTesting
+  var currentAnimationPreview: AnimationPreview<*>? = null
     private set
 
   override val component: JComponent
@@ -852,6 +853,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     withContext(uiThread) {
       createAnimationInspector(element)?.also {
         Disposer.register(this@CommonPreviewRepresentation, it)
+        currentAnimationPreview = it
         previewView.bottomPanel = it.component
       }
     }
@@ -865,7 +867,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
-    currentInspector?.let { Disposer.dispose(it) }
+    currentAnimationPreview?.let {
+      // The animation inspector should be disposed on the uiThread
+      withContext(uiThread) { Disposer.dispose(it) }
+    }
+    currentAnimationPreview = null
     withContext(uiThread) { previewView.bottomPanel = null }
     invalidateAndRefresh()
   }
