@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.dagger
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.canReceiveLineMarker
 import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.getGotoItems
 import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
@@ -62,6 +61,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
@@ -1625,8 +1626,9 @@ class DaggerRelatedItemLineMarkerProviderTest {
         ),
       )
 
-    val mockDaggerElement: AssistedFactoryMethodDaggerElement = MockitoKt.mock()
-    MockitoKt.whenever(mockDaggerElement.getRelatedDaggerElements()).thenReturn(mockRelatedElements)
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock {
+      on { getRelatedDaggerElements() } doReturn mockRelatedElements
+    }
 
     val gotoItems = mockDaggerElement.getGotoItems()
 
@@ -1654,9 +1656,6 @@ class DaggerRelatedItemLineMarkerProviderTest {
 
   private fun createMockDaggerElement(elementText: String): DaggerElement {
     val psiElement = myFixture.addClass("class $elementText {}")
-    val mockDaggerElement: AssistedFactoryMethodDaggerElement = MockitoKt.mock()
-    MockitoKt.whenever(mockDaggerElement.psiElement).thenReturn(psiElement)
-
-    return mockDaggerElement
+    return mock<AssistedFactoryMethodDaggerElement> { on { this.psiElement } doReturn psiElement }
   }
 }

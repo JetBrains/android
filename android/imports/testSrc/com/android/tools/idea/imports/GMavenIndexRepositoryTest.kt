@@ -16,8 +16,8 @@
 package com.android.tools.idea.imports
 
 import com.android.io.CancellableFileIo
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat

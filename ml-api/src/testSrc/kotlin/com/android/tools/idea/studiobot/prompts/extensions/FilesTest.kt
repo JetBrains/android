@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.studiobot.prompts.extensions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
@@ -30,18 +27,22 @@ import com.intellij.testFramework.replaceService
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 @RunWith(JUnit4::class)
 class FilesTest : BasePlatformTestCase() {
-  private val mockAiExcludeService: AiExcludeService = mock()
-  private val mockStudioBot: StudioBot = mock()
+  private val mockStudioBot: StudioBot by lazy {
+    mock {
+      on { aiExcludeService(project) } doReturn mock()
+      on { isContextAllowed(project) } doReturn true
+    }
+  }
 
   override fun setUp() {
     super.setUp()
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, mockStudioBot, testRootDisposable)
-    whenever(mockStudioBot.aiExcludeService(project)).thenReturn(mockAiExcludeService)
-    whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
   }
 
   @Test
