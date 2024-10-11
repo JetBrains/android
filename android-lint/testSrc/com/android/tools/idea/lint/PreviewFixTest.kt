@@ -17,8 +17,6 @@ package com.android.tools.idea.lint
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.lint.common.AnnotateQuickFix
-import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.lint.common.ModCommandLintQuickFix
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.lint.common.toIdeFix
@@ -666,18 +664,6 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     val caretContextIndex = fileContent.indexOf(caretContext)
     assertTrue("Caret content $caretContext not found in file", caretContextIndex != -1)
     return caretContextIndex + caretDelta
-  }
-
-  private fun checkPreviewFix(
-    file: PsiFile,
-    caret: String,
-    createFix: (element: PsiElement) -> DefaultLintQuickFix,
-    expected: String,
-  ) {
-    val element = findElement(file, caret)
-    val fix = createFix(element)
-    val action = LintExternalAnnotator.MyFixingIntention(fix, project, file, element.textRange)
-    checkPreview(expected, action, file)
   }
 
   private fun checkPreviewAction(
