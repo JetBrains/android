@@ -16,6 +16,8 @@
 package com.android.tools.idea.preview.representation
 
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
@@ -25,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -39,9 +42,12 @@ import com.android.tools.idea.preview.TestPreviewRefreshRequest
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
+import com.android.tools.idea.preview.animation.AnimationManager
+import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -58,6 +64,7 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
@@ -81,6 +88,7 @@ import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
+import javax.swing.JPanel
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
@@ -98,6 +106,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
@@ -515,6 +526,39 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/370595516
+  @Test
+  fun animationPreviewIsDisposedWhenExitingAnimationInspectorMode() {
+    runBlocking(workerThread) {
+      val animationPreview =
+        mock<AnimationPreview<AnimationManager>>().also {
+          whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
+        }
+      val previewRepresentation = createPreviewRepresentation(animationPreview = animationPreview)
+      previewRepresentation.compileAndWaitForRefresh()
+
+      // start animation inspection
+      previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
+      previewRepresentation.mode.awaitStatus("Animation Inspection mode expected", 1.seconds) {
+        it is PreviewMode.AnimationInspection
+      }
+      retryUntilPassing(1.seconds) {
+        assertThat(previewRepresentation.currentAnimationPreview).isEqualTo(animationPreview)
+      }
+
+      // stop animation inspection
+      previewRepresentation.setMode(PreviewMode.Default())
+      previewRepresentation.mode.awaitStatus("Default mode expected", 1.seconds) {
+        it is PreviewMode.Default
+      }
+      retryUntilPassing(1.seconds) {
+        verify(animationPreview, times(1)).dispose()
+        assertThat(previewRepresentation.currentAnimationPreview).isNull()
+      }
+      previewRepresentation.onDeactivateImmediately()
+    }
+  }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -538,7 +582,8 @@ class CommonPreviewRepresentationTest {
   }
 
   private fun createPreviewRepresentation(
-    customPreviewElementProvider: PreviewElementProvider<PsiTestPreviewElement>? = null
+    customPreviewElementProvider: PreviewElementProvider<PsiTestPreviewElement>? = null,
+    animationPreview: AnimationPreview<*>? = null,
   ): CommonPreviewRepresentation<PsiTestPreviewElement> {
     val previewElementProvider =
       customPreviewElementProvider
@@ -555,26 +600,30 @@ class CommonPreviewRepresentationTest {
           )
         )
     val previewRepresentation =
-      CommonPreviewRepresentation(
-        adapterViewFqcn = "TestAdapterViewFqcn",
-        psiFile,
-        { previewElementProvider },
-        modelAdapter,
-        viewConstructor = { project, surfaceBuilder, parentDisposable ->
-          CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
-            previewView = it
-          }
-        },
-        viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
-        configureDesignSurface = {},
-        renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
-        createRefreshEventBuilder = { surface ->
-          PreviewRefreshEventBuilder(
-            PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
-            PreviewRefreshTracker.getInstance(surface),
-          )
-        },
-      )
+      object :
+        CommonPreviewRepresentation<PsiTestPreviewElement>(
+          adapterViewFqcn = "TestAdapterViewFqcn",
+          psiFile,
+          { previewElementProvider },
+          modelAdapter,
+          viewConstructor = { project, surfaceBuilder, parentDisposable ->
+            CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
+              previewView = it
+            }
+          },
+          viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
+          configureDesignSurface = {},
+          renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
+          createRefreshEventBuilder = { surface ->
+            PreviewRefreshEventBuilder(
+              PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
+              PreviewRefreshTracker.getInstance(surface),
+            )
+          },
+        ) {
+
+        override fun createAnimationInspector(element: PreviewElement<*>) = animationPreview
+      }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }
