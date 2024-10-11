@@ -16,7 +16,6 @@
 package com.android.tools.idea.ddms
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher.DefaultCallback
 import com.google.common.util.concurrent.FutureCallback
@@ -31,6 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

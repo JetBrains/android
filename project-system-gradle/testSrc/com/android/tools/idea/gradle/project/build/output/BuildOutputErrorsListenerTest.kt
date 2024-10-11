@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
@@ -40,6 +39,8 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
+
 class BuildOutputErrorsListenerTest {
   @get:Rule
   val temporaryFolder = TemporaryFolder()

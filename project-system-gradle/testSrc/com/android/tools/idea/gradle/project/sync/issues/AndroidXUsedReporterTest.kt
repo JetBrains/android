@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class AndroidXUsedReporterTest {
@@ -29,7 +29,7 @@ class AndroidXUsedReporterTest {
   @Test
   fun `expected quick fixes with properties file`() {
     val reporter = AndroidXUsedReporter()
-    val mockedPropertiesFile = mock(File::class.java)
+    val mockedPropertiesFile: File = mock()
     val expectedPath = "/path/to/gradle.properties"
     whenever(mockedPropertiesFile.exists()).thenReturn(true)
     whenever(mockedPropertiesFile.path).thenReturn(expectedPath)
@@ -45,7 +45,7 @@ class AndroidXUsedReporterTest {
   @Test
   fun `expected quick fixes without properties file`() {
     val reporter = AndroidXUsedReporter()
-    val mockedPropertiesFile = mock(File::class.java)
+    val mockedPropertiesFile: File = mock()
     whenever(mockedPropertiesFile.exists()).thenReturn(false)
     val fixes = reporter.createQuickFixes(mockedPropertiesFile)
     assertThat(fixes).hasSize(2)

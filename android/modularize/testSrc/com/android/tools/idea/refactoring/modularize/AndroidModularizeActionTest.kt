@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.util.CommonAndroidUtil
@@ -31,7 +29,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Rule
 import org.junit.Test
@@ -42,6 +39,8 @@ import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /**

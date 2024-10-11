@@ -16,30 +16,31 @@
 package com.android.tools.idea.gradle.project.sync.issues.runsGradleErrors
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
+import com.android.mockito.kotlin.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
+import com.android.tools.idea.gradle.project.sync.issues.CompileSdkVersionTooHighReporter
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.MockitoAnnotations
-import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.issues.CompileSdkVersionTooHighReporter
-import com.android.tools.idea.project.messages.MessageType
 import com.intellij.testFramework.UsefulTestCase.assertInstanceOf
 import com.intellij.testFramework.UsefulTestCase.assertSize
 import junit.framework.Assert.assertEquals
 import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 @RunsInEdt

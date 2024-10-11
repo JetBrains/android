@@ -37,5 +37,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/.idea/libraries:google-api-client",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

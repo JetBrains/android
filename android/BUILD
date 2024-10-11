@@ -298,6 +298,7 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
@@ -393,8 +394,8 @@ filegroup(
         ":profiler-artifacts",
         ":transport-artifacts",
         "//tools/adt/idea/.idea/libraries:agp-version",
-        "//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",

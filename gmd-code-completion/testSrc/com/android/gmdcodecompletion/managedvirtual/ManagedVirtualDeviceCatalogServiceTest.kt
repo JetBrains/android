@@ -15,8 +15,6 @@
  */
 package com.android.gmdcodecompletion.managedvirtual
 
-import com.android.gmdcodecompletion.fullManagedVirtualDeviceCatalog
-import com.android.gmdcodecompletion.fullManagedVirtualDeviceCatalogState
 import com.android.gmdcodecompletion.managedVirtualDeviceCatalogTestHelper
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
@@ -24,50 +22,40 @@ import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.generated.sysimg.v1.SysImgDetailsType
 import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestApplicationManager
 import org.mockito.Answers
-import org.mockito.Mock
-import org.mockito.Mockito.clearInvocations
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.util.Calendar
 import java.util.EnumSet
 
 class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
-  @Mock
-  private lateinit var mockProject: Project
+  private val mockProject: Project = mock()
 
-  @Mock
-  private lateinit var mockProgressIndicator: ProgressIndicator
+  private val mockProgressIndicator: ProgressIndicator = mock()
 
-  @Mock
-  private lateinit var mockDeviceManager: DeviceManager
+  private val mockDeviceManager: DeviceManager = mock()
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockAndroidSdks: AndroidSdks
+  private val mockAndroidSdks: AndroidSdks = mock(defaultAnswer = Answers.RETURNS_DEEP_STUBS)
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-  private lateinit var mockRepoManager: RepoManager
+  private val mockRepoManager: RepoManager = mock(defaultAnswer = Answers.RETURNS_DEEP_STUBS)
 
-  @Mock
-  private lateinit var mockUpdatablePackage: UpdatablePackage
+  private val mockUpdatablePackage: UpdatablePackage = mock()
 
-  @Mock
-  private lateinit var mockTypeDetail: SysImgDetailsType
+  private val mockTypeDetail: SysImgDetailsType = mock()
 
-  @Mock
-  private lateinit var mockRemotePackage: RemotePackage
+  private val mockRemotePackage: RemotePackage = mock()
 
 
   override fun setUp() {
     super.setUp()
-    openMocks(this)
     whenever(mockAndroidSdks.tryToChooseSdkHandler().getSdkManager(MockitoKt.any())).thenReturn(mockRepoManager)
     whenever(mockUpdatablePackage.remote).thenReturn(mockRemotePackage)
     whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)

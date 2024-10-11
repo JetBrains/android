@@ -19,7 +19,6 @@ import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
 import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.gmdcodecompletion.matchFtlDeviceCatalog
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.gct.testing.launcher.CloudAuthenticator
 import com.intellij.openapi.progress.ProgressIndicator
@@ -30,9 +29,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 
 class FtlDeviceCatalogServiceTest {
 
@@ -41,9 +41,9 @@ class FtlDeviceCatalogServiceTest {
   val project: Project
     get() = projectRule.project
 
-  private val mockCloudAuthenticator: CloudAuthenticator = mock(CloudAuthenticator::class.java)
+  private val mockCloudAuthenticator: CloudAuthenticator = mock()
 
-  private val mockProgressIndicator: ProgressIndicator = mock(ProgressIndicator::class.java)
+  private val mockProgressIndicator: ProgressIndicator = mock()
 
   @Before
   fun setUp() {
