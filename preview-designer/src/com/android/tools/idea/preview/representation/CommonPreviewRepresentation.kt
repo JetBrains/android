@@ -699,7 +699,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
     }
 
-  private fun activate(isResuming: Boolean) {
+  private fun CoroutineScope.activate(isResuming: Boolean) {
     qualityPolicy.activate()
     requestRefresh(type = CommonPreviewRefreshType.QUALITY)
 
