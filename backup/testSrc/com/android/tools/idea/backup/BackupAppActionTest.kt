@@ -19,6 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeDialogFactory
+import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -106,7 +107,7 @@ internal class BackupAppActionTest {
 
     verify(mockBackupManager)
       .showBackupDialog("serial", "com.app", BACKUP_APP_ACTION, notify = true)
-    assertThat(fakeDialogFactory.warnings).isEmpty()
+    assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
   @Test
@@ -119,8 +120,8 @@ internal class BackupAppActionTest {
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(fakeDialogFactory.warnings)
-      .containsExactly("Cannot Backup Application: Selected device is not running")
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Backup Application", "Selected device is not running"))
   }
 
   @Test
@@ -132,8 +133,10 @@ internal class BackupAppActionTest {
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(fakeDialogFactory.warnings)
-      .containsExactly("Cannot Backup Application: Action is not supported for multiple devices")
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData("Cannot Backup Application", "Action is not supported for multiple devices")
+      )
   }
 
   @Test
@@ -146,8 +149,8 @@ internal class BackupAppActionTest {
 
     runInEdtAndWait {}
     verifyNoInteractions(mockBackupManager)
-    assertThat(fakeDialogFactory.warnings)
-      .containsExactly("Cannot Backup Application: Selected device is not running")
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(DialogData("Cannot Backup Application", "Selected device is not running"))
   }
 }
 

@@ -25,6 +25,8 @@ import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
+import com.android.tools.idea.backup.testing.FakeDialogFactory
+import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +36,6 @@ import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
-import com.intellij.notification.NotificationType.WARNING
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -67,10 +68,11 @@ internal class BackupManagerImplTest {
   @get:Rule val rule = RuleChain(projectRule, usageTrackerRule, notificationRule, EdtRule())
 
   private val mockBackupService = mock<BackupService>()
+  private val fakeDialogFactory = FakeDialogFactory()
 
   @Test
   fun backup_success(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
+    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
     val serialNumber = "serial"
     val applicationId = "app"
     val backupFile = Path.of("file")
@@ -98,11 +100,12 @@ internal class BackupManagerImplTest {
         INFORMATION,
         "ShowPostBackupDialogAction",
       )
+    assertThat(fakeDialogFactory.dialogs).isEmpty()
   }
 
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
+    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else "/path/file")
     whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
@@ -116,7 +119,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun restore_success_relativePath(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
+    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
     whenever(
@@ -136,7 +139,7 @@ internal class BackupManagerImplTest {
 
   @Test
   fun gmsCoreNotUpdated(): Unit = runBlocking {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
+    val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
     whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
@@ -148,10 +151,11 @@ internal class BackupManagerImplTest {
 
     assertThat(usageTrackerRule.backupEvents())
       .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
-    assertThat(notificationRule.notifications).hasSize(1)
-    notificationRule.notifications
-      .first()
-      .assert("Restore Failed", "Error", WARNING, "ShowExceptionAction", "UpdateGmsAction")
+    assertThat(notificationRule.notifications).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData("Restore Failed", "Error", listOf("Show Full Error", "Open Play Store"))
+      )
   }
 
   private fun NotificationInfo.assert(

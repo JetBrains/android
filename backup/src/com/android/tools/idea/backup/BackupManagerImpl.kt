@@ -33,18 +33,17 @@ import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
+import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
-import com.intellij.notification.NotificationType.WARNING
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.messages.MessagesService
+import com.intellij.openapi.ui.Messages
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
@@ -62,8 +61,11 @@ private val logger: Logger = Logger.getInstance(BackupManager::class.java)
 /** Implementation of [BackupManager] */
 internal class BackupManagerImpl
 @VisibleForTesting
-internal constructor(private val project: Project, private val backupService: BackupService) :
-  BackupManager {
+internal constructor(
+  private val project: Project,
+  private val backupService: BackupService,
+  private val dialogFactory: DialogFactory,
+) : BackupManager {
   @Suppress("unused") // Used by the plugin XML
   constructor(
     project: Project
@@ -74,6 +76,7 @@ internal constructor(private val project: Project, private val backupService: Ba
       logger,
       StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get(),
     ),
+    DialogFactoryImpl(),
   )
 
   @UiThread
@@ -199,7 +202,7 @@ internal constructor(private val project: Project, private val backupService: Ba
     }
   }
 
-  private fun BackupResult.notify(
+  private suspend fun BackupResult.notify(
     operation: String,
     backupFile: Path? = null,
     serialNumber: String,
@@ -218,18 +221,22 @@ internal constructor(private val project: Project, private val backupService: Ba
     Notifications.Bus.notify(notification, project)
   }
 
-  private fun notifyError(title: String, throwable: Throwable, serialNumber: String) {
+  private suspend fun notifyError(title: String, throwable: Throwable, serialNumber: String) {
     if (throwable is CancellationException) {
       return
     }
     val content = throwable.message ?: message("notification.unknown.error")
-    val notification =
-      Notification(NOTIFICATION_GROUP, title, content, WARNING)
-        .addAction(ShowExceptionAction(title, content, throwable))
-    if ((throwable as? BackupException)?.errorCode == ErrorCode.GMSCORE_IS_TOO_OLD) {
-      notification.addAction(UpdateGmsAction(serialNumber))
+    val buttons = buildList {
+      add(
+        DialogButton(message("notification.error.button")) {
+          ErrorDetailDialog(title, content, throwable.stackTraceToString()).show()
+        }
+      )
+      if ((throwable as? BackupException)?.errorCode == ErrorCode.GMSCORE_IS_TOO_OLD) {
+        add(DialogButton(message("notification.update.gms")) { sendUpdateGmsIntent(serialNumber) })
+      }
     }
-    Notifications.Bus.notify(notification, project)
+    dialogFactory.showDialog(project, title, content, buttons)
   }
 
   private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
@@ -239,33 +246,18 @@ internal constructor(private val project: Project, private val backupService: Ba
     }
   }
 
-  private class ShowExceptionAction(
-    private val title: String,
-    private val message: String,
-    private val throwable: Throwable,
-  ) : DumbAwareAction(message("notification.error.button")) {
-    override fun actionPerformed(e: AnActionEvent) {
-      ErrorDetailDialog(title, message, throwable.stackTraceToString()).show()
-    }
-  }
-
-  private inner class UpdateGmsAction(private val serialNumber: String) :
-    DumbAwareAction(message("notification.update.gms")) {
-    override fun actionPerformed(e: AnActionEvent) {
-      AdbLibService.getSession(project).scope.launch {
-        val result = backupService.sendUpdateGmsIntent(serialNumber)
-        if (result is Error) {
-          logger.warn("Error Updating Google Services", result.throwable)
-          val message =
-            when (result.errorCode) {
-              PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
-              else -> message("open.play.store.error.unexpected")
-            }
-          withContext(uiThread) {
-            @Suppress("UnstableApiUsage")
-            MessagesService.getInstance()
-              .showErrorDialog(project, message, message("open.play.store.error.title"))
+  private fun sendUpdateGmsIntent(serialNumber: String) {
+    AdbLibService.getSession(project).scope.launch {
+      val result = backupService.sendUpdateGmsIntent(serialNumber)
+      if (result is Error) {
+        logger.warn("Error Updating Google Services", result.throwable)
+        val message =
+          when (result.errorCode) {
+            PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
+            else -> message("open.play.store.error.unexpected")
           }
+        withContext(uiThread) {
+          Messages.showErrorDialog(project, message, message("open.play.store.error.title"))
         }
       }
     }

@@ -17,12 +17,24 @@
 package com.android.tools.idea.backup.testing
 
 import com.android.tools.idea.backup.DialogFactory
+import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.intellij.openapi.project.Project
 
 internal class FakeDialogFactory : DialogFactory {
-  val warnings = mutableListOf<String>()
+  val dialogs = mutableListOf<DialogData>()
 
-  override suspend fun showDialog(project: Project, title: String, message: String) {
-    warnings.add("$title: $message")
+  override suspend fun showDialog(
+    project: Project,
+    title: String,
+    message: String,
+    buttons: List<DialogButton>,
+  ) {
+    dialogs.add(DialogData(title, message, buttons.map { it.text }))
   }
+
+  data class DialogData(
+    val title: String,
+    val message: String,
+    val buttons: List<String> = emptyList(),
+  )
 }
