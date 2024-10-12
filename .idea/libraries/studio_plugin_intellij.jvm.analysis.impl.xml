@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-org.jetbrains.plugins.github">
+  <library name="studio-plugin-intellij.jvm.analysis.impl">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/vcs-github-community/lib/vcs-github.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/java/lib/modules/intellij.jvm.analysis.impl.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

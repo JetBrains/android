@@ -81,6 +81,7 @@ class StartUpSafeModeTest {
       "HTML Tools",
       "IDEA CORE",
       "Images",
+      "JSON",
       "IntelliLang",
       "JUnit",
       "Java",

@@ -96,6 +96,7 @@ public class StartUpTest {
         "HTML Tools",
         "IDEA CORE",
         "Images",
+        "JSON",
         "IntelliLang",
         "JUnit",
         "Java",
