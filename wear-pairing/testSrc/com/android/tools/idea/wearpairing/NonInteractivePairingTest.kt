@@ -17,9 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.getTypedArgument
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.getTypedArgument
 import com.android.testutils.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -27,9 +25,10 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import org.junit.Test
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
-import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val LOGCAT_FORMAT =
   "08-17 11:35:01.797   439  2734 I EmulatorActivity:[EMULATOR_PAIRING:%s]\n"
@@ -43,8 +42,8 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
     super.setUp()
 
     outputReceiver = null
-    device = MockitoKt.mock()
-    Mockito.doAnswer { invocation: InvocationOnMock ->
+    device = mock()
+    doAnswer { invocation ->
         outputReceiver = invocation.getTypedArgument(1)
 
         runBlocking {
@@ -54,12 +53,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
         null
       }
       .whenever(device)
-      .executeShellCommand(
-        ArgumentMatchers.anyString(),
-        ArgumentMatchers.any(),
-        ArgumentMatchers.anyLong(),
-        ArgumentMatchers.any(),
-      )
+      .executeShellCommand(any(), any(), any(), any())
   }
 
   @Test

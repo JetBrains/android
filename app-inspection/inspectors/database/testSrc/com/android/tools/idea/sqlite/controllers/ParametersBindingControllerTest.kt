@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -36,6 +35,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
 
 @RunWith(JUnit4::class)
 @RunsInEdt

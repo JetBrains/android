@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.annotator
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
@@ -34,6 +33,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.ide.PooledThreadExecutor
+import org.mockito.kotlin.mock
 
 class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase() {
   private lateinit var ideComponents: IdeComponents

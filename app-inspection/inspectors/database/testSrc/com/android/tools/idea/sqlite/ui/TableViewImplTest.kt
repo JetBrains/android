@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -46,7 +44,6 @@ import com.android.tools.idea.sqlite.utils.toViewColumn
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.runDispatching
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.util.Disposer
@@ -62,9 +59,12 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JTable
+import org.jetbrains.concurrency.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 private const val COLUMN_DEFAULT_WIDTH = 75
 private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
@@ -83,13 +83,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     val mockPopUpMenu = mock(ActionPopupMenu::class.java)
     whenever(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
     mockActionManager = mock(ActionManager::class.java)
-    whenever(
-        mockActionManager.createActionPopupMenu(
-          any(String::class.java),
-          any(ActionGroup::class.java),
-        )
-      )
-      .thenReturn(mockPopUpMenu)
+    whenever(mockActionManager.createActionPopupMenu(any(), any())).thenReturn(mockPopUpMenu)
 
     IdeComponents(myFixture).replaceApplicationService(ActionManager::class.java, mockActionManager)
 
@@ -801,8 +795,7 @@ class TableViewImplTest : BasePlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockActionManager)
-      .createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
+    verify(mockActionManager).createActionPopupMenu(any(), any())
   }
 
   fun testRightClickOutsideOfTableRows() {

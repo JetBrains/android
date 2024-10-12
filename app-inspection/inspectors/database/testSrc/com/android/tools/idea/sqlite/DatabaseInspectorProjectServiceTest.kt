@@ -16,8 +16,6 @@
 package com.android.tools.idea.sqlite
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -52,10 +50,13 @@ import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
@@ -311,9 +312,9 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     val mockAdbService = mock(AdbService::class.java)
     ApplicationManager.getApplication()
       .registerServiceInstance(AdbService::class.java, mockAdbService)
-    val mockAndroidDebugBridge = mock(AndroidDebugBridge::class.java)
+    val mockAndroidDebugBridge = mock<AndroidDebugBridge>()
     whenever(mockAndroidDebugBridge.devices).thenReturn(emptyArray())
-    whenever(mockAdbService.getDebugBridge(any(File::class.java)))
+    whenever(mockAdbService.getDebugBridge(any<File>()))
       .thenReturn(Futures.immediateFuture(mockAndroidDebugBridge))
 
     val tmpFile = createTempFile()

@@ -18,7 +18,6 @@ package com.android.tools.idea.wearpairing
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener
 import com.google.common.util.concurrent.Futures
@@ -33,7 +32,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class WearPairingManagerTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -61,13 +61,7 @@ class WearPairingManagerTest {
   private val wearPropertiesMap =
     mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
   private val avdWearInfo =
-    AvdInfo(
-      Paths.get("ini"),
-      Paths.get("id2"),
-      Mockito.mock(ISystemImage::class.java),
-      wearPropertiesMap,
-      null,
-    )
+    AvdInfo(Paths.get("ini"), Paths.get("id2"), mock<ISystemImage>(), wearPropertiesMap, null)
 
   private val pairingManager = WearPairingManager()
 
@@ -294,7 +288,7 @@ class WearPairingManagerTest {
       AvdInfo(
         Paths.get("ini"),
         Paths.get(phoneDevice.deviceID),
-        Mockito.mock(ISystemImage::class.java),
+        mock<ISystemImage>(),
         mapOf(),
         null,
       )
