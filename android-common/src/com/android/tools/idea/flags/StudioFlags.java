@@ -1515,7 +1515,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_GENERATE_SAMPLE_DATA = new BooleanFlag(
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
     "Enable a Gemini context-menu action that generates sample data for a given Composable function",
-    false);
+    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
@@ -1535,12 +1535,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_UI_CHECK_AI_QUICK_FIX = new BooleanFlag(
     COMPOSE, "ui.check.mode.ai.quickfix", "Enable AI-powered quick fix action for UI Check",
     "Enable an AI-powered quick fix action for UI Check issues.",
-    false);
+    ChannelDefault.enabledUpTo(DEV));
 
   public static final Flag<Boolean> COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT = new BooleanFlag(
     COMPOSE, "send.preview.to.studio.bot", "Enable action to send Compose Previews to Studio Bot",
     "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
-    false);
+    ChannelDefault.enabledUpTo(DEV));
   //endregion
 
   // region Wear surfaces

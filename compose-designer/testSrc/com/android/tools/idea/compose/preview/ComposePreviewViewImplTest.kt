@@ -51,6 +51,8 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -62,6 +64,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import java.awt.BorderLayout
@@ -146,12 +149,19 @@ class ComposePreviewViewImplTest {
       var contextAllowed = true
 
       override fun isContextAllowed(project: Project) = contextAllowed
+
+      override fun isAvailable() = true
     }
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(
+      ComposeStudioBotActionFactory.EP_NAME,
+      listOf(FakeStudioBotActionFactory()),
+      projectRule.testRootDisposable,
+    )
     runBlocking(uiThread) {
       // Setup a fake manifest so rendering works correctly
       val manifest =
@@ -487,4 +497,15 @@ class ComposePreviewViewImplTest {
 
     assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
   }
+}
+
+class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
+  private val fakeAction =
+    object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {}
+    }
+
+  override fun createPreviewGenerator() = fakeAction
+
+  override fun createSendPreviewAction() = fakeAction
 }

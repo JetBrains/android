@@ -48,7 +48,7 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
-internal fun UAnnotation.isPreviewAnnotation() =
+fun UAnnotation.isPreviewAnnotation() =
   ReadAction.compute<Boolean, Throwable> {
     COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
       COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
