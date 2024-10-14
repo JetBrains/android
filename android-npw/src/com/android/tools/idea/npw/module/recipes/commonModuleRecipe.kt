@@ -32,7 +32,7 @@ enum class IconsGenerationStyle {
   ALL,
   MIPMAP_ONLY,
   MIPMAP_SQUARE_ONLY,
-  NONE;
+  NONE,
 }
 
 fun RecipeExecutor.generateCommonModule(
@@ -43,16 +43,22 @@ fun RecipeExecutor.generateCommonModule(
   generateGenericLocalTests: Boolean = false,
   generateGenericInstrumentedTests: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.apis.minApi, data.themesData.main.name),
+  themesXml: String? =
+    androidModuleThemes(
+      data.projectTemplateData.androidXSupport,
+      data.apis.minApi,
+      data.themesData.main.name,
+    ),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   noKtx: Boolean = false,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ) {
-  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
+  val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) =
+    data
   val (useAndroidX, agpVersion) = projectData
   val language = projectData.language
   val isLibraryProject = data.isLibrary
@@ -81,9 +87,9 @@ fun RecipeExecutor.generateCommonModule(
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard,
-      useVersionCatalog = useVersionCatalog
+      useVersionCatalog = useVersionCatalog,
     ),
-    moduleOut.resolve(buildFile)
+    moduleOut.resolve(buildFile),
   )
 
   // Note: com.android.* needs to be applied before kotlin

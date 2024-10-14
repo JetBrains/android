@@ -19,6 +19,8 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColorsMaterial3
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemesMaterial3
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemesMaterial3 as androidModuleThemesNightMaterial3
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.Category
@@ -27,8 +29,6 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.has
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemesMaterial3 as androidModuleThemesNightMaterial3
 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
@@ -41,30 +41,32 @@ fun RecipeExecutor.generateAndroidModule(
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
   val isMaterial3 = data.isMaterial3
-  check(data.category != Category.Compose || data.isCompose) { "Template in Compose category must have isCompose set" }
+  check(data.category != Category.Compose || data.isCompose) {
+    "Template in Compose category must have isCompose set"
+  }
   generateCommonModule(
     data = data,
     appTitle = appTitle,
     useKts = useKts,
-    manifestXml = generateManifest(
-      hasApplicationBlock = !data.isLibrary,
-      theme = "@style/${data.themesData.main.name}",
-      addBackupRules = addBackupRules
-    ),
+    manifestXml =
+      generateManifest(
+        hasApplicationBlock = !data.isLibrary,
+        theme = "@style/${data.themesData.main.name}",
+        addBackupRules = addBackupRules,
+      ),
     generateGenericLocalTests = data.useGenericLocalTests,
     generateGenericInstrumentedTests = data.useGenericInstrumentedTests,
-    themesXml = if (isMaterial3)
-      androidModuleThemesMaterial3(data.themesData.main.name)
-    else
-      androidModuleThemes(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    themesXmlNight = if (isMaterial3)
-      androidModuleThemesNightMaterial3(data.themesData.main.name)
-    else
-      androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    colorsXml = if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
+    themesXml =
+      if (isMaterial3) androidModuleThemesMaterial3(data.themesData.main.name)
+      else androidModuleThemes(useAndroidX, data.apis.minApi, data.themesData.main.name),
+    themesXmlNight =
+      if (isMaterial3) androidModuleThemesNightMaterial3(data.themesData.main.name)
+      else androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
+    colorsXml =
+      if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard,
-    useVersionCatalog = useVersionCatalog
+    useVersionCatalog = useVersionCatalog,
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
@@ -73,8 +75,8 @@ fun RecipeExecutor.generateAndroidModule(
   }
 
   if (data.projectTemplateData.androidXSupport && !data.isCompose && !isMaterial3) {
-    // Though addDependency should not be called from a module recipe, adding this library because it's used for the default theme
-    // (Theme.MaterialComponents.DayNight)
+    // Though addDependency should not be called from a module recipe, adding this library because
+    // it's used for the default theme (Theme.MaterialComponents.DayNight)
     addDependency("com.google.android.material:material:+")
   }
   // TODO(qumeric): currently only works for a new project
@@ -88,7 +90,8 @@ fun RecipeExecutor.generateAndroidModule(
   }
 }
 
-private fun getBackupRules() = """
+private fun getBackupRules() =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <!--
    Sample backup rules file; uncomment and customize as necessary.
@@ -105,7 +108,8 @@ private fun getBackupRules() = """
 </full-backup-content>
 """
 
-private fun getDataExtractionRules() = """
+private fun getDataExtractionRules() =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <!--
    Sample data extraction rules file; uncomment and customize as necessary.

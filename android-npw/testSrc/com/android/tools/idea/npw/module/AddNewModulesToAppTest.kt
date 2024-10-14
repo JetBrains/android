@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.npw.dynamicapp.DynamicFeatureModel
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
@@ -33,35 +32,33 @@ import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import java.io.File
+import java.util.Optional
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.util.Optional
-import java.io.File
-
 
 @RunWith(Parameterized::class)
-class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useVersionCatalog: Boolean) {
+class AddNewModulesToAppTest(
+  private val useGradleKts: Boolean,
+  private val useVersionCatalog: Boolean,
+) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "useGradleKts={0}, useVersionCatalog = {1}")
-    fun data() = listOf(
-      arrayOf(false, false),
-      arrayOf(false, true),
-      arrayOf(true, false),
-      arrayOf(true, true),
-    )
+    fun data() =
+      listOf(arrayOf(false, false), arrayOf(false, true), arrayOf(true, false), arrayOf(true, true))
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
-  private val emptyProjectSyncInvoker = object: ProjectSyncInvoker {
-    override fun syncProject(project: Project) { }
-  }
+  private val emptyProjectSyncInvoker =
+    object : ProjectSyncInvoker {
+      override fun syncProject(project: Project) {}
+    }
 
   private fun loadInitialProject() {
     if (useVersionCatalog) {
@@ -76,7 +73,13 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     loadInitialProject()
 
     val project = projectRule.project
-    createDefaultDynamicFeatureModel(project, "feature1", project.findAppModule(), useGradleKts, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(
+      project,
+      "feature1",
+      project.findAppModule(),
+      useGradleKts,
+      emptyProjectSyncInvoker,
+    )
 
     assembleDebugProject()
   }
@@ -86,18 +89,36 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     loadInitialProject()
     val project = projectRule.project
 
-    val baseModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = DefaultProjectSyncInvoker(),
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity
-    )
-    generateModuleFiles(project, baseModuleModel, "base", useGradleKts = true) // Base module is always kts for this test
+    val baseModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = DefaultProjectSyncInvoker(),
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+      )
+    generateModuleFiles(
+      project,
+      baseModuleModel,
+      "base",
+      useGradleKts = true,
+    ) // Base module is always kts for this test
 
     val baseModule = project.findModule("base")
-    createDefaultDynamicFeatureModel(project, "feature1", baseModule, useGradleKts, emptyProjectSyncInvoker)
-    createDefaultDynamicFeatureModel(project, "feature2", baseModule, useGradleKts, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(
+      project,
+      "feature1",
+      baseModule,
+      useGradleKts,
+      emptyProjectSyncInvoker,
+    )
+    createDefaultDynamicFeatureModel(
+      project,
+      "feature2",
+      baseModule,
+      useGradleKts,
+      emptyProjectSyncInvoker,
+    )
 
     checkBuildGradleJavaVersion("feature1")
     checkBuildGradleJavaVersion("feature2")
@@ -109,16 +130,22 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     loadInitialProject()
 
     val project = projectRule.project
-    val libModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = emptyProjectSyncInvoker,
-      formFactor = FormFactor.Mobile,
-      category = Category.Activity,
-      isLibrary = true
-    )
+    val libModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = true,
+      )
     val moduleName = "mylibrary"
-    generateModuleFiles(project, libModuleModel, moduleName, useGradleKts) // Base module is always kts for this test
+    generateModuleFiles(
+      project,
+      libModuleModel,
+      moduleName,
+      useGradleKts,
+    ) // Base module is always kts for this test
 
     checkBuildGradleJavaVersion(moduleName)
     assembleDebugProject()
@@ -160,28 +187,53 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
   private fun checkBuildGradleJavaVersion(moduleName: String) {
     val project = projectRule.project
     if (useGradleKts) {
-      assertTrue(File(project.basePath!!).resolve(moduleName).resolve("build.gradle.kts").readText()
-                   .contains("sourceCompatibility = JavaVersion.VERSION_11"))
-    }
-    else {
-      assertTrue(File(project.basePath!!).resolve(moduleName).resolve("build.gradle").readText()
-                   .contains("sourceCompatibility JavaVersion.VERSION_11"))
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle.kts")
+          .readText()
+          .contains("sourceCompatibility = JavaVersion.VERSION_11")
+      )
+    } else {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle")
+          .readText()
+          .contains("sourceCompatibility JavaVersion.VERSION_11")
+      )
     }
   }
 }
 
-private fun createDefaultDynamicFeatureModel(project: Project, moduleName: String, baseModule: Module, useGradleKts: Boolean,
-                                             projectSyncInvoker: ProjectSyncInvoker) {
-  val model = DynamicFeatureModel(
-    project = project, moduleParent = ":", projectSyncInvoker = projectSyncInvoker,
-    isInstant = false, templateName = "Dynamic Feature", templateDescription = "Dynamic Feature description"
-  )
+private fun createDefaultDynamicFeatureModel(
+  project: Project,
+  moduleName: String,
+  baseModule: Module,
+  useGradleKts: Boolean,
+  projectSyncInvoker: ProjectSyncInvoker,
+) {
+  val model =
+    DynamicFeatureModel(
+      project = project,
+      moduleParent = ":",
+      projectSyncInvoker = projectSyncInvoker,
+      isInstant = false,
+      templateName = "Dynamic Feature",
+      templateDescription = "Dynamic Feature description",
+    )
   model.baseApplication.value = baseModule // Dynamic Feature base module
   generateModuleFiles(project, model, moduleName, useGradleKts)
 }
 
-private fun generateModuleFiles(project: Project, model: ModuleModel, moduleName: String, useGradleKts: Boolean) {
-  model.androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
+private fun generateModuleFiles(
+  project: Project,
+  model: ModuleModel,
+  moduleName: String,
+  useGradleKts: Boolean,
+) {
+  model.androidSdkInfo.value =
+    AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
   model.moduleName.set(moduleName)
   model.template.set(createDefaultModuleTemplate(project, moduleName))
   model.packageName.set("com.example")

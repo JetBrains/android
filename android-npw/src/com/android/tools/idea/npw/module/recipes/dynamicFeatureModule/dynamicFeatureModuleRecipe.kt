@@ -40,9 +40,10 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ) {
-  val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
+  val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) =
+    moduleData
   val apis = moduleData.apis
   val (buildApi, targetApi, minApi, _) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
@@ -52,9 +53,14 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val packageName = moduleData.packageName
   val baseFeature = moduleData.baseFeature!!
 
-  val manifestXml = androidManifestXml(
-    fusing.toString(), isInstantModule, projectSimpleName, downloadInstallKind, deviceFeatures
-  )
+  val manifestXml =
+    androidManifestXml(
+      fusing.toString(),
+      isInstantModule,
+      projectSimpleName,
+      downloadInstallKind,
+      deviceFeatures,
+    )
 
   createDirectory(srcOut)
   addIncludeToSettings(name)
@@ -73,8 +79,9 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
       formFactorNames = projectData.includedFormFactorNames,
-      useVersionCatalog = useVersionCatalog
-    ), moduleOut.resolve(buildFile)
+      useVersionCatalog = useVersionCatalog,
+    ),
+    moduleOut.resolve(buildFile),
   )
 
   applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
@@ -91,5 +98,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   if (isInstantModule) {
     mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/$FN_ANDROID_MANIFEST_XML"))
   }
-  mergeXml(stringsXml(dynamicFeatureTitle, projectSimpleName), baseFeature.resDir.resolve("values/strings.xml"))
+  mergeXml(
+    stringsXml(dynamicFeatureTitle, projectSimpleName),
+    baseFeature.resDir.resolve("values/strings.xml"),
+  )
 }

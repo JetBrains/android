@@ -32,7 +32,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 class NewAndroidNativeModuleModel(
   projectModuleData: ProjectModelData,
   moduleParent: String,
-  val cppStandard: OptionalValueProperty<CppStandardType> = OptionalValueProperty(CppStandardType.`Toolchain Default`)
+  val cppStandard: OptionalValueProperty<CppStandardType> =
+    OptionalValueProperty(CppStandardType.`Toolchain Default`),
 ) :
   ModuleModel(
     name = "",
@@ -40,7 +41,7 @@ class NewAndroidNativeModuleModel(
     isLibrary = true,
     projectModelData = projectModuleData,
     moduleParent = moduleParent,
-    wizardContext = NEW_MODULE
+    wizardContext = NEW_MODULE,
   ) {
 
   init {
@@ -48,43 +49,60 @@ class NewAndroidNativeModuleModel(
   }
 
   override fun getParamsToLog(): String {
-    return super.getParamsToLog() + """
+    return super.getParamsToLog() +
+      """
       |
       |[Android Native Library params]
       |C++ Standard: ${cppStandard.valueOrNull?.name ?: "N/A"}
-    """.trimMargin()
+    """
+        .trimMargin()
   }
 
-  override val renderer = object : ModuleTemplateRenderer() {
-    @WorkerThread
-    override fun init() {
-      super.init()
+  override val renderer =
+    object : ModuleTemplateRenderer() {
+      @WorkerThread
+      override fun init() {
+        super.init()
 
-      moduleTemplateDataBuilder.apply {
-        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidNativeModuleModel.packageName.get())
-      }
-      val tff = formFactor.get()
-      projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
-    }
-
-    override val recipe: Recipe
-      get() = { data ->
-        if (data !is ModuleTemplateData) {
-          throw IllegalStateException()
+        moduleTemplateDataBuilder.apply {
+          setModuleRoots(
+            template.get().paths,
+            project.basePath!!,
+            moduleName.get(),
+            this@NewAndroidNativeModuleModel.packageName.get(),
+          )
         }
-        generateAndroidModule(
-          data = data,
-          appTitle = applicationName.get(),
-          useKts = useGradleKts.get(),
-          enableCpp = true,
-          cppStandard = cppStandard.value,
-          useVersionCatalog = useVersionCatalog.get()
-        )
-        val nativeLibraryName = data.packageName.deriveNativeLibraryName()
-        val nativeSourceName = "$nativeLibraryName.cpp"
-        generateCMakeFile(data, nativeSourceName, nativeLibraryName)
-        generateBasicJniBindings(data, language.get().orElse(Language.Java), "NativeLib", nativeSourceName, nativeLibraryName)
+        val tff = formFactor.get()
+        projectTemplateDataBuilder.includedFormFactorNames
+          .putIfAbsent(tff, mutableListOf(moduleName.get()))
+          ?.add(moduleName.get())
       }
-  }
-  override val loggingEvent: AndroidStudioEvent.TemplateRenderer = AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
+
+      override val recipe: Recipe
+        get() = { data ->
+          if (data !is ModuleTemplateData) {
+            throw IllegalStateException()
+          }
+          generateAndroidModule(
+            data = data,
+            appTitle = applicationName.get(),
+            useKts = useGradleKts.get(),
+            enableCpp = true,
+            cppStandard = cppStandard.value,
+            useVersionCatalog = useVersionCatalog.get(),
+          )
+          val nativeLibraryName = data.packageName.deriveNativeLibraryName()
+          val nativeSourceName = "$nativeLibraryName.cpp"
+          generateCMakeFile(data, nativeSourceName, nativeLibraryName)
+          generateBasicJniBindings(
+            data,
+            language.get().orElse(Language.Java),
+            "NativeLib",
+            nativeSourceName,
+            nativeLibraryName,
+          )
+        }
+    }
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer =
+    AndroidStudioEvent.TemplateRenderer.ANDROID_NATIVE_MODULE
 }
