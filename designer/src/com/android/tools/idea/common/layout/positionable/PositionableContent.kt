@@ -32,6 +32,9 @@ interface PositionableContent {
   /** [PositionableContent] are grouped by [organizationGroup]. */
   val organizationGroup: OrganizationGroup?
 
+  /** Return total size including margins for target [scale]. */
+  fun sizeForScale(scale: Double): Dimension
+
   /** The current scale value of this [PositionableContent]. */
   @SurfaceScale val scale: Double
 

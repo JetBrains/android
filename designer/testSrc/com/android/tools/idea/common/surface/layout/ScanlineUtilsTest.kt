@@ -43,6 +43,8 @@ class TestPositionableContent(
     this.y = y
   }
 
+  override fun sizeForScale(scale: Double) = Dimension(width, height)
+
   override fun getMargin(scale: Double): Insets = marginFunc(scale)
 
   override fun getContentSize(dimension: Dimension?): Dimension = Dimension(this.dimension)

@@ -86,6 +86,11 @@ class SceneViewHeader(
       override val isFocusedContent: Boolean
         get() = isFocusOwner
 
+      override fun sizeForScale(scale: Double): Dimension {
+        // Header always has fixed size regardless of the scale.
+        return JBDimension(widthPx, heightPx)
+      }
+
       override fun getContentSize(dimension: Dimension?) = JBDimension(widthPx, heightPx)
 
       override fun getMargin(scale: Double) = JBUI.emptyInsets()
