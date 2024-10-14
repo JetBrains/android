@@ -71,6 +71,15 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.Filters#"],
 )
 
+# 145 tests
+debugger_test(
+    name = "k1k2-kotlin-stepping-custom",
+    expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_custom.txt",
+    expected_to_fail_jvm = "jvm_k1k2_kotlin_stepping_expected_failures_custom.txt",
+    shard_count = 20,
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.Custom#"],
+)
+
 maven_repository(
     name = "test_repo",
     # keep sorted: for buildifier
