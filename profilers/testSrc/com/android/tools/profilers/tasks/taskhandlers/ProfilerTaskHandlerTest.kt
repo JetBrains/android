@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -34,7 +32,10 @@ import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.withSettings
+import org.mockito.kotlin.UseConstructor
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ProfilerTaskHandlerTest {
   private val myTimer = FakeTimer()
@@ -64,21 +65,21 @@ class ProfilerTaskHandlerTest {
    * invoked via the mock.
    */
   private fun createMockProfilerTaskHandler(mockSessionsManager: SessionsManager, mockArgs: TaskArgs): ProfilerTaskHandler {
-    val mockProfilerTaskHandler = MockitoKt.mock<ProfilerTaskHandler>(withSettings().useConstructor(mockSessionsManager)).apply{
-      MockitoKt.whenever(loadTask(mockArgs)).thenReturn(true)
-      MockitoKt.whenever(enter(mockArgs)).thenCallRealMethod()
+    val mockProfilerTaskHandler = mock<ProfilerTaskHandler>(useConstructor = UseConstructor.withArguments(mockSessionsManager)).apply{
+      whenever(loadTask(mockArgs)).thenReturn(true)
+      whenever(enter(mockArgs)).thenCallRealMethod()
     }
     return mockProfilerTaskHandler
   }
 
   @Test
   fun testEnterWithAliveSession() {
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
 
-    val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
-      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
-      MockitoKt.whenever(this.isSessionAlive).thenReturn(true)
-      MockitoKt.whenever(this.selectedSession).thenReturn(Common.Session.getDefaultInstance())
+    val mockSessionsManager = mock<SessionsManager>().apply {
+      whenever(this.studioProfilers).thenReturn(myProfilers)
+      whenever(this.isSessionAlive).thenReturn(true)
+      whenever(this.selectedSession).thenReturn(Common.Session.getDefaultInstance())
     }
 
     // Creating a mock instance of SessionsManager that returns that the session is currently alive.
@@ -93,11 +94,11 @@ class ProfilerTaskHandlerTest {
 
   @Test
   fun testEnterWithDeadSession() {
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
     // Creating a mock instance of SessionsManager that returns that the session is currently not alive.
-    val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
-      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
-      MockitoKt.whenever(this.isSessionAlive).thenReturn(false)
+    val mockSessionsManager = mock<SessionsManager>().apply {
+      whenever(this.studioProfilers).thenReturn(myProfilers)
+      whenever(this.isSessionAlive).thenReturn(false)
     }
     val mockProfilerTaskHandler = createMockProfilerTaskHandler(mockSessionsManager, mockArgs)
     val args = mockProfilerTaskHandler.enter(mockArgs)

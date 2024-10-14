@@ -15,19 +15,20 @@
  */
 package com.android.tools.profilers
 
-import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class InterimStageTest {
   @Test
   fun testStopActionExecuted() {
     var stopActionExecuted = false
-    val mockInterimStage = MockitoKt.mock<InterimStage>().apply {
-      MockitoKt.whenever(this.stopAction).thenReturn(Runnable {
+    val mockInterimStage = mock<InterimStage>().apply {
+      whenever(this.stopAction).thenReturn(Runnable {
         stopActionExecuted = true
       })
-      MockitoKt.whenever(stop()).thenCallRealMethod()
+      whenever(stop()).thenCallRealMethod()
     }
     mockInterimStage.stop()
     assertThat(stopActionExecuted).isTrue()

@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
@@ -23,6 +22,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class NativeCallStackSetTest {
   @Test

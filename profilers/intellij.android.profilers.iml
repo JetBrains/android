@@ -45,5 +45,6 @@
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>
