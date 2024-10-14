@@ -965,7 +965,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.appleTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -1373,7 +1372,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.commonMain
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -1432,7 +1430,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.commonTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -1496,7 +1493,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosArm64Main
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -1719,7 +1715,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosArm64Test
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -2126,7 +2121,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosMain
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -2355,7 +2349,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosSimulatorArm64Main
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -2578,7 +2571,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosSimulatorArm64Test
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -2985,7 +2977,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -3395,7 +3386,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosX64Main
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -3618,7 +3608,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.iosX64Test
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -4025,7 +4014,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2
@@ -4374,7 +4362,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.nativeTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -4780,7 +4767,6 @@ PROJECT                       : kotlinMultiPlatform
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2
@@ -6373,7 +6359,7 @@ PROJECT                       : kotlinMultiPlatform
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources, <PROJECT>::module2:compileJava
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

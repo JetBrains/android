@@ -229,11 +229,6 @@ class GradleTaskFinderWorker private constructor(
             cleanTasks = setOf(GradleBuilds.CLEAN_TASK_NAME),
             tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
           )
-          BuildMode.COMPILE_JAVA -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = emptySet(),
-            tasks = setOf(JavaPlugin.COMPILE_JAVA_TASK_NAME)
-          )
           else -> null
         }
       }
