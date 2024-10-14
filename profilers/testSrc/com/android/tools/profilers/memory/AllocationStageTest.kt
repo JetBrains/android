@@ -1,6 +1,5 @@
 package com.android.tools.profilers.memory
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -24,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.whenever
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -72,7 +72,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
       trackStatus = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build()
     }
     // Mark agent attached as false
-    MockitoKt.whenever(stage.isAgentAttached).thenReturn(false)
+    whenever(stage.isAgentAttached).thenReturn(false)
     ideProfilerServices.enableTaskBasedUx(true)
 
     // Wait for the 'update' of the studio profiler to be done
@@ -98,7 +98,7 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
       trackStatus = Memory.TrackStatus.newBuilder().setStatus(Memory.TrackStatus.Status.SUCCESS).build()
     }
     // Mark agent attached as false
-    MockitoKt.whenever(stage.isAgentAttached).thenReturn(false)
+    whenever(stage.isAgentAttached).thenReturn(false)
     ideProfilerServices.enableTaskBasedUx(false)
 
     // Wait for the 'update' of the studio profiler to be done

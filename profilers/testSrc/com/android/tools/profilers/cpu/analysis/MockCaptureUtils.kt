@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import org.mockito.Mockito
-
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
 
 object MockCaptureUtils {

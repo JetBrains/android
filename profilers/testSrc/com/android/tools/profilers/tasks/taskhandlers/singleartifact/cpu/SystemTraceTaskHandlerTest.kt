@@ -16,7 +16,6 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -50,10 +49,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito.spy
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoConfig
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
@@ -92,7 +91,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.N), false)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
@@ -104,7 +103,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.R), false)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
@@ -116,7 +115,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.R), false)
     // Simulate no ongoing recording, should not set the config as a consequence.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(false)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(false)
     // Should not throw an exception.
     mySystemTraceTaskHandlerMock.setupStage()
   }
@@ -127,7 +126,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.M), true)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
@@ -423,10 +422,10 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       myTimer
     ))
     val taskHomeTabModel = spy(profilersNow.taskHomeTabModel)
-    MockitoKt.whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
+    whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
     val sessionManagerNow = spy(profilersNow.sessionsManager)
-    MockitoKt.whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
-    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(
+    whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
+    whenever(taskHomeTabModel.selectedDevice).thenReturn(
       device?.let { ProfilerDeviceSelection(device.model, 30, true, false, device) })
     return SystemTraceTaskHandler(sessionManagerNow, taskBasedUxEnabled);
   }
