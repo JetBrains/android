@@ -416,6 +416,33 @@ public class WorkBenchTest extends WorkBenchTestCase {
     assertThat(component.isVisible()).isTrue();
   }
 
+  public void testShowToolWindow() {
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
+    // Minimize tool windows
+    myWorkBench.setContext("showToolWindow");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    assertThat(myModel.getAllTools().stream().allMatch(AttachedToolWindow::isMinimized)).isTrue();
+
+    myWorkBench.showToolWindow(myToolWindow2.getToolName());
+
+    assertThat(myToolWindow1.isMinimized()).isTrue();
+    assertThat(myToolWindow2.isMinimized()).isFalse();
+    assertThat(myToolWindow3.isMinimized()).isTrue();
+
+    // Show all toolwindows but minimize toolwindow2 and show it again
+    // to test that only windows on same side and split are minimized
+    myWorkBench.setContext("showToolWindow2");
+    myWorkBench.setDefaultPropertiesForContext(false);
+    assertThat(myModel.getAllTools().stream().noneMatch(AttachedToolWindow::isMinimized)).isTrue();
+    myToolWindow2.setMinimized(true);
+
+    myWorkBench.showToolWindow(myToolWindow2.getToolName());
+
+    assertThat(myToolWindow1.isMinimized()).isFalse();
+    assertThat(myToolWindow2.isMinimized()).isFalse();
+    assertThat(myToolWindow3.isMinimized()).isFalse();
+  }
+
   @SuppressWarnings("SameParameterValue")
   private void fireButtonDropped(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();

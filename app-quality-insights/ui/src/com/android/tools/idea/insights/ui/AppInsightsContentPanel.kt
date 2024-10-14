@@ -17,10 +17,12 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.studiobot.StudioBot
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
@@ -45,6 +47,9 @@ class AppInsightsContentPanel(
   name: String,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
   tableMouseListener: MouseListener? = null,
+  workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = {
+    WorkBench(project, name, null, it)
+  },
   createCenterPanel: ((Int) -> Unit) -> Component,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
@@ -67,11 +72,43 @@ class AppInsightsContentPanel(
         firstSize = min((toolWindow?.component?.width ?: 1350) / 3, 700)
       }
     splitter.isFocusCycleRoot = false
-    val workBench = WorkBench<AppInsightsToolWindowContext>(project, name, null, this)
+    val workBench = workBenchFactory(this)
     workBench.isFocusCycleRoot = false
     workBench.init(splitter, AppInsightsToolWindowContext(), secondaryToolWindows, false)
+    // Set the Insight toolwindow as the default for the first time user launches with this feature.
+    maybeRestoreToolWindowOrder(name, workBench, secondaryToolWindows.firstOrNull()?.name ?: "")
 
     add(workBench)
+  }
+
+  private fun maybeRestoreToolWindowOrder(
+    name: String,
+    workBench: WorkBench<AppInsightsToolWindowContext>,
+    firstToolWindowName: String,
+  ) {
+    if (name.contains("CRASHLYTICS") && StudioFlags.CRASHLYTICS_INSIGHT_IN_TOOLWINDOW.get()) {
+      restoreToolWindowOrder(name, workBench, firstToolWindowName)
+    } else if (name.contains("VITALS") && StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
+      restoreToolWindowOrder(name, workBench, firstToolWindowName)
+    }
+  }
+
+  /**
+   * Restore the default layout in [WorkBench] and show the tool window with name matching
+   * [toolWindowName]
+   */
+  private fun restoreToolWindowOrder(
+    name: String,
+    workBench: WorkBench<AppInsightsToolWindowContext>,
+    toolWindowName: String,
+  ) {
+    val propertiesComponent = PropertiesComponent.getInstance()
+    val key = "$name.workbench.toolwindow.order.updated"
+    if (!propertiesComponent.isValueSet(key)) {
+      workBench.restoreDefaultLayout()
+      workBench.showToolWindow(toolWindowName)
+      propertiesComponent.setValue(key, true)
+    }
   }
 
   override fun dispose() = Unit
