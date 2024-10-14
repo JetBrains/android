@@ -25,7 +25,6 @@ import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
-import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
@@ -80,6 +79,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -1273,7 +1273,7 @@ public class AndroidJavaDocRenderer {
         // HTMLEditorKit does not support alpha in colors. When we have alpha, we manually do the blending to remove
         // the alpha from the color.
         float alpha = color.getAlpha() / 255f;
-        Color backgroundColor = EditorColorsUtil.getGlobalOrDefaultColor(COLOR_KEY);
+        Color backgroundColor = EditorColorsUtil.getGlobalOrDefaultColor(EditorColors.DOCUMENTATION_COLOR);
         if (backgroundColor != null) {
           //noinspection UseJBColor,AssignmentToMethodParameter
           color = new Color(
