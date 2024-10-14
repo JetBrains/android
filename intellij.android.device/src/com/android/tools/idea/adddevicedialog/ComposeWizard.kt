@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -22,8 +28,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -32,14 +39,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBUI
 import java.awt.Dimension
-import java.awt.event.ActionEvent
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import javax.swing.Action
 import javax.swing.JComponent
-import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.DefaultButton
+import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.Text
 
 /**
  * A wizard dialog whose steps are implemented in Compose.
@@ -76,8 +86,14 @@ class ComposeWizard(
         pageStack.removeLast()
       }
 
+      override fun pageStackSize(): Int = pageStack.size
+
       override fun close() {
         close(OK_EXIT_CODE)
+      }
+
+      override fun cancel() {
+        close(CANCEL_EXIT_CODE)
       }
     }
 
@@ -87,25 +103,9 @@ class ComposeWizard(
 
   private val wizardPageScope =
     object : WizardPageScope() {
-      override var nextActionName by nextButton::name
-      override var finishActionName by finishButton::name
       override var nextAction by nextButton::action
       override var finishAction by finishButton::action
     }
-
-  private inner class WizardButton(name: String) : DialogWrapper.DialogWrapperAction(name) {
-    var name by mutableStateOf(name)
-    var action by mutableStateOf(WizardAction.Disabled)
-
-    init {
-      dialogScope.launch { snapshotFlow(::name).collect { putValue(Action.NAME, it) } }
-      dialogScope.launch { snapshotFlow(::action).collect { isEnabled = it.enabled } }
-    }
-
-    override fun doAction(e: ActionEvent?) {
-      action.action?.let { wizardDialogScope.apply(it) }
-    }
-  }
 
   init {
     this.title = title
@@ -113,15 +113,14 @@ class ComposeWizard(
   }
 
   override fun createActions(): Array<Action> {
-    return arrayOf(cancelAction, prevButton, nextButton, finishButton)
+    return arrayOf()
   }
 
   // Don't include the default border; our banners need to span the entire width
   override fun createContentPaneBorder() = null
 
-  // Add the default border to the button panel
-  override fun createSouthPanel(): JComponent =
-    super.createSouthPanel().apply { border = super.createContentPaneBorder() }
+  // Don't include the bottom panel; we'll make buttons ourselves
+  override fun createSouthPanel(): JComponent? = null
 
   override fun createCenterPanel(): JComponent {
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
@@ -129,7 +128,7 @@ class ComposeWizard(
       CompositionLocalProvider(LocalProject provides project) {
         prevButton.action =
           if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
-        wizardPageScope.apply { currentPage() }
+        wizardPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
       }
     }
     component.preferredSize = DEFAULT_PREFERRED_SIZE
@@ -139,13 +138,63 @@ class ComposeWizard(
   }
 }
 
+@Composable
+internal fun WizardPageScope.WizardPageScaffold(
+  wizardDialogScope: WizardDialogScope,
+  content: @Composable WizardPageScope.() -> Unit,
+) {
+  Column {
+    Box(Modifier.weight(1f)) { content() }
+    Divider(Orientation.Horizontal)
+    WizardButtonBar(
+      wizardDialogScope,
+      modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
+    )
+  }
+}
+
+@Composable
+internal fun WizardPageScope.WizardButtonBar(
+  wizardDialogScope: WizardDialogScope,
+  modifier: Modifier = Modifier,
+) {
+  with(wizardDialogScope) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+      for (button in leftSideButtons) {
+        OutlinedButton(onClick = { button.action.action?.let { it() } }) { Text(button.name) }
+      }
+      Spacer(Modifier.weight(1f))
+      OutlinedButton(onClick = { cancel() }) { Text("Cancel") }
+      OutlinedButton(onClick = { popPage() }, enabled = pageStackSize() > 1) { Text("Previous") }
+      OutlinedButton(onClick = { nextAction.action?.let { it() } }, enabled = nextAction.enabled) {
+        Text("Next")
+      }
+      DefaultButton(
+        onClick = { finishAction.action?.let { it() } },
+        enabled = finishAction.enabled,
+      ) {
+        Text("Finish")
+      }
+    }
+  }
+}
+
 /** Scope providing access to operations allowed in WizardActions. */
 interface WizardDialogScope {
   fun pushPage(page: @Composable WizardPageScope.() -> Unit)
 
   fun popPage()
 
+  fun pageStackSize(): Int
+
   fun close()
+
+  fun cancel()
+}
+
+class WizardButton(name: String, action: WizardAction = WizardAction.Disabled) {
+  var name by mutableStateOf(name)
+  var action by mutableStateOf(action)
 }
 
 /** The action state of a wizard button: whether it is enabled, and if so, its behavior. */
@@ -163,10 +212,10 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
  * their behavior.
  */
 abstract class WizardPageScope {
-  abstract var nextActionName: String
-  abstract var finishActionName: String
   abstract var nextAction: WizardAction
   abstract var finishAction: WizardAction
+
+  var leftSideButtons by mutableStateOf(emptyList<WizardButton>())
 
   private val state = mutableStateMapOf<Any, Any>()
 

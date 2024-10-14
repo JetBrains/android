@@ -65,6 +65,8 @@ internal class LocalVirtualDeviceSource(
   override fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
     nextAction = WizardAction {
       pushPage {
+        leftSideButtons = emptyList()
+
         val deviceNameValidator = DeviceNameValidator.createForAvdManager(avdManager)
         ConfigurationPage(
           VirtualDevice.withDefaults(profile.device)

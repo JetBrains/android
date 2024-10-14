@@ -35,8 +35,7 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
   fun Content() {
     prevAction =
       if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
-
-    pageStack.last()()
+    WizardPageScaffold(this, pageStack.last())
   }
 
   override fun pushPage(page: @Composable WizardPageScope.() -> Unit) {
@@ -47,9 +46,15 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
     pageStack.removeLast()
   }
 
+  override fun pageStackSize(): Int = pageStack.size
+
   private val closeLatch = CountDownLatch(1)
 
   override fun close() {
+    closeLatch.countDown()
+  }
+
+  override fun cancel() {
     closeLatch.countDown()
   }
 
@@ -58,9 +63,6 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
       throw TimeoutException("Close did not occur after $timeout")
     }
   }
-
-  override var nextActionName by mutableStateOf("Next")
-  override var finishActionName by mutableStateOf("Finish")
 
   override var nextAction by mutableStateOf(WizardAction.Disabled)
   override var finishAction by mutableStateOf(WizardAction.Disabled)
