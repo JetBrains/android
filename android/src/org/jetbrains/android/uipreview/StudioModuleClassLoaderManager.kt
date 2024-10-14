@@ -65,15 +65,21 @@ private fun throwIfNotUnitTest(e: Exception) =
 private class ModuleClassLoaderProjectHelperService(val project: Project) :
   ProjectSystemBuildManager.BuildListener, Disposable {
   init {
-    try {
-      ProjectSystemService.getInstance(project)
-        .projectSystem
-        .getBuildManager()
-        .addBuildListener(this, this)
-    } catch (e: IllegalStateException) {
-      throwIfNotUnitTest(e)
-    } catch (e: UnsupportedOperationException) {
-      throwIfNotUnitTest(e)
+    // IntelliJ might sometimes create project services even when the project is in the
+    // process of being disposed.
+    if (!project.isDisposed) {
+      try {
+        ProjectSystemService.getInstance(project)
+          .projectSystem
+          .getBuildManager()
+          .addBuildListener(this, this)
+      }
+      catch (e: IllegalStateException) {
+        throwIfNotUnitTest(e)
+      }
+      catch (e: UnsupportedOperationException) {
+        throwIfNotUnitTest(e)
+      }
     }
   }
 
