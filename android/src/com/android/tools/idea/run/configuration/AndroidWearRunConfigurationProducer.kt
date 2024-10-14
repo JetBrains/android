@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
@@ -51,7 +51,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
       return false
     }
     val serviceName = psiClass.qualifiedName ?: return false
-    val module = context.module?.getHolderModule() ?: return false
+    val module = context.module?.getModuleSystem()?.getHolderModule() ?: return false
 
     configuration.name = JavaExecutionUtil.getPresentableClassName(serviceName)!!
     configuration.setModule(module)

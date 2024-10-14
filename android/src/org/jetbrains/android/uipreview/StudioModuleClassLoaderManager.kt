@@ -17,7 +17,7 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.util.androidFacet
@@ -291,11 +291,11 @@ class StudioModuleClassLoaderManager :
     holders
       .keySet()
       .toList()
-      .filter { it.module?.getHolderModule() == module.getHolderModule() }
+      .filter { it.module?.getModuleSystem()?.getHolderModule() == module.getModuleSystem().getHolderModule() }
       // This removes the entry for all class loaders whose module's holder module is the same as `module`'s holder module, so...
       .forEach { holders.remove(it) }
     // TODO(someone): shouldn't this be the set of all linked modules, rather than just `module` and the holder module?
-    setOf(module.getHolderModule(), module).forEach(::clearModuleData)
+    setOf(module.getModuleSystem().getHolderModule(), module).forEach(::clearModuleData)
   }
 
   @Synchronized

@@ -23,7 +23,7 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.projectsystem.isContainedBy
@@ -90,7 +90,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     // it returns false, which is not always the case with AndroidTestRunConfiguration when the producer
     // is invoked from test result panel.
     // So here we just use either the contextModule's holder module or the configuration module.
-    return contextModule?.getHolderModule() ?: configuration.configurationModule.module
+    return contextModule?.getModuleSystem()?.getHolderModule() ?: configuration.configurationModule.module
   }
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {

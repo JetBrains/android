@@ -122,7 +122,7 @@ class GradleModuleSystem(
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
-    SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+    SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module.getHolderModule()) {
 
   override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
@@ -652,6 +652,8 @@ class GradleModuleSystem(
     null -> super.getProductionAndroidModule()
     else -> linkedModuleData.main
   }
+
+  override fun getHolderModule(): Module = module.getHolderModule()
 
   override fun isValidForAndroidRunConfiguration() = when(type) {
     Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isHolderModule()
