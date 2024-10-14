@@ -17,6 +17,7 @@ package com.android.tools.idea.whatsnew.assistant;
 
 import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
 
+import com.android.tools.idea.AndroidStudioResourceUrls;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.AssistantToolWindowService;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
@@ -29,7 +30,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -111,7 +111,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction implement
   }
 
   private static void browseToWhatsNewUrl() {
-    BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
+    BrowserUtil.browse(ApplicationManager.getApplication().getService(AndroidStudioResourceUrls.class).getWhatIsNewPageUrl().toString());
   }
 
   public static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
