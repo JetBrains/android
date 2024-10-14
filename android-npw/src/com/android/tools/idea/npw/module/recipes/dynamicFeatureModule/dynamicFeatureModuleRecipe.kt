@@ -28,6 +28,7 @@ import com.android.tools.idea.npw.module.recipes.addTestDependencies
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
 import com.android.tools.idea.npw.module.recipes.gitignore
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -78,6 +79,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
 
   applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
   addKotlinIfNeeded(projectData, targetApi = targetApi.api)
+  setJavaKotlinCompileOptions(language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))

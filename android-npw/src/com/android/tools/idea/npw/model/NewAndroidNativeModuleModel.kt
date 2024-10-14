@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidMo
 import com.android.tools.idea.npw.module.recipes.ndk.generateBasicJniBindings
 import com.android.tools.idea.npw.module.recipes.ndk.generateCMakeFile
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -77,7 +76,6 @@ class NewAndroidNativeModuleModel(
           data = data,
           appTitle = applicationName.get(),
           useKts = useGradleKts.get(),
-          bytecodeLevel = BytecodeLevel.default,
           enableCpp = true,
           cppStandard = cppStandard.value,
           useVersionCatalog = useVersionCatalog.get()

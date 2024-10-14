@@ -61,27 +61,12 @@ fun macrobenchmarksBuildGradle(
     addReceiverIfKts = { this }
   }
 
-  val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
-    """
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    """
-  }
-
   return """
 ${emptyPluginsBlock()}
 
 android {
     namespace '$packageName'
     ${toAndroidFieldVersion("compileSdk", apis.buildApi.apiString, agpVersion)}
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    $kotlinOptionsBlock
 
     defaultConfig {
         ${toAndroidFieldVersion("minSdk", apis.minApi.apiString, agpVersion)}

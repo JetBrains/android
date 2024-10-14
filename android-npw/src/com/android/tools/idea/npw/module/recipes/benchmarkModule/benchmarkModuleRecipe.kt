@@ -79,4 +79,5 @@ fun RecipeExecutor.generateBenchmarkModule(
   }
 
   addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
+  setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

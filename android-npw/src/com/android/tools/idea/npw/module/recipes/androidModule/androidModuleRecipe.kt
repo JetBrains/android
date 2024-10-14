@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemesMaterial3
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
@@ -35,7 +34,6 @@ fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
   useKts: Boolean,
-  bytecodeLevel: BytecodeLevel,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   useVersionCatalog: Boolean = true,
@@ -66,7 +64,6 @@ fun RecipeExecutor.generateAndroidModule(
     colorsXml = if (isMaterial3 && !data.isCompose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard,
-    bytecodeLevel = bytecodeLevel,
     useVersionCatalog = useVersionCatalog
   )
   val projectData = data.projectTemplateData

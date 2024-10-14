@@ -39,6 +39,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.Optional
+import java.io.File
 
 
 @RunWith(Parameterized::class)
@@ -98,6 +99,8 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     createDefaultDynamicFeatureModel(project, "feature1", baseModule, useGradleKts, emptyProjectSyncInvoker)
     createDefaultDynamicFeatureModel(project, "feature2", baseModule, useGradleKts, emptyProjectSyncInvoker)
 
+    checkBuildGradleJavaVersion("feature1")
+    checkBuildGradleJavaVersion("feature2")
     assembleDebugProject()
   }
 
@@ -114,8 +117,10 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
       category = Category.Activity,
       isLibrary = true
     )
-    generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts) // Base module is always kts for this test
+    val moduleName = "mylibrary"
+    generateModuleFiles(project, libModuleModel, moduleName, useGradleKts) // Base module is always kts for this test
 
+    checkBuildGradleJavaVersion(moduleName)
     assembleDebugProject()
   }
 
@@ -134,6 +139,7 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     libModuleModel.language.set(Optional.of(Language.Kotlin))
     generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts)
 
+    checkBuildGradleJavaVersion("mylibrary")
     assembleDebugProject()
 
     // Also run :mylibrary:compileKotlin to ensure there is no JVM target compatibility issue,
@@ -148,6 +154,18 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useV
     projectRule.invokeTasks("assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
+    }
+  }
+
+  private fun checkBuildGradleJavaVersion(moduleName: String) {
+    val project = projectRule.project
+    if (useGradleKts) {
+      assertTrue(File(project.basePath!!).resolve(moduleName).resolve("build.gradle.kts").readText()
+                   .contains("sourceCompatibility = JavaVersion.VERSION_11"))
+    }
+    else {
+      assertTrue(File(project.basePath!!).resolve(moduleName).resolve("build.gradle").readText()
+                   .contains("sourceCompatibility JavaVersion.VERSION_11"))
     }
   }
 }

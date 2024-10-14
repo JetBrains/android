@@ -33,14 +33,6 @@ fun buildGradle(
   useGradleKts: Boolean,
   useVersionCatalog: Boolean
 ): String {
-  val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
-    """
-   kotlinOptions {
-      jvmTarget = "11"
-   }
-  """
-  }
-
   val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
@@ -60,13 +52,6 @@ ${emptyPluginsBlock()}
 android {
     namespace '$packageName'
     ${toAndroidFieldVersion("compileSdk", buildApiString, agpVersion)}
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    $kotlinOptionsBlock
 
     defaultConfig {
         ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}

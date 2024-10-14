@@ -31,7 +31,6 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -94,8 +93,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
             this.generateAndroidModule(
               data as ModuleTemplateData,
               appTitle,
-              false,
-              BytecodeLevel.default
+              false
             )
           }
         FormFactor.Wear -> { data: TemplateData ->
