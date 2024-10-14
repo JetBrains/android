@@ -99,7 +99,7 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null {
 methods=[getValue]
 }
 private rvalue ::= factory | property | literal
