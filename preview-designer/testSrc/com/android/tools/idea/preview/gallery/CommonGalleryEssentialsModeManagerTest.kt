@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.preview.gallery
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
@@ -38,6 +36,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class CommonGalleryEssentialsModeManagerTest {
 

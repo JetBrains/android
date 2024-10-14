@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -27,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class PreviewElementProviderTest {
   @Test

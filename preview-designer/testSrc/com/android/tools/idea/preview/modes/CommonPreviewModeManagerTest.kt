@@ -1,6 +1,5 @@
 package com.android.tools.idea.preview.modes
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.preview.PreviewElement
@@ -10,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class CommonPreviewModeManagerTest {
 

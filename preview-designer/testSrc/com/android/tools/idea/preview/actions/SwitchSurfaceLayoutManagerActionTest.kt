@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.preview.TestPreviewElement
@@ -38,6 +36,8 @@ import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class SwitchSurfaceLayoutManagerActionTest {
 

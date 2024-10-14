@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation.state
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.Presentation
@@ -30,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ColorPickerActionTest {
   @get:Rule val projectRule = ApplicationRule()
