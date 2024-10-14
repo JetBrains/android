@@ -41,6 +41,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
@@ -397,23 +398,26 @@ internal fun createWearHealthServicesPanel(
       )
     }
 
+  val header =
+    createWearHealthServicesPanelHeader(
+      stateManager = stateManager,
+      uiScope = uiScope,
+      triggerEvent = { triggerEvent(it) },
+    )
+
   return WearHealthServicesPanel(
     component =
       JPanel(BorderLayout()).apply {
-        add(
-          createWearHealthServicesPanelHeader(
-            stateManager = stateManager,
-            uiScope = uiScope,
-            triggerEvent = { triggerEvent(it) },
-          ),
-          BorderLayout.NORTH,
-        )
+        add(header, BorderLayout.NORTH)
         add(content, BorderLayout.CENTER)
         add(footer, BorderLayout.SOUTH)
 
         isFocusCycleRoot = true
         isFocusTraversalPolicyProvider = true
-        focusTraversalPolicy = LayoutFocusTraversalPolicy()
+        focusTraversalPolicy =
+          object : LayoutFocusTraversalPolicy() {
+            override fun getFirstComponent(aContainer: Container?) = header
+          }
       }
   )
 }
