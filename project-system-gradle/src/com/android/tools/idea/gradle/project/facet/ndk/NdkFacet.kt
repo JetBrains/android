@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.facet.ndk
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.VariantAbi
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeId

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.kmp
 
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer.Companion.OPTIONS_EP

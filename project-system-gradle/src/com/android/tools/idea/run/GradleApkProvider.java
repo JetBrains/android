@@ -59,11 +59,11 @@ import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -83,7 +83,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -632,7 +631,7 @@ public final class GradleApkProvider implements ApkProvider {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
           Project project = myFacet.getModule().getProject();
-          GradleProjectPath projectPath = getGradleProjectPath(ModuleSystemUtil.getHolderModule(myFacet.getModule()));
+          GradleProjectPath projectPath = getGradleProjectPath(LinkedAndroidModuleGroupUtilsKt.getHolderModule(myFacet.getModule()));
           if (projectPath == null) return null;
           GradleProjectPath targetProjectPath = new GradleHolderProjectPath(projectPath.getBuildRoot(), targetGradlePath);
           return resolveIn(targetProjectPath, project);

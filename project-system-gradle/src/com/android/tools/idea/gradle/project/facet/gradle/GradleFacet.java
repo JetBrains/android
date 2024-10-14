@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.facet.gradle;
 
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -38,7 +38,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @Nullable
   public static GradleFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    return modelsProvider.getModifiableFacetModel(ModuleSystemUtil.getHolderModule(module)).getFacetByType(TYPE_ID);
+    return modelsProvider.getModifiableFacetModel(LinkedAndroidModuleGroupUtilsKt.getHolderModule(module)).getFacetByType(TYPE_ID);
   }
 
   public static boolean isAppliedTo(@NotNull Module module) {
@@ -47,7 +47,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @Nullable
   public static GradleFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(ModuleSystemUtil.getHolderModule(module)).getFacetByType(getFacetTypeId());
+    return FacetManager.getInstance(LinkedAndroidModuleGroupUtilsKt.getHolderModule(module)).getFacetByType(getFacetTypeId());
   }
 
   public GradleFacet(@NotNull Module module,

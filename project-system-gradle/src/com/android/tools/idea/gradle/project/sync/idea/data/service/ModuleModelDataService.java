@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.ModuleModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -71,7 +71,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
 
         final String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
         if (projectData.getLinkedExternalProjectPath().equals(rootProjectPath)) {
-          if (modelsByModuleName.get(ModuleSystemUtil.getHolderModule(module).getName()) == null) {
+          if (modelsByModuleName.get(LinkedAndroidModuleGroupUtilsKt.getHolderModule(module).getName()) == null) {
             orphanIdeModules.add(module);
           }
         }

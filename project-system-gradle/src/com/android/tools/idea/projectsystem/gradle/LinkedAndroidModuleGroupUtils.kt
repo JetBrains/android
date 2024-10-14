@@ -16,7 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -59,3 +59,4 @@ fun Module.isMainModule() : Boolean = getMainModule() == this
 fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
+fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this

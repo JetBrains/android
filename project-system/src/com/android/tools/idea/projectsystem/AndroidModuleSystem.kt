@@ -517,8 +517,6 @@ data class LinkedAndroidGradleModuleGroup(
  */
 val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
-
 fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem().getProductionAndroidModule() ?: module
 
 /**
