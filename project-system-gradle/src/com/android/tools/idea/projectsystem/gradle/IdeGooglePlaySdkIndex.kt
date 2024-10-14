@@ -31,6 +31,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_IN
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_NON_COMPLIANT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_UPDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LOADED_CORRECTLY
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
@@ -138,6 +139,33 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     initialize()
     showNotesFromDeveloper = StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER.get()
     showRecommendedVersions = StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS.get()
+  }
+
+  /**
+   * Log that an update library version quick fix is applied
+   *
+   * @param groupId: group id for library coordinates
+   * @param artifactId: artifact id for library coordinates
+   * @param oldVersionString: current version of the library
+   * @param newVersionString: version that was replaced by the fix
+   * @param file: file where this library is being used
+   */
+  fun logUpdateLibraryVersionFixApplied(groupId: String,
+                                        artifactId: String,
+                                        oldVersionString: String,
+                                        newVersionString: String,
+                                        file: File?) {
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, oldVersionString)
+    val event = createTrackerEvent(file, SDK_INDEX_LIBRARY_UPDATED)
+    event.setSdkIndexLibraryDetails(
+      SdkIndexLibraryDetails.newBuilder()
+        .setGroupId(groupId)
+        .setArtifactId(artifactId)
+        .setVersionString(oldVersionString)
+        .setUpdatedVersionString(newVersionString)
+        .setIsBlocking(isBlocking)
+    )
+    UsageTracker.log(event)
   }
 
   private fun findProject(file: File): Project? {

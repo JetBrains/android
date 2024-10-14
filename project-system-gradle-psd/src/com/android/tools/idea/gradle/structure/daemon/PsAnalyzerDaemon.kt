@@ -253,15 +253,14 @@ class PsAnalyzerDaemon(
  * @return The list of issues from the SDK index for the given library, empty if no issues are present
  */
 fun getSdkIndexIssueFor(dependency: PsDeclaredLibraryDependency,
-                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex,
                         availableUpdates: AvailableLibraryUpdateStorage? = null): List<PsGeneralIssue> {
-  val updateFixes = generateUpdateFixesForSdkIndex(dependency, sdkIndex, availableUpdates)
-  return getSdkIndexIssueFor(dependency.spec, dependency.path, dependency.parent.rootDir, sdkIndex, updateFixes)
+  val updateFixes = generateUpdateFixesForSdkIndex(dependency, availableUpdates)
+  return getSdkIndexIssueFor(dependency.spec, dependency.path, dependency.parent.rootDir, updateFixes)
 }
 
 private fun generateUpdateFixesForSdkIndex(dependency: PsDeclaredLibraryDependency,
-                                   sdkIndex: GooglePlaySdkIndex,
                                    availableUpdates: AvailableLibraryUpdateStorage?): List<PsQuickFix> {
+  val sdkIndex = IdeGooglePlaySdkIndex
   val dependencySpec = dependency.spec
   val groupId = dependencySpec.group?: return listOf()
   val artifactId = dependencySpec.name
@@ -301,15 +300,21 @@ private fun generateUpdateFixesForSdkIndex(dependency: PsDeclaredLibraryDependen
   return if (versionToUpdateTo != null) {
     val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
     val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
+    val onUpdateCallback: (() -> Unit)? = if (dependencySpec.version != null) ({
+      sdkIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, dependency.version.toString(), versionToUpdateTo.toString(), null)
+    })
+    else {
+      null
+    }
     if (valueIsReference) {
       listOf(
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true, addVersionInText = true),
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false, addVersionInText = true),
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true, addVersionInText = true, onUpdate = onUpdateCallback),
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false, addVersionInText = true, onUpdate = onUpdateCallback),
       )
     }
     else {
       listOf(
-        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), addVersionInText = true),
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), addVersionInText = true, onUpdate = onUpdateCallback),
       )
     }
   }
@@ -322,8 +327,8 @@ private fun generateUpdateFixesForSdkIndex(dependency: PsDeclaredLibraryDependen
 fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
                         libraryPath: PsPath,
                         parentModuleRootDir: File?,
+                        updateFixes: List<PsQuickFix> = listOf(),
                         sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex,
-                        updateFixes: List<PsQuickFix> = listOf()
 ): List<PsGeneralIssue> {
   val groupId = dependencySpec.group ?: return emptyList()
   val versionString = dependencySpec.version ?: return emptyList()
