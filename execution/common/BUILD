@@ -85,6 +85,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

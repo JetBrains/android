@@ -18,8 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
@@ -45,6 +43,9 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import io.ktor.util.reflect.instanceOf
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -230,11 +231,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val activator = Mockito.mock(Activator::class.java)
+    val activator = mock<Activator>()
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+      .whenever(activator).activate(any(), any(), any<AppComponent.Mode>(), any(), any())
 
-    val app = Mockito.mock(App::class.java)
+    val app = mock<App>()
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidTileConfigurationExecutor(
       env,

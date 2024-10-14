@@ -16,13 +16,14 @@
 package com.android.tools.idea.execution.common.applychanges
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.replaceService
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 fun setExecutionTargetForConfiguration(project: Project, device: IDevice?, config: RunConfiguration, testRootDisposable: Disposable) {
   val executionTarget = object : AndroidExecutionTarget() {
@@ -37,10 +38,10 @@ fun setExecutionTargetForConfiguration(project: Project, device: IDevice?, confi
     override fun getRunningDevices() = if (device == null) emptyList() else listOf(device)
   }
 
-  val executionTargetManager = MockitoKt.mock<ExecutionTargetManager>()
+  val executionTargetManager = mock<ExecutionTargetManager>()
     .also {
-      MockitoKt.whenever(it.activeTarget).thenReturn(executionTarget)
-      MockitoKt.whenever(it.getTargetsFor(config)).thenReturn(listOf(executionTarget))
+      whenever(it.activeTarget).thenReturn(executionTarget)
+      whenever(it.getTargetsFor(config)).thenReturn(listOf(executionTarget))
     }
   project.replaceService(ExecutionTargetManager::class.java, executionTargetManager, testRootDisposable)
 }

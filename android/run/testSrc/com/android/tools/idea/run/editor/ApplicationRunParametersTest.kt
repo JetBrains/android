@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -25,7 +24,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.event.ActionEvent
 
 class ApplicationRunParametersTest {
@@ -37,7 +37,7 @@ class ApplicationRunParametersTest {
 
   @Before
   fun setUp() {
-    myModuleSelector = mock(ConfigurationModuleSelector::class.java)
+    myModuleSelector = mock<ConfigurationModuleSelector>()
     myApplicationRunParameters = ApplicationRunParameters(projectRule.project, myModuleSelector)
   }
 
@@ -46,7 +46,7 @@ class ApplicationRunParametersTest {
     whenever(myModuleSelector.module).thenReturn(null)
     val myInstantAppDeployCheckbox = ApplicationRunParameters::class.java.getDeclaredField("myInstantAppDeployCheckBox")
     myInstantAppDeployCheckbox.isAccessible = true
-    val event = mock(ActionEvent::class.java)
+    val event = mock<ActionEvent>()
     whenever(event.source).thenReturn(myInstantAppDeployCheckbox.get(myApplicationRunParameters))
     myApplicationRunParameters.actionPerformed(event)
   }

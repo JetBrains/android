@@ -18,13 +18,13 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlin.jvm.internal.Ref.BooleanRef
 
 class AttachOnWaitForDebuggerMonitorTest {

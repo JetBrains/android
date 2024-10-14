@@ -19,7 +19,6 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -37,6 +36,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class DeviceSelectorIntegrationTest {
   @get:Rule val edtRule = EdtRule()

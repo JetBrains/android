@@ -32,7 +32,6 @@ import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -56,6 +55,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal fun handleId(id: String) = DeviceId("Test", false, id)
 
@@ -83,8 +84,8 @@ internal class FakeDeviceHandle(
    * Does not update the state of any actions.
    */
   fun connectToMockDevice(): ConnectedDevice =
-    MockitoKt.mock<ConnectedDevice>().also { mockDevice ->
-      MockitoKt.whenever(mockDevice.deviceInfoFlow)
+    mock<ConnectedDevice>().also { mockDevice ->
+      whenever(mockDevice.deviceInfoFlow)
         .thenReturn(MutableStateFlow(DeviceInfo("SN1234", com.android.adblib.DeviceState.ONLINE)))
       stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
     }
@@ -171,7 +172,7 @@ internal fun createDevice(
   val device =
     DeploymentTargetDevice(
       DeviceHandleAndroidDevice(
-        MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
+        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
         handle.state,
       ),
@@ -194,7 +195,7 @@ internal fun createTemplate(
     DeploymentTargetDevice(
       DeviceTemplateAndroidDevice(
         scope,
-        MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
+        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
       ),
       connectionTime,

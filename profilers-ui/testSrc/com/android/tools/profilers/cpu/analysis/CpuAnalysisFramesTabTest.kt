@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
@@ -26,7 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import org.junit.Test
 import org.mockito.Mockito
-
+import org.mockito.kotlin.whenever
 import javax.swing.JTable
 
 class CpuAnalysisFramesTabTest {
