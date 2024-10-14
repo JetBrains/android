@@ -45,6 +45,7 @@ import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
@@ -649,6 +650,11 @@ class GradleModuleSystem(
   override fun getDisplayNameForModuleGroup(): String = module.getHolderModule().name
 
   override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
+
+  override fun getProductionAndroidModule() = when (val linkedModuleData = module.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)) {
+    null -> super.getProductionAndroidModule()
+    else -> linkedModuleData.main
+  }
 
   override fun isValidForAndroidRunConfiguration() = when(type) {
     Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isHolderModule()

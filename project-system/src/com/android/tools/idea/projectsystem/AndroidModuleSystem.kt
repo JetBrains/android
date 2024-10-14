@@ -29,8 +29,6 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -400,6 +398,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun isProductionAndroidModule() = AndroidFacet.getInstance(module) != null
 
   /**
+   * Given a module, return a module associated with it ("associated" by the Module System, possibly the module itself) containing
+   * production sources.
+   */
+  fun getProductionAndroidModule(): Module? = module.takeIf { isProductionAndroidModule() }
+
+  /**
    * Is this module suitable for use in an [AndroidRunConfiguration] editor?
    */
   fun isValidForAndroidRunConfiguration() = when(type) {
@@ -507,10 +511,11 @@ data class LinkedAndroidGradleModuleGroup(
  */
 val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
-
 fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
 
 fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
+
+fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem().getProductionAndroidModule() ?: module
 
 /**
  * Returns the type of Android project this module represents.

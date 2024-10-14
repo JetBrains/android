@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -94,7 +94,8 @@ class GoToAndroidResourceContributorTest {
     val result = searchResults[selectResult]
     assertThat(result).isInstanceOf(NavigationItem::class.java)
     val textWithIcon = ModuleRendererFactory.findInstance(result).getModuleTextWithIcon(result)
-    assertThat(textWithIcon!!.text).isEqualTo(projectRule.module.getMainModule().name)
+    assertThat(textWithIcon!!.text)
+      .isEqualTo(projectRule.module.getModuleSystem().getProductionAndroidModule()!!.name)
     assertThat(textWithIcon.icon).isEqualTo(AllIcons.Nodes.Module)
     assertThat((result as NavigationItem).presentation!!.getIcon(false)).isNotNull()
     UIUtil.dispatchAllInvocationEvents()

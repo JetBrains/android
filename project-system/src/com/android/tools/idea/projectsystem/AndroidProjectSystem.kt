@@ -249,14 +249,14 @@ fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModu
 
 
 /**
- * Returns a list of all Android holder modules. These are the intellij [Module] objects that correspond to an emptyish (no roots/deps)
- * module that contains the other source set modules as children. If you need to obtain the actual module for the currently active source
- * set then please use [getMainModule] on the return [Module] objects.
+ * Returns a list of all Android holder modules. For Gradle projects, these are the intellij [Module] objects that correspond to
+ * an emptyish (no roots/deps) module that contains the other source set modules as children. If you need to obtain the module for
+ * the currently active production source set, use [AndroidModuleSystem.getProductionAndroidModule] on the returned [Module] objects.
  */
 fun Project.getAndroidModulesForDisplay(): List<Module> = getProjectSystem().getAndroidFacets().map { it.module }
 
 /**
- * Returns a list of the substantively-distinct [AndroidFacet]s in the project.
+ * Returns a list of the substantively-distinct [AndroidFacet]s in the project.need
  *
  * Note: there might be modules in the project that the project system associates with [AndroidFacet], which are not returned from this
  * method; for example, representing individual SourceSets as IDEA [Module]s each with an [AndroidFacet] attached.  Facets corresponding
