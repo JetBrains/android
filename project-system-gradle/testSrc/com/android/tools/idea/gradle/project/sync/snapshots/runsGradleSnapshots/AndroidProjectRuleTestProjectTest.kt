@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots.runsGradleSnapshots
 
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidProjectRule

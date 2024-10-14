@@ -134,7 +134,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assert unitTestModule != null;
 
     // In the beginning only androidTest includes the GSON dependency
-    Module androidTestModule = ModuleSystemUtil.getAndroidTestModule(module1holderModule);
+    Module androidTestModule = LinkedAndroidModuleGroupUtilsKt.getAndroidTestModule(module1holderModule);
     assert androidTestModule != null;
 
     Module mainModule = ModuleSystemUtil.getMainModule(module1holderModule);

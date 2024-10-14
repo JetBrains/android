@@ -512,10 +512,6 @@ fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE
 
 fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
 
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
-
-fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
-
 /**
  * Returns the type of Android project this module represents.
  */
