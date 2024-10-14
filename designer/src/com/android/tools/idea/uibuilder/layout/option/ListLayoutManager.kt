@@ -35,14 +35,13 @@ import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.min
-import org.jetbrains.annotations.ApiStatus
 
 /**
  * Experimental list layout. All previews are organized in groups.
  *
  * TODO(b/321949200) Add tests
  */
-@ApiStatus.Experimental
+@Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 class ListLayoutManager(
   private val padding: OrganizationPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,

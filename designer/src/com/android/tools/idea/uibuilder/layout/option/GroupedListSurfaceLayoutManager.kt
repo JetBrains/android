@@ -41,6 +41,7 @@ import kotlin.math.max
  *
  * @param padding layout paddings
  */
+@Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 class GroupedListSurfaceLayoutManager(
   private val padding: GroupPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,

@@ -64,6 +64,7 @@ private const val minumumPreviewSpacePx = 100 * 100
  * ---------
  * @param padding layout paddings
  */
+@Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 open class GroupedGridSurfaceLayoutManager(
   private val padding: GroupPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,

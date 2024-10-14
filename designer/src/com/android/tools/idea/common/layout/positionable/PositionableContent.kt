@@ -73,9 +73,11 @@ internal fun Collection<PositionableContent>.sortByPosition() =
   sortedWith(compareBy({ it.y }, { it.x }))
 
 /** Get the margin with the current [PositionableContent.scale] value. */
+@Deprecated("Use PositionableContent properties directly")
 val PositionableContent.margin: Insets
   get() = getMargin(scale)
 
+@Deprecated("Use PositionableContent properties directly")
 val PositionableContent.scaledContentSize: Dimension
   @SwingCoordinate get() = getScaledContentSize(Dimension())
 
@@ -89,6 +91,7 @@ val PositionableContent.scaledContentSize: Dimension
  *   values will be set and this instance returned.
  */
 @SwingCoordinate
+@Deprecated("Use PositionableContent properties directly")
 fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
   getContentSize(dimension).scaleBy(scale)
 
@@ -103,6 +106,7 @@ fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension =
  *   ([PositionableContent.topPanelHeight] is not affected by this value.
  * @returns the scaled height plus the offset that is not subject for scale change.
  */
+@Deprecated("Use PositionableContent properties directly")
 fun PositionableContent.calculateHeightWithVerticalMargins(height: Int, scale: Double): Int {
   // contentSize takes into account top panel, when we apply the scale we also multiply the size of
   // the top panel.
