@@ -195,3 +195,6 @@ fun createInsightToolBar(place: String, target: JComponent) =
     }
 
 val MINIMUM_ACTION_BUTTON_SIZE = JBUI.size(26)
+
+/** Used by toolbars to ensure they are of the same height. */
+fun commonToolbarHeight() = JBUI.scale(35)

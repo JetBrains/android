@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.selectionOf
+import com.android.tools.idea.insights.ui.AppInsightsToolbar
 import com.android.tools.idea.insights.ui.OfflineBalloonMaker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
@@ -36,7 +37,6 @@ import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -227,9 +227,7 @@ class VitalsTab(
   private fun createToolbar(): ActionToolbar {
     val group = DefaultActionGroup()
     val actionToolbar =
-      ActionManager.getInstance().createActionToolbar("AppInsights", group, true).apply {
-        targetComponent = this@VitalsTab
-      }
+      AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     scope.launch(AndroidDispatchers.uiThread) {
