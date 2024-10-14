@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
-import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.parseColor
@@ -149,9 +148,7 @@ class ResourceLookup(private val project: Project) {
     val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
     val resourceResolver =
-      ReadAction.compute<ResourceResolver, RuntimeException> {
-        cache.getResourceResolver(mgr.target, themeStyle, folderConfig, emptyList())
-      }
+      cache.getResourceResolver(mgr.target, themeStyle, folderConfig, emptyList())
     return ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
   }
 

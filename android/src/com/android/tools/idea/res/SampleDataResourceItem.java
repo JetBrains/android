@@ -144,7 +144,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
                                                          @NotNull SmartPsiElementPointer<PsiElement> filePointer) {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
-    PsiElement sourceElement = filePointer.getElement();
+    PsiElement sourceElement = runReadAction(filePointer::getElement);
     boolean isImageType = (sourceElement instanceof PsiBinaryFile
                            && ((PsiBinaryFile)sourceElement).getFileType() == ImageFileTypeManager.getInstance().getImageFileType());
 

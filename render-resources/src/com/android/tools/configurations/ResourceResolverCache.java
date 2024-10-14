@@ -43,6 +43,7 @@ import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.text.Strings;
 import java.util.Collections;
@@ -162,7 +163,7 @@ public class ResourceResolverCache {
       Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = getCachedAppResources(qualifierString);
       if (configuredAppRes == null) {
         // Get the project resource values based on the current config.
-        configuredAppRes = ReadAction.compute(() -> ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration));
+        configuredAppRes = ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration);
         cacheAppResources(qualifierString, configuredAppRes);
       }
 
