@@ -19,11 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argThat
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -61,6 +56,11 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.nullable
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.ExecutorService
 
 /**
@@ -169,12 +169,12 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           @Suppress("DEPRECATION")
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-          it.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
-        } ?: false
+          getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+        }
       },
       nullable(String::class.java),
       any()
@@ -195,12 +195,12 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           @Suppress("DEPRECATION")
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.tests_regex=regex") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1" &&
-          it.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
-        } ?: false
+          getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+        }
       },
       nullable(String::class.java),
       any()
@@ -222,10 +222,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -246,9 +246,9 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName#testMethodName")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -269,9 +269,9 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.debug=true")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -292,9 +292,9 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.name1=true")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -315,10 +315,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.containsAll(listOf("-Pandroid.testInstrumentationRunnerArguments.name1=true",
                                 "-Pandroid.testInstrumentationRunnerArguments.name2=false"))
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -340,10 +340,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=5") &&
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.compressSnapshots=true")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -365,9 +365,9 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           !arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -388,9 +388,9 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -524,24 +524,24 @@ class GradleConnectedAndroidTestInvokerTest {
         anyList(),
         anyString(),
         argThat {
-          it?.run {
+          run {
             !arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
             env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
-          } ?: false
+          }
         },
         nullable(String::class.java),
         any()
       )
-      verify(mockAndroidTestSuiteView).onRerunScheduled(argThat { it.id == "DEVICE_SERIAL_NUMBER_2" })
+      verify(mockAndroidTestSuiteView).onRerunScheduled(argThat { id == "DEVICE_SERIAL_NUMBER_2" })
       verify(mockGradleTaskManager).executeTasks(
         any(),
         anyList(),
         anyString(),
         argThat {
-          it?.run {
+          run {
             arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
             env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_2"
-          } ?: false
+          }
         },
         nullable(String::class.java),
         any()
@@ -571,10 +571,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           arguments.contains("-Pandroid.injected.build.api=30") &&
           arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()
@@ -603,10 +603,10 @@ class GradleConnectedAndroidTestInvokerTest {
       anyList(),
       anyString(),
       argThat {
-        it?.run {
+        run {
           !arguments.contains("-Pandroid.injected.build.api=30") &&
           arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
-        } ?: false
+        }
       },
       nullable(String::class.java),
       any()

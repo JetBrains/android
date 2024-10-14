@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view.state
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -28,6 +27,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import kotlin.test.assertEquals
 

@@ -23,8 +23,6 @@ import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
@@ -42,13 +40,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import org.mockito.ArgumentCaptor
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.io.ByteArrayInputStream
 import java.io.FileOutputStream
 import java.nio.charset.Charset
@@ -76,25 +73,21 @@ class RetentionViewTest {
   private lateinit var androidSdkHandler: AndroidSdkHandler
   private val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
 
-  @Mock
-  private lateinit var mockRuntime: Runtime
+  private val mockRuntime: Runtime = mock()
 
-  @Mock
-  private lateinit var mockProcess: Process
+  private val mockProcess: Process = mock()
 
-  @Mock
-  private lateinit var mockLogReporter: UsageLogReporter
+  private val mockLogReporter: UsageLogReporter = mock()
 
   @Before
   fun setUp() {
-    MockitoAnnotations.initMocks(this)
     val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, sdkRoot.resolve("emulator"))
     p.location.resolve(SdkConstants.FN_EMULATOR).recordExistingFile()
     val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(sdkRoot, packages)
     androidSdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot, mgr)
-    whenever(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
-    whenever(mockRuntime.exec(anyString())).thenReturn(mockProcess)
+    whenever(mockRuntime.exec(any<Array<String>>())).thenReturn(mockProcess)
+    whenever(mockRuntime.exec(any<String>())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime, mockLogReporter,
                                   MoreExecutors.directExecutor())
   }
@@ -176,11 +169,11 @@ class RetentionViewTest {
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot protobuf not found")).isTrue()
     }
-    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                Mockito.any())
+    val eventCaptor = argumentCaptor<AndroidStudioEvent.Builder>()
+    verify(mockLogReporter).report(eventCaptor.capture(),
+                                any())
 
-    val event = eventCaptor.value
+    val event = eventCaptor.firstValue
     assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
     assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
@@ -225,10 +218,10 @@ class RetentionViewTest {
       retentionView.setSnapshotFile(snapshotFile)
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
     }
-    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                   Mockito.any())
-    val event = eventCaptor.value
+    val eventCaptor = argumentCaptor<AndroidStudioEvent.Builder>()
+    verify(mockLogReporter).report(eventCaptor.capture(),
+                                   any())
+    val event = eventCaptor.firstValue
     assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
     assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
@@ -249,10 +242,10 @@ class RetentionViewTest {
       retentionView.setSnapshotFile(snapshotFolder)
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
     }
-    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                   Mockito.any())
-    val event = eventCaptor.value
+    val eventCaptor = argumentCaptor<AndroidStudioEvent.Builder>()
+    verify(mockLogReporter).report(eventCaptor.capture(),
+                                   any())
+    val event = eventCaptor.firstValue
     assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
     assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
@@ -274,10 +267,10 @@ class RetentionViewTest {
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText).contains(reason)
     }
-    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                   Mockito.any())
-    val event = eventCaptor.value
+    val eventCaptor = argumentCaptor<AndroidStudioEvent.Builder>()
+    verify(mockLogReporter).report(eventCaptor.capture(),
+                                   any())
+    val event = eventCaptor.firstValue
     assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
     assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)
@@ -301,9 +294,9 @@ class RetentionViewTest {
       retentionView.setSnapshotFile(snapshotFile)
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText).contains(reason)
-      verify(mockRuntime, times(1)).exec(anyString())
+      verify(mockRuntime, times(1)).exec(any<String>())
     }
-    verify(mockLogReporter, times(1)).report(Mockito.any() ?: AndroidStudioEvent.newBuilder(), Mockito.any())
+    verify(mockLogReporter, times(1)).report(any(), any())
   }
 
   @Test
@@ -319,7 +312,7 @@ class RetentionViewTest {
       retentionView.setSnapshotFile(snapshotFile)
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isTrue()
     }
-    verify(mockRuntime, times(1)).exec(anyString())
+    verify(mockRuntime, times(1)).exec(any<String>())
   }
 
   @Test
@@ -350,10 +343,10 @@ class RetentionViewTest {
       assertThat(retentionView.myRetentionDebugButton.isEnabled).isFalse()
       assertThat(retentionView.myRetentionDebugButton.toolTipText.contains("Snapshot not loadable")).isTrue()
     }
-    val eventCaptor = ArgumentCaptor.forClass(AndroidStudioEvent.Builder::class.java)
-    verify(mockLogReporter).report(eventCaptor.capture() ?: AndroidStudioEvent.newBuilder(),
-                                   Mockito.any())
-    val event = eventCaptor.value
+    val eventCaptor = argumentCaptor<AndroidStudioEvent.Builder>()
+    verify(mockLogReporter).report(eventCaptor.capture(),
+                                   any())
+    val event = eventCaptor.firstValue
     assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
     assertThat(event.kind).isEqualTo(AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT)
     assertThat(event.androidTestRetentionEvent.snapshotCompatibility.result)

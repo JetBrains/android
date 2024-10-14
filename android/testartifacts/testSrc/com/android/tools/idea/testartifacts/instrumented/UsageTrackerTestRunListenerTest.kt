@@ -17,12 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -38,6 +36,7 @@ import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
   private val serial = "my serial"

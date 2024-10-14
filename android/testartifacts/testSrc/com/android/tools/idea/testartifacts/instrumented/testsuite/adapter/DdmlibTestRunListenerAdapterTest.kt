@@ -19,10 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.IInstrumentationResultParser.StatusKeys.DDMLIB_LOGCAT
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_PATH_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_V2_TEST_METRICS_KEY
@@ -49,6 +45,10 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /**
@@ -234,15 +234,15 @@ class DdmlibTestRunListenerAdapterTest {
 
     val testSuite = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
     verify(mockListener).onTestSuiteStarted(
-      any(AndroidDevice::class.java),
+      any(),
       testSuite.capture() ?: AndroidTestSuite("", "", 0))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
 
     val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
     verify(mockListener).onTestCaseStarted(
-      any(AndroidDevice::class.java),
-      any(AndroidTestSuite::class.java),
+      any(),
+      any(),
       testCase.capture() ?: AndroidTestCase("", "", "", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
@@ -265,15 +265,15 @@ class DdmlibTestRunListenerAdapterTest {
 
     val testSuite = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
     verify(mockListener).onTestSuiteStarted(
-      any(AndroidDevice::class.java),
+      any(),
       testSuite.capture() ?: AndroidTestSuite("", "", 0))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
 
     val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
     verify(mockListener).onTestCaseStarted(
-      any(AndroidDevice::class.java),
-      any(AndroidTestSuite::class.java),
+      any(),
+      any(),
       testCase.capture() ?: AndroidTestCase("", "", "", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
@@ -318,8 +318,8 @@ class DdmlibTestRunListenerAdapterTest {
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
     val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
     verify(mockListener).onTestCaseStarted(
-      any(AndroidDevice::class.java),
-      any(AndroidTestSuite::class.java),
+      any(),
+      any(),
       testCase.capture() ?: AndroidTestCase("", "", "", ""))
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
                       mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX))
@@ -341,8 +341,8 @@ class DdmlibTestRunListenerAdapterTest {
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
     val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
     verify(mockListener).onTestCaseStarted(
-      any(AndroidDevice::class.java),
-      any(AndroidTestSuite::class.java),
+      any(),
+      any(),
       testCase.capture() ?: AndroidTestCase("", "", "", ""))
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
                       mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX,

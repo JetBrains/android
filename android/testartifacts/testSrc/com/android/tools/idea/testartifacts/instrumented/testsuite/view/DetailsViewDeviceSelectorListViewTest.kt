@@ -16,9 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -37,6 +34,9 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.time.Duration
 import javax.swing.JLabel
 import javax.swing.JPanel

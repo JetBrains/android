@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import org.junit.Test
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 /**
  * Unit test for [AndroidTestConfigurationProducer]
@@ -59,7 +59,7 @@ class AndroidTestProducerUtilsTest {
       mockLogger,
     )
 
-    verify(mockLogger).error(any(), any(IllegalStateException::class.java))
+    verify(mockLogger).error(any(), any<IllegalStateException>())
     assertThat(options).isEqualTo("-e key1 value1")
   }
 }

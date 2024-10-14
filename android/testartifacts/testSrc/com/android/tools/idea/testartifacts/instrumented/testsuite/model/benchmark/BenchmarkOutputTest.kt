@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -25,6 +24,7 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class BenchmarkOutputTest {
