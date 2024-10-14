@@ -283,7 +283,7 @@ class GridLayoutManager(
       //    * The horizontal margin of the view (it changes when scale changes).
       //    * The right frame padding of the view.
       val nextViewWidth =
-        width + view.getMargin(scale).horizontal + padding.previewBottomPadding(scale, view)
+        width + view.getMargin(scale).horizontal + padding.previewRightPadding(scale, view)
       if (nextX + nextViewWidth > availableWidth && columnList.isNotEmpty()) {
         // If the current calculated width and the one we have calculated in the previous iterations
         // is exceeding the available space, we reset the column and nextX so we can add the view on
