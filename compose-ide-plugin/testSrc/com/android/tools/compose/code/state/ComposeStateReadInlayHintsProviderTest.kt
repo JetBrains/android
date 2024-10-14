@@ -15,9 +15,6 @@
  */
 package com.android.tools.compose.code.state
 
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -54,10 +51,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunsInEdt
@@ -190,7 +189,7 @@ class ComposeStateReadInlayHintsProviderTest {
       @Composable
       fun Bar(arg: String, onNameChange: (String) -> Unit)
       @Composable
-      fun Foo {
+      fun Foo() {
         var stateVar = rememberSaveable { mutableStateOf("foo") }
         Bar(arg = stateVar.value) { stateVar.value = it }
       }
@@ -202,25 +201,25 @@ class ComposeStateReadInlayHintsProviderTest {
     ComposeStateReadInlayHintsCollector.collectFromElement(element, sink)
 
     val tooltip = ComposeBundle.message("state.read.message", "stateVar", "Foo")
-    val positionCaptor: ArgumentCaptor<InlineInlayPosition> = argumentCaptor()
-    val builderCaptor: ArgumentCaptor<PresentationTreeBuilder.() -> Unit> = argumentCaptor()
+    val positionCaptor = argumentCaptor<InlineInlayPosition>()
+    val builderCaptor = argumentCaptor<PresentationTreeBuilder.() -> Unit>()
     verify(sink)
       .addPresentation(
-        positionCaptor.captureNonNull(),
+        positionCaptor.capture(),
         payloads = eq(null),
         tooltip = eq(tooltip),
         hasBackground = eq(true),
-        builder = builderCaptor.captureNonNull(),
+        builder = builderCaptor.capture(),
       )
-    with(positionCaptor.value) {
+    with(positionCaptor.firstValue) {
       assertThat(offset).isEqualTo(fixture.offsetForWindow("stateVar.value|)"))
       assertThat(relatedToPrevious).isTrue()
       assertThat(priority).isEqualTo(0)
     }
-    builderCaptor.value.invoke(treeBuilder)
-    val actionDataCaptor: ArgumentCaptor<InlayActionData> = argumentCaptor()
+    builderCaptor.firstValue.invoke(treeBuilder)
+    val actionDataCaptor = argumentCaptor<InlayActionData>()
     verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
-    with(actionDataCaptor.value) {
+    with(actionDataCaptor.firstValue) {
       assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
       val expectedScope =
         fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable").bodyExpression
@@ -320,8 +319,3 @@ class ComposeStateReadInlayHintsProviderTest {
       .isEmpty()
   }
 }
-
-fun ArgumentCaptor<InlineInlayPosition>.captureNonNull() =
-  capture() ?: InlineInlayPosition(0, false)
-
-fun <T> ArgumentCaptor<T.() -> Unit>.captureNonNull() = capture() ?: {}

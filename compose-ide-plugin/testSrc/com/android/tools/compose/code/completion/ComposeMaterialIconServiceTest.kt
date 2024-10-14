@@ -16,9 +16,6 @@
 package com.android.tools.compose.code.completion
 
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.MaterialVdIconsProvider
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.google.common.truth.Truth.assertThat
@@ -29,6 +26,9 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ComposeMaterialIconServiceTest {
 

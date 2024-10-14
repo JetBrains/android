@@ -16,7 +16,6 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
@@ -28,6 +27,7 @@ import com.intellij.psi.util.descendants
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
 
