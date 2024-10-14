@@ -15,16 +15,10 @@
  */
 package com.android.tools.asdriver
 
-import com.intellij.ide.ApplicationInitializedListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import com.intellij.ide.AppLifecycleListener
 
-@Suppress("UnstableApiUsage")
-class AndroidStudioDriverInitializer : ApplicationInitializedListener {
-
-  override suspend fun execute(asyncScope: CoroutineScope) {
-    asyncScope.launch {
-      AndroidStudioService.start()
-    }
+class AndroidStudioDriverInitializer : AppLifecycleListener {
+  override fun appFrameCreated(commandLineArgs: List<String>) {
+    AndroidStudioService.start()
   }
 }
