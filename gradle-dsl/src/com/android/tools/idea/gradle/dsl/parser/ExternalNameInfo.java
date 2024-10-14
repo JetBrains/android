@@ -27,6 +27,8 @@ public class ExternalNameInfo {
     ASSIGNMENT,
     /** The external name is used on the left-hand side of an augmented assignment. */
     AUGMENTED_ASSIGNMENT,
+    /** The external name is used as the receiver of a `set()` method. */
+    SET_METHOD,
     /** The external name is used in an unknown or backend-dependent context. */
     UNKNOWN
   }

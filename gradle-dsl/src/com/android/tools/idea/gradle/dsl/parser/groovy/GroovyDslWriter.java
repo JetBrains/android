@@ -44,6 +44,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.SET_METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
@@ -150,11 +151,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         statementText += " {\n}\n";
       }
     }
-    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
+    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       if (element.getElementType() == PropertyType.REGULAR) {
         switch (syntax) {
           case ASSIGNMENT: statementText += " = 'abc'"; break;
           case AUGMENTED_ASSIGNMENT: statementText += " += 'abc'"; break;
+          case SET_METHOD: statementText += ".set('abc')"; break;
         }
       }
       else if (element.getElementType() == PropertyType.VARIABLE) {
@@ -166,19 +168,17 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     }
     GrStatement statement = factory.createStatementFromText(statementText);
     // TODO: Move these workarounds to a more sensible way of doing things.
-    if (statement instanceof GrApplicationStatement) {
+    if (statement instanceof GrApplicationStatement applicationStatement) {
       // Workaround to create an application statement.
-      ((GrApplicationStatement)statement).getArgumentList().delete();
+      applicationStatement.getArgumentList().delete();
     }
-    else if (statement instanceof GrAssignmentExpression) {
+    else if (statement instanceof GrAssignmentExpression assignment) {
       // Workaround to create an assignment statement
-      GrAssignmentExpression assignment = (GrAssignmentExpression)statement;
       if (assignment.getRValue() != null) {
         assignment.getRValue().delete();
       }
     }
-    else if (statement instanceof GrVariableDeclaration) {
-      GrVariableDeclaration variableDeclaration = (GrVariableDeclaration)statement;
+    else if (statement instanceof GrVariableDeclaration variableDeclaration) {
       for (GrVariable var : variableDeclaration.getVariables()) {
         if (var.getInitializerGroovy() != null) {
           var.getInitializerGroovy().delete();
@@ -187,6 +187,9 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
           node.addLeaf(mASSIGN, "=", var.getLastChild().getNode().getTreeNext());
         }
       }
+    }
+    else if (syntax == SET_METHOD && statement instanceof GrMethodCallExpression methodCallExpression) {
+      methodCallExpression.getArgumentList().delete();
     }
     PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement addedElement;
@@ -246,8 +249,10 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         // either the application or assignment statement.
         element.setPsiElement(addedElement);
       }
+      else if (syntax == SET_METHOD && addedElement instanceof GrMethodCallExpression) {
+        element.setPsiElement(addedElement);
+      }
     }
-
     return element.getPsiElement();
   }
 
