@@ -26,9 +26,13 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.ActionLink
@@ -46,6 +50,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.Toolkit
+import java.lang.Boolean.TRUE
 import java.util.Collections
 import javax.swing.JButton
 import javax.swing.JCheckBox
@@ -422,7 +427,7 @@ internal fun createWearHealthServicesPanel(
   )
 }
 
-private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit): JButton {
+private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit): ActionButton {
   val eventTriggerGroupActions =
     EVENT_TRIGGER_GROUPS.map { eventTriggerGroup ->
       val eventTriggerActions =
@@ -434,17 +439,20 @@ private fun createTriggerEventGroupsButton(triggerEvent: (EventTrigger) -> Unit)
       }
     }
   val eventTriggerGroups =
-    DropDownAction(null, null, null).apply { addAll(eventTriggerGroupActions) }
+    DropDownAction(null, null, AllIcons.Actions.More).apply { addAll(eventTriggerGroupActions) }
 
-  return JButton(message("wear.whs.panel.trigger.events")).apply {
-    toolTipText = message("wear.whs.panel.trigger.events.tooltip")
-    isFocusable = true
-    addActionListener {
-      val popup =
-        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, eventTriggerGroups)
-      JBPopupMenu.showBelow(this, popup.component)
+  return ActionButton(
+      eventTriggerGroups,
+      eventTriggerGroups.templatePresentation.clone(),
+      ActionPlaces.EDITOR_POPUP,
+      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
+    )
+    .apply {
+      presentation.putClientProperty(ActionUtil.HIDE_DROPDOWN_ICON, TRUE)
+      presentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, this)
+      presentation.text = message("wear.whs.panel.trigger.events.tooltip")
+      isFocusable = true
     }
-  }
 }
 
 private fun createEventTriggerAction(

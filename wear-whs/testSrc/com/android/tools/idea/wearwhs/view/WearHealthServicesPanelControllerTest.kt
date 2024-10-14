@@ -29,8 +29,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -48,7 +48,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
@@ -96,17 +98,15 @@ class WearHealthServicesPanelControllerTest {
         workerScope = workerScope,
       )
 
-    val mockActionManager = mock<ActionManager>()
-    whenever(mockActionManager.createActionPopupMenu(anyString(), any())).then { invocation ->
-      fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-      fakePopup
-    }
+    val actionManager = spy(ActionManager.getInstance() as ActionManagerEx)
+    doAnswer { invocation ->
+        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+        fakePopup
+      }
+      .whenever(actionManager)
+      .createActionPopupMenu(anyString(), any())
     ApplicationManager.getApplication()
-      .replaceService(
-        ActionManager::class.java,
-        mockActionManager,
-        projectRule.testRootDisposable,
-      )
+      .replaceService(ActionManager::class.java, actionManager, projectRule.testRootDisposable)
   }
 
   @Test
