@@ -349,7 +349,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
       override fun createDataContext(previewElement: T) =
-        CustomizedDataContext.create(
+        CustomizedDataContext.withProvider(
           previewElementModelAdapterDelegate.createDataContext(previewElement)
         ) { dataId ->
           when (dataId) {
