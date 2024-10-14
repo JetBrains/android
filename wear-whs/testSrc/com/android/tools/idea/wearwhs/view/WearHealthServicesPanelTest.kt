@@ -36,8 +36,8 @@ import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
@@ -66,9 +66,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
@@ -110,17 +111,15 @@ class WearHealthServicesPanelTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
 
-    val mockActionManager = mock<ActionManager>()
-    whenever(mockActionManager.createActionPopupMenu(anyString(), any())).then { invocation ->
-      fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-      fakePopup
-    }
+    val actionManager = spy(ActionManager.getInstance() as ActionManagerEx)
+    doAnswer { invocation ->
+        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+        fakePopup
+      }
+      .whenever(actionManager)
+      .createActionPopupMenu(anyString(), any())
     ApplicationManager.getApplication()
-      .replaceService(
-        ActionManager::class.java,
-        mockActionManager,
-        projectRule.testRootDisposable,
-      )
+      .replaceService(ActionManager::class.java, actionManager, projectRule.testRootDisposable)
   }
 
   @Test
@@ -266,7 +265,7 @@ class WearHealthServicesPanelTest {
     val eventsButton = fakeUi.triggerEventsButton()
     assertThat(eventsButton).isNotNull()
 
-    eventsButton.doClick()
+    eventsButton.click()
 
     val eventTriggerGroups = fakePopup.getActions().mapNotNull { it as? DropDownAction }
     assertThat(eventTriggerGroups).hasSize(EVENT_TRIGGER_GROUPS.size)

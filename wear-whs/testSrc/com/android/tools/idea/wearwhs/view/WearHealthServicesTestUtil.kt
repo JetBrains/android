@@ -23,6 +23,8 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.view.WearHealthServicesStateManagerTest.Companion.TEST_MAX_WAIT_TIME_SECONDS
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -56,14 +58,14 @@ internal inline fun <reified T> FakeUi.waitForDescendant(
 }
 
 internal fun FakeUi.triggerEventsButton() =
-  waitForDescendant<JButton> { it.text == message("wear.whs.panel.trigger.events") }
+  waitForDescendant<ActionButton> { it.icon == AllIcons.Actions.More }
 
 internal fun FakeUi.clickOnTriggerEvent(
   fakePopupProvider: () -> FakeActionPopupMenu,
   eventName: String? = null,
 ) {
   val triggerEventsButton = triggerEventsButton()
-  triggerEventsButton.doClick()
+  triggerEventsButton.click()
 
   val triggerEventActions =
     fakePopupProvider().getActions().flatMap {
