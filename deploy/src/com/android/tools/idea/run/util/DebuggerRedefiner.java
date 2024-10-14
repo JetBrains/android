@@ -235,7 +235,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
     Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
     for (DebuggerSession debuggerSession : debuggerSessions) {
       RemoteConnection s = debuggerSession.getProcess().getConnection();
-      String address = s.getAddress();
+      String address = s.getDebuggerAddress();
       int projectDebuggerPort = Integer.parseInt(address);
       if (port == projectDebuggerPort) {
         return debuggerSession;
