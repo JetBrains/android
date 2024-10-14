@@ -63,6 +63,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.moveCaretToEnd
+import com.android.tools.idea.ui.ApplicationUtils
 import com.android.tools.preview.DisplayPositioning
 import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
@@ -72,6 +74,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -106,6 +109,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -556,6 +561,47 @@ class CommonPreviewRepresentationTest {
         assertThat(previewRepresentation.currentAnimationPreview).isNull()
       }
       previewRepresentation.onDeactivateImmediately()
+    }
+  }
+
+  // Regression test for: b/344639845
+  @Test
+  fun flowsAreCanceledOnDeactivate() {
+    runBlocking(workerThread) {
+      val previewElementProvider =
+        mock<PreviewElementProvider<PsiTestPreviewElement>>().also {
+          whenever(it.previewElements()).thenReturn(emptySequence())
+        }
+      val previewRepresentation = createPreviewRepresentation(previewElementProvider)
+      previewRepresentation.compileAndWaitForRefresh()
+      clearInvocations(previewElementProvider)
+
+      // writing in the file should trigger element updates through the flows while
+      // the lifecycle is active
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          insertText("\n\n// some change to the file\n\n")
+        }
+      }
+      // wait for 2 seconds to give time for the flows to update themselves
+      retryUntilPassing(2.seconds) {
+        runBlocking { verify(previewElementProvider).previewElements() }
+      }
+
+      // once the lifecycle is deactivated, new preview elements should no longer be requested
+      previewRepresentation.onDeactivateImmediately()
+      clearInvocations(previewElementProvider)
+
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          insertText("\n\n// some change to the file\n\n")
+        }
+      }
+      // wait for 2 seconds to give time for the flows to update themselves in case of a regression
+      delay(2.seconds)
+      verifyNoInteractions(previewElementProvider)
     }
   }
 
