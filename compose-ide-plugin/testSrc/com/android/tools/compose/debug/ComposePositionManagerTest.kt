@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.compose.debug.utils.mockDebugProcess
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.debugger.SourcePosition
@@ -23,6 +22,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ComposePositionManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

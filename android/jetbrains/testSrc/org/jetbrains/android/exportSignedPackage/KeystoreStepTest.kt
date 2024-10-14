@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.help.AndroidWebHelpProvider
@@ -27,18 +26,16 @@ import com.intellij.credentialStore.ProviderType
 import com.intellij.facet.FacetManager
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.TestPasswordSafeImpl
-import com.intellij.ide.wizard.CommitStepException
 import com.intellij.mock.MockModule
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
-import org.jetbrains.android.util.AndroidBundle
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
