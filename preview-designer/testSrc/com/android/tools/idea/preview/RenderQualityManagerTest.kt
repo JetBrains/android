@@ -16,9 +16,6 @@
 package com.android.tools.idea.preview
 
 import com.android.ide.common.rendering.api.Result
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.surface.SceneView
@@ -40,6 +37,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Class used for bundling together some data used across the tests in [RenderQualityManagerTest].
@@ -101,7 +101,7 @@ class RenderQualityManagerTest {
     }
 
     surfaceMock = mock<NlDesignSurface>()
-    whenever(surfaceMock.addPanZoomListener(any(PanZoomListener::class.java))).then {
+    whenever(surfaceMock.addPanZoomListener(any<PanZoomListener>())).then {
       panZoomListener = it.getArgument(0)
       listenerInitialization.countDown()
       return@then Unit
