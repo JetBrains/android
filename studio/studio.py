@@ -96,7 +96,7 @@ def main(argv):
 
   if platform.system() == "Darwin":
     app_dir = os.path.join(script_dir, "Android Studio Preview.app")
-    run_command_list = ["open", app_dir]
+    run_command_list = [os.path.join(script_dir, "Android Studio Preview.app/Contents/MacOS/studio")]
   else:
     app_dir = os.path.join(script_dir, "android-studio")
     run_command_list = [os.path.join(script_dir, "android-studio/bin/studio.sh")]
