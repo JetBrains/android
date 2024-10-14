@@ -83,8 +83,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     if (resourceUrl.type != ResourceType.LAYOUT) {
       return empty
     }
-    val resourceResolver =
-      SlowOperations.allowSlowOperations(ThrowableComputable { configuration.resourceResolver })
+    val resourceResolver = configuration.resourceItemResolver
     val resourceValue =
       ApplicationManager.getApplication().runReadAction<String> {
         SlowOperations.allowSlowOperations(
