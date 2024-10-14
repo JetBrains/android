@@ -1,0 +1,5 @@
+Path: > failed > :app:generateDebugBuildConfig > Attribute name "sd" associated with an element type "Dsfsd" must be followed by the ' = ' character.
+ERROR
+Attribute name "sd" associated with an element type "Dsfsd" must be followed by the ' = ' character.
+
+---

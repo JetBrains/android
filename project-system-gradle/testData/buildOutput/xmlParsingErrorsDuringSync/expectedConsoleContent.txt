@@ -1,0 +1,15 @@
+Path: > finished > cvc-complex-type.2.4.a: Invalid content was found starting with element 'extension-level'. One of '{layoutlib}' is expected.
+WARNING
+cvc-complex-type.2.4.a: Invalid content was found starting with element 'extension-level'. One of '{layoutlib}' is expected.
+
+---
+Path: > finished > cvc-complex-type.2.4.d: Invalid content was found starting with element 'extension-level'. No child element is expected at this point.
+WARNING
+cvc-complex-type.2.4.d: Invalid content was found starting with element 'extension-level'. No child element is expected at this point.
+
+---
+Path: > finished > cvc-complex-type.2.4.a: Invalid content was found starting with element 'extension-level'. One of '{codename, tag}' is expected.
+WARNING
+cvc-complex-type.2.4.a: Invalid content was found starting with element 'extension-level'. One of '{codename, tag}' is expected.
+
+---
