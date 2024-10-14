@@ -288,14 +288,14 @@ class StudioModuleClassLoaderManager :
 
   @Synchronized
   override fun clearCache(module: Module) {
-    holders
+    val modules = holders
       .keySet()
       .toList()
-      .filter { it.module?.getModuleSystem()?.getHolderModule() == module.getModuleSystem().getHolderModule() }
-      // This removes the entry for all class loaders whose module's holder module is the same as `module`'s holder module, so...
-      .forEach { holders.remove(it) }
-    // TODO(someone): shouldn't this be the set of all linked modules, rather than just `module` and the holder module?
-    setOf(module.getModuleSystem().getHolderModule(), module).forEach(::clearModuleData)
+      .mapNotNull { it.module?.let { m -> m to it } }
+      .filter { it.first.getModuleSystem().getHolderModule() == module.getModuleSystem().getHolderModule() }
+      .onEach { holders.remove(it.second) }
+      .mapTo(mutableSetOf()) { it.first }
+    modules.forEach(::clearModuleData)
   }
 
   @Synchronized
