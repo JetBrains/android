@@ -89,7 +89,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.HttpConnectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -747,13 +747,13 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public URLConnection openConnection(@NonNull URL url) throws IOException {
-    return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+    return HttpConnectionUtils.openConnection(url.toExternalForm());
   }
 
   @Override
   @Nullable
   public URLConnection openConnection(@NonNull URL url, int timeout) throws IOException {
-    URLConnection connection = HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+    URLConnection connection = HttpConnectionUtils.openConnection(url.toExternalForm());
     if (timeout > 0) {
       connection.setConnectTimeout(timeout);
       connection.setReadTimeout(timeout);
