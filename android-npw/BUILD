@@ -69,6 +69,20 @@ iml_module(
         "AddBaselineProfilesModuleKtTest": {
             "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleKtTest",
         },
+        "NewModuleCompileSdkSelectionTest": {
+            "test_filter": "com.android.tools.idea.npw.module.NewModuleCompileSdkSelectionTest",
+            "data": [
+                "//prebuilts/studio/sdk:platforms/android-33",
+            ],
+        },
+        "ConfigureAndroidModuleStepTest": {
+            "test_filter": "com.android.tools.idea.npw.module.ConfigureAndroidModuleStepTest",
+            "data": [
+                "//prebuilts/studio/sdk:platforms/android-31",
+                "//prebuilts/studio/sdk:platforms/android-32",
+                "//prebuilts/studio/sdk:platforms/android-33",
+            ],
+        },
         "other": {
             "shard_count": 10,
         },
