@@ -17,8 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.stats.RunStats
@@ -41,6 +39,8 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.quality.Strictness
 
 /**

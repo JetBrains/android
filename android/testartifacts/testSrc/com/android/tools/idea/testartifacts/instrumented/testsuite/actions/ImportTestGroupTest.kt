@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.android.tools.idea.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
@@ -40,6 +39,7 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.whenever
 import java.util.Date
 
 /**

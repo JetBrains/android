@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.google.common.truth.Truth.assertThat
@@ -37,6 +36,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /**
  * Unit tests for [DeviceAndApiLevelFilterComboBoxAction].

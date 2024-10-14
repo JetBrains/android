@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.logging
 
-import com.android.testutils.MockitoKt.eq
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory
@@ -32,6 +31,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.eq
 
 /**
  * Unit tests for [AndroidTestSuiteLogger].

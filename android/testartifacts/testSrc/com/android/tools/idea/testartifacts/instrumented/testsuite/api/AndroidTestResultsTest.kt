@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -26,6 +23,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.time.Duration
 
 /**

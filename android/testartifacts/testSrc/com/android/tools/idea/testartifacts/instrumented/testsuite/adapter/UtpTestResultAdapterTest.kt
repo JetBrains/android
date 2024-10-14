@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argThat
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto
 import com.google.common.truth.Truth.assertThat
-import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.google.testing.platform.proto.api.core.LabelProto
 import com.google.testing.platform.proto.api.core.PathProto
 import com.google.testing.platform.proto.api.core.TestArtifactProto
@@ -46,19 +43,13 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
 import java.io.File
 import java.nio.charset.Charset
 import kotlin.test.assertFailsWith
 
 private const val TEST_PACKAGE_NAME = "com.example.application"
-
-/**
- * Wrapper around [org.mockito.Mockito.argThat] that doesn't return null.
- * If used with Kotlin functions that do not accept nullable types it causes a "must not be null" exception.
- *
- * Using the not-null assertion operator (!!) doesn't work because the result of the method call is recorded internally by Mockito.
- */
-private fun <T> argThatWrapper(matcher: ArgumentMatcher<T>): T = org.mockito.Mockito.argThat(matcher)
 
 @RunWith(JUnit4::class)
 class UtpTestResultAdapterTest {
@@ -70,10 +61,6 @@ class UtpTestResultAdapterTest {
 
   @Mock
   lateinit var mockListener: AndroidTestResultListener
-  @Mock
-  lateinit var mockAndroidTestCase: AndroidTestCase
-  @Mock
-  lateinit var mockAndroidTestSuite: AndroidTestSuite
 
   private val utpProtoFile: File by lazy {
     temporaryFolder.newFile()
@@ -129,15 +116,15 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED && it.retentionSnapshot == null && it.packageName == TEST_PACKAGE_NAME
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.PASSED && retentionSnapshot == null && packageName == TEST_PACKAGE_NAME
+    })
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED && it.retentionSnapshot == null && it.packageName == TEST_PACKAGE_NAME
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.PASSED && retentionSnapshot == null && packageName == TEST_PACKAGE_NAME
+    })
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
-      it!!.result == AndroidTestSuiteResult.PASSED
-    } ?: mockAndroidTestSuite)
+      result == AndroidTestSuiteResult.PASSED
+    })
   }
 
   @Test
@@ -166,15 +153,15 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.PASSED
+    })
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED && it.retentionSnapshot == null && it.packageName == TEST_PACKAGE_NAME
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.FAILED && retentionSnapshot == null && packageName == TEST_PACKAGE_NAME
+    })
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
-      it!!.result == AndroidTestSuiteResult.FAILED
-    } ?: mockAndroidTestSuite)
+      result == AndroidTestSuiteResult.FAILED
+    })
   }
 
   @Test
@@ -216,15 +203,15 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED && it.retentionSnapshot?.canonicalPath == failedSnapshot1.canonicalPath
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.FAILED && retentionSnapshot?.canonicalPath == failedSnapshot1.canonicalPath
+    })
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED && it.retentionSnapshot?.canonicalPath == failedSnapshot2.canonicalPath
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.FAILED && retentionSnapshot?.canonicalPath == failedSnapshot2.canonicalPath
+    })
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
-      it!!.result == AndroidTestSuiteResult.FAILED
-    } ?: mockAndroidTestSuite)
+      result == AndroidTestSuiteResult.FAILED
+    })
   }
 
   @Test
@@ -251,11 +238,11 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED && it.retentionSnapshot == null
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.FAILED && retentionSnapshot == null
+    })
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
-      it!!.result == AndroidTestSuiteResult.FAILED
-    } ?: mockAndroidTestSuite)
+      result == AndroidTestSuiteResult.FAILED
+    })
   }
 
   @Test
@@ -277,11 +264,11 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.SKIPPED && it.retentionSnapshot == null && it.packageName == TEST_PACKAGE_NAME
-    } ?: mockAndroidTestCase)
+      result == AndroidTestCaseResult.SKIPPED && retentionSnapshot == null && packageName == TEST_PACKAGE_NAME
+    })
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
-      it!!.result == AndroidTestSuiteResult.PASSED
-    } ?: mockAndroidTestSuite)
+      result == AndroidTestSuiteResult.PASSED
+    })
   }
 
   @Test
@@ -313,8 +300,8 @@ class UtpTestResultAdapterTest {
     utpTestResultAdapter.forwardResults(mockListener)
 
     verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.logcat == "test logs"
-    } ?: mockAndroidTestCase)
+      logcat == "test logs"
+    })
   }
 
   @Test
@@ -396,20 +383,22 @@ class UtpTestResultAdapterTest {
     val testCaseMatcher2 = ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod2 && testCase.className == testClass2 && testCase.packageName == TEST_PACKAGE_NAME
     }
-    verify(mockListener).onTestSuiteScheduled(argThatWrapper(deviceMatcher1))
-    verify(mockListener).onTestSuiteScheduled(argThatWrapper(deviceMatcher2))
-    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher1), argThat {
-      it.testCaseCount == 1
+    verify(mockListener).onTestSuiteScheduled(argThat(deviceMatcher1))
+    verify(mockListener).onTestSuiteScheduled(argThat(deviceMatcher2))
+    verify(mockListener).onTestSuiteStarted(argThat(deviceMatcher1), argThat {
+      testCaseCount == 1
     })
-    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher2), argThat {
-      it.testCaseCount == 1
+    verify(mockListener).onTestSuiteStarted(argThat(deviceMatcher2), argThat {
+      testCaseCount == 1
     })
-    verify(mockListener).onTestCaseStarted(argThatWrapper(deviceMatcher1), any(), argThatWrapper(testCaseMatcher1))
-    verify(mockListener).onTestCaseFinished(argThatWrapper(deviceMatcher1), any(), argThatWrapper(testCaseMatcher1))
-    verify(mockListener).onTestCaseStarted(argThatWrapper(deviceMatcher2), any(), argThatWrapper(testCaseMatcher2))
-    verify(mockListener).onTestCaseFinished(argThatWrapper(deviceMatcher2), any(), argThatWrapper(testCaseMatcher2))
-    verify(mockListener).onTestSuiteFinished(argThatWrapper(deviceMatcher1), argThatWrapper { it!!.result == AndroidTestSuiteResult.PASSED })
-    verify(mockListener).onTestSuiteFinished(argThatWrapper(deviceMatcher2), argThatWrapper { it!!.result == AndroidTestSuiteResult.FAILED })
+    verify(mockListener).onTestCaseStarted(argThat(deviceMatcher1), any(), argThat(testCaseMatcher1))
+    verify(mockListener).onTestCaseFinished(argThat(deviceMatcher1), any(), argThat(testCaseMatcher1))
+    verify(mockListener).onTestCaseStarted(argThat(deviceMatcher2), any(), argThat(testCaseMatcher2))
+    verify(mockListener).onTestCaseFinished(argThat(deviceMatcher2), any(), argThat(testCaseMatcher2))
+    verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher1),
+                                             argThat { result == AndroidTestSuiteResult.PASSED })
+    verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher2),
+                                             argThat { result == AndroidTestSuiteResult.FAILED })
   }
 
   @Test
@@ -457,11 +446,12 @@ class UtpTestResultAdapterTest {
     val testCaseMatcher = ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod && testCase.className == testClass && testCase.packageName == TEST_PACKAGE_NAME
     }
-    verify(mockListener).onTestSuiteScheduled(argThatWrapper(deviceMatcher))
-    verify(mockListener).onTestSuiteStarted(argThatWrapper(deviceMatcher), any())
-    verify(mockListener).onTestCaseStarted(argThatWrapper(deviceMatcher), any(), argThatWrapper(testCaseMatcher))
-    verify(mockListener).onTestCaseFinished(argThatWrapper(deviceMatcher), any(), argThatWrapper(testCaseMatcher))
-    verify(mockListener).onTestSuiteFinished(argThatWrapper(deviceMatcher), argThatWrapper { it!!.result == AndroidTestSuiteResult.PASSED })
+    verify(mockListener).onTestSuiteScheduled(argThat(deviceMatcher))
+    verify(mockListener).onTestSuiteStarted(argThat(deviceMatcher), any())
+    verify(mockListener).onTestCaseStarted(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestCaseFinished(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher),
+                                             argThat { result == AndroidTestSuiteResult.PASSED })
   }
 
   @Test
@@ -506,9 +496,9 @@ class UtpTestResultAdapterTest {
     utpTestResultAdapter.forwardResults(mockListener)
 
     verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
-      && it.benchmark == "benchmarkMessage"
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
+      && benchmark == "benchmarkMessage"
     })
 
     assertThat(File(FileUtil.getTempDirectory() + File.separator + "benchmarkTraceFile.trace").exists()).isTrue()

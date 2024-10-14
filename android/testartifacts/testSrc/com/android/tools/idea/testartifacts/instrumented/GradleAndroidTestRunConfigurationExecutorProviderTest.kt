@@ -1,14 +1,13 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
 import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
-import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -21,6 +20,7 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class GradleAndroidTestRunConfigurationExecutorProviderTest {
 

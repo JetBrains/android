@@ -17,10 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argThat
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -48,6 +44,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 
@@ -107,7 +107,7 @@ class GradleTestResultAdapterTest {
     assertThat(adapter.testSuiteStarted).isTrue()
 
     verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
     })
 
     adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
@@ -117,8 +117,8 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
     })
 
     adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
@@ -131,8 +131,8 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
     })
 
     adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
@@ -142,7 +142,7 @@ class GradleTestResultAdapterTest {
     adapter.onGradleTaskFinished()
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.PASSED
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.PASSED
     })
   }
 
@@ -157,7 +157,7 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
     })
 
     adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
@@ -167,8 +167,8 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
     })
 
     adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
@@ -184,9 +184,9 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.FAILED &&
-      it.errorStackTrace == "ErrorStackTrace"
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.FAILED &&
+      errorStackTrace == "ErrorStackTrace"
     })
 
     adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
@@ -196,7 +196,7 @@ class GradleTestResultAdapterTest {
     adapter.onGradleTaskFinished()
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED
     })
   }
 
@@ -213,7 +213,7 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == null
     })
 
     adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
@@ -223,8 +223,8 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.IN_PROGRESS
     })
 
     adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
@@ -258,10 +258,10 @@ class GradleTestResultAdapterTest {
     }.build())
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.FAILED &&
-      it.errorStackTrace == "ErrorStackTrace" &&
-      it.retentionInfo?.path == iceboxInfoPath && it.retentionSnapshot?.path == iceboxSnapshotPath
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.FAILED &&
+      errorStackTrace == "ErrorStackTrace" &&
+      retentionInfo?.path == iceboxInfoPath && retentionSnapshot?.path == iceboxSnapshotPath
     })
 
     adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
@@ -271,7 +271,7 @@ class GradleTestResultAdapterTest {
     adapter.onGradleTaskFinished()
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
-      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
+      id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.FAILED
     })
   }
 
@@ -309,9 +309,9 @@ class GradleTestResultAdapterTest {
     }
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
-      && it.logcat == "test logs"
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
+      && logcat == "test logs"
     })
   }
 
@@ -347,9 +347,9 @@ class GradleTestResultAdapterTest {
     }
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
-      && it.logcat == ""
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
+      && logcat == ""
     })
   }
 
@@ -399,9 +399,9 @@ class GradleTestResultAdapterTest {
     }
 
     verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
-      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
-      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
-      && it.benchmark == "benchmarkMessage"
+      packageName == "com.example.test" && className == "ExampleTest" &&
+      methodName == "testExample" && result == AndroidTestCaseResult.PASSED
+      && benchmark == "benchmarkMessage"
     })
 
     assertThat(File(FileUtil.getTempDirectory() + File.separator + "benchmarkTraceFile.trace").exists()).isTrue()
@@ -428,15 +428,15 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteStarted(any(), any())
       verify(mockListener).onTestCaseStarted(any(), any(), any())
       verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-        it.packageName == "com.example.test" &&
-        it.className == "ExampleTest" &&
-        it.methodName == "testExample" &&
-        it.result == AndroidTestCaseResult.CANCELLED &&
-        it.startTimestampMillis != null &&
-        it.endTimestampMillis != null
+        packageName == "com.example.test" &&
+        className == "ExampleTest" &&
+        methodName == "testExample" &&
+        result == AndroidTestCaseResult.CANCELLED &&
+        startTimestampMillis != null &&
+        endTimestampMillis != null
       })
       verify(mockListener).onTestSuiteFinished(any(), argThat {
-        it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.CANCELLED
+        id.isNotBlank() && name == "testName" && testCaseCount == 1 && result == AndroidTestSuiteResult.CANCELLED
       })
     }
   }
@@ -451,7 +451,7 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteScheduled(any())
       verify(mockListener).onTestSuiteStarted(any(), any())
       verify(mockListener).onTestSuiteFinished(any(), argThat {
-        it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 0 && it.result == AndroidTestSuiteResult.CANCELLED
+        id.isNotBlank() && name == "testName" && testCaseCount == 0 && result == AndroidTestSuiteResult.CANCELLED
       })
     }
   }
