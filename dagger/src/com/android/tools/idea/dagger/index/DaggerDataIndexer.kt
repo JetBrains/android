@@ -25,6 +25,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
@@ -92,6 +93,11 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
   ) : KtTreeVisitorVoid() {
     private val wrapperFactory = DaggerIndexPsiWrapper.KotlinFactory(ktFile)
 
+    override fun visitElement(element: PsiElement) {
+      ProgressManager.checkCanceled()
+      super.visitElement(element)
+    }
+
     override fun visitPrimaryConstructor(constructor: KtPrimaryConstructor) {
       conceptIndexers.doIndexing(wrapperFactory.of(constructor), results)
       // No need to continue traversing within the method.
@@ -124,6 +130,11 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
     psiJavaFile: PsiJavaFile,
   ) : JavaRecursiveElementWalkingVisitor() {
     private val wrapperFactory = DaggerIndexPsiWrapper.JavaFactory(psiJavaFile)
+
+    override fun visitElement(element: PsiElement) {
+      ProgressManager.checkCanceled()
+      super.visitElement(element)
+    }
 
     override fun visitMethod(method: PsiMethod) {
       conceptIndexers.doIndexing(wrapperFactory.of(method), results)
