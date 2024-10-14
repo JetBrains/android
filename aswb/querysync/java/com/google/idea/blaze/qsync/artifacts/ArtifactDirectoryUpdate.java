@@ -88,9 +88,13 @@ public class ArtifactDirectoryUpdate {
     this(artifactCache, workspaceRoot, root, contents, stripGeneratedSourcesTransform, () -> buildGeneratedSrcJarsVal);
   }
 
+  public static Path getContentsFile(Path artifactDir) {
+    return artifactDir.resolveSibling(artifactDir.getFileName() + ".contents");
+  }
+
   public void update() throws IOException {
     Files.createDirectories(root);
-    Path contentsProtoPath = root.resolveSibling(root.getFileName() + ".contents");
+    Path contentsProtoPath = getContentsFile(root);
 
     // Any exceptions that occur when updating individual entries are caught and added here.
     // If any entry fails, we will throw an exception at the end with all such failures added as
