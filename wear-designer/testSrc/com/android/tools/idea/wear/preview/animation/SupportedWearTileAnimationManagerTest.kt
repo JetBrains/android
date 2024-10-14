@@ -21,8 +21,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
+import com.android.tools.idea.preview.animation.state.SwapAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.wear.preview.animation.state.WearTileColorPickerState
 import com.android.tools.idea.wear.preview.animation.state.WearTileFloatState
 import com.android.tools.idea.wear.preview.animation.state.WearTileIntState
 import com.google.common.truth.Truth.assertThat
@@ -184,6 +186,29 @@ class SupportedWearTileAnimationManagerTest {
   }
 
   @Test
+  fun testSwapColors() = runBlocking {
+    // Setup
+    val animator = TestDynamicTypeAnimator(ProtoAnimation.TYPE.COLOR)
+    animator.setIntValues(0xFF0000, 0x0000FF) // Red to Blue
+    val animation = ProtoAnimation(animator)
+
+    val manager = createManager(animation)
+    manager.setupInitialAnimationState() // Initialize animationState
+    val colorState = manager.animationState as WearTileColorPickerState
+
+    val swapAction = colorState.changeStateActions[0] as SwapAction
+    swapAction.actionPerformed(mock())
+    manager.syncAnimationWithState()
+    assertThat(animator.getIntValues()[0]).isEqualTo(0x0000FF)
+    assertThat(animator.getIntValues()[1]).isEqualTo(0xFF0000)
+    // swap again
+    swapAction.actionPerformed(mock())
+    manager.syncAnimationWithState()
+    assertThat(animator.getIntValues()[0]).isEqualTo(0xFF0000)
+    assertThat(animator.getIntValues()[1]).isEqualTo(0x0000FF)
+  }
+
+  @Test
   fun testSetupInitialAnimationState_IntAnimation() = runBlocking {
     // Setup
     val animator = TestDynamicTypeAnimator(ProtoAnimation.TYPE.INT)
@@ -263,5 +288,6 @@ class SupportedWearTileAnimationManagerTest {
       playbackControls,
       updateTimelineElementsCallback,
       AndroidCoroutineScope(projectRule.testRootDisposable),
+      setClockTime = { _, _ -> },
     )
 }

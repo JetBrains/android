@@ -73,6 +73,9 @@ class ColorPickerActionTest {
         otherCallbackValue = color
       }
 
+    callbackInvoked = false
+    otherCallbackInvoked = false
+
     action.swapWith(otherAction)
 
     // Verify colors were swapped and callbacks were called
@@ -82,6 +85,15 @@ class ColorPickerActionTest {
     assertTrue(otherCallbackInvoked)
     assertEquals(Color.BLUE, callbackValue)
     assertEquals(Color.RED, otherCallbackValue)
+
+    // Swap back
+    action.swapWith(otherAction)
+    assertEquals(Color.RED, action.currentValue)
+    assertEquals(Color.BLUE, otherAction.currentValue)
+    assertTrue(callbackInvoked)
+    assertTrue(otherCallbackInvoked)
+    assertEquals(Color.RED, callbackValue)
+    assertEquals(Color.BLUE, otherCallbackValue)
   }
 
   @Test

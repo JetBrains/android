@@ -24,10 +24,12 @@ import com.android.tools.idea.wear.preview.animation.ProtoAnimation
 import com.android.tools.idea.wear.preview.animation.TestDynamicTypeAnimator
 import com.android.tools.idea.wear.preview.animation.state.managers.actions.FloatInputComponentAction
 import com.android.tools.idea.wear.preview.animation.state.managers.actions.IntInputComponentAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.Color
 import junit.framework.TestCase.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class WearTileAnimationStateTest {
 
@@ -35,7 +37,7 @@ class WearTileAnimationStateTest {
   fun testWearTileFloatState_updateAnimation() {
     val initialState = 10f
     val targetState = 20f
-    val state = WearTileFloatState(initialState, targetState)
+    val state = WearTileFloatState(NoopAnimationTracker, initialState, targetState)
     val animator = TestDynamicTypeAnimator()
     val animation = ProtoAnimation(animator)
 
@@ -49,7 +51,7 @@ class WearTileAnimationStateTest {
   fun testWearTileIntState_updateAnimation() {
     val initialState = 5
     val targetState = 15
-    val state = WearTileIntState(initialState, targetState)
+    val state = WearTileIntState(NoopAnimationTracker, initialState, targetState)
     val animator = TestDynamicTypeAnimator()
     val animation = ProtoAnimation(animator)
     state.updateAnimation(animation)
@@ -75,34 +77,38 @@ class WearTileAnimationStateTest {
   fun testWearTileFloatState_changeStateActions() {
     val initialState = 10f
     val targetState = 20f
-    val state = WearTileFloatState(initialState, targetState)
+    val state = WearTileFloatState(NoopAnimationTracker, initialState, targetState)
 
     val actions = state.changeStateActions
-    assertEquals(3, actions.size)
+    assertEquals(4, actions.size)
 
-    assertTrue(actions[0] is FloatInputComponentAction)
+    assertTrue(actions[0] is SwapAction)
 
-    assertTrue(actions[1] is ToolbarLabel)
-    assertEquals("to", actions[1].templateText)
+    assertTrue(actions[1] is FloatInputComponentAction)
 
-    assertTrue(actions[2] is FloatInputComponentAction)
+    assertTrue(actions[2] is ToolbarLabel)
+    assertEquals("to", actions[2].templateText)
+
+    assertTrue(actions[3] is FloatInputComponentAction)
   }
 
   @Test
   fun testWearTileIntState_changeStateActions() {
     val initialState = 5
     val targetState = 15
-    val state = WearTileIntState(initialState, targetState)
+    val state = WearTileIntState(NoopAnimationTracker, initialState, targetState)
 
     val actions = state.changeStateActions
-    assertEquals(3, actions.size)
+    assertEquals(4, actions.size)
 
-    assertTrue(actions[0] is IntInputComponentAction)
+    assertTrue(actions[0] is SwapAction)
 
-    assertTrue(actions[1] is ToolbarLabel)
-    assertEquals("to", (actions[1] as ToolbarLabel).templateText)
+    assertTrue(actions[1] is IntInputComponentAction)
 
-    assertTrue(actions[2] is IntInputComponentAction)
+    assertTrue(actions[2] is ToolbarLabel)
+    assertEquals("to", (actions[2] as ToolbarLabel).templateText)
+
+    assertTrue(actions[3] is IntInputComponentAction)
   }
 
   @Test
@@ -130,6 +136,26 @@ class WearTileAnimationStateTest {
     assertTrue(actions[3] is ColorPickerAction)
     val targetPickerAction = actions[3] as ColorPickerAction
     assertEquals(targetColor.color, targetPickerAction.currentValue)
+  }
+
+  @Test
+  fun testWearTileColorPicker_swapColors() {
+    val initialColor = ColorUnit(Color.RED)
+    val targetColor = ColorUnit(Color.BLUE)
+    val state = WearTileColorPickerState(NoopAnimationTracker, initialColor, targetColor)
+    assertEquals(initialColor.color, state.state.value.first.color)
+    assertEquals(targetColor.color, state.state.value.second.color)
+
+    val actions = state.changeStateActions
+    val swapAction = actions[0] as SwapAction
+    // Swap once
+    swapAction.actionPerformed(mock<AnActionEvent>())
+    assertEquals(targetColor.color, state.state.value.first.color)
+    assertEquals(initialColor.color, state.state.value.second.color)
+    // Swap again
+    swapAction.actionPerformed(mock<AnActionEvent>())
+    assertEquals(initialColor.color, state.state.value.first.color)
+    assertEquals(targetColor.color, state.state.value.second.color)
   }
 
   @Test
