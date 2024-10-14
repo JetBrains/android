@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
@@ -46,6 +45,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -72,6 +72,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import org.jetbrains.jewel.ui.theme.colorPalette
 import org.jetbrains.jewel.ui.util.thenIf
 
 data class TableColumn<in T>(
@@ -177,10 +178,14 @@ internal fun <T> TableHeader(
       var isFocused by remember { mutableStateOf(false) }
       Row(
         widthModifier
-          .thenIf(isFocused) { focusBorder() }
+          .thenIf(isFocused) {
+            background(JewelTheme.colorPalette.gray(if (JewelTheme.isDark) 3 else 12))
+          }
           .padding(CELL_SPACING / 2)
           .onFocusChanged { isFocused = it.isFocused }
-          .thenIf(it.comparator != null) { clickable { onClick(it) } }
+          .thenIf(it.comparator != null) {
+            clickable(interactionSource = null, indication = null) { onClick(it) }
+          }
       ) {
         Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
@@ -336,7 +341,7 @@ fun <T> Table(
 private fun Modifier.focusBorder() =
   border(
     Stroke.Alignment.Center,
-    shape = RoundedCornerShape(4.dp),
+    shape = RectangleShape,
     color = JewelTheme.globalColors.outlines.focused,
     width = JewelTheme.globalMetrics.outlineWidth,
   )
