@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
@@ -63,7 +62,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       val layoutGroupWithDifferentContent =
@@ -71,7 +69,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
@@ -92,7 +89,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       // Now we are changing width in the surface should change layoutGroup when the
@@ -104,7 +100,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
 
       // We are changing the
@@ -116,7 +111,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup0, layoutGroup1)
 
@@ -126,7 +120,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup1, layoutGroup2)
 
@@ -136,7 +129,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup2, layoutGroup3)
 
@@ -146,7 +138,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup3, layoutGroup4)
     }
@@ -169,22 +160,19 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       var zoomIn = 1.0
       var layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 5.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 50.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 2.0
@@ -193,13 +181,11 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { zoomIn },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 100.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
     }
   }
@@ -219,7 +205,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       val newLayoutGroupWithSameContent =
@@ -227,7 +212,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       assertEquals(initialLayoutGroup, newLayoutGroupWithSameContent)
@@ -257,7 +241,6 @@ class GridLayoutManagerTest {
           groups = positionableGroup,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       // The resulting value is the cache
@@ -290,7 +273,6 @@ class GridLayoutManagerTest {
           groups = positionableGroup,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       // The value is not the one stored in the cache
@@ -333,7 +315,6 @@ class GridLayoutManagerTest {
           groups = initialGroups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       val newPositionableContentGroup1 =
@@ -350,12 +331,7 @@ class GridLayoutManagerTest {
 
       val changedGroups = listOf(newPositionableContentGroup1, positionableGroup2)
       val layoutGroupWithDifferentContent =
-        gridLayoutManager.createLayoutGroups(
-          changedGroups,
-          { initialScale },
-          initialWidth,
-          { scaledContentSize },
-        )
+        gridLayoutManager.createLayoutGroups(changedGroups, { initialScale }, initialWidth)
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
     }

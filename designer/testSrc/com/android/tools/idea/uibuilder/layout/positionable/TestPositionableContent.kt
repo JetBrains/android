@@ -31,7 +31,8 @@ open class TestPositionableContent(
 
   override fun getContentSize(dimension: Dimension?) = size
 
-  override fun sizeForScale(scale: Double): Dimension = size
+  override fun sizeForScale(scale: Double): Dimension =
+    Dimension((size.width * scale).toInt(), (size.height * scale).toInt())
 
   override fun setLocation(x: Int, y: Int) {}
 

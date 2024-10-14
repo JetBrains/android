@@ -79,6 +79,7 @@ abstract class GroupedSurfaceLayoutManager(
     return Point(shiftedX, shiftedY)
   }
 
+  /** @param sizeFunc Deprecated. Use PositionableContent size directly */
   protected abstract fun getSize(
     content: Collection<PositionableContent>,
     sizeFunc: PositionableContent.() -> Dimension,
