@@ -43,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import icons.StudioIconsCompose
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
@@ -133,6 +135,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
                 onRowSecondaryClick = onRowSecondaryClick,
               )
               if (showDetails) {
+                Divider(orientation = Orientation.Vertical)
                 when (
                   val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
                 ) {
@@ -147,7 +150,8 @@ fun <DeviceT : DeviceProfile> DeviceTable(
         modifier = Modifier.fillMaxSize(),
         firstPaneMinWidth = 100.dp,
         secondPaneMinWidth = 300.dp,
-        state = rememberSplitLayoutState(.3f),
+        state =
+          rememberSplitLayoutState(2 / 9f), // default dialog width is 900dp; approximately 200dp
       )
     }
   }

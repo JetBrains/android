@@ -176,6 +176,7 @@ internal class AddDeviceWizard(
             modifier = Modifier.weight(1f),
           )
         }
+        Divider(orientation = Orientation.Horizontal)
 
         Row(
           Modifier.padding(horizontal = 8.dp, vertical = 4.dp),

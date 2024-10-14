@@ -16,6 +16,7 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import com.android.tools.idea.adddevicedialog.TableTextColumn
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CheckboxRow
@@ -152,6 +154,7 @@ internal fun DevicePanel(
           configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,
           onSystemImageTableRowClick,
+          Modifier.border(1.dp, JewelTheme.globalColors.borders.normal),
         )
       }
     }
