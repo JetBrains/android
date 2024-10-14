@@ -14,9 +14,7 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>
-                <arg>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</arg>
-              </args>
+              <args>$MAVEN_REPOSITORY$/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
@@ -67,5 +65,6 @@
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="module" module-name="android.sdktools.leakcanarylib" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

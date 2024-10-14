@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
@@ -42,6 +41,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 

@@ -16,9 +16,6 @@
 package com.android.tools.profilers.memory
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.TreeWalker
@@ -42,8 +39,6 @@ import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.LiveMemoryFootprintModel
-import com.android.tools.profilers.memory.LiveMemoryFootprintView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBPanel
@@ -54,6 +49,9 @@ import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -176,8 +174,8 @@ open class LiveMemoryFootprintViewTest {
     val binder = ViewBinder<StageView<*>, TooltipModel, TooltipView>()
     val stage = mock<StreamingStage>()
     memoryFootprintView.registerTooltip(binder, rangeTooltipComponent, stage)
-    verify(stage, times(1)).tooltip = MockitoKt.any(TooltipModel::class.java)
-    verify(tooltipComponent, times(1)).addMouseListener(MockitoKt.any(ProfilerTooltipMouseAdapter::class.java))
+    verify(stage, times(1)).tooltip = any<TooltipModel>()
+    verify(tooltipComponent, times(1)).addMouseListener(any<ProfilerTooltipMouseAdapter>())
   }
 
   private fun getMainComponent(stageView: LiveMemoryFootprintView) = TreeWalker(stageView.component)

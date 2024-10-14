@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
@@ -27,6 +26,7 @@ import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
 import javax.swing.JPanel
 

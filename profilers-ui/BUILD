@@ -42,6 +42,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose[module]",
         "//tools/base/leakcanarylib:studio.android.sdktools.leakcanarylib[module]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

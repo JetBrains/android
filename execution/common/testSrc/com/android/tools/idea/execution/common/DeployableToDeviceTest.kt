@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.execution.common
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.util.UserDataHolder
 import org.junit.Test
-import org.mockito.Mockito.withSettings
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class DeployableToDeviceTest {
   @Test
   fun testConfigurationThatDeploysToLocalDevice() {
-    val configurationWithKey = mock<RunConfiguration>(withSettings().extraInterfaces(UserDataHolder::class.java))
+    val configurationWithKey = mock<RunConfiguration>(extraInterfaces = arrayOf(UserDataHolder::class))
     whenever((configurationWithKey as UserDataHolder).getUserData(DeployableToDevice.KEY)).thenReturn(true)
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configurationWithKey)).isTrue()
@@ -36,10 +35,10 @@ class DeployableToDeviceTest {
   fun testConfigurationsThatDoNotDeployToLocalDevice() {
     val configurationWithoutKey = mock<RunConfiguration>()
 
-    val configurationWithKeySetToFalse = mock<RunConfiguration>(withSettings().extraInterfaces(UserDataHolder::class.java))
+    val configurationWithKeySetToFalse = mock<RunConfiguration>(extraInterfaces = arrayOf(UserDataHolder::class))
     whenever((configurationWithKeySetToFalse as UserDataHolder).getUserData(DeployableToDevice.KEY)).thenReturn(false)
 
-    val configurationWithKeyUnset = mock<RunConfiguration>(withSettings().extraInterfaces(UserDataHolder::class.java))
+    val configurationWithKeyUnset = mock<RunConfiguration>(extraInterfaces = arrayOf(UserDataHolder::class))
     whenever((configurationWithKeyUnset as UserDataHolder).getUserData(DeployableToDevice.KEY)).thenReturn(null)
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configurationWithoutKey)).isFalse()

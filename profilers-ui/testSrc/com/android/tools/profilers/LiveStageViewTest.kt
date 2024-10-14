@@ -16,7 +16,6 @@
 package com.android.tools.profilers
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
@@ -26,16 +25,6 @@ import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.LiveStage
-import com.android.tools.profilers.LiveStageView
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.SessionProfilersView
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FlexibleLegendPanel
@@ -48,6 +37,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import javax.swing.JComponent
 import javax.swing.JPanel
 

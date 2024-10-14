@@ -24,9 +24,6 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
@@ -78,7 +75,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.content.Content
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -86,9 +82,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -736,14 +735,14 @@ class AndroidRunConfigurationExecutorTest {
     var runContentDescriptor: RunContentDescriptor? = null
     runInEdtAndWait {
       runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
-        setAttachedContent(mock(Content::class.java))
+        setAttachedContent(mock())
       }
 
-      val mockRunContentManager = mock(RunContentManager::class.java)
+      val mockRunContentManager = mock<RunContentManager>()
       whenever(mockRunContentManager.findContentDescriptor(eq(env.executor), eq(processHandlerForSwap))).thenReturn(runContentDescriptor)
       projectRule.project.replaceService(RunContentManager::class.java, mockRunContentManager, projectRule.testRootDisposable)
 
-      val mockExecutionManager = mock(ExecutionManagerImpl::class.java)
+      val mockExecutionManager = mock<ExecutionManagerImpl>()
       whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
       projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
     }

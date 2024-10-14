@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver.INVALID_ARGUMENT_CODE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.intellij.execution.ExecutionException
@@ -26,7 +25,9 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class UtilsTest {
 
@@ -80,9 +81,9 @@ class UtilsTest {
   }
 
   private fun getMockDevice(replies: (request: String) -> String = { request -> "Mock reply: $request" }): IDevice {
-    val device = Mockito.mock(IDevice::class.java)
+    val device = mock<IDevice>()
     whenever(
-      device.executeShellCommand(Mockito.anyString(), Mockito.any(), Mockito.anyLong(), Mockito.any())
+      device.executeShellCommand(any(), any(), any(), any())
     ).thenAnswer { invocation ->
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver

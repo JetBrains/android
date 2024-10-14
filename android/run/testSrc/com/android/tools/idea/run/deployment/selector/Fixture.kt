@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
@@ -36,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import org.mockito.kotlin.mock
 
 internal open class Fixture(val project: Project, val testScope: TestScope) {
   /**
