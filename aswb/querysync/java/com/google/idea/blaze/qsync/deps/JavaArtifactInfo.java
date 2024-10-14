@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.deps;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -75,6 +76,18 @@ public abstract class JavaArtifactInfo {
         .build();
   }
 
+  /**
+   * Compares this to that, but ignoring {@link #jars()}.
+   *
+   * <p>See {@link NewArtifactTracker#getUniqueTargetBuildInfos} to understand why this exists.
+   * */
+  public boolean equalsIgnoringJars(JavaArtifactInfo that) {
+    return this.toBuilder()
+        .setJars(ImmutableList.of())
+        .build()
+        .equals(that.toBuilder().setJars(ImmutableList.of()).build());
+  }
+
   public static Builder builder() {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
@@ -113,6 +126,8 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setLabel(Label value);
 
     public abstract Builder setJars(ImmutableList<BuildArtifact> value);
+
+    public abstract ImmutableSet.Builder<BuildArtifact> jarsBuilder();
 
     public abstract Builder setIdeAars(ImmutableList<BuildArtifact> value);
 
