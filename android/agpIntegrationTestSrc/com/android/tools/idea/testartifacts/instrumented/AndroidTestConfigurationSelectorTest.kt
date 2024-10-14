@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.tools.idea.projectsystem.getMainModule
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.ProjectSystemId

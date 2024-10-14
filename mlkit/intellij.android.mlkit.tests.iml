@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.templates" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
   </component>
 </module>

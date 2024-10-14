@@ -86,6 +86,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
 

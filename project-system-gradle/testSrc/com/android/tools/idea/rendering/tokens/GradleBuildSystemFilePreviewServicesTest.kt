@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule

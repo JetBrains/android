@@ -55,15 +55,12 @@ import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
-import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getHolderModule
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.isAndroidTestFile
-import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies

@@ -28,7 +28,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOT
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testartifacts.TestConfigurationTesting;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
@@ -206,7 +206,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
 
   public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE);
-    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("test")));
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(getModule("test")));
     assertNotNull(mainTestFacet);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
@@ -217,7 +217,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
 
   public void testCanCreateAndroidTestConfigurationFromFromDynamicFeatureModule() throws Exception {
     loadProject(DYNAMIC_APP);
-    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("feature1")));
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(getModule("feature1")));
     assertNotNull(mainTestFacet);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.feature1.ExampleInstrumentedTest");
     assertNotNull(runConfig);

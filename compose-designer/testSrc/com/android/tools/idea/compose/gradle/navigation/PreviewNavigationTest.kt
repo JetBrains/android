@@ -34,7 +34,7 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler

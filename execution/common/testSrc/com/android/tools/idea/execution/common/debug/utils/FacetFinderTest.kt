@@ -25,7 +25,7 @@ import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.testing.AndroidModuleDependency
