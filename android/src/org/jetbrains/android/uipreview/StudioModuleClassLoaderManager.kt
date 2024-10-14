@@ -129,7 +129,11 @@ class StudioModuleClassLoaderManager :
     else WeakMultiMap.createWithWeakValues()
 
   override fun dispose() {
-    holders.keySet().mapNotNull { it.module }.forEach { clearCache(it) }
+    val iterator = holders.keySet().iterator()
+    for (key in iterator) {
+      iterator.remove()
+      key.module?.let { m -> clearModuleData(m) }
+    }
   }
 
   @TestOnly
@@ -184,7 +188,7 @@ class StudioModuleClassLoaderManager :
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      moduleRenderContext.module
+      module
         ?.project
         ?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
@@ -193,7 +197,7 @@ class StudioModuleClassLoaderManager :
         }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
-        moduleRenderContext.module
+        module
           ?.getOrCreateHatchery()
           ?.requestClassLoader(
             parent,
@@ -240,7 +244,8 @@ class StudioModuleClassLoaderManager :
     additionalNonProjectTransformation: ClassTransform  = ClassTransform.identity,
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    moduleRenderContext.module
+    val module: Module? = moduleRenderContext.module
+    module
       ?.project
       ?.getService(ModuleClassLoaderProjectHelperService::class.java)
 
@@ -249,7 +254,7 @@ class StudioModuleClassLoaderManager :
     val combinedNonProjectTransformations =
       combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     val preloadedClassLoader: StudioModuleClassLoader? =
-      moduleRenderContext.module
+      module
         ?.getOrCreateHatchery()
         ?.requestClassLoader(
           parent,
@@ -276,17 +281,21 @@ class StudioModuleClassLoaderManager :
   fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? =
     mcl.copy(createDiagnostics())
 
+  private fun clearModuleData(module: Module) {
+    module.removeUserData(PRELOADER)?.dispose()
+    module.getUserData(HATCHERY)?.destroy()
+  }
+
   @Synchronized
   override fun clearCache(module: Module) {
     holders
       .keySet()
       .toList()
       .filter { it.module?.getHolderModule() == module.getHolderModule() }
+      // This removes the entry for all class loaders whose module's holder module is the same as `module`'s holder module, so...
       .forEach { holders.remove(it) }
-    setOf(module.getHolderModule(), module).forEach { mdl ->
-      mdl.removeUserData(PRELOADER)?.dispose()
-      mdl.getUserData(HATCHERY)?.destroy()
-    }
+    // TODO(someone): shouldn't this be the set of all linked modules, rather than just `module` and the holder module?
+    setOf(module.getHolderModule(), module).forEach(::clearModuleData)
   }
 
   @Synchronized
