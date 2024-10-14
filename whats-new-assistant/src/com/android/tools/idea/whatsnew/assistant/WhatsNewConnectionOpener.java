@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.HttpConnectionUtils;
 import java.net.URL;
 import java.net.URLConnection;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ public class WhatsNewConnectionOpener {
    */
   @NotNull
   public URLConnection openConnection(@NotNull URL url, int timeoutMillis) throws Exception {
-    URLConnection connection = HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+    URLConnection connection = HttpConnectionUtils.openConnection(url.toExternalForm());
     // If timeout is not > 0, the default values are used: 60s read and 10s connect
     if (timeoutMillis > 0) {
       connection.setReadTimeout(timeoutMillis);
