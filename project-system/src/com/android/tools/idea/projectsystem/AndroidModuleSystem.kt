@@ -29,7 +29,6 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
@@ -490,32 +489,6 @@ enum class ScopeType {
       MAIN, ANDROID_TEST, SCREENSHOT_TEST -> true
     }
 }
-
-/**
- * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
- * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
- * to all Android modules.  This class should not be accessed directly from outside the Gradle project system (but
- * is unfortunately more widely accessible for historical reasons).
- */
-data class LinkedAndroidGradleModuleGroup(
-  val holder: Module,
-  val main: Module,
-  val unitTest: Module?,
-  val androidTest: Module?,
-  val testFixtures: Module?,
-  val screenshotTest: Module?
-) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest)
-  override fun toString(): String =
-    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, " +
-    "androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}, screenshotTest=${screenshotTest?.name}"
-}
-
-/**
- * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project.  This key should
- * not be accessed from outside the Gradle project system (but is unfortunately more widely-accessible for historical reasons.)
- */
-val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
 
 fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem().getProductionAndroidModule() ?: module
 
