@@ -148,6 +148,25 @@ class SceneViewPeerPanel(
         sceneView.scene.needsRebuildList()
       }
 
+      /**
+       * Calculates total size for [SceneViewPeerPanel] including margins and content for target
+       * [scale]
+       *
+       * Total size for [SceneViewPeerPanel] is contentSize * scale + margin(scale)
+       * * contentSize is the size of the content without any scaling. contentSize is a "raw" size
+       *   of the preview and is not changing unless preview is updated. It should be scaled
+       *   proportionally to get size to be used in surface.
+       * * margin is mostly fixed size, they are not scaled proportionally with scale. margin covers
+       *   the size of labels, toolbars or extra panels surrounding the preview.
+       */
+      override fun sizeForScale(scale: Double): Dimension {
+        val size = getContentSize(null)
+        val margin = getMargin(scale)
+        size.width = (size.width * scale + margin.horizontal).toInt()
+        size.height = (size.height * scale + margin.vertical).toInt()
+        return size
+      }
+
       override fun setLocation(x: Int, y: Int) {
         // The SceneView is painted right below the top toolbar panel.
         // This set the top-left corner of preview.
