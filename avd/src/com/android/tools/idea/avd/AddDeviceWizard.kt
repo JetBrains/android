@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -43,6 +41,8 @@ import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
+import com.android.tools.idea.adddevicedialog.WizardAction
+import com.android.tools.idea.adddevicedialog.WizardButton
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
@@ -66,8 +66,6 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.OutlinedButton
-import org.jetbrains.jewel.ui.component.Text
 
 internal class AddDeviceWizard(
   val source: LocalVirtualDeviceSource,
@@ -96,7 +94,7 @@ internal class AddDeviceWizard(
       // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
       // Device is created, we select it automatically.
       var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
-      val deviceProvider =
+      val deviceProvider = remember {
         object : DeviceUiAction.DeviceProvider {
           override fun getDevice(): Device? = selectionState.selection?.device
 
@@ -112,6 +110,7 @@ internal class AddDeviceWizard(
 
           override fun getProject(): Project? = this@AddDeviceWizard.project
         }
+      }
       if (dialogSelectedDevice != null) {
         profiles
           .find { it.device == dialogSelectedDevice }
@@ -121,6 +120,19 @@ internal class AddDeviceWizard(
             selectionState.selection = it
           }
       }
+      leftSideButtons =
+        remember(deviceProvider) {
+          listOf(
+            WizardButton(
+              "New hardware profile...",
+              WizardAction { CreateDeviceAction(deviceProvider).actionPerformed(null) },
+            ),
+            WizardButton(
+              "Import hardware profile...",
+              WizardAction { ImportDevicesAction(deviceProvider).actionPerformed(null) },
+            ),
+          )
+        }
 
       Column {
         if (accelerationError != AccelerationErrorCode.ALREADY_INSTALLED) {
@@ -175,20 +187,6 @@ internal class AddDeviceWizard(
             },
             modifier = Modifier.weight(1f),
           )
-        }
-        Divider(orientation = Orientation.Horizontal)
-
-        Row(
-          Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          OutlinedButton(onClick = { CreateDeviceAction(deviceProvider).actionPerformed(null) }) {
-            Text("New hardware profile...")
-          }
-
-          OutlinedButton(onClick = { ImportDevicesAction(deviceProvider).actionPerformed(null) }) {
-            Text("Import hardware profile...")
-          }
         }
       }
     }
