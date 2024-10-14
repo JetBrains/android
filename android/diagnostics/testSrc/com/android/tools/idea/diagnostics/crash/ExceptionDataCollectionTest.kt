@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.awaitLogQueueProcessed
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
@@ -135,8 +136,8 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
         debug("debug message #$i")
         info("info message #$i")
         warn("warn message #$i")
-        // use logger directly as
-        logger.severe("severe message #$i")
+        awaitLogQueueProcessed() // the next line is synchronous
+        logger.severe("severe message #$i") // use logger directly
       }
     }
     val exceptionUploadFields = service.getExceptionUploadFields(ex3, forceExceptionMessage = false, includeLogs = true)
