@@ -15,34 +15,42 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun StorageCapacityField(
   value: StorageCapacity,
+  errorMessage: String?,
   onValueChange: (StorageCapacity) -> Unit,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
 ) {
   Row(modifier) {
-    TextField(
-      value.value.toString(),
-      {
-        if (STORAGE_CAPACITY_VALUE_REGEX.matches(it)) {
-          try {
-            onValueChange(StorageCapacity(it.toLong(), value.unit))
-          } catch (_: NumberFormatException) {}
-        }
-      },
-      Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
-      enabled,
-    )
+    @OptIn(ExperimentalFoundationApi::class)
+    ErrorTooltip(errorMessage) {
+      TextField(
+        value.value.toString(),
+        {
+          if (STORAGE_CAPACITY_VALUE_REGEX.matches(it)) {
+            try {
+              onValueChange(StorageCapacity(it.toLong(), value.unit))
+            } catch (_: NumberFormatException) {}
+          }
+        },
+        Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
+        enabled,
+        // TODO: http://b/373463053
+        outline = if (errorMessage == null) Outline.None else Outline.Error,
+      )
+    }
 
     Dropdown(
       value.unit,

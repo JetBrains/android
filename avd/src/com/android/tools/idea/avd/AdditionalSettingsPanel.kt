@@ -105,13 +105,20 @@ internal fun AdditionalSettingsPanel(
         hasPlayStore,
         state.validity.isExpandedStorageValid,
         state::device::set,
+        state::setIsInternalStorageValid,
       )
 
       LaunchedEffect(Unit) {
         state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
       }
 
-      EmulatedPerformanceGroup(state.device, hasPlayStore, state::device::set)
+      EmulatedPerformanceGroup(
+        state.device,
+        hasPlayStore,
+        state::device::set,
+        state::setIsRamValid,
+        state::setIsVmHeapSizeValid,
+      )
 
       PreferredAbiGroup(
         state.device.preferredAbi,
@@ -290,6 +297,7 @@ private fun StorageGroup(
   hasPlayStore: Boolean,
   isExistingImageValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onIsInternalStorageValidChange: (Boolean) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
@@ -299,7 +307,11 @@ private fun StorageGroup(
 
       StorageCapacityField(
         device.internalStorage,
-        onValueChange = { onDeviceChange(device.copy(internalStorage = it)) },
+        validateInternalStorage(device.internalStorage, hasPlayStore),
+        onValueChange = {
+          onDeviceChange(device.copy(internalStorage = it))
+          onIsInternalStorageValidChange(validateInternalStorage(it, hasPlayStore) == null)
+        },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -333,6 +345,7 @@ private fun StorageGroup(
 
       StorageCapacityField(
         storageGroupState.custom,
+        validateCustomExpandedStorage(storageGroupState.custom, hasPlayStore),
         onValueChange = {
           storageGroupState.custom = it
           onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
@@ -367,6 +380,32 @@ private fun StorageGroup(
     )
   }
 }
+
+private fun validateInternalStorage(storage: StorageCapacity, hasPlayStore: Boolean) =
+  if (storage < VirtualDevice.MIN_INTERNAL_STORAGE) {
+    if (hasPlayStore) {
+      "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
+    } else {
+      "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
+    }
+  } else {
+    null
+  }
+
+private fun validateCustomExpandedStorage(storage: StorageCapacity, hasPlayStore: Boolean) =
+  if (hasPlayStore) {
+    if (storage < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE) {
+      "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
+    } else {
+      null
+    }
+  } else {
+    if (storage < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE) {
+      "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
+    } else {
+      null
+    }
+  }
 
 @Composable
 private fun <E : Enum<E>> RadioButtonRow(
@@ -445,6 +484,8 @@ private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
   hasGooglePlayStore: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onIsRamValidChange: (Boolean) -> Unit,
+  onIsVmHeapSizeValidChange: (Boolean) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Emulated Performance")
@@ -488,7 +529,11 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         device.ram,
-        onValueChange = { onDeviceChange(device.copy(ram = it)) },
+        validateRam(device.ram),
+        onValueChange = {
+          onDeviceChange(device.copy(ram = it))
+          onIsRamValidChange(validateRam(it) == null)
+        },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
@@ -505,7 +550,11 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         device.vmHeapSize,
-        onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
+        validateVmHeapSize(device.vmHeapSize),
+        onValueChange = {
+          onDeviceChange(device.copy(vmHeapSize = it))
+          onIsVmHeapSizeValidChange(validateVmHeapSize(it) == null)
+        },
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore,
       )
@@ -518,6 +567,20 @@ private fun EmulatedPerformanceGroup(
     }
   }
 }
+
+private fun validateRam(ram: StorageCapacity) =
+  if (ram < VirtualDevice.MIN_RAM) {
+    "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
+  } else {
+    null
+  }
+
+private fun validateVmHeapSize(size: StorageCapacity) =
+  if (size < VirtualDevice.MIN_VM_HEAP_SIZE) {
+    "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
+  } else {
+    null
+  }
 
 @Composable
 private fun PreferredAbiGroup(
