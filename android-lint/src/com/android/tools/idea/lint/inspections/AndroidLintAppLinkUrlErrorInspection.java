@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.LintIdeUtilsKt;
 import com.android.tools.idea.lint.quickFixes.LaunchAppLinksAssistantFix;
@@ -45,8 +45,8 @@ public class AndroidLintAppLinkUrlErrorInspection extends AndroidLintInspectionB
     if (data != null && data.hasKey(AppLinksValidDetector.KEY_SHOW_APP_LINKS_ASSISTANT)) {
       List<LintIdeQuickFix> quickFixes = Lists.newArrayList(quickFixesArray);
       LaunchAppLinksAssistantFix fix = new LaunchAppLinksAssistantFix();
-      fix.setPriority(PriorityAction.Priority.TOP);
-      quickFixes.add(0, fix);
+      fix.setPriority(PriorityAction.Priority.NORMAL);
+      quickFixes.add(fix);
       quickFixesArray = quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
     }
     return quickFixesArray;
