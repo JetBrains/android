@@ -105,12 +105,10 @@ class LightBrClass(
             .map { name -> createPsiField(project, elementFactory, name) }
             .toTypedArray()
 
-        // TODO(b/147513068): Reliance on javaStructureModificationTracker is known to cause
-        // performance problems.
         CachedValueProvider.Result.create(
           psiFields,
           resourcesModifiedTracker,
-          psiManager.modificationTracker.javaStructureModificationTracker,
+          psiManager.modificationTracker,
         )
       }
 
