@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.insights.experiments.supportsContextSharing
-import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
@@ -43,55 +44,52 @@ import java.awt.BorderLayout
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.jetbrains.annotations.VisibleForTesting
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
 private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
 
 class InsightBottomPanel(
   private val project: Project,
+  scope: CoroutineScope,
+  currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   private val onEnhanceInsight: (Boolean) -> Unit,
 ) : JPanel(BorderLayout()) {
 
   private val actionManager: ActionManager
     get() = ActionManager.getInstance()
 
-  // TODO(b/365994514): button lingers on screen after loading of insight.
-  @VisibleForTesting
-  val enableCodeContextAction =
-    object :
-      JButtonAction(
-        "Use code context",
-        "Grant Gemini in Firebase access to your project code",
-        null,
-      ) {
-      override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  private val enableCodeContextButton =
+    object : JButton("Use code context") {
+      init {
+        toolTipText = "Grant Gemini in Firebase access to your project code"
+        isVisible = false
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible =
-          e.getData(INSIGHT_KEY)?.isEnhancedWithCodeContext() == false &&
-            canShowEnableContextButton()
-      }
+        ClientProperty.put(this, DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+        maximumSize = JBDimension(Int.MAX_VALUE, MINIMUM_ACTION_BUTTON_SIZE.height)
 
-      override fun actionPerformed(e: AnActionEvent) {
-        val dialogBuilder =
-          MessageDialogBuilder.okCancel(
-            "Confirm Context Sharing",
-            "<html>Android Studio needs to send code and context from " +
-              "your project to enhance the insight for this issue.<br>" +
-              "Would you like to continue?</html>",
-          )
-        if (dialogBuilder.ask(e.project)) {
-          onEnhanceInsight(true)
-          e.presentation.isEnabledAndVisible = false
+        addActionListener {
+          val dialogBuilder =
+            MessageDialogBuilder.okCancel(
+              "Confirm Context Sharing",
+              "<html>Android Studio needs to send code and context from " +
+                "your project to enhance the insight for this issue.<br>" +
+                "Would you like to continue?</html>",
+            )
+          if (dialogBuilder.ask(this@InsightBottomPanel)) {
+            onEnhanceInsight(true)
+            isVisible = false
+          }
         }
       }
+    }
 
-      override fun createButton() =
-        JButton().apply {
-          ClientProperty.put(this, DarculaButtonUI.DEFAULT_STYLE_KEY, true)
-          maximumSize = JBDimension(Int.MAX_VALUE, MINIMUM_ACTION_BUTTON_SIZE.height)
-        }
+  private val contextButtonPanel =
+    JPanel().apply {
+      border = JBUI.Borders.empty(0, 4)
+      add(enableCodeContextButton)
     }
 
   private val copyAction = actionManager.getAction(IdeActions.ACTION_COPY)
@@ -124,22 +122,33 @@ class InsightBottomPanel(
     }
 
   init {
-    val leftGroup = DefaultActionGroup(enableCodeContextAction)
-    val leftToolbar = actionManager.createActionToolbar(LEFT_TOOL_BAR, leftGroup, true)
-    leftToolbar.targetComponent = this
 
     val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
     val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
     rightToolbar.targetComponent = this
 
-    add(leftToolbar.component, BorderLayout.WEST)
+    add(contextButtonPanel, BorderLayout.WEST)
     add(rightToolbar.component, BorderLayout.EAST)
 
     border = JBUI.Borders.customLineTop(JBColor.border())
+
+    scope.launch {
+      currentInsightFlow.collect { state ->
+        when (state) {
+          is LoadingState.Ready -> {
+            enableCodeContextButton.isVisible = canShowEnableContextButton(state)
+          }
+          else -> {
+            enableCodeContextButton.isVisible = false
+          }
+        }
+      }
+    }
   }
 
-  private fun canShowEnableContextButton() =
-    !StudioBot.getInstance().isContextAllowed(project) &&
+  private fun canShowEnableContextButton(state: LoadingState.Ready<AiInsight?>) =
+    state.value?.isEnhancedWithCodeContext() == false &&
+      !StudioBot.getInstance().isContextAllowed(project) &&
       AppInsightsExperimentFetcher.instance
         .getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
         .supportsContextSharing()

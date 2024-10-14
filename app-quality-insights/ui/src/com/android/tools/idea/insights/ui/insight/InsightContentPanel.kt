@@ -95,7 +95,8 @@ class InsightContentPanel(
     ) {
       controller.submitInsightFeedback(it)
     }
-  private val insightBottomPanel = InsightBottomPanel(controller.project) { onRefresh(it) }
+  private val insightBottomPanel =
+    InsightBottomPanel(controller.project, scope, currentInsightFlow) { onRefresh(it) }
 
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
