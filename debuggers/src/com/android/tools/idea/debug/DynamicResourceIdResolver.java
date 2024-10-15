@@ -19,6 +19,7 @@ import static com.android.SdkConstants.CLASS_RESOURCES;
 
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebuggerUtils;
+import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
@@ -58,7 +59,7 @@ public class DynamicResourceIdResolver implements ResourceIdResolver {
     }
 
     DebugProcess debugProcess = myContext.getDebugProcess();
-    VirtualMachineProxyImpl vmProxy = (VirtualMachineProxyImpl)debugProcess.getVirtualMachineProxy();
+    VirtualMachineProxyImpl vmProxy = ((SuspendContextImpl)myContext.getSuspendContext()).getVirtualMachineProxy();
     List<ReferenceType> classes = vmProxy.classesByName(CLASS_RESOURCES);
     if (classes.isEmpty()) {
       LOG.warn(CLASS_RESOURCES + " class not loaded?");

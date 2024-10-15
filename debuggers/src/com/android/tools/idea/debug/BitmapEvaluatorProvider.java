@@ -115,7 +115,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
 
     double s = Math.max(currentDimensions.getHeight(), currentDimensions.getWidth()) / MAX_DIMENSION;
 
-    VirtualMachineProxyImpl vm = myEvaluationContext.getDebugProcess().getVirtualMachineProxy();
+    VirtualMachineProxyImpl vm = myEvaluationContext.getSuspendContext().getVirtualMachineProxy();
     Value dstWidth = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getWidth() / s));
     Value dstHeight = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getHeight() / s));
     Value filter = DebuggerUtilsEx.createValue(vm, "boolean", Boolean.FALSE);
