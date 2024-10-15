@@ -31,6 +31,7 @@ import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.System
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.getClassificationForDevice;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.getClassificationFromParts;
+import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.isBaseExtensionLevelForDeviceType;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 import com.android.repository.api.LocalPackage;
@@ -608,5 +609,15 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myWearDevice));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myWearDevice));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myPlayStorePhoneDevice));
+  }
+
+  public void testIsBaseExtensionLevelForDeviceType() {
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 7, true), ImmutableList.of()));
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34), ImmutableList.of(AUTOMOTIVE_TAG)));
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of(AUTOMOTIVE_TAG)));
+
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of()));
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of()));
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 10, false), ImmutableList.of(AUTOMOTIVE_TAG)));
   }
 }
