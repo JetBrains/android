@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -64,7 +67,12 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("java.lang.RuntimeException"),
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -99,7 +107,12 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("java.net.ConnectException"),
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -135,7 +148,12 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("org.gradle.tooling.GradleConnectionException"),
+        GradleException("java.net.UnknownHostException"),
+      )))).toAnalyticsMessage()
     )
   }
 }

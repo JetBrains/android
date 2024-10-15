@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -30,7 +33,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
     expectedErrorNodeNameVerifier: (String) -> Unit,
-    expectedPhases: String
+    expectedPhases: String,
+    expectedGradleFailureDetails: GradleFailureDetails
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
@@ -48,6 +52,7 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
         .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
       expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhases)
+      expect.that(it.gradleFailureDetails).isEqualTo(expectedGradleFailureDetails.toAnalyticsMessage())
     },
   )
 
@@ -67,7 +72,13 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       // When settings.gradle file is broken GRADLE_CONFIGURE_ROOT_BUILD is not reported.
       expectedPhases = """
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("org.gradle.internal.metaobject.AbstractDynamicObject\$CustomMessageMissingMethodException"),
+      ))))
     )
   }
 
@@ -87,7 +98,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("org.gradle.internal.metaobject.AbstractDynamicObject\$CustomMessageMissingMethodException"),
+      ))))
     )
   }
 
@@ -106,7 +124,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("groovy.lang.MissingPropertyException"),
+      ))))
     )
   }
 
@@ -125,7 +150,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("groovy.lang.MissingPropertyException"),
+      ))))
     )
   }
 
@@ -146,7 +178,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("org.gradle.internal.metaobject.AbstractDynamicObject\$CustomMessageMissingMethodException"),
+      ))))
     )
   }
 
@@ -166,7 +205,14 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("groovy.lang.MissingPropertyException"),
+      ))))
     )
   }
 }

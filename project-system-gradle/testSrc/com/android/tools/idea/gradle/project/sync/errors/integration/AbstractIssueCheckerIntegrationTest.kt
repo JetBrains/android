@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
@@ -30,7 +32,8 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
     preparedProject: PreparedTestProject,
     verifyBuildIssue: (Project, BuildIssue) -> Unit,
     expectedFailureReported: AndroidStudioEvent.GradleSyncFailure,
-    expectedPhasesReported: String?
+    expectedPhasesReported: String?,
+    expectedFailureDetails: GradleFailureDetails = GradleExceptionAnalyticsSupport.GradleFailureDetails(emptyList()).toAnalyticsMessage() //TODO remove once all added
   ) {
     runSyncAndCheckGeneralFailure(
       preparedProject = preparedProject,
@@ -52,6 +55,7 @@ abstract class AbstractIssueCheckerIntegrationTest : AbstractSyncFailureIntegrat
         expect.that(it.gradleSyncFailure).isEqualTo(expectedFailureReported)
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList).isEmpty()
         if (expectedPhasesReported != null) expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhasesReported)
+        expect.that(it.gradleFailureDetails).isEqualTo(expectedFailureDetails)
       }
     )
   }

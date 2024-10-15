@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -49,6 +52,13 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+      //TODO this does not provide any clear sign it is about Toml, need to add some context from the stacktrace
+      expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("java.lang.RuntimeException"),
+        GradleException("org.gradle.api.InvalidUserDataException"),
+      )))).toAnalyticsMessage())
     },
   )
 

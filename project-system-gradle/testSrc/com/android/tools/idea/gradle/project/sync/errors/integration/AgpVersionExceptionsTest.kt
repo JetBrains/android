@@ -24,11 +24,13 @@ import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.toException
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import org.junit.Test
 
 class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
@@ -57,7 +59,10 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(buildIssue.quickFixes).hasSize(0)
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetails = GradleExceptionAnalyticsSupport.GradleFailureDetails(listOf(GradleExceptionAnalyticsSupport.GradleError(listOf(
+        GradleExceptionAnalyticsSupport.GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException")
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -80,7 +85,10 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetails = GradleExceptionAnalyticsSupport.GradleFailureDetails(listOf(GradleExceptionAnalyticsSupport.GradleError(listOf(
+        GradleExceptionAnalyticsSupport.GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException")
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -103,8 +111,10 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
-    )
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetails = GradleExceptionAnalyticsSupport.GradleFailureDetails(listOf(GradleExceptionAnalyticsSupport.GradleError(listOf(
+        GradleExceptionAnalyticsSupport.GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException")
+      )))).toAnalyticsMessage()    )
   }
 
   @Test
@@ -126,7 +136,10 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetails = GradleExceptionAnalyticsSupport.GradleFailureDetails(listOf(GradleExceptionAnalyticsSupport.GradleError(listOf(
+        GradleExceptionAnalyticsSupport.GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException")
+      )))).toAnalyticsMessage()
     )
   }
 

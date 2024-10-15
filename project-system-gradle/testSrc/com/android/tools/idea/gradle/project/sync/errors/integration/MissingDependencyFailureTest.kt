@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.tools.idea.gradle.plugin.AgpVersions.latestKnown
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
@@ -90,6 +93,13 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.api.ProjectConfigurationException"),
+          GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
+          GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
+        )))).toAnalyticsMessage())
       }
     )
   }
@@ -139,6 +149,13 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.api.ProjectConfigurationException"),
+          GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
+          GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
+        )))).toAnalyticsMessage())
       }
     )
   }
@@ -228,6 +245,14 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent())
+      expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
+        GradleException("org.gradle.internal.resolve.ModuleVersionResolveException"),
+        GradleException("org.gradle.internal.resolve.ModuleVersionResolveException"),
+      )))).toAnalyticsMessage())
     }
   }
 }
