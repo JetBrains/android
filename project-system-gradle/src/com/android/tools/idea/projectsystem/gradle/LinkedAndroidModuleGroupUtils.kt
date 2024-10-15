@@ -23,43 +23,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import org.jetbrains.android.facet.AndroidFacet
 
-fun Module.getAllLinkedModules() : List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.getModules() ?: listOf(this)
-fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures
-
-/**
- * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures)
- * or the holder module used as the parent of these source set modules.
- */
-fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) != null
-
-/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
-fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
-  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      // We are running some tests that don't set up real-world project structure, so fetch all modules.
-      // See http://b/258162266 for more details.
-      it
-    }
-    else {
-      // Holder module has associated facet, but it can be ignored.
-      it.filter { module -> !module.isHolderModule() }
-    }
-  }.mapNotNull { it.androidFacet }
-}
-
-fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
-fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest
-fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
-fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
-fun Module.isHolderModule() : Boolean = getHolderModule() == this
-fun Module.isMainModule() : Boolean = getMainModule() == this
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
-fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
-
 /**
  * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
  * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
@@ -84,3 +47,39 @@ data class LinkedAndroidGradleModuleGroup(
  * not be accessed from outside the Gradle project system.
  */
 val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
+
+fun Module.isHolderModule() : Boolean = getHolderModule() == this
+fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
+fun Module.isMainModule() : Boolean = getMainModule() == this
+fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
+fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
+fun Module.getUnitTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.unitTest
+fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
+fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
+fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
+fun Module.getScreenshotTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.screenshotTest
+fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
+fun Module.getTestFixturesModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.testFixtures
+
+/**
+ * Utility method to find out if a module is derived from an Android Gradle project. This will return true
+ * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest/testFixtures)
+ * or the holder module used as the parent of these source set modules.
+ */
+fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP) != null
+fun Module.getAllLinkedModules() : List<Module> = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.getModules() ?: listOf(this)
+
+/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
+fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
+  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      // We are running some tests that don't set up real-world project structure, so fetch all modules.
+      // See http://b/258162266 for more details.
+      it
+    }
+    else {
+      // Holder module has associated facet, but it can be ignored.
+      it.filter { module -> !module.isHolderModule() }
+    }
+  }.mapNotNull { it.androidFacet }
+}
