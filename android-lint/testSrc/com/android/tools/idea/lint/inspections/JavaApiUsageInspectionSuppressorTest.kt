@@ -3,13 +3,14 @@ package com.android.tools.idea.lint.inspections
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.codeInspection.JavaApiUsageInspection
 import com.intellij.facet.FacetManager
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.profile.codeInspection.InspectionProfileManager
+import com.intellij.testFramework.runInInitMode
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +50,7 @@ class JavaApiUsageInspectionSuppressorTest {
     )
 
     // Add a Java 9 API usage.
-    fixture.configureByText(
+    val psiFile = fixture.configureByText(
       "Test.java",
       // language=JAVA
       """
@@ -65,7 +66,10 @@ class JavaApiUsageInspectionSuppressorTest {
     )
 
     // Verify JavaApiUsageInspection does not report any errors.
-    fixture.enableInspections(JavaApiUsageInspection::class.java)
+    val inspectionProfile = InspectionProfileManager.getInstance().currentProfile
+    val javaApiInspection = runInInitMode { inspectionProfile.getUnwrappedTool(JAVA_API_INSPECTION_TOOL_ID, psiFile) }
+    checkNotNull(javaApiInspection) { "This test assumes the tool ID for JavaApiUsageInspection is '$JAVA_API_INSPECTION_TOOL_ID'" }
+    fixture.enableInspections(javaApiInspection)
     fixture.checkHighlighting()
 
     // Remove the Android facet.
@@ -76,8 +80,9 @@ class JavaApiUsageInspectionSuppressorTest {
     }
 
     // Verify JavaApiUsageInspection works as expected on non-Android modules.
-    // Note: "Since15" is the tool ID for JavaApiUsageInspection.
     val errors = fixture.doHighlighting(HighlightSeverity.ERROR)
-    assertThat(errors.map(HighlightInfo::getInspectionToolId)).isEqualTo(listOf("Since15"))
+    assertThat(errors.map(HighlightInfo::getInspectionToolId)).isEqualTo(listOf(JAVA_API_INSPECTION_TOOL_ID))
   }
 }
+
+private const val JAVA_API_INSPECTION_TOOL_ID = "Since15" // The tool ID for JavaApiUsageInspection.
