@@ -45,7 +45,7 @@ class InlayPresentationUtilsKtTest {
   }
 
   private val editor
-    get() = console.editor
+    get() = console.editor!!
 
   @Test
   fun `check tooltip`() {

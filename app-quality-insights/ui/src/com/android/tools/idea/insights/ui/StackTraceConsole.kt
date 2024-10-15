@@ -153,12 +153,12 @@ class StackTraceConsole(
     stackPanel.add(emptyStatePane, EMPTY_STATE_PANEL)
     cardLayout.show(stackPanel, CONSOLE_VIEW)
 
-    consoleView.editor.setBorder(JBUI.Borders.empty())
+    consoleView.editor!!.setBorder(JBUI.Borders.empty())
     updateUI()
   }
 
   fun updateUI() {
-    (consoleView?.editor as? EditorEx)?.apply {
+    (consoleView.editor as? EditorEx)?.apply {
       if (
         EditorColorsManager.getInstance()
           .globalScheme
@@ -177,7 +177,7 @@ class StackTraceConsole(
         return@synchronized
       }
       consoleView.flushDeferredText()
-      consoleView.editor.document.setText("")
+      consoleView.editor!!.document.setText("")
       currentEvent = null
     }
 
@@ -204,7 +204,7 @@ class StackTraceConsole(
       // ConsoleViewImpl.clear() clears non-deferred text asynchronously, causing a race condition
       // when setting the new text below, so here we manually flush and then set the text to empty.
       consoleView.flushDeferredText()
-      consoleView.editor.document.setText("")
+      consoleView.editor!!.document.setText("")
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, event.appVcsInfo)
       consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connection)
 
@@ -237,13 +237,13 @@ class StackTraceConsole(
         }
 
         consoleView.performWhenNoDeferredOutput {
-          consoleView.editor.foldingModel.runBatchFoldingOperation {
+          consoleView.editor!!.foldingModel.runBatchFoldingOperation {
             synchronized(CONSOLE_LOCK) {
               if (event != currentEvent) {
                 return@runBatchFoldingOperation
               }
               val region =
-                consoleView.editor.foldingModel.addFoldRegion(
+                consoleView.editor!!.foldingModel.addFoldRegion(
                   startOffset,
                   endOffset,
                   "    <${stack.stacktrace.frames.size} frames>",
@@ -259,13 +259,13 @@ class StackTraceConsole(
 
     if (issue.issueDetails.fatality == FailureType.ANR) {
       consoleView.performWhenNoDeferredOutput {
-        consoleView.editor.foldingModel.runBatchFoldingOperation {
+        consoleView.editor!!.foldingModel.runBatchFoldingOperation {
           synchronized(CONSOLE_LOCK) {
             if (event != currentEvent) {
               return@synchronized
             }
             val region =
-              consoleView.editor.foldingModel.addFoldRegion(
+              consoleView.editor!!.foldingModel.addFoldRegion(
                 startOfOtherThreads,
                 consoleView.contentSize,
                 "    Show all ${event.stacktraceGroup.exceptions.size} threads",
@@ -305,7 +305,7 @@ class StackTraceConsole(
     }
 
     val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState, scope)
-    consoleView.editor.addEditorMouseListener(listener, this)
+    consoleView.editor!!.addEditorMouseListener(listener, this)
 
     return consoleView
   }
@@ -334,7 +334,7 @@ class ListenerForTracking(
   private val scope: CoroutineScope,
 ) : EditorMouseListener {
   override fun mouseReleased(event: EditorMouseEvent) {
-    val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
+    val hyperlinkInfo = consoleView.getHyperlinks()?.getHyperlinkInfoByEvent(event) ?: return
     // Run tracking logic in a coroutine since it requires read lock.
     // Without the read lock, it is considered a slow operation.
     scope.trackClick(hyperlinkInfo)

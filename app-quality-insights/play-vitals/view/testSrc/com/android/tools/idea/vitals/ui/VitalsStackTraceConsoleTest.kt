@@ -58,7 +58,7 @@ class VitalsStackTraceConsoleTest {
               consoleView.addMessageFilter(it)
             }
 
-            (consoleView.editor.foldingModel as FoldingModelImpl).isFoldingEnabled = false
+            (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
           }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
@@ -68,7 +68,7 @@ class VitalsStackTraceConsoleTest {
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
         stackTraceConsole.consoleView.waitAllRequests()
 
-        Truth.assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+        Truth.assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
           .isEqualTo(
             """
              retrofit2.HttpException: HTTP 401 

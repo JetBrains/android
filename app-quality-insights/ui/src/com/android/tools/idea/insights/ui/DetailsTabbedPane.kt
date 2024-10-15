@@ -69,7 +69,7 @@ class DetailsTabbedPane(
     component =
       transparentPanel(GridBagLayout()).apply {
         add(
-          createToolbar(stackTraceConsole.consoleView.editor, this, name, tabbedPane),
+          createToolbar(stackTraceConsole.consoleView.editor!!, this, name, tabbedPane),
           GridBagConstraints().apply {
             gridx = 1
             gridy = 0

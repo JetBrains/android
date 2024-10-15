@@ -81,11 +81,11 @@ class VcsIntegrationTest {
           )
 
           // Act: click on the inlay
-          console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
-          val position = console.editor.caretModel.logicalPosition
-          val point = console.editor.logicalPositionToXY(position)
+          console.editor!!.caretModel.moveToOffset(console.editor!!.document.textLength - 1)
+          val position = console.editor!!.caretModel.logicalPosition
+          val point = console.editor!!.logicalPositionToXY(position)
 
-          val mouse = FakeUi(root = console.editor.contentComponent).mouse
+          val mouse = FakeUi(root = console.editor!!.contentComponent).mouse
 
           // We have a sequence of inlays (", " and "show diff") and we want to click on the second
           // one. "16" is the width of "," inlay.
