@@ -744,6 +744,7 @@ fun MimeType.Companion.fromLanguage(
       "Stylus" -> STYLUS
       "TypeScript JSX" -> TSX
       "HCL-Terraform" -> TERRAFORM
+      "CMake" -> CMAKE
       else -> {
         virtualFile?.extension?.let { MimeType.fromExtension(it) }
           ?: ideLanguage.mimeTypes.firstOrNull()?.let { MimeType(it) }
