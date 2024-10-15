@@ -92,6 +92,7 @@ class WearTileAnimationPreview(
         renderAnimation()
       },
       scope,
+      ::setClockTime,
     )
   }
 

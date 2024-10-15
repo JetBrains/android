@@ -54,32 +54,29 @@ abstract class NumberInputComponentAction<T : Number>(
   override fun actionPerformed(e: AnActionEvent) {}
 
   override fun createCustomComponent(presentation: Presentation, actionPlace: String): JComponent {
-    inputField = JTextField(initialValue.toString(), 6).apply {
-      addFocusListener(
-        object : FocusAdapter() {
-          override fun focusLost(e: FocusEvent?) {
-            handleValueChange()
-          }
-        }
-      )
-
-      addKeyListener(
-        object : KeyAdapter() {
-          override fun keyPressed(keyEvent: KeyEvent) {
-            if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+    inputField =
+      JTextField(initialValue.toString(), 6).apply {
+        addFocusListener(
+          object : FocusAdapter() {
+            override fun focusLost(e: FocusEvent?) {
               handleValueChange()
-              inputField!!.transferFocus()
             }
           }
-        }
-      )
-      preferredSize = Dimension(80, 25)
-    }
-    return JPanel().apply {
-      add(inputField)
-    }.also {
-      containerPanel = it
-    }
+        )
+
+        addKeyListener(
+          object : KeyAdapter() {
+            override fun keyPressed(keyEvent: KeyEvent) {
+              if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+                handleValueChange()
+                inputField!!.transferFocus()
+              }
+            }
+          }
+        )
+        preferredSize = Dimension(80, 25)
+      }
+    return JPanel().apply { add(inputField) }.also { containerPanel = it }
   }
 
   private fun handleValueChange() {
@@ -100,6 +97,10 @@ abstract class NumberInputComponentAction<T : Number>(
     } finally {
       editor?.contentComponent?.requestFocus()
     }
+  }
+
+  fun setInputFieldValue(newValue: String) {
+    inputField?.text = newValue
   }
 
   // Abstract function to be implemented by derived classes
