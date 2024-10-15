@@ -70,19 +70,16 @@ internal fun AdditionalSettingsPanel(
   onImportButtonClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val hasPlayStore = state.hasPlayStore()
+  if (hasPlayStore) {
+    WarningBanner("Some device settings cannot be configured when using a Google Play Store image")
+  }
+
   VerticallyScrollableContainer(modifier) {
     Column(
       Modifier.padding(vertical = Padding.SMALL),
       verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
     ) {
-      val hasPlayStore = state.hasPlayStore()
-
-      if (hasPlayStore) {
-        WarningBanner(
-          "Some device settings cannot be configured when using a Google Play Store image"
-        )
-      }
-
       Row {
         Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
