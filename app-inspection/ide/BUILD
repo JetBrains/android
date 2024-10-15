@@ -77,5 +77,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

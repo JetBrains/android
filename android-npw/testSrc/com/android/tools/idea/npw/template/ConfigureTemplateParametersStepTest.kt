@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.wizard.template.Constraint.CLASS
 import com.android.tools.idea.wizard.template.Constraint.LAYOUT
 import com.android.tools.idea.wizard.template.Constraint.NONEMPTY
@@ -30,6 +28,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ConfigureTemplateParametersStepTest {

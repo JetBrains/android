@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.gradle.completion
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.imports.GMavenIndexRepository
 import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
-import com.android.tools.idea.lang.typedef.TypeDefCompletionContributor
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.testFramework.ExtensionTestUtil
@@ -35,6 +31,8 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.psi.KotlinReferenceProvidersService
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.nio.charset.StandardCharsets
 
 @RunsInEdt
@@ -298,7 +296,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
   }
 
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
-    val mockGMavenIndexRepository: GMavenIndexRepository = MockitoKt.mock()
+    val mockGMavenIndexRepository: GMavenIndexRepository = mock()
     whenever(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(
       """
         {
@@ -349,7 +347,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
 
     val mavenClassRegistry = MavenClassRegistry.createFrom(mockGMavenIndexRepository)
 
-    return MockitoKt.mock<MavenClassRegistryManager>().apply {
+    return mock<MavenClassRegistryManager>().apply {
       whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
     }
   }

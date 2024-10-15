@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -42,6 +41,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.time.Duration
@@ -120,43 +120,43 @@ class ExportUtilsTest {
       AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(24),
       mutableMapOf("processorName" to "testProcessorName2"))
 
-    val rootResults = MockitoKt.mock<AndroidTestResults>().apply {
+    val rootResults = mock<AndroidTestResults>().apply {
       whenever(getTotalDuration()).thenReturn(Duration.ofMillis(9011L))
       whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1, failed = 1))
 
-      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
-    val classResults = MockitoKt.mock<AndroidTestResults>().apply {
+    val classResults = mock<AndroidTestResults>().apply {
       whenever(methodName).thenReturn("")
       whenever(className).thenReturn("testclass")
       whenever(packageName).thenReturn("testpackage")
 
-      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
 
-      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
     }
-    val caseResults = MockitoKt.mock<AndroidTestResults>().apply {
+    val caseResults = mock<AndroidTestResults>().apply {
       whenever(methodName).thenReturn("testmethod")
       whenever(className).thenReturn("testclass")
       whenever(packageName).thenReturn("testpackage")
 
-      whenever(getTestCaseResult(MockitoKt.eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
-      whenever(getDuration(MockitoKt.eq(device1))).thenReturn(Duration.ofMillis(1234L))
-      whenever(getLogcat(MockitoKt.eq(device1))).thenReturn("")
-      whenever(getErrorStackTrace(MockitoKt.eq(device1))).thenReturn("")
-      whenever(getBenchmark(MockitoKt.eq(device1))).thenReturn(BenchmarkOutput.Empty)
+      whenever(getTestCaseResult(eq(device1))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device1))).thenReturn("")
+      whenever(getErrorStackTrace(eq(device1))).thenReturn("")
+      whenever(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput.Empty)
 
-      whenever(getTestCaseResult(MockitoKt.eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
-      whenever(getDuration(MockitoKt.eq(device2))).thenReturn(Duration.ofMillis(7777L))
-      whenever(getLogcat(MockitoKt.eq(device2))).thenReturn("")
-      whenever(getErrorStackTrace(MockitoKt.eq(device2))).thenReturn("")
-      whenever(getBenchmark(MockitoKt.eq(device2))).thenReturn(BenchmarkOutput.Empty)
+      whenever(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
+      whenever(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
+      whenever(getLogcat(eq(device2))).thenReturn("")
+      whenever(getErrorStackTrace(eq(device2))).thenReturn("")
+      whenever(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput.Empty)
     }
 
     return Pair(listOf(device1, device2), AndroidTestResultsTreeNode(

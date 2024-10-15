@@ -155,6 +155,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

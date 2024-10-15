@@ -22,8 +22,6 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -38,7 +36,11 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
 
@@ -56,8 +58,8 @@ class DrawableSlowPreviewProviderTest {
 
   @Test
   fun useDrawableRendererForFrameworkResourceValue() {
-    val resourceResolver = Mockito.spy(createResourceResolver(facet))
-    val drawableRenderer = Mockito.mock(FrameworkDrawableRenderer::class.java)
+    val resourceResolver = spy(createResourceResolver(facet))
+    val drawableRenderer = mock<FrameworkDrawableRenderer>()
     FrameworkDrawableRenderer.setInstance(facet, drawableRenderer)
     val image = createTestImage()
     val name = "file"
@@ -81,7 +83,7 @@ class DrawableSlowPreviewProviderTest {
 
     val result = provider.getSlowPreview(100, 100, designAsset)
     assertNotNull(result)
-    Mockito.verify(drawableRenderer).getDrawableRender(eq(frameworkResourceValue), eq(mockFile), eq(Dimension(100, 100)))
+    verify(drawableRenderer).getDrawableRender(eq(frameworkResourceValue), eq(mockFile), eq(Dimension(100, 100)))
     Truth.assertThat(result!!.getRGB(1, 1)).isEqualTo(0xff012345.toInt())
   }
 

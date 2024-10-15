@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -38,7 +37,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class AssetDataProviderTest {
@@ -85,8 +85,8 @@ class AssetDataProviderTest {
     // We explicit omit the alpha when it's FF
     val resValue = "#012345"
 
-    val project = Mockito.mock(Project::class.java)
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val project = mock<Project>()
+    val resourceResolver = mock<ResourceResolver>()
     val fakeDesignAsset = createFakeDesignAsset(fileName, ResourceType.COLOR)
 
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
@@ -112,7 +112,7 @@ class AssetDataProviderTest {
     val fileName = "values.xml"
     val resValue = "Hello, World!"
 
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val resourceResolver = mock<ResourceResolver>()
     val fakeDesignAsset = createFakeDesignAsset(fileName, ResourceType.STRING)
 
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
@@ -143,7 +143,7 @@ class AssetDataProviderTest {
       ResourceNamespace.RES_AUTO, ResourceType.PLURALS).values().first()
     val designAsset = Asset.fromResourceItem(pluralResource) as DesignAsset
 
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val resourceResolver = mock<ResourceResolver>()
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(pluralResource.resourceValue)
 
     val valueDataProvider = ValueAssetDataProvider(resourceResolver)
@@ -171,7 +171,7 @@ class AssetDataProviderTest {
       ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "string_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val resourceResolver = mock<ResourceResolver>()
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(stringArray.resourceValue)
 
     val valueDataProvider = ValueAssetDataProvider(resourceResolver)
@@ -198,7 +198,7 @@ class AssetDataProviderTest {
       ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "integer_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val resourceResolver = mock<ResourceResolver>()
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(stringArray.resourceValue)
 
     val valueDataProvider = ValueAssetDataProvider(resourceResolver)

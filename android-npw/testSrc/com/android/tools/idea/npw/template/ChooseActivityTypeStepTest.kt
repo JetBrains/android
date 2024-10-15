@@ -15,80 +15,113 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
-/**
- * Tests for [ChooseActivityTypeStep].
- */
+/** Tests for [ChooseActivityTypeStep]. */
 class ChooseActivityTypeStepTest {
   private val messageKeys = activityGalleryStepMessageKeys
 
   @Test
   fun testNoTemplateForExistingModule() {
-    assertThat(Template.NoActivity.validate(
-      moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        Template.NoActivity.validate(
+          moduleApiLevel = 5,
+          isNewModule = false,
+          isAndroidxProject = false,
+          language = Java,
+          messageKeys = messageKeys,
+        )
+      )
       .isEqualTo("No activity template was selected")
   }
 
   @Test
   fun testNoTemplateForNewModule() {
-    assertThat(mock(Template::class.java).validate(
-      moduleApiLevel = 5, isNewModule = true, isAndroidxProject = false, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        mock<Template>()
+          .validate(
+            moduleApiLevel = 5,
+            isNewModule = true,
+            isAndroidxProject = false,
+            language = Java,
+            messageKeys = messageKeys,
+          )
+      )
       .isEqualTo("")
   }
 
   @Test
   fun testTemplateWithMinSdkHigherThanModule() {
-    val template = mock(Template::class.java)
+    val template = mock<Template>()
     whenever(template.minSdk).thenReturn(9)
 
-    assertThat(template.validate(
-      moduleApiLevel = 5, isNewModule = true, isAndroidxProject = true, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        template.validate(
+          moduleApiLevel = 5,
+          isNewModule = true,
+          isAndroidxProject = true,
+          language = Java,
+          messageKeys = messageKeys,
+        )
+      )
       .isEqualTo(message("android.wizard.activity.invalid.min.sdk", 9))
   }
 
   @Test
   fun testTemplateRequiringAndroidX() {
-    val template = mock(Template::class.java)
+    val template = mock<Template>()
     whenever(template.constraints).thenReturn(listOf(TemplateConstraint.AndroidX))
 
-    assertThat(template.validate(
-      moduleApiLevel = 5, isNewModule = false, isAndroidxProject = false, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        template.validate(
+          moduleApiLevel = 5,
+          isNewModule = false,
+          isAndroidxProject = false,
+          language = Java,
+          messageKeys = messageKeys,
+        )
+      )
       .isEqualTo(message("android.wizard.activity.invalid.androidx"))
   }
 
   @Test
   fun testTemplateRequiringKotlinForNewModule() {
-    val template = mock(Template::class.java)
+    val template = mock<Template>()
     whenever(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
 
-    assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        template.validate(
+          moduleApiLevel = 5,
+          isNewModule = true,
+          isAndroidxProject = false,
+          language = Java,
+          messageKeys = messageKeys,
+        )
+      )
       .isEqualTo(message("android.wizard.activity.invalid.needs.kotlin"))
   }
 
   @Test
   fun testTemplateRequiringKotlinForExistingModule() {
-    val template = mock(Template::class.java)
+    val template = mock<Template>()
     whenever(template.constraints).thenReturn(listOf(TemplateConstraint.Kotlin))
 
-    assertThat(template.validate(
-      moduleApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = Java,
-      messageKeys = messageKeys))
+    assertThat(
+        template.validate(
+          moduleApiLevel = 5,
+          isNewModule = false,
+          isAndroidxProject = false,
+          language = Java,
+          messageKeys = messageKeys,
+        )
+      )
       .isEmpty()
   }
 }

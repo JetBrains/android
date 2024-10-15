@@ -21,21 +21,20 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.BaseAsset
 import com.intellij.configurationStore.runInAllowSaveMode
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.swing.Icon
@@ -102,7 +101,7 @@ class MultipleColorIconProviderTest {
     val asset = BaseAsset(ResourceType.COLOR, "my_color")
     ResourceFile.createSingle(File("source"), asset.resourceItem as ResourceMergerItem, "")
 
-    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    val resourceResolver = mock<ResourceResolver>()
     whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
       ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color", "#00F")
     )

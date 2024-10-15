@@ -22,13 +22,11 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
-import com.android.tools.idea.testing.waitForUpdates
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -50,10 +48,10 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.CountDownLatch
@@ -82,7 +80,7 @@ class ResourceExplorerListViewModelImplTest {
     projectRule.fixture.testDataPath = getTestDataDirectory()
     largeImageCache = ImageCache.createImageCache(disposable)
     smallImageCache = ImageCache.createImageCache(disposable)
-    resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    resourceResolver = mock<ResourceResolver>()
   }
 
   @After

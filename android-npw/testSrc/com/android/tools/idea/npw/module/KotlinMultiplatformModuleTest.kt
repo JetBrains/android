@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -40,6 +39,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class KotlinMultiplatformModuleTest {
 
@@ -119,11 +120,10 @@ class KotlinMultiplatformModuleTest {
       agpVersion = projectRuleAgpVersion,
     )
 
-    val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
-    MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
-    val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData)
-      .thenReturn(mockProjectTemplateData)
+    val mockProjectTemplateData = mock<ProjectTemplateData>()
+    whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
+    val mockModuleTemplateData = mock<ModuleTemplateData>()
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
 
     val renderingContext =
       RenderingContext(
