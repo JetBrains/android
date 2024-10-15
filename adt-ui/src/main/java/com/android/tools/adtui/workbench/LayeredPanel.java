@@ -63,7 +63,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     myContainer = new JPanel();
     myContainer.setOpaque(false);
     myContainer.addComponentListener(createWidthUpdater());
-    mySplitter = new ThreeComponentsSplitter(this);
+    mySplitter = new ThreeComponentsSplitter();
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
     mySplitter.setDividerWidth(JBUI.scale(0));
