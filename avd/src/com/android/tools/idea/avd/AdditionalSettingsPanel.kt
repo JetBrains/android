@@ -43,7 +43,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
 import java.awt.Component
 import java.nio.file.Files
@@ -420,20 +420,19 @@ private fun ExistingImageField(
 }
 
 private fun chooseFile(parent: Component, project: Project?): Path? {
-  // TODO chooseFile logs an error because it does slow things on the EDT
-  val virtualFile =
-    FileChooser.chooseFile(
-      FileChooserDescriptorFactory.createSingleFileDescriptor().withFileFilter {
-        it.name.endsWith(".img", ignoreCase = true)
-      },
-      parent,
-      project,
-      null,
-    )
+  val descriptor =
+    FileChooserDescriptor(
+        /* chooseFiles= */ true,
+        /* chooseFolders= */ false,
+        /* chooseJars= */ true,
+        /* chooseJarsAsFiles= */ true,
+        /* chooseJarContents= */ false,
+        /* chooseMultiple= */ false,
+      )
+      .withFileFilter { it.name.endsWith(".img", ignoreCase = true) }
 
-  if (virtualFile == null) {
-    return null
-  }
+  // TODO chooseFile logs an error because it does slow things on the EDT
+  val virtualFile = FileChooser.chooseFile(descriptor, parent, project, null) ?: return null
 
   val path = virtualFile.toNioPath()
   assert(Files.isRegularFile(path))
