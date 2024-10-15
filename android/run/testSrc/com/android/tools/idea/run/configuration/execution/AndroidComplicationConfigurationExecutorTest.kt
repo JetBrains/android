@@ -161,7 +161,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     invokeLater {
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+      val editor = checkNotNull(consoleViewImpl.editor)
+      consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
@@ -339,7 +340,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       // Initialize editor.
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
+      val editor = checkNotNull(consoleViewImpl.editor)
+      consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
