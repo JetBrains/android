@@ -25,7 +25,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.LowMemoryWatcher
-import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -79,7 +78,7 @@ class LowMemoryReporter : Disposable {
   }
 
   private class OnStartup : ApplicationInitializedListener {
-    override suspend fun execute(asyncScope: CoroutineScope) {
+    override suspend fun execute() {
       getInstance();
     }
   }
