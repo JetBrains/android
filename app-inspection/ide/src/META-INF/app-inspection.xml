@@ -26,6 +26,7 @@
                       librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       doNotActivateOnStart="true"/>
+    <notificationGroup id="App Inspection Notifications" displayType="TOOL_WINDOW" toolWindowId="App Inspection"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.appinspection.ide.resolver.artifactResolverFactoryToken"

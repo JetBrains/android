@@ -24,8 +24,9 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
-// This must match the toolwindow id in app-inspection.xml
+// These must match the ids declared in app-inspection.xml
 internal const val APP_INSPECTION_ID = "App Inspection"
+internal const val APP_INSPECTION_NOTIFICATIONS_ID = "App Inspection Notifications"
 
 class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
 
