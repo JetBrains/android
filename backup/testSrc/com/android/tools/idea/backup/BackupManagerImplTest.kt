@@ -41,8 +41,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import java.nio.file.Path
-import kotlin.io.path.pathString
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -53,6 +51,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
+import java.nio.file.Path
+import kotlin.io.path.pathString
 
 /** Tests for [BackupManagerImpl] */
 @RunsInEdt
@@ -181,9 +181,9 @@ private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, res
   BackupUsageEvent.newBuilder()
     .setBackup(
       BackupEvent.newBuilder()
-        .setTypeValue(type.ordinal)
-        .setSourceValue(source.ordinal)
-        .setResultValue(result.ordinal)
+        .setTypeString(type.name)
+        .setSourceString(source.name)
+        .setResultString(result.name)
     )
     .build()
 
@@ -191,7 +191,7 @@ private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, res
 private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode) =
   BackupUsageEvent.newBuilder()
     .setRestore(
-      RestoreEvent.newBuilder().setSourceValue(source.ordinal).setResultValue(errorCode.ordinal)
+      RestoreEvent.newBuilder().setSourceString(source.name).setResultString(errorCode.name)
     )
     .build()
 
