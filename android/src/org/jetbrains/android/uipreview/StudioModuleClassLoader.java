@@ -59,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class StudioModuleClassLoader extends ModuleClassLoader implements ModuleProvider {
+public final class StudioModuleClassLoader extends ModuleClassLoader {
   private static final Logger LOG = Logger.getInstance(StudioModuleClassLoader.class);
 
   /**
@@ -320,7 +320,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
                                durationMs);
   }
 
-  @Override
   @Nullable
   public Module getModule() {
     return myModuleReference.get();
