@@ -10,7 +10,7 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-files" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.device-explorer-common" scope="TEST"/>
+    <orderEntry type="module" module-name="intellij.android.device-explorer-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
