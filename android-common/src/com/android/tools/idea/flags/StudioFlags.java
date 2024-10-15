@@ -1725,6 +1725,15 @@ public final class StudioFlags {
       "cloudaicompanion.googleapis.com"
     );
 
+  public static final Flag<Boolean> GEMINI_FETCH_REAL_INSIGHT =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "gemini.fetch.real.insight",
+      "Fetch real insights",
+      "Fetch actual insights from AiInsightClient",
+      true
+    );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
