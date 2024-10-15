@@ -22,14 +22,14 @@ import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtensionProvider
-import org.jetbrains.kotlin.idea.base.projectStructure.ideaModule
+import org.jetbrains.kotlin.idea.base.projectStructure.openapiModule
 
 @OptIn(KaExperimentalApi::class)
 class SafeArgsResolveExtensionProvider : KaResolveExtensionProvider() {
   override fun provideExtensionsFor(module: KaModule): List<KaResolveExtension> =
     when (module) {
       is KaSourceModule -> {
-        val ideaModule = module.ideaModule
+        val ideaModule = module.openapiModule
         ChangeListenerProjectService.ensureListening(ideaModule.project)
 
         if (NavInfoFetcher.isSafeArgsModule(ideaModule, SafeArgsMode.KOTLIN)) {
