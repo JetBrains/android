@@ -306,7 +306,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
 }
 
 fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifactCore): DataNode<GradleSourceSetData> {
-  return ExternalSystemApiUtil.find(this, GradleSourceSetData.KEY) {
+  return ExternalSystemApiUtil.findChild(this, GradleSourceSetData.KEY) {
     it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact.name)
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
