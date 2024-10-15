@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
@@ -301,6 +302,13 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
 
     override fun logUsage() {} // Rendering a new project is already logged above
+  }
+
+  fun findNewModuleRecommendedBuildSdk(): AndroidVersion? {
+    if (::project.isInitialized) {
+      return project.findNewModuleRecommendedBuildSdk()
+    }
+    return null
   }
 
   companion object {
