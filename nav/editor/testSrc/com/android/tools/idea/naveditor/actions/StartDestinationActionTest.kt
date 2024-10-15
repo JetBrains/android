@@ -20,8 +20,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
 
 class StartDestinationActionTest : NavTestCase() {
   fun testStartDestinationAction() {
@@ -29,9 +28,9 @@ class StartDestinationActionTest : NavTestCase() {
 
     val component = model.treeReader.find("fragment1")!!
     val action = StartDestinationAction(component)
-    action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
+    action.actionPerformed(mock<AnActionEvent>())
 
-    AndroidTestCase.assertEquals(
+    assertEquals(
       """
         NlComponent{tag=<navigation>, instance=0}
             NlComponent{tag=<fragment>, instance=1}

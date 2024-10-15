@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
@@ -37,6 +36,7 @@ import com.google.common.truth.Truth.assertThat
 import java.awt.Color
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.Rectangle2D
+import org.mockito.kotlin.whenever
 
 /** Tests for action hit providers */
 class ActionHitProviderTest : NavTestCase() {

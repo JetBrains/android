@@ -28,7 +28,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.TestActionEvent
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 
 class AddToNewGraphActionTest : NavTestCase() {
   /**

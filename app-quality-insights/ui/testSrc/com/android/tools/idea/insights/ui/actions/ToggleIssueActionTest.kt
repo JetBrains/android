@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
@@ -35,6 +33,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ToggleIssueActionTest {
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
@@ -39,6 +38,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class InsightsTrackerTest {
@@ -64,7 +66,7 @@ class InsightsTrackerTest {
 
   @Before
   fun setUp() {
-    tracker = MockitoKt.mock()
+    tracker = mock()
 
     console =
       initConsoleWithFilters(projectRule.project, tracker).apply {
@@ -122,8 +124,8 @@ class InsightsTrackerTest {
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
       .logStacktraceClicked(
-        MockitoKt.eq(ConnectionMode.ONLINE),
-        MockitoKt.eq(
+        eq(ConnectionMode.ONLINE),
+        eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
             .apply {
               crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
@@ -186,8 +188,8 @@ class InsightsTrackerTest {
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
       .logStacktraceClicked(
-        MockitoKt.eq(null),
-        MockitoKt.eq(
+        isNull(),
+        eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
             .apply {
               clickLocation =

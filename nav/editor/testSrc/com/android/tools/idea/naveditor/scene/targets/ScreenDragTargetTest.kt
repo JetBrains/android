@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
@@ -25,6 +24,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import java.awt.event.MouseEvent.BUTTON1
+import org.mockito.kotlin.whenever
 
 /** Tests for [ScreenDragTarget] */
 class ScreenDragTargetTest : NavTestCase() {

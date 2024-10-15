@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
@@ -60,6 +59,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
 
 data class SimpleValue(val groupingKey: String, val title: String)
 

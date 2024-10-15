@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.REVISION_74081e5f
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class InsightsAttachDiffLinkFilterTest {

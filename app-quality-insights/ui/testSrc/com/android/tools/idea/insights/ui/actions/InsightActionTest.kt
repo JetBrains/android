@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.whenever
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
@@ -58,7 +56,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyList
 import org.mockito.MockedStatic
-import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class InsightActionTest {
 
@@ -106,8 +106,8 @@ class InsightActionTest {
   fun setup() {
     eventIdx = 0
     mockPluginManagerCore = mockStatic(projectRule.disposable)
-    doAnswer { "Gemini" }.whenever(mockGeminiPlugin).name
-    doAnswer { PluginId.getId("") }.whenever(mockGeminiPlugin).pluginId
+    whenever(mockGeminiPlugin.name).thenReturn("Gemini")
+    whenever(mockGeminiPlugin.pluginId).thenAnswer { PluginId.getId("") }
     mockPluginManagerCore
       .whenever<Any> { PluginManagerCore.isDisabled(any()) }
       .thenAnswer { isGeminiDisabled }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.testing.mockStatic
@@ -28,9 +28,8 @@ import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.MockedStatic
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 class NavDesignSurfaceZoomControllerTest {
 
@@ -426,13 +425,13 @@ class NavDesignSurfaceZoomControllerTest {
     @BeforeClass
     fun setUpClass() {
       coordinates = mockStatic(disposableRule.disposable)
-      coordinates.whenever<Any> { Coordinates.getAndroidXDip(any(), anyInt()) }.thenReturn(0)
+      coordinates.whenever<Any> { Coordinates.getAndroidXDip(any(), any()) }.thenReturn(0)
 
-      coordinates.whenever<Any> { Coordinates.getAndroidYDip(any(), anyInt()) }.thenReturn(0)
+      coordinates.whenever<Any> { Coordinates.getAndroidYDip(any(), any()) }.thenReturn(0)
 
-      coordinates.whenever<Any> { Coordinates.getSwingXDip(any(), anyInt()) }.thenReturn(0)
+      coordinates.whenever<Any> { Coordinates.getSwingXDip(any(), any<Int>()) }.thenReturn(0)
 
-      coordinates.whenever<Any> { Coordinates.getSwingYDip(any(), anyInt()) }.thenReturn(0)
+      coordinates.whenever<Any> { Coordinates.getSwingYDip(any(), any<Int>()) }.thenReturn(0)
     }
   }
 }

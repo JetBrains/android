@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -29,7 +28,8 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NavDesignSurfaceActionHandlerTest : NavTestCase() {
 
@@ -245,10 +245,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
-    handler.performCut(mock(DataContext::class.java))
+    handler.performCut(mock<DataContext>())
     surface.currentNavigation = subnav
     surface.selectionModel.clear()
-    handler.performPaste(mock(DataContext::class.java))
+    handler.performPaste(mock<DataContext>())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(root.children, fragment2, subnav)
@@ -280,10 +280,10 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(action1))
-    handler.performCut(mock(DataContext::class.java))
+    handler.performCut(mock<DataContext>())
     surface.currentNavigation = subnav
     surface.selectionModel.setSelection(listOf(fragment2))
-    handler.performPaste(mock(DataContext::class.java))
+    handler.performPaste(mock<DataContext>())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     assertSameElements(fragment1.children, action2)
@@ -302,8 +302,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
-    handler.performCopy(mock(DataContext::class.java))
-    handler.performPaste(mock(DataContext::class.java))
+    handler.performCopy(mock<DataContext>())
+    handler.performPaste(mock<DataContext>())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val fragment = model.treeReader.find("fragment")
