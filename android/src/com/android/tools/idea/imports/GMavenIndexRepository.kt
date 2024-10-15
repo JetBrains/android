@@ -17,7 +17,18 @@ package com.android.tools.idea.imports
 
 import com.android.annotations.concurrency.Slow
 import com.android.io.CancellableFileIo
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.util.EventDispatcher
+import com.intellij.util.application
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.outputStream
 import java.io.IOException
@@ -29,8 +40,10 @@ import java.net.UnknownHostException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
+import java.util.EventListener
 import java.util.Locale
 import java.util.Properties
 import kotlin.io.path.exists
@@ -42,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 3000
@@ -65,6 +79,9 @@ private const val ETAG_KEY = "etag"
 
 private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
 
+/** Key used in cache directories to locate the gmaven.index network cache. */
+private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
+
 /**
  * A repository provides Maven class registry generated from loading local disk cache, which is
  * actively refreshed from network request on GMaven indices on [baseUrl]/[RELATIVE_PATH], on a
@@ -73,18 +90,29 @@ private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
  * The underlying [lastComputedMavenClassRegistry] is for storing the last known value for instant
  * query. The freshness is guaranteed by the [scheduler].
  */
-class GMavenIndexRepository(
+@Service
+class GMavenIndexRepository
+@TestOnly
+internal constructor(
   private val baseUrl: String,
   private val cacheDir: Path,
-  private val onIndexUpdated: () -> Unit,
   coroutineScope: CoroutineScope,
-  coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  coroutineDispatcher: CoroutineDispatcher,
 ) {
 
-  private class ValueWithETag(val data: ByteArray, val eTag: String)
+  constructor(
+    coroutineScope: CoroutineScope
+  ) : this(
+    BASE_URL,
+    Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
+    coroutineScope,
+    Dispatchers.Default,
+  )
 
   private val relativeCachePath =
     if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
+
+  private val listeners = EventDispatcher.create(GMavenIndexRepositoryListener::class.java)
 
   init {
     coroutineScope.launch(coroutineDispatcher) {
@@ -101,6 +129,10 @@ class GMavenIndexRepository(
         delay(REFRESH_INTERVAL)
       }
     }
+  }
+
+  internal fun addListener(listener: GMavenIndexRepositoryListener, parentDisposable: Disposable) {
+    listeners.addListener(listener, parentDisposable)
   }
 
   /**
@@ -128,7 +160,7 @@ class GMavenIndexRepository(
   @Slow
   private fun refresh(url: String): RefreshStatus {
     val status = refreshDiskCache(url)
-    if (status == RefreshStatus.UPDATED) onIndexUpdated()
+    if (status == RefreshStatus.UPDATED) listeners.multicaster.onIndexUpdated()
 
     return status
   }
@@ -280,5 +312,38 @@ class GMavenIndexRepository(
 
     /** Errors happen when refreshing. */
     ERROR,
+  }
+
+  private class ValueWithETag(val data: ByteArray, val eTag: String)
+
+  companion object {
+    fun getInstance(): GMavenIndexRepository = application.service()
+  }
+}
+
+/** Listener for events related to the [GMavenIndexRepository] service. */
+internal interface GMavenIndexRepositoryListener : EventListener {
+  fun onIndexUpdated()
+}
+
+/**
+ * Post-startup activity that kicks of the GMaven index refresh logic in [GMavenIndexRepository].
+ */
+class AutoRefresherForMavenClassRegistry : ProjectActivity {
+  init {
+    if (application.isUnitTestMode || application.isHeadlessEnvironment)
+      throw ExtensionNotApplicableException.create()
+  }
+
+  override suspend fun execute(project: Project) {
+    if (
+      !IdeInfo.getInstance().isAndroidStudio && !IdeSdks.getInstance().hasConfiguredAndroidSdk()
+    ) {
+      // IDE must not hit network on startup
+      return
+    }
+
+    // Start refresher in GMavenIndexRepository at project start-up.
+    GMavenIndexRepository.getInstance()
   }
 }

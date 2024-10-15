@@ -524,7 +524,7 @@ class MavenClassRegistryTest {
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
     val repository =
-      GMavenIndexRepository("https://example.com", tempDir, {}, testScope, testDispatcher)
+      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
     val mavenClassRegistry = MavenClassRegistry.createFrom(repository::loadIndexFromDisk)
     val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
