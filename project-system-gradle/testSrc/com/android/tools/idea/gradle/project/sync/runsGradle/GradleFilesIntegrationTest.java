@@ -55,7 +55,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -85,9 +84,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   @Override
   protected File loadSimpleApplication() throws Exception {
     File projectRoot = super.loadSimpleApplication();
-    // Make sure the file hashes are updated before the test is run
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     return projectRoot;
+  }
+  private void simulateSyncForGradleFilesUpdate() {
+    myGradleFiles.maybeProcessSyncStarted();
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {
@@ -279,7 +281,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     runFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
@@ -292,13 +294,13 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
   }
 
   public void testModifiedWhenModifiedDuringSync() throws Exception {
     loadSimpleApplication();
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -312,7 +314,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), true);
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -325,6 +327,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenVersionCatalogFileChanged() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG);
+    simulateSyncForGradleFilesUpdate();
     VirtualFile libs = findOrCreateFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
@@ -340,9 +343,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     boolean deleted = path.delete();
     assertThat(deleted).isTrue();
     assertThat(getAppBuildFile().exists()).isTrue();
-    myGradleFiles.maybeProcessSyncStarted();
-    // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
-    UIUtil.dispatchAllInvocationEvents();
+    simulateSyncForGradleFilesUpdate();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
     assertThat(myGradleFiles.hasHashForFile(getAppBuildFile())).isFalse();
   }
@@ -516,9 +517,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                                        boolean expectedResult,
                                        boolean preCheckEnabled,
                                        @NotNull VirtualFile file) {
-    // Clear event queue as the hashing is added as a transaction
-    UIUtil.dispatchAllInvocationEvents();
-
     PsiFile psiFile = findPsiFile(file);
 
     FileEditorManager mockManager = mock(FileEditorManager.class);

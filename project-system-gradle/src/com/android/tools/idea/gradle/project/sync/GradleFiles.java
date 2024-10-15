@@ -15,25 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.concurrency.AndroidIoManager;
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.FileRelevanceKt;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.intellij.ide.impl.ProjectUtilKt;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,15 +30,8 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
@@ -65,20 +43,14 @@ import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import org.apache.commons.lang3.ArrayUtils;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -107,6 +79,8 @@ public class GradleFiles implements Disposable.Default {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  @NotNull private final GradleFilesUpdater myUpdater;
+
   @SuppressWarnings("UsagesOfObsoleteApi") // Replacement of StartupActivity is a co-routine interface that shouldn't be implemented in Java
   public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
@@ -123,6 +97,8 @@ public class GradleFiles implements Disposable.Default {
 
   private GradleFiles(@NotNull Project project) {
     myProject = project;
+
+    myUpdater = GradleFilesUpdater.getInstance(project);
 
     GradleFileChangeListener fileChangeListener = new GradleFileChangeListener(this);
     myFileEditorListener = new FileEditorManagerListener() {
@@ -143,7 +119,6 @@ public class GradleFiles implements Disposable.Default {
 
     if (myProject.isDefault()) return;
 
-    Application application = ApplicationManager.getApplication();
     for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
       maybeAddOrRemovePsiTreeListener(editor.getFile(), fileChangeListener);
     }
@@ -231,20 +206,6 @@ public class GradleFiles implements Disposable.Default {
     }
   }
 
-  private static void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
-    Integer hash = computeHash(file);
-    if (hash != null) {
-      map.put(file, hash);
-    }
-  }
-
-  private void storeHashesForFiles(@NotNull Map<VirtualFile, Integer> files) {
-    synchronized (myLock) {
-      myFileHashes.clear();
-      myFileHashes.putAll(files);
-    }
-  }
-
   /**
    * Gets the hash value for a given file from the map and stores the value as the first element
    * in hashValue. If this method returns false then the file was not in the map and the value
@@ -263,25 +224,13 @@ public class GradleFiles implements Disposable.Default {
     }
   }
 
-  private void removeExternalBuildFiles() {
-    synchronized (myLock) {
-      myExternalBuildFiles.clear();
-    }
-  }
-
-  private void storeExternalBuildFiles(@NotNull Collection<VirtualFile> externalBuildFiles) {
-    synchronized (myLock) {
-      myExternalBuildFiles.addAll(externalBuildFiles);
-    }
-  }
-
   /**
    * Computes a hash for a given {@code VirtualFile} by using the string obtained from its {@code PsiFile},
-   * and stores it as the first element in hashValue. If this method returns false the hash was not computed
+   * and stores it as the first element in hashValue. If this method returns null the hash was not computed
    * and its value should not be used.
    */
   @Nullable
-  private static Integer computeHash(@NotNull VirtualFile file) {
+  static Integer computeHash(@NotNull VirtualFile file) {
     if (!file.isValid()) return null;
     Document document = FileDocumentManager.getInstance().getDocument(file);
     return document == null ? null : document.getText().hashCode();
@@ -322,161 +271,21 @@ public class GradleFiles implements Disposable.Default {
     return status;
   }
 
-  private void updateFileHashes() {
-    Project project = myProject;
-    if (project.isDisposed()) {
-      return;
-    }
-
-    ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
-    ProgressManager progressManager = ProgressManager.getInstance();
-    ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
-    Application application = ApplicationManager.getApplication();
-
-    // Local map to minimize time holding myLock
-    Map<VirtualFile, Integer> fileHashes = new HashMap<>();
-
-    Runnable computeWrapperHashRunnable = () -> {
-      GradleWrapper gradleWrapper = GradleWrapper.find(project);
-      if (gradleWrapper != null) {
-        File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
-        if (propertiesFilePath.isFile()) {
-          VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
-          if (propertiesFile != null) {
-            application.runReadAction(() -> putHashForFile(fileHashes, propertiesFile));
-          }
-        }
-      }
-    };
-    Future<?> wrapperHashFuture = executorService.submit(
-      () -> progressManager.executeProcessUnderProgress(computeWrapperHashRunnable, progressIndicator)
-    );
-    try {
-      wrapperHashFuture.get();
-    } catch (InterruptedException | ExecutionException e) {
-      /* ignored */
-    }
-
-    // Clean external build files before they are repopulated.
-    removeExternalBuildFiles();
-    List<VirtualFile> externalBuildFiles = new ArrayList<>();
-
-    List<Module> modules = ImmutableList.copyOf(ModuleManager.getInstance(project).getModules());
-
-    Consumer<Module> computeHashes = module -> {
-      VirtualFile buildFile = getGradleBuildFile(module);
-      if (buildFile != null) {
-        ProgressManager.checkCanceled();
-        File path = VfsUtilCore.virtualToIoFile(buildFile);
-        if (path.isFile()) {
-          application.runReadAction(() -> putHashForFile(fileHashes, buildFile));
-        }
-      }
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel != null) {
-        for (File externalBuildFile : ndkModuleModel.getBuildFiles()) {
-          ProgressManager.checkCanceled();
-          if (externalBuildFile.isFile()) {
-            // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.
-            VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
-            externalBuildFiles.add(virtualFile);
-            if (virtualFile != null) {
-              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
-            }
-          }
-        }
-      }
-    };
-
-    modules.stream()
-      .map(module ->
-             executorService.submit(
-               () -> progressManager.executeProcessUnderProgress(() -> computeHashes.accept(module), progressIndicator)
-             )
-      )
-      .forEach(future -> {
-        try {
-          future.get();
-        }
-        catch (InterruptedException | ExecutionException e) {
-          // ignored, the hashes won't be updated. This will cause areGradleFilesModified to return true.
-        }
-      });
-
-    storeExternalBuildFiles(externalBuildFiles);
-
-    String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
-    if (DeclarativeStudioSupport.isEnabled()) {
-      fileNames = ArrayUtils.add(fileNames, FN_SETTINGS_GRADLE_DECLARATIVE);
-    }
-    File rootFolderPath = getBaseDirPath(myProject);
-    VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
-    final String[] finalFileNames = fileNames;
-    Runnable projectWideFilesRunnable = () -> {
-      for (String fileName : finalFileNames) {
-        ProgressManager.checkCanceled();
-        File filePath = new File(rootFolderPath, fileName);
-        if (filePath.isFile() && rootFolder != null) {
-          VirtualFile virtualFile = rootFolder.findChild(fileName);
-          if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-            application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
-          }
-        }
-      }
-      ProgressManager.checkCanceled();
-      File gradlePath = new File(rootFolderPath, "gradle");
-      if (gradlePath.isDirectory()) {
-        File[] gradleFiles = gradlePath.listFiles((dir, name) -> name.endsWith(".versions.toml"));
-        if (gradleFiles != null) {
-          for (File tomlFile : gradleFiles) {
-            ProgressManager.checkCanceled();
-            if (tomlFile.isFile()) {
-              VirtualFile virtualFile = findFileByIoFile(tomlFile, false);
-              if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-                application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
-              }
-            }
-          }
-        }
-      }
-      ProgressManager.checkCanceled();
-      File gradleCachePath = new File(rootFolderPath, ".gradle");
-      if (gradleCachePath.isDirectory()) {
-        File gradleConfigProperties = new File(gradleCachePath, FN_GRADLE_CONFIG_PROPERTIES);
-        VirtualFile virtualFile = findFileByIoFile(gradleConfigProperties, false);
-        if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-          application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
-        }
-      }
-    };
-    if (rootFolder != null) {
-      Future<?> projectWideFilesFuture = executorService.submit(
-        () -> progressManager.executeProcessUnderProgress(projectWideFilesRunnable, progressIndicator)
-      );
-      try {
-        projectWideFilesFuture.get();
-      } catch (InterruptedException | ExecutionException e) {
-        /* ignored */
-      }
-    }
-    storeHashesForFiles(fileHashes);
-  }
-
   /**
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
   private void scheduleUpdateFileHashes() {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // If we are running in tests, we might be invoked directly from a WriteCommand, which would mean that our attempts to
-      // do background ReadActions and wait for them will deadlock.  Schedule us for later on the EDT but without the write lock, for
-      // consistent order of operations.
-      ApplicationManager.getApplication().invokeLater(this::updateFileHashes);
-    } else {
-      // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
-      // disk IO is slow.
-      //noinspection deprecation,UnstableApiUsage
-      ProjectUtilKt.executeOnPooledIoThread(myProject, this::updateFileHashes);
-    }
+    myUpdater.scheduleUpdateFileHashes(
+      (result) -> {
+        synchronized (myLock) {
+          myExternalBuildFiles.clear();
+          myExternalBuildFiles.addAll(result.getExternalBuildFiles());
+          myFileHashes.clear();
+          myFileHashes.putAll(result.getHashes());
+        }
+        return Unit.INSTANCE;
+      }
+    );
   }
 
   /**
