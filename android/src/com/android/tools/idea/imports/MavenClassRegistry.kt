@@ -120,14 +120,13 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
   }
 
   companion object {
-    fun createFrom(indexRepository: GMavenIndexRepository): MavenClassRegistry {
-      val lookup = generateLookup(indexRepository)
+    @TestOnly
+    fun createFrom(getIndexFileStream: () -> InputStream): MavenClassRegistry {
+      val lookup = generateLookup(getIndexFileStream())
       return MavenClassRegistry(lookup)
     }
 
-    private fun generateLookup(indexRepository: GMavenIndexRepository): LookupData {
-      val data = indexRepository.loadIndexFromDisk()
-
+    private fun generateLookup(data: InputStream): LookupData {
       return try {
         data.use { readIndicesFromJsonFile(it) }
       } catch (e: Exception) {
