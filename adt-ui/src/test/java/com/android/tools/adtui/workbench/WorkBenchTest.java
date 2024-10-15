@@ -18,7 +18,6 @@ package com.android.tools.adtui.workbench;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.PalettePanelToolContent.MIN_TOOL_WIDTH;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.testFramework.ServiceContainerUtil.registerServiceInstance;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -100,7 +99,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     registerProjectService(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
-    mySplitter = new ThreeComponentsSplitter(getTestRootDisposable());
+    mySplitter = new ThreeComponentsSplitter();
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = new SideModel<>(getProject());
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));

@@ -120,7 +120,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
                    @Nullable FileEditor fileEditor,
                    @NotNull Disposable parentDisposable,
                    int delayTimeMs) {
-    this(project, name, fileEditor, InitParams.createParams(project, parentDisposable), DetachedToolWindowManager.getInstance(project),
+    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project),
          delayTimeMs);
 
     Disposer.register(parentDisposable, this);
@@ -860,10 +860,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       myRightMinimizePanel = rightMinimizePanel;
     }
 
-    private static <T> InitParams<T> createParams(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    private static <T> InitParams<T> createParams(@NotNull Project project) {
       SideModel<T> model = new SideModel<>(project);
       return new InitParams<>(model,
-                              new ThreeComponentsSplitter(parentDisposable),
+                              new ThreeComponentsSplitter(),
                               new MinimizedPanel<>(Side.LEFT, model),
                               new MinimizedPanel<>(Side.RIGHT, model));
     }
