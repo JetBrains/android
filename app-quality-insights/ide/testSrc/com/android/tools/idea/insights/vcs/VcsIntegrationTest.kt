@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.vcs
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.insights.AppVcsInfo
@@ -46,6 +45,7 @@ import git4idea.commands.GitCommand
 import git4idea.repo.GitRepository
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class VcsIntegrationTest {
   @get:Rule

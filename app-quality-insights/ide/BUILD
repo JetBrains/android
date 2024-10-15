@@ -75,6 +75,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "@intellij//:intellij.platform.vcs.impl[test]",
         "@intellij//:intellij.platform.vcs.dvcs.impl[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

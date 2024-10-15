@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.analytics
 
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

@@ -18,8 +18,6 @@ package com.android.tools.idea.adb.wireless
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -51,6 +49,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @get:Rule val portableUiFontRule = PortableUiFontRule()
