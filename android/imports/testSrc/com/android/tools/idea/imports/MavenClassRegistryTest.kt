@@ -18,10 +18,11 @@ package com.android.tools.idea.imports
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Assert.assertThrows
@@ -35,6 +36,10 @@ class MavenClassRegistryTest {
   private val gMavenIndexRepositoryMock: GMavenIndexRepository = mock {
     on { loadIndexFromDisk() } doAnswer { repositoryIndexContents.byteInputStream(UTF_8) }
   }
+
+  private val testScheduler = TestCoroutineScheduler()
+  private val testDispatcher = StandardTestDispatcher(testScheduler)
+  private val testScope = TestScope(testDispatcher)
 
   @Test
   fun parseJsonFile() {
@@ -521,57 +526,58 @@ class MavenClassRegistryTest {
   @Test
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    val parentDisposable = Disposable {}
     val repository =
-      GMavenIndexRepository("https://example.com", tempDir, Duration.ofDays(1), parentDisposable)
+      GMavenIndexRepository(
+        "https://example.com",
+        tempDir,
+        Duration.ofDays(1),
+        testScope,
+        testDispatcher,
+      )
 
-    try {
-      val mavenClassRegistry = MavenClassRegistry(repository)
-      val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
+    val mavenClassRegistry = MavenClassRegistry(repository)
+    val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
 
-      // Check if we have a valid built-in index file.
-      Json.parseToJsonElement(data)
+    // Check if we have a valid built-in index file.
+    Json.parseToJsonElement(data)
 
-      // Check if this offline index file has some of the expected data.
-      mavenClassRegistry.lookup.classNameMap.let {
-        assertThat(it.size).isAtLeast(6000)
-        assertThat(it)
-          .containsEntry(
-            "HintConstants",
-            listOf(
-              LibraryImportData(
-                artifact = "androidx.autofill:autofill",
-                importedItemFqName = "androidx.autofill.HintConstants",
-                importedItemPackageName = "androidx.autofill",
-                version = "1.1.0",
-              )
-            ),
-          )
-        assertThat(it)
-          .containsEntry(
-            "ImageViewStyle",
-            listOf(
-              LibraryImportData(
-                artifact = "androidx.autofill:autofill",
-                importedItemFqName = "androidx.autofill.inline.common.ImageViewStyle",
-                importedItemPackageName = "androidx.autofill.inline.common",
-                version = "1.1.0",
-              )
-            ),
-          )
-      }
+    // Check if this offline index file has some of the expected data.
+    mavenClassRegistry.lookup.classNameMap.let {
+      assertThat(it.size).isAtLeast(6000)
+      assertThat(it)
+        .containsEntry(
+          "HintConstants",
+          listOf(
+            LibraryImportData(
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.HintConstants",
+              importedItemPackageName = "androidx.autofill",
+              version = "1.1.0",
+            )
+          ),
+        )
+      assertThat(it)
+        .containsEntry(
+          "ImageViewStyle",
+          listOf(
+            LibraryImportData(
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.inline.common.ImageViewStyle",
+              importedItemPackageName = "androidx.autofill.inline.common",
+              version = "1.1.0",
+            )
+          ),
+        )
+    }
 
-      mavenClassRegistry.lookup.ktxMap.let {
-        assertThat(it.size).isAtLeast(40)
-        assertThat(it)
-          .containsEntry(
-            "androidx.navigation:navigation-fragment",
-            "androidx.navigation:navigation-fragment-ktx",
-          )
-        assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
-      }
-    } finally {
-      Disposer.dispose(parentDisposable)
+    mavenClassRegistry.lookup.ktxMap.let {
+      assertThat(it.size).isAtLeast(40)
+      assertThat(it)
+        .containsEntry(
+          "androidx.navigation:navigation-fragment",
+          "androidx.navigation:navigation-fragment-ktx",
+        )
+      assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
     }
   }
 

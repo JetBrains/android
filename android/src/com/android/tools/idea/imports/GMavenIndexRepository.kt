@@ -17,10 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.annotations.concurrency.Slow
 import com.android.io.CancellableFileIo
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.outputStream
 import java.io.IOException
@@ -40,6 +37,11 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 3000
@@ -73,32 +75,32 @@ private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
 class GMavenIndexRepository(
   private val baseUrl: String,
   private val cacheDir: Path,
-  private val refreshInterval: Duration,
-  parentDisposable: Disposable,
-) : Disposable {
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
+  refreshInterval: Duration,
+  coroutineScope: CoroutineScope,
+  coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
+) {
 
   private class ValueWithETag(val data: ByteArray, val eTag: String)
 
   private val relativeCachePath =
     if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
   private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
-  private val scheduler =
-    AppExecutorUtil.createBoundedScheduledExecutorService("MavenClassRegistry Refresher", 1)
 
   init {
-    val task = Runnable {
-      refreshWithRetryStrategy(
-        url = "$baseUrl/$RELATIVE_PATH",
-        retryDelayMillis = NETWORK_RETRY_INITIAL_DELAY_MILLIS,
-        remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES,
-      )
+    coroutineScope.launch(coroutineDispatcher) {
+      // Schedules to refresh local disk cache on a daily basis (based on refreshInterval).
+      while (true) {
+        launch {
+          refreshWithRetryStrategy(
+            url = "$baseUrl/$RELATIVE_PATH",
+            retryDelayMillis = NETWORK_RETRY_INITIAL_DELAY_MILLIS,
+            remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES,
+          )
+        }
+
+        delay(refreshInterval)
+      }
     }
-    // Schedules to refresh local disk cache on a daily basis.
-    scheduler.scheduleWithFixedDelay(task, 0, refreshInterval.toMillis(), TimeUnit.MILLISECONDS)
   }
 
   /**
@@ -116,24 +118,20 @@ class GMavenIndexRepository(
    * strategy.
    */
   @Slow
-  private fun refreshWithRetryStrategy(
+  private suspend fun refreshWithRetryStrategy(
     url: String,
     retryDelayMillis: Long,
     remainingAttempts: Int,
   ) {
     val status = refresh(url)
+    if (status != RefreshStatus.RETRY || remainingAttempts <= 1) return
 
-    if (status == RefreshStatus.RETRY && remainingAttempts > 1) {
-      val scheduledTime = DATE_FORMAT.format(System.currentTimeMillis() + retryDelayMillis)
-      thisLogger()
-        .info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
+    val scheduledTime = DATE_FORMAT.format(System.currentTimeMillis() + retryDelayMillis)
+    thisLogger().info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
+    delay(Duration.ofMillis(retryDelayMillis))
 
-      val retry = Runnable {
-        val nextRetryDelayMillis = (retryDelayMillis * NETWORK_RETRY_DELAY_FACTOR).toLong()
-        refreshWithRetryStrategy(url, nextRetryDelayMillis, remainingAttempts - 1)
-      }
-      scheduler.schedule(retry, retryDelayMillis, TimeUnit.MILLISECONDS)
-    }
+    val nextRetryDelayMillis = (retryDelayMillis * NETWORK_RETRY_DELAY_FACTOR).toLong()
+    refreshWithRetryStrategy(url, nextRetryDelayMillis, remainingAttempts - 1)
   }
 
   /** Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists. */
@@ -304,9 +302,5 @@ class GMavenIndexRepository(
 
     /** Errors happen when refreshing. */
     ERROR,
-  }
-
-  override fun dispose() {
-    scheduler.shutdown()
   }
 }
