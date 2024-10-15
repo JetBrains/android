@@ -12,8 +12,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.Arrays;
 import java.util.List;
-import javaslang.collection.Array;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -344,11 +344,11 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings())
-      .containsAllIn(Array.of("android.hardware.audio.low_latency", "android.hardware.camera", "android.hardware.telephony"));
+      .containsAllIn(Arrays.asList("android.hardware.audio.low_latency", "android.hardware.camera", "android.hardware.telephony"));
 
     AndroidTestUtils.moveCaret(myFixture, "android:required=\"|\"");
     myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).containsAllIn(Array.of("true", "false"));
+    assertThat(myFixture.getLookupElementStrings()).containsAllIn(Arrays.asList("true", "false"));
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
