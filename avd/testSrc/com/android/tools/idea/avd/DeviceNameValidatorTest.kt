@@ -36,6 +36,7 @@ class DeviceNameValidatorTest {
     assertThat(validator.validate("Pixel 2")).contains("already exists")
     assertThat(validator.validate("Pixel ")).contains("already exists")
     assertThat(validator.validate("Pixel!")).contains("can contain only")
+    assertThat(validator.validate(" ")).isEqualTo("The name cannot be blank.")
     assertThat(validator.validate("Pixel (2)")).isNull()
   }
 }
