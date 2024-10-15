@@ -435,6 +435,10 @@ public class AndroidStudioInstallation {
     return studioDir;
   }
 
+  public Path getStudioEventsDir() {
+    return studioEventsDir;
+  }
+
   public Path getAndroidStudioProjectsDir() {
     return fileSystem.getHome().resolve("AndroidStudioProjects");
   }

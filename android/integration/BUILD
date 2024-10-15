@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 
@@ -154,6 +155,22 @@ iml_test(
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.EditorPerformanceTest",
+)
+
+iml_test(
+    name = "StartupPerformanceTest",
+    timeout = "long",
+    data = editor_performance_test_data,
+    module = ":intellij.android.core.integration",
+    tags = [
+        "ci:perfgate-linux",
+        "ci:perfgate-win",
+        "noci:studio-linux",
+        "noci:studio-win",
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.StartupPerformanceTest",
 )
 
 iml_test(
