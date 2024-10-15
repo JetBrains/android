@@ -14,7 +14,7 @@
           </stringArguments>
           <arrayArguments>
             <arrayArg name="pluginClasspaths">
-              <args>$MAVEN_REPOSITORY$/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</args>
+              <args>$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/compose/compiler/compiler-hosted/1.5.7/compiler-hosted-1.5.7.jar</args>
             </arrayArg>
           </arrayArguments>
         </compilerArguments>
