@@ -51,7 +51,7 @@ class StorageCapacityFieldTest {
   @Test
   fun replaceValueWithMaxValuePlus1() {
     // Arrange
-    val onValueChange = MockitoKt.mock<(StorageCapacity) -> Unit>()
+    val onValueChange = MockitoKt.mock<(StorageCapacity?) -> Unit>()
 
     rule.setContent {
       StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), null, onValueChange)
@@ -63,6 +63,6 @@ class StorageCapacityFieldTest {
       .performTextReplacement("9223372036854775808")
 
     // Assert
-    Mockito.verifyNoInteractions(onValueChange)
+    Mockito.verify(onValueChange).invoke(null)
   }
 }

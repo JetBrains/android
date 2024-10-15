@@ -179,6 +179,13 @@ internal constructor(
   internal val systemImageTableSelectionState = TableSelectionState(image)
   internal val storageGroupState = StorageGroupState(device)
 
+  internal val isValid
+    get() =
+      device.internalStorage != null &&
+        device.ram != null &&
+        device.vmHeapSize != null &&
+        validity.isValid
+
   internal var validity by mutableStateOf(Validity())
     private set
 
@@ -242,21 +249,15 @@ internal constructor(
     return skin
   }
 
-  internal fun setIsInternalStorageValid(isInternalStorageValid: Boolean) {
-    validity = validity.copy(isInternalStorageValid = isInternalStorageValid)
-  }
+  internal fun setExpandedStorage(expandedStorage: ExpandedStorage?) {
+    if (expandedStorage != null) {
+      device = device.copy(expandedStorage = expandedStorage)
+    }
 
-  internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
-    device = device.copy(expandedStorage = expandedStorage)
-    validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid(hasPlayStore()))
-  }
-
-  internal fun setIsRamValid(isRamValid: Boolean) {
-    validity = validity.copy(isRamValid = isRamValid)
-  }
-
-  internal fun setIsVmHeapSizeValid(isVmHeapSizeValid: Boolean) {
-    validity = validity.copy(isVmHeapSizeValid = isVmHeapSizeValid)
+    validity =
+      validity.copy(
+        isExpandedStorageValid = expandedStorage != null && expandedStorage.isValid(hasPlayStore())
+      )
   }
 
   internal fun resetPlayStoreFields(skin: Path) {
@@ -265,7 +266,7 @@ internal constructor(
     device =
       device.copy(
         skin = getSkin(skin),
-        expandedStorage = Custom(storageGroupState.custom.withMaxUnit()),
+        expandedStorage = Custom(checkNotNull(storageGroupState.custom).withMaxUnit()),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
         ram = EmulatedProperties.defaultRamSize(device.device).toStorageCapacity(),
@@ -278,20 +279,14 @@ internal data class Validity
 internal constructor(
   private val isDeviceNameValid: Boolean = true,
   private val isSystemImageTableSelectionValid: Boolean = true,
-  private val isInternalStorageValid: Boolean = true,
   internal val isExpandedStorageValid: Boolean = true,
-  private val isRamValid: Boolean = true,
-  private val isVmHeapSizeValid: Boolean = true,
   val isPreferredAbiValid: Boolean = true,
 ) {
   internal val isValid
     get() =
       isDeviceNameValid &&
         isSystemImageTableSelectionValid &&
-        isInternalStorageValid &&
         isExpandedStorageValid &&
-        isRamValid &&
-        isVmHeapSizeValid &&
         isPreferredAbiValid
 }
 

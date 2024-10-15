@@ -180,7 +180,7 @@ internal fun WizardPageScope.ConfigurationPage(
   nextAction = WizardAction.Disabled
 
   finishAction =
-    if (state.validity.isValid) {
+    if (state.isValid) {
       WizardAction {
         coroutineScope.launch {
           state.resetPlayStoreFields(resolveDefaultSkin(state.device, sdkHandler, fileSystem))
