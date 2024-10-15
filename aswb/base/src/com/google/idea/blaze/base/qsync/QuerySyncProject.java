@@ -378,10 +378,10 @@ public class QuerySyncProject {
   }
 
   public ImmutableCollection<Path> buildAppInspector(
-      BlazeContext parentContext, List<Label> inspectors) throws IOException, BuildException {
+      BlazeContext parentContext, Label inspector) throws IOException, BuildException {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
       context.push(new BuildDepsStatsScope());
-      return appInspectorTracker.buildAppInspector(context, inspectors);
+      return appInspectorTracker.buildAppInspector(context, inspector);
     }
   }
 

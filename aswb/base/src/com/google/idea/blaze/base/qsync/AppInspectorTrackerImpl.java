@@ -47,12 +47,11 @@ public class AppInspectorTrackerImpl implements AppInspectorTracker {
 
   @Override
   public ImmutableCollection<Path> buildAppInspector(
-      BlazeContext context, List<Label> appInspectors) throws IOException, BuildException {
-    HashSet<Label> targets = Sets.newHashSet(appInspectors);
-    AppInspectorInfo appInspectorInfo = appInspectorBuilder.buildAppInspector(context, targets);
+      BlazeContext context, Label appInspector) throws IOException, BuildException {
+    AppInspectorInfo appInspectorInfo = appInspectorBuilder.buildAppInspector(context, appInspector);
     if (appInspectorInfo.isEmpty()) {
       throw new NoAppInspectorBuiltException(
-          String.format("Building %s produced no jars.", labelsToDisplayText(appInspectors)));
+          String.format("Building %s produced no jars.", appInspector));
     }
 
     if (appInspectorInfo.getExitCode() != BazelExitCode.SUCCESS) {
@@ -63,13 +62,9 @@ public class AppInspectorTrackerImpl implements AppInspectorTracker {
           PrintOutput.error(
               String.format(
                   "There were build errors when building %s app inspector jar.",
-                  labelsToDisplayText(appInspectors))));
+                  appInspector)));
     }
 
-    return appInspectorArtifactTracker.update(targets, appInspectorInfo, context);
-  }
-
-  private static String labelsToDisplayText(List<Label> labels) {
-    return labels.stream().map(Label::toString).collect(joining(", "));
+    return appInspectorArtifactTracker.update(appInspector, appInspectorInfo, context);
   }
 }

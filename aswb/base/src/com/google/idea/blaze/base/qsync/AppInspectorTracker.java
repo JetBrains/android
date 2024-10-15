@@ -27,6 +27,6 @@ import java.util.List;
 public interface AppInspectorTracker {
 
   /** Builds the app inspector jars from the given labels */
-  ImmutableCollection<Path> buildAppInspector(BlazeContext context, List<Label> appInspectors)
+  ImmutableCollection<Path> buildAppInspector(BlazeContext context, Label appInspector)
       throws IOException, BuildException;
 }
