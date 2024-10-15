@@ -35,8 +35,9 @@ private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
 private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
 
 /**
- * An application service responsible for downloading index from network and populating the corresponding Maven
- * class registry. [getMavenClassRegistry] returns the the best effort of Maven class registry when asked.
+ * An application service responsible for downloading index from network and populating the
+ * corresponding Maven class registry. [getMavenClassRegistry] returns the the best effort of Maven
+ * class registry when asked.
  */
 class MavenClassRegistryManager : Disposable {
   private val gMavenIndexRepository: GMavenIndexRepository
@@ -46,9 +47,7 @@ class MavenClassRegistryManager : Disposable {
     Disposer.register(this, gMavenIndexRepository)
   }
 
-  /**
-   * Returns [MavenClassRegistry] extracted from [gMavenIndexRepository].
-   */
+  /** Returns [MavenClassRegistry] extracted from [gMavenIndexRepository]. */
   fun getMavenClassRegistry(): MavenClassRegistry {
     return gMavenIndexRepository.getMavenClassRegistry()
   }
@@ -61,7 +60,8 @@ class MavenClassRegistryManager : Disposable {
 
   companion object {
     @JvmStatic
-    fun getInstance(): MavenClassRegistryManager = ApplicationManager.getApplication().getService(MavenClassRegistryManager::class.java)
+    fun getInstance(): MavenClassRegistryManager =
+      ApplicationManager.getApplication().getService(MavenClassRegistryManager::class.java)
   }
 }
 
@@ -72,9 +72,11 @@ class AutoRefresherForMavenClassRegistry : ProjectActivity {
       throw ExtensionNotApplicableException.create()
     }
   }
+
   override suspend fun execute(project: Project) {
-    if (!IdeInfo.getInstance().isAndroidStudio
-        && !IdeSdks.getInstance().hasConfiguredAndroidSdk()) {
+    if (
+      !IdeInfo.getInstance().isAndroidStudio && !IdeSdks.getInstance().hasConfiguredAndroidSdk()
+    ) {
       // IDE must not hit network on startup
       return
     }

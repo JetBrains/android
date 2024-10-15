@@ -23,11 +23,11 @@ import com.google.wireless.android.sdk.stats.SuggestedImportEvent
 /**
  * Tracks user interaction with suggested import support.
  *
- * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation of `suggested import`.
+ * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation
+ *   of `suggested import`.
  */
 internal fun trackSuggestedImport(artifactId: String) {
-  val suggestedImportEvent = SuggestedImportEvent.newBuilder()
-    .setArtifactId(artifactId)
+  val suggestedImportEvent = SuggestedImportEvent.newBuilder().setArtifactId(artifactId)
 
   AndroidStudioEvent.newBuilder()
     .setKind(AndroidStudioEvent.EventKind.SUGGESTED_IMPORT_EVENT)
@@ -35,9 +35,7 @@ internal fun trackSuggestedImport(artifactId: String) {
     .let { UsageTracker.log(it) }
 }
 
-/**
- * Displays the preview type (alpha, beta...) if applicable, or just the original [artifact].
- */
+/** Displays the preview type (alpha, beta...) if applicable, or just the original [artifact]. */
 fun flagPreview(artifact: String, version: String?): String {
   val previewString = version?.let { Version.parse(it).previewString } ?: return artifact
   return "$artifact ($previewString)"

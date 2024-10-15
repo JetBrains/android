@@ -23,10 +23,12 @@ import com.intellij.psi.PsiJavaCodeReferenceElement
  * Registers an unresolved reference resolver in Java files which recognizes classes from key Maven
  * artifacts and offers to add a dependency on them
  */
-class AndroidMavenImportJavaResolver : UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement>() {
+class AndroidMavenImportJavaResolver :
+  UnresolvedReferenceQuickFixProvider<PsiJavaCodeReferenceElement>() {
   override fun registerFixes(ref: PsiJavaCodeReferenceElement, registrar: QuickFixActionRegistrar) {
     registrar.register(AndroidMavenImportIntentionAction())
   }
 
-  override fun getReferenceClass(): Class<PsiJavaCodeReferenceElement> = PsiJavaCodeReferenceElement::class.java
+  override fun getReferenceClass(): Class<PsiJavaCodeReferenceElement> =
+    PsiJavaCodeReferenceElement::class.java
 }
