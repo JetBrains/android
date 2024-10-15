@@ -37,8 +37,8 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
-import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation
+import com.intellij.execution.testframework.AbstractJavaTestConfigurationProducer
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -295,7 +295,7 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
    * If package name is unknown, it fallbacks to all-in-module test.
    */
   private fun tryAllInPackageTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
-    val psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(location.psiElement) ?: return false
+    val psiPackage = AbstractJavaTestConfigurationProducer.checkPackage(location.psiElement) ?: return false
     if (psiPackage.qualifiedName.isEmpty()) return false
     sourceElementRef.set(psiPackage)
 
