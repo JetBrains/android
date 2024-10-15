@@ -19,6 +19,7 @@ import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.ApiStatus
 
 /**
  * A well-formed prompt that can be understood by the models used by Studio Bot, and has been
@@ -32,6 +33,11 @@ interface Prompt {
 
   val functionCallingMode: FunctionCallingMode
 
+  /**
+   * A chunk of content attached to a prompt.
+   *
+   * @param filesUsed A list of implicitly-attached files used for the context.
+   */
   sealed class Chunk(open val filesUsed: Collection<VirtualFile>)
 
   data class TextChunk(val text: String, override val filesUsed: Collection<VirtualFile>) :
@@ -43,10 +49,12 @@ interface Prompt {
     override val filesUsed: Collection<VirtualFile>,
   ) : Chunk(filesUsed)
 
+  // TODO (b/371544482) Remove the extraData and use properly typed APIs
   data class BlobChunk(
     val mimeType: MimeType,
     override val filesUsed: Collection<VirtualFile>,
     val data: ByteArray,
+    val extraData: Map<String, Any>? = null,
   ) : Chunk(filesUsed) {
 
     override fun equals(other: Any?): Boolean {
@@ -58,6 +66,7 @@ interface Prompt {
       if (mimeType != other.mimeType) return false
       if (filesUsed != other.filesUsed) return false
       if (!data.contentEquals(other.data)) return false
+      if (extraData != other.extraData) return false
 
       return true
     }
@@ -66,7 +75,19 @@ interface Prompt {
       var result = mimeType.hashCode()
       result = 31 * result + filesUsed.hashCode()
       result = 31 * result + data.contentHashCode()
+      result = 31 * result + (extraData?.hashCode() ?: 0)
       return result
+    }
+
+    override fun toString(): String =
+      "BlobChunk(mimeType=$mimeType, filesUsed=$filesUsed, data=${data.contentToString()}, extraData=$extraData)"
+
+    @Deprecated("Will be removed once b/371544482 is fixed in favour of properly typed APIs")
+    @ApiStatus.ScheduledForRemoval
+    object ExtraKeys {
+      const val AttachmentIdKey = "AttachmentId"
+      const val AttachmentPathKey = "AttachmentPath"
+      const val AttachmentPainterKey = "AttachmentPainter"
     }
   }
 

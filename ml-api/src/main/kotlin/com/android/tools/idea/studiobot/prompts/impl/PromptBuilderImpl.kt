@@ -53,8 +53,13 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
       myChunks.add(Prompt.CodeChunk(code, language, filesUsed))
     }
 
-    override fun blob(data: ByteArray, mimeType: MimeType, filesUsed: Collection<VirtualFile>) {
-      myChunks.add(Prompt.BlobChunk(mimeType, filesUsed, data))
+    override fun blob(
+      data: ByteArray,
+      mimeType: MimeType,
+      filesUsed: Collection<VirtualFile>,
+      extraData: Map<String, Any>,
+    ) {
+      myChunks.add(Prompt.BlobChunk(mimeType, filesUsed, data, extraData))
     }
 
     abstract fun build(): Prompt.Message

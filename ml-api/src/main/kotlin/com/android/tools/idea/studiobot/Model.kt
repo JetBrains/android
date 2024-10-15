@@ -65,6 +65,16 @@ interface Model {
 }
 
 /**
+ * Indicates whether this model supports multi-modality. For the exact supported blob types, check
+ * [ModelConfig.supportedBlobTypes].
+ *
+ * @see config
+ * @see ModelConfig.supportedBlobTypes
+ */
+val Model.isMultiModal: Boolean
+  get() = config().supportedBlobTypes.isNotEmpty()
+
+/**
  * Static information about a model.
  *
  * @property supportedBlobTypes mime types supported in input prompts for multi-modal models.
@@ -165,8 +175,19 @@ enum class CitationAction {
   BLOCK,
 }
 
-open class StubModel : Model {
-  override fun config() = ModelConfig(inputTokenLimit = 1024, outputTokenLimit = 1024)
+open class StubModel(
+  isMultiModal: Boolean = false,
+  private val supportedBlobTypes: Set<MimeType> =
+    if (isMultiModal) setOf(MimeType.PNG) else emptySet(),
+  private val supportsFunctionCalling: Boolean = false,
+) : Model {
+  override fun config() =
+    ModelConfig(
+      supportedBlobTypes = supportedBlobTypes,
+      inputTokenLimit = 1024,
+      outputTokenLimit = 1024,
+      supportsFunctionCalling = supportsFunctionCalling,
+    )
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
 }
