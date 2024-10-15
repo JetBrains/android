@@ -100,7 +100,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap)
       .containsExactlyEntriesIn(
@@ -206,7 +206,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -232,7 +232,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -258,7 +258,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -286,7 +286,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -311,7 +311,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -337,7 +337,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -395,7 +395,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap)
       .containsExactlyEntriesIn(
@@ -476,7 +476,7 @@ class MavenClassRegistryTest {
       """
         .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     assertThat(mavenClassRegistry.lookup.classNameMap)
       .containsExactlyEntriesIn(
@@ -528,7 +528,7 @@ class MavenClassRegistryTest {
     val repository =
       GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
-    val mavenClassRegistry = MavenClassRegistry(repository)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(repository)
     val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
 
     // Check if we have a valid built-in index file.
