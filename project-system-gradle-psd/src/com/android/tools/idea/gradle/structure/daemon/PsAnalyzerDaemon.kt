@@ -53,7 +53,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
@@ -70,7 +69,7 @@ class PsAnalyzerDaemon(
 ) :
   PsDaemon(parentDisposable) {
   override val mainQueue: MergingUpdateQueue = createQueue("Project Structure Daemon Analyzer", null)
-  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT)
+  override val resultsUpdaterQueue: MergingUpdateQueue = createQueue("Project Structure Analysis Results Updater", MergingUpdateQueue.ANY_COMPONENT)
 
   val issues: PsIssueCollection = PsIssueCollection()
 

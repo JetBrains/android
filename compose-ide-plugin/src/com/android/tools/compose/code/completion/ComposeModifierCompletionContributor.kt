@@ -123,7 +123,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       extensionFunctionSymbols.partition {
         asFqName(it.returnType)?.asString() == COMPOSE_MODIFIER_FQN
       }
-    val lookupElementFactory = KotlinFirLookupElementFactory()
     val importStrategyDetector =
       ImportStrategyDetector(nameExpression.containingKtFile, nameExpression.project)
 
@@ -134,7 +133,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     resultSet.addAllElements(
       toLookupElements(
         returnsModifier,
-        lookupElementFactory,
+        KotlinFirLookupElementFactory,
         importStrategyDetector,
         2.0,
         insertModifier = isNewModifier,
@@ -145,7 +144,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       resultSet.addAllElements(
         toLookupElements(
           others,
-          lookupElementFactory,
+          KotlinFirLookupElementFactory,
           importStrategyDetector,
           0.0,
           insertModifier = isNewModifier,

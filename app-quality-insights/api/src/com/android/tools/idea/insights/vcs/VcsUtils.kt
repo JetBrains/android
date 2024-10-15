@@ -38,7 +38,7 @@ fun VirtualFile.getVcsManager(project: Project): AbstractVcs? {
 
 /** Returns the first matched [Repository] for a given [RepoInfo]. */
 fun RepoInfo.locateRepository(project: Project): Repository? {
-  return VcsRepositoryManager.getInstance(project).repositories.firstOrNull { repoCandidate ->
+  return VcsRepositoryManager.getInstance(project).getRepositories().firstOrNull { repoCandidate ->
     // 1. Check if vcs category is matching or not.
     if (VcsForAppInsights.getExtensionByKey(vcsKey)?.isApplicable(repoCandidate.vcs) != true)
       return@firstOrNull false
