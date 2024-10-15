@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.jfr
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.diagnostics.report.DiagnosticReport
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
 import com.android.tools.idea.diagnostics.report.GenericReport
@@ -31,6 +28,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset

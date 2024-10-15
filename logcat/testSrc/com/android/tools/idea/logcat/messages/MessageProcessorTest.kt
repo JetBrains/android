@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -39,6 +37,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val timestamp = Instant.ofEpochMilli(1000)
 

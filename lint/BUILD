@@ -50,5 +50,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "@intellij//:org.jetbrains.kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

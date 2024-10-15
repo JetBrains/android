@@ -1,7 +1,5 @@
 package com.android.tools.idea.logcat.messages
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -42,6 +40,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatFormatDialog] */
 @RunsInEdt

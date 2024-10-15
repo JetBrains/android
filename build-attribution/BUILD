@@ -108,6 +108,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

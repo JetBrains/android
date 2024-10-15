@@ -18,13 +18,10 @@ package com.android.build.attribution.ui
 import com.android.build.attribution.AbstractBuildAnalysisResult
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.FailureResult
-import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.analytics.TestUsageTracker
@@ -37,22 +34,17 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
-import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 

@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-org.jetbrains.kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

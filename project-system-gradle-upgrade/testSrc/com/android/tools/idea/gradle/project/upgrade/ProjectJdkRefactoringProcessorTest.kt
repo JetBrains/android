@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
-import com.android.tools.idea.sdk.Jdks
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -35,6 +32,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {

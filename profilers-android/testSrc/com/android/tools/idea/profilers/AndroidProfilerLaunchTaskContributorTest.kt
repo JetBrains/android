@@ -18,7 +18,6 @@ package com.android.tools.idea.profilers
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportFileManager
 import com.google.common.truth.Truth.assertThat
@@ -27,6 +26,7 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class AndroidProfilerLaunchTaskContributorTest {
   @get:Rule
@@ -65,7 +65,7 @@ class AndroidProfilerLaunchTaskContributorTest {
   @Test
   fun testAgentConfigIsEmptyForProfileable() {
     val device = Mockito.mock(IDevice::class.java)
-    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O_MR1))
     val fileManager = TransportFileManager(device)
 
     val result = fileManager.configureStartupAgent("com.example.app", "foo", ProfileRunExecutorGroup.getInstance()!!.childExecutors()[0].id)

@@ -62,5 +62,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

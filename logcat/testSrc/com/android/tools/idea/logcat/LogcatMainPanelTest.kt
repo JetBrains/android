@@ -19,8 +19,6 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
@@ -127,6 +125,8 @@ import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatMainPanel] */
 class LogcatMainPanelTest {

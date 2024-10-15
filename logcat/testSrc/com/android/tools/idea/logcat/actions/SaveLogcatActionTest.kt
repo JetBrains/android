@@ -1,6 +1,5 @@
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
@@ -39,6 +38,7 @@ import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /** Tests for [SaveLogcatAction] */
 class SaveLogcatActionTest {
