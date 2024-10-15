@@ -27,7 +27,6 @@ import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Duration
 import java.util.Properties
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -56,7 +55,7 @@ class GMavenIndexRepositoryTest {
   private val testScope = TestScope(testDispatcher)
 
   private val gMavenIndexRepository =
-    GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testScope, testDispatcher)
+    GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
 
   @After
   fun tearDown() {
@@ -93,8 +92,7 @@ class GMavenIndexRepositoryTest {
 
   @Test
   fun testRefreshDiskCache_noModificationSinceLast() {
-    val gMavenIndexRepository =
-      GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testScope, testDispatcher)
+    val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
     createContext(
       path = CONTEXT_PATH,
       content = "This is for unit test",

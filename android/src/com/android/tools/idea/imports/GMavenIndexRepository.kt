@@ -31,29 +31,33 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
-import java.time.Duration
 import java.util.Locale
 import java.util.Properties
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.delay
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 3000
 
 /** Network retry initial delay in milliseconds. */
-private val NETWORK_RETRY_INITIAL_DELAY_MILLIS = TimeUnit.HOURS.toMillis(1)
+private val NETWORK_RETRY_INITIAL_DELAY = 1.hours
 
 /** Network maximum retry times. */
 private const val NETWORK_MAXIMUM_RETRY_TIMES = 4
 
 /** Network retry delay factor. */
-private const val NETWORK_RETRY_DELAY_FACTOR = 2.0
+private const val NETWORK_RETRY_DELAY_FACTOR = 2
+
+/** Scheduled refreshment interval for local disk cache. */
+private val REFRESH_INTERVAL = 1.days
 
 private const val GZ_EXT = ".gz"
 
@@ -75,7 +79,6 @@ private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
 class GMavenIndexRepository(
   private val baseUrl: String,
   private val cacheDir: Path,
-  refreshInterval: Duration,
   coroutineScope: CoroutineScope,
   coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
@@ -93,12 +96,12 @@ class GMavenIndexRepository(
         launch {
           refreshWithRetryStrategy(
             url = "$baseUrl/$RELATIVE_PATH",
-            retryDelayMillis = NETWORK_RETRY_INITIAL_DELAY_MILLIS,
+            retryDelay = NETWORK_RETRY_INITIAL_DELAY,
             remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES,
           )
         }
 
-        delay(refreshInterval)
+        delay(REFRESH_INTERVAL)
       }
     }
   }
@@ -120,18 +123,18 @@ class GMavenIndexRepository(
   @Slow
   private suspend fun refreshWithRetryStrategy(
     url: String,
-    retryDelayMillis: Long,
+    retryDelay: Duration,
     remainingAttempts: Int,
   ) {
     val status = refresh(url)
     if (status != RefreshStatus.RETRY || remainingAttempts <= 1) return
 
-    val scheduledTime = DATE_FORMAT.format(System.currentTimeMillis() + retryDelayMillis)
+    val scheduledTime =
+      DATE_FORMAT.format(System.currentTimeMillis() + retryDelay.inWholeMilliseconds)
     thisLogger().info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
-    delay(Duration.ofMillis(retryDelayMillis))
+    delay(retryDelay)
 
-    val nextRetryDelayMillis = (retryDelayMillis * NETWORK_RETRY_DELAY_FACTOR).toLong()
-    refreshWithRetryStrategy(url, nextRetryDelayMillis, remainingAttempts - 1)
+    refreshWithRetryStrategy(url, retryDelay * NETWORK_RETRY_DELAY_FACTOR, remainingAttempts - 1)
   }
 
   /** Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists. */

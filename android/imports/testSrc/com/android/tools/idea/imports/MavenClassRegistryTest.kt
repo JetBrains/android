@@ -19,7 +19,6 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
 import java.nio.charset.StandardCharsets.UTF_8
-import java.time.Duration
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
@@ -527,13 +526,7 @@ class MavenClassRegistryTest {
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
     val repository =
-      GMavenIndexRepository(
-        "https://example.com",
-        tempDir,
-        Duration.ofDays(1),
-        testScope,
-        testDispatcher,
-      )
+      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
     val mavenClassRegistry = MavenClassRegistry(repository)
     val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
