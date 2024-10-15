@@ -20,11 +20,12 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.util.Disposer
-import java.nio.file.Path
+import com.intellij.util.application
 import java.nio.file.Paths
 import java.time.Duration
 
@@ -39,29 +40,21 @@ private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
  * corresponding Maven class registry. [getMavenClassRegistry] returns the the best effort of Maven
  * class registry when asked.
  */
-class MavenClassRegistryManager : Disposable {
-  private val gMavenIndexRepository: GMavenIndexRepository
-
-  init {
-    gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
-    Disposer.register(this, gMavenIndexRepository)
-  }
+@Service
+class MavenClassRegistryManager : Disposable.Default {
+  private val gMavenIndexRepository =
+    GMavenIndexRepository(
+      BASE_URL,
+      Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
+      REFRESH_INTERVAL,
+      this,
+    )
 
   /** Returns [MavenClassRegistry] extracted from [gMavenIndexRepository]. */
-  fun getMavenClassRegistry(): MavenClassRegistry {
-    return gMavenIndexRepository.getMavenClassRegistry()
-  }
-
-  private fun getCacheDir(): Path {
-    return Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY)
-  }
-
-  override fun dispose() {}
+  fun getMavenClassRegistry() = gMavenIndexRepository.getMavenClassRegistry()
 
   companion object {
-    @JvmStatic
-    fun getInstance(): MavenClassRegistryManager =
-      ApplicationManager.getApplication().getService(MavenClassRegistryManager::class.java)
+    @JvmStatic fun getInstance(): MavenClassRegistryManager = application.service()
   }
 }
 
@@ -80,6 +73,7 @@ class AutoRefresherForMavenClassRegistry : ProjectActivity {
       // IDE must not hit network on startup
       return
     }
+
     // Start refresher in GMavenIndexRepository at project start-up.
     MavenClassRegistryManager.getInstance()
   }
