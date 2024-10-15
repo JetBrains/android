@@ -139,6 +139,7 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
         "//tools/adt/idea/completion:intellij.android.completion[module]",
         "//tools/base/backup:studio.android.sdktools.backup[module]",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
