@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
+
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -103,6 +107,18 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
     GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
     return new GradleSettingsModelImpl(settingsFile);
+  }
+
+  @Override
+  @Nullable
+  public GradleDeclarativeSettingsModel getDeclarativeSettingsModel() {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile virtualFile = getProjectSettingsFile();
+    if (virtualFile == null) return null;
+    if(!virtualFile.getName().equals(FN_SETTINGS_GRADLE_DECLARATIVE)) return null;
+
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
+    return new GradleDeclarativeSettingsModelImpl(settingsFile);
   }
 
   @Nullable

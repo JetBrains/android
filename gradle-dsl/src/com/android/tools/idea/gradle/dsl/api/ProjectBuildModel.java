@@ -122,6 +122,10 @@ public interface ProjectBuildModel {
   @Nullable
   GradleSettingsModel getProjectSettingsModel();
 
+
+  @Nullable
+  GradleDeclarativeSettingsModel getDeclarativeSettingsModel();
+
   /**
    * This method should never be called on the UI thread.
    */

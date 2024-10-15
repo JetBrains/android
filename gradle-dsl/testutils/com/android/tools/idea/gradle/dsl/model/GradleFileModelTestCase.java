@@ -49,6 +49,7 @@ import static org.junit.runners.Parameterized.Parameters;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -493,6 +494,14 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected GradleSettingsModel getGradleSettingsModel() {
     ProjectBuildModel projectBuildModel = getProjectBuildModel();
     GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
+    assertNotNull(settingsModel);
+    return settingsModel;
+  }
+
+  @NotNull
+  protected GradleDeclarativeSettingsModel getGradleDeclarativeSettingsModel() {
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleDeclarativeSettingsModel settingsModel = projectBuildModel.getDeclarativeSettingsModel();
     assertNotNull(settingsModel);
     return settingsModel;
   }
