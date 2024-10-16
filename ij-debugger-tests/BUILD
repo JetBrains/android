@@ -42,6 +42,7 @@ debugger_test(
 debugger_test(
     name = "k1k2-kotlin-stepping-step-out",
     expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_out.txt",
+    jvm_tags = ["ci:studio-linux-large"],
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOut#"],
 )
 
