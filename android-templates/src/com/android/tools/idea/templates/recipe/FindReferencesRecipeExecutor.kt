@@ -25,9 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
-/**
- * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
- */
+/** [RecipeExecutor] that collects references as a result of executing instructions in a recipe. */
 class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   private val project: Project = context.project
 
@@ -71,7 +69,12 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.classpathEntries.add(classpath)
   }
 
-  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
+  override fun applyPluginInModule(
+    plugin: String,
+    module: Module,
+    revision: String?,
+    minRev: String?,
+  ) {
     context.plugins.add(plugin)
   }
 
@@ -79,15 +82,30 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
+  override fun addClasspathDependency(
+    mavenCoordinate: String,
+    minRev: String?,
+    forceAdding: Boolean,
+  ) {
     context.classpathEntries.add(mavenCoordinate)
   }
 
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean, sourceSetName: String?) {
+  override fun addDependency(
+    mavenCoordinate: String,
+    configuration: String,
+    minRev: String?,
+    moduleDir: File?,
+    toBase: Boolean,
+    sourceSetName: String?,
+  ) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
-  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
+  override fun addPlatformDependency(
+    mavenCoordinate: String,
+    configuration: String,
+    enforced: Boolean,
+  ) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
@@ -97,28 +115,35 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.targetFiles.add(resolveTargetFile(file))
   }
 
-  private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
+  private fun resolveTargetFile(file: File): File =
+    if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
-  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
-  }
+  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {}
 
-  override fun setExtVar(name: String, value: String) {
-  }
+  override fun setExtVar(name: String, value: String) {}
 
   override fun getExtVar(name: String, valueIfNotFound: String): String = valueIfNotFound
 
-  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
-  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
+    valueIfNotFound
+
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
+    valueIfNotFound
 
   override fun addIncludeToSettings(moduleName: String) {}
 
   override fun setBuildFeature(name: String, value: Boolean) {}
+
   override fun setViewBinding(value: Boolean) {}
+
   override fun setComposeOptions(kotlinCompilerExtensionVersion: String?) {}
+
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {}
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
+
   override fun setJavaKotlinCompileOptions(isKotlin: Boolean) {}
+
   override fun addDynamicFeature(name: String, toModule: File) {}
 
   override fun getJavaVersion(defaultVersion: String): String {
