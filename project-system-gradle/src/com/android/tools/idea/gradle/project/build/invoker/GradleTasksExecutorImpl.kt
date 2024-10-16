@@ -303,7 +303,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          GradleExecutionHelper.prepare(connection, operation, id, executionSettings, listener)
+          GradleExecutionHelper.prepareForExecution(connection, operation, cancellationToken, id, emptyList(), executionSettings, listener)
           if (enableBuildAttribution) {
             buildAttributionManager = myProject!!.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
@@ -316,7 +316,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } else {
             (operation as BuildLauncher).forTasks(*ArrayUtil.toStringArray(gradleTasks))
           }
-          operation.withCancellationToken(cancellationTokenSource.token())
           if (Registry.`is`("gradle.report.recently.saved.paths")) {
             ApplicationManager.getApplication()
               .getService(GradleFileModificationTracker::class.java)
