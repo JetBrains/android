@@ -69,9 +69,13 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   val titleState =
     flow
       .map { selection ->
+        // TODO(b/373715344): debug message used to track down flaky error.
+        Logger.getInstance(this::class.java).debug("Received selection: $selection")
         val groupedValues = selection.items.groupBy { groupNameSupplier(it.value) }
         val groupedSelection = selection.selected.groupBy { groupNameSupplier(it.value) }
-        generateTitle(selection, groupedSelection, groupedValues)
+        generateTitle(selection, groupedSelection, groupedValues).also {
+          Logger.getInstance(this::class.java).debug("Generated title: $it")
+        }
       }
       .stateIn(scope, SharingStarted.Eagerly, allSelected(name))
 
