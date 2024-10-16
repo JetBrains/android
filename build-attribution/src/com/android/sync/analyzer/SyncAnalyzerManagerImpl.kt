@@ -39,7 +39,6 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 
@@ -113,7 +112,7 @@ class SyncAnalyzerExecutionHelperExtension : GradleExecutionHelperExtension {
 
   override fun prepareForExecution(id: ExternalSystemTaskId,
                                    operation: LongRunningOperation,
-                                   gradleExecutionSettings: GradleExecutionSettings,
+                                   settings: GradleExecutionSettings,
                                    buildEnvironment: BuildEnvironment?) {
     // Note: this method is called separately for buildSrc and project itself with the same `id` but with different operations.
     // This means we need to set up listener multiple times but with the same data accumulators.
@@ -128,6 +127,4 @@ class SyncAnalyzerExecutionHelperExtension : GradleExecutionHelperExtension {
       operation.addProgressListener(ProgressListener(downloadEventsProcessor::receiveEvent), OperationType.FILE_DOWNLOAD)
     }
   }
-
-  override fun prepareForSync(operation: LongRunningOperation, resolverCtx: ProjectResolverContext) = Unit
 }
