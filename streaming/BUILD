@@ -74,6 +74,7 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
@@ -122,6 +123,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
@@ -227,6 +229,7 @@ iml_module(
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",

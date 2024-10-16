@@ -106,6 +106,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.toml.lang",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",

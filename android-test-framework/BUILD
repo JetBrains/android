@@ -15,6 +15,7 @@ iml_module(
     exports = ["@intellij//:test-framework"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle[test]",

@@ -39,6 +39,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:com.intellij.java[test]",
         "@intellij//:org.jetbrains.kotlin[test]",
         "@intellij//:test-framework[test]",
