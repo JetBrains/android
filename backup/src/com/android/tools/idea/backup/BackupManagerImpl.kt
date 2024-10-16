@@ -23,6 +23,7 @@ import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
+import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
@@ -89,7 +90,7 @@ internal constructor(
     val dialog = BackupDialog(project, applicationId)
     val ok = dialog.showAndGet()
     if (ok) {
-      doBackup(serialNumber, applicationId, dialog.backupPath, source, notify)
+      doBackup(serialNumber, applicationId, dialog.type, dialog.backupPath, source, notify)
     }
   }
 
@@ -171,6 +172,7 @@ internal constructor(
   internal fun doBackup(
     serialNumber: String,
     applicationId: String,
+    type: BackupType,
     backupFile: Path,
     source: Source,
     notify: Boolean,
@@ -184,11 +186,7 @@ internal constructor(
     ) {
       reportSequentialProgress { reporter ->
         val listener = BackupProgressListener(reporter::onStep)
-        // TODO: Support different backup types. Probably change this method name to
-        // `showBackupDialog()` and make it handle
-        //  the type, file and any other parameters it might need.
-        val result =
-          backupService.backup(serialNumber, applicationId, DEVICE_TO_DEVICE, backupFile, listener)
+        val result = backupService.backup(serialNumber, applicationId, type, backupFile, listener)
         val operation = message("backup")
         if (notify) {
           result.notify(operation, backupFile, serialNumber)

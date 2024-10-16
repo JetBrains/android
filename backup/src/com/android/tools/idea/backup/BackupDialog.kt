@@ -27,13 +27,12 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.ui.TextAccessor
 import com.intellij.ui.TextFieldWithHistory
 import com.intellij.ui.TextFieldWithStoredHistory
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
-import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
@@ -47,6 +46,7 @@ import kotlin.io.path.extension
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val TYPE_FIELD_WIDTH = 100
 private const val PATH_FIELD_WIDTH = 500
@@ -58,8 +58,12 @@ internal class BackupDialog(
     LocalFileSystem.getInstance().findFileByPath(it)?.toNioPath()
   },
 ) : DialogWrapper(project) {
-  private val typeComboBox = ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray()))
-  private val fileTextField = TextFieldWithStoredHistoryWithBrowseButton()
+  private val typeComboBox =
+    ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
+      name = "typeComboBox"
+    }
+  private val fileTextField =
+    TextFieldWithStoredHistoryWithBrowseButton().apply { name = "fileTextField" }
   private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
@@ -163,10 +167,12 @@ internal class BackupDialog(
     setLastUsedType(typeComboBox.item)
     if (backupPath.exists() && !fileSetByChooser) {
       @Suppress("DialogTitleCapitalization")
-      val result = Messages.showYesNoDialog(
-        UIBundle.message("file.chooser.save.dialog.confirmation", backupPath.fileName),
-        UIBundle.message("file.chooser.save.dialog.confirmation.title"),
-        Messages.getWarningIcon())
+      val result =
+        Messages.showYesNoDialog(
+          UIBundle.message("file.chooser.save.dialog.confirmation", backupPath.fileName),
+          UIBundle.message("file.chooser.save.dialog.confirmation.title"),
+          Messages.getWarningIcon(),
+        )
       if (result != Messages.YES) {
         return
       }
@@ -212,16 +218,18 @@ internal class BackupDialog(
     ComponentWithBrowseButton<TextFieldWithHistory>(
       TextFieldWithStoredHistory("Backup.File.History"),
       null,
-    ) {
-    var text: String
-      get() = childComponent.text
-      set(text) {
-        childComponent.text = text
-      }
+    ),
+    TextAccessor {
 
     fun setTextAndAddToHistory(text: String) {
       childComponent.setTextAndAddToHistory(text)
     }
+
+    override fun setText(text: String) {
+      childComponent.text = text
+    }
+
+    override fun getText(): String = childComponent.text
   }
 
   internal fun interface FileFinder {
