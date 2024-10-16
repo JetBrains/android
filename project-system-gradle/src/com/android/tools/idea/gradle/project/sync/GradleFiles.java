@@ -31,7 +31,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
@@ -50,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import kotlin.jvm.functions.Function1;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,15 +80,6 @@ public class GradleFiles implements Disposable.Default {
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
   @NotNull private final GradleFilesUpdater myUpdater;
-
-  @SuppressWarnings("UsagesOfObsoleteApi") // Replacement of StartupActivity is a co-routine interface that shouldn't be implemented in Java
-  public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      // Populate build file hashes on project startup.
-      getInstance(project).scheduleUpdateFileHashes();
-    }
-  }
 
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
@@ -271,21 +262,23 @@ public class GradleFiles implements Disposable.Default {
     return status;
   }
 
+  Function1<? super GradleFilesUpdater.Result, Unit> updateCallback() {
+    return (result) -> {
+      synchronized (myLock) {
+        myExternalBuildFiles.clear();
+        myExternalBuildFiles.addAll(result.getExternalBuildFiles());
+        myFileHashes.clear();
+        myFileHashes.putAll(result.getHashes());
+      }
+      return Unit.INSTANCE;
+    };
+  }
+
   /**
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
-  private void scheduleUpdateFileHashes() {
-    myUpdater.scheduleUpdateFileHashes(
-      (result) -> {
-        synchronized (myLock) {
-          myExternalBuildFiles.clear();
-          myExternalBuildFiles.addAll(result.getExternalBuildFiles());
-          myFileHashes.clear();
-          myFileHashes.putAll(result.getHashes());
-        }
-        return Unit.INSTANCE;
-      }
-    );
+  void scheduleUpdateFileHashes() {
+    myUpdater.scheduleUpdateFileHashes(updateCallback());
   }
 
   /**
