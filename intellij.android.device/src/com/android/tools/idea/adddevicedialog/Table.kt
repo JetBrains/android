@@ -47,7 +47,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -66,8 +65,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
-import org.jetbrains.jewel.foundation.Stroke
-import org.jetbrains.jewel.foundation.modifier.border
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
@@ -217,20 +214,17 @@ internal fun <T> TableRow(
   Row(
     modifier
       .focusProperties { canFocus = false }
-      // Divide the padding before and after the border
-      .padding(ROW_PADDING / 2)
+      .thenIf(isHovered) {
+        background(
+          retrieveColorOrUnspecified("Table.hoverBackground").takeOrElse { Color.LightGray }
+        )
+      }
       .thenIf(selected) {
         background(
           retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
         )
       }
       .onHover { isHovered = it }
-      .thenIf(isHovered) {
-        background(
-          retrieveColorOrUnspecified("Table.hoverBackground").takeOrElse { Color.LightGray }
-        )
-      }
-      .thenIf(selected) { selectedRowBorder() }
       .pointerInput(value) {
         detectTapGestures(
           PointerMatcher.mouse(PointerButton.Secondary),
@@ -247,7 +241,7 @@ internal fun <T> TableRow(
         indication = null,
         onClick = { onClick(value) },
       )
-      .padding(ROW_PADDING / 2)
+      .padding(ROW_PADDING)
       .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
@@ -351,15 +345,6 @@ fun <T> Table(
     }
   }
 }
-
-@Composable
-private fun Modifier.selectedRowBorder() =
-  border(
-    Stroke.Alignment.Center,
-    shape = RectangleShape,
-    color = JewelTheme.globalColors.outlines.focused,
-    width = JewelTheme.globalMetrics.outlineWidth,
-  )
 
 private val CELL_SPACING = 4.dp
 private val ROW_PADDING = 4.dp
