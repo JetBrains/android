@@ -34,8 +34,10 @@ class ModulesPerspectiveConfigurable(context: PsContext)
   override fun getId() = "android.psd.modules"
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
-      if (module is PsAndroidModule) createConfigurable(module)
-      else ModuleUnsupportedConfigurable(context, this, module)
+    when {
+      module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
+      else -> ModuleUnsupportedConfigurable(context, this, module)
+    }
 
   override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
 

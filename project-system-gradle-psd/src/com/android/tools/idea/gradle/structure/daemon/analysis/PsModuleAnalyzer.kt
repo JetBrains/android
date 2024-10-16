@@ -53,6 +53,7 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Sequence<PsIssue> 
       PsModuleType.UNKNOWN -> true
       PsModuleType.ANDROID_APP -> false // TODO(xof) see LintIdeProject.hasDynamicFeatures
       PsModuleType.ANDROID_LIBRARY -> true
+      PsModuleType.ANDROID_KMP_LIBRARY -> true
       PsModuleType.ANDROID_INSTANTAPP -> false
       PsModuleType.ANDROID_FEATURE -> true
       PsModuleType.ANDROID_DYNAMIC_FEATURE -> true

@@ -57,6 +57,7 @@ class PsAndroidModule(
   var resolvedSyncIssues: SyncIssues? = null ; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
   var isLibrary: Boolean = false; private set
+  var isKmpModule: Boolean = false; private set
   override var rootDir: File? = null; private set
   override var icon: Icon? = null; private set
 
@@ -92,6 +93,7 @@ class PsAndroidModule(
       moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
       ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
     isLibrary = projectType.androidModuleType != AndroidModuleSystem.Type.TYPE_APP
+    isKmpModule = projectType == PsModuleType.ANDROID_KMP_LIBRARY
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
     icon = projectType.androidModuleType?.let { AndroidIconProviderProjectGradleToken.getAndroidModuleIcon(it) }
 
