@@ -265,6 +265,7 @@ studio_plugin(
             "//tools/adt/idea/safemode:intellij.android.safemode",
             "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
             "//tools/adt/idea/completion:intellij.android.completion",
+            "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

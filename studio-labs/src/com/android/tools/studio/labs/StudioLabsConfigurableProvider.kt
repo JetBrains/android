@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.flags
+package com.android.tools.studio.labs
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 
 // In Android plugin, "Studio Labs" is a top-level configurable
 class StudioLabsConfigurableProvider : ConfigurableProvider() {
-
   override fun createConfigurable(): Configurable? {
     return StudioLabsSettingsConfigurable()
   }
 
   override fun canCreateConfigurable(): Boolean {
-    if(!IdeInfo.getInstance().isAndroidStudio) {
+    if (!IdeInfo.getInstance().isAndroidStudio) {
       return false
     }
     return StudioFlags.STUDIO_LABS_SETTINGS_ENABLED.get()
