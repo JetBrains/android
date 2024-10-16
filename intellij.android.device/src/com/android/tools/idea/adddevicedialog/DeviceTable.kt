@@ -36,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -71,6 +73,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   LaunchedEffect(Unit) {
     snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
   }
+  val searchFieldFocusRequester = remember { FocusRequester() }
 
   HorizontalSplitLayout(
     first = { DeviceFiltersPanel { filterContent() } },
@@ -99,7 +102,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
             placeholder = {
               Text(filterState.textFilter.description, fontWeight = FontWeight.Light)
             },
-            modifier = Modifier.weight(1f).padding(2.dp),
+            modifier = Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester),
           )
           Tooltip(tooltip = { Text("Show device details") }) {
             IconButton(
@@ -155,6 +158,8 @@ fun <DeviceT : DeviceProfile> DeviceTable(
     secondPaneMinWidth = 300.dp,
     state = rememberSplitLayoutState(2 / 9f), // default dialog width is 900dp; approximately 200dp
   )
+
+  LaunchedEffect(Unit) { searchFieldFocusRequester.requestFocus() }
 }
 
 object DeviceTableColumns {
