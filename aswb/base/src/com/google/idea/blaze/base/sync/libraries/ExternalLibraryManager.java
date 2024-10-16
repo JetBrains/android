@@ -44,6 +44,8 @@ import java.io.File;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
+import kotlin.Unit;
+import kotlinx.coroutines.CoroutineScope;
 
 /**
  * External library manager that rebuilds {@link BlazeExternalSyntheticLibrary}s during sync, and
@@ -62,15 +64,15 @@ public class ExternalLibraryManager implements Disposable {
     return project.getService(ExternalLibraryManager.class);
   }
 
-  ExternalLibraryManager(Project project) {
+  ExternalLibraryManager(Project project, CoroutineScope coroutineScope) {
     this.project = project;
     this.duringBlazeSync = false;
     this.libraries = ImmutableMap.of();
     AsyncVfsEventsPostProcessor.getInstance()
         .addListener(
-            events -> {
+            (events, continuation) -> {
               if (duringBlazeSync || libraries.isEmpty()) {
-                return;
+                return Unit.INSTANCE;
               }
               ImmutableList<VirtualFile> deletedFiles =
                   events.stream()
@@ -80,8 +82,9 @@ public class ExternalLibraryManager implements Disposable {
               if (!deletedFiles.isEmpty()) {
                 libraries.values().forEach(library -> library.removeInvalidFiles(deletedFiles));
               }
+              return Unit.INSTANCE;
             },
-            this);
+            coroutineScope);
   }
 
   @Nullable

@@ -56,6 +56,7 @@ import com.google.idea.blaze.base.sync.workspace.MockArtifactLocationDecoder;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap;
 import com.google.idea.blaze.java.AndroidBlazeRules;
+import com.intellij.mock.MockFileTypeManager;
 import com.intellij.mock.MockModule;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.mock.MockPsiManager;
@@ -64,7 +65,7 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.impl.ExtensionPointImpl;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.MockFileTypeManager;
+import com.intellij.openapi.fileTypes.MockLanguageFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -101,7 +102,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   @Override
   protected void initTest(Container applicationServices, Container projectServices) {
     super.initTest(applicationServices, projectServices);
-    applicationServices.register(FileTypeManager.class, new MockFileTypeManager());
+    applicationServices.register(FileTypeManager.class, new MockFileTypeManager(MockLanguageFileType.INSTANCE));
     applicationServices.register(QuerySyncSettings.class, new QuerySyncSettings());
 
     projectFileIndex = mock(ProjectFileIndex.class);
