@@ -35,7 +35,7 @@ import com.intellij.openapi.extensions.PluginId;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -54,7 +54,7 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     }
     // Disable the extension because it causes performance issues, see http://b/298372819.
     //noinspection UnstableApiUsage
-    GradleOperationHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleTaskExecutionMeasuringExtension.class);
+    GradleExecutionHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleTaskExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
   }

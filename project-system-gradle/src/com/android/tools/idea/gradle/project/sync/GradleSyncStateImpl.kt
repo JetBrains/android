@@ -79,7 +79,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension
+import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
@@ -631,7 +631,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     }
   }
 
-  class BuildPhaseListenerOperationHelperExtension : GradleOperationHelperExtension {
+  class BuildPhaseListenerExecutionHelperExtension : GradleExecutionHelperExtension {
 
     override fun prepareForExecution(id: ExternalSystemTaskId,
                                      operation: LongRunningOperation,
