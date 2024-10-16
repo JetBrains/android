@@ -625,10 +625,10 @@ class AndroidMavenImportIntentionActionTest {
         assertThat(action.text).isEqualTo(actionText)
         when {
           syncAfterAction ->
-            performAndWaitForSyncEnd { action.perform(project, fixture.editor, element, true) }
+            performAndWaitForSyncEnd { action.invoke(project, fixture.editor, element) }
           // Note: We do perform, not performAndSync here, since in some cases androidx libraries
           // aren't available
-          else -> performWithoutSync(action, element)
+          else -> AndroidMavenImportIntentionAction.invoke(project, fixture.editor, element, false)
         }
         for (added in addedGradleText) {
           assertBuildGradle(project) { it.contains(added) }

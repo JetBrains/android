@@ -93,7 +93,12 @@ class MavenImportUtilsKtTest {
     assertThat(action.text)
       .isEqualTo("Add dependency on androidx.camera:camera-view (alpha) and import")
 
-    action.perform(projectRule.project, projectRule.fixture.editor, element, false)
+    AndroidMavenImportIntentionAction.invoke(
+      projectRule.project,
+      projectRule.fixture.editor,
+      element,
+      sync = false,
+    )
     verify("androidx.camera:camera-view")
   }
 
