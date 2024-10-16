@@ -72,89 +72,87 @@ fun <DeviceT : DeviceProfile> DeviceTable(
     snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
   }
 
-  Column(modifier) {
-    Row(Modifier.padding(horizontal = 6.dp)) {
-      TextField(
-        textState,
-        leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
-        trailingIcon =
-          (@Composable {
-              Icon(
-                AllIconsKeys.General.CloseSmall,
-                contentDescription = "Clear search",
-                Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
-                  .pointerHoverIcon(PointerIcon.Default),
+  HorizontalSplitLayout(
+    first = { DeviceFiltersPanel { filterContent() } },
+    second = {
+      Column {
+        Row(Modifier.padding(horizontal = 6.dp)) {
+          TextField(
+            textState,
+            leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
+            trailingIcon =
+              (@Composable {
+                  Icon(
+                    AllIconsKeys.General.CloseSmall,
+                    contentDescription = "Clear search",
+                    Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
+                      .pointerHoverIcon(PointerIcon.Default),
+                  )
+                })
+                .takeIf { textState.text.isNotEmpty() },
+            placeholder = {
+              Text(
+                filterState.textFilter.description,
+                fontWeight = FontWeight.Light,
+                modifier = Modifier.padding(start = 4.dp),
               )
-            })
-            .takeIf { textState.text.isNotEmpty() },
-        placeholder = {
-          Text(
-            filterState.textFilter.description,
-            fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(start = 4.dp),
+            },
+            modifier = Modifier.weight(1f).padding(2.dp),
           )
-        },
-        modifier = Modifier.weight(1f).padding(2.dp),
-      )
-      Tooltip(tooltip = { Text("Show device details") }) {
-        IconButton(
-          onClick = { showDetails = !showDetails },
-          Modifier.align(Alignment.CenterVertically).padding(2.dp),
-        ) {
-          Icon(
-            key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
-            contentDescription = "Details",
-            modifier = Modifier.size(20.dp),
-          )
+          Tooltip(tooltip = { Text("Show device details") }) {
+            IconButton(
+              onClick = { showDetails = !showDetails },
+              Modifier.align(Alignment.CenterVertically).padding(2.dp),
+            ) {
+              Icon(
+                key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
+                contentDescription = "Details",
+                modifier = Modifier.size(20.dp),
+              )
+            }
+          }
         }
-      }
-    }
-    if (devices.none(filterState.textFilter::apply)) {
-      EmptyStatePanel(
-        "No devices found for \"${filterState.textFilter.searchText}\".",
-        Modifier.fillMaxSize(),
-      )
-    } else {
-      HorizontalSplitLayout(
-        first = { DeviceFiltersPanel { filterContent() } },
-        second = {
-          Row {
-            val filteredDevices = devices.filter(filterState::apply)
-            if (filteredDevices.isEmpty()) {
+        Row {
+          val filteredDevices = devices.filter(filterState::apply)
+          if (filteredDevices.isEmpty()) {
+            if (devices.none(filterState.textFilter::apply)) {
+              EmptyStatePanel(
+                "No devices found for \"${filterState.textFilter.searchText}\".",
+                Modifier.fillMaxSize(),
+              )
+            } else {
               EmptyStatePanel(
                 "No devices found matching the current filters.",
                 Modifier.fillMaxSize(),
               )
-            } else {
-              Table(
-                columns,
-                filteredDevices,
-                { it },
-                modifier = Modifier.weight(1f),
-                tableSelectionState = tableSelectionState,
-                onRowSecondaryClick = onRowSecondaryClick,
-              )
-              if (showDetails) {
-                Divider(orientation = Orientation.Vertical)
-                when (
-                  val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
-                ) {
-                  null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
-                  else ->
-                    DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
-                }
+            }
+          } else {
+            Table(
+              columns,
+              filteredDevices,
+              { it },
+              modifier = Modifier.weight(1f),
+              tableSelectionState = tableSelectionState,
+              onRowSecondaryClick = onRowSecondaryClick,
+            )
+            if (showDetails) {
+              Divider(orientation = Orientation.Vertical)
+              when (
+                val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
+              ) {
+                null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
+                else -> DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
               }
             }
           }
-        },
-        modifier = Modifier.fillMaxSize(),
-        firstPaneMinWidth = 100.dp,
-        secondPaneMinWidth = 300.dp,
-        state =
-          rememberSplitLayoutState(2 / 9f), // default dialog width is 900dp; approximately 200dp
-      )
-    }
-  }
+        }
+      }
+    },
+    modifier = modifier.fillMaxSize(),
+    firstPaneMinWidth = 100.dp,
+    secondPaneMinWidth = 300.dp,
+    state = rememberSplitLayoutState(2 / 9f), // default dialog width is 900dp; approximately 200dp
+  )
 }
 
 object DeviceTableColumns {
