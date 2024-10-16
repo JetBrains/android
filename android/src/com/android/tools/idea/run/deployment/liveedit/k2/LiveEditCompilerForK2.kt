@@ -32,6 +32,7 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
@@ -81,7 +82,7 @@ internal class LiveEditCompilerForK2(
 @OptIn(KaExperimentalApi::class)
 fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
   module.let {
-    if (file.module != it) {
+    if (ModuleUtilCore.findModuleForFile(file) != it) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
     }
   }
