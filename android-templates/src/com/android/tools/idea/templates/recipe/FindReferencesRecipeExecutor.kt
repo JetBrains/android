@@ -111,6 +111,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {}
 
+  override fun addFileDependency(file: String, configuration: String) {}
+
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
   }
