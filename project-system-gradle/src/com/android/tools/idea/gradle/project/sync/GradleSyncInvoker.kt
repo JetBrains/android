@@ -66,7 +66,7 @@ interface GradleSyncInvoker {
     override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit
 
     @WorkerThread
-    override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null)
+    override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null, null)
   }
 
   companion object {

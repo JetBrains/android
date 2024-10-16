@@ -46,7 +46,7 @@ class GradleResolver {
         .let { gradleProjectModels ->
           val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(
             gradleProjectModels.libraries ?: return@let emptyList(),
-            null
+            gradleProjectModels.kmpLibraries
           )
           val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
           gradleProjectModels.modules.mapNotNull { findModel(it, modelFactory) }
