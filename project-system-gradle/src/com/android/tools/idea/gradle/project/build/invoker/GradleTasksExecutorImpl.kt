@@ -311,7 +311,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } else {
             (operation as BuildLauncher).forTasks(*ArrayUtil.toStringArray(gradleTasks))
           }
-          operation.withCancellationToken(cancellationTokenSource.token())
           if (isRunBuildAction) {
             model.set((operation as BuildActionExecuter<*>).run())
           } else {
