@@ -67,9 +67,9 @@ class GeminiAiInsightClientTest {
             val chunk = message.chunks[0] as Prompt.TextChunk
             assertThat(chunk.filesUsed).isEmpty()
             assertThat(chunk.text).isEqualTo(expectedPromptText)
-            emit(Content.TextContent("TextContent start"))
+            emit(Content.TextContent("TextContent start."))
             emit(Content.FunctionCall("someFunctionName", emptyMap()))
-            emit(Content.TextContent("This is added after FunctionCall"))
+            emit(Content.TextContent(" This is added after FunctionCall"))
           }
         }
     }
@@ -104,7 +104,7 @@ class GeminiAiInsightClientTest {
         .trimIndent()
     val insight = client.fetchCrashInsight("", request)
 
-    assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
   }
 
   @Test
@@ -181,7 +181,7 @@ class GeminiAiInsightClientTest {
         .trimIndent()
     val insight = client.fetchCrashInsight("", request)
 
-    assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
     assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
   }
 }
