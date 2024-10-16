@@ -48,16 +48,23 @@ import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
 import org.jetbrains.annotations.VisibleForTesting
 
+private const val APPLICATION_ID_FIELD_WIDTH = 300
 private const val TYPE_FIELD_WIDTH = 100
 private const val PATH_FIELD_WIDTH = 500
 
 internal class BackupDialog(
   private val project: Project,
-  private val applicationId: String,
+  initialApplicationId: String,
   private val fileFinder: FileFinder = FileFinder {
     LocalFileSystem.getInstance().findFileByPath(it)?.toNioPath()
   },
 ) : DialogWrapper(project) {
+  private val applicationIds =
+    project.getService(ProjectAppsProvider::class.java).getApplicationIds()
+  private val applicationIdComboBox =
+    ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
+      name = "applicationIdComboBox"
+    }
   private val typeComboBox =
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
       name = "typeComboBox"
@@ -67,6 +74,9 @@ internal class BackupDialog(
   private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
+
+  val applicationId: String
+    get() = applicationIdComboBox.item
 
   val backupPath: Path
     get() {
@@ -83,6 +93,9 @@ internal class BackupDialog(
   init {
     init()
     title = "Backup App State"
+    if (applicationIds.contains(initialApplicationId)) {
+      applicationIdComboBox.item = initialApplicationId
+    }
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
   }
@@ -93,6 +106,7 @@ internal class BackupDialog(
     layout.autoCreateContainerGaps = true
     layout.autoCreateGaps = true
 
+    val applicationIdLabel = JLabel("Application ID:")
     val typeLabel = JLabel("Backup type:")
     val fileLabel = JLabel("Backup file:")
 
@@ -111,7 +125,7 @@ internal class BackupDialog(
 
     fileTextField.text =
       getLastUsedDirectory()
-        .resolve("$applicationId.${BackupFileType.defaultExtension}")
+        .resolve("application.${BackupFileType.defaultExtension}")
         .relative()
         .pathString
 
@@ -121,12 +135,19 @@ internal class BackupDialog(
         .addGroup(
           layout
             .createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(applicationIdLabel)
             .addComponent(typeLabel)
             .addComponent(fileLabel)
         )
         .addGroup(
           layout
             .createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(
+              applicationIdComboBox,
+              DEFAULT_SIZE,
+              DEFAULT_SIZE,
+              JBUIScale.scale(APPLICATION_ID_FIELD_WIDTH),
+            )
             .addComponent(
               typeComboBox,
               DEFAULT_SIZE,
@@ -144,6 +165,12 @@ internal class BackupDialog(
     layout.setVerticalGroup(
       layout
         .createSequentialGroup()
+        .addGroup(
+          layout
+            .createParallelGroup(GroupLayout.Alignment.CENTER)
+            .addComponent(applicationIdLabel)
+            .addComponent(applicationIdComboBox)
+        )
         .addGroup(
           layout
             .createParallelGroup(GroupLayout.Alignment.CENTER)

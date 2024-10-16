@@ -24,13 +24,14 @@ import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.backup.testing.FakeDialogFactory
 import com.android.tools.idea.backup.testing.FakeDialogFactory.DialogData
+import com.android.tools.idea.backup.testing.clickOk
+import com.android.tools.idea.backup.testing.findComponent
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
 import com.google.common.truth.Truth.assertThat
@@ -41,18 +42,16 @@ import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.TextAccessor
 import java.nio.file.Path
-import javax.swing.JButton
-import javax.swing.JComponent
 import kotlin.io.path.pathString
-import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -75,23 +74,39 @@ internal class BackupManagerImplTest {
 
   private val usageTrackerRule = UsageTrackerRule()
   private val notificationRule = NotificationRule(projectRule)
+  private val disposableRule = DisposableRule()
 
   @get:Rule
   val rule =
-    RuleChain(projectRule, usageTrackerRule, notificationRule, HeadlessDialogRule(), EdtRule())
+    RuleChain(
+      projectRule,
+      usageTrackerRule,
+      notificationRule,
+      HeadlessDialogRule(),
+      disposableRule,
+      EdtRule(),
+    )
 
   private val mockBackupService = mock<BackupService>()
   private val fakeDialogFactory = FakeDialogFactory()
 
   @Test
   fun backup_success(): Unit = runBlocking {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app1", "app2", "app3")
+        }
+      },
+      disposableRule.disposable,
+    )
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService, fakeDialogFactory)
     val serialNumber = "serial"
-    val applicationId = "app"
     whenever(
         mockBackupService.backup(
           eq(serialNumber),
-          eq(applicationId),
+          eq("app3"),
           eq(CLOUD),
           argThat { endsWith("file.backup") },
           any(),
@@ -100,14 +115,17 @@ internal class BackupManagerImplTest {
       .thenReturn(BackupResult.Success)
 
     createModalDialogAndInteractWithIt({
-      backupManagerImpl.showBackupDialog(serialNumber, applicationId, RUN_CONFIG)
+      backupManagerImpl.showBackupDialog(serialNumber, "app2", RUN_CONFIG)
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog
+      val applicationIdComboBox = dialog.findComponent<ComboBox<String>>("applicationIdComboBox")
       val typeComboBox = dialog.findComponent<ComboBox<BackupType>>("typeComboBox")
       val fileTextField = dialog.findComponent<TextAccessor>("fileTextField")
+
+      applicationIdComboBox.item = "app3"
       typeComboBox.item = CLOUD
       fileTextField.text = "file.backup"
-      dialog.findButton("OK").doClick()
+      dialog.clickOk()
     }
 
     assertThat(usageTrackerRule.backupEvents())
@@ -218,14 +236,3 @@ private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode
 
 private fun UsageTrackerRule.backupEvents(): List<BackupUsageEvent> =
   usages.filter { it.studioEvent.kind == BACKUP_USAGE }.map { it.studioEvent.backupUsageEvent }
-
-private inline fun <reified T> DialogWrapper.findComponent(name: String): T {
-  return TreeWalker(rootPane).descendants().filterIsInstance<T>().find {
-    (it as JComponent).name == name
-  } ?: fail("${T::class.simpleName} named $name was not found")
-}
-
-private fun DialogWrapper.findButton(text: String): JButton {
-  return TreeWalker(rootPane).descendants().filterIsInstance<JButton>().find { it.text == text }
-    ?: fail("Button '$text' was not found")
-}
