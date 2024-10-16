@@ -101,6 +101,7 @@ class InsightContentPanel(
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
       add(insightTextPane)
+      add(InsightDisclaimerPanel(scope, currentInsightFlow))
       add(feedbackPanel)
     }
 
