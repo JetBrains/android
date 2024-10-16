@@ -86,6 +86,9 @@ class MavenImportUtilsKtTest {
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
+    // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return early.
+    val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistry()
+
     val action = AndroidMavenImportIntentionAction()
     val element = projectRule.fixture.moveCaret("PreviewView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
@@ -97,6 +100,7 @@ class MavenImportUtilsKtTest {
       projectRule.project,
       projectRule.fixture.editor,
       element,
+      registry,
       sync = false,
     )
     verify("androidx.camera:camera-view")

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.imports
 
+import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 
-class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) :
-  LocalQuickFix {
+class AndroidMavenImportFix(
+  @SafeFieldForPreview val registry: MavenClassRegistry,
+  val className: String,
+  val artifact: String,
+  val version: String?,
+) : LocalQuickFix {
   override fun getName(): String {
     return AndroidBundle.message(
       "android.suggested.dependency.action.name.prefix",
@@ -38,6 +43,7 @@ class AndroidMavenImportFix(val className: String, val artifact: String, val ver
     AndroidMavenImportIntentionAction.doImportSuggestion(
       project,
       element,
+      registry,
       artifact,
       version,
       importSymbol = null,
