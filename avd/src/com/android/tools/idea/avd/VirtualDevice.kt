@@ -171,6 +171,8 @@ internal fun Storage.toStorageCapacity(): StorageCapacity {
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {
+  internal fun withMaxUnit() = Custom(value.withMaxUnit())
+
   override fun isValid(hasPlayStore: Boolean) =
     value >=
       if (hasPlayStore) {

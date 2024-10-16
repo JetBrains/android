@@ -121,7 +121,6 @@ internal fun WizardPageScope.ConfigurationPage(
   val state =
     remember(device) {
       if (image == null) {
-        // Adding a device
         val state =
           ConfigureDevicePanelState(
             device,
@@ -129,13 +128,13 @@ internal fun WizardPageScope.ConfigurationPage(
             filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
               it.isRecommended()
             },
+            Mode.ADD,
           )
 
         state.setSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
         state
       } else {
-        // Editing a device
-        ConfigureDevicePanelState(device, skins, image)
+        ConfigureDevicePanelState(device, skins, image, Mode.EDIT)
       }
     }
 
