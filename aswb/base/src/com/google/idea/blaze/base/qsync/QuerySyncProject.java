@@ -64,6 +64,7 @@ import com.google.idea.blaze.qsync.project.SnapshotDeserializer;
 import com.google.idea.blaze.qsync.project.SnapshotSerializer;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.google.protobuf.CodedOutputStream;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -75,8 +76,10 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -87,6 +90,8 @@ import java.util.zip.GZIPOutputStream;
  * project state to the rest of the plugin and IDE.
  */
 public class QuerySyncProject {
+
+  private static final Logger logger = Logger.getInstance(QuerySyncProject.class);
 
   private final Path snapshotFilePath;
   private final Project project;
@@ -574,6 +579,25 @@ public class QuerySyncProject {
 
   private void onNewSnapshot(BlazeContext context, QuerySyncProjectSnapshot newSnapshot)
       throws BuildException {
+    // update the artifact store for the new snapshot
+    ProjectArtifactStore.UpdateResult result = artifactStore.update(context, newSnapshot);
+    if (!result.incompleteTargets().isEmpty()) {
+      final int limit = 20;
+      logger.warn(
+          String.format(
+              "%d project deps had missing artifacts:\n  %s",
+              result.incompleteTargets().size(),
+              result.incompleteTargets().stream()
+                  .limit(limit)
+                  .map(Objects::toString)
+                  .collect(Collectors.joining("\n  "))));
+      if (result.incompleteTargets().size() > limit) {
+        logger.warn(String.format("  (and %d more)", result.incompleteTargets().size() - limit));
+      }
+    }
+    // update the snapshot with any missing artifacts:
+    newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets()).build();
+
     snapshotHolder.setCurrent(context, newSnapshot);
     projectData = projectData.withSnapshot(newSnapshot);
     try {
