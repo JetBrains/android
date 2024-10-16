@@ -317,7 +317,7 @@
     <gradleJvmResolver implementation="com.android.tools.idea.gradle.resolvers.GradleJvmEnvironmentStudioJdkResolver" order="first" />
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
-    <operationHelperExtension implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$BuildPhaseListenerOperationHelperExtension"/>
+    <executionHelperExtension implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$BuildPhaseListenerExecutionHelperExtension"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>

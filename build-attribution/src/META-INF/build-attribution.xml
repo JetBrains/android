@@ -42,7 +42,7 @@
 
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <operationHelperExtension implementation="com.android.sync.analyzer.SyncAnalyzerOperationHelperExtension"/>
+    <executionHelperExtension implementation="com.android.sync.analyzer.SyncAnalyzerExecutionHelperExtension"/>
   </extensions>
   <actions>
     <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
