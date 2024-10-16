@@ -42,8 +42,8 @@ import org.jetbrains.jewel.ui.icon.IconKey
 import org.jetbrains.jewel.ui.theme.colorPalette
 
 @Composable
-internal fun WarningBanner(text: String) {
-  Banner(BannerUi.Warning, StudioIconsCompose.Common.Warning, "Warning", text)
+internal fun WarningBanner(text: String, modifier: Modifier = Modifier) {
+  Banner(BannerUi.Warning, StudioIconsCompose.Common.Warning, "Warning", text, modifier)
 }
 
 @Composable
