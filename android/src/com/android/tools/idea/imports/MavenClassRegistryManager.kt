@@ -20,7 +20,16 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.application
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /**
  * An application service responsible for downloading index from network and populating the
@@ -28,36 +37,86 @@ import java.util.concurrent.atomic.AtomicReference
  * class registry when asked.
  */
 @Service
-class MavenClassRegistryManager : Disposable.Default {
-  init {
-    GMavenIndexRepository.getInstance().addListener(IndexListener, this)
+class MavenClassRegistryManager
+@TestOnly
+internal constructor(
+  private val coroutineScope: CoroutineScope,
+  private val defaultDispatcher: CoroutineDispatcher,
+  private val ioDispatcher: CoroutineDispatcher,
+) : Disposable.Default {
+
+  constructor(
+    coroutineScope: CoroutineScope
+  ) : this(coroutineScope, Dispatchers.Default, Dispatchers.IO)
+
+  /**
+   * Job that returns a [MavenClassRegistry].
+   *
+   * This is initially set to an unlaunched Job, so that the registry is only initialized if some
+   * consumer needs it. At the time it runs, it also registers a listener for updates whenever the
+   * underlying index is changed.
+   *
+   * After any updates, this will be replaced with a newly completed Job that returns the new
+   * [MavenClassRegistry].
+   */
+  @Volatile
+  private var registryJob =
+    coroutineScope.async(defaultDispatcher, CoroutineStart.LAZY) {
+      // Register for index updates only now that we're initializing the registry; any index updates
+      // before initialization can be ignored, since there's no registry to be updated.
+      val gmavenIndexRepository = GMavenIndexRepository.getInstance()
+      gmavenIndexRepository.addListener(::onIndexUpdated, this@MavenClassRegistryManager)
+
+      withContext(ioDispatcher) {
+        MavenClassRegistry.createFrom { gmavenIndexRepository.loadIndexFromDisk() }
+      }
+    }
+
+  /**
+   * Returns a [MavenClassRegistry]. Blocks for disk IO if the registry hasn't been initialized yet.
+   */
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun getMavenClassRegistry(): MavenClassRegistry {
+    val job = registryJob
+    if (job.isCompleted) return job.getCompleted()
+
+    return runBlocking { job.await() }
   }
 
-  private val lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
+  /**
+   * Returns [MavenClassRegistry] if it has been initialized. Otherwise, kicks off initialization in
+   * the background and immediately returns null.
+   */
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun tryGetMavenClassRegistry(): MavenClassRegistry? {
+    val job = registryJob
+    if (job.isCompleted) return job.getCompleted()
 
-  /** Returns [MavenClassRegistry]. */
-  fun getMavenClassRegistry(): MavenClassRegistry {
-    return lastComputedMavenClassRegistry.get()
-      ?: MavenClassRegistry.createFrom { GMavenIndexRepository.getInstance().loadIndexFromDisk() }
-        .apply { lastComputedMavenClassRegistry.set(this) }
+    job.start()
+    return null
+  }
+
+  /**
+   * Returns a [MavenClassRegistry]. Suspends for disk IO if the registry hasn't been initialized
+   * yet.
+   */
+  suspend fun getMavenClassRegistrySuspending(): MavenClassRegistry {
+    return registryJob.await()
   }
 
   private fun onIndexUpdated() {
-    lastComputedMavenClassRegistry.getAndUpdate {
-      if (it == null) {
-        null
-      } else {
-        val mavenClassRegistry =
+    coroutineScope.launch(defaultDispatcher) {
+      val job =
+        coroutineScope.async(ioDispatcher) {
           MavenClassRegistry.createFrom { GMavenIndexRepository.getInstance().loadIndexFromDisk() }
-        thisLogger().info("Updated in-memory Maven class registry.")
-        mavenClassRegistry
-      }
-    }
-  }
+        }
 
-  private object IndexListener : GMavenIndexRepositoryListener {
-    override fun onIndexUpdated() {
-      getInstance().onIndexUpdated()
+      // Only store the new job in [registryJob] after it's finished initialization in the
+      // background. This allows any consumers to continue to use the older index while the new one
+      // is being created.
+      job.join()
+      registryJob = job
+      thisLogger().info("Updated in-memory Maven class registry.")
     }
   }
 

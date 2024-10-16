@@ -322,7 +322,7 @@ internal constructor(
 }
 
 /** Listener for events related to the [GMavenIndexRepository] service. */
-internal interface GMavenIndexRepositoryListener : EventListener {
+internal fun interface GMavenIndexRepositoryListener : EventListener {
   fun onIndexUpdated()
 }
 
