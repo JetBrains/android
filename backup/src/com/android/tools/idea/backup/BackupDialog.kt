@@ -17,7 +17,6 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
-import com.android.tools.idea.backup.BackupDialog.FileFinder
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -27,12 +26,12 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.TextAccessor
 import com.intellij.ui.TextFieldWithHistory
 import com.intellij.ui.TextFieldWithStoredHistory
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
+import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
@@ -46,18 +45,16 @@ import kotlin.io.path.extension
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val APPLICATION_ID_FIELD_WIDTH = 300
 private const val TYPE_FIELD_WIDTH = 100
 private const val PATH_FIELD_WIDTH = 500
 
+private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
+
 internal class BackupDialog(
   private val project: Project,
   initialApplicationId: String,
-  private val fileFinder: FileFinder = FileFinder {
-    LocalFileSystem.getInstance().findFileByPath(it)?.toNioPath()
-  },
 ) : DialogWrapper(project) {
   private val applicationIds =
     project.getService(ProjectAppsProvider::class.java).getApplicationIds()
@@ -123,11 +120,7 @@ internal class BackupDialog(
       }
     }
 
-    fileTextField.text =
-      getLastUsedDirectory()
-        .resolve("application.${BackupFileType.defaultExtension}")
-        .relative()
-        .pathString
+    fileTextField.text = getLastUsedFile()
 
     layout.setHorizontalGroup(
       layout
@@ -190,7 +183,7 @@ internal class BackupDialog(
   }
 
   override fun doOKAction() {
-    setLastUsedDirectory(backupPath.parent)
+    setLastUsedFile(backupPath.relative().pathString)
     setLastUsedType(typeComboBox.item)
     if (backupPath.exists() && !fileSetByChooser) {
       @Suppress("DialogTitleCapitalization")
@@ -207,16 +200,12 @@ internal class BackupDialog(
     super.doOKAction()
   }
 
-  private fun getLastUsedDirectory(): Path {
-    val projectDir = project.guessProjectDir()!!.toNioPath()
-    return when (val dir = properties.getValue(LAST_USED_DIRECTORY_KEY)) {
-      null -> projectDir
-      else -> fileFinder.findFile(dir) ?: projectDir
-    }
+  private fun getLastUsedFile(): String {
+    return properties.getValue(LAST_USED_FILE_KEY) ?: DEFAULT_BACKUP_FILENAME
   }
 
-  private fun setLastUsedDirectory(path: Path) {
-    properties.setValue(LAST_USED_DIRECTORY_KEY, path.pathString)
+  private fun setLastUsedFile(path: String) {
+    properties.setValue(LAST_USED_FILE_KEY, path)
   }
 
   private fun getLastUsedType(): BackupType {
@@ -259,12 +248,9 @@ internal class BackupDialog(
     override fun getText(): String = childComponent.text
   }
 
-  internal fun interface FileFinder {
-    fun findFile(path: String): Path?
-  }
-
   companion object {
-    @VisibleForTesting internal const val LAST_USED_DIRECTORY_KEY = "Backup.Last.Used.Directory"
+    @VisibleForTesting
+    internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
 
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
   }

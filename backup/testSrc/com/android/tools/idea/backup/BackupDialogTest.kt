@@ -20,7 +20,6 @@ import com.android.backup.BackupType.CLOUD
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.idea.backup.BackupDialog.FileFinder
 import com.android.tools.idea.backup.testing.clickOk
 import com.android.tools.idea.backup.testing.findComponent
 import com.android.tools.idea.testing.WaitForIndexRule
@@ -33,8 +32,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.TextAccessor
-import java.nio.file.Path
-import kotlin.io.path.pathString
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -56,14 +53,12 @@ class BackupDialogTest {
   private val projectDir
     get() = project.guessProjectDir()!!.toNioPath()
 
-  private val fakeFileFinder = FakeFileFinder()
-
   @After
   fun tearDown() {
     // There is no shared fake/mock of PropertiesComponent so the easiest thing to do is to reset it
     // after each run
     PropertiesComponent.getInstance().unsetValue(BackupDialog.LAST_USED_TYPE_KEY)
-    PropertiesComponent.getInstance().unsetValue(BackupDialog.LAST_USED_DIRECTORY_KEY)
+    PropertiesComponent.getInstance().unsetValue(BackupDialog.LAST_USED_FILE_KEY)
   }
 
   @Test
@@ -133,51 +128,26 @@ class BackupDialogTest {
   }
 
   @Test
-  fun showDialog_updatesLastUsedDir() {
+  fun showDialog_updatesLastUsedFile() {
     createDialog {
       it.findComponent<TextAccessor>("fileTextField").text = "someDir/foo"
       it.clickOk()
     }
-    createDialog(fileFinder = FakeFileFinder(projectDir.resolve("someDir").pathString)) {
-      it.clickOk()
-
-      assertThat(it.backupPath).isEqualTo(projectDir.resolve("someDir/application.backup"))
-    }
-  }
-
-  @Test
-  fun showDialog_lastUsedDirDoesNotExist_usesProjectDir() {
     createDialog {
-      it.findComponent<TextAccessor>("fileTextField").text = "someDir/foo"
-      it.clickOk()
-    }
-    createDialog(fileFinder = FakeFileFinder()) {
       it.clickOk()
 
-      assertThat(it.backupPath).isEqualTo(projectDir.resolve("application.backup"))
+      assertThat(it.backupPath).isEqualTo(projectDir.resolve("someDir/foo.backup"))
     }
   }
 
   private fun createDialog(
     initialApplication: String = "app",
-    fileFinder: FileFinder = fakeFileFinder,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
     createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication, fileFinder)::show
+      BackupDialog(project, initialApplication)::show
     ) {
       dialogInteractor(it as BackupDialog)
-    }
-  }
-
-  private class FakeFileFinder(vararg files: String) : FileFinder {
-    private val files = files.toSet()
-
-    override fun findFile(path: String): Path? {
-      if (!files.contains(path)) {
-        return null
-      }
-      return Path.of(path)
     }
   }
 }
