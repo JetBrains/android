@@ -24,7 +24,6 @@ import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorMarkupModel
@@ -58,10 +57,8 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     messageBusConnection.subscribe(
       IssueProviderListener.TOPIC,
       IssueProviderListener { _, _ ->
-        ApplicationManager.getApplication().invokeLater {
-          if (!project.isDisposed) {
-            ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
-          }
+        if (!project.isDisposed) {
+          ErrorStripeUpdateManager.getInstance(project).launchRepaintErrorStripePanel(editor, file)
         }
       },
     )
