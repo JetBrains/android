@@ -23,7 +23,6 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -44,7 +43,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
-import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -57,7 +55,6 @@ import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.atomic.AtomicInteger
-import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 
@@ -203,15 +200,9 @@ internal class EmptyStatePanel(
       }
     }
 
-    var textComponent: JComponent? = null
-    panel {
-      row {
-        text(text = html, action = hyperlinkAction).applyToComponent {
-          font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
-          foreground = StandardColors.PLACEHOLDER_TEXT_COLOR
-          textComponent = this
-        }
-      }
+    val textComponent = textComponent(text = html, action = hyperlinkAction).apply {
+      font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
+      foreground = StandardColors.PLACEHOLDER_TEXT_COLOR
     }
 
     val c = GridBagConstraints().apply {
@@ -233,7 +224,7 @@ internal class EmptyStatePanel(
       gridy = 1
       weighty = 1 - TOP_MARGIN
     }
-    add(textComponent!!, c)
+    add(textComponent, c)
 
     c.apply {
       gridx = 0
