@@ -25,7 +25,7 @@ import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.impl.EditorMarkupModelImpl
+import com.intellij.openapi.editor.ex.EditorMarkupModel
 import com.intellij.openapi.editor.markup.AnalyzerStatus
 import com.intellij.openapi.editor.markup.StatusItem
 import com.intellij.openapi.editor.markup.UIController
@@ -45,7 +45,7 @@ private val SEVERITY_TO_ICON =
  * Custom [TrafficLightRenderer] to be used by resource files. It shows the number of errors,
  * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
-class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
+internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   TrafficLightRenderer(file.project, editor.document) {
   private val severities = severityRegistrar.allSeverities
   private val errorCountArray = IntArray(severities.size)
@@ -62,7 +62,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     )
   }
 
-  override fun refresh(editorMarkupModel: EditorMarkupModelImpl?) {
+  override fun refresh(editorMarkupModel: EditorMarkupModel?) {
     super.refresh(editorMarkupModel)
     if (editorMarkupModel == null) {
       return
@@ -77,9 +77,8 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     }
   }
 
-  override fun getErrorCounts(): IntArray {
-    return errorCountArray
-  }
+  override val errorCounts: IntArray
+    get() = errorCountArray
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()
