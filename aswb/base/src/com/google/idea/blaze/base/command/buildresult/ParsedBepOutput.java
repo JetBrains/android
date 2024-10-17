@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.command.buildresult;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static java.util.stream.Collectors.groupingBy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -347,10 +348,12 @@ public final class ParsedBepOutput {
    * the build.
    */
   public ImmutableMap<String, BepArtifactData> getFullArtifactData() {
-    return fileSets.values().stream()
-        .flatMap(FileSet::toPerArtifactData)
-        .collect(
-            toImmutableMap(d -> d.artifact.getBazelOutRelativePath(), d -> d, BepArtifactData::update));
+    return ImmutableMap.copyOf(
+      Maps.transformValues(
+        fileSets.values().stream()
+          .flatMap(FileSet::toPerArtifactData)
+          .collect(groupingBy(d -> d.artifact.getBazelOutRelativePath(), toImmutableSet())),
+        BepArtifactData::combine));
   }
 
   /** Returns the set of build targets that had an error. */
