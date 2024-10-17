@@ -133,6 +133,7 @@ iml_module(
         "//tools/base/backup:studio.android.sdktools.backup",
         "@intellij//:intellij.json.split",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
 )
 

@@ -222,6 +222,7 @@ studio_plugin(
             "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+            "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",

@@ -109,6 +109,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
 )
@@ -534,6 +535,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils",
         "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",

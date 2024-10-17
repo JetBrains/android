@@ -45,6 +45,7 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
