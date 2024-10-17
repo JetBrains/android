@@ -58,7 +58,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
     ideFrame.waitUntilProgressBarNotDisplayed();
     EditorFixture editor = ideFrame.getEditor().open("app/src/main/java/com/example/hellojni/HelloJni.java");
-    editor.waitForFileToActivate();
+    editor.waitUntilErrorAnalysisFinishes();
     editor.select("String  stringFromJNI()")
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
