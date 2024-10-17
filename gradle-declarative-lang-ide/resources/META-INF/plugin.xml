@@ -23,9 +23,17 @@
   </description>
   <version>0.1</version>
   <vendor>Google</vendor>
-  <depends>com.intellij.java</depends>
-  <depends>com.intellij.gradle</depends>
-  <depends>org.jetbrains.kotlin</depends>
+
+  <dependencies>
+    <plugin id="com.intellij.java" />
+    <plugin id="com.intellij.gradle" />
+    <plugin id="org.jetbrains.kotlin" />
+  </dependencies>
+
+  <content>
+    <module name="intellij.android.gradle.declarative.lang" />
+  </content>
+
   <idea-version since-build="242"/>
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -64,6 +72,4 @@
                      implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeUnresolvedReferenceInspection"/>
 
   </extensions>
-
-  <xi:include href="/META-INF/gradle-declarative-lang.xml"/>
 </idea-plugin>

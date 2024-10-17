@@ -25,7 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
-    <orderEntry type="module" module-name="intellij.android.device-manager" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
@@ -67,6 +66,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.databinding.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="RUNTIME" />

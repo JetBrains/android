@@ -19,6 +19,7 @@
   </dependencies>
 
   <content>
+    <module name="intellij.android.gradle.dsl.flags" />
     <module name="intellij.android.gradle.dsl/groovy"/>
     <module name="intellij.android.gradle.dsl.kotlin"/>
     <module name="intellij.android.gradle.dsl.toml"/>
