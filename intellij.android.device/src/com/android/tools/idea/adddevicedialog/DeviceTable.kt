@@ -43,7 +43,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.intellij.icons.AllIcons
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
@@ -54,7 +53,6 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
-import org.jetbrains.jewel.ui.icon.PathIconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -110,7 +108,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
               Modifier.align(Alignment.CenterVertically).padding(2.dp),
             ) {
               Icon(
-                key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
+                AllIconsKeys.Actions.PreviewDetails,
                 contentDescription = "Details",
                 modifier = Modifier.size(20.dp),
               )
