@@ -34,7 +34,7 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
   ): StateTransition<Action> {
     if (eventPage is LoadingState.Failure) {
       Logger.getInstance(this::class.java).warn("Failed to load events: $eventPage")
-      return StateTransition(state, Action.NONE)
+      return StateTransition(state.copy(currentEvents = eventPage), Action.NONE)
     }
     val newEvents = (eventPage as LoadingState.Ready).value
     return StateTransition(

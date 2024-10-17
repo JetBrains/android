@@ -63,4 +63,21 @@ class EventsChangedTest {
       )
     assertThat(transition.action).isEqualTo(Action.NONE)
   }
+
+  @Test
+  fun `propagate failure to get event to state`() {
+    val currentState =
+      AppInsightsState(
+        Selection(CONNECTION1, listOf(CONNECTION1)),
+        TEST_FILTERS,
+        issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+        currentEvents = LoadingState.Loading,
+      )
+    val failure = LoadingState.NetworkFailure("failed")
+    val event = EventsChanged(failure)
+    val transition =
+      event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
+    assertThat(transition.newState.currentEvents).isEqualTo(failure)
+    assertThat(transition.action).isEqualTo(Action.NONE)
+  }
 }
