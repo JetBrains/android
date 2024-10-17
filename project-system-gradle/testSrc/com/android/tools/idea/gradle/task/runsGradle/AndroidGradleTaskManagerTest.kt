@@ -46,9 +46,9 @@ class AndroidGradleTaskManagerTest {
 
       val externalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
       // 1) This is a common form used by Android Studio etc.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
+      facade.taskManagerImpl.executeTasksImpl(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
       // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
+      facade.taskManagerImpl.executeTasksImpl(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
 
       expect.that(capturedRequests).hasSize(2)
 
