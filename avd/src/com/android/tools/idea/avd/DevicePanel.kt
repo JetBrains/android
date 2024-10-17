@@ -42,6 +42,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.tools.idea.adddevicedialog.ApiFilter
+import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
@@ -137,12 +138,10 @@ internal fun DevicePanel(
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       if (filteredSystemImages.isEmpty()) {
-        Box(Modifier.fillMaxSize()) {
-          Text(
-            "No system images available matching the current set of filters.",
-            Modifier.align(Alignment.Center),
-          )
-        }
+        EmptyStatePanel(
+          "No system images available matching the current set of filters.",
+          Modifier.fillMaxSize(),
+        )
       } else {
         if (imageState.error != null) {
           ErrorPanel(
