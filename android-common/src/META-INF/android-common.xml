@@ -17,6 +17,5 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.concurrency.AndroidIoManager"
                         serviceImplementation="com.android.tools.idea.concurrency.StudioIoManager"/>
-    <registryKey key="gradle.declarative.studio.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>
 </idea-plugin>
