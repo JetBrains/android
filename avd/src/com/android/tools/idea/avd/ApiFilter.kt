@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,9 +31,14 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.NameDetails
 import com.android.sdklib.getApiNameAndDetails
+import com.android.tools.idea.ui.ChooseApiLevelDialog
+import javax.swing.Action
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.ExternalLink
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.separator
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /** A Composable that allows selection of API level via a dropdown. */
 @Composable
@@ -41,25 +51,56 @@ fun ApiFilter(
   Column(modifier) {
     Text("API", Modifier.padding(bottom = 6.dp))
 
-    Dropdown(
-      menuContent = {
-        val apiLevels =
-          apiLevels.map { AndroidVersionSelection(it) } + AndroidVersionSelection(null)
-        repeat(apiLevels.size) { index ->
-          // Add a separator before the final "Show All"
-          if (index == apiLevels.size - 1) {
-            separator()
-          }
-          selectableItem(
-            selected = apiLevels[index] == selectedApiLevel,
-            onClick = { onApiLevelChange(apiLevels[index]) },
-          ) {
-            ApiLevel(apiLevels[index])
+    Row {
+      Dropdown(
+        menuContent = {
+          val apiLevels =
+            apiLevels.map { AndroidVersionSelection(it) } + AndroidVersionSelection(null)
+          repeat(apiLevels.size) { index ->
+            // Add a separator before the final "Show All"
+            if (index == apiLevels.size - 1) {
+              separator()
+            }
+            selectableItem(
+              selected = apiLevels[index] == selectedApiLevel,
+              onClick = { onApiLevelChange(apiLevels[index]) },
+            ) {
+              ApiLevel(apiLevels[index])
+            }
           }
         }
+      ) {
+        ApiLevel(selectedApiLevel)
       }
-    ) {
-      ApiLevel(selectedApiLevel)
+
+      Spacer(Modifier.size(Padding.MEDIUM))
+
+      @OptIn(ExperimentalFoundationApi::class)
+      LingeringTooltip(
+        tooltip = {
+          Column(Modifier.widthIn(max = 300.dp)) {
+            Text("Filter images by API level.")
+            Spacer(Modifier.size(4.dp))
+            ExternalLink(
+              "See API levels",
+              onClick = {
+                val dialog: ChooseApiLevelDialog =
+                  object : ChooseApiLevelDialog(null, -1) {
+                    override fun createActions(): Array<Action> {
+                      val close = cancelAction
+                      close.putValue(Action.NAME, "Close")
+                      return arrayOf(close)
+                    }
+                  }
+                dialog.show()
+              },
+            )
+          }
+        },
+        Modifier.align(Alignment.CenterVertically),
+      ) {
+        Icon(AllIconsKeys.General.Note, null)
+      }
     }
   }
 }
