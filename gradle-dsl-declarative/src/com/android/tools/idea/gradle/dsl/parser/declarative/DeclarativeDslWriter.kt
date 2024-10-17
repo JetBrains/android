@@ -37,11 +37,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.impl.source.tree.SharedImplUtil
 import com.intellij.psi.util.findParentOfType
 
 class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWriter, DeclarativeDslNameConverter {
@@ -140,7 +144,25 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   }
 
   override fun deleteDslElement(element: GradleDslElement) {
+    element.psiElement?.let {
+      // For declarative we remove only elements that locates in current file
+      // Software type properties editing happens via settings file
+      // That's the opposite we do for Kotlin/Groovy where we delete all
+      // elements - even APPLIED
+      // TODO consider making same behavior for Kotlin/Groovy allprojects content
+      //  and declarative software types b/375168954
+      if (SharedImplUtil.getContainingFile(it.node) != getFileParent(element)) return
+    }
+
     deletePsiElement(element)
+  }
+
+  private fun getFileParent(element: GradleDslElement): PsiFile? {
+    var parent = element.parent
+    while (parent != null && parent !is GradleBuildFile) {
+      parent = parent.parent
+    }
+    return parent?.psiElement as? PsiFile
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
