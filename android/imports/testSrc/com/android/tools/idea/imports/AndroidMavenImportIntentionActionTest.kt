@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.CheckReturnValue
 import org.junit.Assert.fail
 import org.junit.Rule
@@ -636,7 +637,9 @@ class AndroidMavenImportIntentionActionTest {
 
         // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return
         // early.
-        val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistryBlocking()
+        val registry = runBlocking {
+          MavenClassRegistryManager.getInstance().getMavenClassRegistry()
+        }
 
         val action = AndroidMavenImportIntentionAction()
         val element: PsiElement

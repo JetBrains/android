@@ -32,6 +32,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 import org.junit.After
 import org.junit.Before
@@ -87,7 +88,7 @@ class MavenImportUtilsKtTest {
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return early.
-    val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistryBlocking()
+    val registry = runBlocking { MavenClassRegistryManager.getInstance().getMavenClassRegistry() }
 
     val action = AndroidMavenImportIntentionAction()
     val element = projectRule.fixture.moveCaret("PreviewView|")

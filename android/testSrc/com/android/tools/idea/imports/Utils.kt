@@ -170,7 +170,6 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager> {
-      on { getMavenClassRegistryBlocking() } doReturn (mavenClassRegistry)
       on { tryGetMavenClassRegistry() } doReturn(mavenClassRegistry)
       onBlocking { getMavenClassRegistry() } doReturn (mavenClassRegistry)
     }
