@@ -124,11 +124,11 @@ class MavenClassRegistryManagerTest {
     testScope.runTest {
       verify(mockGMavenIndexRepository, never()).loadIndexFromDisk()
 
-      val registry1 = mavenClassRegistryManager.getMavenClassRegistrySuspending()
+      val registry1 = mavenClassRegistryManager.getMavenClassRegistry()
       verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
       // Second call should not trigger a new load.
-      val registry2 = mavenClassRegistryManager.getMavenClassRegistrySuspending()
+      val registry2 = mavenClassRegistryManager.getMavenClassRegistry()
       verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
       assertThat(registry2).isSameAs(registry1)
@@ -145,7 +145,7 @@ class MavenClassRegistryManagerTest {
     // Subsequent calls to the various getters should all return the same registry.
     assertThat(mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()).isSameAs(registry1)
     assertThat(mavenClassRegistryManager.tryGetMavenClassRegistry()).isSameAs(registry1)
-    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistrySuspending() })
+    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() })
       .isSameAs(registry1)
     verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
 
@@ -169,14 +169,14 @@ class MavenClassRegistryManagerTest {
   }
 
   /**
-   * Returns result of [MavenClassRegistryManager.getMavenClassRegistry].
+   * Returns result of [MavenClassRegistryManager.getMavenClassRegistryBlocking].
    *
    * To call the blocking read method, we have to use a background thread so that control returns to
    * the test and we can advance the coroutine scheduler.
    */
   private fun MavenClassRegistryManager.getMavenClassRegistryBlockingForTest(): MavenClassRegistry {
     var result: MavenClassRegistry? = null
-    application.executeOnPooledThread { result = getMavenClassRegistry() }
+    application.executeOnPooledThread { result = getMavenClassRegistryBlocking() }
 
     waitForCondition(10.seconds) {
       testScheduler.runCurrent()

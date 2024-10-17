@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.completion
 
-import com.android.tools.idea.imports.GMavenIndexRepository
 import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.testing.caret
@@ -349,7 +348,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager>().apply {
-      whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+      whenever(getMavenClassRegistryBlocking()).thenReturn(mavenClassRegistry)
     }
   }
 }

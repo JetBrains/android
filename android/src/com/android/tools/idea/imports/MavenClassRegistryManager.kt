@@ -33,8 +33,8 @@ import org.jetbrains.annotations.TestOnly
 
 /**
  * An application service responsible for downloading index from network and populating the
- * corresponding Maven class registry. [getMavenClassRegistry] returns the best effort of Maven
- * class registry when asked.
+ * corresponding Maven class registry. [getMavenClassRegistry] returns the most up-to-date Maven
+ * class registry available.
  */
 @Service
 class MavenClassRegistryManager
@@ -76,7 +76,8 @@ internal constructor(
    * Returns a [MavenClassRegistry]. Blocks for disk IO if the registry hasn't been initialized yet.
    */
   @OptIn(ExperimentalCoroutinesApi::class)
-  fun getMavenClassRegistry(): MavenClassRegistry {
+  @Deprecated("Use tryGetMavenClassRegistry or getMavenClassRegistry instead.")
+  fun getMavenClassRegistryBlocking(): MavenClassRegistry {
     val job = registryJob
     if (job.isCompleted) return job.getCompleted()
 
@@ -100,7 +101,7 @@ internal constructor(
    * Returns a [MavenClassRegistry]. Suspends for disk IO if the registry hasn't been initialized
    * yet.
    */
-  suspend fun getMavenClassRegistrySuspending(): MavenClassRegistry {
+  suspend fun getMavenClassRegistry(): MavenClassRegistry {
     return registryJob.await()
   }
 
