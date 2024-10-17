@@ -105,7 +105,7 @@ class AndroidRunConfigurationExecutor(
     val processHandler = AndroidProcessHandler(applicationId, { it.forceStop(applicationId) })
     val console = createConsole()
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     devices.forEach {
       if (configuration.CLEAR_LOGCAT) {
@@ -211,7 +211,7 @@ class AndroidRunConfigurationExecutor(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
@@ -317,7 +317,7 @@ class AndroidRunConfigurationExecutor(
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     console.printLaunchTaskStartedMessage("Applying changes to")
@@ -386,7 +386,7 @@ class AndroidRunConfigurationExecutor(
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     console.printLaunchTaskStartedMessage("Applying code changes to")
@@ -450,12 +450,15 @@ class AndroidRunConfigurationExecutor(
     throw ExecutionException(e)
   }
 
-  private fun fillStats(stats: RunStats, applicationId: String) {
+  private fun fillStats(stats: RunStats, applicationId: String, devices: List<IDevice>) {
     stats.setPackage(applicationId)
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun())
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun())
     stats.setRunAlwaysInstallWithPm(configuration.ALWAYS_INSTALL_WITH_PM)
     stats.setIsComposeProject(LiveEditService.usesCompose(project))
+    // Only applicable 35+
+    stats.setUseAssumeVerified(configuration.ALLOW_ASSUME_VERIFIED &&
+                               devices.any { it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) })
   }
 
   private fun isApplyCodeChangesFallbackToRun(): Boolean {

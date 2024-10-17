@@ -220,6 +220,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().setIsComposeProject(isCompose);
   }
 
+  public void setUseAssumeVerified(boolean assumeVerified) {
+    myEvent.getRunEventBuilder().setUseAssumeVerified(assumeVerified);
+  }
+
   private void setPartial(boolean partial) {
     myEvent.getRunEventBuilder().setPartial(partial);
   }
