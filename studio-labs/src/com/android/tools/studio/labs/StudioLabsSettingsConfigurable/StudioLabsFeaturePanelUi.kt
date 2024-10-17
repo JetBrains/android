@@ -40,6 +40,8 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Typography
 import org.jetbrains.jewel.ui.component.painterResource
 import org.jetbrains.jewel.ui.theme.colorPalette
+import com.intellij.openapi.application.invokeLater
+
 
 /** Class representing a Studio Labs Feature Panel. */
 class StudioLabsFeaturePanelUi(
@@ -97,7 +99,10 @@ class StudioLabsFeaturePanelUi(
   }
 
   fun apply() {
-    return flag.override(currentState.value)
+    val newValue  = currentState.value
+    return invokeLater {
+      flag.override(newValue)
+    }
   }
 
   fun reset() {
