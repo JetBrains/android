@@ -46,6 +46,10 @@ abstract class AbstractBooleanPropertyDefaultRefactoringProcessor: AgpUpgradeCom
   abstract val tooltip: String
   abstract val usageViewHeader: String
 
+  // Make it abstract again to force subclasses to define their own id
+  abstract override fun getRefactoringId(): String
+
+
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
     val baseDir = project.guessProjectDir() ?: return usages.toTypedArray()
@@ -86,7 +90,7 @@ abstract class AbstractBooleanPropertyDefaultRefactoringProcessor: AgpUpgradeCom
   }
 }
 
-class GradlePropertyUsageInfo(private val wrappedElement: WrappedPsiElement, val key: String, val oldDefault: Boolean, val tooltip: String,): GradleBuildModelUsageInfo(wrappedElement) {
+class GradlePropertyUsageInfo(private val wrappedElement: WrappedPsiElement, val key: String, val oldDefault: Boolean, val tooltip: String): GradleBuildModelUsageInfo(wrappedElement) {
   override fun getTooltipText(): String = tooltip
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

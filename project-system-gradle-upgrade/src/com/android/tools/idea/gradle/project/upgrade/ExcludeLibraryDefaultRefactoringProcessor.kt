@@ -19,6 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Starting with AGP 9.0, the default value of android.dependency.excludeLibraryComponentsFromConstraint is now true. This refactoring adds
@@ -37,6 +38,7 @@ class ExcludeLibraryDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultR
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   // TODO: Add redirect once we have a landing page (b/358385655)
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("exclude-library-constraints-default")
-  override fun  getCommandName() = AndroidBundle.message("project.upgrade.excludeLibraryConstraintsDefaultRefactoringProcessor.commandName")!!
-  override fun  getShortDescription() = AndroidBundle.message("project.upgrade.excludeLibraryConstraintsDefaultRefactoringProcessor.shortDescription")!!
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.excludeLibrary"
+  override fun getCommandName() = AndroidBundle.message("project.upgrade.excludeLibraryConstraintsDefaultRefactoringProcessor.commandName")!!
+  override fun getShortDescription() = AndroidBundle.message("project.upgrade.excludeLibraryConstraintsDefaultRefactoringProcessor.shortDescription")!!
 }
