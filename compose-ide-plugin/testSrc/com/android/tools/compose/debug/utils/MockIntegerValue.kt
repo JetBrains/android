@@ -15,19 +15,19 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.sun.jdi.IntegerType
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.Type
 import com.sun.jdi.VirtualMachine
+import org.mockito.kotlin.mock
 
 class MockIntegerValue(private val value: Int, private val virtualMachine: VirtualMachine) :
-  IntegerValue by MockitoKt.mock() {
+  IntegerValue by mock() {
   override fun toString(): String = value.toString()
 
   override fun virtualMachine(): VirtualMachine = virtualMachine
 
-  override fun type(): Type = MockitoKt.mock<IntegerType>()
+  override fun type(): Type = mock<IntegerType>()
 
   override fun intValue(): Int = value
 

@@ -20,7 +20,6 @@ import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
 import com.android.flags.MendelFlag
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -31,6 +30,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 private const val TEST_GROUP = "testgroup"
 

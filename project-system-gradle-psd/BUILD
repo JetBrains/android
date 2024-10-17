@@ -122,6 +122,7 @@ iml_module(
         "@intellij//:org.intellij.groovy[test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

@@ -20,7 +20,6 @@ import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
 import com.android.flags.IntFlag
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -31,6 +30,7 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 private const val TEST_GROUP = "testgroup"
 private const val STUDIO_FLAG_PREFIX = "studio_flags/$TEST_GROUP"

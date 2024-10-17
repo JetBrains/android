@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs
 
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
 import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState

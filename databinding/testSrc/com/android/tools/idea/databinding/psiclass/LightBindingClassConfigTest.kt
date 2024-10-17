@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.databinding.index.ViewIdData
@@ -28,6 +26,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class EagerLightBindingClassConfigTest {

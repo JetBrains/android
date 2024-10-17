@@ -20,12 +20,13 @@ import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogService
 import com.android.gmdcodecompletion.fullManagedVirtualDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogService
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
 
@@ -40,7 +41,7 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
   }
 
   protected fun createFakeFtlDeviceCatalogService(): FtlDeviceCatalogService {
-    val mockFtlDeviceCatalogService = MockitoKt.mock<FtlDeviceCatalogService>()
+    val mockFtlDeviceCatalogService = mock<FtlDeviceCatalogService>()
     ApplicationManager.getApplication().replaceService(
       FtlDeviceCatalogService::class.java,
       mockFtlDeviceCatalogService,
@@ -50,7 +51,7 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
   }
 
   protected fun createFakeManagedVirtualDeviceCatalogService(): ManagedVirtualDeviceCatalogService {
-    val mockManagedVirtualDeviceCatalogService = MockitoKt.mock<ManagedVirtualDeviceCatalogService>()
+    val mockManagedVirtualDeviceCatalogService = mock<ManagedVirtualDeviceCatalogService>()
     ApplicationManager.getApplication().replaceService(
       ManagedVirtualDeviceCatalogService::class.java,
       mockManagedVirtualDeviceCatalogService,
@@ -60,7 +61,7 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
   }
 
   protected fun createFakeGradleModelProvider(): GradleModelProvider {
-    val mockGradleModelProvider = MockitoKt.mock<GradleModelProvider>()
+    val mockGradleModelProvider = mock<GradleModelProvider>()
     ApplicationManager.getApplication().replaceService(
       GradleModelProvider::class.java,
       mockGradleModelProvider,
@@ -80,7 +81,7 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
     expectedProperties: List<String>, buildFileContent: String,
     deviceCatalogState: ManagedVirtualDeviceCatalogState = fullManagedVirtualDeviceCatalogState()) {
     val mockService = createFakeManagedVirtualDeviceCatalogService()
-    MockitoKt.whenever(mockService.state).thenReturn(deviceCatalogState)
+    whenever(mockService.state).thenReturn(deviceCatalogState)
 
     gmdCodeCompletionContributorTestHelper(BuildFileName.GROOVY_BUILD_FILE.fileName, buildFileContent) {
       val prioritizedLookupElements = myFixture.lookupElementStrings!!.subList(0, expectedProperties.size)

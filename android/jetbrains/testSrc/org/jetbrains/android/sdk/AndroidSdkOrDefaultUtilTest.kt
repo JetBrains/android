@@ -16,7 +16,6 @@
 package org.jetbrains.android.sdk
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth
@@ -25,7 +24,8 @@ import com.intellij.util.SystemProperties
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class AndroidSdkOrDefaultUtilTest {
@@ -127,16 +127,16 @@ class AndroidSdkOrDefaultUtilTest {
   }
 
   private fun getAndroidStudioIde(): IdeInfo {
-    val mockIdeInfo = Mockito.mock(IdeInfo::class.java)
-    MockitoKt.whenever(mockIdeInfo.isGameTools).thenReturn(false)
-    MockitoKt.whenever(mockIdeInfo.isAndroidStudio).thenReturn(true)
+    val mockIdeInfo = mock<IdeInfo>()
+    whenever(mockIdeInfo.isGameTools).thenReturn(false)
+    whenever(mockIdeInfo.isAndroidStudio).thenReturn(true)
     return mockIdeInfo;
   }
 
   private fun getGameToolsIde(): IdeInfo {
-    val mockIdeInfo = Mockito.mock(IdeInfo::class.java)
-    MockitoKt.whenever(mockIdeInfo.isGameTools).thenReturn(true)
-    MockitoKt.whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
+    val mockIdeInfo = mock<IdeInfo>()
+    whenever(mockIdeInfo.isGameTools).thenReturn(true)
+    whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
     return mockIdeInfo;
   }
 }

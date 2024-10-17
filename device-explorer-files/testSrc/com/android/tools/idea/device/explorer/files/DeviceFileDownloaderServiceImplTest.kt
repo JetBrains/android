@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderServiceImpl
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
@@ -32,6 +31,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.InOrder
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 import java.nio.file.Path
 import java.nio.file.Paths
 

@@ -15,22 +15,22 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.SuspendContextImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.sun.jdi.ObjectReference
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 internal fun mockEvaluationContext(
   debugProcess: DebugProcessImpl,
   objectReference: ObjectReference,
 ): EvaluationContextImpl {
-  val mockSuspendContext = MockitoKt.mock<SuspendContextImpl>()
+  val mockSuspendContext = mock<SuspendContextImpl>()
   whenever(mockSuspendContext.debugProcess).thenReturn(debugProcess)
 
-  val mockFrameProxyImpl = MockitoKt.mock<StackFrameProxyImpl>()
+  val mockFrameProxyImpl = mock<StackFrameProxyImpl>()
   whenever(mockFrameProxyImpl.thisObject()).thenReturn(objectReference)
 
   return EvaluationContextImpl(mockSuspendContext, mockFrameProxyImpl)

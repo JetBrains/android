@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.render
 
-import com.android.testutils.MockitoKt
 import com.android.tools.compose.debug.utils.MockClassObjectReference
 import com.android.tools.compose.debug.utils.MockStringReference
 import com.android.tools.compose.debug.utils.MockValueDescriptor
@@ -31,6 +30,7 @@ import com.intellij.debugger.ui.tree.render.EnumerationChildrenRenderer
 import com.sun.jdi.ReferenceType
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class KotlinMapEntryRendererTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -78,7 +78,7 @@ class KotlinMapEntryRendererTest {
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
       // 2. check if the label is properly rendered - it should be "key -> value".
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       assertThat(label).isEqualTo("key1 -> value1")
 
       // 3. check if `EnumerationChildrenRenderer` is the children renderer.

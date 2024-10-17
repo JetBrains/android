@@ -15,12 +15,12 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.ThreadGroupReference
 import com.sun.jdi.VirtualMachine
+import org.mockito.kotlin.mock
 
 class MockVirtualMachineProxy(
   debugProcessImpl: DebugProcessImpl,
@@ -32,7 +32,7 @@ class MockVirtualMachineProxy(
 }
 
 private class MockVirtualMachine(private val referencesByName: Map<String, ReferenceType>) :
-  VirtualMachine by MockitoKt.mock() {
+  VirtualMachine by mock() {
   override fun name(): String = "MockDalvik"
 
   override fun allClasses(): List<ReferenceType> = referencesByName.values.toList()

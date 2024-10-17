@@ -18,7 +18,6 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
 import com.android.tools.deployer.model.App
@@ -45,6 +44,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.Spy
+import org.mockito.kotlin.whenever
 
 class DeployTaskTest {
   private val rootDisposable: Disposable = Disposer.newDisposable()

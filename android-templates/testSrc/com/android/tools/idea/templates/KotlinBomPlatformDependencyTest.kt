@@ -16,14 +16,13 @@
 package com.android.tools.idea.templates
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.MockitoKt
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -44,6 +43,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class KotlinBomPlatformDependencyTest {
@@ -51,7 +52,7 @@ class KotlinBomPlatformDependencyTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
   private val module by lazy { projectRule.getModule("app") }
-  private val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
+  private val mockModuleTemplateData = mock<ModuleTemplateData>()
   private val myModule = "mymodule"
 
   private val renderingContext by lazy {
@@ -101,7 +102,7 @@ class KotlinBomPlatformDependencyTest {
 
   @Before
   fun setUp() {
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(projectTemplateDataBuilder.build())
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(projectTemplateDataBuilder.build())
   }
 
   @Test

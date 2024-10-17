@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.project.gradle
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
@@ -35,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /**
  * Test that our project-wide modification tracker works across multiple modules.

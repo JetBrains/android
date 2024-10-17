@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.gradle
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
@@ -33,6 +32,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /** Verify that we can sync a Gradle project that applies the safe args plugin. */
 @RunsInEdt

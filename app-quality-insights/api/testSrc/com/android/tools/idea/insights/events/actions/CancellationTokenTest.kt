@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.IssueId
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.Job
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class CancellationTokenTest {
   @Test

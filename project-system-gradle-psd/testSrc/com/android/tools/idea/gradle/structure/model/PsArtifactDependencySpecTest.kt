@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.ide.common.gradle.Component
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import junit.framework.TestCase
 import org.gradle.tooling.model.GradleModuleVersion
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [PsArtifactDependencySpec].

@@ -19,18 +19,12 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
-import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,12 +34,13 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 
 internal class LiveEditNotificationActionTest {
@@ -63,14 +58,14 @@ internal class LiveEditNotificationActionTest {
   @Test
   fun `check simple states`() {
     val service = LiveEditService.getInstance(projectRule.project)
-    val device: IDevice = MockitoKt.mock()
+    val device: IDevice = mock()
 
     val context = SimpleDataContext.builder()
       .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
       .add(CommonDataKeys.PROJECT, projectRule.project)
       .build()
 
-    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     LiveEditIssueNotificationAction.deviceMap[projectRule.project] = object : DeviceGetter {
       override fun serial(dataContext: DataContext): String? {
         return "serial"
@@ -93,8 +88,8 @@ internal class LiveEditNotificationActionTest {
     assertEquals("Up-to-date", event.presentation.text)
 
     // Event two. Pretending we are running device window. We should have the shorten status.
-    val toolWindow: ToolWindow = MockitoKt.mock()
-    MockitoKt.whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
+    val toolWindow: ToolWindow = mock()
+    whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
     val context2 = SimpleDataContext.builder()
       .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
       .add(CommonDataKeys.PROJECT, projectRule.project)
@@ -116,8 +111,8 @@ internal class LiveEditNotificationActionTest {
     val file = projectRule.fixture.configureByText("A.kt", "")
     runBlocking(uiThread) { projectRule.fixture.openFileInEditor (file.virtualFile) }
 
-    val toolWindow: ToolWindow = MockitoKt.mock()
-    MockitoKt.whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
+    val toolWindow: ToolWindow = mock()
+    whenever(toolWindow.id).thenReturn(RUNNING_DEVICES_TOOL_WINDOW_ID)
     val context = SimpleDataContext.builder()
       .add(CommonDataKeys.EDITOR, projectRule.fixture.editor)
       .add(CommonDataKeys.PROJECT, projectRule.project)

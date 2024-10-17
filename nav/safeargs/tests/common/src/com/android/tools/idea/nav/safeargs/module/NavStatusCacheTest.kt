@@ -2,8 +2,6 @@
 // Apache 2.0 license.
 package com.android.tools.idea.nav.safeargs.module
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
@@ -12,6 +10,8 @@ import java.util.EnumSet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NavStatusCacheTest {
   @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)

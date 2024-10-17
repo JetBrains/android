@@ -86,6 +86,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

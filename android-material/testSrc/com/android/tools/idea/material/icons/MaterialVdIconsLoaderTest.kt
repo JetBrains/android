@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.material.icons
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
@@ -27,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLConnection

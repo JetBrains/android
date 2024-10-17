@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.actions
 
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.AnActionEvent
