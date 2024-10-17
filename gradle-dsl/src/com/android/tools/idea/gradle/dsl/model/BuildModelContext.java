@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
 import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
+import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
@@ -46,6 +47,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement;
 import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
@@ -57,6 +59,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -230,6 +233,7 @@ public final class BuildModelContext {
       if (!isApplied) {
         GradleSettingsModel gradleSettingsModel = getSettingsModel(buildDslFile);
         populateWithParentModuleSubProjectsProperties(buildDslFile, gradleSettingsModel);
+        populateDeclarativeSoftwareTypes(buildDslFile, gradleSettingsModel);
       }
       populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
       buildDslFile.parse();
@@ -248,6 +252,7 @@ public final class BuildModelContext {
         populateWithParentModuleSubProjectsProperties(result, gradleSettingsModel);
         populateSiblingDslFileWithGradlePropertiesFile(result);
         populateVersionCatalogFiles(gradleSettingsModel);
+        populateDeclarativeSoftwareTypes(result, gradleSettingsModel);
         result.parse();
       });
       putBuildFile(file.getUrl(), result);
@@ -345,6 +350,23 @@ public final class BuildModelContext {
     }
     GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
     return new GradleSettingsModelImpl(settingsFile);
+  }
+
+  private void populateDeclarativeSoftwareTypes(@NotNull GradleBuildFile buildDslFile,
+                                                 @Nullable GradleSettingsModel gradleSettingsModel){
+    if (gradleSettingsModel == null) return;
+
+    String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
+    if (modulePath == null) {
+      return;
+    }
+    GradleSettingsModelImpl settingsModel = (GradleSettingsModelImpl)gradleSettingsModel;
+    DefaultsDslElement defaultsDslElement = settingsModel.myGradleSettingsFile.getPropertyElement(DEFAULTS_DSL_ELEMENT);
+    if (defaultsDslElement != null) {
+      for (GradleDslElement entry : defaultsDslElement.getPropertyElements().values()) {
+        buildDslFile.addAppliedProperty(dslTreeCopy(entry, buildDslFile));
+      }
+    }
   }
 
   private void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,

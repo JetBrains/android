@@ -719,6 +719,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     myProperties.substituteElement(oldElement, newElement);
   }
 
+  // We will not need it if we represented the dsl as a proper tree. b/158066552
+  public void refreshAfterPsiSubstitution(@NotNull GradleDslElement newElement) {
+    assert newElement.getParent() == this;
+    myProperties.refreshAfterPsiSubstitution(newElement);
+  }
+
   @Nullable
   public <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslSimpleExpression expression = getPropertyElement(property, GradleDslSimpleExpression.class);
@@ -1159,8 +1165,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
     @Nullable
     private ElementState substituteElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
-      for (int i = 0; i < myElements.size(); i++) {
-        ElementItem item = myElements.get(i);
+      for (ElementItem item : myElements) {
         if (oldElement == item.myElement) {
           item.myElement = newElement;
           if (newElement.getPsiElement() == null) {
@@ -1174,6 +1179,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         }
       }
       return null;
+    }
+
+    private void refreshAfterPsiSubstitution(@NotNull GradleDslElement element) {
+      substituteElement(element, element);
     }
 
     @NotNull
