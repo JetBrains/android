@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.npw.module
 
+import com.android.ide.common.gradle.Version
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.adb.wireless.UIColors
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -72,7 +74,11 @@ class ChooseModuleTypeWizard(
   private val importModuleGalleryEntry =
     ImportModuleGalleryEntry() // Added to the left list bottom, and as a marker for the separator
   private val moduleGalleryEntryList: List<ModuleGalleryEntry> =
-    sortModuleEntries(moduleGalleryEntries, moduleParent) + importModuleGalleryEntry
+    sortModuleEntries(
+      moduleGalleryEntries,
+      moduleParent,
+      project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) },
+    ) + importModuleGalleryEntry
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
   private val modelWizardDialog: ModelWizardDialog by lazy {
@@ -232,6 +238,7 @@ private class ImportModuleGalleryEntry : ModuleGalleryEntry {
 fun sortModuleEntries(
   moduleTypeProviders: List<ModuleGalleryEntry>,
   moduleParent: String,
+  kotlinVersionInUse: String? = null,
 ): List<ModuleGalleryEntry> {
   // To have a sequence specified by design, we hardcode the sequence. Everything else is added at
   // the end (sorted by name)
@@ -256,12 +263,22 @@ fun sortModuleEntries(
 
   return moduleTypeProviders
     .filter {
-      // Filter out KMP module when it is not called from the top level
-      moduleParent == ":" ||
-        it.name != message("android.wizard.module.new.kotlin.multiplatform.library")
+      it.name != message("android.wizard.module.new.kotlin.multiplatform.library") ||
+        shouldShowKMPModule(moduleParent, kotlinVersionInUse)
     }
     .partition { it.name in orderedNames }
     .run { first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name } }
+}
+
+/**
+ * Determines if the KMP Module option should be shown. It requires being called from the top level
+ * project (not inside another module), and the existing project must have at least Kotlin 1.9.20.
+ * If the current version can't be determined, e.g. if there is no Kotlin, do not show the option.
+ */
+private fun shouldShowKMPModule(moduleParent: String, kotlinVersionInUse: String?): Boolean {
+  kotlinVersionInUse ?: return false
+  val kotlinSupportsKMP = Version.parse(kotlinVersionInUse) >= Version.parse("1.9.20")
+  return moduleParent == ":" && kotlinSupportsKMP
 }
 
 fun showDefaultWizard(

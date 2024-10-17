@@ -100,7 +100,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       )
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions, ":").map { it.name }
+    val sortedEntries = sortModuleEntries(moduleDescriptions, ":", "1.9.24").map { it.name }
 
     val expectedEntries =
       listOf(
@@ -132,12 +132,13 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }
 
-  fun testKMPOnlyInTopLevel() {
+  fun testKMPOnlyInTopLevelWithKGPSupport() {
     assertThat(
         sort(
           message("android.wizard.module.new.mobile"),
           message("android.wizard.module.new.kotlin.multiplatform.library"),
           moduleParent = ":",
+          kotlinVersionInUse = "1.9.24",
         )
       )
       .containsExactly(
@@ -151,17 +152,33 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
           message("android.wizard.module.new.mobile"),
           message("android.wizard.module.new.kotlin.multiplatform.library"),
           moduleParent = ":app",
+          kotlinVersionInUse = "1.9.24",
+        )
+      )
+      .containsExactly(message("android.wizard.module.new.mobile"))
+      .inOrder()
+
+    assertThat(
+        sort(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.kotlin.multiplatform.library"),
+          moduleParent = ":",
+          kotlinVersionInUse = "1.9.10",
         )
       )
       .containsExactly(message("android.wizard.module.new.mobile"))
       .inOrder()
   }
 
-  private fun sort(vararg entries: String, moduleParent: String = ":"): List<String> {
+  private fun sort(
+    vararg entries: String,
+    moduleParent: String = ":",
+    kotlinVersionInUse: String? = null,
+  ): List<String> {
     val moduleDescriptions =
       entries.map { entry -> mock<ModuleGalleryEntry> { on { name } doReturn entry } }
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent)
+    val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent, kotlinVersionInUse)
 
     return sortedEntries.map { it.name }
   }
