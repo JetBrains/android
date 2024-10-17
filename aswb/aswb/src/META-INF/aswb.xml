@@ -122,6 +122,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea">
     <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.BazelBuildSystemFilePreviewServices"/>
+    <liveedit.tokens.buildSystemLiveEditServices implementation="com.google.idea.blaze.base.deployment.liveedit.tokens.BazelBuildSystemLiveEditServices"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
