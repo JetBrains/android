@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE_KTS
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
@@ -38,8 +39,9 @@ import com.intellij.openapi.vfs.VFileProperty
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.isFile
+import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -134,26 +136,23 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
         dotGradle.findChild(FN_GRADLE_CONFIG_PROPERTIES)?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: Result.EMPTY
       }
     }
-    val deferreds = mutableListOf<Deferred<Result>>()
-    withContext(Dispatchers.IO) {
-      async { computeWrapperPropertiesHash() }.let { deferreds.add(it) }
-      // TODO(xof): won't this do N (module-per-source-set) times too much work?
-      ModuleManager.getInstance(project).modules.forEach {
-        async { computeModuleHashes(it) }.let { deferreds.add(it) }
-      }
-      project.guessProjectDir()?.let { root ->
-        async { computeRootHashes(root) }.let { deferreds.add(it) }
-        root.findChild("gradle")?.let { gradle -> async { computeVersionCatalogHashes(gradle) }.let { deferreds.add(it) } }
-        root.findChild(".gradle")?.let { dotGradle -> async { computeGradleCacheHash(dotGradle) }.let { deferreds.add(it) } }
+    val deferredResults = withContext(Dispatchers.IO) {
+      buildList {
+        add(async { computeWrapperPropertiesHash() })
+        // GradleFacet and NdkFacet are only attached to holder modules.
+        ModuleManager.getInstance(project).modules.filter { it.isHolderModule() }.forEach { add(async { computeModuleHashes(it) }) }
+        project.guessProjectDir()?.let { root ->
+          add(async { computeRootHashes(root) })
+          root.findChild("gradle")?.let { gradle -> add(async { computeVersionCatalogHashes(gradle) }) }
+          root.findChild(".gradle")?.let { dotGradle -> add(async { computeGradleCacheHash(dotGradle) }) }
+        }
       }
     }
-    return deferreds.awaitAll().let { results ->
+    return deferredResults.awaitAll().let { results ->
       results.fold(mutableMapOf<VirtualFile,Int>() to mutableSetOf<VirtualFile>()) { acc, result ->
-        acc.first.putAll(result.hashes)
-        acc.second.addAll(result.externalBuildFiles)
-        acc
+        acc.apply { first.putAll(result.hashes); second.addAll(result.externalBuildFiles) }
       }
-    }.let { Result(it.first, it.second) }
+    }.let { Result(it.first.toImmutableMap(), it.second.toImmutableSet()) }
   }
 
   data class Result(
