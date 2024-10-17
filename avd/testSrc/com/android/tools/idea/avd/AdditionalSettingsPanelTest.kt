@@ -76,8 +76,7 @@ class AdditionalSettingsPanelTest {
     val image = mock<ISystemImage>()
     whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
 
-    val state =
-      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image, Mode.ADD)
+    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image)
 
     rule.setContent {
       CompositionLocalProvider(

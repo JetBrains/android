@@ -57,6 +57,7 @@ internal constructor(
   internal val defaultBoot: Boot,
   internal val internalStorage: StorageCapacity?,
   internal val expandedStorage: ExpandedStorage,
+  internal val existingCustomExpandedStorage: Custom? = null,
   internal val cpuCoreCount: Int?,
   internal val graphicsMode: GraphicsMode,
   internal val ram: StorageCapacity?,
