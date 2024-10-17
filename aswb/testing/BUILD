@@ -28,6 +28,9 @@ java_library(
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "@maven//:com.google.guava.guava",
     ],
+    runtime_deps = [
+        "@maven//:org.opentest4j.opentest4j",  # Needed by the IntelliJ test framework.
+    ],
 )
 
 java_library(
