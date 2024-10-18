@@ -235,7 +235,7 @@ public abstract class AffectedPackagesCalculator {
 
   private boolean isIncludedInProject(Path file) {
     for (Path includePath : projectIncludes()) {
-      if (file.startsWith(includePath)) {
+      if (file.startsWith(includePath) || includePath.toString().isEmpty()) {
         for (Path excludePath : projectExcludes()) {
           if (file.startsWith(excludePath)) {
             return false;
