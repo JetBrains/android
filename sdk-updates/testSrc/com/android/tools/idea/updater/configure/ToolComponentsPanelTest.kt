@@ -17,11 +17,20 @@ package com.android.tools.idea.updater.configure
 
 import com.android.repository.api.UpdatablePackage
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import kotlin.test.assertEquals
 
 class ToolComponentsPanelTest {
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
+
   // basic test of tree construction with no packages installed
   @Test
   fun testNodes() {
