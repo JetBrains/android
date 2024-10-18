@@ -82,11 +82,10 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.needsBuild
@@ -259,12 +258,6 @@ fun configureLayoutlibSceneManager(
         VisualLintMode.DISABLED
       }
   }
-
-/** Key for the persistent group state for the Compose Preview. */
-private const val SELECTED_GROUP_KEY = "selectedGroup"
-
-/** Key for persisting the selected layout manager. */
-private const val LAYOUT_KEY = "previewLayout"
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given
@@ -731,12 +724,6 @@ class ComposePreviewRepresentation(
       }
     else SimpleRenderQualityManager { getDefaultPreviewQuality() }
 
-  /**
-   * Callback first time after the preview has loaded the initial state and it's ready to restore
-   * any saved state.
-   */
-  private var onRestoreState: (() -> Unit)? = null
-
   private val myPsiCodeFileOutOfDateStatusReporter =
     PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
@@ -760,6 +747,14 @@ class ComposePreviewRepresentation(
   private val hasPreviewsCachedValue = AtomicBoolean(false)
 
   private var _refreshIndicatorCallback = {}
+
+  private val stateManager =
+    CommonPreviewStateManager(
+      surfaceProvider = { surface },
+      currentGroupFilterProvider = { composePreviewFlowManager.getCurrentFilterAsGroup() },
+      previewFlowManager = composePreviewFlowManager,
+      previewModeManager = previewModeManager,
+    )
 
   init {
     launch {
@@ -1092,8 +1087,7 @@ class ComposePreviewRepresentation(
       } ?: return
 
     // Restore
-    onRestoreState?.invoke()
-    onRestoreState = null
+    stateManager.restoreState()
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
@@ -1367,39 +1361,9 @@ class ComposePreviewRepresentation(
     return refreshJob
   }
 
-  override fun getState(): PreviewRepresentationState {
-    val selectedGroupName =
-      (composePreviewFlowManager.getCurrentFilterAsGroup())?.filterGroup?.name ?: ""
-    val selectedLayoutName = surface.layoutManagerSwitcher?.currentLayout?.value?.displayName ?: ""
-    return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)
-  }
+  override fun getState() = stateManager.getState()
 
-  override fun setState(state: PreviewRepresentationState) {
-    val selectedGroupName = state[SELECTED_GROUP_KEY]
-    val previewLayoutName = state[LAYOUT_KEY]
-    onRestoreState = {
-      if (!selectedGroupName.isNullOrEmpty()) {
-        composePreviewFlowManager.availableGroupsFlow.value
-          .find { it.name == selectedGroupName }
-          ?.let { composePreviewFlowManager.groupFilter = it }
-      }
-
-      PREVIEW_LAYOUT_OPTIONS.find { it.displayName == previewLayoutName }
-        ?.let {
-          // If gallery mode was selected before - need to restore this type of layout.
-          if (it == GALLERY_LAYOUT_OPTION) {
-            composePreviewFlowManager.allPreviewElementsFlow.value
-              .asCollection()
-              .firstOrNull()
-              .let { previewElement ->
-                previewModeManager.setMode(PreviewMode.Gallery(previewElement))
-              }
-          } else {
-            previewModeManager.setMode(PreviewMode.Default(it))
-          }
-        }
-    }
-  }
+  override fun setState(state: PreviewRepresentationState) = stateManager.setState(state)
 
   override fun hasPreviewsCached() = hasPreviewsCachedValue.get()
 
