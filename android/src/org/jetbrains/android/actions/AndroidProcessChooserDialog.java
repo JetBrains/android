@@ -70,6 +70,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -208,7 +209,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
       @Override
       public void onFailure(@NotNull Throwable throwable) {
-        Logger.getInstance(AndroidProcessChooserDialog.class).warn("Error retrieving device name properties", throwable);
+        if (!(throwable instanceof CancellationException)) {
+          Logger.getInstance(AndroidProcessChooserDialog.class).warn("Error retrieving device name properties", throwable);
+        }
       }
     };
 

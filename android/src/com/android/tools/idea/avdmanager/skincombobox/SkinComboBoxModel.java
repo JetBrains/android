@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,7 +94,9 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
 
     @Override
     public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(SkinComboBoxModel.class).warn(throwable);
+      if (!(throwable instanceof CancellationException)) {
+        Logger.getInstance(SkinComboBoxModel.class).warn(throwable);
+      }
     }
   }
 
