@@ -47,6 +47,7 @@ import java.awt.CardLayout
 import java.awt.Graphics
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
@@ -89,6 +90,7 @@ class InsightContentPanel(
     JPanel(VerticalLayout()).apply {
       add(insightTextPane)
       add(InsightDisclaimerPanel(scope, currentInsightFlow))
+      add(Box.createVerticalStrut(JBUI.scale(20)))
     }
 
   private val insightScrollPanel =
