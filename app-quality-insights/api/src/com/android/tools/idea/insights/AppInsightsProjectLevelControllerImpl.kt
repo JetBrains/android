@@ -89,7 +89,7 @@ class AppInsightsProjectLevelControllerImpl(
   override val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  geminiToolkit: GeminiToolkit,
+  override val geminiToolkit: GeminiToolkit,
   private val cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 

@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.Connection
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
-open class FakeGeminiToolkit(
-  override var isGeminiEnabled: Boolean,
-  val codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
-  override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
-    StubInsightsOnboardingProvider(),
-) : GeminiToolkit {
-  override suspend fun getSource(stack: StacktraceGroup, contextSharingOverride: Boolean) =
-    codeContextResolver.getSource(stack)
+/** Provides instructions for onboarding interaction in AQI. */
+interface InsightsOnboardingProvider {
+  /** Invokes onboarding action. */
+  fun performOnboardingAction(connection: Connection)
+
+  /** Controls the state of the onboarding button in AQI. */
+  fun buttonEnabledState(): Flow<Boolean>
+}
+
+open class StubInsightsOnboardingProvider : InsightsOnboardingProvider {
+  override fun performOnboardingAction(connection: Connection) = Unit
+
+  override fun buttonEnabledState() = emptyFlow<Boolean>()
 }

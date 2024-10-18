@@ -19,11 +19,14 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.intellij.openapi.project.Project
 
 /** Exposes AI related tools to AQI. */
 interface GeminiToolkit {
   val isGeminiEnabled: Boolean
+
+  val aiInsightOnboardingProvider: InsightsOnboardingProvider
 
   suspend fun getSource(
     stack: StacktraceGroup,
@@ -31,12 +34,15 @@ interface GeminiToolkit {
   ): CodeContextData
 }
 
-class GeminiToolkitImpl(private val project: Project) : GeminiToolkit {
+internal const val GEMINI_TOOL_WINDOW_ID = "StudioBot"
+
+class GeminiToolkitImpl(
+  private val project: Project,
+  override val aiInsightOnboardingProvider: InsightsOnboardingProvider,
+  private val codeContextResolver: CodeContextResolver = CodeContextResolverImpl(project),
+) : GeminiToolkit {
   override val isGeminiEnabled: Boolean
     get() = GeminiPluginApi.getInstance().isAvailable()
-
-  private val codeContextResolver: CodeContextResolver
-    get() = CodeContextResolver.getInstance(project)
 
   override suspend fun getSource(
     stack: StacktraceGroup,
