@@ -1,54 +1,101 @@
 package org.jetbrains.android.intentions
 
 import com.android.AndroidProjectTypes
+import com.android.SdkConstants
+import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInspection.LocalInspectionTool
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-private const val BASE_PATH = "intentions/"
+private const val BASE_PATH = "intentions"
 
-class AndroidIntentionsTest : AndroidTestCase() {
-  public override fun setUp() {
-    super.setUp()
-    myFixture.addFileToProject(
+@RunWith(JUnit4::class)
+class AndroidIntentionsTest {
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+
+  private val fixture by lazy {
+    projectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    }
+  }
+  private val facet by lazy { requireNotNull(fixture.module.androidFacet) }
+
+  @Before
+  fun setUp() {
+    fixture.copyFileToProject(
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
+    )
+    fixture.addFileToProject(
       "res/values/drawables.xml",
-      "<resources><drawable name='icon'>@android:drawable/btn_star</drawable></resources>",
+      // language=XML
+      """
+      <resources>
+        <drawable name='icon'>@android:drawable/btn_star</drawable>
+        <drawable name='icon2'>@android:drawable/btn_star</drawable>
+      </resources>
+      """
+        .trimIndent(),
     )
   }
 
-  fun testSwitchOnResourceId() {
-    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+  @Test
+  fun switchOnResourceId() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, true, inspection.quickFixName)
+    doTest(inspection, true, "SwitchOnResourceId.java", "SwitchOnResourceId_after.java")
   }
 
-  fun testSwitchOnResourceId1() {
-    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
+  @Test
+  fun switchOnResourceId1() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, false, inspection.quickFixName)
+    doTest(inspection, false, "SwitchOnResourceId1.java")
   }
 
-  fun testSwitchOnResourceId2() {
-    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+  @Test
+  fun switchOnResourceId2() {
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     val inspection = AndroidNonConstantResIdsInSwitchInspection()
-    doTest(inspection, false, inspection.quickFixName)
+    doTest(inspection, false, "SwitchOnResourceId2.java")
   }
 
-  private fun doTest(inspection: LocalInspectionTool, available: Boolean, quickFixName: String) {
-    myFixture.enableInspections(inspection)
+  @Test
+  fun switchOnResourceId3() {
+    // Validate case statement with multiple value
+    facet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    val inspection = AndroidNonConstantResIdsInSwitchInspection()
+    doTest(inspection, true, "SwitchOnResourceId3.java", "SwitchOnResourceId3_after.java")
+  }
 
-    val file =
-      myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java")
-    myFixture.configureFromExistingVirtualFile(file)
-    myFixture.checkHighlighting(true, false, false)
+  private fun doTest(
+    inspection: LocalInspectionTool,
+    available: Boolean,
+    inputFileName: String,
+    afterFileName: String? = null,
+  ) {
+    fixture.enableInspections(inspection)
 
-    val quickFix = myFixture.getAvailableIntention(quickFixName)
+    val file = fixture.copyFileToProject("$BASE_PATH/$inputFileName", "src/p1/p2/Class.java")
+    fixture.configureFromExistingVirtualFile(file)
+    fixture.checkHighlighting(true, false, false)
+
+    val quickFix = fixture.getAvailableIntention("Replace 'switch' with 'if'")
     if (available) {
       requireNotNull(quickFix) { "Quick fix should have been found." }
-      myFixture.launchAction(quickFix)
-      myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.java")
+      if (afterFileName != null) {
+        fixture.launchAction(quickFix)
+        fixture.checkResultByFile("$BASE_PATH/$afterFileName")
+      }
     } else {
-      assertNull(quickFix)
+      assertThat(quickFix).isNull()
     }
   }
 }

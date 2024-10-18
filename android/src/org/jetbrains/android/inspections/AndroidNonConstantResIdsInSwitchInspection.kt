@@ -8,6 +8,7 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaElementVisitor
+import com.intellij.psi.PsiCaseLabelElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiModifier
@@ -36,17 +37,16 @@ class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
         val facet = AndroidFacet.getInstance(statement) ?: return
         if (facet.configuration.isAppProject) return
 
-        val caseValue = statement.caseValue as? PsiReferenceExpression ?: return
-
         val switchStatement = statement.getParentOfType<PsiSwitchStatement>(true) ?: return
         if (!ReplaceSwitchWithIfIntention.canProcess(switchStatement)) return
 
-        val resolvedField = caseValue.resolve() as? PsiField ?: return
-        if (!isResourceField(resolvedField)) return
+        val problemCaseLabels =
+          statement.caseLabelElementList?.elements?.filter(::resolvesToNonFinalResourceField)
+            ?: return
 
-        if (resolvedField.modifierList?.hasModifierProperty(PsiModifier.FINAL) != true) {
+        for (caseLabel in problemCaseLabels) {
           holder.registerProblem(
-            caseValue,
+            caseLabel,
             AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.message"),
             MyQuickFix(),
           )
@@ -55,8 +55,17 @@ class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
     }
   }
 
-  val quickFixName: String
-    get() = getQuickFixName()
+  private fun resolvesToNonFinalResourceField(caseValue: PsiCaseLabelElement): Boolean {
+    val resolvedField =
+      (caseValue as? PsiReferenceExpression)?.resolve() as? PsiField ?: return false
+
+    if (!isResourceField(resolvedField)) return false
+
+    // If there's no modifier list for the field, then it can't be marked final.
+    val modifierList = resolvedField.modifierList ?: return true
+
+    return !modifierList.hasModifierProperty(PsiModifier.FINAL)
+  }
 
   private class MyQuickFix : LocalQuickFix {
     override fun getFamilyName() = getQuickFixName()
