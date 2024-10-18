@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.compose
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +36,7 @@ import org.jetbrains.jewel.foundation.modifier.border
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.util.thenIf
 
 /**
@@ -68,9 +67,9 @@ fun HideablePanel(
           .clickable { isOpen = !isOpen }
     ) {
       if (isOpen) {
-        Icon("general/arrowDown.svg", "open", AllIcons::class.java)
+        Icon(AllIconsKeys.General.ArrowDown, "open")
       } else {
-        Icon("general/arrowRight.svg", "closed", AllIcons::class.java)
+        Icon(AllIconsKeys.General.ArrowRight, "closed")
       }
       Spacer(Modifier.padding(2.dp))
       Text(title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
