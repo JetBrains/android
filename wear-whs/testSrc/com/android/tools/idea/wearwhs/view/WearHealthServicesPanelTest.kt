@@ -323,14 +323,14 @@ class WearHealthServicesPanelTest {
 
     deviceManager.activeExercise = true
     stateManager.ongoingExercise.waitForValue(true)
-    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible && it.isEnabled }
     textField.text = "50"
 
-    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps*") }
 
     fakeUi.clickOnApplyButton()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") }
   }
 
   @Test
@@ -367,7 +367,7 @@ class WearHealthServicesPanelTest {
       stateManager.applyChanges()
 
       fakeUi.waitForCheckbox("Heart rate", false)
-      fakeUi.waitForDescendant<JTextField> { it.text == "50" && it.isVisible && !it.isEnabled }
+      fakeUi.waitForDescendant<JTextField> { it.isVisible && !it.isEnabled }
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
     }
 
@@ -701,6 +701,21 @@ class WearHealthServicesPanelTest {
       assertThat(reapplyButton.isEnabled).isFalse()
     }
   }
+
+  // Regression test for b/372265643
+  @Test
+  fun `disabled sensors don't show values during an exercise`() =
+    runBlocking<Unit> {
+      deviceManager.setCapabilities(mapOf(WhsDataType.HEART_RATE_BPM to false))
+      deviceManager.overrideValues(listOf(WhsDataType.HEART_RATE_BPM.value(89)))
+      deviceManager.activeExercise = true
+      stateManager.forceUpdateState()
+
+      val fakeUi = FakeUi(createWhsPanel().component)
+      val heartRateTextField =
+        fakeUi.waitForDescendant<JTextField> { it.isVisible && !it.isEnabled }
+      assertThat(heartRateTextField.text).isEmpty()
+    }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->

@@ -213,13 +213,13 @@ class WearHealthServicesStateManagerTest {
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
 
-      stateManager.setOverrideValue(heartRateBpmCapability, 3f)
+      stateManager.setOverrideValue(stepsCapability, 3f)
       stateManager.applyChanges()
 
       stateManager
-        .getState(heartRateBpmCapability)
+        .getState(stepsCapability)
         .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.HEART_RATE_BPM.value(3f))
+        .waitForValue(WhsDataType.STEPS.value(3f))
 
       deviceManager.clearContentProvider()
 
@@ -228,9 +228,9 @@ class WearHealthServicesStateManagerTest {
         .mapState { it.upToDateState.enabled }
         .waitForValue(true)
       stateManager
-        .getState(heartRateBpmCapability)
+        .getState(stepsCapability)
         .mapState { it.upToDateState.overrideValue }
-        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
+        .waitForValue(WhsDataType.STEPS.noValue())
     }
 
   @Test
@@ -472,11 +472,11 @@ class WearHealthServicesStateManagerTest {
     deviceManager.activeExercise = true
     stateManager.ongoingExercise.waitForValue(true)
 
-    stateManager.setOverrideValue(heartRateBpmCapability, 80)
+    stateManager.setOverrideValue(stepsCapability, 80)
     stateManager
-      .getState(heartRateBpmCapability)
+      .getState(stepsCapability)
       .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
-      .waitForValue(heartRateBpmCapability.dataType.value(80))
+      .waitForValue(stepsCapability.dataType.value(80))
 
     val result = stateManager.applyChanges()
 
@@ -492,16 +492,13 @@ class WearHealthServicesStateManagerTest {
       .mapState { it.upToDateState.enabled }
       .waitForValue(true)
     stateManager
-      .getState(heartRateBpmCapability)
+      .getState(stepsCapability)
       .mapState { it.upToDateState.overrideValue }
-      .waitForValue(heartRateBpmCapability.dataType.value(80))
+      .waitForValue(stepsCapability.dataType.value(80))
 
     val capabilityStates = deviceManager.loadCurrentCapabilityStates().getOrThrow()
     assertThat(capabilityStates)
-      .containsEntry(
-        heartRateBpmCapability.dataType,
-        CapabilityState(true, WhsDataType.HEART_RATE_BPM.value(80f)),
-      )
+      .containsEntry(stepsCapability.dataType, CapabilityState(true, WhsDataType.STEPS.value(80f)))
   }
 
   @Test
