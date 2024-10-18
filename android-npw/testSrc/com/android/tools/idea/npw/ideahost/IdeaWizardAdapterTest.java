@@ -27,7 +27,9 @@ import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.EdtTestUtil;
+import com.intellij.testFramework.RunsInEdt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -39,6 +41,7 @@ import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunsInEdt
 public class IdeaWizardAdapterTest {
   private Disposable myTestRootDisposable;
 
@@ -46,6 +49,9 @@ public class IdeaWizardAdapterTest {
 
   @Rule
   public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
+
+  @Rule
+  public EdtRule edtRule = new EdtRule();
 
   private static class SampleModel extends WizardModel {
     boolean isFinished;
@@ -156,14 +162,7 @@ public class IdeaWizardAdapterTest {
     myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isTrue();
 
-    try {
-      adaptor.doFinishAction();
-    }
-    catch (IllegalStateException e) {
-      // TODO: can't mock out the close method on DialogWrapper as it is final, so this exception is generated. Is there a better way
-      // to handle this?
-      assertThat(e.getStackTrace()[0].getMethodName()).contains("ensureEventDispatchThread");
-    }
+    adaptor.doFinishAction();
     myInvokeStrategy.updateAllSteps();
     assertThat(guest.isFinished()).isTrue();
     assertThat(model.isFinished).isTrue();
