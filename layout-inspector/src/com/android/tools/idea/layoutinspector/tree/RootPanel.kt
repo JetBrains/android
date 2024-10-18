@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -29,14 +28,18 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.components.htmlComponent
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.dsl.builder.HyperlinkEventAction
+import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
+import com.intellij.ui.dsl.builder.components.DslLabel
+import com.intellij.ui.dsl.builder.components.DslLabelType
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 
 /**
@@ -210,17 +213,7 @@ fun createCenterTextPanel(lines: List<String>): JPanel {
   """
       .trimIndent()
 
-  val text =
-    htmlComponent(
-      text = html,
-      lineWrap = true,
-      font = JBUI.Fonts.label(13f),
-      foreground = StandardColors.PLACEHOLDER_TEXT_COLOR,
-    )
-
-  text.isOpaque = false
-  text.isFocusable = false
-  text.border = JBUI.Borders.empty()
+  val text = textComponent(html)
 
   // To center vertically
   val panel = JPanel(GridBagLayout())
@@ -234,4 +227,21 @@ fun createCenterTextPanel(lines: List<String>): JPanel {
 
   panel.add(text, constraints)
   return panel
+}
+
+/** Creates a text component supporting HTML. */
+private fun textComponent(
+  @NlsContexts.Label text: String,
+  maxLineLength: Int = MAX_LINE_LENGTH_WORD_WRAP,
+  action: HyperlinkEventAction = HyperlinkEventAction.HTML_HYPERLINK_INSTANCE,
+): JEditorPane {
+  @Suppress("UnstableApiUsage")
+  return DslLabel(DslLabelType.LABEL).apply {
+    this.action = action
+    this.maxLineLength = maxLineLength
+    if (maxLineLength == MAX_LINE_LENGTH_WORD_WRAP) {
+      limitPreferredSize = true
+    }
+    this.text = text
+  }
 }

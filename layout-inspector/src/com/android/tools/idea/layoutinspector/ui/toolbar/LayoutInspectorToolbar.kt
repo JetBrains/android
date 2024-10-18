@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.impl.content.BaseLabel
 import com.intellij.util.ui.JBUI
@@ -70,7 +71,7 @@ fun createEmbeddedLayoutInspectorToolbar(
       selectProcessAction,
       extraActions,
     )
-  actionToolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+  actionToolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
   actionToolbar.setReservePlaceAutoPopupIcon(false)
   actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
 
