@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary
 
 import com.android.SdkConstants
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.npw.module.recipes.addInstrumentedTests
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestWithKotlinTest
 import com.android.tools.idea.npw.module.recipes.generateManifest
@@ -82,6 +83,8 @@ private fun RecipeExecutor.generateModule(
   addMultiplatformLocalTests(packageName, data.unitTestDir)
   addInstrumentedTests(packageName, useAndroidX, isLibraryProject = true, data.testDir, language)
   addInstrumentedTestDependencies()
+
+  addDownloadFromMavenProperty(projectData.kotlinVersion)
 }
 
 fun RecipeExecutor.addCommonMainDependencies(kotlinVersion: String) {
@@ -133,4 +136,22 @@ fun RecipeExecutor.addIosMain(packageName: String, outFolder: File, language: La
 
 fun RecipeExecutor.addMultiplatformLocalTests(packageName: String, localTestOut: File) {
   save(exampleUnitTestWithKotlinTest(packageName), localTestOut.resolve("ExampleUnitTest.kt"))
+}
+
+/**
+ * Add kotlin.native.distribution.downloadFromMaven=true to gradle.properties if it doesn't already
+ * exist, and if the Kotlin version is lower than 2.0.0
+ */
+fun RecipeExecutor.addDownloadFromMavenProperty(kotlinVersion: String) {
+  if (Version.parse(kotlinVersion) >= Version.parse("2.0.0")) {
+    return
+  }
+  addProjectGradleProperty(
+    "kotlin.native.distribution.downloadFromMaven",
+    """# Opt in to the future (Kotlin Gradle plugin 2.0.0) default behavior of downloading the
+       # Kotlin native libraries from Maven.
+      kotlin.native.distribution.downloadFromMaven=true
+      """
+      .trimIndent(),
+  )
 }

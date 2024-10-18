@@ -385,6 +385,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.dependencies().addFile(configuration, file)
   }
 
+  override fun addProjectGradleProperty(propertyName: String, textToAdd: String) {
+    val properties = projectBuildModel?.projectBuildModel?.propertiesModel?.declaredProperties ?: return
+    if (properties.find { it.name == propertyName } == null) {
+      append(textToAdd, projectTemplateData.rootDir.resolve("gradle.properties"))
+    }
+  }
+
   /**
    * Copies the given source file into the given destination file (where the source is allowed to be
    * a directory, in which case the whole directory is copied recursively)

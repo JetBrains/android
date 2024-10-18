@@ -78,6 +78,10 @@ class KotlinMultiplatformModuleTest {
       rootDir.resolve("androidInstrumentedTest").resolve("ExampleInstrumentedTest.kt").readText()
     assertThat(androidInstrumentedTestContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
+    val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
+    assertThat(gradlePropertiesContent)
+      .contains("kotlin.native.distribution.downloadFromMaven=true")
+
     val moduleFiles =
       rootDir
         .walk()
@@ -122,6 +126,7 @@ class KotlinMultiplatformModuleTest {
 
     val mockProjectTemplateData = mock<ProjectTemplateData>()
     whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
+    whenever(mockProjectTemplateData.rootDir).thenReturn(rootDir)
     val mockModuleTemplateData = mock<ModuleTemplateData>()
     whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
 
@@ -381,6 +386,7 @@ package com.kmplib.packagename
         ".gitignore",
         "androidMain/Platform.android.kt",
         "iosMain/Platform.ios.kt",
+        "gradle.properties",
       )
   }
 }
