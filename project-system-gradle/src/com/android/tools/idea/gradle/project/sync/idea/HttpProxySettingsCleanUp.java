@@ -26,12 +26,14 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge;
+import com.android.tools.idea.gradle.util.IdeProxyInfo;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ProxyConfiguration.ProxyAutoConfiguration;
+import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,9 +41,8 @@ import org.jetbrains.annotations.Nullable;
 // See https://code.google.com/p/android/issues/detail?id=169743
 public class HttpProxySettingsCleanUp {
   public static void cleanUp(@NotNull Project project) {
-    HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
-    boolean ideUsingProxy = (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST))
-                            || (ideHttpProxySettings.USE_PROXY_PAC && isNotEmpty(ideHttpProxySettings.PAC_URL));
+    IdeProxyInfo ideProxyInfo = IdeProxyInfo.getInstance();
+    boolean ideUsingProxy = ideProxyInfo.isHttpProxyExplicitlyConfigured();
     GradleProperties properties;
     try {
       properties = new GradleProperties(GradleProjectSystemUtil.getUserGradlePropertiesFile(project));
@@ -54,7 +55,7 @@ public class HttpProxySettingsCleanUp {
     IdeGradleProxySettingsBridge gradleProxySettings = properties.getHttpProxySettings();
     Application application = ApplicationManager.getApplication();
     application.invokeAndWait(() -> {
-      final ProxySettingsDialog dialog = getDialog(project, ideHttpProxySettings, ideUsingProxy, properties, gradleProxySettings);
+      final ProxySettingsDialog dialog = getDialog(project, ideProxyInfo, ideUsingProxy, properties, gradleProxySettings);
       if (dialog != null) {
         if (dialog.showAndGet()) {
           saveProperties(project, properties, dialog);
@@ -65,7 +66,7 @@ public class HttpProxySettingsCleanUp {
 
   @Nullable
   private static ProxySettingsDialog getDialog(@NotNull Project project,
-                                               HttpConfigurable ideHttpProxySettings,
+                                               IdeProxyInfo ideProxyInfo,
                                                boolean ideUsingProxy,
                                                GradleProperties properties,
                                                IdeGradleProxySettingsBridge gradleProxySettings) {
@@ -78,17 +79,20 @@ public class HttpProxySettingsCleanUp {
       }
     }
     else {
-      if (ideHttpProxySettings.USE_PROXY_PAC) {
+      if (ideProxyInfo.getSettings().getProxyConfiguration() instanceof ProxyAutoConfiguration) {
         // Confirm current configuration from the gradle.properties file (see b/135102054)
         if (isEmpty(gradleProxySettings.getHost()) || !properties.getProperties().containsKey("systemProp.http.proxyPort")) {
           dialog = new ProxySettingsDialog(project, gradleProxySettings, /* ide uses a proxy*/ true);
         }
       }
       else {
-        // Show proxy settings dialog only if the IDE configuration is different to Gradle's
-        IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideHttpProxySettings);
-        if (!ideProxySettings.equals(gradleProxySettings)) {
-          dialog = new ProxySettingsDialog(project, ideProxySettings, /* ide uses a proxy*/ true);
+        // this is statically checked before the call to getDialog
+        if (ideProxyInfo.getSettings().getProxyConfiguration() instanceof StaticProxyConfiguration staticProxyConfiguration) {
+          // Show proxy settings dialog only if the IDE configuration is different to Gradle's
+          IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideProxyInfo, staticProxyConfiguration);
+          if (!ideProxySettings.equals(gradleProxySettings)) {
+            dialog = new ProxySettingsDialog(project, ideProxySettings, /* ide uses a proxy*/ true);
+          }
         }
       }
     }
