@@ -157,7 +157,10 @@ internal class AddDeviceWizard(
                 FormFactor.uniqueValuesOf(profiles),
                 filterState.formFactorFilter,
               )
-              Divider(orientation = Orientation.Horizontal, Modifier.padding(16.dp))
+              Divider(
+                orientation = Orientation.Horizontal,
+                Modifier.padding(vertical = 16.dp, horizontal = 2.dp),
+              )
               CheckboxRow(
                 "Show obsolete device profiles",
                 checked = filterState.showDeprecated,
