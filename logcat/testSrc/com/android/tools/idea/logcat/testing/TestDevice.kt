@@ -30,6 +30,9 @@ import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.idea.logcat.devices.Device
 import icons.StudioIcons
 import java.nio.file.Path
+import kotlin.io.path.pathString
+
+private val AVD_ROOT = Path.of("/tmp/fake_avds")
 
 internal class TestDevice(
   val serialNumber: String,
@@ -45,7 +48,16 @@ internal class TestDevice(
   val device =
     when {
       serialNumber.isEmulatorSerial() ->
-        Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName, sdk, type)
+        Device.createEmulator(
+          serialNumber,
+          state == ONLINE,
+          release,
+          sdk,
+          avdName,
+          AVD_ROOT.resolve("$avdName.avd").pathString,
+          sdk,
+          type,
+        )
       else ->
         Device.createPhysical(
           serialNumber,

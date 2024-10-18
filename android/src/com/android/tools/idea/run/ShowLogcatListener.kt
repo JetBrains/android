@@ -36,6 +36,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceIn
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
+import kotlin.io.path.pathString
 
 /**
  * Listener of events requesting that Logcat panels for a specific device be shown.
@@ -65,7 +66,8 @@ interface ShowLogcatListener {
       val sdk: Int,
       val featureLevel: Int,
       val avdName: String,
-    ) : DeviceInfo(avdName, serialNumber)
+      val avdPath: String,
+    ) : DeviceInfo(avdPath, serialNumber)
   }
 
   companion object {
@@ -75,8 +77,10 @@ interface ShowLogcatListener {
     private fun IDevice.toDeviceInfo(): DeviceInfo {
       val release = getProperty(IDevice.PROP_BUILD_VERSION) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.version")
       return if (serialNumber.startsWith("emulator-")) {
-        val avdName = avdData.getDoneOrNull()?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
-        EmulatorDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, avdName)
+        val avdData = avdData.getDoneOrNull()
+        val avdName = avdData?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
+        val avdPath = avdData?.nioPath?.pathString ?: avdName
+        EmulatorDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, avdName, avdPath)
       }
       else {
         val manufacturer =

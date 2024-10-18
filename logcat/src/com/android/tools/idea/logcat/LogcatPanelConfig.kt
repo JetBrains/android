@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_RELEASE
-import com.android.adblib.DevicePropertyNames.RO_BUILD_VERSION_SDK
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
-import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -58,53 +54,9 @@ internal data class LogcatPanelConfig(
     /** Decodes a JSON string into a [LogcatPanelConfig]. */
     fun fromJson(json: String?): LogcatPanelConfig? {
       return try {
-        if (json?.contains("ro.product.manufacturer") == true) {
-          fromOldFormat(json)
-        } else {
-          val config = gson.fromJson(json, LogcatPanelConfig::class.java)
-          when {
-            config?.device?.model == null ->
-              config?.copy(
-                device = config.device?.copy(model = "", featureLevel = config.device.sdk)
-              )
-            config.device.featureLevel == 0 ->
-              config.copy(device = config.device.copy(featureLevel = config.device.sdk))
-            else -> config
-          }
-        }
+        gson.fromJson(json, LogcatPanelConfig::class.java)
       } catch (e: JsonSyntaxException) {
         LOGGER.warn("Invalid state JSON string: '$json'")
-        null
-      }
-    }
-
-    // If the device was saved in a different format by a previous version, this loads it correctly.
-    private fun fromOldFormat(json: String): LogcatPanelConfig? {
-      return try {
-        val oldDevice = gson.fromJson(json, OldConfigObject::class.java).device
-        val device =
-          if (oldDevice.isEmulator) {
-            Device.createEmulator(
-              oldDevice.serialNumber,
-              isOnline = false,
-              oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
-              oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
-              oldDevice.avdName,
-            )
-          } else {
-            Device.createPhysical(
-              oldDevice.serialNumber,
-              isOnline = false,
-              oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
-              oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
-              oldDevice.properties[RO_PRODUCT_MANUFACTURER] ?: "",
-              oldDevice.properties[RO_PRODUCT_MODEL] ?: "",
-            )
-          }
-
-        gson.fromJson(json, LogcatPanelConfig::class.java).copy(device = device)
-      } catch (e: JsonSyntaxException) {
-        LOGGER.warn("Invalid state", e)
         null
       }
     }
@@ -166,16 +118,6 @@ internal data class LogcatPanelConfig(
         }
       }
     }
-  }
-
-  private class OldConfigObject(val device: Device) {
-    data class Device(
-      val serialNumber: String,
-      val name: String,
-      val isEmulator: Boolean,
-      val avdName: String,
-      val properties: Map<String, String>,
-    )
   }
 }
 

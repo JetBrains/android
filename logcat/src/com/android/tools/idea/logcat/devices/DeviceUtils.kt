@@ -19,6 +19,7 @@ import com.android.adblib.serialNumber
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
+import kotlin.io.path.pathString
 
 /** Convert a [DeviceState] to a [Device] */
 internal fun DeviceState.toDevice(): Device? {
@@ -38,7 +39,8 @@ internal fun DeviceState.toDevice(): Device? {
         true,
         release,
         sdk,
-        properties.avdName,
+        properties.displayName,
+        properties.avdPath.pathString,
         featureLevel,
         properties.deviceType,
       )

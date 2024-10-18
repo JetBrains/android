@@ -210,6 +210,6 @@ private fun DeviceInfo.toOfflineDevice(): Device {
     is PhysicalDeviceInfo ->
       Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model, featureLevel)
     is EmulatorDeviceInfo ->
-      Device.createEmulator(serialNumber, false, release, sdk, avdName, featureLevel)
+      Device.createEmulator(serialNumber, false, release, sdk, avdName, avdPath, featureLevel)
   }
 }
