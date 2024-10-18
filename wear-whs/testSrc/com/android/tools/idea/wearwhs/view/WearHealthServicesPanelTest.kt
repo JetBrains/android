@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -282,13 +283,11 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `test panel disables checkboxes and load preset button during an exercise`() =
+  fun `test panel disables checkboxes and load preset combobox during an exercise`() =
     runBlocking<Unit> {
       val fakeUi = FakeUi(createWhsPanel().component)
 
-      fakeUi.waitForDescendant<JButton> {
-        it.text == message("wear.whs.panel.load.preset") && it.isEnabled
-      }
+      fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
       fakeUi.waitForDescendant<JCheckBox> {
         it.hasLabel(message("wear.whs.capability.heart.rate.label")) && it.isEnabled
       }
@@ -298,9 +297,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.activeExercise = true
 
-      fakeUi.waitForDescendant<JButton> {
-        it.text == message("wear.whs.panel.load.preset") && !it.isEnabled
-      }
+      fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
       fakeUi.waitForDescendant<JCheckBox> {
         it.hasLabel(message("wear.whs.capability.heart.rate.label")) && !it.isEnabled
       }
