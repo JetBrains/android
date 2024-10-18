@@ -225,7 +225,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
         val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
-        taskListener.onStart(id, gradleRootProjectPath)
+        taskListener.onStart(gradleRootProjectPath, id)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
         val buildState = GradleBuildState.getInstance(myProject!!)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
@@ -349,12 +349,12 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           when {
             buildError == null -> {
               buildCompleter.buildFinished(BuildStatus.SUCCESS)
-              taskListener.onSuccess(id)
+              taskListener.onSuccess(gradleRootProjectPath, id)
             }
 
             wasBuildCanceled(buildError) -> {
               buildCompleter.buildFinished(BuildStatus.CANCELED)
-              taskListener.onCancel(id)
+              taskListener.onCancel(gradleRootProjectPath, id)
             }
 
             else -> {
@@ -362,13 +362,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               val buildEnvironment: BuildEnvironment? = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener,
                                                                                                   cancellationToken, executionSettings)
               taskListener.onFailure(
-                id,
+                gradleRootProjectPath, id,
                 GradleProjectResolver.createProjectResolverChain()
                   .getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
               )
             }
           }
-          taskListener.onEnd(id)
+          taskListener.onEnd(gradleRootProjectPath, id)
           myBuildStopper.remove(id)
           if (GuiTestingService.getInstance().isGuiTestingMode) {
             val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.AarDependencyCompatibilityIssue
-import com.android.tools.idea.gradle.project.sync.errors.AarDependencyCompatibilityIssueChecker
 import com.android.tools.idea.gradle.project.sync.errors.UpdateCompileSdkQuickFix
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -33,10 +32,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 
@@ -60,9 +58,9 @@ class AarDependencyCompatibilityIssueCheckerIntegrationTest: AndroidGradleTestCa
       }
     }
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListenerAdapter() {
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-        generatedExceptions.add(e)
+    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
+        generatedExceptions.add(exception)
       }
     }
     AndroidGradleTaskManager().executeTasks(

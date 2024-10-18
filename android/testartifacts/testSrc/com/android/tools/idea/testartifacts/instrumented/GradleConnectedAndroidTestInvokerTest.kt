@@ -495,8 +495,9 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -646,8 +647,9 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -676,8 +678,9 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -708,9 +711,10 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onCancel(externalTaskId)
-      listener.onEnd(externalTaskId)
+      listener.onCancel(projectPath, externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 

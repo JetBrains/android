@@ -82,7 +82,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -177,7 +176,6 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
@@ -2559,9 +2557,9 @@ fun injectSyncOutputDumper(
         outputHandler(project, text)
       }
 
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
         if (id.ideProjectId != projectId) return
-        syncExceptionHandler(project, e)
+        syncExceptionHandler(project, exception)
       }
     },
     disposable

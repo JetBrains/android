@@ -445,7 +445,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     private var startBuildEventPosted: Boolean = false
 
     @Suppress("UnstableApiUsage")
-    override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
+    override fun onStart(projectPath: String, id: ExternalSystemTaskId) {
       val restartAction: AnAction = RestartAction(request)
 
       buildFailed = false
@@ -466,9 +466,9 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       // sending another one replaces the mapping from the buildId to the build view breaking the build even pipeline. (See: b/190426050).
       if (buildViewManager.getBuildView(id) == null) {
         val eventTime: Long = System.currentTimeMillis()
-        val buildDescriptor = DefaultBuildDescriptor(id, executionName, workingDir, eventTime)
+        val buildDescriptor = DefaultBuildDescriptor(id, executionName, projectPath, eventTime)
           .withRestartAction(restartAction).withAction(stopAction)
-          .withExecutionFilter(AndroidReRunBuildFilter(workingDir))
+          .withExecutionFilter(AndroidReRunBuildFilter(projectPath))
           .withExecutionEnvironment(request.executionEnvironment)
           .withContextAction {
             // add a new item to the build output popup menu
@@ -491,7 +491,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         startBuildEventPosted = true
         buildEventDispatcher.onEvent(id, event)
       }
-      super.onStart(id, workingDir)
+      super.onStart(projectPath, id)
     }
 
     override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
@@ -508,7 +508,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       super.onTaskOutput(id, text, stdOut)
     }
 
-    override fun onEnd(id: ExternalSystemTaskId) {
+    override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
       refreshRelevantGradleOutputs()
 
       val eventDispatcherFinished = CountDownLatch(1)
@@ -527,7 +527,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
           throw RuntimeException("Timeout waiting for event dispatcher to finish.", ex)
         }
       }
-      super.onEnd(id)
+      super.onEnd(projectPath, id)
     }
 
     private fun refreshRelevantGradleOutputs() {
@@ -580,7 +580,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       }
     }
 
-    override fun onSuccess(id: ExternalSystemTaskId) {
+    override fun onSuccess(projectPath: String, id: ExternalSystemTaskId) {
       addBuildAttributionLinkToTheOutput(id)
       if (startBuildEventPosted) {
         val event = FinishBuildEventImpl(
@@ -592,7 +592,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         )
         buildEventDispatcher.onEvent(id, event)
       }
-      super.onSuccess(id)
+      super.onSuccess(projectPath, id)
     }
 
     private fun addBuildAttributionLinkToTheOutput(id: ExternalSystemTaskId) {
@@ -605,27 +605,27 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       }
     }
 
-    override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+    override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: Exception) {
       buildFailed = true
       if (startBuildEventPosted) {
         val title = "$executionName failed"
         val dataContext: DataContext = BuildConsoleUtils.getDataContext(id, buildViewManager)
         val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(
-          title, e,
+          title, exception,
           GRADLE_SYSTEM_ID, project, request.rootProjectPath.absolutePath, dataContext
         )
         buildEventDispatcher.onEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
       }
-      super.onFailure(id, e)
+      super.onFailure(projectPath, id, exception)
     }
 
-    override fun onCancel(id: ExternalSystemTaskId) {
+    override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
       if (startBuildEventPosted) {
         // Cause build view to show as skipped all pending tasks (b/73397414)
         val event = FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", SkippedResultImpl())
         buildEventDispatcher.onEvent(id, event)
       }
-      super.onCancel(id)
+      super.onCancel(projectPath, id)
     }
   }
 

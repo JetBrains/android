@@ -37,7 +37,7 @@ class LastBuildOrSyncService {
 }
 
 internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListener {
-  override fun onEnd(id: ExternalSystemTaskId) {
+  override fun onEnd(proojecPath: String, id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
       project.getService(LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
     }
