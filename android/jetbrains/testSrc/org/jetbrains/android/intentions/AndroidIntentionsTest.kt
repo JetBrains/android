@@ -1,57 +1,57 @@
-package org.jetbrains.android.intentions;
+package org.jetbrains.android.intentions
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import com.android.AndroidProjectTypes
+import com.intellij.codeInspection.LocalInspectionTool
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection;
-
-public class AndroidIntentionsTest extends AndroidTestCase {
-  private static final String BASE_PATH = "intentions/";
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myFixture.addFileToProject("res/values/drawables.xml",
-                               "<resources><drawable name='icon'>@android:drawable/btn_star</drawable></resources>");
+class AndroidIntentionsTest : AndroidTestCase() {
+  @Throws(Exception::class)
+  public override fun setUp() {
+    super.setUp()
+    myFixture.addFileToProject(
+      "res/values/drawables.xml",
+      "<resources><drawable name='icon'>@android:drawable/btn_star</drawable></resources>",
+    )
   }
 
-  public void testSwitchOnResourceId() {
-    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-    final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
-    doTest(inspection, true, inspection.getQuickFixName());
+  fun testSwitchOnResourceId() {
+    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    val inspection = AndroidNonConstantResIdsInSwitchInspection()
+    doTest(inspection, true, inspection.quickFixName)
   }
 
-  public void testSwitchOnResourceId1() {
-    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
-    final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
-    doTest(inspection, false, inspection.getQuickFixName());
+  fun testSwitchOnResourceId1() {
+    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_APP
+    val inspection = AndroidNonConstantResIdsInSwitchInspection()
+    doTest(inspection, false, inspection.quickFixName)
   }
 
-  public void testSwitchOnResourceId2() {
-    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-    final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
-    doTest(inspection, false, inspection.getQuickFixName());
+  fun testSwitchOnResourceId2() {
+    myFacet.configuration.projectType = AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    val inspection = AndroidNonConstantResIdsInSwitchInspection()
+    doTest(inspection, false, inspection.quickFixName)
   }
 
-  private void doTest(final LocalInspectionTool inspection, boolean available, String quickFixName) {
-    myFixture.enableInspections(inspection);
+  private fun doTest(inspection: LocalInspectionTool, available: Boolean, quickFixName: String) {
+    myFixture.enableInspections(inspection)
 
-    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.checkHighlighting(true, false, false);
+    val file =
+      myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java")
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.checkHighlighting(true, false, false)
 
-    final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
+    val quickFix = myFixture.getAvailableIntention(quickFixName)
     if (available) {
-      assertNotNull(quickFix);
-      myFixture.launchAction(quickFix);
-      myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.java");
+      assertNotNull(quickFix)
+      myFixture.launchAction(quickFix!!)
+      myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.java")
+    } else {
+      assertNull(quickFix)
     }
-    else {
-      assertNull(quickFix);
-    }
+  }
+
+  companion object {
+    private const val BASE_PATH = "intentions/"
   }
 }
