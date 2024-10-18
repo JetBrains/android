@@ -25,48 +25,10 @@ import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
-import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
+import com.android.tools.idea.uibuilder.layout.padding.PREVIEW_FRAME_PADDING_PROVIDER
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
-import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-
-private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  dynamicPadding(scale, 5, 20)
-}
-
-/**
- * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
- * of the current [PositionableContent].
- */
-private val ORGANIZATION_PREVIEW_RIGHT_PADDING: (Double, PositionableContent) -> Int =
-  { scale, content ->
-    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
-    else dynamicPadding(scale, 5, 15)
-  }
-
-/**
- * Provider of the horizontal and vertical paddings for preview. The input value is the scale value
- * of the current [PositionableContent].
- */
-private val ORGANIZATION_PREVIEW_BOTTOM_PADDING: (Double, PositionableContent) -> Int =
-  { scale, content ->
-    if (content is HeaderPositionableContent) dynamicPadding(scale, 0, 0)
-    else dynamicPadding(scale, 5, 7)
-  }
-
-/**
- * Provider of the padding for preview. The input value is the scale value of the current
- * [PositionableContent]. Minimum padding is min at 20% and maximum padding is max at 100%,
- * responsive.
- */
-private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
-  when {
-    scale <= 0.2 -> min
-    scale >= 1.0 -> max
-    else ->
-      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
-  }.toInt()
 
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
   listOf(PositionableGroup(it.toList()))
@@ -75,26 +37,6 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
 private val galleryPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
 private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
-private val organizationListPadding =
-  OrganizationPadding(
-    10,
-    10,
-    10,
-    24,
-    PREVIEW_FRAME_PADDING_PROVIDER,
-    ORGANIZATION_PREVIEW_RIGHT_PADDING,
-    ORGANIZATION_PREVIEW_BOTTOM_PADDING,
-  )
-private val organizationGridPadding =
-  OrganizationPadding(
-    10,
-    10,
-    10,
-    24,
-    PREVIEW_FRAME_PADDING_PROVIDER,
-    ORGANIZATION_PREVIEW_RIGHT_PADDING,
-    ORGANIZATION_PREVIEW_BOTTOM_PADDING,
-  )
 
 /** [PreviewMode.Gallery] layout option which shows once centered element. */
 val GALLERY_LAYOUT_OPTION =
@@ -110,7 +52,7 @@ val LIST_NO_GROUP_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.list.layout.title"),
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      ListLayoutManager(organizationListPadding, NO_GROUP_TRANSFORM)
+      ListLayoutManager(transform = NO_GROUP_TRANSFORM)
     else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
@@ -121,7 +63,7 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.grid.layout.title"),
     if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      GridLayoutManager(organizationGridPadding, NO_GROUP_TRANSFORM)
+      GridLayoutManager(transform = NO_GROUP_TRANSFORM)
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
@@ -140,7 +82,7 @@ val LIST_LAYOUT_OPTION =
 val LIST_EXPERIMENTAL_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.list.experimental.layout.title"),
-    ListLayoutManager(organizationListPadding, GROUP_BY_BASE_COMPONENT),
+    ListLayoutManager(transform = GROUP_BY_BASE_COMPONENT),
     true,
     SceneViewAlignment.LEFT,
   )
@@ -158,7 +100,7 @@ val GRID_LAYOUT_OPTION =
 val GRID_EXPERIMENTAL_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.grid.experimental.layout.title"),
-    GridLayoutManager(padding = organizationGridPadding, transform = GROUP_BY_BASE_COMPONENT),
+    GridLayoutManager(transform = GROUP_BY_BASE_COMPONENT),
     true,
     SceneViewAlignment.LEFT,
   )
