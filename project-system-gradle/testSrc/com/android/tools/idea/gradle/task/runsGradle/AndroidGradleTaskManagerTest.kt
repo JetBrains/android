@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.hookExecuteTasks
 import com.google.common.truth.Expect
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
@@ -41,14 +40,14 @@ class AndroidGradleTaskManagerTest {
     preparedProject.open { project ->
       val path = preparedProject.root
       val capturedRequests = project.hookExecuteTasks()
-      val facade = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager::class.java)
-        .getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)
+      val facadeManager = ExternalSystemFacadeManager.getInstance()
+      val facade = facadeManager.getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)
 
       val externalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
       // 1) This is a common form used by Android Studio etc.
-      facade.taskManagerImpl.executeTasksImpl(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
+      facade.taskManager.executeTasks(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
       // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
-      facade.taskManagerImpl.executeTasksImpl(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
+      facade.taskManager.executeTasks(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
 
       expect.that(capturedRequests).hasSize(2)
 
