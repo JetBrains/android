@@ -46,7 +46,10 @@ import com.android.tools.idea.preview.animation.AnimationManager
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -90,6 +93,7 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import com.jetbrains.rd.generator.nova.fail
 import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 import kotlin.test.assertFails
@@ -605,6 +609,119 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/373572532
+  @Test
+  fun layoutOptionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val persistedPreviewRepresentation = createPreviewRepresentation()
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+
+      assertThat(persistedPreviewRepresentation.mode.value)
+        .isNotEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      persistedPreviewRepresentation.setMode(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      assertThat(persistedPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayout
+              ?.value
+          )
+          .isEqualTo(LIST_LAYOUT_OPTION)
+      }
+
+      val state = persistedPreviewRepresentation.getState()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation()
+      assertThat(restoredPreviewRepresentation.mode.value)
+        .isNotEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayout
+              ?.value
+          )
+          .isEqualTo(LIST_LAYOUT_OPTION)
+      }
+
+      persistedPreviewRepresentation.onDeactivateImmediately()
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
+  // Regression test for b/373572532
+  @Test
+  fun galleryLayoutOptionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val previewElement = PsiTestPreviewElement("test element")
+      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+
+      assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
+        .isNotEqualTo(GALLERY_LAYOUT_OPTION)
+      persistedPreviewRepresentation.setMode(PreviewMode.Gallery(previewElement))
+      assertThat(persistedPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Gallery(previewElement))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayout
+              ?.value
+          )
+          .isEqualTo(GALLERY_LAYOUT_OPTION)
+      }
+
+      val state = persistedPreviewRepresentation.getState()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Gallery(previewElement))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayout
+              ?.value
+          )
+          .isEqualTo(GALLERY_LAYOUT_OPTION)
+      }
+
+      persistedPreviewRepresentation.onDeactivateImmediately()
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
+  // Regression test for b/373572532
+  @Test
+  fun groupSelectionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val previewElement =
+        PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+
+      assertThat(persistedPreviewRepresentation.groupManager.groupFilter)
+        .isEqualTo(PreviewGroup.All)
+      persistedPreviewRepresentation.groupManager.groupFilter =
+        PreviewGroup.namedGroup("test group")
+
+      val state = persistedPreviewRepresentation.getState()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.groupManager.groupFilter)
+        .isEqualTo(PreviewGroup.namedGroup("test group"))
+
+      persistedPreviewRepresentation.onDeactivateImmediately()
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -711,4 +828,13 @@ class CommonPreviewRepresentationTest {
       fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) }
     }
   }
+
+  private val CommonPreviewRepresentation<*>.groupManager: PreviewGroupManager
+    get() {
+      val context =
+        DataManager.getInstance()
+          .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+      return PreviewGroupManager.KEY.getData(context)
+        ?: fail("Expected a group manager to be present")
+    }
 }
