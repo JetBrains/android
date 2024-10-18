@@ -89,19 +89,14 @@ class EmulatorProcessHandler(
 
   private inner class ConsoleListener : ProcessListener {
 
-    var lastFatalMessage: String? = null
-
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
       val text = event.text?.trim { it <= ' ' }
       if (text != null) {
-        parseAndLogMessage(text, outputType)
+        parseAndLogMessage(text)
       }
 
       if (ProcessOutputType.SYSTEM == outputType && isProcessTerminated) {
         val exitCode = exitCode
-        lastFatalMessage?.let { lastFatalMessage ->
-          notify("Emulator: $avdName", lastFatalMessage, NotificationType.ERROR)
-        }
         if (exitCode != null && exitCode != 0) {
           // Don't use error level because we don't want Studio crash reports for this; the emulator's
           // crash reporter can provide better detail
@@ -110,7 +105,7 @@ class EmulatorProcessHandler(
       }
     }
 
-    private fun parseAndLogMessage(text: String, ouputType: Key<*>) {
+    private fun parseAndLogMessage(text: String) {
       val notifyUser: Boolean
       val severity: EmulatorLogListener.Severity
       val message: String
@@ -131,12 +126,7 @@ class EmulatorProcessHandler(
         else {
           // Legacy unstructured message.
           notifyUser = false
-          severity = if (ProcessOutputType.STDERR == ouputType) {
-            EmulatorLogListener.Severity.FATAL
-          }
-          else {
-            EmulatorLogListener.Severity.INFO
-          }
+          severity = EmulatorLogListener.Severity.INFO
           message = text
         }
       }
@@ -149,7 +139,7 @@ class EmulatorProcessHandler(
         EmulatorLogListener.Severity.WARNING, EmulatorLogListener.Severity.ERROR -> log.warn(message)
         EmulatorLogListener.Severity.FATAL -> {
           log.warn(message)
-          lastFatalMessage = message
+          notify("Emulator: $avdName", message, NotificationType.ERROR)
         }
       }
       notifyListeners(avdInfo, severity, notifyUser, message)
