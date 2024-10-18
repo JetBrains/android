@@ -177,6 +177,25 @@ object DeviceTableColumns {
       "API",
       attribute = { it.apiRange.lowerEndpoint() },
     )
+
+  private val minApiComparator: Comparator<DeviceProfile> = compareBy {
+    it.apiRange.let { if (it.hasLowerBound()) it.lowerEndpoint() else 1 }
+  }
+  private val maxApiComparator: Comparator<DeviceProfile> = compareBy {
+    it.apiRange.let { if (it.hasUpperBound()) it.upperEndpoint() else Int.MAX_VALUE }
+  }
+  val apiRangeAscendingOrder = minApiComparator.then(maxApiComparator)
+  val apiRangeDescendingOrder = maxApiComparator.then(minApiComparator).reversed()
+
+  val apiRange =
+    TableColumn(
+      "API",
+      width = TableColumnWidth.Weighted(1f),
+      comparator = apiRangeAscendingOrder,
+      reverseComparator = apiRangeDescendingOrder,
+      rowContent = { Text(it.apiRange.firstAndLastApiLevel()) },
+    )
+
   val width =
     DefaultSortableTableColumn<DeviceProfile, Int>("Width", attribute = { it.resolution.width })
   val height =

@@ -42,6 +42,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -291,6 +292,8 @@ class DeviceTableTest {
     composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
     composeTestRule.onNodeWithText("Name").assertIsFocused()
     composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("API").assertIsFocused()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
     composeTestRule.onNodeWithText("Width").assertIsFocused()
     composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
     composeTestRule.onNodeWithText("Height").assertIsFocused()
@@ -315,6 +318,25 @@ class DeviceTableTest {
         .containsExactlyElementsIn(formFactorOrder.plus("Chrome").plus("Shoe"))
         .inOrder()
     }
+  }
+
+  @Test
+  fun apiLevelOrder() {
+    val api24To34 = TestDevices.mediumPhone.copy(apiRange = Range.closed(24, 34))
+    val api25To30 = TestDevices.mediumPhone.copy(apiRange = Range.closed(25, 30))
+    val api24Plus = TestDevices.mediumPhone.copy(apiRange = Range.atLeast(24))
+    val api26Plus = TestDevices.mediumPhone.copy(apiRange = Range.atLeast(26))
+    val apiUpTo30 = TestDevices.mediumPhone.copy(apiRange = Range.atMost(30))
+
+    val levels = listOf(api24To34, api25To30, api24Plus, api26Plus, apiUpTo30)
+
+    assertThat(levels.sortedWith(DeviceTableColumns.apiRangeAscendingOrder))
+      .containsExactly(apiUpTo30, api24To34, api24Plus, api25To30, api26Plus)
+      .inOrder()
+
+    assertThat(levels.sortedWith(DeviceTableColumns.apiRangeDescendingOrder))
+      .containsExactly(api26Plus, api24Plus, api24To34, api25To30, apiUpTo30)
+      .inOrder()
   }
 }
 

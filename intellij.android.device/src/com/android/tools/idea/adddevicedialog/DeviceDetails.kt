@@ -76,7 +76,7 @@ fun DeviceDetails(device: DeviceProfile, modifier: Modifier = Modifier) {
   }
 }
 
-private fun Range<Int>.firstAndLastApiLevel(): String =
+internal fun Range<Int>.firstAndLastApiLevel(): String =
   if (hasUpperBound()) "${lowerEndpoint()}\u2013${upperEndpoint()}" else "${lowerEndpoint()}+"
 
 @Composable

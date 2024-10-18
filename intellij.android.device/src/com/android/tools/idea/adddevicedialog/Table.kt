@@ -88,6 +88,7 @@ data class TableColumn<in T>(
   val name: String,
   val width: TableColumnWidth,
   val comparator: Comparator<in T>? = null,
+  val reverseComparator: Comparator<in T>? = comparator?.reversed(),
   val rowContent: @Composable (T) -> Unit,
 )
 
@@ -164,10 +165,11 @@ class TableSortState<T> {
   var sortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
 
   val comparator: Comparator<in T>?
-    get() = sortColumn?.comparator?.reverseIf(sortOrder == SortOrder.DESCENDING)
-
-  // Without this auxiliary method, typechecking fails
-  private fun <T> Comparator<T>.reverseIf(reverse: Boolean) = if (reverse) reversed() else this
+    get() =
+      when (sortOrder) {
+        SortOrder.ASCENDING -> sortColumn?.comparator
+        SortOrder.DESCENDING -> sortColumn?.reverseComparator
+      }
 }
 
 @Composable
