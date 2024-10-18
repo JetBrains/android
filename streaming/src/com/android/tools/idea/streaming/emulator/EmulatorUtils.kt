@@ -22,7 +22,7 @@ import com.intellij.ide.ui.LafManager
  * Returns the emulator UI theme matching the current IDE theme.
  */
 internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
-  val themeName = lafManager.currentLookAndFeel.name
+  val themeName = lafManager.currentUIThemeLookAndFeel.name
   return when {
     themeName.contains("High contrast", ignoreCase = true) -> ThemingStyle.Style.CONTRAST
     themeName.contains("Light", ignoreCase = true) -> ThemingStyle.Style.LIGHT
