@@ -58,7 +58,7 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
 
-    ProxySettings proxySettings = new ProxySettings(ideSettings);
+    IdeGradleProxySettingsBridge proxySettings = new IdeGradleProxySettingsBridge(ideSettings);
 
     assertEquals(host, proxySettings.getHost());
     assertEquals(port, proxySettings.getPort());
@@ -78,7 +78,7 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     ideSettings.setProxyLogin(user);
     ideSettings.setPlainProxyPassword(password);
 
-    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideSettings);
 
     // Verify that the proxy settings are stored properly in the actual properties file.
     ideProxySettings.applyProxySettings(myProperties.getProperties());
@@ -88,14 +88,14 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     assertEquals(user, myProperties.getProperty("systemProp.http.proxyUser"));
     assertEquals(password, myProperties.getProperty("systemProp.http.proxyPassword"));
 
-    ProxySettings gradleProxySetting = myProperties.getHttpProxySettings();
+    IdeGradleProxySettingsBridge gradleProxySetting = myProperties.getHttpProxySettings();
     assertEquals(host, gradleProxySetting.getHost());
     assertEquals(port, gradleProxySetting.getPort());
 
     // Verify that username is removed but password not if authentication is disabled in IDE settings.
     ideSettings.PROXY_AUTHENTICATION = false;
 
-    ideProxySettings = new ProxySettings(ideSettings);
+    ideProxySettings = new IdeGradleProxySettingsBridge(ideSettings);
     ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
@@ -119,7 +119,7 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     ideSettings.PROXY_AUTHENTICATION = true;
     ideSettings.setProxyLogin("johndoe");
     ideSettings.setPlainProxyPassword("123456");
-    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideSettings);
     ideProxySettings.applyProxySettings(properties);
     properties.setProperty("org.gradle.parallel", "true");
     properties.setProperty("org.gradle.jvmargs", "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8");

@@ -19,30 +19,30 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
-public class ProxySettingsTest {
+public class IdeGradleProxySettingsBridgeTest {
   private final static String TEST_INPUT = "*,  ,,*.google.com|*|  | ||*.google.com| proxy.com , last.com";
 
   @Test
   public void replaceCommasWithPipes() {
     String expected = "*|*.google.com|*|*.google.com|proxy.com|last.com";
-    assertThat(ProxySettings.replaceCommasWithPipesAndClean(TEST_INPUT)).isEqualTo(expected);
+    assertThat(IdeGradleProxySettingsBridge.replaceCommasWithPipesAndClean(TEST_INPUT)).isEqualTo(expected);
   }
 
   @Test
   public void replacePipesWithCommas() {
     String expected = "*, *.google.com, *, *.google.com, proxy.com, last.com";
-    assertThat(ProxySettings.replacePipesWithCommasAndClean(TEST_INPUT)).isEqualTo(expected);
+    assertThat(IdeGradleProxySettingsBridge.replacePipesWithCommasAndClean(TEST_INPUT)).isEqualTo(expected);
   }
 
   @Test
   public void replaceOnlySpaces() {
-    assertThat(ProxySettings.replaceCommasWithPipesAndClean(" ,,  ,")).isNull();
-    assertThat(ProxySettings.replacePipesWithCommasAndClean(" ,,  ,")).isNull();
+    assertThat(IdeGradleProxySettingsBridge.replaceCommasWithPipesAndClean(" ,,  ,")).isNull();
+    assertThat(IdeGradleProxySettingsBridge.replacePipesWithCommasAndClean(" ,,  ,")).isNull();
   }
 
   @Test
   public void replaceNull() {
-    assertThat(ProxySettings.replaceCommasWithPipesAndClean(null)).isNull();
-    assertThat(ProxySettings.replacePipesWithCommasAndClean(null)).isNull();
+    assertThat(IdeGradleProxySettingsBridge.replaceCommasWithPipesAndClean(null)).isNull();
+    assertThat(IdeGradleProxySettingsBridge.replacePipesWithCommasAndClean(null)).isNull();
   }
 }

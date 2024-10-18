@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.HTTPS_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.HTTP_PROXY_TYPE;
 
 import com.android.tools.idea.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -56,13 +56,13 @@ public class GradleProperties {
   }
 
   @NotNull
-  public ProxySettings getHttpProxySettings() {
-    return new ProxySettings(myProperties, HTTP_PROXY_TYPE);
+  public IdeGradleProxySettingsBridge getHttpProxySettings() {
+    return new IdeGradleProxySettingsBridge(myProperties, HTTP_PROXY_TYPE);
   }
 
   @NotNull
-  public ProxySettings getHttpsProxySettings() {
-    return new ProxySettings(myProperties, HTTPS_PROXY_TYPE);
+  public IdeGradleProxySettingsBridge getHttpsProxySettings() {
+    return new IdeGradleProxySettingsBridge(myProperties, HTTPS_PROXY_TYPE);
   }
 
   public void save() throws IOException {

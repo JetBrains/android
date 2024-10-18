@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.HTTP_PROXY_TYPE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.Disposer.dispose;
 import static com.intellij.openapi.util.Disposer.isDisposed;
 
-import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge;
 import com.intellij.openapi.Disposable;
 import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.Properties;
@@ -36,7 +36,7 @@ public class ProxySettingsDialogTest extends LightPlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myDialog = new ProxySettingsDialog(getProject(), new ProxySettings(HTTP_PROXY_TYPE), true);
+    myDialog = new ProxySettingsDialog(getProject(), new IdeGradleProxySettingsBridge(HTTP_PROXY_TYPE), true);
   }
 
   @Override
