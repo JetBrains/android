@@ -41,6 +41,7 @@ import kotlin.math.sqrt
  * gaps between different [PositionableContent]s. The [centralizeContent] decides if the content
  * should be placed at the center when the content is smaller then the surface size.
  */
+@Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 class GridSurfaceLayoutManager(
   @SwingCoordinate private val horizontalPadding: Int,
   @SwingCoordinate private val verticalPadding: Int,
