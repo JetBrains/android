@@ -47,7 +47,6 @@ import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
 import java.io.File;
-import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -151,8 +150,8 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           continue;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
-          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
-          setLastOpenedFile(openedProject, file);
+          Project openedProject = AndroidOpenFileActionUtils.doOpenProject(file, project);
+          setLastOpenedFile(openedProject, file.toNioPath());
         }
         else {
           openOrImportProject(file, project);
@@ -187,7 +186,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
     Project opened = openOrImport(file.getPath(), project, false);
     if (opened != null) {
-      setLastOpenedFile(opened, file);
+      setLastOpenedFile(opened, file.toNioPath());
       return true;
     }
     return false;
