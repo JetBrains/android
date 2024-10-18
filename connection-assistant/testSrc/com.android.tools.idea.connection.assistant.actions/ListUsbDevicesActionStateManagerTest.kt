@@ -17,7 +17,6 @@ package com.android.tools.idea.connection.assistant.actions
 
 import com.android.ddmlib.AdbDevice
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.usb.UsbDevice
@@ -26,13 +25,17 @@ import com.intellij.ide.IdeEventQueue
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 
 class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
-  private lateinit var testUsbDeviceCollector: UsbDeviceCollector
-  private lateinit var emptyActionData: ActionData
+  private val testUsbDeviceCollector: UsbDeviceCollector = mock {
+    on { listUsbDevices() } doReturn CompletableFuture.completedFuture(listOf())
+  }
+  private val emptyActionData: ActionData = mock()
   private lateinit var myStateManager: ListUsbDevicesActionStateManager
 
   private lateinit var rawDevices: CompletableFuture<List<AdbDevice>>
@@ -40,18 +43,14 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    emptyActionData = mock(ActionData::class.java)
     myStateManager = ListUsbDevicesActionStateManager()
-    testUsbDeviceCollector = mock(UsbDeviceCollector::class.java)
-    whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
-    rawDevices = CompletableFuture.completedFuture(emptyList<AdbDevice>())
-    devices = emptyList<IDevice>()
+    rawDevices = CompletableFuture.completedFuture(emptyList())
+    devices = emptyList()
     myStateManager.init(project, emptyActionData, testUsbDeviceCollector, { rawDevices }, { devices } )
   }
 
   @Test
   fun testDefaultState() {
-    whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
     myStateManager.refresh()
     IdeEventQueue.getInstance().flushQueue();
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))

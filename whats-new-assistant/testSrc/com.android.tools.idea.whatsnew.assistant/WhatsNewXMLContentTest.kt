@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.assistant.DefaultTutorialBundle
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertNotNull
@@ -23,6 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
 
 @RunWith(JUnit4::class)
 class WhatsNewXMLContentTest {
