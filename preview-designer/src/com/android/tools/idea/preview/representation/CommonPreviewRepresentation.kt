@@ -695,8 +695,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private fun onAfterRender() {
-    surface.sceneManagers.forEach { onAfterRender(it) }
-    previewViewModel.afterPreviewsRefreshed()
+    try {
+      surface.sceneManagers.forEach { onAfterRender(it) }
+    } finally {
+      // this should be run even if an onAfterRender throws an exception
+      previewViewModel.afterPreviewsRefreshed()
+    }
   }
 
   private fun configureLayoutlibSceneManager(
