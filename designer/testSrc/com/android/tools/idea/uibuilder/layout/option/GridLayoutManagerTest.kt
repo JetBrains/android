@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
+import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
@@ -592,57 +593,5 @@ class GridLayoutManagerTest {
       ),
       GROUP_BY_BASE_COMPONENT,
     )
-  }
-
-  companion object {
-    // We need to copy this because we want to organize the content in grid,
-    // we can't use the original lambda because of circular dependency
-    // with compose-designer module.
-    val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
-      { contents ->
-        val groups = mutableMapOf<Any?, MutableList<PositionableContent>>()
-        for (content in contents) {
-          groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
-        }
-
-        groups.values
-          .fold(Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>())) {
-            temp,
-            next ->
-            val hasHeader = next.any { it is HeaderPositionableContent }
-            // If next is not in its own group - keep it in temp.second
-            if (!hasHeader) {
-              temp.second.addAll(next)
-            }
-
-            // Temp.second contains all consecutive previews without its own group.
-            // If next is not in a group or if it is the last element, group all collected
-            // previews as one group
-            if (hasHeader || groups.values.last() == next) {
-              if (temp.second.isNotEmpty()) {
-                temp.first.add(
-                  PositionableGroup(
-                    temp.second.filter { it !is HeaderPositionableContent },
-                    temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-                  )
-                )
-                temp.second.clear()
-              }
-            }
-
-            // If next has its own group - it will have its own PositionableGroup
-            if (hasHeader) {
-              temp.first.add(
-                PositionableGroup(
-                  next.filter { it !is HeaderPositionableContent },
-                  next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-                )
-              )
-            }
-
-            temp
-          }
-          .first
-      }
   }
 }
