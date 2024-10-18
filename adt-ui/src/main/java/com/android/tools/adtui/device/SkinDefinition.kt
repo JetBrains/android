@@ -188,7 +188,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         return create(skinFolder)
       }
       catch (e: NoSuchFileException) {
-        thisLogger().error("File not found: ${e.file}")
+        thisLogger().warn("File not found: ${e.file}")
       }
       catch (e: IOException) {
         thisLogger().error(e)
