@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.common.model.ChangeType
@@ -58,7 +57,8 @@ import java.awt.geom.Rectangle2D
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for the nav editor Scene. */
 @RunsInEdt
@@ -817,7 +817,7 @@ class NavSceneTest {
 
     scene.layout(0, sceneContext)
 
-    val guiInputHandler = mock(GuiInputHandler::class.java)
+    val guiInputHandler = mock<GuiInputHandler>()
     whenever(guiInputHandler.isInteractionInProgress).thenReturn(true)
     whenever(surface.guiInputHandler).thenReturn(guiInputHandler)
 

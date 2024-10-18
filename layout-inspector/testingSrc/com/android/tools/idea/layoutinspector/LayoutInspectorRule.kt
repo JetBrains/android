@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -59,6 +58,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 val MODERN_DEVICE =
   object : DeviceDescriptor {

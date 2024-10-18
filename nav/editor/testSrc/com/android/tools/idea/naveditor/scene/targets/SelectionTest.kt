@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.model.Coordinates
@@ -30,6 +29,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent.BUTTON1
+import org.mockito.kotlin.whenever
 
 /** Test to verify that components are selected when mousePress event is received. */
 private const val LASSO_PADDING = 10

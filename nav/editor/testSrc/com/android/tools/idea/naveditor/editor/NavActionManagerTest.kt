@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.editor
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -66,6 +65,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.mockito.kotlin.whenever
 
 /** Tests for [NavActionManager] */
 class NavActionManagerTest : NavTestCase() {

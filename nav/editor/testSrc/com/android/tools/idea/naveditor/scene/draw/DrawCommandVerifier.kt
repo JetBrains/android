@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.testutils.MockitoKt.whenever
 import com.intellij.ui.JreHiDpiUtil
 import java.awt.BasicStroke
 import java.awt.Color
@@ -38,8 +37,9 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.InOrder
-import org.mockito.Mockito
-import org.mockito.Mockito.times
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.whenever
 
 private val PLACEHOLDER_FILL = Color(0xfdfdfd)
 private val PLACEHOLDER_COLOR = Color(0xcccccc)
@@ -415,17 +415,17 @@ fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Floa
 }
 
 fun makeGraphicsMock(): Graphics2D {
-  val graphics = Mockito.mock(Graphics2D::class.java)
+  val graphics = mock<Graphics2D>()
 
-  val metrics = Mockito.mock(FontMetrics::class.java)
+  val metrics = mock<FontMetrics>()
   whenever(graphics.fontMetrics).thenReturn(metrics)
   whenever(graphics.getFontMetrics(any())).thenReturn(metrics)
 
-  val configuration = Mockito.mock(GraphicsConfiguration::class.java)
+  val configuration = mock<GraphicsConfiguration>()
   whenever(graphics.deviceConfiguration).thenReturn(configuration)
-  val device = Mockito.mock(GraphicsDevice::class.java)
+  val device = mock<GraphicsDevice>()
   whenever(configuration.device).thenReturn(device)
-  val transform = Mockito.mock(AffineTransform::class.java)
+  val transform = mock<AffineTransform>()
   whenever(configuration.defaultTransform).thenReturn(transform)
 
   return graphics

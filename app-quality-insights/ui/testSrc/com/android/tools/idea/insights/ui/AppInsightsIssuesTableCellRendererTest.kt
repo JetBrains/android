@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
@@ -30,6 +29,7 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.table.TableColumn
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class AppInsightsIssuesTableCellRendererTest {
 

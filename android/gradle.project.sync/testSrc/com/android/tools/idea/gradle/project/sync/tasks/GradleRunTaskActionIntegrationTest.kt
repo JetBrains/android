@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.tasks
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,6 +38,8 @@ import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames.GRADL
 import org.jetbrains.plugins.gradle.util.GradleTaskClassifier
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class GradleRunTaskActionIntegrationTest {

@@ -49,5 +49,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

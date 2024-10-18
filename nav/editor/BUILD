@@ -87,6 +87,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

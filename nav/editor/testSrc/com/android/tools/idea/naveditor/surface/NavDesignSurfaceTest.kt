@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKotlinUtils.safeEq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.DesignSurfaceTestUtil
@@ -70,12 +69,13 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 /** Tests for [NavDesignSurface] */
 class NavDesignSurfaceTest : NavTestCase() {
@@ -215,8 +215,8 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
-    val modelListener = mock(ModelListener::class.java)
-    val surfaceListener = mock(DesignSurfaceListener::class.java)
+    val modelListener = mock<ModelListener>()
+    val surfaceListener = mock<DesignSurfaceListener>()
     model.addListener(modelListener)
     surface.addListener(surfaceListener)
     assertEquals(model.treeReader.components[0], surface.currentNavigation)
@@ -490,12 +490,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     // Wait for dependencies to be ready
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
-    val editor = mock(DesignerEditorPanel::class.java)
+    val editor = mock<DesignerEditorPanel>()
     val surface =
       NavDesignSurface(project, editor).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
-    @Suppress("UNCHECKED_CAST")
-    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
+    val workbench = mock<WorkBench<DesignSurface<*>>>()
     whenever(editor.workBench).thenReturn(workbench)
     val lock = Semaphore(1)
     lock.acquire()
@@ -614,7 +613,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface =
-      NavDesignSurface(project, mock(DesignerEditorPanel::class.java)).also {
+      NavDesignSurface(project, mock<DesignerEditorPanel>()).also {
         Disposer.register(testRootDisposable, it)
       }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })

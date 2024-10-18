@@ -26,8 +26,8 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 
 class NavComponentTreeTest : NavTestCase() {
   private lateinit var model: NlModel

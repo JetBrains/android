@@ -45,7 +45,7 @@ import java.util.concurrent.ScheduledExecutorService
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
 
 // Fake system packageHash
 const val SYSTEM_PKG = -2
