@@ -219,7 +219,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val taskListener = myListener
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
         myBuildStopper.register(id, cancellationTokenSource)
-        taskListener.onStart(id, gradleRootProjectPath)
+        taskListener.onStart(gradleRootProjectPath, id)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
         val buildState = GradleBuildState.getInstance(project)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
@@ -340,24 +340,24 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           when {
             buildError == null -> {
               buildCompleter.buildFinished(BuildStatus.SUCCESS)
-              taskListener.onSuccess(id)
+              taskListener.onSuccess(gradleRootProjectPath, id)
             }
 
             wasBuildCanceled(buildError) -> {
               buildCompleter.buildFinished(BuildStatus.CANCELED)
-              taskListener.onCancel(id)
+              taskListener.onCancel(gradleRootProjectPath, id)
             }
 
             else -> {
               buildCompleter.buildFinished(BuildStatus.FAILED)
               taskListener.onFailure(
-                id,
+                gradleRootProjectPath, id,
                 GradleProjectResolver.createProjectResolverChain()
                   .getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
               )
             }
           }
-          taskListener.onEnd(id)
+          taskListener.onEnd(gradleRootProjectPath, id)
           myBuildStopper.remove(id)
           if (GuiTestingService.getInstance().isGuiTestingMode) {
             val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)

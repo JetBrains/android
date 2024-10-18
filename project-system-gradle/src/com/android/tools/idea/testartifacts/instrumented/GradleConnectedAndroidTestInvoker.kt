@@ -131,8 +131,7 @@ class GradleConnectedAndroidTestInvoker(
       val testRunIsCancelled = AtomicBoolean(false)
       val onEndIsCalled = AtomicBoolean(false)
 
-      override fun onCancel(id: ExternalSystemTaskId) {
-        super.onCancel(id)
+      override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
         testRunIsCancelled.set(true)
       }
 
@@ -145,12 +144,10 @@ class GradleConnectedAndroidTestInvoker(
         }
       }
 
-      override fun onEnd(id: ExternalSystemTaskId) {
+      override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
         if (onEndIsCalled.getAndSet(true)) {
           return
         }
-
-        super.onEnd(id)
 
         val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
 
@@ -265,7 +262,7 @@ class GradleConnectedAndroidTestInvoker(
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
-        listener.onEnd(externalTaskId)
+        listener.onEnd(path.path, externalTaskId)
       }
     }
   }

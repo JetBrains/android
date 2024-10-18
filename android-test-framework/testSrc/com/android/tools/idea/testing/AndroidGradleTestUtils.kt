@@ -2579,9 +2579,9 @@ fun injectSyncOutputDumper(
         outputHandler(project, text)
       }
 
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
         if (id.ideProjectId != projectId) return
-        syncExceptionHandler(project, e)
+        syncExceptionHandler(project, exception)
       }
     },
     disposable

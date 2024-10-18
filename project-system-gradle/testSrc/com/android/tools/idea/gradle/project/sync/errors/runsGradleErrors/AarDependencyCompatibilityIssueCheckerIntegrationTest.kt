@@ -32,7 +32,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -59,9 +59,9 @@ class AarDependencyCompatibilityIssueCheckerIntegrationTest: AndroidGradleTestCa
       }
     }
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListenerAdapter() {
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-        generatedExceptions.add(e)
+    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
+        generatedExceptions.add(exception)
       }
     }
     val projectPath = project.basePath.orEmpty()

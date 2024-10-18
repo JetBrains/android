@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.project.Project
@@ -71,10 +71,10 @@ class GradleRunTaskActionIntegrationTest {
     }
   }
 
-  private class TestGradleTaskListener: ExternalSystemTaskNotificationListenerAdapter() {
+  private class TestGradleTaskListener: ExternalSystemTaskNotificationListener {
     var capturedException: Exception? = null
 
-    override fun onFailure(id: ExternalSystemTaskId, exception: Exception) {
+    override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
       capturedException = exception
     }
   }
