@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.SdkConstants.TAG_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.testing.TestLoggerUtilsKt.executeCapturingLoggedErrors;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
@@ -565,18 +566,12 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
 
-    boolean errorCaught = false;
-    try {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE);
-        }
-      });
-    } catch (AssertionError expected) {
-      errorCaught = true;
-    }
-    assertTrue(errorCaught);
+    var errors = executeCapturingLoggedErrors(
+      () -> ApplicationManager.getApplication().runReadAction(() -> {
+        NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE);
+      })
+    );
+    assertThat(errors).isNotEmpty();
 
     UIUtil.dispatchAllInvocationEvents();
   }
@@ -592,13 +587,9 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
 
-    boolean errorCaught = false;
-    try {
-      NlComponentHelperKt.createChild(relativeLayout, "", null, InsertType.CREATE);
-    } catch (AssertionError expected) {
-      errorCaught = true;
-    }
-    assertTrue(errorCaught);
+    var errors = executeCapturingLoggedErrors(() -> NlComponentHelperKt.createChild(relativeLayout, "", null, InsertType.CREATE));
+    assertThat(errors).hasSize(1);
+    assertThat(errors.get(0)).startsWith("Unable to create child");
 
     UIUtil.dispatchAllInvocationEvents();
   }
