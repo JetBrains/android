@@ -150,11 +150,8 @@ class DeclarativeDslParser(
     }
 
     if (existingElement != null) {
-      // dslFile can still be different for existing element
       existingElement.setParent(context)
       existingElement.psiElement = psi
-      // We will not need it if we represented the dsl as a proper tree. b/158066552
-      context.refreshAfterPsiSubstitution(existingElement)
       return existingElement
     }
     else {

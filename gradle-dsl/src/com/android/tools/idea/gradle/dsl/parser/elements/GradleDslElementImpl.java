@@ -71,7 +71,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @NotNull protected List<GradlePropertiesDslElement> myHolders = new ArrayList<>();
 
-  @NotNull private final GradleDslFile myDslFile;
+  @NotNull private GradleDslFile myDslFile;
 
   @Nullable private PsiElement myPsiElement;
 
@@ -222,6 +222,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public void setParent(@NotNull GradleDslElement parent) {
     myParent = parent;
+    myDslFile = parent.getDslFile();
   }
 
   @Override
@@ -244,6 +245,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
     myPsiElement = psiElement;
+    if(myParent!=null) myParent.childPsiUpdated(this);
+  }
+
+  // We only update child Psi because we don't have a proper representation of the full tree;
+  // We approximate by updating to the "latest" (textually last) Psi element we've seen while parsing.
+  // As alternative - may aggregate all duplicate elements one DSL element to have full tree data. b/158066552
+  @Override
+  public void childPsiUpdated(@NotNull GradleDslElement childElement) {
   }
 
   @Override

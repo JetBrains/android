@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
 import com.intellij.openapi.command.WriteCommandAction
@@ -160,7 +161,7 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       "build.gradle.dcl",
       ""
     )
-    val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
 
     val block = DependenciesDslElement(dslFile, GradleNameElement.create("dependenciesDeclarative"))
@@ -191,7 +192,7 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       "build.gradle.dcl",
       ""
     )
-    val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
     WriteCommandAction.runWriteCommandAction(project) {

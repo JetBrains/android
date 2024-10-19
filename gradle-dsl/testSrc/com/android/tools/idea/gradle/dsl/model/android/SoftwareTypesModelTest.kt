@@ -81,8 +81,8 @@ class SoftwareTypesModelTest : GradleFileModelTestCase() {
     applyChanges(buildModel)
     buildModel.reparse()
 
-    assertEquals("buildToolsVersion", 22, buildModel.defaults()!!.androidLibrary().buildToolsVersion())
-    assertEquals("buildToolsVersion", 21, buildModel.defaults()!!.androidApp().buildToolsVersion())
+    assertEquals("buildToolsVersion", 22, buildModel.defaults().androidLibrary().buildToolsVersion())
+    assertEquals("buildToolsVersion", 21, buildModel.defaults().androidApp().buildToolsVersion())
   }
 
   @Test
