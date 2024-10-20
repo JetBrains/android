@@ -26,7 +26,7 @@ def generate_searchable_options(work_dir, out_dir):
   suffix = {
     "Windows": "win",
     "Linux": "linux",
-    "Darwin": "mac",
+    "Darwin": "mac_arm" if platform.machine() == "arm64" else "mac" ,
   }
   zip_path = os.path.join("tools/adt/idea/studio/android-studio.%s.zip" % suffix[platform.system()])
   with zipfile.ZipFile(zip_path) as zip_file:

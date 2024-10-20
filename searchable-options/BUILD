@@ -17,6 +17,7 @@ py_test(
     data = [
         "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/adt/idea/studio:android-studio.mac_arm.zip",
         "//tools/adt/idea/studio:android-studio.plugin.lst",
     ],
     imports = ["."],
@@ -32,6 +33,7 @@ py_binary(
     data = [
         "//tools/adt/idea/studio:android-studio.linux.zip",
         "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/adt/idea/studio:android-studio.mac_arm.zip",
         "//tools/adt/idea/studio:android-studio.plugin.lst",
     ],
     tags = [
