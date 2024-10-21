@@ -15,15 +15,25 @@
  */
 package com.android.tools.studio.labs
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable.Promo
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import icons.StudioIcons
 import javax.swing.Icon
+import org.jetbrains.jewel.ui.component.Text
 
 class StudioLabsSettingsConfigurable :
   BoundSearchableConfigurable(
@@ -33,25 +43,57 @@ class StudioLabsSettingsConfigurable :
   ),
   Promo,
   Disposable {
+  private val panelList =
+    listOf(
+      StudioLabsFeaturePanelUi(
+        flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+        heading = "Prompt Library",
+        description =
+          "Allows to store frequently used prompts for quick access." +
+            " Optionally share prompts with other people working on a same project.",
+        imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+        imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+        imageDescription = "Prompt Library settings",
+      )
+    )
 
   override fun createPanel(): DialogPanel = panel {
-    val promptLibraryFlag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED
-    row {
-      checkBox("Enable Prompt Library")
-        .comment(
-          "Allows to store frequently used prompts for quick access. " +
-            "Optionally share prompts with other people working on a same project."
-        )
-        .enabled(true)
-        .bindSelected(
-          getter = { promptLibraryFlag.get() },
-          setter = { promptLibraryFlag.override(it) },
-        )
+    row { cell(StudioComposePanel { StudioLabsPanel() }) }
+  }
+
+  @Composable
+  fun StudioLabsPanel() {
+    val scrollState = rememberScrollState()
+    Column {
+      Text("Opt in to Studio Labs to get early access to experimental features.")
+      Column(modifier = Modifier.verticalScroll(scrollState)) {
+        Spacer(modifier = Modifier.size(12.dp))
+        panelList.chunked(2).forEach { item ->
+          Row {
+            item.forEach {
+              it.PanelContent()
+              Spacer(modifier = Modifier.size(8.dp))
+            }
+          }
+        }
+      }
     }
   }
 
   override fun getPromoIcon(): Icon {
     return StudioIcons.Shell.Menu.STUDIO_LABS
+  }
+
+  override fun isModified(): Boolean {
+    return panelList.any { it.isModified() }
+  }
+
+  override fun apply() {
+    panelList.forEach { it.apply() }
+  }
+
+  override fun reset() {
+    panelList.forEach { it.reset() }
   }
 
   override fun dispose() {}
