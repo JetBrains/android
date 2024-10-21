@@ -211,7 +211,7 @@ private val virtualDeviceName =
 private val playColumn =
   TableColumn<VirtualDeviceProfile>(
     "Play",
-    TableColumnWidth.Fixed(40.dp),
+    TableColumnWidth.Fixed(45.dp),
     comparator = compareBy { it.isGooglePlaySupported },
   ) {
     if (it.isGooglePlaySupported) {
