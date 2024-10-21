@@ -43,6 +43,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -54,7 +55,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -129,9 +129,9 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   private ListenableFuture<DexReferences> myDexReferences;
 
   @NotNull public static final NotificationGroup LOGGING_NOTIFICATION =
-    NotificationGroup.logOnlyGroup("APK Analyzer (Info)", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("APK Analyzer (Info)");
   @NotNull public static final NotificationGroup BALLOON_NOTIFICATION =
-    NotificationGroup.balloonGroup("APK Analyzer (Important)", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("APK Analyzer (Important)");
 
   public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
     Preconditions.checkArgument(dexFiles.length > 0 || apkFolder != null, "Must have at least one dex file or an APK folder");
