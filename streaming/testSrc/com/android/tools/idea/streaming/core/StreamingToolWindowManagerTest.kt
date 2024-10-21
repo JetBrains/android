@@ -67,6 +67,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -107,7 +108,6 @@ import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JViewport
 import javax.swing.SwingConstants
-import javax.swing.UIManager
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -143,8 +143,10 @@ class StreamingToolWindowManagerTest {
 
   @Before
   fun setUp() {
+    val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
+    whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("IntelliJ Light")
     val mockLafManager = mock<LafManager>()
-    whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
+    whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
     deviceMirroringSettings.confirmationDialogShown = true
   }

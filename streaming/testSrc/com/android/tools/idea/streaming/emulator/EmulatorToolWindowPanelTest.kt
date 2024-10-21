@@ -58,7 +58,7 @@ import com.intellij.configurationStore.serialize
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.ui.LafManager
-import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -754,8 +754,10 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
 
     // Check EmulatorShowVirtualSensorsAction.
+    val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
+    whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("Darcula")
     val mockLafManager = mock<LafManager>()
-    whenever(mockLafManager.currentLookAndFeel).thenReturn(DarculaLookAndFeelInfo())
+    whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
     foldingActions.last().actionPerformed(event)

@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -30,12 +31,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import javax.swing.UIManager
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Tests for [EmulatorShowExtendedControlsAction].
- */
+/** Tests for [EmulatorShowExtendedControlsAction]. */
 @RunsInEdt
 class EmulatorShowExtendedControlsActionTest {
   private val emulatorViewRule = EmulatorViewRule()
@@ -44,8 +42,10 @@ class EmulatorShowExtendedControlsActionTest {
 
   @Test
   fun testShowExtendedControls() {
+    val mockUIThemeLookAndFeelInfo = mock<UIThemeLookAndFeelInfoImpl>()
+    whenever(mockUIThemeLookAndFeelInfo.name).thenReturn("High contrast")
     val mockLafManager = mock<LafManager>()
-    whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
+    whenever(mockLafManager.currentUIThemeLookAndFeel).thenReturn(mockUIThemeLookAndFeelInfo)
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.disposable)
 
     val view = emulatorViewRule.newEmulatorView()
