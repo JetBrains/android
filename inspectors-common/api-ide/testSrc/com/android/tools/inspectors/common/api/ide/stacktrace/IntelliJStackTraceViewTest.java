@@ -21,7 +21,6 @@ import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.fail;
 
-import com.android.testutils.AssumeUtil;
 import com.android.testutils.AsyncTestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeMouse;
@@ -176,9 +175,6 @@ public class IntelliJStackTraceViewTest {
 
   @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() {
-    // TODO(b/370593428): Remove this assume
-    AssumeUtil.assumeNotWindows();
-
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};

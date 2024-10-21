@@ -47,9 +47,14 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     press(x, y, button, 1)
   }
 
-  private fun press(x: Int, y: Int, button: Button, clickCount: Int): Cursor {
+  @JvmOverloads
+  fun press(point: Point, button: Button = Button.LEFT) {
+    press(point.x, point.y, button, 1)
+  }
+
+  private fun press(x: Int, y: Int, button: Button, clickCount: Int, timestamp: Long = System.currentTimeMillis()): Cursor {
     check(cursor == null) { "Mouse already pressed. Call release before pressing again." }
-    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount, button == Button.RIGHT)
+    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button, clickCount, button == Button.RIGHT, timestamp)
     return Cursor(button, x, y).also { cursor = it }
   }
 
@@ -71,14 +76,14 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
       if (focus != null) {
         val relative = fakeUi.toRelative(focus, x, y)
         val relativePoint = RelativePoint(focus, relative.x, relative.y)
-        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, cursor.button.mask, 0, 1, false)
+        dispatchMouseEvent(relativePoint, MouseEvent.MOUSE_EXITED, cursor.button.mask, 0, 1, false, System.currentTimeMillis())
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, cursor.button.mask, 0, 1, false)
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, cursor.button.mask, 0, 1, false, System.currentTimeMillis())
       }
     }
     if (target != null) {
-      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false)
+      dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, cursor.button, 1, false, System.currentTimeMillis())
       this.cursor = Cursor(cursor, x, y)
     }
   }
@@ -99,31 +104,39 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
    * and/or MOUSE_EXITED events, if the mouse pointer crosses component boundaries.
    */
   fun moveTo(x: Int, y: Int) {
+    moveTo(x, y, System.currentTimeMillis())
+  }
+
+  private fun moveTo(x: Int, y: Int, timestamp: Long) {
     val point = fakeUi.targetMouseEvent(x, y)
     val target = point?.component
     val focus = this.focus
     if (target !== focus) {
       if (focus != null) {
         val converted = fakeUi.toRelative(focus, x, y)
-        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 1, false)
+        dispatchMouseEvent(RelativePoint(focus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0, 1, false, timestamp)
       }
       if (target != null) {
-        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 1, false)
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0, 1, false, timestamp)
       }
     }
     if (target != null) {
-      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 1, false)
+      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0, 1, false, timestamp)
     }
   }
 
   fun release() {
+    release(System.currentTimeMillis())
+  }
+
+  private fun release(timestamp: Long) {
     val cursor = this.cursor ?: throw IllegalStateException("Mouse not pressed. Call press before releasing.")
     this.cursor = null
     val point = fakeUi.targetMouseEvent(cursor.x, cursor.y) ?: return
     // The DOWN_MASK bit for released button should be 0 for MOUSE_RELEASED events.
     val modifiers = cursor.button.mask and
         (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK or InputEvent.BUTTON3_DOWN_MASK).inv()
-    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 1, false)
+    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 1, false, timestamp)
   }
 
   /**
@@ -134,16 +147,16 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
    */
   @JvmOverloads
   fun click(x: Int, y: Int, button: Button = Button.LEFT) {
-    click(x, y, button, 1)
+    click(x, y, button, 1, System.currentTimeMillis())
   }
 
-  private fun click(x: Int, y: Int, button: Button, clickCount: Int) {
+  private fun click(x: Int, y: Int, button: Button, clickCount: Int, timestamp: Long) {
     check(cursor == null) { "Mouse already pressed. Call release before clicking." }
-    moveTo(x, y)
-    val cursor = press(x, y, button, clickCount)
-    release()
+    moveTo(x, y, timestamp)
+    val cursor = press(x, y, button, clickCount, timestamp)
+    release(timestamp)
     // PRESSED + RELEASED should additionally fire a CLICKED event
-    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false)
+    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button, clickCount, false, timestamp)
   }
 
   /**
@@ -155,8 +168,9 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   @JvmOverloads
   fun doubleClick(x: Int, y: Int, button: Button = Button.LEFT) {
     check(cursor == null) { "Mouse already pressed. Call release before double-clicking." }
-    click(x, y, button, 1)
-    click(x, y, button, 2)
+    val timestamp = System.currentTimeMillis()
+    click(x, y, button, 1, timestamp)
+    click(x, y, button, 2, timestamp)
   }
 
   /**
@@ -172,12 +186,8 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     release()
   }
 
-  fun press(point: Point) {
-    press(point.x, point.y, Button.LEFT)
-  }
-
   fun rightClick(x: Int, y: Int) {
-    click(x, y, Button.RIGHT, 1)
+    click(x, y, Button.RIGHT, 1, System.currentTimeMillis())
   }
 
   /**
@@ -188,12 +198,12 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
     dispatchMouseWheelEvent(x, y, rotation)
   }
 
-  private fun dispatchMouseEvent(eventType: Int, x: Int, y: Int, button: Button, clickCount: Int, popupTrigger: Boolean) {
+  private fun dispatchMouseEvent(eventType: Int, x: Int, y: Int, button: Button, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
     val point = fakeUi.targetMouseEvent(x, y)
     if (point != null) {
       // Rare, but can happen if, say, a release mouse event closes a component, and then we try to
       // fire a followup clicked event on it.
-      dispatchMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger)
+      dispatchMouseEvent(point, eventType, button.mask, button.code, clickCount, popupTrigger, timestamp)
     }
   }
 
@@ -207,11 +217,12 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
    * @param clickCount The number of consecutive clicks passed in the event. This is not how many
    *     times to issue the event but how many times a click has occurred.
    * @param popupTrigger should this event trigger a popup menu.
+   * @param timestamp the timestamp of the event is milliseconds since epoch
    */
   private fun dispatchMouseEvent(
-      point: RelativePoint, eventType: Int, modifiers: Int, button: Int, clickCount: Int, popupTrigger: Boolean) {
+      point: RelativePoint, eventType: Int, modifiers: Int, button: Int, clickCount: Int, popupTrigger: Boolean, timestamp: Long) {
     val event = MouseEvent(
-        point.component, eventType, System.currentTimeMillis(), keyboard.toModifiersCode() or modifiers,
+        point.component, eventType, timestamp, keyboard.toModifiersCode() or modifiers,
         point.x, point.y, clickCount, popupTrigger, button)
     point.component.dispatchEvent(event)
     focus = if (eventType == MouseEvent.MOUSE_EXITED) null else point.component
