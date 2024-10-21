@@ -109,7 +109,7 @@ fun <T, V> SingleSelectionDropdown(values: List<V>, state: SingleSelectionFilter
 @Composable
 fun <T, V> SingleSelectionRadioButtons(values: List<V>, state: SingleSelectionFilterState<T, V>) {
   Column(modifier = Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-    GroupHeader(state.attribute.name)
+    GroupHeader(state.attribute.name, modifier = Modifier.padding(bottom = 6.dp))
 
     for (value in values) {
       RadioButtonRow(selected = state.selection == value, onClick = { state.selection = value }) {
