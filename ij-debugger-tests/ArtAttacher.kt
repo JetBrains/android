@@ -38,8 +38,6 @@ import java.nio.file.Path
 import java.security.MessageDigest
 import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.io.path.*
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit.MILLISECONDS
 import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
 import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
 
@@ -94,7 +92,10 @@ internal class ArtAttacher : VmAttacher {
 
   private fun getRemoteConnection(testCase: KotlinDescriptorTestCase, javaParameters: JavaParameters): RemoteConnection {
     println("Running on ART VM with DEX Cache")
-    testCase.setTimeout(getTestTimeoutMillis())
+    val timeout = getTestTimeoutMillis()
+    if (timeout != null) {
+      testCase.setTimeout(timeout.toInt())
+    }
     val mainClass = javaParameters.mainClass
     val dexFiles = buildDexFiles(javaParameters.classPath.pathList)
     if (DEX_CACHE == null) {
@@ -203,7 +204,7 @@ private fun getConfig(property: String, env: String): String? {
 }
 
 private fun getTestTimeoutMillis() =
-  getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull() ?: 30.seconds.toInt(MILLISECONDS)
+  getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull()
 
 private fun getStudioRoot(): Path {
   val path = getConfig(STUDIO_ROOT_PROPERTY, STUDIO_ROOT_ENV) ?: throw IllegalStateException("Studio Root was not provided")
