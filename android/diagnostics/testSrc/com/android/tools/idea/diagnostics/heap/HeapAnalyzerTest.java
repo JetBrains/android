@@ -702,7 +702,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     D d3 = new D(b2);
 
     roots.add(d1);
-    roots.add(List.of(d2));
+    List<Object> l = List.of(d2);
+    roots.add(l);
     roots.add(d3);
 
     Disposer.register(d1, b);
@@ -719,6 +720,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertExtendedMemoryReport("testDisposedObjectsInExtendedReport", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testDisposedObjectsInExtendedReport", serializedExtendedReport);
+    // JVM collects the list in rare cases, so lets hold it
+    Assert.assertEquals(1, l.size());
   }
 
   @Test
@@ -793,7 +796,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     B b = new B();
     D d = new D(b, new B());
 
-    roots.add(List.of(d, "test"));
+    List<Object> l = List.of(d, "test");
+    roots.add(l);
 
     Disposer.dispose(b);
 
@@ -807,6 +811,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertExtendedMemoryReport("testEssentialNominatedTypesInSummary", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+    // JVM collects the list in rare cases, so lets hold it
+    Assert.assertEquals(2, l.size());
   }
 
   @Test
