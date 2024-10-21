@@ -22,19 +22,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-
-fun PreparedTestProject.Context.performWithoutSync(
-  action: AndroidMavenImportIntentionAction,
-  element: PsiElement,
-) {
-  action.perform(project, fixture.editor, element, false)
-}
 
 fun PreparedTestProject.Context.performAndWaitForSyncEnd(invoke: () -> Unit) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
