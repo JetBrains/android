@@ -42,8 +42,6 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param padding The padding used for content organized in groups (with a header for each group).
  * @param transform The lambda that converts the [PositionableContent]s in [PositionableGroup]s
  *   taking care to add headers when needed.
- *
- * TODO(b/321949200) Add tests
  */
 class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
@@ -126,7 +124,8 @@ class GridLayoutManager(
   }
 
   /** Get the total required size of the [PositionableContent]s in grid layout. */
-  private fun getGroupSize(
+  @VisibleForTesting
+  fun getGroupSize(
     layoutGroup: GridLayoutGroup,
     scaleFunc: PositionableContent.() -> Double,
   ): Dimension {

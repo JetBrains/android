@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Dimension
 import java.awt.Point
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * This layout puts the previews in the same group together using the [transform] function.
@@ -80,7 +81,8 @@ abstract class GroupedSurfaceLayoutManager(
   }
 
   /** @param sizeFunc Deprecated. Use PositionableContent size directly */
-  protected abstract fun getSize(
+  @VisibleForTesting
+  abstract fun getSize(
     content: Collection<PositionableContent>,
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
