@@ -44,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import icons.StudioIconsCompose
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
@@ -193,7 +194,12 @@ object DeviceTableColumns {
     )
 }
 
+/**
+ * A panel to be used when there is no data to show. Displays text in the center in a lighter color.
+ */
 @Composable
-private fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
-  Box(modifier) { Text(text, Modifier.align(Alignment.Center)) }
+fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
+  Box(modifier) {
+    Text(text, Modifier.align(Alignment.Center), color = JewelTheme.globalColors.text.info)
+  }
 }

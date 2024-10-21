@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.DeviceSystemImageMatcher
@@ -34,6 +32,7 @@ import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
+import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.WizardAction
@@ -61,7 +60,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.ui.component.Text
 
 private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
   return image.androidVersion.apiLevel >= SdkVersionInfo.LOWEST_ACTIVE_API &&
@@ -100,9 +98,7 @@ internal fun WizardPageScope.ConfigurationPage(
     !systemImageState.hasLocal ||
       (!isTimedOut && !systemImageState.hasRemote && systemImageState.error == null)
   ) {
-    Box(Modifier.fillMaxSize()) {
-      Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
-    }
+    EmptyStatePanel("Loading system images...", Modifier.fillMaxSize())
     return
   }
 
@@ -111,9 +107,7 @@ internal fun WizardPageScope.ConfigurationPage(
       images = systemImageState.images.filter { matches(device, it) }.toImmutableList()
     )
   if (filteredImageState.images.isEmpty()) {
-    Box(Modifier.fillMaxSize()) {
-      Text("No system images available.", modifier = Modifier.align(Alignment.Center))
-    }
+    EmptyStatePanel("No system images available.", Modifier.fillMaxSize())
     return
   }
 
