@@ -179,10 +179,14 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
         binder_class_.MakeGlobal();
         device_state_manager_.MakeGlobal();
 
-        // Instantiate DeviceStateManagerCallback and call IDeviceStateManager.registerCallback passing it as the parameter.
-        clazz = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
-        JObject callback = clazz.NewObject(clazz.GetConstructor("()V"));
-        device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
+        if (Agent::feature_level() != 34 || Agent::device_manufacturer() != XIAOMI) {
+          // Instantiate DeviceStateManagerCallback and call IDeviceStateManager.registerCallback passing it as the parameter.
+          // Don't do it on Xiaomi API 34 to avoid a crash due to
+          // "SecurityException: The calling process has already registered an IDeviceStateManagerCallback"
+          clazz = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
+          JObject callback = clazz.NewObject(clazz.GetConstructor("()V"));
+          device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
+        }
 
         // Obtain a fresh device state info after setting up the callback.
         JObject device_state_info2 = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
