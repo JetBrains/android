@@ -30,5 +30,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

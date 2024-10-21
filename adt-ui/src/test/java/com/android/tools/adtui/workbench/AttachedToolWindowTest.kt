@@ -16,7 +16,7 @@
 package com.android.tools.adtui.workbench
 
 import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import com.android.tools.adtui.common.AdtUiUtils.getActionMask
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.popup.FakeJBPopup

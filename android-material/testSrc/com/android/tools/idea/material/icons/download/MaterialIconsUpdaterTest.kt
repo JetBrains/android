@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.material.icons.download
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
@@ -35,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createFile

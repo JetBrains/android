@@ -25,8 +25,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
+import org.mockito.kotlin.whenever
 
 /**
  * Unit tests for the [MapViewModel].

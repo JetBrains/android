@@ -28,6 +28,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.glance-designer" />
 </module>

@@ -41,5 +41,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.k1" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

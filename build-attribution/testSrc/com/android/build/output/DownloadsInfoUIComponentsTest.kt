@@ -20,7 +20,6 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository
 import com.android.build.attribution.analyzers.url1
 import com.android.build.attribution.analyzers.url2
 import com.android.build.attribution.analyzers.url3
-import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
@@ -52,6 +51,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.awt.Dimension
 
 private val gradleVersion_7_2 = GradleVersion.version("7.2")
@@ -147,7 +147,7 @@ class DownloadsInfoExecutionConsoleTest {
   private lateinit var buildId: ExternalSystemTaskId
   private lateinit var executionConsole: DownloadsInfoExecutionConsole
   private lateinit var buildDisposable: CheckedDisposable
-  private val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
+  private val featureSurveysMock: FeatureSurveys = mock()
 
   private val reposTable: TableView<*>
     get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "repositories table" }.filterIsInstance<TableView<*>>().single()

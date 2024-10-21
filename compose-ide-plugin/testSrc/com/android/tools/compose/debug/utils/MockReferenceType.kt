@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.sun.jdi.ClassType
 import com.sun.jdi.Field
@@ -27,11 +26,12 @@ import com.sun.jdi.ReferenceType
 import com.sun.jdi.ThreadReference
 import com.sun.jdi.Value
 import com.sun.jdi.VirtualMachine
+import org.mockito.kotlin.mock
 
 sealed class MockReferenceType(
   private val debugProcess: DebugProcessImpl,
   private val name: String,
-) : ReferenceType by MockitoKt.mock() {
+) : ReferenceType by mock() {
   private val methods = mutableListOf<Method>()
 
   override fun methods(): List<Method> = methods

@@ -21,19 +21,11 @@ import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
-import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth
-import org.gradle.tooling.Failure
-import org.gradle.tooling.events.FailureResult
-import org.gradle.tooling.events.OperationDescriptor
-import org.gradle.tooling.events.SuccessResult
-import org.gradle.tooling.events.download.FileDownloadFinishEvent
-import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
-import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.util.GradleVersion
 import org.junit.Test
 import org.mockito.Mockito
-import java.net.URI
+import org.mockito.kotlin.mock
 
 class DownloadsAnalyzerUnitTest {
 
@@ -185,7 +177,7 @@ class DownloadsAnalyzerUnitTest {
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = MockitoKt.mock()
+        buildRequestHolder = mock()
       )
     )
 
@@ -255,7 +247,7 @@ class DownloadsAnalyzerUnitTest {
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = MockitoKt.mock()
+        buildRequestHolder = mock()
       )
     )
 

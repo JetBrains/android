@@ -15,12 +15,12 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.jdi.GeneratedLocation
 import com.sun.jdi.Location
 import com.sun.jdi.Method
 import com.sun.jdi.ReferenceType
+import org.mockito.kotlin.mock
 
 class MockMethod(
   private val name: String,
@@ -29,7 +29,7 @@ class MockMethod(
   private val lines: List<Int>,
   private val declaringType: ReferenceType,
   private val debugProcess: DebugProcessImpl,
-) : Method by MockitoKt.mock() {
+) : Method by mock() {
   override fun name() = name
 
   override fun declaringType(): ReferenceType = declaringType

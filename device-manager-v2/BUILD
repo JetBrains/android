@@ -43,5 +43,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/avd:intellij.android.avd[module]",
         "//tools/adt/idea/intellij.android.device[module]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

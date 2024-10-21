@@ -17,7 +17,6 @@ package com.android.tools.idea
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.whenever
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.CountDownLatch

@@ -33,7 +33,6 @@ import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
@@ -46,6 +45,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class AvdOptionsModelTest : AndroidTestCase() {
 

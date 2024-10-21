@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.Disposable

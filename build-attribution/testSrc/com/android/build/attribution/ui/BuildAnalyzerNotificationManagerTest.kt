@@ -33,7 +33,6 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.migrateSetting
 import com.android.buildanalyzer.common.TaskCategoryIssue
-import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -46,13 +45,13 @@ import com.intellij.build.BuildContentManagerImpl
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
-import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.Notifications
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.content.impl.ContentImpl
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.util.UUID
 import javax.swing.JPanel
 
@@ -66,7 +65,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   private var notificationCounter = 0
 
   private lateinit var buildAttributionUiManager: BuildAttributionUiManagerImpl
-  private val buildAnalyzerStorageMock = MockitoKt.mock<BuildAnalyzerStorageManager>()
+  private val buildAnalyzerStorageMock = mock<BuildAnalyzerStorageManager>()
 
   override fun setUp() {
     super.setUp()

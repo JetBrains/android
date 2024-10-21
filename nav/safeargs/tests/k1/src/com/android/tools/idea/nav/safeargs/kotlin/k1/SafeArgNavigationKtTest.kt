@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -35,6 +34,7 @@ import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class SafeArgNavigationKtTest {
@@ -80,7 +80,7 @@ class SafeArgNavigationKtTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -257,7 +257,7 @@ class SafeArgNavigationKtTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
