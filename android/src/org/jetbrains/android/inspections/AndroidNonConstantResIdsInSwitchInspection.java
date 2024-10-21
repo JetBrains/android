@@ -17,8 +17,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionTool {
-  private final ReplaceSwitchWithIfIntention myBaseIntention = new ReplaceSwitchWithIfIntention();
-
   @Nls
   @NotNull
   @Override
