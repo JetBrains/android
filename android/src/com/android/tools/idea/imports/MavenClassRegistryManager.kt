@@ -26,14 +26,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.util.application
 import java.nio.file.Paths
-import java.time.Duration
 import kotlinx.coroutines.CoroutineScope
 
 /** Key used in cache directories to locate the gmaven.index network cache. */
 private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
-
-/** Scheduled refreshment interval for local disk cache. */
-private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
 
 /**
  * An application service responsible for downloading index from network and populating the
@@ -46,7 +42,6 @@ class MavenClassRegistryManager(coroutineScope: CoroutineScope) {
     GMavenIndexRepository(
       BASE_URL,
       Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
-      REFRESH_INTERVAL,
       coroutineScope,
     )
 
