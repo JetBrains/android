@@ -323,10 +323,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     boolean allDex = true;
     for (ArchiveTreeNode path : nodes) {
       if (path == null) {
-        continue;
+        allDex = false;
+        break;
       }
       Path fileName = path.getData().getPath().getFileName();
-      if (fileName != null && !fileName.toString().endsWith(SdkConstants.EXT_DEX)){
+      if (fileName == null || !fileName.toString().endsWith(SdkConstants.EXT_DEX)){
         allDex = false;
         break;
       }
@@ -345,6 +346,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     ArchiveTreeNode n = nodes[0];
     Path p = n.getData().getPath();
     Path fileName = p.getFileName();
+    if (fileName == null) {
+      return new EmptyPanel();
+    }
     if ("resources.arsc".equals(fileName.toString())) {
       byte[] arscContent;
       try {
