@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.modes
+package com.android.tools.idea.uibuilder.layout.positionable
 
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
-import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
-import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class SurfaceLayoutOptionTest {
+class PositionableGroupTest {
 
   @Test
   fun groupByOrganizationId1() {

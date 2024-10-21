@@ -26,10 +26,10 @@ import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutMa
 import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
+import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import org.jetbrains.annotations.VisibleForTesting
 
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   dynamicPadding(scale, 5, 20)
@@ -71,54 +71,6 @@ private fun dynamicPadding(scale: Double, min: Int, max: Int): Int =
 private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
   listOf(PositionableGroup(it.toList()))
 }
-
-@VisibleForTesting
-val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
-  { contents ->
-    val groups = mutableMapOf<Any?, MutableList<PositionableContent>>()
-    for (content in contents) {
-      groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
-    }
-
-    groups.values
-      .fold(Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>())) {
-        temp,
-        next ->
-        val hasHeader = next.any { it is HeaderPositionableContent }
-        // If next is not in its own group - keep it in temp.second
-        if (!hasHeader) {
-          temp.second.addAll(next)
-        }
-
-        // Temp.second contains all consecutive previews without its own group.
-        // If next is not in a group or if it is the last element, group all collected
-        // previews as one group
-        if (hasHeader || groups.values.last() == next) {
-          if (temp.second.isNotEmpty()) {
-            temp.first.add(
-              PositionableGroup(
-                temp.second.filter { it !is HeaderPositionableContent },
-                temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-              )
-            )
-            temp.second.clear()
-          }
-        }
-
-        // If next has its own group - it will have its own PositionableGroup
-        if (hasHeader) {
-          temp.first.add(
-            PositionableGroup(
-              next.filter { it !is HeaderPositionableContent },
-              next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
-            )
-          )
-        }
-
-        temp
-      }
-      .first
-  }
 
 private val galleryPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
