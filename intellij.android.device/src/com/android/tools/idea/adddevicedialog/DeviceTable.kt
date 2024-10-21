@@ -76,10 +76,16 @@ fun <DeviceT : DeviceProfile> DeviceTable(
     first = { DeviceFiltersPanel { filterContent() } },
     second = {
       Column {
-        Row(Modifier.padding(horizontal = 6.dp)) {
+        Row(Modifier.padding(horizontal = 4.dp)) {
           TextField(
             textState,
-            leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
+            leadingIcon = {
+              Icon(
+                StudioIconsCompose.Common.Search,
+                contentDescription = "Search",
+                Modifier.padding(end = 4.dp),
+              )
+            },
             trailingIcon =
               (@Composable {
                   Icon(
@@ -91,11 +97,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
                 })
                 .takeIf { textState.text.isNotEmpty() },
             placeholder = {
-              Text(
-                filterState.textFilter.description,
-                fontWeight = FontWeight.Light,
-                modifier = Modifier.padding(start = 4.dp),
-              )
+              Text(filterState.textFilter.description, fontWeight = FontWeight.Light)
             },
             modifier = Modifier.weight(1f).padding(2.dp),
           )
