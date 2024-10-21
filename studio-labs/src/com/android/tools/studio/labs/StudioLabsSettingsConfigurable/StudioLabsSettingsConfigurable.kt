@@ -27,7 +27,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.STUDIO_LABS_EVENT
+import com.google.wireless.android.sdk.stats.StudioLabsEvent
+import com.google.wireless.android.sdk.stats.StudioLabsEvent.PageInteraction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable.Promo
@@ -47,8 +52,9 @@ class StudioLabsSettingsConfigurable :
   Promo,
   Disposable {
 
-  override fun createPanel(): DialogPanel = panel {
-    row { cell(StudioComposePanel { StudioLabsPanel() }) }
+  override fun createPanel(): DialogPanel {
+    log(PageInteraction.OPENED)
+    return panel { row { cell(StudioComposePanel { StudioLabsPanel() }) } }
   }
 
   @Composable
@@ -79,6 +85,8 @@ class StudioLabsSettingsConfigurable :
   }
 
   override fun apply() {
+    // Handles both apply and Ok button clicks
+    log(PageInteraction.APPLY_BUTTON_CLICKED)
     PANEL_LIST.forEach { it.apply() }
   }
 
@@ -105,6 +113,14 @@ class StudioLabsSettingsConfigurable :
 
     fun isThereAnyFeatureInLabs(): Boolean {
       return PANEL_LIST.isNotEmpty()
+    }
+
+    private fun log(pageInteraction: PageInteraction) {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(STUDIO_LABS_EVENT)
+          .setStudioLabsEvent(StudioLabsEvent.newBuilder().setPageInteraction(pageInteraction))
+      )
     }
   }
 }
