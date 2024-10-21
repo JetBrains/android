@@ -32,13 +32,13 @@ import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
@@ -199,9 +199,7 @@ class DeviceTableTest {
     tableSelectionState.selection = TestDevices.allTestDevices[0]
 
     // Select the Pixel 5.
-    composeTestRule.onNodeWithText(TestDevices.remotePixel5.name).requestFocus().performKeyInput {
-      keyPress(Key.Spacebar)
-    }
+    composeTestRule.onNodeWithText(TestDevices.remotePixel5.name).performClick()
 
     assertThat(tableSelectionState.selection).isEqualTo(TestDevices.remotePixel5)
     composeTestRule.onNodeWithText(TestDevices.remotePixel5.name).assertIsSelected()
@@ -249,20 +247,62 @@ class DeviceTableTest {
 
     composeTestRule.onNodeWithText(devices[0].name).performClick()
     composeTestRule.onNodeWithText(devices[0].name).assertIsSelected()
-    composeTestRule.onNodeWithText(devices[0].name).assertIsFocused()
 
     for (i in 1 until devices.size) {
       composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionDown) }
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText(devices[i].name).assertIsSelected()
-      composeTestRule.onNodeWithText(devices[i].name).assertIsFocused()
     }
     for (i in devices.size - 2 downTo 0) {
       composeTestRule.onRoot().performKeyInput { keyPress(Key.DirectionUp) }
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithText(devices[i].name).assertIsSelected()
-      composeTestRule.onNodeWithText(devices[i].name).assertIsFocused()
     }
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun focus() {
+    val tableSelectionState = TableSelectionState<TestDevice>()
+    val devices = (1..30).map { TestDevices.mediumPhone.copy(name = "Medium Phone $it") }.toList()
+
+    composeTestRule.setContent {
+      val filterState = TestDeviceFilterState()
+      DeviceTable(
+        devices,
+        columns = testDeviceTableColumns,
+        filterContent = { /* no filters */ },
+        filterState = filterState,
+        tableSelectionState = tableSelectionState,
+        modifier = Modifier.size(400.dp, 100.dp),
+      )
+    }
+
+    // Focus starts on the search bar
+    composeTestRule.onNode(hasSetTextAction()).assertIsFocused()
+
+    // Next is details button
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithContentDescription("Details").assertIsFocused()
+
+    // Next are the column headings
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("OEM").assertIsFocused()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("Name").assertIsFocused()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("Width").assertIsFocused()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("Height").assertIsFocused()
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNodeWithText("Density").assertIsFocused()
+
+    // Next is the table body
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+
+    // Finally back to the search bar
+    composeTestRule.onRoot().performKeyInput { keyPress(Key.Tab) }
+    composeTestRule.onNode(hasSetTextAction()).assertIsFocused()
   }
 
   @Test
