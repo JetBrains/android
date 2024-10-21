@@ -110,8 +110,6 @@ class GridLayoutManager(
     var groupRequiredWidth = 0
     var groupRequiredHeight = 0
     layoutGroup.header?.let {
-      // Header doesn't need to calculate additional margins (check
-      // SceneViewHeader). Headers aren't affected by scale change.
       val scale = it.scaleFunc()
       val bottomPadding = padding.previewBottomPadding(scale, it)
       groupRequiredHeight += it.sizeForScale(scale).height + bottomPadding
@@ -260,6 +258,12 @@ class GridLayoutManager(
     // The current column in the layout.
     var columnList = mutableListOf<PositionableContent>()
 
+    // Actual width to fill is less as there is also canvas and group paddings.
+    val widthToFill =
+      availableWidth -
+        padding.canvasLeftPadding -
+        if (group.hasHeader) padding.groupLeftPadding else 0
+
     // Once we have initialized columnList and nextX for the first preview, we can proceed checking
     // all the remaining content.
     group.content.forEach { view ->
@@ -269,7 +273,7 @@ class GridLayoutManager(
       //    * The total scaled width of the view.
       //    * The right preview padding of the view.
       val nextViewWidth = scaledWidth + padding.previewRightPadding(scale, view)
-      if (nextX + nextViewWidth > availableWidth && columnList.isNotEmpty()) {
+      if (nextX + nextViewWidth > widthToFill && columnList.isNotEmpty()) {
         // If the current calculated width and the one we have calculated in the previous iterations
         // is exceeding the available space, we reset the column and nextX so we can add the view on
         // a new line.
