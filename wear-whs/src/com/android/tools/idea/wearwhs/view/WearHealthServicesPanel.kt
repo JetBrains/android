@@ -259,11 +259,13 @@ private fun createCenterPanel(
                     }
                   stateManager
                     .getState(capability)
-                    .map { it.currentState.overrideValue }
-                    .onEach { overrideValue ->
-                      val overrideValueAsText = overrideValue.asText().trim()
-                      if (!textField.isFocusOwner && textField.text.trim() != overrideValueAsText) {
-                        textField.text = overrideValueAsText
+                    .map { it.currentState }
+                    .onEach { state ->
+                      val overrideValueAsText = state.overrideValue.asText().trim()
+                      when {
+                        !state.enabled -> textField.text = ""
+                        !textField.isFocusOwner && textField.text.trim() != overrideValueAsText ->
+                          textField.text = overrideValueAsText
                       }
                     }
                     .launchIn(uiScope)

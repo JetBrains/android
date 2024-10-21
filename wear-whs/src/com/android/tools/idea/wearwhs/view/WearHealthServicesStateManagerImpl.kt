@@ -236,7 +236,7 @@ internal class WearHealthServicesStateManagerImpl(
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val dataValue = capability.dataType.value(value)
       val uiState = stateFlow.value
-      if (dataValue == uiState.currentState.overrideValue) {
+      if (dataValue == uiState.currentState.overrideValue || !uiState.currentState.enabled) {
         return
       }
 
@@ -254,7 +254,9 @@ internal class WearHealthServicesStateManagerImpl(
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val uiState = stateFlow.value
-      if (uiState.currentState.overrideValue is WhsDataValue.NoValue) {
+      if (
+        uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled
+      ) {
         return
       }
       val newState = uiState.currentState.clearOverride()
