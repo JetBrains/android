@@ -128,13 +128,19 @@ internal fun WizardPageScope.ConfigurationPage(
             filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
               it.isRecommended()
             },
-            Mode.ADD,
           )
 
         state.setSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
         state
       } else {
-        ConfigureDevicePanelState(device, skins, image, Mode.EDIT)
+        val copy =
+          if (device.expandedStorage is Custom) {
+            device.copy(existingCustomExpandedStorage = device.expandedStorage.withMaxUnit())
+          } else {
+            device
+          }
+
+        ConfigureDevicePanelState(copy, skins, image)
       }
     }
 

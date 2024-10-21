@@ -613,15 +613,10 @@ private fun PreferredAbiGroup(
   }
 }
 
-internal class StorageGroupState
-internal constructor(device: VirtualDevice, private val mode: Mode) {
+internal class StorageGroupState internal constructor(private val device: VirtualDevice) {
   internal var selectedRadioButton by mutableStateOf(RadioButton.valueOf(device.expandedStorage))
   internal var custom by mutableStateOf<StorageCapacity?>(customValue(device))
   internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
-
-  /** The initial value of Expanded storage - Custom before any edits */
-  private val oldCustom =
-    if (device.expandedStorage is Custom) device.expandedStorage.withMaxUnit() else null
 
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
@@ -636,12 +631,12 @@ internal constructor(device: VirtualDevice, private val mode: Mode) {
 
   internal fun isCustomChangedWarningVisible(isValid: Boolean) =
     when {
-      mode != Mode.EDIT -> false
       selectedRadioButton != RadioButton.CUSTOM -> false
       !isValid -> false
+      device.existingCustomExpandedStorage == null -> false
       else -> {
         val value = custom
-        value != null && oldCustom != Custom(value.withMaxUnit())
+        value != null && device.existingCustomExpandedStorage != Custom(value.withMaxUnit())
       }
     }
 
