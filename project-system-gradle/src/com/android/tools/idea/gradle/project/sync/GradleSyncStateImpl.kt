@@ -42,13 +42,13 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.SuccessResult
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -86,8 +86,8 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val SYNC_NOTIFICATION_GROUP =
-  NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
+private val SYNC_NOTIFICATION_GROUP: NotificationGroup =
+  NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
 
 /**
  * This class manages the state of Gradle sync for a project.

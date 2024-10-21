@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -58,7 +59,8 @@ interface GradleSyncState {
 
   companion object {
     @JvmField
-    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
+    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP: NotificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("JDK Location different to JAVA_HOME")
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
