@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.command.buildresult;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Iterables.getFirst;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -76,9 +77,9 @@ public class BepArtifactData {
 
   /** Combines multiple {@link BepArtifactData} instances. */
   public static BepArtifactData combine(Collection<BepArtifactData> items) {
-    Preconditions.checkState(items.stream().map(it -> it.artifact.getBazelOutRelativePath()).collect(toImmutableSet()).size() == 1);
+    Preconditions.checkState(items.stream().map(it -> it.artifact.getBazelOutRelativePath()).distinct().count() == 1);
     return new BepArtifactData(
-      items.iterator().next().artifact,
+      getFirst(items, null).artifact,
       items.stream().flatMap(it -> it.outputGroups.stream()).collect(toImmutableSet()),
       items.stream().flatMap(it -> it.topLevelTargets.stream()).collect(toImmutableSet()));
   }
