@@ -131,6 +131,7 @@ value class MimeType(val mimeType: String) {
     val TSX = MimeType("text/tsx")
     val XSL = MimeType("application/xml")
     val TERRAFORM = MimeType("text/x-ruby")
+    val CMAKE = MimeType("text/x-cmake")
     /**
      * Attribute used to indicate the role this source file plays; for example, an XML file may be a
      * "manifest" or a "resource".
