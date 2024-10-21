@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
 
+import com.android.tools.idea.imports.MavenClassRegistry;
 import com.android.tools.idea.imports.MavenClassRegistryManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -424,7 +425,6 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     private final boolean myCompleteLibraryClasses;
     private final boolean myIncludeTests;
     private final boolean myIncludeDynamicFeatures;
-    private final MavenClassRegistryManager myMavenClassRegistryManager = MavenClassRegistryManager.getInstance();
 
     private MyReference(PsiElement element,
                        TextRange range,
@@ -630,9 +630,14 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     private LocalQuickFix[] collectFixesFromMavenClassRegistry(@NotNull String className, @NotNull Project project) {
       PsiFile containingFile = myElement.getContainingFile();
 
+      MavenClassRegistry registry = MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry();
+      if (registry == null) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+
       Collection<LocalQuickFix> fixes =
         MavenClassResolverUtils.collectFixesFromMavenClassRegistry(
-          myMavenClassRegistryManager,
+          registry,
           className,
           project,
           containingFile != null ? containingFile.getFileType() : null

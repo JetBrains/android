@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.Module
@@ -98,7 +99,15 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   override fun invoke(project: Project, editor: Editor, element: PsiElement) {
-    invoke(project, editor, element, true)
+    val registry = MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry()
+    if (registry == null) {
+      // This should never happen, because isAvailable should return false if there's no registry
+      // yet.
+      thisLogger().error("Could not get MavenClassRegistry")
+      return
+    }
+
+    invoke(project, editor, element, registry, true)
   }
 
   override fun getFamilyName(): String =
@@ -111,10 +120,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val moduleSystem = module.getModuleSystem()
     if (!moduleSystem.canRegisterDependency().isSupported()) return false
 
+    val registry =
+      MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry() ?: return false
+
     val resolvable =
       findResolvable(element, editor?.caretModel?.offset ?: -1) { text, receiverType ->
         Resolvable.createNewOrNull(
           findLibraryData(
+            registry,
             moduleSystem.useAndroidX,
             text,
             receiverType,
@@ -132,7 +145,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     intentionActionText =
       if (foundLibraries.size == 1) {
         val library = foundLibraries.single()
-        val artifact = resolveArtifact(moduleSystem.useAndroidX, element.language, library.artifact)
+        val artifact =
+          resolveArtifact(registry, moduleSystem.useAndroidX, element.language, library.artifact)
         AndroidBundle.message(
           "android.suggested.import.action.name.prefix",
           flagPreview(artifact, library.version),
@@ -146,14 +160,26 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   companion object {
     @TestOnly
-    internal fun invoke(project: Project, editor: Editor, element: PsiElement, sync: Boolean) {
+    internal fun invoke(
+      project: Project,
+      editor: Editor,
+      element: PsiElement,
+      registry: MavenClassRegistry,
+      sync: Boolean,
+    ) {
       val module = ModuleUtil.findModuleForPsiElement(element) ?: return
       val useAndroidX = module.getModuleSystem().useAndroidX
 
       val resolvable =
         findResolvable(element, editor.caretModel.offset) { text, receiverType ->
           Resolvable.createNewOrNull(
-            findLibraryData(useAndroidX, text, receiverType, element.containingFile?.fileType)
+            findLibraryData(
+              registry,
+              useAndroidX,
+              text,
+              receiverType,
+              element.containingFile?.fileType,
+            )
           )
         } ?: return
 
@@ -161,7 +187,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         resolvable.libraries
           .asSequence()
           .map {
-            val artifact = resolveArtifact(useAndroidX, element.language, it.artifact)
+            val artifact = resolveArtifact(registry, useAndroidX, element.language, it.artifact)
             val importSymbol = resolveImport(useAndroidX, it.importedItemFqName)
             AutoImportVariant(artifact, importSymbol, it.version)
           }
@@ -173,6 +199,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         doImportSuggestion(
           project,
           element,
+          registry,
           suggestion.artifactToAdd,
           suggestion.version,
           suggestion.classToImport,
@@ -218,6 +245,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     fun doImportSuggestion(
       project: Project,
       element: PsiElement,
+      registry: MavenClassRegistry,
       artifact: String,
       artifactVersion: String?,
       importSymbol: String?,
@@ -230,6 +258,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           project,
           module,
           element,
+          registry,
           artifact,
           artifactVersion,
           importSymbol,
@@ -270,6 +299,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       project: Project,
       module: Module,
       element: PsiElement,
+      registry: MavenClassRegistry,
       artifact: String,
       artifactVersion: String?,
       importSymbol: String?,
@@ -282,14 +312,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
       addDependency(module, artifact, artifactVersion)
       // Also add on an extra dependency for special cases.
-      getMavenClassRegistry().findExtraArtifacts(artifact).forEach {
+      registry.findExtraArtifacts(artifact).forEach {
         addDependency(module, it.key, artifactVersion, it.value)
       }
 
       // Also add dependent annotation processor?
       val moduleSystem = module.getModuleSystem()
       if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-        getMavenClassRegistry().findAnnotationProcessor(artifact)?.let {
+        registry.findAnnotationProcessor(artifact)?.let {
           val annotationProcessor =
             if (moduleSystem.useAndroidX) {
               AndroidxNameUtils.getCoordinateMapping(it)
@@ -482,20 +512,20 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
 
     private fun findLibraryData(
+      registry: MavenClassRegistry,
       useAndroidX: Boolean,
       text: String,
       receiverType: String?,
       completionFileType: FileType?,
     ): Collection<MavenClassRegistryBase.LibraryImportData> {
       if (receiverType == ALL_RECEIVER_TYPES) {
-        return getMavenClassRegistry()
-          .findLibraryDataAnyReceiver(text, useAndroidX, completionFileType)
+        return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType)
       }
-      return getMavenClassRegistry()
-        .findLibraryData(text, receiverType, useAndroidX, completionFileType)
+      return registry.findLibraryData(text, receiverType, useAndroidX, completionFileType)
     }
 
     private fun resolveArtifact(
+      registry: MavenClassRegistry,
       useAndroidX: Boolean,
       language: Language,
       artifact: String,
@@ -507,7 +537,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         // whether you're importing from a Kotlin file, not whether the project
         // contains Kotlin.
         if (isKotlin(language)) {
-          androidx = getMavenClassRegistry().findKtxLibrary(androidx) ?: androidx
+          androidx = registry.findKtxLibrary(androidx) ?: androidx
         }
 
         androidx
@@ -547,8 +577,5 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // Nothing to do in XML etc
       }
     }
-
-    private fun getMavenClassRegistry() =
-      MavenClassRegistryManager.getInstance().getMavenClassRegistry()
   }
 }

@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
+import org.mockito.kotlin.doReturn
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import org.mockito.kotlin.mock
@@ -169,7 +170,9 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
 
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
-    return mock<MavenClassRegistryManager>().apply {
-      whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+    return mock<MavenClassRegistryManager> {
+      on { getMavenClassRegistry() } doReturn(mavenClassRegistry)
+      on { tryGetMavenClassRegistry() } doReturn(mavenClassRegistry)
+      onBlocking { getMavenClassRegistrySuspending() } doReturn(mavenClassRegistry)
     }
   }
