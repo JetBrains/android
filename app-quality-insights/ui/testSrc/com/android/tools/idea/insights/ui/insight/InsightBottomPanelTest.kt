@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
@@ -62,8 +63,11 @@ import org.junit.rules.RuleChain
 class InsightBottomPanelTest {
 
   private val projectRule = ProjectRule()
+  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  @get:Rule
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
   private lateinit var studioBot: FakeStudioBot
   private lateinit var copyProvider: FakeCopyProvider
@@ -229,7 +233,7 @@ class InsightBottomPanelTest {
   }
 
   private fun createInsightBottomPanel(callback: (Boolean) -> Unit = {}) =
-    InsightBottomPanel(projectRule.project, scope, currentInsightFlow, callback).also {
+    InsightBottomPanel(controllerRule.controller, scope, currentInsightFlow, callback).also {
       fakeUi = FakeUi(it)
     }
 

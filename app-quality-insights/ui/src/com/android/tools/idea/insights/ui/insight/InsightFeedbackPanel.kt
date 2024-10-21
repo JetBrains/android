@@ -35,7 +35,6 @@ class InsightFeedbackPanel(
   private val onSubmitFeedback: (InsightFeedback) -> Unit,
 ) : BorderLayoutPanel() {
 
-  // TODO: Track upvote and downvote clicks
   private val upvoteAction =
     createFeedbackAction(
       icon = AllIcons.Ide.Like,

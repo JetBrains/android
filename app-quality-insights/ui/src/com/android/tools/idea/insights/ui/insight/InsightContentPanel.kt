@@ -18,9 +18,7 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.mapReady
-import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_LINK_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
@@ -53,10 +51,8 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
@@ -85,24 +81,14 @@ class InsightContentPanel(
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane()
-  private val feedbackPanel =
-    InsightFeedbackPanel(
-      currentInsightFlow
-        .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
-          insight?.feedback ?: InsightFeedback.NONE
-        }
-        .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
-    ) {
-      controller.submitInsightFeedback(it)
-    }
+
   private val insightBottomPanel =
-    InsightBottomPanel(controller.project, scope, currentInsightFlow) { onRefresh(it) }
+    InsightBottomPanel(controller, scope, currentInsightFlow) { onRefresh(it) }
 
   private val insightPanel =
     JPanel(VerticalLayout()).apply {
       add(insightTextPane)
       add(InsightDisclaimerPanel(scope, currentInsightFlow))
-      add(feedbackPanel)
     }
 
   private val insightScrollPanel =
@@ -346,7 +332,6 @@ class InsightContentPanel(
   }
 
   private fun reset() {
-    feedbackPanel.resetFeedback()
     enableInsightPanel.isVisible = false
   }
 

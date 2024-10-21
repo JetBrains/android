@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.experiments.supportsContextSharing
+import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
@@ -32,34 +35,46 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
-import java.awt.BorderLayout
+import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
 private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
 
 class InsightBottomPanel(
-  private val project: Project,
+  private val controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   private val onEnhanceInsight: (Boolean) -> Unit,
-) : JPanel(BorderLayout()) {
+) : JPanel() {
 
   private val actionManager: ActionManager
     get() = ActionManager.getInstance()
+
+  private val feedbackPanel =
+    InsightFeedbackPanel(
+      currentInsightFlow
+        .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
+          insight?.feedback ?: InsightFeedback.NONE
+        }
+        .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
+    ) {
+      controller.submitInsightFeedback(it)
+    }
 
   private val enableCodeContextButton =
     object : JButton("Use code context") {
@@ -68,7 +83,6 @@ class InsightBottomPanel(
         isVisible = false
 
         ClientProperty.put(this, DarculaButtonUI.DEFAULT_STYLE_KEY, true)
-        maximumSize = JBDimension(Int.MAX_VALUE, MINIMUM_ACTION_BUTTON_SIZE.height)
 
         addActionListener {
           val dialogBuilder =
@@ -84,12 +98,6 @@ class InsightBottomPanel(
           }
         }
       }
-    }
-
-  private val contextButtonPanel =
-    JPanel().apply {
-      border = JBUI.Borders.empty(0, 4)
-      add(enableCodeContextButton)
     }
 
   private val copyAction = actionManager.getAction(IdeActions.ACTION_COPY)
@@ -122,20 +130,22 @@ class InsightBottomPanel(
     }
 
   init {
-
+    layout = BoxLayout(this, BoxLayout.X_AXIS)
     val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
     val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
     rightToolbar.targetComponent = this
 
-    add(contextButtonPanel, BorderLayout.WEST)
-    add(rightToolbar.component, BorderLayout.EAST)
+    add(enableCodeContextButton)
+    add(feedbackPanel)
+    add(rightToolbar.component)
 
     border = JBUI.Borders.customLineTop(JBColor.border())
 
     scope.launch {
-      currentInsightFlow.collect { state ->
+      currentInsightFlow.distinctUntilChanged().collect { state ->
         when (state) {
           is LoadingState.Ready -> {
+            feedbackPanel.resetFeedback()
             enableCodeContextButton.isVisible = canShowEnableContextButton(state)
           }
           else -> {
@@ -148,7 +158,7 @@ class InsightBottomPanel(
 
   private fun canShowEnableContextButton(state: LoadingState.Ready<AiInsight?>) =
     state.value?.isEnhancedWithCodeContext() == false &&
-      !StudioBot.getInstance().isContextAllowed(project) &&
+      !StudioBot.getInstance().isContextAllowed(controller.project) &&
       AppInsightsExperimentFetcher.instance
         .getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
         .supportsContextSharing()
