@@ -62,7 +62,7 @@ import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ProxySettings;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
@@ -144,11 +144,7 @@ public final class GuiTests {
 
   static void setIdeSettings() {
     // Clear HTTP proxy settings, in case a test changed them.
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = false;
-    ideSettings.PROXY_HOST = "";
-    ideSettings.PROXY_PORT = 80;
-
+    ProxySettings.getInstance().setProxyConfiguration(ProxySettings.getDefaultProxyConfiguration());
     GuiTestingService.getInstance().setGuiTestingMode(true);
 
     // Clear saved Wizard settings to its initial defaults

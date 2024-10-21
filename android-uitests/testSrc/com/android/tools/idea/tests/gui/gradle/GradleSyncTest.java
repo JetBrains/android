@@ -30,6 +30,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.util.net.ProxyConfiguration.ProxyProtocol.HTTP;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -73,7 +74,8 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ProxyConfiguration;
+import com.intellij.util.net.ProxySettings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -203,10 +205,7 @@ public class GradleSyncTest {
     String host = "myproxy.test.com";
     int port = 443;
 
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = true;
-    ideSettings.PROXY_HOST = host;
-    ideSettings.PROXY_PORT = port;
+    ProxySettings.getInstance().setProxyConfiguration(ProxyConfiguration.proxy(HTTP, host, port, ""));
     ideFrame.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(20), it -> {
 
       ideFrame.requestProjectSync();

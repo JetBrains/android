@@ -19,9 +19,12 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.net.ProxyCredentialStoreKt.asProxyCredentialProvider;
 
+import com.intellij.credentialStore.Credentials;
 import com.intellij.openapi.util.text.Strings;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration;
+import com.intellij.util.net.ProxyUtils;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
@@ -69,17 +72,17 @@ public class IdeGradleProxySettingsBridge {
     myPassword = properties.getProperty(getProxyPropertyName(PROXY_PASSWORD_PROPERTY_SUFFIX));
   }
 
-  public IdeGradleProxySettingsBridge(@NotNull HttpConfigurable ideProxySettings) {
+  public IdeGradleProxySettingsBridge(@NotNull IdeProxyInfo info, @NotNull StaticProxyConfiguration configuration) {
+    // required: info.getProxySettings().getProxyConfiguration == configuration
     myProxyType = HTTP_PROXY_TYPE;
-    myHost = ideProxySettings.PROXY_HOST;
-    myPort = ideProxySettings.PROXY_PORT;
-    if (ideProxySettings.PROXY_AUTHENTICATION) {
-      myUser = ideProxySettings.getProxyLogin();
-      myPassword = ideProxySettings.getPlainProxyPassword();
+    myHost = configuration.getHost();
+    myPort = configuration.getPort();
+    Credentials credentials = ProxyUtils.getStaticProxyCredentials(info.getSettings(), asProxyCredentialProvider(info.getCredentialStore()));
+    if (credentials != null) {
+      myUser = credentials.getUserName();;
+      myPassword = credentials.getPasswordAsString();
     }
-    // Multiple proxy exceptions are handled as comma separated list in he IDE while Gradle uses pipes
-    // See b/131991567
-    myExceptions = replaceCommasWithPipesAndClean(ideProxySettings.PROXY_EXCEPTIONS);
+    myExceptions = replaceCommasWithPipesAndClean(configuration.getExceptions());
   }
 
   @Nullable
