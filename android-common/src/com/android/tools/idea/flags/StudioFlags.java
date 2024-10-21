@@ -1145,13 +1145,6 @@ public final class StudioFlags {
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
-  public static final Flag<Boolean> MIGRATE_BUILDCONFIG_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED = new BooleanFlag(
-    REFACTORINGS, "migrateto.dslbuildconfig.enabled", "Enable the Migrate buildConfig from gradle.properties refactoring",
-    "If enabled, show the action in the refactoring menu", true);
-
-  public static final Flag<Boolean> MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED = new BooleanFlag(
-    REFACTORINGS, "migrateto.dslresvalues.enabled", "Enable the Migrate resValues from gradle.properties refactoring",
-    "If enabled, show the action in the refactoring menu", true);
   //endregion
 
   //region NDK

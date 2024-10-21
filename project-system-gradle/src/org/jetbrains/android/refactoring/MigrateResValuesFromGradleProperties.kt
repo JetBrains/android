@@ -81,8 +81,6 @@ private fun shouldEnable(project: Project): Boolean {
 }
 
 class MigrateResValuesFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
-  override fun isHidden() = StudioFlags.MIGRATE_RES_VALUES_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED.get().not()
-
   override fun getHandler(dataContext: DataContext) = MigrateResValuesFromGradlePropertiesHandler()
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true

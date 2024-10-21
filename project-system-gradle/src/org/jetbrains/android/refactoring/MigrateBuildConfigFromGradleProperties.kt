@@ -86,8 +86,6 @@ private fun shouldEnable(project: Project): Boolean {
 }
 
 class MigrateBuildConfigFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
-  override fun isHidden() = StudioFlags.MIGRATE_BUILDCONFIG_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED.get().not()
-
   override fun getHandler(dataContext: DataContext) = MigrateBuildConfigFromGradlePropertiesHandler()
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true
