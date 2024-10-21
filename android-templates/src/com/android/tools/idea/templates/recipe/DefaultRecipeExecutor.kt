@@ -380,6 +380,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.dependencies().addModule(configuration, ":$moduleName")
   }
 
+  override fun addFileDependency(file: String, configuration: String) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.dependencies().addFile(configuration, file)
+  }
+
   /**
    * Copies the given source file into the given destination file (where the source is allowed to be
    * a directory, in which case the whole directory is copied recursively)
