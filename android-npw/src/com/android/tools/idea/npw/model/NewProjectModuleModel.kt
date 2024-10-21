@@ -142,7 +142,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
     formFactor = ObjectValueProperty(FormFactor.Mobile),
     category = ObjectValueProperty(Category.Activity),
     wizardContext = NEW_PROJECT,
-    recommendedBuildSdk = projectModel.project.findNewModuleRecommendedBuildSdk()
+    recommendedBuildSdk = projectModel.findNewModuleRecommendedBuildSdk()
   )
   companionModuleModel.multiTemplateRenderer.incrementRenders()
   companionModuleModel.moduleName.set(moduleName)
