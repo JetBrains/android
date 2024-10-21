@@ -16,15 +16,11 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
-import java.net.URL
-import java.nio.file.Path
-import java.util.concurrent.TimeoutException
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Assert.*
 import org.junit.Before
@@ -34,6 +30,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
+import java.net.URL
+import java.nio.file.Path
+import java.util.concurrent.TimeoutException
 
 @RunWith(JUnit4::class)
 class WhatsNewBundleCreatorTest {
