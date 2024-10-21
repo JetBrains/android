@@ -68,14 +68,19 @@ interface GeminiPluginApi {
    *   last user query if not specified.
    * @throws IllegalStateException If the prompt does not end with a user message
    */
-  fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String? = null)
+  fun sendChatQuery(
+    project: Project,
+    prompt: LlmPrompt,
+    displayText: String? = null,
+    requestSource: RequestSource,
+  )
 
   /**
    * Stages a string in the Studio Bot query bar. The user may choose to submit it, or clear/modify
    * it. You should keep the message short enough to fit in the query bar so it can be inspected by
    * the user before they send it.
    */
-  fun stageChatQuery(project: Project, prompt: String)
+  fun stageChatQuery(project: Project, prompt: String, requestSource: RequestSource)
 
   /** [generate] returns the (text only) LLM's response to the given [prompt]. */
   suspend fun generate(prompt: LlmPrompt): String = ""
@@ -88,9 +93,18 @@ interface GeminiPluginApi {
       object : GeminiPluginApi {
         override val MAX_QUERY_CHARS: Int = Int.MAX_VALUE
 
-        override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?) {}
+        override fun sendChatQuery(
+          project: Project,
+          prompt: LlmPrompt,
+          displayText: String?,
+          requestSource: RequestSource,
+        ) {}
 
-        override fun stageChatQuery(project: Project, prompt: String) {}
+        override fun stageChatQuery(
+          project: Project,
+          prompt: String,
+          requestSource: RequestSource,
+        ) {}
       }
 
     fun getInstance(): GeminiPluginApi {

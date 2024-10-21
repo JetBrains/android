@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -30,6 +32,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
@@ -46,7 +50,7 @@ import org.junit.runners.Parameterized.Parameters
 abstract class BuildOutputParserTest {
   companion object {
     @JvmStatic
-    @Parameters(name="isStudioBotAvailable={0}")
+    @Parameters(name="isGeminiAvailable={0}")
     fun parameters() = listOf(
       arrayOf(true),
       arrayOf(false),
@@ -55,7 +59,7 @@ abstract class BuildOutputParserTest {
 
   @Parameter
   @JvmField
-  var isStudioBotAvailable: Boolean? = null
+  var isGeminiAvailable: Boolean? = null
 
   @get:Rule
   val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
@@ -72,11 +76,16 @@ abstract class BuildOutputParserTest {
       parsers.addAll(it.getBuildOutputParsers(taskId))
     }
 
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isAvailable(): Boolean = isStudioBotAvailable!!
+    val geminiPluginApi = object : GeminiPluginApi {
+      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+      override fun isAvailable(): Boolean = isGeminiAvailable!!
+      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
+      }
+
+      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
+      }
     }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
   }
 
   private fun parseOutput(parentEventId: String, gradleOutput: String, expectedEvents: String) {
@@ -139,7 +148,7 @@ abstract class BuildOutputParserTest {
     parseOutput(parentEventId, gradleOutput, expectedEventsDump)
   }
 
-  private fun expectBotLink(event: ExpectedEvent): Boolean = isStudioBotAvailable == true && event.kind == MessageEvent.Kind.ERROR
+  private fun expectBotLink(event: ExpectedEvent): Boolean = isGeminiAvailable == true && event.kind == MessageEvent.Kind.ERROR
 
   data class ExpectedEvent(
     val message: String,

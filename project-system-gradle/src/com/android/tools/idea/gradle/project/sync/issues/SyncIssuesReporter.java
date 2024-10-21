@@ -138,10 +138,10 @@ public class SyncIssuesReporter {
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
 
-    StudioBot studioBot = StudioBot.Companion.getInstance();
-    if (studioBot.isAvailable()) {
+    GeminiPluginApi geminiPluginApi = GeminiPluginApi.Companion.getInstance();
+    if (geminiPluginApi.isAvailable()) {
       // this only covers sync warning, but sync errors are handled by AndroidGradleExecutionConsoleManager
-      addIssueExplanationLinks(studioBot, syncMessages);
+      addIssueExplanationLinks(geminiPluginApi, syncMessages);
     }
 
     for (SyncMessage syncMessage : syncMessages) {
@@ -159,7 +159,7 @@ public class SyncIssuesReporter {
     }
   }
 
-  private static void addIssueExplanationLinks(@NotNull StudioBot studioBot, @NotNull List<SyncMessage> syncMessages) {
+  private static void addIssueExplanationLinks(@NotNull GeminiPluginApi geminiPluginApi, @NotNull List<SyncMessage> syncMessages) {
     for (SyncMessage syncMessage : syncMessages) {
       final var message = syncMessage.getText();
       syncMessage.add(new SyncIssueNotificationHyperlink(
@@ -169,7 +169,7 @@ public class SyncIssuesReporter {
       ) {
         @Override
         protected void execute(@NotNull Project project) {
-          sendChatQueryIfContextAllowed(studioBot, project,
+          sendChatQueryIfContextAllowed(geminiPluginApi, project,
                                         new GradleErrorContext(/* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC),
                                         GeminiPluginApi.RequestSource.SYNC);
         }

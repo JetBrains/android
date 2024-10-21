@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.events.studiobot
 
-import com.android.tools.idea.studiobot.prompts.Prompt
-import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gemini.buildLlmPrompt
 import com.intellij.openapi.project.Project
 
 /** Represents a Gradle error context.
@@ -38,16 +38,16 @@ data class GradleErrorContext(
   }
 
   /**
-   * Converts context to a [Prompt] object.
+   * Converts context to a [LlmPrompt] object.
    * @param project The project associated with the query.
-   * @return The [Prompt] with the context information.
+   * @return The [LlmPrompt] with the context information.
    *
    * NOTE: The method needs to ensure that the files
    * used as context are allowed by .aiexclude before
    * including it in the prompt.
    */
-   fun toPrompt(project: Project): Prompt {
-    return buildPrompt(project) {
+   fun toPrompt(project: Project): LlmPrompt {
+    return buildLlmPrompt (project) {
       userMessage {
       text(toQuery(), filesUsed = emptyList())
     }}

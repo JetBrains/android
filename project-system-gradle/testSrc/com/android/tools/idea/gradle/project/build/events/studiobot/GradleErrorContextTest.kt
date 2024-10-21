@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.build.events.studiobot
 
-import com.android.tools.idea.studiobot.prompts.Prompt
-import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
-import junit.framework.TestCase
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.gemini.formatForTests
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import junit.framework.TestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
 
 /**
  * Tests for [GradleErrorContext]
  */
-class GradleErrorContextTest: TestCase() {
+@RunWith(JUnit4::class)
+class GradleErrorContextTest: BasePlatformTestCase() {
 
-  fun testToQuery_addsContextWithAllTheDetails() {
+  @Test
+  fun toQuery_addsContextWithAllTheDetails() {
     val context = GradleErrorContext(
       source = GradleErrorContext.Source.BUILD,
       gradleTask = ":app:packageDebugResources",
@@ -53,8 +58,8 @@ How do I fix this?
     )
   }
 
-  fun testToPrompt_addsContextWithAllTheDetails() {
-    val project = mock(Project::class.java)
+  @Test
+  fun toPrompt_addsContextWithAllTheDetails() {
     val context = GradleErrorContext(
       source = GradleErrorContext.Source.BUILD,
       gradleTask = ":app:packageDebugResources",
@@ -67,13 +72,10 @@ How do I fix this?
       errorMessage = null,
     )
 
-    assertThat(context.toPrompt(project))
+    assertThat(context.toPrompt(project).formatForTests())
       .isEqualTo(
-        PromptImpl(
-          listOf(
-            Prompt.UserMessage(
-              listOf(
-              Prompt.TextChunk("""
+              """
+USER
 I'm getting the following error while building my project.
 ```
 $ ./gradlew :app:packageDebugResources
@@ -82,12 +84,12 @@ org.xml.sax.SAXParseException; systemId: file:/Users/shiree/AndroidStudioProject
   at java.xml/com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:342)
 ```
 How do I fix this?
-            """.trimIndent(), emptyList())))))
-      )
+            """.trimIndent())
   }
 
 
-  fun testToQuery_trimsStackTrace_toFirstTenLines_andFiveLinesOfRootCause() {
+  @Test
+  fun toQuery_trimsStackTrace_toFirstTenLines_andFiveLinesOfRootCause() {
     val context = GradleErrorContext(
       fullErrorDetails =
       """

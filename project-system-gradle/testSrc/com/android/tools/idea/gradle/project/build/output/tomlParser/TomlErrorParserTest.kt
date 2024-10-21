@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
@@ -40,7 +41,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -99,7 +100,7 @@ class TomlErrorParserTest {
 
   @Test
   fun testWrapper_parsesTomlErrorWithFile() {
-    setStudioBotInstanceAvailability(true)
+    registerGeminiPluginApi()
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
@@ -391,12 +392,17 @@ class TomlErrorParserTest {
     return gradleDir to file
   }
 
-  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isAvailable(): Boolean = isAvailable
+  private fun registerGeminiPluginApi() {
+    val geminiPluginApi = object : GeminiPluginApi {
+      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+      override fun isAvailable(): Boolean = true
+      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
+      }
+
+      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
+      }
     }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, project)
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
   }
 
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)

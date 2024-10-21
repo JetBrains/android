@@ -341,21 +341,21 @@ class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErro
   override val description: String = StudioBotBundle.message("studiobot.ask.text")
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val studioBot = StudioBot.getInstance()
-    studioBot.sendChatQueryIfContextAllowed(project, gradleErrorContext, GeminiPluginApi.RequestSource.BUILD)
+    val geminiPluginApi = GeminiPluginApi.getInstance()
+    geminiPluginApi.sendChatQueryIfContextAllowed(project, gradleErrorContext, GeminiPluginApi.RequestSource.BUILD)
     return CompletableFuture.completedFuture(null)
   }
 }
 
 /** Sends chat query if context is allowed, otherwise stages it. */
-fun StudioBot.sendChatQueryIfContextAllowed(
+fun GeminiPluginApi.sendChatQueryIfContextAllowed(
   project: Project,
   gradleErrorContext: GradleErrorContext,
   requestSource: GeminiPluginApi.RequestSource,
 ) {
   if (isContextAllowed(project)) {
-    chat(project).sendChatQuery(gradleErrorContext.toPrompt(project), requestSource)
+    sendChatQuery(project, gradleErrorContext.toPrompt(project), null, requestSource)
   } else {
-    chat(project).stageChatQuery(gradleErrorContext.toQuery(), requestSource)
+    stageChatQuery(project, gradleErrorContext.toQuery(), requestSource)
   }
 }

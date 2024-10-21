@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
-import com.android.tools.idea.studiobot.ChatService
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
@@ -37,15 +36,41 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.replaceService
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.registerExtension
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
 import org.mockito.kotlin.whenever
+
+private class FakeGeminiPluginApi : GeminiPluginApi {
+  override val MAX_QUERY_CHARS: Int = Int.MAX_VALUE
+  var available = true
+  var contextAllowed = true
+
+  var sentPrompt: LlmPrompt? = null
+  var displayedText: String? = null
+  var requestSource: GeminiPluginApi.RequestSource? = null
+
+  var stagedPrompt: String? = null
+
+  override fun isAvailable() = available
+  override fun isContextAllowed(project: Project) = contextAllowed
+
+  override fun isFileExcluded(project: Project, file: VirtualFile) = false
+
+  override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
+    sentPrompt = prompt
+    displayedText = displayText
+    this.requestSource = requestSource
+  }
+
+  override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
+    stagedPrompt = prompt
+  }
+}
 
 class BuildOutputParserWrapperTest {
 
@@ -57,17 +82,19 @@ class BuildOutputParserWrapperTest {
 
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
   @Before
   fun setUp() {
-    // Set StudioBot's availability to true by default.
-    setStudioBotInstanceAvailability(true)
     val parser = BuildOutputParser { _, _, messageConsumer ->
       messageConsumer?.accept(messageEvent)
       true
     }
     myParserWrapper = BuildOutputParserWrapper(parser, ID)
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
+
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, fakeGeminiPluginApi, projectRule.project)
   }
 
   @Test
@@ -119,7 +146,7 @@ class BuildOutputParserWrapperTest {
 
   @Test
   fun `test when StudioBot is not available, 'Ask Gemini' links is not added for ERROR MessageEvent`() {
-    setStudioBotInstanceAvailability(false)
+    fakeGeminiPluginApi.available = false
     messageEvent = createMessageEvent(ERROR)
 
     myParserWrapper.parse(null, null) { event ->
@@ -130,8 +157,8 @@ class BuildOutputParserWrapperTest {
 
   @Test
   fun `test 'Ask Gemini' quick fix sends query to ChatService when context allowed`() {
-    // Given: Context is allowed.
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = true
     whenever(ID.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
     messageEvent = createMessageEvent(ERROR)
 
@@ -141,26 +168,22 @@ class BuildOutputParserWrapperTest {
       assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
       quickFixes.first().runQuickFix(projectRule.project) { }
 
-      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
-        buildPrompt(projectRule.project){
-          userMessage {
-            text("""
+      val expected = """
+            USER
             I'm getting the following error while syncing my project. The error is: !!some error message!!
             ```
             Detailed error message
             ```
             How do I fix this?
-        """.trimIndent(), emptyList())
-          }
-        },
-        GeminiPluginApi.RequestSource.BUILD)
+        """.trimIndent()
+      assertThat(fakeGeminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expected)
     }
   }
 
   @Test
   fun `test 'Ask Gemini' quick fix sends query to ChatService without gradle command`() {
-    // Given: Context is allowed.
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = true
     whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
     messageEvent = createMessageEvent(ERROR)
 
@@ -170,27 +193,23 @@ class BuildOutputParserWrapperTest {
       assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
       quickFixes.first().runQuickFix(projectRule.project) { }
 
-      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
-        buildPrompt(projectRule.project){
-          userMessage {
-            text("""
+      val expected = """
+            USER
             I'm getting the following error while building my project. The error is: !!some error message!!
             ```
             Detailed error message
             ```
             How do I fix this?
-        """.trimIndent(), emptyList())
-          }
-        },
-        GeminiPluginApi.RequestSource.BUILD)
+        """.trimIndent()
+      assertThat(fakeGeminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expected)
     }
   }
 
 
   @Test
   fun `test 'Ask Gemini' quick fix stages query to ChatService when context not allowed`() {
-    // Given: Context is not allowed
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = false
     whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
     messageEvent = createMessageEvent(ERROR)
 
@@ -200,22 +219,22 @@ class BuildOutputParserWrapperTest {
       assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
       quickFixes.first().runQuickFix(projectRule.project) { }
 
-      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
-        """
+      val expected = """
         I'm getting the following error while building my project. The error is: !!some error message!!
         ```
         Detailed error message
         ```
         How do I fix this?
-        """.trimIndent(),
-        GeminiPluginApi.RequestSource.BUILD)
+        """.trimIndent()
+      assertThat(fakeGeminiPluginApi.stagedPrompt!!).isEqualTo(expected)
     }
   }
 
   @Test
   fun `test 'Ask Gemini' quick fix parses Gradle command from projectId`() {
-    // Given: Context is not allowed
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = false
+
     whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
     messageEvent = createMessageEvent(ERROR, id = "[-4474:2441] > [Task :app:compileDebugJavaWithJavac]")
 
@@ -225,7 +244,7 @@ class BuildOutputParserWrapperTest {
       assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
       quickFixes.first().runQuickFix(projectRule.project) { }
 
-      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
+      val expected =
         """
         I'm getting the following error while building my project. The error is: !!some error message!!
         ```
@@ -233,20 +252,9 @@ class BuildOutputParserWrapperTest {
         Detailed error message
         ```
         How do I fix this?
-        """.trimIndent(),
-        GeminiPluginApi.RequestSource.BUILD)
+        """.trimIndent()
+      assertThat(fakeGeminiPluginApi.stagedPrompt!!).isEqualTo(expected)
     }
-  }
-
-  private fun setStudioBotInstanceAvailability(isAvailable: Boolean, isContextAllowed: Boolean = false) {
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isContextAllowed(project: Project): Boolean = isContextAllowed
-      override fun isAvailable(): Boolean = isAvailable
-      private val _chatService = spy(object : ChatService.StubChatService() {})
-      override fun chat(project: Project): ChatService = _chatService
-    }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.project)
   }
 
   private fun createMessageEvent(
