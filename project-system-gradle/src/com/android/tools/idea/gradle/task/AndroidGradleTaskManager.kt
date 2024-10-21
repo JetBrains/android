@@ -32,6 +32,7 @@ import java.io.File
  */
 class AndroidGradleTaskManager : GradleTaskManagerExtension {
 
+  @Deprecated("Use AndroidGradleTaskManager.executeTasks(String, ExternalSystemTaskId, GradleExecutionSettings, ExternalSystemTaskNotificationListener) instead")
   @Throws(ExternalSystemException::class)
   override fun executeTasks(
     id: ExternalSystemTaskId,
@@ -39,23 +40,31 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
     projectPath: String,
     settings: GradleExecutionSettings?,
     jvmParametersSetup: String?,
-    listener: ExternalSystemTaskNotificationListener
+    listener: ExternalSystemTaskNotificationListener,
+  ): Boolean {
+    return super.executeTasks(id, taskNames, projectPath, settings, jvmParametersSetup, listener)
+  }
+
+  override fun executeTasks(
+    projectPath: String,
+    id: ExternalSystemTaskId,
+    settings: GradleExecutionSettings,
+    listener: ExternalSystemTaskNotificationListener,
   ): Boolean {
     val gradleBuildInvoker = findGradleInvoker(id) ?: return false
-    val effectiveSettings = settings ?: GradleExecutionSettings()
-    GradleTaskManager.setupGradleScriptDebugging(effectiveSettings)
-    GradleTaskManager.setupDebuggerDispatchPort(effectiveSettings)
-    GradleTaskManager.appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings)
+    GradleTaskManager.setupGradleScriptDebugging(settings)
+    GradleTaskManager.setupDebuggerDispatchPort(settings)
+    GradleTaskManager.appendInitScriptArgument(id, settings, null)
     @Suppress("DEPRECATION") val doNotShowBuildOutputOnFailure =
-      effectiveSettings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
+      settings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
     val request = GradleBuildInvoker.Request(
       mode = null,
       project = gradleBuildInvoker.project,
       rootProjectPath = File(projectPath),
-      gradleTasks = taskNames,
+      gradleTasks = settings.tasks,
       taskId = id,
       listener = listener,
-      executionSettings = effectiveSettings,
+      executionSettings = settings,
       isWaitForCompletion = true,
       doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure
     )

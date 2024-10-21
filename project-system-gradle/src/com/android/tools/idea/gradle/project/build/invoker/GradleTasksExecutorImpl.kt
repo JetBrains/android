@@ -303,7 +303,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          GradleExecutionHelper.prepareForExecution(connection, operation, cancellationToken, id, emptyList(), executionSettings, listener)
+          GradleExecutionHelper.prepareForExecution(connection, operation, cancellationToken, id, executionSettings, listener)
           if (enableBuildAttribution) {
             buildAttributionManager = myProject!!.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
