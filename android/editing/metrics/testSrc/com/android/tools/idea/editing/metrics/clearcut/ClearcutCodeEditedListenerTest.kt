@@ -21,6 +21,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.editing.metrics.CodeEdited
 import com.android.tools.idea.editing.metrics.Source
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -84,6 +85,7 @@ class ClearcutCodeEditedListenerTest {
 
     assertThat(testUsageTracker.usages).hasSize(1)
     with(testUsageTracker.usages.single().studioEvent) {
+      assertThat(kind).isEqualTo(AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT)
       assertThat(hasEditingMetricsEvent()).isTrue()
       assertThat(editingMetricsEvent.hasCharacterMetrics()).isTrue()
       with(editingMetricsEvent.characterMetrics) {
@@ -112,6 +114,7 @@ class ClearcutCodeEditedListenerTest {
 
     assertThat(testUsageTracker.usages).hasSize(1)
     with(testUsageTracker.usages.single().studioEvent) {
+      assertThat(kind).isEqualTo(AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT)
       assertThat(hasEditingMetricsEvent()).isTrue()
       assertThat(editingMetricsEvent.hasCharacterMetrics()).isTrue()
       with(editingMetricsEvent.characterMetrics) {
@@ -139,6 +142,7 @@ class ClearcutCodeEditedListenerTest {
 
     assertThat(testUsageTracker.usages).hasSize(1)
     with(testUsageTracker.usages.single().studioEvent) {
+      assertThat(kind).isEqualTo(AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT)
       assertThat(hasEditingMetricsEvent()).isTrue()
       assertThat(editingMetricsEvent.hasCharacterMetrics()).isTrue()
       with(editingMetricsEvent.characterMetrics) {

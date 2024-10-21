@@ -67,6 +67,7 @@ internal constructor(private val windowDuration: Duration, private val clock: Cl
     if (window.charsAdded.isEmpty() && window.charsDeleted.isEmpty()) return
     val event =
       AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
         editingMetricsEventBuilder.apply {
           setCharacterMetrics(window.toCharacterMetrics(elapsed.coerceAtMost(windowDuration)))
         }
