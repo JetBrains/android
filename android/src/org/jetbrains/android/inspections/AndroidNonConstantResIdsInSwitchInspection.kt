@@ -1,108 +1,94 @@
-package org.jetbrains.android.inspections;
+package org.jetbrains.android.inspections
 
-import com.intellij.codeInsight.daemon.impl.quickfix.ConvertSwitchToIfIntention;
-import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.siyeh.IntentionPowerPackBundle;
-import com.siyeh.ipp.switchtoif.ReplaceSwitchWithIfIntention;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.res.isResourceField
+import com.intellij.codeInsight.daemon.impl.quickfix.ConvertSwitchToIfIntention
+import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.codeInspection.ProblemDescriptor
+import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaElementVisitor
+import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.PsiSwitchLabelStatement
+import com.intellij.psi.PsiSwitchStatement
+import com.intellij.psi.util.PsiTreeUtil
+import com.siyeh.IntentionPowerPackBundle
+import com.siyeh.ipp.switchtoif.ReplaceSwitchWithIfIntention
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.Nls
 
-public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionTool {
-  @Nls
-  @NotNull
-  @Override
-  public String getGroupDisplayName() {
-    return AndroidBundle.message("android.inspections.group.name");
+class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
+  override fun getGroupDisplayName(): @Nls String {
+    return AndroidBundle.message("android.inspections.group.name")
   }
 
-  @Nls
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.name");
+  override fun getDisplayName(): @Nls String {
+    return AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.name")
   }
 
-  @NotNull
-  @Override
-  public String getShortName() {
-    return "AndroidNonConstantResIdsInSwitch";
+  override fun getShortName(): String {
+    return "AndroidNonConstantResIdsInSwitch"
   }
 
-  @NotNull
-  @Override
-  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
-    return new JavaElementVisitor() {
-      @Override
-      public void visitSwitchLabelStatement(@NotNull PsiSwitchLabelStatement statement) {
-        final AndroidFacet facet = AndroidFacet.getInstance(statement);
-        if (facet == null || facet.getConfiguration().isAppProject()) {
-          return;
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : JavaElementVisitor() {
+      override fun visitSwitchLabelStatement(statement: PsiSwitchLabelStatement) {
+        val facet = AndroidFacet.getInstance(statement)
+        if (facet == null || facet.configuration.isAppProject) {
+          return
         }
 
-        final PsiExpression caseValue = statement.getCaseValue();
-        if (!(caseValue instanceof PsiReferenceExpression)) {
-          return;
-        }
+        val caseValue = statement.caseValue as? PsiReferenceExpression ?: return
 
-        final PsiSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(statement, PsiSwitchStatement.class);
+        val switchStatement = PsiTreeUtil.getParentOfType(statement, PsiSwitchStatement::class.java)
         if (switchStatement == null || !ReplaceSwitchWithIfIntention.canProcess(switchStatement)) {
-          return;
+          return
         }
 
-        final PsiElement resolvedElement = ((PsiReferenceExpression)caseValue).resolve();
-        if (resolvedElement == null || !(resolvedElement instanceof PsiField)) {
-          return;
+        val resolvedElement = caseValue.resolve()
+        if (resolvedElement == null || resolvedElement !is PsiField) {
+          return
         }
 
-        final PsiField resolvedField = (PsiField)resolvedElement;
-        if (!IdeResourcesUtil.isResourceField(resolvedField)) {
-          return;
+        val resolvedField = resolvedElement
+        if (!isResourceField(resolvedField)) {
+          return
         }
 
-        final PsiModifierList modifierList = resolvedField.getModifierList();
+        val modifierList = resolvedField.modifierList
 
         if (modifierList == null || !modifierList.hasModifierProperty(PsiModifier.FINAL)) {
-          holder.registerProblem(caseValue, AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.message"),
-                                 new MyQuickFix());
+          holder.registerProblem(
+            caseValue,
+            AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.message"),
+            MyQuickFix(),
+          )
         }
       }
-    };
+    }
   }
 
-  public String getQuickFixName() {
-    return IntentionPowerPackBundle.message("replace.switch.with.if.intention.name");
-  }
+  val quickFixName: String
+    get() = IntentionPowerPackBundle.message("replace.switch.with.if.intention.name")
 
-  private class MyQuickFix implements LocalQuickFix {
-
-    @NotNull
-    @Override
-    public String getFamilyName() {
-      return getQuickFixName();
+  private inner class MyQuickFix : LocalQuickFix {
+    override fun getFamilyName(): String {
+      return this.quickFixName
     }
 
-    @Override
-    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-      final PsiElement element = descriptor.getPsiElement();
-      if (element == null) {
-        return;
-      }
+    override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
+      val element = descriptor.psiElement ?: return
 
-      final PsiSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(element, PsiSwitchStatement.class);
+      val switchStatement = PsiTreeUtil.getParentOfType(element, PsiSwitchStatement::class.java)
       if (switchStatement == null) {
-        return;
+        return
       }
 
-      ConvertSwitchToIfIntention.doProcessIntention(switchStatement);
+      ConvertSwitchToIfIntention.doProcessIntention(switchStatement)
     }
   }
 }
