@@ -41,6 +41,8 @@ public class ArtifactDirectories {
   /** Generated CC headers go in the default directory. */
   public static final ProjectPath GEN_CC_HEADERS = DEFAULT;
 
+  /** Application inspectors runtime jar storage. */
+  public static final ProjectPath INSPECTORS = ROOT.resolveChild(Path.of("inspectors"));
   private ArtifactDirectories() {}
 
   /**

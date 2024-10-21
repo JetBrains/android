@@ -54,6 +54,7 @@ import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
+import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
@@ -171,7 +172,9 @@ public class ProjectLoader {
 
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();
-    appInspectorArtifactTracker = new AppInspectorArtifactTrackerImpl();
+    appInspectorArtifactTracker =
+      new AppInspectorArtifactTrackerImpl(workspaceRoot.path(), artifactCache,
+                                          ideProjectBasePath.resolve(ArtifactDirectories.INSPECTORS.relativePath()));
     RenderJarTracker renderJarTracker =
         new RenderJarTrackerImpl(graph, renderJarBuilder, renderJarArtifactTracker);
     AppInspectorTracker appInspectorTracker =

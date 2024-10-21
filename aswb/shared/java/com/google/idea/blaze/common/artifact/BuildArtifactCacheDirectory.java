@@ -84,7 +84,8 @@ import javax.annotation.Nullable;
  * <p>This class will ensure that a clean request is never active while we are fetching new
  * artifacts into the cache.
  */
-class BuildArtifactCacheDirectory implements BuildArtifactCache {
+@VisibleForTesting
+public class BuildArtifactCacheDirectory implements BuildArtifactCache {
 
   private static final Logger logger =
       Logger.getLogger(BuildArtifactCacheDirectory.class.getName());
