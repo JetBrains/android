@@ -125,6 +125,7 @@ public class TestNullity {
 
     try {
       val action = AndroidInferNullityAnnotationAction()
+      action.getAdditionalActionSettings(project, null)
       val spyAction = spy(action)
       val scope = AnalysisScope(project)
       // stop before syncAndRestartAnalysis method
@@ -159,6 +160,7 @@ public class TestNullity {
 
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
+    action.getAdditionalActionSettings(project, null)
 
     action.analyze(project, scope)
 
@@ -177,6 +179,7 @@ public class TestNullity {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
+    action.getAdditionalActionSettings(project, null)
     try {
       action.analyze(project, scope)
     }
