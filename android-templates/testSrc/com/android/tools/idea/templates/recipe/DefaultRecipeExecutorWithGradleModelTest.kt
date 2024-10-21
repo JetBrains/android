@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.lint.common.getModuleDir
