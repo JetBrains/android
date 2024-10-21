@@ -39,6 +39,7 @@ internal class DeviceNameValidator(
   fun validate(name: String): String? =
     when {
       name == currentName -> null
+      name.isBlank() -> "The name cannot be blank."
       !AvdNames.isValid(name) ->
         "The AVD name can contain only the characters " + AvdNames.humanReadableAllowedCharacters()
       name.trim() in currentDisplayNames -> "An AVD with this name already exists."
