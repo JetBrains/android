@@ -261,6 +261,33 @@ class DeviceTableTest {
     }
   }
 
+  @Test
+  fun keepSelectionVisible() {
+    val devices = (0..20).map { TestDevices.mediumPhone.copy(name = "Phone ${'A' + it}") }.toList()
+
+    composeTestRule.setContent {
+      DeviceTable(
+        devices,
+        columns = testDeviceTableColumns,
+        filterContent = {},
+        modifier = Modifier.size(400.dp, 200.dp),
+      )
+    }
+
+    composeTestRule.onNodeWithText("Phone A").performClick()
+    composeTestRule.onNodeWithText("Phone A").assertIsSelected()
+    composeTestRule.onNodeWithText("Phone S").assertDoesNotExist()
+
+    composeTestRule.onNodeWithText("Name").performClick()
+    composeTestRule.onNodeWithText("Phone A").assertIsSelected()
+
+    composeTestRule.onNodeWithText("Name").performClick()
+    composeTestRule.onNodeWithText("Phone A").assertIsSelected()
+
+    composeTestRule.onNodeWithText("Name").performClick()
+    composeTestRule.onNodeWithText("Phone A").assertIsSelected()
+  }
+
   @OptIn(ExperimentalTestApi::class)
   @Test
   fun focus() {

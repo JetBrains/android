@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -291,6 +292,14 @@ fun <T> Table(
   val tableFocusRequester = remember { FocusRequester() }
   val coroutineScope = rememberCoroutineScope()
   val lazyListState = rememberLazyListState()
+
+  // Keep the selection visible in the list in response to changes in order of rows.
+  LaunchedEffect(sortedRows) {
+    val index = sortedRows.indexOf(tableSelectionState.selection)
+    if (index >= 0) {
+      lazyListState.scrollToItem(index)
+    }
+  }
 
   Column(
     modifier.padding(ROW_PADDING).onKeyEvent { event ->
