@@ -56,9 +56,6 @@ fun createBenchmarkTestRule(projectName: String,
     .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
       projectSetupRule.addListener(it.listener)
     })
-    // The 233 platform doesn't disable indexing during project import but we don't want that to influence benchmarks, yet.
-    // TODO(b/315761803): Enable and evaluate benchmark behavior after the platform merge is done and any possible regressions are handled.
-    .around(DisableIndexingDuringSyncRule())
     .around(CollectDaemonLogsRule())
     .maybeAddCaptureJfrRule(projectSetupRule)
   return object : BenchmarkTestRule,
