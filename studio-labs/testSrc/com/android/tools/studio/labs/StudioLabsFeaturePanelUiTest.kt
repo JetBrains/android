@@ -22,6 +22,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -58,12 +59,13 @@ class StudioLabsFeaturePanelUiTest {
   }
 
   @Test
-  fun featurePanel_onApply_overridesFlag() {
+  fun featurePanel_onApply_overridesFlag() = runBlocking {
     val featurePanel = createFeaturePanel()
     assertThat(testFlag.get()).isTrue()
 
     composeTestRule.onNodeWithTag("enable_disable_button").performClick()
     featurePanel.apply()
+    composeTestRule.awaitIdle()
 
     assertThat(testFlag.get()).isFalse()
   }
