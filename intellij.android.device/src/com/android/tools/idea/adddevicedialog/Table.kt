@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -267,6 +268,7 @@ internal fun <T> TableRow(
       .padding(ROW_PADDING)
       .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     val contentColor =
       if (selected) retrieveColorOrUnspecified("Table.selectionForeground")
