@@ -20,13 +20,13 @@ import com.android.tools.idea.ui.CustomNotificationListener;
 import com.google.common.base.Objects;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -49,9 +49,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidNotification {
   public static final NotificationGroup BALLOON_GROUP =
-    NotificationGroup.balloonGroup("Android Notification Group", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("Android Notification Group");
   public static final NotificationGroup LOG_ONLY_GROUP =
-    NotificationGroup.logOnlyGroup("Android Notification Log-Only Group", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("Android Notification Log-Only Group");
   /**
    * Fallback destination to show a notification balloon if the project is not opened (hence no IDE frame).
    */

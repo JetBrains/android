@@ -44,6 +44,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -203,10 +204,13 @@ public final class AdbService implements Disposable,
       "Attempting restart adb with option disabled.\n" +
       "Try updating to a newer version of ADB (%s or later).",
       MDNS_OPENSCREEN_FIX_ADB_VERSION);
-    Notification notification = NotificationGroup.balloonGroup("Adb Service")
-      .createNotification(helpMessage, NotificationType.WARNING)
-      .setImportant(true);
-    Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
+    NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Adb Service");
+    if (notificationGroup != null) {
+      Notification notification = notificationGroup
+        .createNotification(helpMessage, NotificationType.WARNING)
+        .setImportant(true);
+      Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
+    }
 
     myAllowMdnsOpenscreen = false;
 
