@@ -563,4 +563,31 @@ public class AffectedPackagesTest {
     expect.that(affected.getModifiedPackages()).isEmpty();
     expect.that(affected.getDeletedPackages()).containsExactly(Path.of("my/build/package/lib1"));
   }
+
+  @Test
+  public void testAllDirectoriesIncluded_modifyBuildFile() {
+    QuerySummary query =
+        QuerySummary.create(
+            createProtoForPackages(
+                "//my/build/package1:rule",
+                "//my/build/package2:rule",
+                "//another/build/package1:rule"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            // this represents the case of directories: .
+            .projectIncludes(ImmutableSet.of(Path.of("")))
+            .changedFiles(
+                ImmutableSet.of(
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/BUILD"))))
+            .build()
+            .getAffectedPackages();
+
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.isIncomplete()).isFalse();
+    expect.that(affected.getModifiedPackages()).containsExactly(Path.of("my/build/package1"));
+    expect.that(affected.getDeletedPackages()).isEmpty();
+  }
 }
