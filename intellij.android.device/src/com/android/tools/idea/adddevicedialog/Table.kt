@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -73,9 +74,15 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
+import org.jetbrains.jewel.ui.component.styling.ScrollbarStyle
+import org.jetbrains.jewel.ui.component.styling.ScrollbarVisibility.AlwaysVisible
+import org.jetbrains.jewel.ui.component.styling.ScrollbarVisibility.WhenScrolling
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.colorPalette
+import org.jetbrains.jewel.ui.theme.scrollbarStyle
 import org.jetbrains.jewel.ui.util.thenIf
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
 
 data class TableColumn<in T>(
   val name: String,
@@ -171,10 +178,7 @@ internal fun <T> TableHeader(
   columns: List<TableColumn<T>>,
   modifier: Modifier = Modifier,
 ) {
-  Row(
-    modifier.fillMaxWidth().padding(ROW_PADDING),
-    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING / 2),
-  ) {
+  Row(modifier.fillMaxWidth().padding(horizontal = ROW_PADDING)) {
     columns.forEach {
       val widthModifier = with(it.width) { widthModifier() }
       var isFocused by remember { mutableStateOf(false) }
@@ -184,11 +188,11 @@ internal fun <T> TableHeader(
           .thenIf(isFocused) {
             background(JewelTheme.colorPalette.gray(if (JewelTheme.isDark) 3 else 12))
           }
-          .padding(CELL_SPACING / 2)
           .onFocusChanged { isFocused = it.isFocused }
           .thenIf(it.comparator != null) {
             clickable(interactionSource = null, indication = null) { onClick(it) }
           }
+          .padding(horizontal = CELL_SPACING / 2, vertical = CELL_SPACING)
       ) {
         Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
@@ -196,8 +200,24 @@ internal fun <T> TableHeader(
         }
       }
     }
+
+    Spacer(Modifier.width(scrollbarHeaderPadding()))
   }
 }
+
+/**
+ * Returns the padding needed to keep the header aligned with the content area of a
+ * ScrollableContainer below it.
+ */
+@Composable
+private fun scrollbarHeaderPadding(style: ScrollbarStyle = JewelTheme.scrollbarStyle): Dp =
+  // This is org.jetbrains.jewel.ui.component.scrollbarContentSafePadding() with two values swapped.
+  when {
+    hostOs != OS.MacOS -> style.scrollbarVisibility.trackThicknessExpanded
+    style.scrollbarVisibility is AlwaysVisible -> style.scrollbarVisibility.trackThicknessExpanded
+    style.scrollbarVisibility is WhenScrolling -> 0.dp
+    else -> error("Unsupported visibility: ${style.scrollbarVisibility}")
+  }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
