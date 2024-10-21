@@ -24,11 +24,19 @@ import com.intellij.openapi.util.SystemInfo;
  */
 public class BlazeCommandRunnerExperiments {
   public static final BoolExperiment USE_SINGLEJAR_FOR_DEBUGGING =
-      new BoolExperiment("debug.localtests.singlejar.enable", true);
+    new BoolExperiment("debug.localtests.singlejar.enable", true);
   public static final BoolExperiment ENABLE_DBIP_ONCORP =
-      new BoolExperiment("dbip.cloudtop.pilot.enable", false);
+    new BoolExperiment("dbip.cloudtop.pilot.enable", false);
   public static final BoolExperiment ANDROID_JNI_LIBRARY_FORCE_ANDROID =
-      new BoolExperiment("debug.localtests.android.jni.library", SystemInfo.isMac);
+    new BoolExperiment("debug.localtests.android.jni.library", SystemInfo.isMac);
+  private static final String DBIP_ONCORP_ENV = System.getenv("REPLACE_BLAZE_WITH_DBIP");
 
-  private BlazeCommandRunnerExperiments() {}
+  private BlazeCommandRunnerExperiments() { }
+
+  public static boolean enableDbipOncorp() {
+    if (DBIP_ONCORP_ENV != null && !DBIP_ONCORP_ENV.isEmpty() && !DBIP_ONCORP_ENV.equals("0")) {
+      return true;
+    }
+    return ENABLE_DBIP_ONCORP.getValue();
+  }
 }
