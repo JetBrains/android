@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync.artifacts;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -148,5 +149,10 @@ public class ProjectArtifactStore {
       }
     }
     return bugreportFiles.build();
+  }
+
+  @VisibleForTesting
+  public void purgeForTest(Context<?> context) throws BuildException {
+    update(context, QuerySyncProjectSnapshot.EMPTY);
   }
 }
