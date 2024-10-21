@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.DeviceScreenDiagram
 import com.google.common.collect.Range
 import java.text.DecimalFormat
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
@@ -91,7 +92,7 @@ private fun Header(text: String) {
 @Composable
 private fun LabeledValue(label: String, value: String) {
   Row {
-    Column(Modifier.weight(0.5f)) { Text(label, fontWeight = FontWeight.Light) }
+    Column(Modifier.weight(0.5f)) { Text(label, color = JewelTheme.globalColors.text.info) }
     Spacer(Modifier.size(4.dp))
     Column(Modifier.weight(0.5f)) { Text(value) }
   }
