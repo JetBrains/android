@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ui.OneTimeOverrideFocusTraversalPolicy
 import com.google.common.truth.Truth
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
 import java.awt.FocusTraversalPolicy
+import org.junit.Before
+import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class OneTimeOverrideFocusTraversalPolicyTest {
   private val mockPolicy = Mockito.mock(FocusTraversalPolicy::class.java)
-  private val container =  Mockito.mock(Container::class.java)
-  private val component1 =  Mockito.mock(Component::class.java)
-  private val component2 =  Mockito.mock(Component::class.java)
-  private val component3 =  Mockito.mock(Component::class.java)
+  private val container = Mockito.mock(Container::class.java)
+  private val component1 = Mockito.mock(Component::class.java)
+  private val component2 = Mockito.mock(Component::class.java)
+  private val component3 = Mockito.mock(Component::class.java)
 
   @Before
   fun setUp() {

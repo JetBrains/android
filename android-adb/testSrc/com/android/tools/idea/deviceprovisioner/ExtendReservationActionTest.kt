@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
+import com.android.mockito.kotlin.whenever
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
@@ -23,7 +24,6 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.deviceprovisioner.ReservationAction
 import com.android.sdklib.deviceprovisioner.ReservationState
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.ui.customization.CustomActionsSchema
