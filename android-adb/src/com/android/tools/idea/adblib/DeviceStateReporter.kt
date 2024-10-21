@@ -51,13 +51,15 @@ class DeviceStateReporter : ProjectActivity {
 
       session.deviceInfoChangeFlow(AdbUsageTracker.DeviceInfo::createFrom).collect {
         (deviceState, deviceSerial, calculationResult) ->
-        val timeSinceLastOnline =
+        var timeSinceLastOnlineMs =
           lastOnlineByDeviceSerial[deviceSerial]?.let { System.currentTimeMillis() - it }
-        if (deviceState == DeviceState.ONLINE) {
-          lastOnlineByDeviceSerial[deviceSerial] = System.currentTimeMillis()
-        }
 
         val previousDeviceState = previousStateByDeviceSerial[deviceSerial]
+        // Device goes offline (i.e. stops being online)
+        if (previousDeviceState == DeviceState.ONLINE) {
+          lastOnlineByDeviceSerial[deviceSerial] = System.currentTimeMillis()
+          timeSinceLastOnlineMs = 0
+        }
         previousStateByDeviceSerial[deviceSerial] = deviceState
 
         session.host.usageTracker.logUsage(
@@ -67,7 +69,7 @@ class DeviceStateReporter : ProjectActivity {
               AdbDeviceStateChangeEvent(
                 deviceState = deviceState.toUsageTrackerDeviceState(),
                 previousDeviceState = previousDeviceState?.toUsageTrackerDeviceState(),
-                lastOnlineMs = timeSinceLastOnline,
+                lastOnlineMs = timeSinceLastOnlineMs,
               ),
           )
         )

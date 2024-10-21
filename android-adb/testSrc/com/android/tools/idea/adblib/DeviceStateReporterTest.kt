@@ -82,7 +82,7 @@ class DeviceStateReporterTest {
       AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE,
       adbEvent2.deviceStateChangeEvent.previousDeviceState,
     )
-    assertTrue(adbEvent2.deviceStateChangeEvent.lastOnlineMs > 0)
+    assertEquals(0, adbEvent2.deviceStateChangeEvent.lastOnlineMs)
 
     // Act: Re-attach
     // Note that `adbRule.attachDevice` goes through an OFFLINE state very quickly, and it mostly,
