@@ -43,7 +43,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param transform The lambda that converts the [PositionableContent]s in [PositionableGroup]s
  *   taking care to add headers when needed.
  */
-class GridLayoutManager(
+open class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
