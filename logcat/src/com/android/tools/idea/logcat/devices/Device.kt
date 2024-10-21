@@ -65,11 +65,12 @@ private constructor(
       release: String,
       sdk: Int,
       avdName: String,
+      avdPath: String,
       featureLevel: Int = sdk,
       type: DeviceType? = null,
     ): Device {
       return Device(
-        deviceId = avdName,
+        deviceId = avdPath,
         name = avdName.replace('_', ' '),
         serialNumber,
         isOnline,
