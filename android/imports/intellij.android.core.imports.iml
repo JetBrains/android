@@ -24,4 +24,5 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

@@ -177,7 +177,7 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 .trimIndent()
                 .byteInputStream(UTF_8))
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(gMavenIndexRepositoryMock)
 
     return mock<MavenClassRegistryManager>().apply {
       whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)

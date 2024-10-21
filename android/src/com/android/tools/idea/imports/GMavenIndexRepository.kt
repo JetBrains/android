@@ -113,7 +113,7 @@ class GMavenIndexRepository(
    */
   fun getMavenClassRegistry(): MavenClassRegistry {
     return lastComputedMavenClassRegistry.get()
-      ?: MavenClassRegistry(this).apply { lastComputedMavenClassRegistry.set(this) }
+      ?: MavenClassRegistry.createFrom(this).apply { lastComputedMavenClassRegistry.set(this) }
   }
 
   /**
@@ -147,7 +147,7 @@ class GMavenIndexRepository(
         if (it == null) {
           null
         } else {
-          val mavenClassRegistry = MavenClassRegistry(this)
+          val mavenClassRegistry = MavenClassRegistry.createFrom(this)
           // TODO: make it `debug` instead of `info` once it's stable.
           thisLogger().info("Updated in-memory Maven class registry.")
           mavenClassRegistry

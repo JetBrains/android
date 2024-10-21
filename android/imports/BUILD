@@ -17,6 +17,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
+    test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
     ],

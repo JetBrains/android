@@ -347,7 +347,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
       """.trimIndent().byteInputStream(StandardCharsets.UTF_8)
     )
 
-    val mavenClassRegistry = MavenClassRegistry(mockGMavenIndexRepository)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(mockGMavenIndexRepository)
 
     return MockitoKt.mock<MavenClassRegistryManager>().apply {
       whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
