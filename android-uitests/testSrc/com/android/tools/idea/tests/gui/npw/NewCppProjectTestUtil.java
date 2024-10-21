@@ -69,9 +69,9 @@ public class NewCppProjectTestUtil {
       .selectToolchain(toolChain)
       .wizard()
       // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240));
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
 
-    guiTest.waitForBackgroundTasks();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Sanity check we have create the right files
     assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/CMakeLists.txt")).isNotNull();
