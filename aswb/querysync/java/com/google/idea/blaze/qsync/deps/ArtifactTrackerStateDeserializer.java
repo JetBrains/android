@@ -83,13 +83,6 @@ public class ArtifactTrackerStateDeserializer {
             vcsState));
   }
 
-  private TargetBuildInfo.MetadataKey extractMetadataKey(String protoKey) {
-    int colon = protoKey.indexOf(":");
-    Preconditions.checkArgument(colon >= 0, "Invalid metadata key: %s", protoKey);
-    return new TargetBuildInfo.MetadataKey(
-        protoKey.substring(0, colon), Interners.pathOf(protoKey.substring(colon + 1)));
-  }
-
   private void visitTargetBuildInfo(Map.Entry<String, ArtifactTrackerProto.TargetBuildInfo> entry) {
     ArtifactTrackerProto.TargetBuildInfo proto = entry.getValue();
     TargetBuildInfo.Builder builder =

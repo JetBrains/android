@@ -27,9 +27,7 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -102,12 +100,6 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
   void update(Set<Label> targets, OutputInfo outputInfo, ContextT context) throws BuildException;
 
   State getStateSnapshot();
-
-  /**
-   * Returns a list of local cache files that build by target provided. Returns Optional.empty() if
-   * the target has not yet been built.
-   */
-  Optional<ImmutableSet<Path>> getCachedFiles(Label target);
 
   ImmutableMap<String, ByteSource> getBugreportFiles();
 }

@@ -31,8 +31,6 @@ public abstract class TargetBuildInfo {
   public static final TargetBuildInfo EMPTY =
       builder().buildContext(DependencyBuildContext.NONE).build();
 
-  public record MetadataKey(String metadataId, Path artifactPath) {}
-
   public abstract Optional<JavaArtifactInfo> javaInfo();
 
   public abstract Optional<CcCompilationInfo> ccInfo();

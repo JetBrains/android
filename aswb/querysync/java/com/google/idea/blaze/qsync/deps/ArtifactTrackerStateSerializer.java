@@ -151,9 +151,4 @@ public class ArtifactTrackerStateSerializer {
             .addAllCppOptions(toolchain.cppOptions())
             .build());
   }
-
-  private String makeMapKey(TargetBuildInfo.MetadataKey key) {
-    return key.metadataId() + ":" + key.artifactPath();
-  }
-
 }
