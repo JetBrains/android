@@ -64,6 +64,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.Stroke
 import org.jetbrains.jewel.foundation.modifier.border
+import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.ui.Orientation
@@ -207,6 +208,7 @@ internal fun <T> TableRow(
   modifier: Modifier = Modifier,
 ) {
   var isFocused by remember { mutableStateOf(false) }
+  var isHovered by remember { mutableStateOf(false) }
   var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
   Row(
     modifier
@@ -215,6 +217,12 @@ internal fun <T> TableRow(
       .thenIf(selected) {
         background(
           retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
+        )
+      }
+      .onHover { isHovered = it }
+      .thenIf(isHovered) {
+        background(
+          retrieveColorOrUnspecified("Table.hoverBackground").takeOrElse { Color.LightGray }
         )
       }
       .thenIf(isFocused) { focusBorder() }
@@ -229,7 +237,12 @@ internal fun <T> TableRow(
       }
       .onGloballyPositioned { layoutCoordinates = it }
       .onFocusChanged { isFocused = it.isFocused }
-      .selectable(selected, onClick = { onClick(value) })
+      .selectable(
+        selected,
+        interactionSource = null,
+        indication = null,
+        onClick = { onClick(value) },
+      )
       .padding(ROW_PADDING / 2)
       .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
