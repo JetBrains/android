@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteSource;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
@@ -108,5 +109,5 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
    */
   Optional<ImmutableSet<Path>> getCachedFiles(Label target);
 
-  Iterable<Path> getBugreportFiles();
+  ImmutableMap<String, ByteSource> getBugreportFiles();
 }

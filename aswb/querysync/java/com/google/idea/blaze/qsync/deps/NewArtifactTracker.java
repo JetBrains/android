@@ -28,6 +28,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -403,8 +405,8 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   }
 
   @Override
-  public Iterable<Path> getBugreportFiles() {
-    return ImmutableList.of(stateFile);
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    return ImmutableMap.of(stateFile.getFileName().toString(), MoreFiles.asByteSource(stateFile));
   }
 
   private void saveState() throws IOException {
