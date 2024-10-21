@@ -8,6 +8,8 @@ def debugger_test(
         test_exclude_filter = [],
         expected_to_fail_art = None,
         expected_to_fail_jvm = None,
+        art_tags = [],
+        jvm_tags = [],
         shard_count = None):
     """Define a debugger test that runs on a ART and JVM.
 
@@ -17,6 +19,8 @@ def debugger_test(
         test_exclude_filter: Patterns of tests to exclude
         expected_to_fail_art: A file with a list of tests that are expected to fail on ART
         expected_to_fail_jvm: A file with a list of tests that are expected to fail on JVM
+        art_tags: Tags for the ART test
+        jvm_tags: Tags for the JVM test
         shard_count: Number of shards to run
     """
     expected_to_fail_dep_art = []
@@ -41,7 +45,7 @@ def debugger_test(
             "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
         },
         module = "kotlin.jvm-debugger.test",
-        tags = ["manual"],
+        tags = art_tags,
         test_suite = "com.android.tools.test.ModuleTestSuite",
         runtime_deps = [":attacher"],
         deps = [
@@ -65,7 +69,7 @@ def debugger_test(
         expected_failures_file = expected_to_fail_jvm,
         download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
         module = "kotlin.jvm-debugger.test",
-        tags = ["manual"],
+        tags = jvm_tags,
         test_suite = "com.android.tools.test.ModuleTestSuite",
         deps = [
             ":kotlin.jvm-debugger.test_lib",
