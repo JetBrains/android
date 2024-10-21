@@ -33,6 +33,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VFileProperty
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -166,6 +167,13 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
 
       fun from(files: Set<VirtualFile>, externalBuildFiles: Set<VirtualFile>): Result =
         Result(files.mapNotNull { f -> hash(f)?.let { h -> f to h } }.toMap(), externalBuildFiles)
+    }
+  }
+
+  class UpdateHashesProjectActivity : ProjectActivity {
+    override suspend fun execute(project: Project) {
+      val result = getInstance(project).computeFileHashes();
+      GradleFiles.getInstance(project).updateCallback().invoke(result)
     }
   }
 }
