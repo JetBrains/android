@@ -20,9 +20,13 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 
-class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) : LocalQuickFix {
+class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) :
+  LocalQuickFix {
   override fun getName(): String {
-    return AndroidBundle.message("android.suggested.dependency.action.name.prefix", flagPreview(artifact, version))
+    return AndroidBundle.message(
+      "android.suggested.dependency.action.name.prefix",
+      flagPreview(artifact, version),
+    )
   }
 
   override fun getFamilyName(): String {

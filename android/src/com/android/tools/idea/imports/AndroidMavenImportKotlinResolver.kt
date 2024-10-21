@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 
 /**
- * Registers an unresolved reference resolver in Kotlin files which recognizes classes from key Maven
- * artifacts and offers to add a dependency on them
+ * Registers an unresolved reference resolver in Kotlin files which recognizes classes from key
+ * Maven artifacts and offers to add a dependency on them
  */
 class AndroidMavenImportKotlinResolver : QuickFixContributor {
   override fun registerQuickFixes(quickFixes: QuickFixes) {

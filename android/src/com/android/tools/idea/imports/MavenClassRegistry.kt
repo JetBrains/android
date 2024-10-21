@@ -51,7 +51,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     name: String,
     receiverType: String?,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> =
     findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
 
@@ -69,7 +69,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
   override fun findLibraryDataAnyReceiver(
     name: String,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> =
     findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
 
@@ -78,7 +78,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     receiverType: String?,
     anyReceiver: Boolean,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
@@ -211,12 +211,13 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     val gMavenIndex =
       GMavenArtifactIndex(
         groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
-        artifactId = artifactId
-            ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
+        artifactId =
+          artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
         version = version ?: throw MalformedIndexException("Version is missing($reader)."),
-        ktxTargets = ktxTargets
-            ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
-        fqcns = fqcns
+        ktxTargets =
+          ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
+        fqcns =
+          fqcns
             ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
         topLevelFunctions = topLevelFunctions,
       )
@@ -303,7 +304,7 @@ data class GMavenArtifactIndex(
           artifact = "$groupId:$artifactId",
           importedItemFqName = fqName.asString(),
           importedItemPackageName = fqName.parent().asString(),
-          version = version
+          version = version,
         )
     }
   }
@@ -319,7 +320,7 @@ data class GMavenArtifactIndex(
           artifact = "$groupId:$artifactId",
           importedItemFqName = topLevelFunction.kotlinFqName.asString(),
           importedItemPackageName = topLevelFunction.packageName,
-          version = version
+          version = version,
         )
     }
   }
@@ -362,7 +363,7 @@ data class KotlinTopLevelFunction(
   companion object {
     fun fromJvmQualifiedName(
       fqName: String,
-      receiverFqName: String? = null
+      receiverFqName: String? = null,
     ): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
         "fqName does not have file facade class containing the function: '$fqName'"
@@ -409,10 +410,7 @@ data class LookupData(
   }
 }
 
-data class FunctionSpecifier(
-  val simpleName: String,
-  val receiverFqName: FqName?,
-)
+data class FunctionSpecifier(val simpleName: String, val receiverFqName: FqName?)
 
 /** Exception thrown when parsing malformed GMaven index file. */
 private class MalformedIndexException(message: String) : RuntimeException(message)
