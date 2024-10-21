@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public final class PropertiesFiles {
     // the documentation of VirtualFileSystem.refreshAndFindFileByPath().
     Application application = ApplicationManager.getApplication();
     if (!application.isDispatchThread()) {
-      application.assertReadAccessNotAllowed();
+      ThreadingAssertions.assertNoOwnReadAccess();
     }
     VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, true); // Must set refreshIfNeeded=true, see bug 176220349
     return getProperties(virtualFile);

@@ -45,10 +45,10 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
 import java.util.ArrayList;
@@ -305,7 +305,7 @@ public final class SdkQuickfixUtils {
   @Slow
   public static boolean checkPathIsAvailableForDownload(String path) {
     // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
-    ApplicationManager.getApplication().assertReadAccessNotAllowed();
+    ThreadingAssertions.assertNoOwnReadAccess();
 
     RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getRepoManager(REPO_LOGGER);
     mgr.loadSynchronously(
