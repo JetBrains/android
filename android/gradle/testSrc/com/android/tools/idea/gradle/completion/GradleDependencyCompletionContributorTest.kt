@@ -36,13 +36,16 @@ import java.nio.charset.StandardCharsets
 
 @RunsInEdt
 class GradleDependencyCompletionContributorTest : AndroidTestCase() {
+
+  private val fakeMavenClassRegistryManager = createFakeMavenClassRegistryManager()
+
   @Before
   override fun setUp() {
     super.setUp()
 
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
-      createFakeMavenClassRegistryManager(),
+      fakeMavenClassRegistryManager,
       myFixture.testRootDisposable
     )
 
@@ -82,6 +85,25 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.completeBasic()
 
     assertThat(myFixture.lookupElementStrings).containsExactly("com.google.android.gms:play-services-maps:17.0.0", "implementation")
+  }
+
+  @Test
+  fun testBasicCompletionInGradleBuildFile_gmavenRegistryNotAvailable() {
+    val buildFile = myFixture.addFileToProject(
+      "build.gradle",
+      """
+        dependencies {
+          implementation 'com.google.a$caret'
+        }
+      """.trimIndent()
+    )
+
+    whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
+
+    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("implementation")
   }
 
   @Test
@@ -198,6 +220,24 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
       "androidx.camera:camera-view:1.0.0-alpha22",
       "androidx.room:room-runtime:2.2.6"
     )
+  }
+
+  @Test
+  fun testBasicCompletionInLibsVersionsToml_gmavenRegistryNotAvailable() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = "androidx.$caret"
+      """.trimIndent()
+    )
+
+    whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).isEmpty()
   }
 
   @Test
@@ -348,7 +388,7 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager>().apply {
-      whenever(getMavenClassRegistryBlocking()).thenReturn(mavenClassRegistry)
+      whenever(tryGetMavenClassRegistry()).thenReturn(mavenClassRegistry)
     }
   }
 }
