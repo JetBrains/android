@@ -19,15 +19,19 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -454,6 +458,25 @@ class BuildArtifactCacheDirectory implements BuildArtifactCache {
       throw new BuildException("Failed to purge the build artifact cache", e);
     } finally {
       lock.unlockWrite(stamp);
+    }
+  }
+
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    StringBuilder contents = new StringBuilder();
+    try {
+      for (String digest : listDigests()) {
+        if (!contents.isEmpty()) {
+          contents.append("\n");
+        }
+        contents.append(digest).append(": ").append(readAccessTime(digest));
+      }
+      return ImmutableMap.of(
+          cacheDir.getFileName().toString() + ".cachecontents",
+          CharSource.wrap(contents).asByteSource(UTF_8));
+    } catch (IOException e) {
+      return ImmutableMap.of(
+          cacheDir.getFileName().toString() + ".cachecontents",
+          CharSource.wrap(e.toString()).asByteSource(UTF_8));
     }
   }
 }

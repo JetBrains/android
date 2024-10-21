@@ -15,10 +15,12 @@
  */
 package com.google.idea.blaze.base.qsync.artifacts;
 
-
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.qsync.BazelDependencyBuilder;
 import com.google.idea.blaze.base.qsync.FileRefresher;
 import com.google.idea.blaze.common.Context;
@@ -98,7 +100,12 @@ public class ProjectArtifactStore {
       Path root = projectDir.resolve(entry.getKey());
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
-            artifactCache, workspacePath, root, entry.getValue(), sourcesStripper, BazelDependencyBuilder.buildGeneratedSrcJars::getValue);
+              artifactCache,
+              workspacePath,
+              root,
+              entry.getValue(),
+              sourcesStripper,
+              BazelDependencyBuilder.buildGeneratedSrcJars::getValue);
       try {
         dirUpdate.update();
       } catch (IOException e) {
@@ -118,5 +125,17 @@ public class ProjectArtifactStore {
       exceptions.stream().forEach(e::addSuppressed);
       throw e;
     }
+  }
+
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    ImmutableMap.Builder<String, ByteSource> bugreportFiles = ImmutableMap.builder();
+    for (String name : readPreviousProjectDirectories()) {
+      Path contentsFile = ArtifactDirectoryUpdate.getContentsFile(projectDir.resolve(name));
+      if (Files.exists(contentsFile)) {
+        bugreportFiles.put(
+            contentsFile.getFileName().toString(), MoreFiles.asByteSource(contentsFile));
+      }
+    }
+    return bugreportFiles.build();
   }
 }

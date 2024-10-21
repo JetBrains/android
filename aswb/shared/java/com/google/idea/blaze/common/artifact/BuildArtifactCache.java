@@ -16,6 +16,8 @@
 package com.google.idea.blaze.common.artifact;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteSource;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.idea.blaze.common.Context;
@@ -104,4 +106,6 @@ public interface BuildArtifactCache {
 
   /** Remove all items from the cache. */
   void purge() throws BuildException;
+
+  ImmutableMap<String, ByteSource> getBugreportFiles();
 }
