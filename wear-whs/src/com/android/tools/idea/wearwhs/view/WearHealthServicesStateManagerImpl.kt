@@ -68,6 +68,8 @@ internal class WearHealthServicesStateManagerImpl(
 
   override val capabilitiesList = deviceManager.getCapabilities()
 
+  override val preset = MutableStateFlow(Preset.ALL)
+
   private val capabilityToState =
     capabilitiesList.associateWith {
       MutableStateFlow<CapabilityUIState>(
@@ -193,6 +195,7 @@ internal class WearHealthServicesStateManagerImpl(
     }
 
   override fun loadPreset(preset: Preset): Job {
+    this.preset.value = preset
     return workerScope.launch {
       when (preset) {
         Preset.STANDARD ->

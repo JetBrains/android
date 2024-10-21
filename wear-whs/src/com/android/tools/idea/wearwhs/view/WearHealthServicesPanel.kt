@@ -23,8 +23,6 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataValue
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -33,7 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
@@ -52,6 +50,7 @@ import java.awt.Font
 import java.awt.Toolkit
 import java.lang.Boolean.TRUE
 import java.util.Collections
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -66,6 +65,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -338,7 +338,7 @@ private fun createWearHealthServicesPanelHeader(
 
   twoColumnsRow(
     {
-      cell(createLoadCapabilityPresetButton(stateManager = stateManager, uiScope = uiScope))
+      cell(createLoadCapabilityPresetComboBox(stateManager = stateManager, uiScope = uiScope))
       cell(createTriggerEventGroupsButton(triggerEvent = { triggerEvent(it) }))
     },
     { cell(statusLabel) },
@@ -479,44 +479,29 @@ private fun createEventTriggerAction(
     }
   }
 
-private fun createLoadCapabilityPresetButton(
+private fun createLoadCapabilityPresetComboBox(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
-): JButton {
-  val presetActionGroup =
-    object : ActionGroup(null, true) {
-      override fun getChildren(e: AnActionEvent?) =
-        Preset.entries
-          .map {
-            object : AnAction(message(it.labelKey)) {
-              override fun getActionUpdateThread() = ActionUpdateThread.BGT
+): ComboBox<Preset> {
+  val presetComboBox = ComboBox<Preset>(DefaultComboBoxModel(Preset.entries.toTypedArray()))
+  presetComboBox.selectedItem = stateManager.preset.value
+  presetComboBox.isEnabled = !stateManager.ongoingExercise.value
 
-              override fun actionPerformed(e: AnActionEvent) {
-                stateManager.loadPreset(it)
-              }
-            }
-          }
-          .toTypedArray()
-    }
+  presetComboBox.addActionListener {
+    stateManager.loadPreset(presetComboBox.selectedItem as Preset)
+  }
 
-  val loadCapabilityPresetButton =
-    JButton(message("wear.whs.panel.load.preset")).apply {
-      addActionListener {
-        val popup =
-          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, presetActionGroup)
-        JBPopupMenu.showBelow(this, popup.component)
-      }
-    }
-
+  // ignore the first one as we don't want to trigger an action for the pre-existing value
+  stateManager.preset.drop(1).onEach { presetComboBox.selectedItem = it }.launchIn(uiScope)
   stateManager.ongoingExercise
     .onEach {
-      loadCapabilityPresetButton.isEnabled = !it
-      loadCapabilityPresetButton.toolTipText =
+      presetComboBox.isEnabled = !it
+      presetComboBox.toolTipText =
         if (it) message("wear.whs.panel.disabled.during.exercise")
         else message("wear.whs.panel.load.preset.tooltip")
     }
     .launchIn(uiScope)
-  return loadCapabilityPresetButton
+  return presetComboBox
 }
 
 private fun WearHealthServicesStateManager.hasAtLeastOneCapabilityEnabled() =
