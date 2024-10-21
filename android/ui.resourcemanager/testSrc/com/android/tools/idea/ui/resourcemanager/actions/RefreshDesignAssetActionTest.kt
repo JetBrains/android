@@ -27,7 +27,7 @@ import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -38,7 +38,7 @@ class RefreshDesignAssetActionTest {
 
   @Before
   fun setUp() {
-    actionManager = Mockito.mock(ActionManagerEx::class.java)
+    actionManager = mock<ActionManagerEx>()
   }
 
   @Test

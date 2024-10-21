@@ -21,13 +21,13 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.generated.sysimg.v1.SysImgDetailsType
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestApplicationManager
 import org.mockito.Answers
+import org.mockito.kotlin.any
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -56,7 +56,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    whenever(mockAndroidSdks.tryToChooseSdkHandler().getSdkManager(MockitoKt.any())).thenReturn(mockRepoManager)
+    whenever(mockAndroidSdks.tryToChooseSdkHandler().getSdkManager(any())).thenReturn(mockRepoManager)
     whenever(mockUpdatablePackage.remote).thenReturn(mockRemotePackage)
     whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
     TestApplicationManager.getInstance()

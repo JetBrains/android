@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.util.ui.UIUtil.findComponentsOfType
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import javax.swing.JComboBox
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -97,7 +97,7 @@ class QualifierConfigurationPanelTest {
 
   private fun clickLastDeleteButton(configurationPanel: QualifierConfigurationPanel) {
     val deleteButton = findComponentsOfType(configurationPanel, ActionButton::class.java).last()
-    deleteButton.action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
+    deleteButton.action.actionPerformed(mock<AnActionEvent>())
   }
 
   private fun findAddButton(configurationPanel: QualifierConfigurationPanel): LinkLabel<*> {

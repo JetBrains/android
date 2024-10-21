@@ -46,5 +46,6 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-JUnit" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

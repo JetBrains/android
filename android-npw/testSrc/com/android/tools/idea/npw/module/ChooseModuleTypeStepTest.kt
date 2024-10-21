@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
@@ -25,7 +24,8 @@ import com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
-import org.mockito.Mockito
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
@@ -159,9 +159,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
   private fun sort(vararg entries: String, moduleParent: String = ":"): List<String> {
     val moduleDescriptions =
-      entries.map {
-        Mockito.mock(ModuleGalleryEntry::class.java).apply { whenever(name).thenReturn(it) }
-      }
+      entries.map { entry -> mock<ModuleGalleryEntry> { on { name } doReturn entry } }
 
     val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent)
 

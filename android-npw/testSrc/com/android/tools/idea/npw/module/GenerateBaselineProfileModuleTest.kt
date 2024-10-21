@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -35,11 +34,13 @@ import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class GenerateBaselineProfileModuleTest {
 
@@ -47,94 +48,108 @@ class GenerateBaselineProfileModuleTest {
     private const val MODULE_NAME_APP = "app"
   }
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  var tmpFolderRule = TemporaryFolder()
+  @get:Rule var tmpFolderRule = TemporaryFolder()
 
   @Test
   fun withKotlinCodeAndBuildGradleKtsAndAgpCurrent() {
 
-    val (rootDir, srcDir) = runTemplateGeneration(
-      agpVersion = AgpVersion(8, 3, 0),
-      sourceCodeLanguage = Language.Kotlin,
-      useGradleKts = true,
-      useGmd = true,
-      projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-    )
+    val (rootDir, srcDir) =
+      runTemplateGeneration(
+        agpVersion = AgpVersion(8, 3, 0),
+        sourceCodeLanguage = Language.Kotlin,
+        useGradleKts = true,
+        useGmd = true,
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+      )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
-    assertThat(buildGradleContent).isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT)
+    assertThat(buildGradleContent)
+      .isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.kt").readText()
-    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT)
+    assertThat(baselineProfileGeneratorContent)
+      .isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.kt").readText()
-    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT)
+    assertThat(startupBenchmarksContent)
+      .isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT)
   }
 
   @Test
   fun withKotlinCodeAndBuildGradleKtsAndAgp810() {
 
-    val (rootDir, srcDir) = runTemplateGeneration(
-      agpVersion = AgpVersion(8, 1, 0),
-      sourceCodeLanguage = Language.Kotlin,
-      useGradleKts = true,
-      useGmd = true,
-      projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81
-    )
+    val (rootDir, srcDir) =
+      runTemplateGeneration(
+        agpVersion = AgpVersion(8, 1, 0),
+        sourceCodeLanguage = Language.Kotlin,
+        useGradleKts = true,
+        useGmd = true,
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81,
+      )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
-    assertThat(buildGradleContent).isEqualTo(FixturesAgp810.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0)
+    assertThat(buildGradleContent)
+      .isEqualTo(FixturesAgp810.BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.kt").readText()
-    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0)
+    assertThat(baselineProfileGeneratorContent)
+      .isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.kt").readText()
-    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0)
+    assertThat(startupBenchmarksContent)
+      .isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0)
   }
 
   @Test
   fun withJavaCodeAndBuildGradleGroovyAndAgpCurrent() {
 
-    val (rootDir, srcDir) = runTemplateGeneration(
-      agpVersion = AgpVersion(8, 3, 0),
-      sourceCodeLanguage = Language.Java,
-      useGradleKts = false,
-      useGmd = false,
-      projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-    )
+    val (rootDir, srcDir) =
+      runTemplateGeneration(
+        agpVersion = AgpVersion(8, 3, 0),
+        sourceCodeLanguage = Language.Java,
+        useGradleKts = false,
+        useGmd = false,
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+      )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
-    assertThat(buildGradleContent).isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT)
+    assertThat(buildGradleContent)
+      .isEqualTo(FixturesAgpCurrent.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.java").readText()
-    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT)
+    assertThat(baselineProfileGeneratorContent)
+      .isEqualTo(FixturesAgpCurrent.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.java").readText()
-    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT)
+    assertThat(startupBenchmarksContent)
+      .isEqualTo(FixturesAgpCurrent.STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT)
   }
 
   @Test
   fun withJavaCodeAndBuildGradleGroovyAndAgp810() {
 
-    val (rootDir, srcDir) = runTemplateGeneration(
-      agpVersion = AgpVersion(8, 1, 0),
-      sourceCodeLanguage = Language.Java,
-      useGradleKts = false,
-      useGmd = false,
-      projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81
-    )
+    val (rootDir, srcDir) =
+      runTemplateGeneration(
+        agpVersion = AgpVersion(8, 1, 0),
+        sourceCodeLanguage = Language.Java,
+        useGradleKts = false,
+        useGmd = false,
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81,
+      )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
-    assertThat(buildGradleContent).isEqualTo(FixturesAgp810.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0)
+    assertThat(buildGradleContent)
+      .isEqualTo(FixturesAgp810.BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0)
 
     val baselineProfileGeneratorContent = srcDir.resolve("BaselineProfileGenerator.java").readText()
-    assertThat(baselineProfileGeneratorContent).isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0)
+    assertThat(baselineProfileGeneratorContent)
+      .isEqualTo(FixturesAgp810.BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0)
 
     val startupBenchmarksContent = srcDir.resolve("StartupBenchmarks.java").readText()
-    assertThat(startupBenchmarksContent).isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0)
+    assertThat(startupBenchmarksContent)
+      .isEqualTo(FixturesAgp810.STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0)
   }
 
   private fun runTemplateGeneration(
@@ -143,7 +158,7 @@ class GenerateBaselineProfileModuleTest {
     useGradleKts: Boolean,
     useGmd: Boolean,
     projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-    androidApi: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+    androidApi: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
   ): Pair<File, File> {
     val name = "baselineprofile"
     val buildApi = ApiVersion(androidApi, "$androidApi")
@@ -154,74 +169,82 @@ class GenerateBaselineProfileModuleTest {
     val srcDir = tmpFolderRule.root.resolve("src").also { it.mkdir() }
     val rootDir = tmpFolderRule.root
 
-    projectRule.loadProject(projectPath = TestProjectPaths.ANDROIDX_SIMPLE, agpVersion = projectRuleAgpVersion)
-
-    val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
-    MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
-    val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
-
-    val renderingContext = RenderingContext(
-      project = projectRule.project,
-      module = projectRule.getModule(MODULE_NAME_APP),
-      commandName = "New Baseline Profile Module",
-      templateData = mockModuleTemplateData,
-      outputRoot = tmpFolderRule.root,
-      moduleRoot = tmpFolderRule.root,
-      dryRun = false,
-      showErrors = true
+    projectRule.loadProject(
+      projectPath = TestProjectPaths.ANDROIDX_SIMPLE,
+      agpVersion = projectRuleAgpVersion,
     )
 
-    val newModuleTemplateData = ModuleTemplateData(
-      projectTemplateData = ProjectTemplateData(
-        androidXSupport = true,
-        agpVersion = agpVersion,
-        additionalMavenRepos = listOf(),
-        sdkDir = null,
-        language = sourceCodeLanguage,
-        kotlinVersion = kotlinVersion,
-        rootDir = tmpFolderRule.root,
-        applicationPackage = packageName,
-        includedFormFactorNames = mapOf(),
-        debugKeystoreSha1 = null,
-        overridePathCheck = null,
-        isNewProject = false,
-      ),
-      themesData = ThemesData("appname"),
-      apis = ApiTemplateData(
-        buildApi = buildApi,
-        targetApi = targetApi,
-        minApi = minApi,
-        appCompatVersion = 0
-      ),
-      srcDir = srcDir,
-      resDir = tmpFolderRule.root.resolve("res").also { it.mkdir() },
-      manifestDir = tmpFolderRule.root.resolve("manifest").also { it.mkdir() },
-      testDir = tmpFolderRule.root.resolve("test").also { it.mkdir() },
-      unitTestDir = tmpFolderRule.root.resolve("unitTest").also { it.mkdir() },
-      aidlDir = tmpFolderRule.root.resolve("aidl").also { it.mkdir() },
-      rootDir = rootDir,
-      isNewModule = true,
-      name = name,
-      isLibrary = false,
-      packageName = packageName,
-      formFactor = FormFactor.Generic,
-      baseFeature = null,
-      viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
-      category = Category.Application,
-      isMaterial3 = true,
-      isCompose = false,
-      useGenericLocalTests = true,
-      useGenericInstrumentedTests = true,
-    )
+    val mockProjectTemplateData = mock<ProjectTemplateData>()
+    whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
+    val mockModuleTemplateData = mock<ModuleTemplateData>()
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
+
+    val renderingContext =
+      RenderingContext(
+        project = projectRule.project,
+        module = projectRule.getModule(MODULE_NAME_APP),
+        commandName = "New Baseline Profile Module",
+        templateData = mockModuleTemplateData,
+        outputRoot = tmpFolderRule.root,
+        moduleRoot = tmpFolderRule.root,
+        dryRun = false,
+        showErrors = true,
+      )
+
+    val newModuleTemplateData =
+      ModuleTemplateData(
+        projectTemplateData =
+          ProjectTemplateData(
+            androidXSupport = true,
+            agpVersion = agpVersion,
+            additionalMavenRepos = listOf(),
+            sdkDir = null,
+            language = sourceCodeLanguage,
+            kotlinVersion = kotlinVersion,
+            rootDir = tmpFolderRule.root,
+            applicationPackage = packageName,
+            includedFormFactorNames = mapOf(),
+            debugKeystoreSha1 = null,
+            overridePathCheck = null,
+            isNewProject = false,
+          ),
+        themesData = ThemesData("appname"),
+        apis =
+          ApiTemplateData(
+            buildApi = buildApi,
+            targetApi = targetApi,
+            minApi = minApi,
+            appCompatVersion = 0,
+          ),
+        srcDir = srcDir,
+        resDir = tmpFolderRule.root.resolve("res").also { it.mkdir() },
+        manifestDir = tmpFolderRule.root.resolve("manifest").also { it.mkdir() },
+        testDir = tmpFolderRule.root.resolve("test").also { it.mkdir() },
+        unitTestDir = tmpFolderRule.root.resolve("unitTest").also { it.mkdir() },
+        aidlDir = tmpFolderRule.root.resolve("aidl").also { it.mkdir() },
+        rootDir = rootDir,
+        isNewModule = true,
+        name = name,
+        isLibrary = false,
+        packageName = packageName,
+        formFactor = FormFactor.Generic,
+        baseFeature = null,
+        viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
+        category = Category.Application,
+        isMaterial3 = true,
+        isCompose = false,
+        useGenericLocalTests = true,
+        useGenericInstrumentedTests = true,
+      )
 
     runWriteCommandAction(projectRule.project) {
-      DefaultRecipeExecutor(renderingContext).generateBaselineProfilesModule(
-        newModule = newModuleTemplateData,
-        useGradleKts = useGradleKts,
-        useGmd = useGmd,
-        targetModule = projectRule.getModule(MODULE_NAME_APP),
-      )
+      DefaultRecipeExecutor(renderingContext)
+        .generateBaselineProfilesModule(
+          newModule = newModuleTemplateData,
+          useGradleKts = useGradleKts,
+          useGmd = useGmd,
+          targetModule = projectRule.getModule(MODULE_NAME_APP),
+        )
     }
 
     return Pair(rootDir, srcDir)
@@ -230,7 +253,8 @@ class GenerateBaselineProfileModuleTest {
 
 object FixturesAgpCurrent {
 
-  val BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT = """
+  val BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_CURRENT =
+    """
 plugins {
 }
 
@@ -272,9 +296,11 @@ androidComponents {
         )
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT = """
+  val BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_CURRENT =
+    """
 import com.android.build.api.dsl.ManagedVirtualDevice
 
 plugins {
@@ -333,9 +359,11 @@ androidComponents {
         )
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT = """
+  val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_CURRENT =
+    """
 package com.test.packagename;
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule;
@@ -412,9 +440,11 @@ if (targetAppId == null) {
         });
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT = """
+  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_CURRENT =
+    """
 package com.test.packagename
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
@@ -482,9 +512,11 @@ class BaselineProfileGenerator {
         }
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT = """
+  val STARTUP_BENCHMARKS_JAVA_WITH_AGP_CURRENT =
+    """
 package com.test.packagename;
 
 import androidx.benchmark.macro.BaselineProfileMode;
@@ -571,9 +603,11 @@ if (targetAppId == null) {
         );
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT = """
+  val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_CURRENT =
+    """
 package com.test.packagename
 
 import androidx.benchmark.macro.BaselineProfileMode
@@ -649,12 +683,14 @@ class StartupBenchmarks {
         )
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 }
 
 object FixturesAgp810 {
 
-  val BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0 = """
+  val BUILD_GRADLE_GROOVY_WITHOUT_GMD_WITH_AGP_8_1_0 =
+    """
 plugins {
 }
 
@@ -686,9 +722,11 @@ useConnectedDevices = true
 
 dependencies {
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0 = """
+  val BUILD_GRADLE_KTS_WITH_GMD_WITH_AGP_8_1_0 =
+    """
 import com.android.build.api.dsl.ManagedVirtualDevice
 
 plugins {
@@ -737,9 +775,11 @@ useConnectedDevices = false
 
 dependencies {
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0 = """
+  val BASELINE_PROFILE_GENERATOR_JAVA_WITH_AGP_8_1_0 =
+    """
 package com.test.packagename;
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule;
@@ -812,9 +852,11 @@ public class BaselineProfileGenerator {
         });
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0 = """
+  val BASELINE_PROFILE_GENERATOR_KOTLIN_WITH_AGP_8_1_0 =
+    """
 package com.test.packagename
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
@@ -882,9 +924,11 @@ class BaselineProfileGenerator {
         }
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0 = """
+  val STARTUP_BENCHMARKS_JAVA_WITH_AGP_8_1_0 =
+    """
 package com.test.packagename;
 
 import androidx.benchmark.macro.BaselineProfileMode;
@@ -967,9 +1011,11 @@ public class StartupBenchmarks {
         );
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 
-  val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0 = """
+  val STARTUP_BENCHMARKS_KOTLIN_WITH_AGP_8_1_0 =
+    """
 package com.test.packagename
 
 import androidx.benchmark.macro.BaselineProfileMode
@@ -1045,5 +1091,6 @@ class StartupBenchmarks {
         )
     }
 }
-""".trimIndent()
+"""
+      .trimIndent()
 }

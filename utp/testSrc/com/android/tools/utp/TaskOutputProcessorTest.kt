@@ -15,23 +15,20 @@
  */
 package com.android.tools.utp
 
-import com.android.testutils.MockitoKt.eq
-import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.protobuf.Any
 import com.android.tools.idea.protobuf.GeneratedMessageV3
+import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto
+import com.google.common.truth.Truth.assertThat
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mock
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.junit.MockitoJUnit
-import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import java.util.Base64
 
 /**
@@ -39,12 +36,7 @@ import java.util.Base64
  */
 @RunWith(JUnit4::class)
 class TaskOutputProcessorTest {
-
-  @get:Rule
-  val rule: MockitoRule = MockitoJUnit.rule()
-
-  @Mock
-  lateinit var mockListener: TaskOutputProcessorListener
+  private val mockListener: TaskOutputProcessorListener = mock()
 
   @Test
   fun processNoUtpTag() {

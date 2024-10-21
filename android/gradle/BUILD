@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
         "@intellij//:JUnit[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
