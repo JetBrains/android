@@ -28,7 +28,7 @@ public class AppInspectorArtifactTrackerImpl implements AppInspectorArtifactTrac
 
   @Override
   public ImmutableSet<Path> update(
-      Set<Label> targets, AppInspectorInfo appInspectorInfo, BlazeContext context)
+      Label target, AppInspectorInfo appInspectorInfo, BlazeContext context)
       throws BuildException {
     return ImmutableSet.of();
   }

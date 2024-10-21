@@ -50,7 +50,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
   }
 
   @Override
-  public AppInspectorInfo buildAppInspector(BlazeContext context, Set<Label> buildTargets)
+  public AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
       throws IOException, BuildException {
     BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
     try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
@@ -65,7 +65,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
 
       BlazeCommand.Builder builder =
           BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-              .addBlazeFlags(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
+              .addBlazeFlags(buildTarget.toString())
               .addBlazeFlags(buildResultHelper.getBuildFlags())
               .addBlazeFlags(additionalBlazeFlags);
 

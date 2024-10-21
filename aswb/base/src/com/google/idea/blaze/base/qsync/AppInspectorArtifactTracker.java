@@ -27,6 +27,6 @@ public interface AppInspectorArtifactTracker {
 
   /** Fetches, caches and sets up new app inspector artifacts. */
   ImmutableSet<Path> update(
-      Set<Label> targets, AppInspectorInfo appInspectorInfo, BlazeContext context)
+      Label target, AppInspectorInfo appInspectorInfo, BlazeContext context)
       throws BuildException;
 }

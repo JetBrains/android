@@ -24,6 +24,6 @@ import java.util.Set;
 /** A query sync service that builds render jars for given targets */
 public interface AppInspectorBuilder {
 
-  AppInspectorInfo buildAppInspector(BlazeContext context, Set<Label> buildTargets)
+  AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
       throws IOException, BuildException;
 }
