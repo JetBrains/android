@@ -409,7 +409,9 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myIconList.clear();
     String style = myIcons.getStyles()[myStylesBox.getSelectedIndex()];
     Object categoryItem = myCategoriesBox.getSelectedItem();
-    if (categoryItem instanceof String && categoryItem.equals("All")) {
+    int selectedCategory = myCategoriesBox.getSelectedIndex();
+    // If the category is "All" or no category has been selected yet, add all
+    if (categoryItem == null || (categoryItem instanceof String && categoryItem.equals("All"))) {
       myIconList.addAll(Arrays.asList(myIcons.getAllIcons(style)));
     }
     else {
