@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.android.tools.idea.profilers
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
@@ -36,6 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -173,8 +173,8 @@ class IntellijProfilerServicesTest {
     val moduleManager = EmptyModuleManager(project)
     val psiManger = MockPsiManager(project)
     val cpuProfilerStateSpy = Mockito.spy(CpuProfilerConfigsState())
-    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
-    MockitoKt.whenever(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
-    MockitoKt.whenever(project.getService(PsiManager::class.java)).thenReturn(psiManger)
+    whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    whenever(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
+    whenever(project.getService(PsiManager::class.java)).thenReturn(psiManger)
   }
 }

@@ -18,12 +18,12 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.profiler.proto.Commands
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class GcCommandHandlerTest {
   @Test

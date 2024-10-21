@@ -40,5 +40,6 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

@@ -16,7 +16,6 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.GradlePluginsData
-import com.android.testutils.MockitoKt.whenever
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Pair
@@ -28,6 +27,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.io.IOException
 

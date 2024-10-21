@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -34,6 +33,7 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class AgpUpgradeActionTest {

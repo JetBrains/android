@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.lint.client.api.Configuration
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Context
@@ -27,6 +25,8 @@ import com.android.tools.lint.detector.api.Project
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
   // Keep in sync with GroovyGradleVisitorTest#testBasic!

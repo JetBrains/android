@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
@@ -43,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.whenever
 
 /** Tests for [DeviceComboBox] */
 @Suppress("OPT_IN_USAGE") // runTest is experimental

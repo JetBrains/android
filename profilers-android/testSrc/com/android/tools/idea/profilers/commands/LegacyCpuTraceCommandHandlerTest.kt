@@ -18,26 +18,25 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
-import com.android.tools.profiler.proto.Trace
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.LinkedBlockingDeque
 
 class LegacyCpuTraceCommandHandlerTest {

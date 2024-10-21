@@ -67,5 +67,6 @@
     <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
@@ -30,6 +29,7 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatApplicationSettingsConfigurable] */
 class LogcatApplicationSettingsConfigurableTest {

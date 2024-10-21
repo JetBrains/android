@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.WaitForIndexRule
@@ -28,14 +27,13 @@ import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.execution.filters.impl.HyperlinkInfoFactoryImpl
 import com.intellij.ide.browsers.OpenUrlHyperlinkInfo
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 /** Tests for [SdkSourceRedirectFilter] */
 @RunsInEdt

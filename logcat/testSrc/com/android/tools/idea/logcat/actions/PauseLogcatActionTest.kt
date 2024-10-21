@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.devices.Device
@@ -27,6 +25,8 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [PauseLogcatAction] */
 class PauseLogcatActionTest {

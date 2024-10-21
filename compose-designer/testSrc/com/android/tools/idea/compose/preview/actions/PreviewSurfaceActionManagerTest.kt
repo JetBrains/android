@@ -1,7 +1,5 @@
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -17,6 +15,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 // EnableUiCheckAction(),
 // AnimationInspectorAction(),

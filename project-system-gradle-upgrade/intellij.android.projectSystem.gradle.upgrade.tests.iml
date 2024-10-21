@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" />
     <orderEntry type="library" scope="TEST" name="agp-version" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade.ui
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
@@ -85,7 +83,9 @@ import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 @RunsInEdt
@@ -613,7 +613,7 @@ class ContentManagerImplTest {
         }
       """.trimIndent()
     )
-    mock(GradleInstallationManager::class.java).let {
+    mock<GradleInstallationManager>().let {
       whenever(it.getGradleJvmPath(any(), any())).thenReturn(JDK_11_PATH)
       projectRule.projectRule.replaceService(GradleInstallationManager::class.java, it)
     }

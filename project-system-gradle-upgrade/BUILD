@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests[module]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

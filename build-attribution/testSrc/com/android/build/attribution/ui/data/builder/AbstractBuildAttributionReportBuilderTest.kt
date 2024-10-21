@@ -31,8 +31,8 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import org.mockito.kotlin.mock
 
 open class AbstractBuildAttributionReportBuilderTest {
 

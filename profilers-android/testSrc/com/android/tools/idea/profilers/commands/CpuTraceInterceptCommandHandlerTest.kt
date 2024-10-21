@@ -17,8 +17,6 @@ package com.android.tools.idea.profilers.commands
 
 import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
@@ -37,6 +35,8 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import java.nio.charset.Charset
 
 class CpuTraceInterceptCommandHandlerTest {
@@ -92,7 +92,7 @@ class CpuTraceInterceptCommandHandlerTest {
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
-    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), MockitoKt.any())
+    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
     Truth.assertThat(captor.value).contains("broadcast")
   }
 
@@ -110,7 +110,7 @@ class CpuTraceInterceptCommandHandlerTest {
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
-    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), MockitoKt.any())
+    verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), any())
     Truth.assertThat(captor.value).contains("broadcast")
     Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(ResponseResultCodes.RESULT_CODE_ALREADY_ENABLED)
     with(commandHandler.lastMetricsEvent!!) {

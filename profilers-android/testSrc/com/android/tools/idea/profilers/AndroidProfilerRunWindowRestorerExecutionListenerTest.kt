@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.wm.ToolWindow
@@ -30,6 +28,8 @@ import org.junit.Test
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AndroidProfilerRunWindowRestorerExecutionListenerTest {
   @get:Rule

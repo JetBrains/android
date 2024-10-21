@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
@@ -30,6 +28,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @Suppress("UsePropertyAccessSyntax")
 class ComposeViewSingleWordFilterTest {

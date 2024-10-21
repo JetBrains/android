@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.jfr.reports
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.MyLatencyListener
 import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -23,12 +22,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestScope
+import org.mockito.kotlin.mock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
