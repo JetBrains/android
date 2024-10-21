@@ -41,12 +41,18 @@ fun detectAnimations(sceneManager: SceneManager) {
 
 /** Supposed to be invoked on instance of [TileServiceViewAdapter]. */
 internal fun Any.getAnimations(): List<ProtoAnimation> {
-  val getAnimationsMethod =
-    this::class
-      .java
-      .declaredMethods
-      .single { it.name == "getAnimations" }
-      .also { it.isAccessible = true }
-  val list = getAnimationsMethod.invoke(this) as List<*>
-  return list.requireNoNulls().map { ProtoAnimation(it) }
+  try {
+    val getAnimationsMethod =
+      this::class
+        .java
+        .declaredMethods
+        .single { it.name == "getAnimations" }
+        .also { it.isAccessible = true }
+    val list = getAnimationsMethod.invoke(this) as List<*>
+    return list.requireNoNulls().map { ProtoAnimation(it) }
+  } catch (_: Exception) {
+    // If the androidx library is not the most up-to-date, the getAnimations method might not exist,
+    // leading to potential exceptions
+    return emptyList()
+  }
 }
