@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.TestLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.ibm.icu.impl.Assert.fail
 import com.intellij.openapi.actionSystem.ActionManager
@@ -33,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
@@ -78,8 +80,10 @@ private val VALUE5 = WithCount(1, SimpleValue("2", "Title 3"))
 class TreeDropDownActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val popupRule = JBPopupRule()
+  private val testLoggerRule = TestLoggerRule()
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule)!!
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(testLoggerRule)!!
 
   private val scope: CoroutineScope
     get() = AndroidCoroutineScope(projectRule.testRootDisposable)
@@ -116,6 +120,9 @@ class TreeDropDownActionTest {
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
+
+      Logger.getInstance(this@TreeDropDownActionTest::class.java)
+        .debug("flow subscription count: ${flow.subscriptionCount.value}")
 
       dropdown.titleState.waitForValue("All values")
 
