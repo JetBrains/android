@@ -22,6 +22,7 @@ import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants
+import com.android.tools.idea.uibuilder.layout.padding.DEFAULT_LAYOUT_PADDING
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
@@ -34,7 +35,6 @@ import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Experimental list layout. All previews are organized in groups.
@@ -43,7 +43,7 @@ import kotlin.math.min
  */
 @Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 class ListLayoutManager(
-  private val padding: OrganizationPadding,
+  private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 

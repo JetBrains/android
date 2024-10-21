@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.layout.padding.DEFAULT_LAYOUT_PADDING
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
@@ -45,7 +46,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * TODO(b/321949200) Add tests
  */
 class GridLayoutManager(
-  private val padding: OrganizationPadding,
+  private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
