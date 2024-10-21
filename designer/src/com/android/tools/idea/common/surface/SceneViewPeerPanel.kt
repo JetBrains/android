@@ -22,7 +22,6 @@ import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
-import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -116,12 +115,13 @@ class SceneViewPeerPanel(
           margin.bottom += sceneViewCenterPanel.preferredSize.height
         }
 
-        val contentSize = getContentSize(null).scaleBy(scale)
-        if (contentSize.width < minimumSize.width) {
+        val scaledContentWidth = getContentSize(null).width * scale
+
+        if (scaledContentWidth < minimumSize.width) {
           // If there is no content, or the content is smaller than the minimum size,
           // pad the margins horizontally to occupy the empty space.
           // The content is aligned on the left
-          margin.right += (minimumSize.width - contentSize.width).coerceAtLeast(0)
+          margin.right += (minimumSize.width - scaledContentWidth.toInt()).coerceAtLeast(0)
         }
         return margin
       }
