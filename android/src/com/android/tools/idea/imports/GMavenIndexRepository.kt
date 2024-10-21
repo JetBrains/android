@@ -33,7 +33,6 @@ import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Properties
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -71,14 +70,13 @@ private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
  * actively refreshed from network request on GMaven indices on [baseUrl]/[RELATIVE_PATH], on a
  * scheduled basis (daily).
  *
- * [getMavenClassRegistry] returns the last known [MavenClassRegistry] if possible.
- *
  * The underlying [lastComputedMavenClassRegistry] is for storing the last known value for instant
  * query. The freshness is guaranteed by the [scheduler].
  */
 class GMavenIndexRepository(
   private val baseUrl: String,
   private val cacheDir: Path,
+  private val onIndexUpdated: () -> Unit,
   coroutineScope: CoroutineScope,
   coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
@@ -87,7 +85,6 @@ class GMavenIndexRepository(
 
   private val relativeCachePath =
     if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
-  private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
 
   init {
     coroutineScope.launch(coroutineDispatcher) {
@@ -104,18 +101,6 @@ class GMavenIndexRepository(
         delay(REFRESH_INTERVAL)
       }
     }
-  }
-
-  /**
-   * Returns the last known [MavenClassRegistry] if possible.
-   *
-   * Or new Maven class registry is created in the calling thread.
-   */
-  fun getMavenClassRegistry(): MavenClassRegistry {
-    return lastComputedMavenClassRegistry.get()
-      ?: MavenClassRegistry.createFrom(::loadIndexFromDisk).apply {
-        lastComputedMavenClassRegistry.set(this)
-      }
   }
 
   /**
@@ -143,19 +128,7 @@ class GMavenIndexRepository(
   @Slow
   private fun refresh(url: String): RefreshStatus {
     val status = refreshDiskCache(url)
-
-    if (status == RefreshStatus.UPDATED) {
-      lastComputedMavenClassRegistry.getAndUpdate {
-        if (it == null) {
-          null
-        } else {
-          val mavenClassRegistry = MavenClassRegistry.createFrom(::loadIndexFromDisk)
-          // TODO: make it `debug` instead of `info` once it's stable.
-          thisLogger().info("Updated in-memory Maven class registry.")
-          mavenClassRegistry
-        }
-      }
-    }
+    if (status == RefreshStatus.UPDATED) onIndexUpdated()
 
     return status
   }

@@ -55,7 +55,7 @@ class GMavenIndexRepositoryTest {
   private val testScope = TestScope(testDispatcher)
 
   private val gMavenIndexRepository =
-    GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
+    GMavenIndexRepository(url, cacheDir, {}, testScope, testDispatcher)
 
   @After
   fun tearDown() {
@@ -92,7 +92,7 @@ class GMavenIndexRepositoryTest {
 
   @Test
   fun testRefreshDiskCache_noModificationSinceLast() {
-    val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, testScope, testDispatcher)
+    val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, {}, testScope, testDispatcher)
     createContext(
       path = CONTEXT_PATH,
       content = "This is for unit test",

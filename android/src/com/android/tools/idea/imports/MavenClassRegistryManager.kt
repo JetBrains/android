@@ -21,11 +21,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.util.application
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 
 /** Key used in cache directories to locate the gmaven.index network cache. */
@@ -33,7 +35,7 @@ private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
 
 /**
  * An application service responsible for downloading index from network and populating the
- * corresponding Maven class registry. [getMavenClassRegistry] returns the the best effort of Maven
+ * corresponding Maven class registry. [getMavenClassRegistry] returns the best effort of Maven
  * class registry when asked.
  */
 @Service
@@ -42,11 +44,33 @@ class MavenClassRegistryManager(coroutineScope: CoroutineScope) {
     GMavenIndexRepository(
       BASE_URL,
       Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
+      ::updateMavenClassRegistry,
       coroutineScope,
     )
 
-  /** Returns [MavenClassRegistry] extracted from [gMavenIndexRepository]. */
-  fun getMavenClassRegistry() = gMavenIndexRepository.getMavenClassRegistry()
+  private val lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
+
+  /** Returns [MavenClassRegistry]. */
+  fun getMavenClassRegistry(): MavenClassRegistry {
+    return lastComputedMavenClassRegistry.get()
+      ?: MavenClassRegistry.createFrom(gMavenIndexRepository::loadIndexFromDisk).apply {
+        lastComputedMavenClassRegistry.set(this)
+      }
+  }
+
+  private fun updateMavenClassRegistry() {
+    lastComputedMavenClassRegistry.getAndUpdate {
+      if (it == null) {
+        null
+      } else {
+        val mavenClassRegistry =
+          MavenClassRegistry.createFrom(gMavenIndexRepository::loadIndexFromDisk)
+        // TODO: make it `debug` instead of `info` once it's stable.
+        thisLogger().info("Updated in-memory Maven class registry.")
+        mavenClassRegistry
+      }
+    }
+  }
 
   companion object {
     @JvmStatic fun getInstance(): MavenClassRegistryManager = application.service()
