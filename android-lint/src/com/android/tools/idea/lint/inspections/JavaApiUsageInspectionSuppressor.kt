@@ -16,13 +16,12 @@
 package com.android.tools.idea.lint.inspections
 
 import com.intellij.codeInspection.InspectionSuppressor
-import com.intellij.codeInspection.JavaApiUsageInspection
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * This suppresses [JavaApiUsageInspection] in Android modules, where it is superseded by the NewApi
+ * This suppresses JavaApiUsageInspection in Android modules, where it is superseded by the NewApi
  * Lint check. The NewApi Lint check handles various Android-specific details such as runtime
  * version checks and API desugaring.
  */
