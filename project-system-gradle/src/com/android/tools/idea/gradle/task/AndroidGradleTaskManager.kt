@@ -24,7 +24,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.util.Key
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
-import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
 
@@ -43,7 +42,7 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
     listener: ExternalSystemTaskNotificationListener
   ): Boolean {
     val gradleBuildInvoker = findGradleInvoker(id) ?: return false
-    val effectiveSettings = settings ?: GradleExecutionSettings(null, null, DistributionType.BUNDLED, false)
+    val effectiveSettings = settings ?: GradleExecutionSettings()
     GradleTaskManager.setupGradleScriptDebugging(effectiveSettings)
     GradleTaskManager.setupDebuggerDispatchPort(effectiveSettings)
     GradleTaskManager.appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings)

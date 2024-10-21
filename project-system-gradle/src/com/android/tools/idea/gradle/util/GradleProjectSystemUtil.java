@@ -41,7 +41,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.repository.AgpVersion;
@@ -595,11 +594,13 @@ public class GradleProjectSystemUtil {
       if (executionSettings == null) {
         File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
-        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
+        executionSettings = new GradleExecutionSettings();
+        executionSettings.setGradleHome(gradlePath.getPath());
+        executionSettings.setDistributionType(LOCAL);
       }
     }
-    if(executionSettings == null) {
-      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
+    if (executionSettings == null) {
+      executionSettings = new GradleExecutionSettings();
     }
     return executionSettings;
   }
