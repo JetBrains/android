@@ -16,7 +16,9 @@
 package com.android.tools.idea.avd
 
 internal data class StorageCapacity
-internal constructor(internal val value: Long, internal val unit: Unit) {
+internal constructor(internal val value: Long, internal val unit: Unit) :
+  Comparable<StorageCapacity> {
+
   /**
    * Returns an equivalent StorageCapacity with the largest unit with no loss of precision. Returns
    * 2M for 2048K, for example.
@@ -45,4 +47,6 @@ internal constructor(internal val value: Long, internal val unit: Unit) {
   }
 
   override fun toString() = value.toString() + unit.toString().first()
+
+  override fun compareTo(other: StorageCapacity) = valueIn(Unit.B).compareTo(other.valueIn(Unit.B))
 }

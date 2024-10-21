@@ -70,6 +70,15 @@ internal constructor(
     device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE
 
   companion object {
+    internal val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)
+
+    internal val MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE =
+      StorageCapacity(100, StorageCapacity.Unit.MB)
+
+    internal val MIN_CUSTOM_EXPANDED_STORAGE = StorageCapacity(10, StorageCapacity.Unit.MB)
+    internal val MIN_RAM = StorageCapacity(128, StorageCapacity.Unit.MB)
+    internal val MIN_VM_HEAP_SIZE = StorageCapacity(16, StorageCapacity.Unit.MB)
+
     fun withDefaults(device: Device): VirtualDevice =
       VirtualDevice(
         name = device.displayName,
@@ -81,7 +90,7 @@ internal constructor(
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         orientation = device.defaultState.orientation,
         defaultBoot = Boot.QUICK,
-        internalStorage = EmulatedProperties.defaultInternalStorage(device).toStorageCapacity(),
+        internalStorage = MIN_INTERNAL_STORAGE,
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
@@ -162,13 +171,20 @@ internal fun Storage.toStorageCapacity(): StorageCapacity {
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {
+  override fun isValid(hasPlayStore: Boolean) =
+    value >=
+      if (hasPlayStore) {
+        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
+      } else {
+        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
+      }
 
   override fun toString() = value.toString()
 }
 
 internal data class ExistingImage internal constructor(private val path: String) :
   ExpandedStorage() {
-  override fun isValid() = Files.isRegularFile(Paths.get(path))
+  override fun isValid(hasPlayStore: Boolean) = Files.isRegularFile(Paths.get(path))
 
   override fun toString() = path
 }
@@ -178,7 +194,7 @@ internal object None : ExpandedStorage() {
 }
 
 internal sealed class ExpandedStorage {
-  internal open fun isValid() = true
+  internal open fun isValid(hasPlayStore: Boolean) = true
 }
 
 internal fun ExpandedStorage.toSdCard(): SdCard? =

@@ -54,7 +54,7 @@ class StorageCapacityFieldTest {
     val onValueChange = MockitoKt.mock<(StorageCapacity) -> Unit>()
 
     rule.setContent {
-      StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), onValueChange)
+      StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), null, onValueChange)
     }
 
     // Act

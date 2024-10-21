@@ -190,6 +190,10 @@ internal constructor(
 
   internal fun setSystemImageSelection(systemImage: ISystemImage) {
     systemImageTableSelectionState.selection = systemImage
+
+    validity =
+      validity.copy(isExpandedStorageValid = device.expandedStorage.isValid(hasPlayStore()))
+
     updatePreferredAbiValidity()
   }
 
@@ -231,9 +235,21 @@ internal constructor(
     return skin
   }
 
+  internal fun setIsInternalStorageValid(isInternalStorageValid: Boolean) {
+    validity = validity.copy(isInternalStorageValid = isInternalStorageValid)
+  }
+
   internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
     device = device.copy(expandedStorage = expandedStorage)
-    validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid())
+    validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid(hasPlayStore()))
+  }
+
+  internal fun setIsRamValid(isRamValid: Boolean) {
+    validity = validity.copy(isRamValid = isRamValid)
+  }
+
+  internal fun setIsVmHeapSizeValid(isVmHeapSizeValid: Boolean) {
+    validity = validity.copy(isVmHeapSizeValid = isVmHeapSizeValid)
   }
 
   internal fun resetPlayStoreFields(skin: Path) {
@@ -253,16 +269,22 @@ internal constructor(
 
 internal data class Validity
 internal constructor(
-  private val isSystemImageTableSelectionValid: Boolean = true,
-  internal val isExpandedStorageValid: Boolean = true,
   private val isDeviceNameValid: Boolean = true,
+  private val isSystemImageTableSelectionValid: Boolean = true,
+  private val isInternalStorageValid: Boolean = true,
+  internal val isExpandedStorageValid: Boolean = true,
+  private val isRamValid: Boolean = true,
+  private val isVmHeapSizeValid: Boolean = true,
   val isPreferredAbiValid: Boolean = true,
 ) {
   internal val isValid
     get() =
-      isSystemImageTableSelectionValid &&
+      isDeviceNameValid &&
+        isSystemImageTableSelectionValid &&
+        isInternalStorageValid &&
         isExpandedStorageValid &&
-        isDeviceNameValid &&
+        isRamValid &&
+        isVmHeapSizeValid &&
         isPreferredAbiValid
 }
 
