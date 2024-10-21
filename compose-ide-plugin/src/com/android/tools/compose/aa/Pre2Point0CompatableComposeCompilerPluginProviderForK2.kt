@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.aa
 
+import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import org.jetbrains.kotlin.idea.fir.extensions.CompilerPluginRegistrarUtils
 import org.jetbrains.kotlin.idea.fir.extensions.KotlinBundledFirCompilerPluginProvider
@@ -40,7 +41,7 @@ class Pre2Point0CompatableComposeCompilerPluginProviderForK2 :
       "androidx.compose.compiler.plugins.kotlin.ComposeComponentRegistrar"
   }
 
-  override fun provideBundledPluginJar(userSuppliedPluginJar: Path): Path? {
+  override fun provideBundledPluginJar(project: Project, userSuppliedPluginJar: Path): Path? {
     val compilerPluginRegistrarContent =
       CompilerPluginRegistrarUtils.readRegistrarContent(userSuppliedPluginJar) ?: return null
     if (OLD_COMPOSE_COMPILER_REGISTRAR !in compilerPluginRegistrarContent) return null

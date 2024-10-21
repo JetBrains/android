@@ -50,6 +50,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.impl.ProjectUtil;
+import com.intellij.ide.ui.MainMenuDisplayMode;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -253,7 +254,7 @@ public class GuiTestRule implements TestRule {
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
     // Our MenuFixture does not support at the moment the new UI menu.
     // Setting it to separate main menu will ensure that it still works in tests.
-    UISettings.getInstance().setSeparateMainMenu(true);
+    UISettings.getInstance().setMainMenuDisplayMode(MainMenuDisplayMode.SEPARATE_TOOLBAR);
     GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();

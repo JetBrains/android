@@ -76,7 +76,7 @@ class JumpToDiffUtilsTest {
       assertThat(customTitles!!.size).isEqualTo(2)
       assertThat(
           customTitles.mapNotNull {
-            when (val label = it.label) {
+            when (val label = it.getLabel()) {
               is JBLabel -> label.text
               is HyperlinkLabel -> label.text
               else -> null

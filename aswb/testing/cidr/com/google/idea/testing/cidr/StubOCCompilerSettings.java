@@ -28,12 +28,14 @@ import com.jetbrains.cidr.lang.workspace.compiler.OCCompilerKind;
 import com.jetbrains.cidr.lang.workspace.headerRoots.HeadersSearchPath;
 import com.jetbrains.cidr.lang.workspace.headerRoots.HeadersSearchRoot;
 import com.jetbrains.cidr.lang.workspace.headerRoots.HeadersSearchRoots;
+import com.jetbrains.cidr.lang.workspace.moduleRoots.ModuleSearchPath;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /** Stub {@link OCCompilerSettings} for testing. */
 class StubOCCompilerSettings implements OCCompilerSettings {
@@ -74,6 +76,11 @@ class StubOCCompilerSettings implements OCCompilerSettings {
 
   @Override
   public List<HeadersSearchPath> getHeadersSearchPaths() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public @NotNull List<ModuleSearchPath> getModuleSearchPaths() {
     return Collections.emptyList();
   }
 

@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
 import org.jetbrains.kotlin.analysis.api.projectStructure.directRegularDependenciesOfType
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KaResolveExtension
-import org.jetbrains.kotlin.idea.base.projectStructure.getMainKtSourceModule
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProduction
 import org.junit.Before
 import org.junit.Test
 
@@ -45,7 +45,7 @@ class SafeArgsResolveExtensionProviderTest : AbstractSafeArgsResolveExtensionTes
   @Before
   fun setUp() {
     module = safeArgsRule.module
-    sourceModule = module.getMainKtSourceModule()!!
+    sourceModule = module.toKaSourceModuleForProduction()!!
   }
 
   @Test
