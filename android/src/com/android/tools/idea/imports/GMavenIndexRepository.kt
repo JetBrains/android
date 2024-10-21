@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.io.CancellableFileIo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.outputStream
@@ -73,7 +74,13 @@ class GMavenIndexRepository(
   private val baseUrl: String,
   private val cacheDir: Path,
   private val refreshInterval: Duration,
+  parentDisposable: Disposable,
 ) : Disposable {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
   private class ValueWithETag(val data: ByteArray, val eTag: String)
 
   private val relativeCachePath =

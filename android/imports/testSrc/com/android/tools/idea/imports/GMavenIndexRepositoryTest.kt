@@ -22,6 +22,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.sun.net.httpserver.HttpServer
@@ -61,11 +62,14 @@ class GMavenIndexRepositoryTest {
     }
   private val url = "http://$LOCALHOST:${server.address.port}"
 
-  private val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, Duration.ofDays(1))
+  private val testDisposable = object : Disposable.Default {}
+
+  private val gMavenIndexRepository =
+    GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testDisposable)
 
   @After
   fun tearDown() {
-    Disposer.dispose(gMavenIndexRepository)
+    Disposer.dispose(testDisposable)
     server.stop(0)
     appExecutorUtilMock.close()
   }
@@ -100,7 +104,8 @@ class GMavenIndexRepositoryTest {
 
   @Test
   fun testRefreshDiskCache_noModificationSinceLast() {
-    val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, Duration.ofDays(1))
+    val gMavenIndexRepository =
+      GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testDisposable)
     createContext(
       path = CONTEXT_PATH,
       content = "This is for unit test",

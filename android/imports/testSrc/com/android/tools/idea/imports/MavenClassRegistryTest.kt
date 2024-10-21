@@ -18,6 +18,7 @@ package com.android.tools.idea.imports
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
@@ -520,7 +521,9 @@ class MavenClassRegistryTest {
   @Test
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    val repository = GMavenIndexRepository("https://example.com", tempDir, Duration.ofDays(1))
+    val parentDisposable = Disposable {}
+    val repository =
+      GMavenIndexRepository("https://example.com", tempDir, Duration.ofDays(1), parentDisposable)
 
     try {
       val mavenClassRegistry = MavenClassRegistry(repository)
@@ -568,7 +571,7 @@ class MavenClassRegistryTest {
         assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
       }
     } finally {
-      Disposer.dispose(repository)
+      Disposer.dispose(parentDisposable)
     }
   }
 
