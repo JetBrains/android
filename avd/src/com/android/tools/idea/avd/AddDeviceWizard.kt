@@ -203,7 +203,7 @@ private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>
 private val virtualDeviceName =
   TableTextColumn<VirtualDeviceProfile>(
     "Name",
-    TableColumnWidth.Weighted(2f),
+    TableColumnWidth.Weighted(3f),
     attribute = { if (it.isDeprecated) it.name + " (Obsolete)" else it.name },
     maxLines = 2,
   )
@@ -225,5 +225,5 @@ private val playColumn =
 
 private val avdColumns =
   with(DeviceTableColumns) {
-    persistentListOf(icon, virtualDeviceName, playColumn, width, height, density)
+    persistentListOf(icon, virtualDeviceName, playColumn, apiRange, width, height, density)
   }
