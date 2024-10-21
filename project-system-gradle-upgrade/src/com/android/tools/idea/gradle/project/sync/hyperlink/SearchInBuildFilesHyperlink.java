@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHy
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
-import com.intellij.find.FindSettings;
+import com.intellij.find.FindUsagesSettings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Factory;
 import com.intellij.usageView.UsageInfo;
@@ -76,7 +76,7 @@ public class SearchInBuildFilesHyperlink extends SyncIssueNotificationHyperlink 
 
     UsageViewPresentation presentation = setupViewPresentation(findModel.isOpenInNewTabEnabled(), findModelCopy);
 
-    boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
+    boolean showPanelIfOnlyOneUsage = !FindUsagesSettings.getInstance().isSkipResultsWithOneUsage();
 
     FindUsagesProcessPresentation processPresentation = setupProcessPresentation(showPanelIfOnlyOneUsage, presentation);
 
