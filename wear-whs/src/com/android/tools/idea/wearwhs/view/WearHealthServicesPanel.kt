@@ -377,9 +377,9 @@ internal fun createWearHealthServicesPanel(
     JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
 
-      add(informationLabel)
-      add(JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } })
-      add(
+      val resetButton =
+        JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } }
+      val applyButton =
         JButton(message("wear.whs.panel.reapply")).apply {
           stateManager.hasUserChanges
             .onEach {
@@ -400,7 +400,19 @@ internal fun createWearHealthServicesPanel(
 
           addActionListener { applyChanges() }
         }
-      )
+
+      combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
+          val canMakeChanges =
+            status !is WhsStateManagerStatus.Syncing &&
+              (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
+          resetButton.isEnabled = canMakeChanges
+          applyButton.isEnabled = canMakeChanges
+        }
+        .launchIn(uiScope)
+
+      add(informationLabel)
+      add(resetButton)
+      add(applyButton)
     }
 
   val header =
@@ -506,3 +518,6 @@ private fun createLoadCapabilityPresetButton(
     .launchIn(uiScope)
   return loadCapabilityPresetButton
 }
+
+private fun WearHealthServicesStateManager.hasAtLeastOneCapabilityEnabled() =
+  capabilitiesList.any { getState(it).value.upToDateState.enabled }
