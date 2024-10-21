@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -22,6 +24,7 @@ import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** All the relevant output data for a single {@link OutputArtifact}. */
@@ -69,5 +72,14 @@ public class BepArtifactData {
         newer.artifact,
         Sets.union(outputGroups, newer.outputGroups).immutableCopy(),
         Sets.union(topLevelTargets, newer.topLevelTargets).immutableCopy());
+  }
+
+  /** Combines multiple {@link BepArtifactData} instances. */
+  public static BepArtifactData combine(Collection<BepArtifactData> items) {
+    Preconditions.checkState(items.stream().map(it -> it.artifact.getBazelOutRelativePath()).collect(toImmutableSet()).size() == 1);
+    return new BepArtifactData(
+      items.iterator().next().artifact,
+      items.stream().flatMap(it -> it.outputGroups.stream()).collect(toImmutableSet()),
+      items.stream().flatMap(it -> it.topLevelTargets.stream()).collect(toImmutableSet()));
   }
 }
