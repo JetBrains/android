@@ -145,7 +145,14 @@ fun <DeviceT : DeviceProfile> DeviceTable(
                 val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
               ) {
                 null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
-                else -> DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
+                else ->
+                  DeviceDetails(
+                    selection,
+                    modifier =
+                      Modifier.width(200.dp)
+                        .padding(vertical = 12.dp, horizontal = 8.dp)
+                        .fillMaxHeight(),
+                  )
               }
             }
           }
