@@ -33,7 +33,6 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.htmlComponent
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.launch
@@ -386,7 +385,7 @@ abstract class AbstractDisplayView(
 
   private class DisconnectedStatePanel : JBPanel<DisconnectedStatePanel>(GridBagLayout()) {
 
-    private val message = htmlComponent(text = "", lineWrap = true).apply {
+    private val message = textComponent(text = "").apply {
       isOpaque = false
       isFocusable = false
       border = JBUI.Borders.empty()

@@ -26,7 +26,12 @@ import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionHolder
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.dsl.builder.HyperlinkEventAction
+import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
+import com.intellij.ui.dsl.builder.components.DslLabel
+import com.intellij.ui.dsl.builder.components.DslLabelType
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -41,6 +46,7 @@ import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.nio.ByteBuffer
 import javax.swing.Icon
+import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 import kotlin.coroutines.resume
@@ -245,5 +251,22 @@ internal fun createShowLogHyperlinkListener(): HyperlinkListener {
     if (event.eventType == HyperlinkEvent.EventType.ACTIVATED && event.description == "ShowLog") {
       ShowLogAction.showLog()
     }
+  }
+}
+
+/** Creates a text component supporting HTML. */
+internal fun textComponent(
+  @NlsContexts.Label text: String,
+  maxLineLength: Int = MAX_LINE_LENGTH_WORD_WRAP,
+  action: HyperlinkEventAction = HyperlinkEventAction.HTML_HYPERLINK_INSTANCE
+): JEditorPane {
+  @Suppress("UnstableApiUsage")
+  return DslLabel(DslLabelType.LABEL).apply {
+    this.action = action
+    this.maxLineLength = maxLineLength
+    if (maxLineLength == MAX_LINE_LENGTH_WORD_WRAP) {
+      limitPreferredSize = true
+    }
+    this.text = text
   }
 }

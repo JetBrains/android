@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.streaming.StreamingBundle.message
+import com.android.tools.idea.streaming.core.textComponent
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -66,7 +67,6 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.Label
 import com.intellij.ui.components.dialog
-import com.intellij.ui.components.htmlComponent
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.AlignY
@@ -149,7 +149,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     horizontalAlignment = SwingConstants.CENTER
   }
   private val previewPanel = BorderLayoutPanelWithPreferredSize(270, 100)
-  private val snapshotInfoPanel = htmlComponent(lineWrap = true)
+  private val snapshotInfoPanel = textComponent("")
   private val coldBootCheckBox = JBCheckBox(message("manage.snapshots.checkbox.start.cold.boot")).apply {
     addItemListener {
       if (isSelected != snapshotTableModel.isColdBoot) {
@@ -257,7 +257,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
     val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
     snapshotInfoPanel.apply {
-      text = "<html><b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}</html>"
+      text = "<b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}"
       val fontMetrics = getFontMetrics(font)
       val wrappedDescriptionLines = if (width == 0) 0 else fontMetrics.stringWidth(snapshot.description) / width
       preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines.coerceAtMost(5)))
@@ -278,6 +278,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
   }
 
+  @Suppress("UnstableApiUsage")
   @NlsSafe
   private fun Color.toHtmlString(): String {
     return (rgb and 0xFFFFFF).toString(16)
