@@ -5,8 +5,9 @@ import com.intellij.codeInspection.LocalInspectionTool
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection
 
+private const val BASE_PATH = "intentions/"
+
 class AndroidIntentionsTest : AndroidTestCase() {
-  @Throws(Exception::class)
   public override fun setUp() {
     super.setUp()
     myFixture.addFileToProject(
@@ -43,15 +44,11 @@ class AndroidIntentionsTest : AndroidTestCase() {
 
     val quickFix = myFixture.getAvailableIntention(quickFixName)
     if (available) {
-      assertNotNull(quickFix)
-      myFixture.launchAction(quickFix!!)
+      requireNotNull(quickFix) { "Quick fix should have been found." }
+      myFixture.launchAction(quickFix)
       myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.java")
     } else {
       assertNull(quickFix)
     }
-  }
-
-  companion object {
-    private const val BASE_PATH = "intentions/"
   }
 }
