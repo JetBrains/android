@@ -39,6 +39,7 @@ import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.round
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -162,8 +163,9 @@ class SceneViewPeerPanel(
       override fun sizeForScale(scale: Double): Dimension {
         val size = getContentSize(null)
         val margin = getMargin(scale)
-        size.width = (size.width * scale + margin.horizontal).toInt()
-        size.height = (size.height * scale + margin.vertical).toInt()
+        // To be more precise - round to nearest Int
+        size.width = round(size.width * scale + margin.horizontal).toInt()
+        size.height = round(size.height * scale + margin.vertical).toInt()
         return size
       }
 

@@ -26,7 +26,7 @@ internal const val MINIMUM_SCALE = 0.01
  * zoom-to-fit value is smaller than this value. We don't display the zoom level lower than 1% in
  * the zoom panel, so we use 0.01 here.
  */
-internal const val SCALE_UNIT = 0.01
+internal const val SCALE_UNIT = 0.005
 
 /**
  * Max iteration times of the binary search. Iterate 10 times can search 1% to 2048% range which is
