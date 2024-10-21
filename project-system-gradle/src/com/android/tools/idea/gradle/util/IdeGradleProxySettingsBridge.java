@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProxySettings {
+public class IdeGradleProxySettingsBridge {
   @NonNls public static final String HTTP_PROXY_TYPE = "http";
   @NonNls public static final String HTTPS_PROXY_TYPE = "https";
 
@@ -49,11 +49,11 @@ public class ProxySettings {
 
   private int myPort = 80;
 
-  public ProxySettings(@NotNull String proxyType) {
+  public IdeGradleProxySettingsBridge(@NotNull String proxyType) {
     myProxyType = proxyType;
   }
 
-  public ProxySettings(@NotNull Properties properties, @NotNull String proxyType) {
+  public IdeGradleProxySettingsBridge(@NotNull Properties properties, @NotNull String proxyType) {
     myProxyType = proxyType;
     myHost = properties.getProperty(getProxyPropertyName(PROXY_HOST_PROPERTY_SUFFIX));
     String portValue = properties.getProperty(getProxyPropertyName(PROXY_PORT_PROPERTY_SUFFIX));
@@ -69,7 +69,7 @@ public class ProxySettings {
     myPassword = properties.getProperty(getProxyPropertyName(PROXY_PASSWORD_PROPERTY_SUFFIX));
   }
 
-  public ProxySettings(@NotNull HttpConfigurable ideProxySettings) {
+  public IdeGradleProxySettingsBridge(@NotNull HttpConfigurable ideProxySettings) {
     myProxyType = HTTP_PROXY_TYPE;
     myHost = ideProxySettings.PROXY_HOST;
     myPort = ideProxySettings.PROXY_PORT;
@@ -180,10 +180,10 @@ public class ProxySettings {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ProxySettings)) {
+    if (!(o instanceof IdeGradleProxySettingsBridge)) {
       return false;
     }
-    ProxySettings settings = (ProxySettings)o;
+    IdeGradleProxySettingsBridge settings = (IdeGradleProxySettingsBridge)o;
     return myPort == settings.myPort &&
            Objects.equals(myProxyType, settings.myProxyType) &&
            Objects.equals(myHost, settings.myHost) &&

@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +51,7 @@ public class HttpProxySettingsCleanUp {
       // Let sync continue, even though it may fail.
       return;
     }
-    ProxySettings gradleProxySettings = properties.getHttpProxySettings();
+    IdeGradleProxySettingsBridge gradleProxySettings = properties.getHttpProxySettings();
     Application application = ApplicationManager.getApplication();
     application.invokeAndWait(() -> {
       final ProxySettingsDialog dialog = getDialog(project, ideHttpProxySettings, ideUsingProxy, properties, gradleProxySettings);
@@ -68,7 +68,7 @@ public class HttpProxySettingsCleanUp {
                                                HttpConfigurable ideHttpProxySettings,
                                                boolean ideUsingProxy,
                                                GradleProperties properties,
-                                               ProxySettings gradleProxySettings) {
+                                               IdeGradleProxySettingsBridge gradleProxySettings) {
     ProxySettingsDialog dialog = null;
     if (!ideUsingProxy) {
       boolean gradleUsingProxy = isNotEmpty(gradleProxySettings.getHost());
@@ -86,7 +86,7 @@ public class HttpProxySettingsCleanUp {
       }
       else {
         // Show proxy settings dialog only if the IDE configuration is different to Gradle's
-        ProxySettings ideProxySettings = new ProxySettings(ideHttpProxySettings);
+        IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideHttpProxySettings);
         if (!ideProxySettings.equals(gradleProxySettings)) {
           dialog = new ProxySettingsDialog(project, ideProxySettings, /* ide uses a proxy*/ true);
         }

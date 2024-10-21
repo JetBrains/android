@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -87,7 +87,7 @@ public class GradlePreSyncTest {
     ideSettings.setProxyLogin("test");
     ideSettings.setPlainProxyPassword("");
 
-    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(ideSettings);
 
     File userPropertiesFile = getUserGradlePropertiesFile();
     GradleProperties properties = new GradleProperties(userPropertiesFile);
@@ -105,7 +105,7 @@ public class GradlePreSyncTest {
 
         assertEquals(ideProxySettings, properties1.getHttpProxySettings());
 
-        ideProxySettings.setProxyType(ProxySettings.HTTPS_PROXY_TYPE);
+        ideProxySettings.setProxyType(IdeGradleProxySettingsBridge.HTTPS_PROXY_TYPE);
         assertEquals(ideProxySettings, properties1.getHttpsProxySettings());
       }
       catch (IOException e) {
@@ -144,13 +144,13 @@ public class GradlePreSyncTest {
         ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(guiTest.robot());
 
         // Verify settings match with gradle properties
-        ProxySettings httpSettings = properties.getHttpProxySettings();
+        IdeGradleProxySettingsBridge httpSettings = properties.getHttpProxySettings();
         assertEquals(nullToEmpty(httpSettings.getHost()), proxySettingsDialog.getHttpHost());
         assertEquals(httpSettings.getPort(), proxySettingsDialog.getHttpPort());
         assertEquals(nullToEmpty(httpSettings.getUser()), proxySettingsDialog.getHttpUser());
         assertEquals(nullToEmpty(httpSettings.getExceptions()), proxySettingsDialog.getHttpExceptions());
 
-        ProxySettings httpsSettings = properties.getHttpsProxySettings();
+        IdeGradleProxySettingsBridge httpsSettings = properties.getHttpsProxySettings();
         assertEquals(nullToEmpty(httpsSettings.getHost()), proxySettingsDialog.getHttpsHost());
         assertEquals(httpsSettings.getPort(), proxySettingsDialog.getHttpsPort());
         assertEquals(nullToEmpty(httpsSettings.getUser()), proxySettingsDialog.getHttpsUser());
@@ -162,9 +162,9 @@ public class GradlePreSyncTest {
     {
       // Confirm password is not changed
       GradleProperties properties = new GradleProperties(userPropertiesFile);
-      ProxySettings httpSettings = properties.getHttpProxySettings();
+      IdeGradleProxySettingsBridge httpSettings = properties.getHttpProxySettings();
       assertEquals("HTTP proxy password was changed", gradlePass, httpSettings.getPassword());
-      ProxySettings httpsSettings = properties.getHttpsProxySettings();
+      IdeGradleProxySettingsBridge httpsSettings = properties.getHttpsProxySettings();
       assertEquals("HTTPS proxy password was changed", gradlePass, httpsSettings.getPassword());
     }
   }
