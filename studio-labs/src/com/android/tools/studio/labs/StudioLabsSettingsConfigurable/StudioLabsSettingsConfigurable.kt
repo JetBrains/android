@@ -15,9 +15,11 @@
  */
 package com.android.tools.studio.labs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +35,7 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.panel
 import icons.StudioIcons
 import javax.swing.Icon
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
 
 class StudioLabsSettingsConfigurable :
@@ -64,12 +67,12 @@ class StudioLabsSettingsConfigurable :
   @Composable
   fun StudioLabsPanel() {
     val scrollState = rememberScrollState()
-    Column {
+    Column(modifier = Modifier.background(JewelTheme.globalColors.panelBackground)) {
       Text("Opt in to Studio Labs to get early access to experimental features.")
       Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.size(12.dp))
         panelList.chunked(2).forEach { item ->
-          Row {
+          Row(modifier = Modifier.padding(bottom = 8.dp)) {
             item.forEach {
               it.PanelContent()
               Spacer(modifier = Modifier.size(8.dp))

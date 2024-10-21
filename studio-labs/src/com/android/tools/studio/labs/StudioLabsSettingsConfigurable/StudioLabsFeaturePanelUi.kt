@@ -57,9 +57,6 @@ class StudioLabsFeaturePanelUi(
     Column(
       modifier =
         Modifier.width(300.dp)
-          .height(400.dp)
-          .padding(bottom = 8.dp)
-          // Note: Applying padding on other sides doesn't work well with the clipping below.
           .clip(RoundedCornerShape(8.dp))
           .background(
             if (JewelTheme.isDark) {
