@@ -61,6 +61,13 @@ internal fun ConfigureDevicePanel(
       "Configure virtual device",
       fontWeight = FontWeight.SemiBold,
       fontSize = LocalTextStyle.current.fontSize * 1.2,
+      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+    )
+    Text(
+      "Select the system image you'd like to use with the device profile you selected. You can " +
+        "also change additional settings that affect the emulated device.",
+      color = JewelTheme.globalColors.text.info,
+      modifier = Modifier.padding(bottom = Padding.LARGE),
     )
     Tabs(
       configureDevicePanelState,

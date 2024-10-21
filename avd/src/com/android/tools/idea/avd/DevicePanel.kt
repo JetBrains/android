@@ -109,6 +109,13 @@ internal fun DevicePanel(
       modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
     )
 
+    Text(
+      "Use the filters to help find the system image that you prefer. The combination of device " +
+        "profile and system image is only an approximation of the equivalent physical hardware.",
+      color = JewelTheme.globalColors.text.info,
+      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+    )
+
     Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
       ApiFilter(
         androidVersions,
