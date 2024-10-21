@@ -33,7 +33,6 @@ import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -45,7 +44,6 @@ import org.jetbrains.annotations.VisibleForTesting
  *
  * TODO(b/321949200) Add tests
  */
-@ApiStatus.Experimental
 class GridLayoutManager(
   private val padding: OrganizationPadding,
   override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
