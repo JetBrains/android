@@ -113,6 +113,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun addFileDependency(file: String, configuration: String) {}
 
+  override fun addProjectGradleProperty(propertyName: String, textToAdd: String) {}
+
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
   }
