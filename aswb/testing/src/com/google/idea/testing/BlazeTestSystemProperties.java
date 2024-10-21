@@ -30,7 +30,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -103,6 +107,35 @@ class BlazeTestSystemProperties {
 
     setIfEmpty("idea.plugins.path", Joiner.on(File.pathSeparator).join(pluginJars));
     setIfEmpty("idea.force.use.core.classloader", "true");
+
+    // Configure JNA and other native libs.
+    Map<String, String> systemProperties = readProductSystemProperties();
+    System.setProperty("jna.noclasspath", "true");
+    System.setProperty("jna.nosys", "true");
+    System.setProperty("jna.boot.library.path", Objects.requireNonNull(systemProperties.get("jna.boot.library.path")));
+    System.setProperty("pty4j.preferred.native.folder", Objects.requireNonNull(systemProperties.get("pty4j.preferred.native.folder")));
+  }
+
+  @Nonnull
+  private static Map<String, String> readProductSystemProperties() {
+    File jvmArgsPath = new File("tools/adt/idea/studio/required_jvm_args.txt");
+    Map<String, String> result = new HashMap<>();
+    List<String> lines;
+    try {
+      lines = Files.readLines(jvmArgsPath, StandardCharsets.UTF_8);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    for (String line : lines) {
+      int eqIndex = line.indexOf('=');
+      if (line.startsWith("-D") && eqIndex > 0) {
+        String key = line.substring(2, eqIndex);
+        String value = line.substring(eqIndex + 1);
+        result.put(key, value);
+      }
+    }
+    return result;
   }
 
   @Nullable

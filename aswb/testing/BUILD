@@ -19,6 +19,9 @@ java_library(
         "studio/**/*.java",
         "cidr/**/*.java",
     ]),
+    data = [
+        "//tools/adt/idea/studio:required_jvm_args",  # Used by BlazeTestSystemProperties.
+    ],
     exports = ["//tools/adt/idea/aswb/testing/src/com/google/idea/testing/runfiles"],
     deps = [
         "//tools/adt/idea/aswb/common/experiments",
