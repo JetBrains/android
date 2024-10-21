@@ -16,15 +16,9 @@
 package com.android.tools.idea.imports
 
 import com.android.io.CancellableFileIo
-import com.android.mockito.kotlin.mockStatic
-import com.android.mockito.kotlin.whenever
-import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.sun.net.httpserver.HttpServer
 import java.io.InputStream
 import java.lang.Thread.sleep
@@ -35,7 +29,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
 import java.util.Properties
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Test
 
@@ -43,15 +41,6 @@ private const val LOCALHOST = "127.0.0.1"
 private const val CONTEXT_PATH = "/v0.1/classes-v0.1.json.gz"
 
 class GMavenIndexRepositoryTest {
-  private val virtualExecutor = VirtualTimeScheduler()
-  private val appExecutorUtilMock =
-    mockStatic<AppExecutorUtil>().apply {
-      whenever<Any> {
-          AppExecutorUtil.createBoundedScheduledExecutorService("MavenClassRegistry Refresher", 1)
-        }
-        .thenReturn(virtualExecutor)
-    }
-
   private val cacheDir = createInMemoryFileSystemAndFolder("tempCacheDir")
   private val cacheFile = cacheDir.resolve("v0.1/classes-v0.1.json")
 
@@ -62,16 +51,16 @@ class GMavenIndexRepositoryTest {
     }
   private val url = "http://$LOCALHOST:${server.address.port}"
 
-  private val testDisposable = object : Disposable.Default {}
+  private val testScheduler = TestCoroutineScheduler()
+  private val testDispatcher = StandardTestDispatcher(testScheduler)
+  private val testScope = TestScope(testDispatcher)
 
   private val gMavenIndexRepository =
-    GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testDisposable)
+    GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testScope, testDispatcher)
 
   @After
   fun tearDown() {
-    Disposer.dispose(testDisposable)
     server.stop(0)
-    appExecutorUtilMock.close()
   }
 
   @Test
@@ -83,7 +72,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(5, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(5.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -96,7 +85,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("[updated]This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("84509f")
@@ -105,7 +94,7 @@ class GMavenIndexRepositoryTest {
   @Test
   fun testRefreshDiskCache_noModificationSinceLast() {
     val gMavenIndexRepository =
-      GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testDisposable)
+      GMavenIndexRepository(url, cacheDir, Duration.ofDays(1), testScope, testDispatcher)
     createContext(
       path = CONTEXT_PATH,
       content = "This is for unit test",
@@ -113,7 +102,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(5, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(5.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -129,7 +118,7 @@ class GMavenIndexRepositoryTest {
       rLen = "Not Modified".toByteCnt(),
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -145,7 +134,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(1.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -159,7 +148,7 @@ class GMavenIndexRepositoryTest {
       rLen = "Http client timeout".toByteCnt(),
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -174,7 +163,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(5, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(5.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -182,7 +171,7 @@ class GMavenIndexRepositoryTest {
     // Delete the sibling etag cache file.
     assertThat(Files.deleteIfExists(getETagFile(cacheFile))).isTrue()
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(getETagFile(cacheFile)).exists()
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
@@ -198,7 +187,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(5, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(5.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -214,7 +203,7 @@ class GMavenIndexRepositoryTest {
     // Delete the cached file, but leave the sibling etag cache file.
     assertThat(Files.deleteIfExists(cacheFile)).isTrue()
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -229,7 +218,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(1.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -243,12 +232,12 @@ class GMavenIndexRepositoryTest {
       rLen = "Http client timeout".toByteCnt(),
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
 
-    virtualExecutor.advanceBy(3, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(3.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -262,7 +251,7 @@ class GMavenIndexRepositoryTest {
     )
 
     // Refresh successfully at last.
-    virtualExecutor.advanceBy(8, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(8.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("[updated]This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("84509f")
@@ -277,7 +266,7 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(1.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -292,7 +281,7 @@ class GMavenIndexRepositoryTest {
       }
     }
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
@@ -306,7 +295,7 @@ class GMavenIndexRepositoryTest {
     )
 
     // Refresh successfully at the second retry.
-    virtualExecutor.advanceBy(2, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(2.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("[updated]This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("84509f")
@@ -321,20 +310,20 @@ class GMavenIndexRepositoryTest {
       rCode = HttpURLConnection.HTTP_OK,
     )
 
-    virtualExecutor.advanceBy(1, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(1.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
 
     cleanContext(CONTEXT_PATH)
 
-    virtualExecutor.advanceBy(1, TimeUnit.DAYS)
+    testScheduler.advanceTimeBy(1.days)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")
 
     // Refresh failed after maximum attempts.
-    virtualExecutor.advanceBy(16, TimeUnit.HOURS)
+    testScheduler.advanceTimeBy(16.hours)
     assertThat(gMavenIndexRepository.loadIndexFromDisk().toText())
       .isEqualTo("This is for unit test")
     assertThat(getETagForFile(cacheFile)).isEqualTo("843fc7")

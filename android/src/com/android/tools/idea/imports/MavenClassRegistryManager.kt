@@ -17,7 +17,6 @@ package com.android.tools.idea.imports
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.sdk.IdeSdks
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
@@ -28,6 +27,7 @@ import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.util.application
 import java.nio.file.Paths
 import java.time.Duration
+import kotlinx.coroutines.CoroutineScope
 
 /** Key used in cache directories to locate the gmaven.index network cache. */
 private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
@@ -41,13 +41,13 @@ private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
  * class registry when asked.
  */
 @Service
-class MavenClassRegistryManager : Disposable.Default {
+class MavenClassRegistryManager(coroutineScope: CoroutineScope) {
   private val gMavenIndexRepository =
     GMavenIndexRepository(
       BASE_URL,
       Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
       REFRESH_INTERVAL,
-      this,
+      coroutineScope,
     )
 
   /** Returns [MavenClassRegistry] extracted from [gMavenIndexRepository]. */
