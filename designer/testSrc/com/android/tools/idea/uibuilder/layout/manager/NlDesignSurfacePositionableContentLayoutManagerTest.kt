@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.layout.manager
 
-import com.android.testutils.MockitoKotlinUtils.safeAny
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
@@ -34,6 +33,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -41,8 +41,6 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var parentDisposable: Disposable
-
-  val testOption = SurfaceLayoutOption.DEFAULT_OPTION
 
   @Before
   fun setUp() {
@@ -59,8 +57,7 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     runBlocking(uiThread) {
       val mockedSurface = mock<NlDesignSurface>()
       var layoutUpdates = 0
-      whenever(mockedSurface.onLayoutUpdated(safeAny(SurfaceLayoutOption::class.java, testOption)))
-        .then { layoutUpdates++ }
+      whenever(mockedSurface.onLayoutUpdated(any())).then { layoutUpdates++ }
 
       val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
@@ -81,8 +78,7 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   fun testMeasurePosition() {
     runBlocking(uiThread) {
       val mockedSurface = mock<NlDesignSurface>()
-      whenever(mockedSurface.onLayoutUpdated(safeAny(SurfaceLayoutOption::class.java, testOption)))
-        .then {}
+      whenever(mockedSurface.onLayoutUpdated(any())).then {}
       val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val contentLayoutManager =
