@@ -23,7 +23,6 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.truth.PathSubject.assertThat
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.sun.net.httpserver.HttpServer
 import java.io.InputStream
@@ -37,49 +36,32 @@ import java.time.Duration
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import org.junit.After
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.mockito.MockedStatic
+
+private const val LOCALHOST = "127.0.0.1"
+private const val CONTEXT_PATH = "/v0.1/classes-v0.1.json.gz"
 
 class GMavenIndexRepositoryTest {
-  private val LOCALHOST = "127.0.0.1"
-  private val CONTEXT_PATH = "/v0.1/classes-v0.1.json.gz"
-  private lateinit var server: HttpServer
-  private lateinit var url: String
-  private lateinit var cacheDir: Path
-  private lateinit var cacheFile: Path
-  private lateinit var virtualExecutor: VirtualTimeScheduler
-  private lateinit var appExecutorUtilMock: MockedStatic<AppExecutorUtil>
-  private lateinit var gMavenIndexRepository: GMavenIndexRepository
-
-  @get:Rule val rule = ApplicationRule()
-
-  @Before
-  fun setUp() {
-    // Mock AppExecutorUtil.
-    virtualExecutor = VirtualTimeScheduler()
-    appExecutorUtilMock = mockStatic()
-    appExecutorUtilMock
-      .whenever<Any> {
-        AppExecutorUtil.createBoundedScheduledExecutorService("MavenClassRegistry Refresher", 1)
-      }
-      .thenReturn(virtualExecutor)
-    // Create cache directory.
-    cacheDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    cacheFile = cacheDir.resolve("v0.1/classes-v0.1.json")
-
-    // Set up server.
-    server = HttpServer.create()
-    with(server) {
-      bind(InetSocketAddress(LOCALHOST, 0), 0)
-      start()
-      url = "http://$LOCALHOST:${address.port}"
+  private val virtualExecutor = VirtualTimeScheduler()
+  private val appExecutorUtilMock =
+    mockStatic<AppExecutorUtil>().apply {
+      whenever<Any> {
+          AppExecutorUtil.createBoundedScheduledExecutorService("MavenClassRegistry Refresher", 1)
+        }
+        .thenReturn(virtualExecutor)
     }
 
-    // Create a new repository.
-    gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, Duration.ofDays(1))
-  }
+  private val cacheDir = createInMemoryFileSystemAndFolder("tempCacheDir")
+  private val cacheFile = cacheDir.resolve("v0.1/classes-v0.1.json")
+
+  private val server =
+    HttpServer.create().apply {
+      bind(InetSocketAddress(LOCALHOST, 0), 0)
+      start()
+    }
+  private val url = "http://$LOCALHOST:${server.address.port}"
+
+  private val gMavenIndexRepository = GMavenIndexRepository(url, cacheDir, Duration.ofDays(1))
 
   @After
   fun tearDown() {
