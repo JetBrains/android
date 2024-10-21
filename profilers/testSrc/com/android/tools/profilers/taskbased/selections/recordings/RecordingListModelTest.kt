@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.selections.recordings
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
