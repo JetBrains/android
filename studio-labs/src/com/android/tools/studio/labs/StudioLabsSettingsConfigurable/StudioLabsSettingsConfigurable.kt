@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.flags
+package com.android.tools.studio.labs
 
-
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable.Promo
@@ -38,12 +38,14 @@ class StudioLabsSettingsConfigurable :
     val promptLibraryFlag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED
     row {
       checkBox("Enable Prompt Library")
-        .comment("Allows to store frequently used prompts for quick access. " +
-                 "Optionally share prompts with other people working on a same project.")
+        .comment(
+          "Allows to store frequently used prompts for quick access. " +
+            "Optionally share prompts with other people working on a same project."
+        )
         .enabled(true)
         .bindSelected(
           getter = { promptLibraryFlag.get() },
-          setter = { promptLibraryFlag.override(it) }
+          setter = { promptLibraryFlag.override(it) },
         )
     }
   }
