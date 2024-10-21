@@ -34,8 +34,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Constructor;
@@ -326,7 +326,7 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      Class<?> superclass = DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
+      Class<?> superclass = ReadAction.nonBlocking(() -> {
         ViewClass viewClass = myModule.getDependencies().findViewClass(className);
 
         if (viewClass == null) {
@@ -367,7 +367,9 @@ public class ViewLoader {
           viewClass = viewClass.getSuperClass();
         }
         return null;
-      });
+      })
+        .inSmartMode(myModule.getProject())
+        .executeSynchronously();
       if (superclass != null) {
         try {
           RenderSecurityManager.exitSafeRegion(token.get());
