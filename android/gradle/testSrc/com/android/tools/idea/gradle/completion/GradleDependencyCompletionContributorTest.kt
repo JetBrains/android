@@ -296,56 +296,57 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
   }
 
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
-    val mockGMavenIndexRepository: GMavenIndexRepository = mock()
-    whenever(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(
+    val inputStream =
+      //language=JSON
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.room",
-              "artifactId": "room-runtime",
-              "version": "2.2.6",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.room.Room",
-                "androidx.room.RoomDatabase",
-                "androidx.room.FakeClass"
-              ]
-            },
-            {
-              "groupId": "com.google.android.gms",
-              "artifactId": "play-services-maps",
-              "version": "17.0.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "com.google.android.gms.maps.SupportMapFragment"
-              ]
-            },
-            {
-              "groupId": "androidx.camera",
-              "artifactId": "camera-core",
-              "version": "1.1.0-alpha03",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.camera.core.ExtendableBuilder",
-                "androidx.camera.core.ImageCapture"
-              ]
-            },
-            {
-              "groupId": "androidx.camera",
-              "artifactId": "camera-view",
-              "version": "1.0.0-alpha22",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.camera.view.PreviewView"
-              ]
-            }
-          ]
-        }
-      """.trimIndent().byteInputStream(StandardCharsets.UTF_8)
-    )
+      {
+        "Index": [
+          {
+            "groupId": "androidx.room",
+            "artifactId": "room-runtime",
+            "version": "2.2.6",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.room.Room",
+              "androidx.room.RoomDatabase",
+              "androidx.room.FakeClass"
+            ]
+          },
+          {
+            "groupId": "com.google.android.gms",
+            "artifactId": "play-services-maps",
+            "version": "17.0.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "com.google.android.gms.maps.SupportMapFragment"
+            ]
+          },
+          {
+            "groupId": "androidx.camera",
+            "artifactId": "camera-core",
+            "version": "1.1.0-alpha03",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.camera.core.ExtendableBuilder",
+              "androidx.camera.core.ImageCapture"
+            ]
+          },
+          {
+            "groupId": "androidx.camera",
+            "artifactId": "camera-view",
+            "version": "1.0.0-alpha22",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.camera.view.PreviewView"
+            ]
+          }
+        ]
+      }
+      """
+        .trimIndent()
+        .byteInputStream(StandardCharsets.UTF_8)
 
-    val mavenClassRegistry = MavenClassRegistry.createFrom(mockGMavenIndexRepository)
+    val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager>().apply {
       whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
