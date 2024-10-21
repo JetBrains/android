@@ -30,6 +30,7 @@ class StudioLabsConfigurableProvider : ConfigurableProvider() {
     if (!IdeInfo.getInstance().isAndroidStudio) {
       return false
     }
-    return StudioFlags.STUDIO_LABS_SETTINGS_ENABLED.get()
+    return StudioFlags.STUDIO_LABS_SETTINGS_ENABLED.get() &&
+      StudioLabsSettingsConfigurable.isThereAnyFeatureInLabs()
   }
 }

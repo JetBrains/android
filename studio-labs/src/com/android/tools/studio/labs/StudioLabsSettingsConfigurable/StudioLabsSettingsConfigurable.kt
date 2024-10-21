@@ -46,19 +46,6 @@ class StudioLabsSettingsConfigurable :
   ),
   Promo,
   Disposable {
-  private val panelList =
-    listOf(
-      StudioLabsFeaturePanelUi(
-        flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
-        heading = "Prompt Library",
-        description =
-          "Allows to store frequently used prompts for quick access." +
-            " Optionally share prompts with other people working on a same project.",
-        imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-        imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
-        imageDescription = "Prompt Library settings",
-      )
-    )
 
   override fun createPanel(): DialogPanel = panel {
     row { cell(StudioComposePanel { StudioLabsPanel() }) }
@@ -71,7 +58,7 @@ class StudioLabsSettingsConfigurable :
       Text("Opt in to Studio Labs to get early access to experimental features.")
       Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.size(12.dp))
-        panelList.chunked(2).forEach { item ->
+        PANEL_LIST.chunked(2).forEach { item ->
           Row(modifier = Modifier.padding(bottom = 8.dp)) {
             item.forEach {
               it.PanelContent()
@@ -88,16 +75,36 @@ class StudioLabsSettingsConfigurable :
   }
 
   override fun isModified(): Boolean {
-    return panelList.any { it.isModified() }
+    return PANEL_LIST.any { it.isModified() }
   }
 
   override fun apply() {
-    panelList.forEach { it.apply() }
+    PANEL_LIST.forEach { it.apply() }
   }
 
   override fun reset() {
-    panelList.forEach { it.reset() }
+    PANEL_LIST.forEach { it.reset() }
   }
 
   override fun dispose() {}
+
+  companion object {
+    private val PANEL_LIST =
+      listOf(
+        StudioLabsFeaturePanelUi(
+          flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+          heading = "Prompt Library",
+          description =
+            "Allows to store frequently used prompts for quick access." +
+              " Optionally share prompts with other people working on a same project.",
+          imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+          imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+          imageDescription = "Prompt Library settings",
+        )
+      )
+
+    fun isThereAnyFeatureInLabs(): Boolean {
+      return PANEL_LIST.isNotEmpty()
+    }
+  }
 }
