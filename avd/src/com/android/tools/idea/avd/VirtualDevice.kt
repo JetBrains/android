@@ -55,12 +55,12 @@ internal constructor(
   internal val latency: AvdNetworkLatency,
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
-  internal val internalStorage: StorageCapacity,
+  internal val internalStorage: StorageCapacity?,
   internal val expandedStorage: ExpandedStorage,
   internal val cpuCoreCount: Int?,
   internal val graphicsMode: GraphicsMode,
-  internal val ram: StorageCapacity,
-  internal val vmHeapSize: StorageCapacity,
+  internal val ram: StorageCapacity?,
+  internal val vmHeapSize: StorageCapacity?,
   internal val preferredAbi: String?,
 ) {
   internal val isFoldable = device.defaultHardware.screen.isFoldable
@@ -140,9 +140,9 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
 
   screenOrientation = device.orientation
   cpuCoreCount = device.cpuCoreCount ?: 1
-  ram = device.ram.toStorage()
-  vmHeap = device.vmHeapSize.toStorage()
-  internalStorage = device.internalStorage.toStorage()
+  ram = requireNotNull(device.ram).toStorage()
+  vmHeap = requireNotNull(device.vmHeapSize).toStorage()
+  internalStorage = requireNotNull(device.internalStorage).toStorage()
 
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
