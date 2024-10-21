@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync;
 
+import autovalue.shaded.com.google.common.collect.Sets;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
@@ -71,16 +72,18 @@ public abstract class QuerySyncProjectSnapshot {
   /** Project proto reflecting the structure of the IJ project. */
   public abstract ProjectProto.Project project();
 
+  public abstract ImmutableSet<Label> incompleteTargets();
+
   @Memoized
   public PendingExternalDeps<Label> pendingExternalDeps() {
     return new PendingExternalDeps<>(
         graph().transitiveExternalDeps(),
-        artifactState().depsMap().keySet(),
+        Sets.difference(artifactState().depsMap().keySet(), incompleteTargets()),
         graph()::getDependencyTrackingBehaviors);
   }
 
   public static Builder builder() {
-    return new AutoValue_QuerySyncProjectSnapshot.Builder();
+    return new AutoValue_QuerySyncProjectSnapshot.Builder().incompleteTargets(ImmutableSet.of());
   }
 
   public abstract Builder toBuilder();
@@ -169,6 +172,8 @@ public abstract class QuerySyncProjectSnapshot {
     public abstract Builder artifactState(ArtifactTracker.State state);
 
     public abstract Builder project(ProjectProto.Project value);
+
+    public abstract Builder incompleteTargets(ImmutableSet<Label> value);
 
     public abstract QuerySyncProjectSnapshot build();
   }

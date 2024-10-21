@@ -49,9 +49,9 @@ public class PendingExternalDeps<T> {
 
   public PendingExternalDeps(
       ExternalTransitiveClosure<T> externalDeps,
-      ImmutableSet<T> builtDeps,
+      Set<T> builtDeps,
       Function<T, Set<DependencyTrackingBehavior>> depTrackingBehaviourFn) {
-    this.builtDeps = builtDeps;
+    this.builtDeps = ImmutableSet.copyOf(builtDeps);
     this.externalDeps = externalDeps;
     this.depTrackingBehaviourFn = depTrackingBehaviourFn;
   }
