@@ -168,6 +168,7 @@ android-studio/jbr/bin/mlib_image.dll
 android-studio/jbr/bin/msvcp140.dll
 android-studio/jbr/bin/net.dll
 android-studio/jbr/bin/nio.dll
+android-studio/jbr/bin/nvdaControllerClient64.dll
 android-studio/jbr/bin/prefs.dll
 android-studio/jbr/bin/rmi.dll
 android-studio/jbr/bin/rmiregistry.exe
