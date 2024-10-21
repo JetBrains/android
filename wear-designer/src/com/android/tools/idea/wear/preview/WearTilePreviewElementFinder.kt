@@ -36,6 +36,7 @@ import com.android.tools.preview.config.PARAMETER_NAME
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
@@ -54,6 +55,9 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -141,7 +145,9 @@ internal class WearTilePreviewElementFinder(
             ProgressManager.checkCanceled()
             method
               .findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
+              .asFlow()
               .mapNotNull { it.asTilePreviewNode(method) }
+              .toList()
           }
           .distinct()
       },
@@ -170,23 +176,28 @@ private fun UElement?.isWearTilePreviewAnnotation() =
   (this as? UAnnotation)?.isTilePreviewAnnotation() == true
 
 @Slow
-private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
+private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   uMethod: UMethod
 ): PsiWearTilePreviewElement? {
   val annotation = element as UAnnotation
   if (!annotation.isTilePreviewAnnotation()) return null
-  val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
+  val defaultValues = readAction { annotation.findPreviewDefaultValues() }
 
-  val displaySettings = runReadAction {
-    val name = annotation.findAttributeValue(PARAMETER_NAME)?.evaluateString()?.nullize()
-    val group = annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
+  val name = readAction {
+    annotation.findAttributeValue(PARAMETER_NAME)?.evaluateString()?.nullize()
+  }
+  val group = readAction {
+    annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
+  }
+  val methodName = readAction { uMethod.name }
+  val displaySettings =
     PreviewDisplaySettings(
       buildPreviewName(
-        methodName = uMethod.name,
+        methodName = methodName,
         nameParameter = name,
         isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
       ),
-      baseName = uMethod.name,
+      baseName = methodName,
       parameterName =
         buildParameterName(
           nameParameter = name,
@@ -197,28 +208,26 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
       showBackground = true,
       backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND,
     )
-  }
 
-  val configuration = runReadAction {
+  val configuration = readAction {
     val device =
       annotation.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
         ?: defaultValues[PARAMETER_DEVICE]
     val locale =
-      (annotation.findAttributeValue(PARAMETER_LOCALE)?.evaluateString()?.nullize()
-        ?: defaultValues[PARAMETER_LOCALE])
+      annotation.findAttributeValue(PARAMETER_LOCALE)?.evaluateString()?.nullize()
+        ?: defaultValues[PARAMETER_LOCALE]
     val fontScale =
       annotation.findAttributeValue(PARAMETER_FONT_SCALE)?.evaluate() as? Float
         ?: defaultValues[PARAMETER_FONT_SCALE]?.toFloatOrNull()
-
     PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
   }
 
   return PsiWearTilePreviewElement(
     displaySettings = displaySettings,
     previewElementDefinition =
-      runReadAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },
-    previewBody = runReadAction { uMethod.uastBody.toSmartPsiPointer() },
-    methodFqn = runReadAction { uMethod.qualifiedName },
+      readAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },
+    previewBody = readAction { uMethod.uastBody.toSmartPsiPointer() },
+    methodFqn = readAction { uMethod.qualifiedName },
     configuration = configuration,
   )
 }
