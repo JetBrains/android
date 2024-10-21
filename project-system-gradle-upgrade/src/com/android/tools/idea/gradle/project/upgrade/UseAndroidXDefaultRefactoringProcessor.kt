@@ -36,6 +36,7 @@ class UseAndroidXDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefa
   override val usageViewHeader = AndroidBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.usageView.header")!!
   override val necessityInfo = PointNecessity(AgpVersion.parse("9.0.0-alpha01"))
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("use-androidx-default")
-  override fun  getCommandName() = AndroidBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.commandName")!!
-  override fun  getShortDescription() = AndroidBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.shortDescription")!!
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.useAndroidX"
+  override fun getCommandName() = AndroidBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.commandName")!!
+  override fun getShortDescription() = AndroidBundle.message("project.upgrade.useAndroidXDefaultRefactoringProcessor.shortDescription")!!
 }
