@@ -78,7 +78,7 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
               when (content) {
                 // Can't append text from FunctionCall
                 is Content.FunctionCall -> {}
-                is Content.TextContent -> appendLine(content.text)
+                is Content.TextContent -> append(content.text)
               }
             }
           }
