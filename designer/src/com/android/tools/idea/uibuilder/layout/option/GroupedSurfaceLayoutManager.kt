@@ -36,6 +36,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param previewFramePaddingProvider is to provide the horizontal and vertical paddings of every
  *   "preview frame". The "preview frame" is a preview with its toolbars.
  */
+@Deprecated("Layout is deprecated", ReplaceWith("GridLayoutManager"))
 abstract class GroupedSurfaceLayoutManager(
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int
 ) : SurfaceLayoutManager {
