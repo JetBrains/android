@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
@@ -26,6 +27,7 @@ import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.delay
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Guidelines for the model to provide context and fine tune the response. */
@@ -68,19 +70,25 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
         systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
         userMessage { text(createPrompt(request), emptyList()) }
       }
-    val generateContentFlow = StudioBot.getInstance().model(project).generateContent(prompt)
-    val response =
-      buildString {
-          generateContentFlow.collect { content ->
-            when (content) {
-              // Can't append text from FunctionCall
-              is Content.FunctionCall -> {}
-              is Content.TextContent -> appendLine(content.text)
+    return if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
+      val generateContentFlow = StudioBot.getInstance().model(project).generateContent(prompt)
+      val response =
+        buildString {
+            generateContentFlow.collect { content ->
+              when (content) {
+                // Can't append text from FunctionCall
+                is Content.FunctionCall -> {}
+                is Content.TextContent -> appendLine(content.text)
+              }
             }
           }
-        }
-        .trim()
-    return AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
+          .trim()
+      AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
+    } else {
+      // Simulate a delay that would come generating an actual insight
+      delay(2000)
+      AiInsight(createPrompt(request), insightSource = InsightSource.STUDIO_BOT)
+    }
   }
 
   private fun createPrompt(request: GeminiInsightsRequest) =
