@@ -93,10 +93,10 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.jetbrains.rd.generator.nova.fail
 import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 import kotlin.test.assertFails
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
