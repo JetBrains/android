@@ -35,6 +35,7 @@ import com.google.gson.GsonBuilder
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.awt.RelativePoint
 import java.awt.KeyboardFocusManager
@@ -52,7 +53,7 @@ import kotlin.io.path.writer
  * This class responsible for displaying table of connections information (e.g. url, duration,
  * timeline) for network inspector. Each row in the table represents a single connection.
  */
-class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver() {
+class ConnectionsView(project: Project, private val model: NetworkInspectorModel) : AspectObserver() {
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable =
@@ -63,7 +64,7 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
 
   init {
     customizeConnectionsTable()
-    ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
+    ConfigColumnTableAspect.apply(project, connectionsTable, NetworkInspectorViewState.getInstance().columns)
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       updateTableSelection()
     }
@@ -72,7 +73,7 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
   private fun customizeConnectionsTable() {
     connectionsTable.autoCreateRowSorter = true
 
-    ConnectionColumn.values().forEach {
+    ConnectionColumn.entries.forEach {
       setRenderer(it, it.getCellRenderer(connectionsTable, model))
     }
 
