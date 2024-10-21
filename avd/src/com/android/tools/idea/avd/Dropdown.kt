@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Dropdown
@@ -34,6 +36,7 @@ internal fun <I> Dropdown(
   Dropdown(
     modifier,
     enabled,
+    menuModifier = Modifier.heightIn(max = 300.dp),
     menuContent = {
       items.forEach {
         selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {
