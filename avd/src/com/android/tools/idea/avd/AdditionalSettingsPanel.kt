@@ -45,6 +45,7 @@ import com.android.tools.idea.adddevicedialog.LocalProject
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
+import icons.StudioIconsCompose
 import java.awt.Component
 import java.nio.file.Files
 import java.nio.file.Path
@@ -331,13 +332,34 @@ private fun StorageGroup(
 
       val enabled = storageGroupState.selectedRadioButton == RadioButton.CUSTOM
 
+      val errorMessage =
+        validateCustomExpandedStorage(storageGroupState.custom, hasPlayStore, enabled)
+
+      val isWarningVisible = storageGroupState.isCustomChangedWarningVisible(errorMessage == null)
+
       StorageCapacityField(
         storageGroupState.custom,
-        validateCustomExpandedStorage(storageGroupState.custom, hasPlayStore, enabled),
+        errorMessage,
         onValueChange = { storageGroupState.custom = it },
         Modifier.alignByBaseline(),
         enabled,
+        when {
+          errorMessage != null -> Outline.Error
+          isWarningVisible -> Outline.Warning
+          else -> Outline.None
+        },
       )
+
+      if (isWarningVisible) {
+        Icon(
+          StudioIconsCompose.Common.Warning,
+          "Warning",
+          Modifier.align(Alignment.CenterVertically)
+            .padding(start = Padding.MEDIUM, end = Padding.SMALL_MEDIUM),
+        )
+
+        Text("Modifying storage size erases existing content", Modifier.alignByBaseline())
+      }
     }
 
     Row {
@@ -585,10 +607,15 @@ private fun PreferredAbiGroup(
   }
 }
 
-internal class StorageGroupState internal constructor(device: VirtualDevice) {
+internal class StorageGroupState
+internal constructor(device: VirtualDevice, private val mode: Mode) {
   internal var selectedRadioButton by mutableStateOf(RadioButton.valueOf(device.expandedStorage))
   internal var custom by mutableStateOf<StorageCapacity?>(customValue(device))
   internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
+
+  /** The initial value of Expanded storage - Custom before any edits */
+  private val oldCustom =
+    if (device.expandedStorage is Custom) device.expandedStorage.withMaxUnit() else null
 
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
@@ -600,6 +627,17 @@ internal class StorageGroupState internal constructor(device: VirtualDevice) {
       RadioButton.NONE -> None
     }
   }
+
+  internal fun isCustomChangedWarningVisible(isValid: Boolean) =
+    when {
+      mode != Mode.EDIT -> false
+      selectedRadioButton != RadioButton.CUSTOM -> false
+      !isValid -> false
+      else -> {
+        val value = custom
+        value != null && oldCustom != Custom(value.withMaxUnit())
+      }
+    }
 
   private companion object {
     private fun customValue(device: VirtualDevice) =

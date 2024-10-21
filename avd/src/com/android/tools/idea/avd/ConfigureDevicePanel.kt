@@ -170,6 +170,7 @@ internal constructor(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
+  mode: Mode,
 ) {
   internal var device by mutableStateOf(device)
 
@@ -177,7 +178,7 @@ internal constructor(
     private set
 
   internal val systemImageTableSelectionState = TableSelectionState(image)
-  internal val storageGroupState = StorageGroupState(device)
+  internal val storageGroupState = StorageGroupState(device, mode)
 
   internal val isValid
     get() =
@@ -273,6 +274,11 @@ internal constructor(
         vmHeapSize = EmulatedProperties.defaultVmHeapSize(device.device).toStorageCapacity(),
       )
   }
+}
+
+internal enum class Mode {
+  ADD,
+  EDIT,
 }
 
 internal data class Validity

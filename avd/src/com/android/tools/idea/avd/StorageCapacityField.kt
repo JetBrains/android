@@ -36,6 +36,7 @@ internal fun StorageCapacityField(
   onValueChange: (StorageCapacity?) -> Unit,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  outline: Outline = if (errorMessage == null) Outline.None else Outline.Error,
 ) {
   Row(modifier) {
     var textFieldValue by remember { mutableStateOf(value?.value?.toString() ?: "") }
@@ -52,7 +53,7 @@ internal fun StorageCapacityField(
         Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
         enabled,
         // TODO: http://b/373463053
-        outline = if (errorMessage == null) Outline.None else Outline.Error,
+        outline = outline,
       )
     }
 
