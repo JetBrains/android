@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -88,30 +87,6 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
         Messages.showErrorDialog(project, "Failed to create Gradle wrapper: " + e.message, "Quick Fix")
         future.completeExceptionally(e)
       }
-    }
-    return future
-  }
-}
-
-/**
- * This QuickFix upgrades Gradle and the Android Gradle Plugin in the build configuration to the specified versions, or
- * latest versions if not given.
- */
-class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
-  override val id = "fix.gradle.elements"
-  val pluginVersion = givenPluginVersion ?: AgpVersions.latestKnown
-  val gradleVersion = givenGradleVersion ?: GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val future = CompletableFuture<Any>()
-
-    invokeLater {
-      val updater = AndroidPluginVersionUpdater.getInstance(project)
-      if (updater.updatePluginVersion(pluginVersion, gradleVersion)) {
-        val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)
-        GradleSyncInvoker.getInstance().requestProjectSync(project, request)
-      }
-      future.complete(null)
     }
     return future
   }
