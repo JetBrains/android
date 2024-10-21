@@ -30,6 +30,7 @@ iml_module(
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",

@@ -40,6 +40,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",

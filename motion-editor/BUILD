@@ -32,6 +32,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",

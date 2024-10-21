@@ -45,6 +45,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -71,6 +72,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

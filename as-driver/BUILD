@@ -62,6 +62,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
@@ -92,6 +93,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",

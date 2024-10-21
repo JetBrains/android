@@ -27,6 +27,7 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />

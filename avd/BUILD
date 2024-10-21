@@ -13,6 +13,7 @@ iml_module(
     deps = [
         "@intellij//:com.intellij.java",
         "@intellij//:intellij-sdk",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:test-framework[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
