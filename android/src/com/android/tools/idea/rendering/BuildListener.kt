@@ -36,6 +36,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.WeakHashMap
+import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -129,7 +130,9 @@ private fun Project.createBuildListener() = object : BuildSystemFilePreviewServi
       }
 
       override fun onFailure(t: Throwable) {
-        thisLogger().error(t)
+        if (t !is CancellationException) {
+          thisLogger().error(t)
+        }
         forEachNonDisposedBuildListener(
           project,
           BuildListener::buildFailed

@@ -31,6 +31,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.util.concurrent.Callable
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Future
 
 /**
@@ -73,7 +74,9 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
     }
 
     override fun onFailure(throwable: Throwable) {
-      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn(throwable)
+      if (throwable !is CancellationException) {
+        Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn(throwable)
+      }
     }
   }
 
@@ -119,7 +122,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       },
       { t ->
         if (!isDisposed(this)) {
-          uiCallback.onFailure(t!!)
+          uiCallback.onFailure(t)
         }
       })
     tasksMap[device] = task

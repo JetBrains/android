@@ -101,9 +101,9 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
-fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
+fun <I> ListenableFuture<I>.addCallback(executor: Executor, success: (I?) -> Unit, failure: (Throwable) -> Unit) {
   addCallback(executor, object : FutureCallback<I> {
-    override fun onFailure(t: Throwable?) {
+    override fun onFailure(t: Throwable) {
       failure(t)
     }
 
