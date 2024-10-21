@@ -18,10 +18,10 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
@@ -35,7 +35,7 @@ import java.awt.event.MouseListener
 import java.lang.Integer.min
 import javax.swing.JPanel
 
-val REQUEST_SOURCE_KEY = DataKey.create<StudioBot.RequestSource>("RequestSource")
+val REQUEST_SOURCE_KEY = DataKey.create<GeminiPluginApi.RequestSource>("RequestSource")
 val SELECTED_EVENT_KEY = DataKey.create<Event>("SelectedEvent")
 val INSIGHT_KEY = DataKey.create<AiInsight>("Insight")
 

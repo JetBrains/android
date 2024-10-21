@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.mockito.kotlin.whenever
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
@@ -79,11 +80,11 @@ class InsightActionTest {
 
       override fun sendChatQuery(
         prompt: Prompt,
-        requestSource: StudioBot.RequestSource,
+        requestSource: GeminiPluginApi.RequestSource,
         displayText: String?,
       ) = Unit
 
-      override fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {
+      override fun stageChatQuery(prompt: String, requestSource: GeminiPluginApi.RequestSource) {
         isGeminiToolWindowOpen = true
         stagedPrompt = prompt
       }
@@ -240,7 +241,7 @@ class InsightActionTest {
   private fun createTestEvent() =
     AnActionEvent.createFromAnAction(InsightAction, null, "") { dataId ->
       when {
-        REQUEST_SOURCE_KEY.`is`(dataId) -> StudioBot.RequestSource.CRASHLYTICS
+        REQUEST_SOURCE_KEY.`is`(dataId) -> GeminiPluginApi.RequestSource.CRASHLYTICS
         SELECTED_EVENT_KEY.`is`(dataId) -> eventList[eventIdx]
         CommonDataKeys.PROJECT.`is`(dataId) -> projectRule.project
         else -> null

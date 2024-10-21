@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.studiobot
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.studiobot.prompts.Prompt
 
 /**
@@ -47,7 +48,7 @@ interface ChatService {
    */
   fun sendChatQuery(
     prompt: Prompt,
-    requestSource: StudioBot.RequestSource,
+    requestSource: GeminiPluginApi.RequestSource,
     displayText: String? = null,
   ) {}
 
@@ -56,15 +57,15 @@ interface ChatService {
    * it. You should keep the message short enough to fit in the query bar so it can be inspected by
    * the user before they send it.
    */
-  fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {}
+  fun stageChatQuery(prompt: String, requestSource: GeminiPluginApi.RequestSource) {}
 
   open class StubChatService : ChatService {
     override fun sendChatQuery(
       prompt: Prompt,
-      requestSource: StudioBot.RequestSource,
+      requestSource: GeminiPluginApi.RequestSource,
       displayText: String?,
     ) {}
 
-    override fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {}
+    override fun stageChatQuery(prompt: String, requestSource: GeminiPluginApi.RequestSource) {}
   }
 }

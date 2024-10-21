@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -59,7 +58,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.net.HttpProxyConfigurable
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
@@ -344,7 +342,7 @@ class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErro
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val studioBot = StudioBot.getInstance()
-    studioBot.sendChatQueryIfContextAllowed(project, gradleErrorContext, StudioBot.RequestSource.BUILD)
+    studioBot.sendChatQueryIfContextAllowed(project, gradleErrorContext, GeminiPluginApi.RequestSource.BUILD)
     return CompletableFuture.completedFuture(null)
   }
 }
@@ -353,7 +351,7 @@ class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErro
 fun StudioBot.sendChatQueryIfContextAllowed(
   project: Project,
   gradleErrorContext: GradleErrorContext,
-  requestSource: StudioBot.RequestSource,
+  requestSource: GeminiPluginApi.RequestSource,
 ) {
   if (isContextAllowed(project)) {
     chat(project).sendChatQuery(gradleErrorContext.toPrompt(project), requestSource)
