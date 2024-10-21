@@ -147,11 +147,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       for (PsiAnnotationMemberValue value : a.values) {
         @Nullable PsiNamedElement namedElement = getNamedElementFromAnnotationMember(value);
         if (namedElement != null) {
-          LookupElement lookupElement = LookupItemUtil.objectToLookupItem(namedElement);
-          if (lookupElement instanceof VariableLookupItem variableLookupItem) {
-            variableLookupItem.setSubstitutor(PsiSubstitutor.EMPTY);
-          }
-          LookupElement element = PrioritizedLookupElement.withPriority(lookupElement, PRIORITY);
+          LookupElement element = PrioritizedLookupElement.withPriority(LookupElementBuilder.create(namedElement), PRIORITY);
           result.addElement(decorate(parameters, types, element));
           allowed.add(namedElement);
         }
