@@ -27,7 +27,6 @@ import org.mockito.kotlin.doReturn
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 fun PreparedTestProject.Context.performAndWaitForSyncEnd(invoke: () -> Unit) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
@@ -171,8 +170,8 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
     val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
     return mock<MavenClassRegistryManager> {
-      on { getMavenClassRegistry() } doReturn(mavenClassRegistry)
+      on { getMavenClassRegistryBlocking() } doReturn (mavenClassRegistry)
       on { tryGetMavenClassRegistry() } doReturn(mavenClassRegistry)
-      onBlocking { getMavenClassRegistrySuspending() } doReturn(mavenClassRegistry)
+      onBlocking { getMavenClassRegistry() } doReturn (mavenClassRegistry)
     }
   }

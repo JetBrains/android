@@ -87,7 +87,7 @@ class MavenImportUtilsKtTest {
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
     // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return early.
-    val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistry()
+    val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistryBlocking()
 
     val action = AndroidMavenImportIntentionAction()
     val element = projectRule.fixture.moveCaret("PreviewView|")

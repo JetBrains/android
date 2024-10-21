@@ -239,7 +239,7 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
 
   private fun generateLookup(): Collection<CoordinateLookUpElement> {
     return MavenClassRegistryManager.getInstance()
-      .getMavenClassRegistry()
+      .getMavenClassRegistryBlocking()
       .getCoordinates()
       .asSequence()
       .map { ProgressManager.checkCanceled(); it }

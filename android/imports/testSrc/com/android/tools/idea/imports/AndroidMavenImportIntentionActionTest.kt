@@ -636,7 +636,7 @@ class AndroidMavenImportIntentionActionTest {
 
         // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return
         // early.
-        val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistry()
+        val registry = MavenClassRegistryManager.getInstance().getMavenClassRegistryBlocking()
 
         val action = AndroidMavenImportIntentionAction()
         val element: PsiElement
