@@ -90,7 +90,7 @@ internal constructor(
     val dialog = BackupDialog(project, applicationId)
     val ok = dialog.showAndGet()
     if (ok) {
-      doBackup(serialNumber, applicationId, dialog.type, dialog.backupPath, source, notify)
+      doBackup(serialNumber, dialog.applicationId, dialog.type, dialog.backupPath, source, notify)
     }
   }
 

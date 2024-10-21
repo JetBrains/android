@@ -20,6 +20,10 @@
         serviceInterface="com.android.tools.idea.backup.BackupManager"
         serviceImplementation="com.android.tools.idea.backup.BackupManagerImpl"/>
 
+    <projectService
+        serviceInterface="com.android.tools.idea.backup.ProjectAppsProvider"
+        serviceImplementation="com.android.tools.idea.backup.ProjectAppsProviderImpl"/>
+
     <notificationGroup id="Backup" displayType="BALLOON"/>
 
     <fileType
