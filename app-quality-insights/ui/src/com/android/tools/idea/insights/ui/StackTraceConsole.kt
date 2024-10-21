@@ -173,6 +173,9 @@ class StackTraceConsole(
 
   fun clearStackTrace() =
     synchronized(CONSOLE_LOCK) {
+      if (consoleView.text.isEmpty()) {
+        return@synchronized
+      }
       consoleView.flushDeferredText()
       consoleView.editor.document.setText("")
       currentEvent = null
