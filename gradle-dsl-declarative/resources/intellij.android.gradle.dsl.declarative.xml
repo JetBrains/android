@@ -1,10 +1,9 @@
 <idea-plugin package="com.android.tools.idea.gradle.dsl.parser.declarative" >
-  <depends>com.android.tools.gradle.dcl</depends>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
   </extensions>
 
   <dependencies>
-    <module name="intellij.android.gradle.declarative.lang" />
+    <plugin id="com.android.tools.gradle.dcl" />
   </dependencies>
 </idea-plugin>
