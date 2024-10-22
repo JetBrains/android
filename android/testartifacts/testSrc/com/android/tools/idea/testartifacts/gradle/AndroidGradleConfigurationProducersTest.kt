@@ -139,12 +139,12 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       firstExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
     }
 
+    firstExecutionSettings.tasks = listOf(":app:testDebugUnitTest")
+
     AndroidGradleTaskManager().executeTasks(
-      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      listOf(":app:testDebugUnitTest"),
       project.basePath!!,
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
       firstExecutionSettings,
-      null,
       listener
     )
 
@@ -159,12 +159,12 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       secondExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
     }
 
+    secondExecutionSettings.tasks = listOf(":app:testDebugUnitTest")
+
     AndroidGradleTaskManager().executeTasks(
-      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      listOf(":app:testDebugUnitTest"),
       project.basePath!!,
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
       secondExecutionSettings,
-      null,
       listener
     )
 
@@ -229,14 +229,12 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   fun testCoverageEngineDoesntRequireRecompilation() {
     loadSimpleApplication()
     // Run a Gradle task.
-    AndroidGradleTaskManager().executeTasks(
-      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      listOf(":app:testDebugUnitTest"),
-      project.basePath!!,
-      GradleManager().executionSettingsProvider.`fun`(Pair.create(project, project.basePath)),
-      null,
-      ExternalSystemTaskNotificationListener.NULL_OBJECT
-    )
+    val projectPath = project.basePath!!
+    val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+    val settings = GradleManager().executionSettingsProvider.`fun`(Pair.create<Project, String>(project, projectPath)).apply {
+      tasks = listOf(":app:testDebugUnitTest")
+    }
+    AndroidGradleTaskManager().executeTasks(projectPath, id, settings, ExternalSystemTaskNotificationListener.NULL_OBJECT)
 
     // Check that the JavaCoverageEngine won't require project rebuild.
     val filePsiElement = getPsiElement(project, "app/src/main/java/google/simpleapplication/MyActivity.java", false)
