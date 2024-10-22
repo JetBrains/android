@@ -16,8 +16,13 @@
 package com.android.tools.idea.avd
 
 internal data class StorageCapacity
+/** @throws ArithmeticException If this cannot be expressed in bytes without overflow */
 internal constructor(internal val value: Long, internal val unit: Unit) :
   Comparable<StorageCapacity> {
+
+  init {
+    Math.multiplyExact(value, unit.byteCount)
+  }
 
   /**
    * Returns an equivalent StorageCapacity with the largest unit with no loss of precision. Returns
