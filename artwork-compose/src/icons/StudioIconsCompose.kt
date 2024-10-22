@@ -98,6 +98,7 @@ object StudioIconsCompose {
     val ConfigureColumns: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/configure-columns.svg", "/intui/icons/common/configure-columns.svg", StudioIconsCompose.javaClass) // 16x16
     val Crop: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/crop.svg", "/intui/icons/common/crop.svg", StudioIconsCompose.javaClass) // 16x16
     val Delete: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/delete.svg", "/intui/icons/common/delete.svg", StudioIconsCompose.javaClass) // 16x16
+    val Dislike: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/dislike.svg", "/studio/icons/common/dislike.svg", StudioIconsCompose.javaClass) // 16x16
     val Edit: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/edit.svg", "/intui/icons/common/edit.svg", StudioIconsCompose.javaClass) // 16x16
     val ErrorDecorator: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-decorator.svg", "/intui/icons/common/error-decorator.svg", StudioIconsCompose.javaClass) // 16x16
     val ErrorInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/error-inline.svg", "/intui/icons/common/error-inline.svg", StudioIconsCompose.javaClass) // 16x16
@@ -111,6 +112,7 @@ object StudioIconsCompose {
     val ImportData: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/import-data.svg", "/intui/icons/common/import-data.svg", StudioIconsCompose.javaClass) // 16x16
     val InfoInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info-inline.svg", "/intui/icons/common/info-inline.svg", StudioIconsCompose.javaClass) // 16x16
     val Info: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/info.svg", "/intui/icons/common/info.svg", StudioIconsCompose.javaClass) // 16x16
+    val Like: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/like.svg", "/studio/icons/common/like.svg", StudioIconsCompose.javaClass) // 16x16
     val Link: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/link.svg", "/intui/icons/common/link.svg", StudioIconsCompose.javaClass) // 16x16
     val ListView: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/list-view.svg", "/intui/icons/common/list-view.svg", StudioIconsCompose.javaClass) // 16x16
     val LockedInline: IntelliJIconKey = IntelliJIconKey("/studio/icons/common/locked-inline.svg", "/intui/icons/common/locked-inline.svg", StudioIconsCompose.javaClass) // 16x16

@@ -95,6 +95,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon CONFIGURE_COLUMNS = load("studio/icons/common/configure-columns.svg", -171488656, 2);
     /** 16x16 */ public static final @NotNull Icon CROP = load("studio/icons/common/crop.svg", "intui/icons/common/crop.svg", -430021788, 2);
     /** 16x16 */ public static final @NotNull Icon DELETE = load("studio/icons/common/delete.svg", "intui/icons/common/delete.svg", 55368258, 2);
+    /** 16x16 */ public static final @NotNull Icon DISLIKE = load("studio/icons/common/dislike.svg", 1222540936, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/common/edit.svg", "intui/icons/common/edit.svg", -1443582273, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_DECORATOR = load("studio/icons/common/error-decorator.svg", "intui/icons/common/error-decorator.svg", 1752370570, 2);
     /** 16x16 */ public static final @NotNull Icon ERROR_INLINE = load("studio/icons/common/error-inline.svg", "intui/icons/common/error-inline.svg", -1267613464, 2);
@@ -108,6 +109,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", "intui/icons/common/import-data.svg", 2036891466, 2);
     /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", "intui/icons/common/info-inline.svg", -2140866011, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("studio/icons/common/info.svg", "intui/icons/common/info.svg", 216054291, 2);
+    /** 16x16 */ public static final @NotNull Icon LIKE = load("studio/icons/common/like.svg", -891796787, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("studio/icons/common/link.svg", "intui/icons/common/link.svg", 636172221, 2);
     /** 17x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", "intui/icons/common/list-view.svg", -1580146156, 2);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE = load("studio/icons/common/locked-inline.svg", "intui/icons/common/locked-inline.svg", 2129025715, 2);
