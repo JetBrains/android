@@ -177,8 +177,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     get() =
       psiClass?.let { resolvedClass ->
         mode.observableFields.any { className ->
-          val observableFieldClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(className, resolvedClass)!!, mode)
-          observableFieldClass.isAssignableFrom(erasure())
+          isErasureAssignableTo(className, resolvedClass)
         }
       } ?: false
 
@@ -187,8 +186,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    */
   val isLiveData
     get() = psiClass?.let { resolvedClass ->
-      val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, resolvedClass)!!, mode)
-      liveDataClass.isAssignableFrom(erasure())
+      isErasureAssignableTo(mode.liveData, resolvedClass)
     } ?: false
 
   /**
@@ -196,8 +194,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    */
   val isStateFlow
     get() = psiClass.takeIf { mode == DataBindingMode.ANDROIDX }?.let { resolvedClass ->
-      val stateFlowClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_STATE_FLOW, resolvedClass)!!, mode)
-      stateFlowClass.isAssignableFrom(erasure())
+      isErasureAssignableTo(SdkConstants.CLASS_STATE_FLOW, resolvedClass)
     } ?: false
 
   /**
@@ -359,6 +356,14 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   }
 
   override fun hashCode() = type.hashCode().xor(mode.hashCode())
+
+  /**
+   * Returns true if [erasure] is assignable to a base class with [baseClassName] and [context].
+   */
+  private fun isErasureAssignableTo(baseClassName: String, context: PsiClass) =
+    LayoutBindingTypeUtil.parsePsiType(baseClassName, context)?.let {
+      PsiModelClass(it, mode).isAssignableFrom(erasure())
+    } ?: false
 
   companion object {
 
