@@ -68,7 +68,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             expect.that(it.message).isEqualTo("Could not resolve androidx.databinding:databinding-common:$latestKnown")
             expect.that(it.description).isEqualTo("""
               |A problem occurred configuring root project 'project'.
-              |> Could not resolve all artifacts for configuration ':classpath'.
+              |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find androidx.databinding:databinding-common:$latestKnown.
               |     Required by:
               |         root project : > com.android.tools.build:gradle:$latestKnown
@@ -131,7 +131,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
             expect.that(it.description).startsWith("""
               |A problem occurred configuring root project 'project'.
-              |> Could not resolve all artifacts for configuration ':classpath'.
+              |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find my.not.existing.dependency:gradle:1.2.3-dev.
               |     Searched in the following locations:
               """.trimMargin())
@@ -230,7 +230,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
           expect.that(it.description).isEqualTo("""
             |A problem occurred configuring project ':app'.
-            |> Could not resolve all artifacts for configuration ':app:classpath'.
+            |> Could not resolve all artifacts for configuration 'classpath'.
             |   > Could not resolve my.not.existing.dependency:gradle:1.2.3-dev.
             |     Required by:
             |         project :app

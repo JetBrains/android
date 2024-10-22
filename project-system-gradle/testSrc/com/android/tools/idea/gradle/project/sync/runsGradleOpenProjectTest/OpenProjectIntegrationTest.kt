@@ -160,6 +160,10 @@ class OpenProjectIntegrationTest {
     val buildFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app/build.gradle"), true)!!
 
     val (snapshots, lastSyncFinishedTimestamp) = preparedProject.open { project ->
+      // Beginning with Gradle 8.11.1, the build dir exists after the project's sync failure below. This behavior is consistent, so we add
+      // the build dir to `initial` here to properly test the assertion below that the snapshots are the same
+      val buildDir = File(project.getBasePath(), "build")
+      buildDir.mkdirs()
       val initial = project.saveAndDump()
       runWriteAction {
         buildFile.setBinaryContent("*bad*".toByteArray())

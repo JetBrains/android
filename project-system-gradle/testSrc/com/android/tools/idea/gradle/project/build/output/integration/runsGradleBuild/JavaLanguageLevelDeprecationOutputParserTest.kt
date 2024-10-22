@@ -51,6 +51,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -84,6 +85,7 @@ class JavaLanguageLevelDeprecationOutputParserTest {
    * -Open<Source|Target>CompatibilityLinkQuickFix
    * -OpenJavaLanguageSpecQuickFix
    */
+  @Ignore("b/380871304")
   @Test
   fun testJava6CausesError() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
@@ -222,6 +224,7 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
     verifyStats(JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL)
   }
 
+  @Ignore("b/380871304")
   @Test
   fun testJava7OnJDK21WithJavaLib() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
