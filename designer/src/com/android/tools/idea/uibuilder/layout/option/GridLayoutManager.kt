@@ -56,6 +56,13 @@ class GridLayoutManager(
     this.cachedLayoutGroups = cachedLayoutGroups
   }
 
+  /**
+   * Special case of single content (non-header) is handled differently. Returns this single content
+   * or null.
+   */
+  private fun Collection<PositionableContent>.singleContentOrNull() =
+    this.singleOrNull().takeIf { it !is HeaderPositionableContent }
+
   /** Get the total required size to layout the [content] with the given conditions. */
   override fun getSize(
     content: Collection<PositionableContent>,
@@ -64,6 +71,14 @@ class GridLayoutManager(
     availableWidth: Int,
     dimension: Dimension?,
   ): Dimension {
+    // Special case for single content
+    content.singleContentOrNull()?.let {
+      val previewSize = it.sizeForScale(it.scaleFunc())
+      return Dimension(
+        previewSize.width + padding.canvasSinglePadding * 2,
+        previewSize.height + padding.canvasSinglePadding * 2,
+      )
+    }
     val groups = createLayoutGroups(transform(content), scaleFunc, availableWidth)
     val groupSizes = groups.map { group -> getGroupSize(group, scaleFunc) }
     val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
@@ -302,26 +317,29 @@ class GridLayoutManager(
     }
 
     //    Special case - position one element at the center
+    //    (1) canvasSinglePadding
+    //
     //     ←------------            availableWidth        ------------→
     //
     //     ___________________________________________________________
     //     | surface                                                  |     ↑
-    //     |                                                          |     |
+    //     |                         (1) ↕                            |     |
     //     |                  _________________                       |     |
-    //     |                  | preview        |                      |     |
-    //     |                  |                |                      |     | availableHeight
+    //     |  (1)             | preview        |    (1)               |     |
+    //     |   ↔              |                |     ↔                |     | availableHeight
     //     |                  |                |                      |     |
     //     |                  |________________|                      |     |
-    //     |                                                          |     |
+    //     |                        (1) ↕                             |     |
     //     |                                                          |     |
     //     ------------------------------------------------------------     ↓
 
-    if (content.size == 1 && content.first() !is HeaderPositionableContent) {
-      val singleContent = content.single()
+    content.singleContentOrNull()?.let { singleContent ->
       // When there is only one visible preview, centralize it as a special case.
-      val point = getSingleContentPosition(singleContent, availableWidth, availableHeight)
-
-      return mapOf(singleContent to point)
+      val previewSize = singleContent.sizeForScale(singleContent.scale)
+      // Try to centralize the content.
+      val x = maxOf((availableWidth - previewSize.width) / 2, padding.canvasSinglePadding)
+      val y = maxOf((availableHeight - previewSize.height) / 2, padding.canvasSinglePadding)
+      return mapOf(singleContent to getContentPosition(singleContent, x, y))
     }
 
     val groups = createLayoutGroups(transform(content), { scale }, availableWidth)

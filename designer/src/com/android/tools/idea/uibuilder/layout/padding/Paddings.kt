@@ -43,6 +43,7 @@ private val ORGANIZATION_PREVIEW_BOTTOM_PADDING: (Double, PositionableContent) -
 /** Default paddings for layouts with organization. */
 val DEFAULT_LAYOUT_PADDING =
   OrganizationPadding(
+    25,
     10,
     10,
     10,

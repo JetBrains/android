@@ -34,6 +34,7 @@ open class GroupPadding(
 
 /** Paddings for layouts with organization. */
 class OrganizationPadding(
+  @SwingCoordinate val canvasSinglePadding: Int,
   @SwingCoordinate canvasTopPadding: Int,
   @SwingCoordinate canvasLeftPadding: Int,
   @SwingCoordinate val canvasBottomPadding: Int,

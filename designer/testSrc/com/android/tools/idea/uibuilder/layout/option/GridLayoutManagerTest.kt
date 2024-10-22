@@ -583,6 +583,7 @@ class GridLayoutManagerTest {
     val framePadding = 50
     return GridLayoutManager(
       OrganizationPadding(
+        canvasSinglePadding = 0,
         canvasTopPadding = 0,
         canvasLeftPadding = 0,
         canvasBottomPadding = 0,
