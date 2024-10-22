@@ -23,6 +23,7 @@ import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.RichVersion;
 import com.android.ide.common.gradle.Version;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -37,7 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-public class GradleLocalCache {
+@Service
+public final class GradleLocalCache {
   @NotNull
   public static GradleLocalCache getInstance() {
     return ApplicationManager.getApplication().getService(GradleLocalCache.class);
