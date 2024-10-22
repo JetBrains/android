@@ -524,7 +524,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
         val type = try {
           DisplayType.entries[stream.readInt()]
         }
-        catch (e: ArrayIndexOutOfBoundsException) {
+        catch (_: ArrayIndexOutOfBoundsException) {
           DisplayType.UNKNOWN
         }
         displays.add(DisplayDescriptor(displayId, width, height, orientation, type))
