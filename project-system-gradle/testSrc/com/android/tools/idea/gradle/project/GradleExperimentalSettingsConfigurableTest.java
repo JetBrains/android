@@ -20,13 +20,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.flags.ExperimentalConfigurable.ApplyState;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.LightPlatformTestCase;
-import org.mockito.Mock;
+import org.mockito.InjectMocks;
 
 /**
  * Tests for {@link GradleExperimentalSettingsConfigurable}.
  */
 public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTestCase {
-  @Mock private GradleExperimentalSettings mySettings;
+  @InjectMocks private GradleExperimentalSettings mySettings;
   private GradleExperimentalSettingsConfigurable myConfigurable;
 
   @Override

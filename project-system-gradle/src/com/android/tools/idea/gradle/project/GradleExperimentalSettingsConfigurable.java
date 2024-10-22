@@ -15,13 +15,25 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
+import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_SNOOZED_SETTING;
+
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AutoSyncSettingChangeEvent;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -34,6 +46,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
   private JCheckBox myShowAgpVersionChooserInNewProjectWizard;
   private JPanel myPanel;
+  private JComboBox<AutoSyncBehavior> autoSyncBehaviorComboBox;
 
   @NotNull private final GradleExperimentalSettings mySettings;
 
@@ -49,6 +62,10 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
     myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
     myShowAgpVersionChooserInNewProjectWizard.setVisible(StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get());
+    autoSyncBehaviorComboBox.setModel(new EnumComboBoxModel<>(AutoSyncBehavior.class));
+    autoSyncBehaviorComboBox.setRenderer(
+      SimpleListCellRenderer.create("", behavior -> AndroidBundle.message(behavior.getLabelBundleKey())));
+    autoSyncBehaviorComboBox.getParent().setVisible(StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get());
     reset();
   }
 
@@ -65,7 +82,8 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
-           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard();
+           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard() ||
+           mySettings.AUTO_SYNC_BEHAVIOR != getAutoSyncBehaviorComboBox();
   }
 
   @Override
@@ -76,6 +94,11 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
+    if (mySettings.AUTO_SYNC_BEHAVIOR != getAutoSyncBehaviorComboBox()) {
+      mySettings.AUTO_SYNC_BEHAVIOR = getAutoSyncBehaviorComboBox();
+      trackAutoSyncSettingChanged();
+      clearAutoSyncVariables();
+    }
   }
 
   @Override
@@ -86,6 +109,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
+    autoSyncBehaviorComboBox.setSelectedIndex(AutoSyncBehavior.getEntries().indexOf(GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR));
   }
 
   @VisibleForTesting
@@ -141,5 +165,30 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   @TestOnly
   public void enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(boolean value) {
     myShowAgpVersionChooserInNewProjectWizard.setSelected(value);
+  }
+
+  AutoSyncBehavior getAutoSyncBehaviorComboBox() {
+    return (AutoSyncBehavior)autoSyncBehaviorComboBox.getSelectedItem();
+  }
+
+  /**
+   * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
+   */
+  private void clearAutoSyncVariables() {
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING);
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN);
+  }
+
+  private void trackAutoSyncSettingChanged() {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.AUTO_SYNC_SETTING_CHANGE)
+        .setAutoSyncSettingChangeEvent(
+          AutoSyncSettingChangeEvent.newBuilder()
+            .setState(getAutoSyncBehaviorComboBox() == AutoSyncBehavior.Default)
+            .setChangeSource(AutoSyncSettingChangeEvent.ChangeSource.SETTINGS)
+            .build()
+        )
+    );
   }
 }

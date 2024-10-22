@@ -347,6 +347,19 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_gradle_autosync": {
+            "test_filter": ".autosync",
+            "tags": ["cpu:4"],
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "runs_gradle_signing": {
             "test_filter": ".runsGradleSigning",
             "tags": ["cpu:4"],

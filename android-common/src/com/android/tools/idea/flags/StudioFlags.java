@@ -943,6 +943,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
+  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI = new BooleanFlag(
+    GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.",
+    enabledUpTo(CANARY));
   /**
    * Don't read this directly, use AgpVersions.agpVersionStudioFlagOverride which handles the 'stable' alias
    */

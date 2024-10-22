@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
@@ -146,7 +148,26 @@ private suspend fun performActivity(project: Project) {
   if (shouldSyncOrAttachModels()) {
     removePointlessModules(project)
     addJUnitProducersToIgnoredList(project)
-    attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+    /**
+       * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
+       * if they are not then we request a project sync in order to ensure that the IDE has access to all the models it needs to function.
+       */
+      try {
+        attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
+      }
+      catch (e: RequestSyncThrowable) {
+        val autoSyncEnabled = !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() || GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR == AutoSyncBehavior.Default
+        if (autoSyncEnabled) {
+          // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
+          //  path individually.
+          LOG.info("Requesting Gradle sync (${e.reason}).")
+          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
+        }
+        else {
+          LOG.info("Requesting Gradle sync (${e.reason}) cancelled by Auto Sync disabled.")
+          SyncDueMessage.maybeShow(project)
+        }
+      }
     subscribeToGradleSettingChanges(project)
   }
 
@@ -210,23 +231,6 @@ private suspend fun removeModules(moduleManager: ModuleManager, modules: List<Pa
       }
       commit()
     }
-  }
-}
-
-/**
- * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
- * if they are not then we request a project sync in order to ensure that the IDE has access to all the models it needs to function.
- */
-private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo: GradleProjectInfo) {
-  try {
-    attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
-  }
-  catch (e: RequestSyncThrowable) {
-    // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
-    //  path individually.
-    LOG.info("Requesting Gradle sync (${e.reason}).")
-    // TODO ag/29995010 - add auto-sync check to stop if user opted for it
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(e.trigger))
   }
 }
 

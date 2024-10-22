@@ -88,6 +88,8 @@ interface ProjectSystemSyncManager {
     UNKNOWN(false),
     /** The user cancelled the sync */
     CANCELLED(false),
+    /** Sync was not requested because of Auto-Sync being disabled. */
+    SKIPPED_DUE_TO_AUTO_SYNC_DISABLED(false),
     /** Sync failed */
     FAILURE(false),
     /** The user has compilation errors or errors in build system files */
