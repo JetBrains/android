@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -38,7 +39,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   override fun setUp() {
-    Registry.`is`("android.gradle.ide.gradle.declarative.ide.support", true)
+    DeclarativeIdeSupport.override(true)
     super.setUp()
   }
 
