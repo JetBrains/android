@@ -5,6 +5,7 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
@@ -38,7 +39,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -155,7 +155,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    * The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes
    */
-  private final WeakReference<Module> myModuleReference;
+  private final BuildTargetReference myBuildTargetReference;
 
   /**
    * Interface for reporting load times and general diagnostics.
@@ -175,12 +175,13 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   private final ClassLoader myParentAtConstruction;
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull StudioModuleRenderContext renderContext,
+  StudioModuleClassLoader(@Nullable ClassLoader parent,
+                          @NotNull StudioModuleRenderContext renderContext,
                           @NotNull ClassTransform projectTransformations,
                           @NotNull ClassTransform nonProjectTransformations,
                           @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(parent, renderContext, projectTransformations, nonProjectTransformations,
-         ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule()),
+         ClassBinaryCacheManager.getInstance().getCache(renderContext.getBuildTargetReference().getModuleIfNotDisposed()),
          diagnostics);
   }
 
@@ -195,14 +196,14 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
           // mismatches.
           FilteringClassLoader.allowedPrefixes(parent, ALLOWED_PACKAGES_FROM_PLUGIN)
         ),
-        renderContext.getModule(),
+        renderContext.getBuildTargetReference().getModuleIfNotDisposed(),
         loader
       ), loader);
 
     myParentAtConstruction = parent;
     myImpl = loader;
-    myModuleReference = new WeakReference<>(renderContext.getModule());
-    Module module = renderContext.getModule();
+    myBuildTargetReference = renderContext.getBuildTargetReference();
+    Module module = renderContext.getBuildTargetReference().getModuleIfNotDisposed();
     if (module != null) {
       Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
     }
@@ -225,7 +226,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
       parent,
       renderContext,
       new ModuleClassLoaderImpl(
-        renderContext.getModule(),
+        renderContext.getBuildTargetReference().getModuleIfNotDisposed(),
         renderContext.createInjectableClassLoaderLoader(),
         parent,
         projectTransformations,
@@ -271,7 +272,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
 
   @Override
   public boolean areDependenciesUpToDate() {
-    Module module = getModule();
+    Module module = myBuildTargetReference.getModuleIfNotDisposed();
     if (module == null) return true;
 
     Set<Path> currentlyLoadedLibraries = new HashSet<>(myImpl.getExternalLibraries());
@@ -287,7 +288,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
    */
   @Override
   public boolean isUserCodeUpToDate() {
-    return myImpl.isUserCodeUpToDate(getModule());
+    return myImpl.isUserCodeUpToDate(myBuildTargetReference.getModuleIfNotDisposed());
   }
 
   @Override
@@ -322,7 +323,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
 
   @Nullable
   public Module getModule() {
-    return myModuleReference.get();
+    return myBuildTargetReference.getModuleIfNotDisposed();
   }
 
   @Override
@@ -333,8 +334,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
 
   @Nullable
   public StudioModuleRenderContext getModuleContext() {
-    Module module = getModule();
-    return module == null ? null : StudioModuleRenderContext.forFile(module, myPsiFileProvider);
+    return isDisposed() ? null : StudioModuleRenderContext.forFile(myBuildTargetReference, myPsiFileProvider);
   }
 
   /**
@@ -376,7 +376,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   @Nullable
   StudioModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     StudioModuleRenderContext renderContext = getModuleContext();
-    if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
+    if (isDisposed() || renderContext == null || renderContext.getBuildTargetReference().getModuleIfNotDisposed() == null) return null;
     return new StudioModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
                                        diagnostics);
   }

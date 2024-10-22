@@ -28,12 +28,10 @@ import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
 import com.android.tools.rendering.RenderTask
-import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.rendering.api.RenderModelModuleLoggingId
 import com.android.tools.rendering.classloading.ClassTransform
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.AssetRepositoryBase
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
@@ -104,7 +102,7 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
   override val project: Project
     get() = facet.module.project
   override val isDisposed: Boolean
-    get() = _isDisposed.get()
+    get() = _isDisposed.get() || buildTarget.buildTarget.moduleIfNotDisposed == null
 
   override fun dispose() {
     _isDisposed.set(true)
@@ -115,7 +113,7 @@ class AndroidFacetRenderModelModule(private val buildTarget: AndroidBuildTargetR
     get() = nameFromFacet(facet)
   override val environment: StudioEnvironmentContext = StudioEnvironmentContext(facet.module)
   private fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): StudioModuleRenderContext {
-    return StudioModuleRenderContext.forFile(facet.module) {
+    return StudioModuleRenderContext.forFile(buildTarget.buildTarget) {
       weakRenderTask.get()?.xmlFile?.get()
     }
   }
