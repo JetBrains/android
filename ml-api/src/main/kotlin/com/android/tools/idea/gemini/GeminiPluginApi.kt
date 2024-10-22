@@ -83,7 +83,7 @@ interface GeminiPluginApi {
   fun stageChatQuery(project: Project, prompt: String, requestSource: RequestSource)
 
   /** [generate] returns the (text only) LLM's response to the given [prompt]. */
-  suspend fun generate(prompt: LlmPrompt): String = ""
+  suspend fun generate(project: Project, prompt: LlmPrompt): String = ""
 
   companion object {
     val EP_NAME =

@@ -72,7 +72,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
       )
     }
     try {
-      val response = geminiPluginApi.generate(prompt)
+      val response = geminiPluginApi.generate(project, prompt)
       return ConversionResponse(
         generatedCode = extractKotlinCode(response),
         status = ConversionResponse.Status.SUCCESS,
