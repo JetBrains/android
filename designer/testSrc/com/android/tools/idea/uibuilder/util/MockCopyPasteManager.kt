@@ -57,4 +57,10 @@ class MockCopyPasteManager : CopyPasteManager() {
   override fun stopKillRings(document: Document) = error(NOT_IMPLEMENTED)
 
   override fun isCutElement(element: Any?): Boolean = error(NOT_IMPLEMENTED)
+
+  override fun isSystemSelectionSupported() = false
+
+  override fun getSystemSelectionContents() = null
+
+  override fun setSystemSelectionContents(content: Transferable) {}
 }
