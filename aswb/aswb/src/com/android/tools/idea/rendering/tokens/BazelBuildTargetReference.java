@@ -18,7 +18,9 @@ package com.android.tools.idea.rendering.tokens;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class BazelBuildTargetReference implements BuildTargetReference {
   private final Module module;
@@ -30,6 +32,9 @@ class BazelBuildTargetReference implements BuildTargetReference {
   @NotNull
   @Override
   public Module getModule() {
+    if (module.isDisposed()) {
+      throw new AlreadyDisposedException("Already disposed: " + module);
+    }
     return module;
   }
 
@@ -37,5 +42,14 @@ class BazelBuildTargetReference implements BuildTargetReference {
   @Override
   public Project getProject() {
     return module.getProject();
+  }
+
+  @Nullable
+  @Override
+  public Module getModuleIfNotDisposed() {
+    if (module.isDisposed()) {
+      return null;
+    }
+    return module;
   }
 }

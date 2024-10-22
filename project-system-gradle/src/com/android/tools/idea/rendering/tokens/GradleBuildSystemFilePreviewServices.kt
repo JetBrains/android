@@ -35,10 +35,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.KeyWithDefaultValue
 import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.serviceContainer.AlreadyDisposedException
+import java.lang.ref.WeakReference
 import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -71,7 +75,7 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
     override fun buildArtifacts(buildTargets: Collection<GradleBuildTargetReference>) {
       if (buildTargets.isEmpty()) return
-      val modules = buildTargets.map { (it as GradleBuildTargetReference).module }.distinct()
+      val modules = buildTargets.map { it.module }.distinct()
       val project = modules.map { it.project }.single()
       GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray())
     }
@@ -161,7 +165,35 @@ private class GradleBuildServicesStatus(private val module: Module) {
   }
 }
 
-data class GradleBuildTargetReference internal constructor(override val module: Module) : BuildTargetReference
+class GradleBuildTargetReference private constructor(
+  private val moduleRef: WeakReference<Module>,
+  private val moduleTag: Int
+) : BuildTargetReference {
+  internal constructor(module: Module) : this(
+    WeakReference(module),
+    module.getUserData(TAG_KEY) ?: error("Must have been initialized with the default value")
+  )
+
+  override val moduleIfNotDisposed: Module?
+    get() = moduleRef.get()?.takeUnless { it.isDisposed }
+
+  override val module: Module
+    get() = moduleIfNotDisposed ?: throw AlreadyDisposedException("Already disposed: $moduleRef")
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is GradleBuildTargetReference) return false
+
+    return moduleTag == other.moduleTag
+  }
+
+  override fun hashCode(): Int = moduleTag
+
+  companion object {
+    private val tagCounter = AtomicInteger(0)
+    private val TAG_KEY = KeyWithDefaultValue.create("GradleBuildTargetReferenceTag", tagCounter::incrementAndGet)
+  }
+}
 
 private val BuildContext.translatedBuildMode: BuildListener.BuildMode? get() {
   // TODO: solodkyy - Review mode and status mapping to handle failures and cancellations with more caution.

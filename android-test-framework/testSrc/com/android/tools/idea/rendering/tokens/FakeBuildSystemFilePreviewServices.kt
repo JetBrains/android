@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.EverythingGlobalScope
+import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.testFramework.ExtensionTestUtil
 import org.jetbrains.annotations.TestOnly
 
@@ -102,4 +103,9 @@ class FakeBuildSystemFilePreviewServices(
   }
 }
 
-private data class FakeBuildTargetReference(override val module: Module) : BuildTargetReference
+private data class FakeBuildTargetReference(private val moduleRef: Module) : BuildTargetReference {
+  override val moduleIfNotDisposed: Module?
+    get() = moduleRef.takeUnless { it.isDisposed }
+  override val module: Module
+    get() = moduleIfNotDisposed ?: throw AlreadyDisposedException("Already disposed: $moduleRef")
+}

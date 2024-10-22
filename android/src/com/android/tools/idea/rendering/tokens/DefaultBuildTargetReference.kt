@@ -25,6 +25,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.serviceContainer.AlreadyDisposedException
 
 /**
  * An implementation of [BuildSystemFilePreviewServices] for the [DefaultProjectSystem].
@@ -68,4 +69,9 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
   }
 }
 
-data class DefaultBuildTargetReference internal constructor(override val module: Module) : BuildTargetReference
+data class DefaultBuildTargetReference internal constructor(private val moduleRef: Module) : BuildTargetReference {
+  override val moduleIfNotDisposed: Module?
+    get() = moduleRef.takeUnless { it.isDisposed }
+  override val module: Module
+    get() = moduleIfNotDisposed ?: throw AlreadyDisposedException("Already disposed: $moduleRef")
+}
