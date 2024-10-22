@@ -20,4 +20,3 @@
 {"id":"experimental","name":"Experimental","entries":[{"hit":"Enable @Preview picker"},{"hit":"Popup with editing tools for @Preview annotation from the Editor gutter"}]}
 {"id":"experimental","name":"Experimental","entries":[{"hit":"Quality Setting"}]}
 {"id":"gradle.compiler","name":"Gradle-Android Compiler","entries":[{"hit":"\nNote: These settings are used for compiling Gradle-based Android projects."},{"hit":"Command-line Options:"},{"hit":"Compile independent modules in parallel (may require larger heap size)"},{"hit":"Continue the build after failures"},{"hit":"Gradle-Android Compiler"}]}
-{"id":"studioLabs","name":"Studio Labs","entries":[{"hit":"Studio Labs"}]}
