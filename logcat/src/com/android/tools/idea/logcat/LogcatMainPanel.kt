@@ -246,7 +246,7 @@ internal class LogcatMainPanel
 @TestOnly
 constructor(
   private val project: Project,
-  private val splitterPopupActionGroup: ActionGroup,
+  private val splitterPopupActionGroup: DefaultActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   private var logcatSettings: AndroidLogcatSettings,
@@ -258,7 +258,7 @@ constructor(
 
   constructor(
     project: Project,
-    splitterPopupActionGroup: ActionGroup,
+    splitterPopupActionGroup: DefaultActionGroup,
     logcatColors: LogcatColors,
     state: LogcatPanelConfig?,
   ) : this(

@@ -33,7 +33,7 @@ import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
@@ -44,11 +44,11 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
@@ -169,7 +169,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   override fun createChildComponent(
     project: Project,
-    popupActionGroup: ActionGroup,
+    popupActionGroup: DefaultActionGroup,
     clientState: String?,
   ) =
     LogcatMainPanel(

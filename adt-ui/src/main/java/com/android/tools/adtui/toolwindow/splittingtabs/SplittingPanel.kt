@@ -23,12 +23,12 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
-import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.JBUI
@@ -54,11 +54,10 @@ internal class SplittingPanel(
   private val childComponentFactory: ChildComponentFactory
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
 
-  private val popupActionGroup = SimpleActionGroup().apply {
-    add(SplitPanelAction(VERTICAL))
-    add(SplitPanelAction(HORIZONTAL))
-    add(ClosePanelAction())
-  }
+  private val popupActionGroup = DefaultActionGroup(
+    SplitPanelAction(VERTICAL),
+    SplitPanelAction(HORIZONTAL),
+    ClosePanelAction())
 
   val component = childComponentFactory.createChildComponent(clientState, popupActionGroup)
 

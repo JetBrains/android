@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs
 
-import org.mockito.kotlin.mock
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
 import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
@@ -24,8 +23,8 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -36,6 +35,7 @@ import com.intellij.ui.content.Content
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -208,7 +208,7 @@ class SplittingTabsToolWindowFactoryTest {
 
     override fun generateTabName(tabNames: Set<String>): String = generateName()
 
-    override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
+    override fun createChildComponent(project: Project, popupActionGroup: DefaultActionGroup, clientState: String?): JComponent =
       generateChild(clientState)
 
     override fun shouldCreateNewTabWhenEmpty() = shouldCreateNewTabWhenEmpty

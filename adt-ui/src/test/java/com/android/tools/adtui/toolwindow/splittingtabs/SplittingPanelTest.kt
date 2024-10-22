@@ -26,7 +26,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons.Actions.Close
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -77,7 +77,7 @@ class SplittingPanelTest {
       createContent(null, "Tab", false),
       clientState = null,
       object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = component
+        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = component
       })
 
     assertThat(splittingPanel.component).isSameAs(component)
@@ -296,7 +296,7 @@ class SplittingPanelTest {
     val content = createContent(null, "Tab", false)
 
     val component = SplittingPanel.buildComponentFromState(content, state, object : ChildComponentFactory {
-      override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JLabelWithState(state!!)
+      override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JLabelWithState(state!!)
     })
 
     assertThat(buildTree(component)).isEqualTo(
@@ -369,10 +369,10 @@ class SplittingPanelTest {
     assertThat(splittingPanel.isComponentDisposed()).isTrue()
   }
 
-  private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: (String?, ActionGroup) -> JComponent): Content {
+  private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: (String?, DefaultActionGroup) -> JComponent): Content {
     val content = createContent(/* component= */ null, "Tab", /* isLockable= */ false)
     val splittingPanel = SplittingPanel(content, null, object : ChildComponentFactory {
-      override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent =
+      override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent =
         createChildComponent(state, popupActionGroup)
     })
     content.component = splittingPanel
@@ -447,7 +447,7 @@ class SplittingPanelTest {
     override fun getState(): String = componentState
   }
 
-  private class JLabelWithPopupActionGroup(text: String, val popupActionGroup: ActionGroup) : DisposableLabel(text)
+  private class JLabelWithPopupActionGroup(text: String, val popupActionGroup: DefaultActionGroup) : DisposableLabel(text)
 }
 
 private fun SplittingPanel.isComponentDisposed() = Disposer.isDisposed(component as Disposable)
