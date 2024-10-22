@@ -21,8 +21,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.google.common.collect.ImmutableMultimap
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.testFramework.ApplicationRule
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
@@ -35,6 +37,12 @@ class PlatformComponentsPanelTest {
   @Mock private lateinit var myConfigurable: SdkUpdaterConfigurable
   @Mock private lateinit var propertiesComponent: PropertiesComponent
   private lateinit var closeable: AutoCloseable
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
 
   @Before
   fun setUp() {
