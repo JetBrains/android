@@ -24,7 +24,6 @@ import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import com.android.tools.idea.uibuilder.layout.option.GroupedSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
@@ -150,18 +149,10 @@ open class GroupedGridSurfaceLayoutManager(
       return 1.0
     }
 
-    val contentToFit =
-      if (StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
-        // Take into consideration both height and width
-        content.take(max(1, availableWidth * availableHeight / minumumPreviewSpacePx))
-      } else {
-        content
-      }
-
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
-      contentToFit.map {
+      content.map {
         val contentSize = it.contentSize
         val margin = it.getMargin(1.0)
         val framePadding = padding.previewPaddingProvider(1.0)
@@ -212,7 +203,7 @@ open class GroupedGridSurfaceLayoutManager(
     // Use binary search to find the proper zoom-to-fit value.
     val maxZoomToFitScale =
       getMaxZoomToFitScale(
-        content = contentToFit,
+        content = content,
         min = lowerBound,
         max = upperBound,
         width = availableWidth,

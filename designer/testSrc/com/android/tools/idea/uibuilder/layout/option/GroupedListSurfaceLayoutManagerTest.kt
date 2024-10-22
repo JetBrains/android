@@ -18,30 +18,17 @@ package com.android.tools.idea.uibuilder.layout.option
 import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
-import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.PREVIEW_LEFT_PADDING
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Before
 import org.junit.Test
 
 class GroupedListSurfaceLayoutManagerTest {
-
-  @Before
-  fun setUp() {
-    PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
-  }
 
   @Test
   fun testLayoutVertically() {

@@ -38,13 +38,11 @@ class GroupedGridSurfaceLayoutManagerTest {
 
   @Before
   fun setUp() {
-    StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(false)
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(false)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
 
