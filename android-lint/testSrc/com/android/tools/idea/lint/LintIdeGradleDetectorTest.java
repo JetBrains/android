@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;

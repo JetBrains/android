@@ -31,7 +31,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
