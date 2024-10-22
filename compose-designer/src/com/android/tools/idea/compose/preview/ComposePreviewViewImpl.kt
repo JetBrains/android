@@ -41,6 +41,7 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.gallery.GalleryModeProperty
@@ -49,7 +50,6 @@ import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
@@ -494,7 +494,8 @@ internal class ComposePreviewViewImpl(
    */
   private fun createGeneratePreviewsActionData(): ActionData? {
     if (
-      !StudioBot.getInstance().isAvailable() || !StudioBot.getInstance().isContextAllowed(project)
+      !GeminiPluginApi.getInstance().isAvailable() ||
+        !GeminiPluginApi.getInstance().isContextAllowed(project)
     ) {
       return null
     }
