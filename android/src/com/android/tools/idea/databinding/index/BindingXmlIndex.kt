@@ -319,27 +319,24 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                   // Nothing to do here, but case needed to avoid ending up in default branch
                 }
                 SdkConstants.TAG_IMPORT ->
-                  if (currTag.importType != null) {
-                    imports.add(ImportData(currTag.importType!!, currTag.importAlias))
+                  currTag.importType?.let { importType ->
+                    imports.add(ImportData(importType, currTag.importAlias))
                   }
                 SdkConstants.TAG_VARIABLE ->
-                  if (currTag.variableName != null && currTag.variableType != null) {
-                    variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
+                  currTag.variableName?.let { variableName ->
+                    currTag.variableType?.let { variableType ->
+                      variables.add(VariableData(variableName, variableType))
+                    }
                   }
                 else ->
-                  if (currTag.viewId != null) {
+                  currTag.viewId?.let { viewId ->
                     // Tag should either be something like <TextView>, <Button>, etc.
                     // OR the special-case <view class="path.to.CustomView"/>
                     val viewName =
                       if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
                     if (viewName != null) {
                       viewIds.add(
-                        ViewIdData(
-                          currTag.viewId!!,
-                          viewName,
-                          currTag.viewLayout,
-                          currTag.viewTypeOverride,
-                        )
+                        ViewIdData(viewId, viewName, currTag.viewLayout, currTag.viewTypeOverride)
                       )
                     }
                   }
