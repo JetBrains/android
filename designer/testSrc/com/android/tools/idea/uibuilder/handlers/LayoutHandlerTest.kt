@@ -23,9 +23,14 @@ import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class LayoutHandlerTest : SceneTest() {
 
+  @Test
   fun testRegion() {
     val layoutComponent = myScene.root!!
     val ph =
@@ -40,6 +45,7 @@ class LayoutHandlerTest : SceneTest() {
     assertEquals(Region(0, 0, width, height), ph.region)
   }
 
+  @Test
   fun testSnapSucceed() {
     val layoutComponent = myScene.root!!
     val ph =
@@ -53,6 +59,7 @@ class LayoutHandlerTest : SceneTest() {
     assertEquals(60, p.y)
   }
 
+  @Test
   fun testSnapFailed() {
     val layoutComponent = myScene.root!!
     val ph =
@@ -63,6 +70,7 @@ class LayoutHandlerTest : SceneTest() {
     assertFalse(ph.snap(SnappingInfo(600, 600, 700, 700), p))
   }
 
+  @Test
   fun testNotSnappableWithAnyRootView() {
     val model =
       model(
@@ -83,6 +91,7 @@ class LayoutHandlerTest : SceneTest() {
     assertFalse(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
   }
 
+  @Test
   fun testSnappableWithOnlyDataTag() {
     val model =
       model(

@@ -23,9 +23,14 @@ import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class LinearPlaceholderTest : SceneTest() {
 
+  @Test
   fun testRegion() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -46,6 +51,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(linearLayout.drawY + linearLayout.drawHeight, region.bottom)
   }
 
+  @Test
   fun testSnap() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -72,6 +78,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(5.0, distance, 0.01)
   }
 
+  @Test
   fun testMovingComponentToHead() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -99,6 +106,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, button.drawX)
   }
 
+  @Test
   fun testMovingComponentUp() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -126,6 +134,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, button.drawX)
   }
 
+  @Test
   fun testMovingComponentDown() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -153,6 +162,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, textView2.drawX)
   }
 
+  @Test
   fun testMovingComponentToTail() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
@@ -178,6 +188,7 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, textView1.drawX)
   }
 
+  @Test
   fun testAddComponentWithoutSnappingToSeparator() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val placeholders =

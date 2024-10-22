@@ -26,8 +26,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
 import java.awt.event.ActionEvent
 import java.util.Locale
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito
 
+@RunWith(JUnit4::class)
 class WidgetConstraintModelTest : SceneTest() {
   private var defaultLocale: Locale? = null
 
@@ -123,6 +127,7 @@ class WidgetConstraintModelTest : SceneTest() {
     )
   }
 
+  @Test
   fun testDeleteAttribute() {
     val widgetModel = WidgetConstraintModel {}
     val textView2 = myModel.treeReader.find("textView2")!!
@@ -184,6 +189,7 @@ class WidgetConstraintModelTest : SceneTest() {
     )
   }
 
+  @Test
   fun testConstraintVerification() {
     val widgetModel = WidgetConstraintModel {}
 
@@ -235,6 +241,7 @@ class WidgetConstraintModelTest : SceneTest() {
     assertFalse(widgetModel.isOverConstrained)
   }
 
+  @Test
   fun testTriggerCallbackWhenSettingSurface() {
     // The callback in practise is used to update ui components.
     val callback = Mockito.mock(Runnable::class.java)
@@ -245,6 +252,7 @@ class WidgetConstraintModelTest : SceneTest() {
     Mockito.verify(callback, Mockito.times(1)).run()
   }
 
+  @Test
   fun testTriggerUpdateAfterModelChanges() {
     ignoreRendering()
     var count = 0
@@ -258,6 +266,7 @@ class WidgetConstraintModelTest : SceneTest() {
     assertThat(count).isAtLeast(1)
   }
 
+  @Test
   fun testTriggerUpdateAfterLayoutlibUpdate() {
     ignoreRendering()
     var count = 0
@@ -271,6 +280,7 @@ class WidgetConstraintModelTest : SceneTest() {
     assertThat(count).isAtLeast(1)
   }
 
+  @Test
   fun testSetLeftMarginMinApi16() {
     val widgetModel = WidgetConstraintModel {}
     val component = myModel.treeReader.find("textView2")!!
@@ -290,6 +300,7 @@ class WidgetConstraintModelTest : SceneTest() {
       .isEqualTo("16dp")
   }
 
+  @Test
   fun testSetLeftMarginMinApi16TargetApi1() {
     val widgetModel = WidgetConstraintModel {}
     val component = myModel.treeReader.find("textView2")!!
@@ -305,6 +316,7 @@ class WidgetConstraintModelTest : SceneTest() {
       .isEqualTo("16dp")
   }
 
+  @Test
   fun testSetLeftMarginMinApi17() {
     val widgetModel = WidgetConstraintModel {}
     val component = myModel.treeReader.find("textView2")!!
@@ -324,6 +336,7 @@ class WidgetConstraintModelTest : SceneTest() {
       .isEqualTo("16dp")
   }
 
+  @Test
   fun testSetVerticalMargin() {
     val widgetModel = WidgetConstraintModel {}
     val component = myModel.treeReader.find("textView2")!!
