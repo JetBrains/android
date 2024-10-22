@@ -19,6 +19,7 @@ import com.android.tools.compose.debug.render.ComposeStateObjectClassRenderer.Co
 import com.intellij.debugger.DebuggerContext
 import com.intellij.debugger.engine.DebugProcess
 import com.intellij.debugger.engine.DebugProcessImpl
+import org.jetbrains.kotlin.idea.debugger.core.isInKotlinSources
 import com.intellij.debugger.engine.evaluation.CodeFragmentKind
 import com.intellij.debugger.engine.evaluation.EvaluateException
 import com.intellij.debugger.engine.evaluation.EvaluateExceptionUtil
@@ -48,7 +49,6 @@ import com.sun.jdi.Type
 import com.sun.jdi.Value
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.kotlin.idea.debugger.KotlinClassRenderer
-import org.jetbrains.kotlin.idea.debugger.isInKotlinSources
 
 /**
  * Renderer for a given compose `StateObject` type object.

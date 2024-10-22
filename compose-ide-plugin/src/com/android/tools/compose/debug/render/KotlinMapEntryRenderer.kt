@@ -25,7 +25,7 @@ import com.sun.jdi.ClassType
 import com.sun.jdi.Type
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
-import org.jetbrains.kotlin.idea.debugger.isInKotlinSources
+import org.jetbrains.kotlin.idea.debugger.core.isInKotlinSources
 
 /**
  * Custom renderer for "MapEntry" type objects.
