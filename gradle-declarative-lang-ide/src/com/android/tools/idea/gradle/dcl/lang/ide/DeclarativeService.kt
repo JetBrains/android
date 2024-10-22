@@ -44,7 +44,7 @@ class DeclarativeService(val project: Project) {
 
   fun getSchema(): DeclarativeSchema? {
     return null /* TODO(b/349894866): this code fails to compile against IntelliJ 2024.2 due to Gradle library version conflicts.
-    if (!Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")) return null
+    if (!DeclarativeIdeSupport.isEnabled()) return null
     if (schema == null) {
       val parentPath = project.basePath
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
