@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -77,6 +76,9 @@ interface LayoutInspectorManager : Disposable {
 
   /** Returns true if Layout Inspector can be enabled for [deviceId], false otherwise. */
   fun isSupported(deviceId: DeviceId): Boolean
+
+  /** Disable embedded Layout Inspector by removing the injected UI from all tabs */
+  fun disable()
 }
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
@@ -166,10 +168,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   private var existingRunningDevicesTabs: List<DeviceId> = emptyList()
 
   init {
-    check(LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      "LayoutInspectorManager is intended for use only in embedded Layout Inspector."
-    }
-
     RunningDevicesStateObserver.getInstance(project)
       .addListener(
         object : RunningDevicesStateObserver.Listener {
@@ -312,6 +310,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun dispose() {
+    selectedTab = null
+    tabsWithLayoutInspector = emptySet()
+  }
+
+  override fun disable() {
     selectedTab = null
     tabsWithLayoutInspector = emptySet()
   }

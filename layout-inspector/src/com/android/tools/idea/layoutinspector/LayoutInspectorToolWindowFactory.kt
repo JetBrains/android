@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -30,14 +31,46 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
+
+/** Registers Standalone Layout Inspector tool window and disables embedded Layout Inspector. */
+fun registerLayoutInspectorToolWindow(project: Project) {
+  val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
+  layoutInspector.stopInspector()
+
+  // Disable embedded Layout Inspector UI.
+  LayoutInspectorManager.getInstance(project).disable()
+
+  // TODO can this be moved to ToolWindowFactory?
+  // Start foreground process detection.
+  layoutInspector.foregroundProcessDetection?.start()
+
+  val toolWindowManager = ToolWindowManager.getInstance(project)
+  toolWindowManager.registerToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
+    anchor = ToolWindowAnchor.BOTTOM
+    icon = StudioIcons.Shell.ToolWindows.CAPTURES
+    contentFactory = LayoutInspectorToolWindowFactory()
+    canCloseContent = false
+  }
+}
+
+/** Unregisters Standalone Layout Inspector tool window. */
+fun unregisterLayoutInspectorToolWindow(project: Project) {
+  val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
+  layoutInspector.stopInspector()
+
+  val toolWindowManager = ToolWindowManager.getInstance(project)
+  toolWindowManager.unregisterToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
+}
 
 /** ToolWindowFactory: For creating a layout inspector tool window for the project. */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
