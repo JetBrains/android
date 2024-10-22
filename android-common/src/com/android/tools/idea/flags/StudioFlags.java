@@ -160,6 +160,12 @@ public final class StudioFlags {
     "Allows the GenAI template to be used.",
     true);
 
+  public static final Flag<Boolean> NPW_ENABLE_XR_TEMPLATE = new BooleanFlag(
+    NPW, "xr.template",
+    "Enable XR template",
+    "Allows the XR template to be used.",
+    ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE = new BooleanFlag(
     NPW, "new.kotlin.multiplatform.module", "New Kotlin Multiplatform Module",
     "Show template to create a new Kotlin Multiplatform module in the new module wizard.",
