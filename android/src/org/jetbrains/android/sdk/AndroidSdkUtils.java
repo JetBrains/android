@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -290,13 +291,15 @@ public final class AndroidSdkUtils {
     do {
       AdbSearchResult searchResult = findAdb(project);
       if (searchResult.adbPath == null) {
-        NotificationGroup
-          .balloonGroup("Android Debug Bridge (adb)")
-          .createNotification(
-            "Unable to locate adb in project/module settings. Locations searched:<br>" + String.join("<br>", searchResult.searchedPaths),
-            NotificationType.ERROR)
-          .setImportant(true)
-          .notify(project);
+        NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Android Debug Bridge (adb)");
+        if (notificationGroup != null) {
+          notificationGroup
+            .createNotification(
+              "Unable to locate adb in project/module settings. Locations searched:<br>" + String.join("<br>", searchResult.searchedPaths),
+              NotificationType.ERROR)
+            .setImportant(true)
+            .notify(project);
+        }
         LOG.warn("Unable to locate adb.");
         return null;
       }

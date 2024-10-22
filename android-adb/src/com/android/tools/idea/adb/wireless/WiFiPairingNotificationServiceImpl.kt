@@ -16,23 +16,21 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 @UiThread
-class WiFiPairingNotificationServiceImpl(private val project: Project) : WiFiPairingNotificationService {
+class WiFiPairingNotificationServiceImpl(private val project: Project) :
+  WiFiPairingNotificationService {
   private val notificationGroup by lazy {
-    NotificationGroup.balloonGroup("Android Devices (Balloon)", PluginId.getId("org.jetbrains.android"))
+    NotificationGroupManager.getInstance().getNotificationGroup("Android Devices (Balloon)")
   }
 
   override fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?) {
-    val notification =  notificationGroup.createNotification(title, content, type)
-    icon?.let {
-      notification.icon = it
-    }
+    val notification = notificationGroup.createNotification(title, content, type)
+    icon?.let { notification.icon = it }
     notification.notify(project)
   }
 }
