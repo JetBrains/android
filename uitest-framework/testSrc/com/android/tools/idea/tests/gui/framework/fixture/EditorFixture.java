@@ -605,7 +605,6 @@ public class EditorFixture {
         return target.hasFocus();
       });
     }
-    waitUntilErrorAnalysisFinishes();
     return this;
   }
 
