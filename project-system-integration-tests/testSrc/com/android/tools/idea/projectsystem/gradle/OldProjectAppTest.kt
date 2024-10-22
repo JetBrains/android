@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import org.junit.Rule
 import org.junit.Test
 

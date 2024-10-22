@@ -53,7 +53,6 @@ import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -62,6 +61,7 @@ import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtils
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

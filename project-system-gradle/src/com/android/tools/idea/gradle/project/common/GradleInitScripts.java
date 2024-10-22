@@ -24,7 +24,7 @@ import com.android.ide.common.repository.GoogleMavenRepositoryKt;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;

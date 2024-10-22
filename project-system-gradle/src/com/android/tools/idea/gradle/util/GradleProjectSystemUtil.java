@@ -58,6 +58,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;

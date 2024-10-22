@@ -20,8 +20,8 @@ import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager

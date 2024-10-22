@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.common;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.Collections;
 import org.mockito.Mock;

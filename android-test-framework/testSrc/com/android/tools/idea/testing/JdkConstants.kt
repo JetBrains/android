@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.intellij.openapi.projectRoots.JavaSdk
 import kotlin.io.path.absolutePathString
 

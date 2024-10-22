@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
