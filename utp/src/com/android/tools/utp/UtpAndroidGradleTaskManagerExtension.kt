@@ -15,34 +15,39 @@
  */
 package com.android.tools.utp
 
-import com.google.common.io.Resources
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
-import com.intellij.util.Consumer
-import com.intellij.util.ResourceUtil
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.service.execution.loadInitScript
+import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 
 /**
- * Extension of GradleProjectResolver to enhance processing of test results from
+ * Extension of GradleTaskManager to enhance processing of test results from
  * DeviceProviderInstrumentedTestTask to Android Studio with Unified Test Platform.
  */
-class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension() {
+class UtpAndroidGradleTaskManagerExtension : GradleTaskManagerExtension {
 
   companion object {
     /**
      * A Gradle project property to enable UTP test results reporting.
      */
     const val ENABLE_UTP_TEST_REPORT_PROPERTY: String = "com.android.tools.utp.GradleAndroidProjectResolverExtension.enable"
+
+    private const val ANDROID_TEST_SCRIPT_NAME = "addGradleAndroidTestListener"
+
+    private val LOG by lazy { Logger.getInstance(UtpAndroidGradleTaskManagerExtension::class.java) }
   }
 
-  private val LOG by lazy { Logger.getInstance(GradleAndroidProjectResolverExtension::class.java) }
-
-  override fun enhanceTaskProcessing(taskNames: MutableList<String>, jvmParametersSetup: String?, initScriptConsumer: Consumer<String>) {
+  override fun configureTasks(
+    projectPath: String,
+    id: ExternalSystemTaskId,
+    settings: GradleExecutionSettings,
+    gradleVersion: GradleVersion?,
+  ) {
     try {
-      val addTestListenerScript = ResourceUtil.getResource(
-        GradleAndroidProjectResolverExtension::class.java, "utp", "addGradleAndroidTestListener.gradle")
-      // Note: initScriptConsumer doesn't support Kotlin DSL.
-      initScriptConsumer.consume(Resources.toString(addTestListenerScript, Charsets.UTF_8))
+      val initScript = loadInitScript(javaClass, "/utp/addGradleAndroidTestListener.gradle")
+      settings.addInitScript(ANDROID_TEST_SCRIPT_NAME, initScript)
     }
     catch (e: Exception) {
       LOG.error(e)
