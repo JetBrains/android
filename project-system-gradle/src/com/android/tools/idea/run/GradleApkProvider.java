@@ -56,7 +56,7 @@ import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.BuildOutputUtil;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;

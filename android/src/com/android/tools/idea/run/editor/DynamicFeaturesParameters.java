@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
