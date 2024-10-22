@@ -18,7 +18,9 @@ package com.android.tools.idea.wear.preview.animation
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
 import com.intellij.openapi.project.Project
@@ -112,7 +114,15 @@ class WearTileAnimationPreview(
   init {
     scope.launch {
       wearPreviewElement.tileServiceViewAdapter.collectLatest {
-        updateAllAnimations(it?.getAnimations() ?: emptyList())
+        val sceneManager = sceneManagerProvider()
+        if (sceneManager?.renderResult?.isErrorResult() == false) {
+          withContext(AndroidDispatchers.uiThread) { hideErrorPanel() }
+          updateAllAnimations(it?.getAnimations() ?: emptyList())
+        } else {
+          withContext(AndroidDispatchers.uiThread) {
+            showErrorPanel(message("animation.inspector.error.panel.message"))
+          }
+        }
       }
     }
   }

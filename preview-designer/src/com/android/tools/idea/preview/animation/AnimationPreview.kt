@@ -67,29 +67,30 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  */
 abstract class AnimationPreview<T : AnimationManager>(
   project: Project,
-  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  protected val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
   private val tracker: AnimationTracker,
 ) : Disposable {
 
   private val logger: Logger = Logger.getInstance(AnimationPreview::class.java)
+
+  private val errorLabel = // Create an error label
+    JLabel().apply {
+      horizontalAlignment = SwingConstants.CENTER
+      verticalAlignment = SwingConstants.CENTER
+    }
+
   private val errorPanel =
     JPanel(BorderLayout()).apply {
       name = "Error Panel"
-      add(
-        JLabel().apply {
-          text = message("animation.inspector.error.panel.message")
-          horizontalAlignment = SwingConstants.CENTER
-          verticalAlignment = SwingConstants.CENTER
-        }
-      )
+      add(errorLabel)
     }
 
   protected val scope =
     AndroidCoroutineScope(
       this,
       CoroutineExceptionHandler { _, throwable ->
-        invokeLater { showErrorPanel(throwable) }
+        invokeLater { showErrorPanel(message("animation.inspector.error.panel.message")) }
         logger.error("Error in Animation Inspector", throwable)
       },
     )
@@ -421,11 +422,24 @@ abstract class AnimationPreview<T : AnimationManager>(
     sceneManagerProvider()?.executeInRenderSession(longTimeout) { function() }
   }
 
-  private fun showErrorPanel(e: Throwable) {
+  @UiThread
+  protected fun showErrorPanel(errorMessage: String) {
+    errorLabel.text = errorMessage
     animationPreviewPanel.removeAll()
     animationPreviewPanel.add(errorPanel, TabularLayout.Constraint(0, 0))
     animationPreviewPanel.revalidate()
     animationPreviewPanel.repaint()
+  }
+
+  @UiThread
+  protected fun hideErrorPanel() {
+    if (animationPreviewPanel.components.contains(errorPanel)) {
+      animationPreviewPanel.remove(errorPanel)
+      animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
+      animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
+      animationPreviewPanel.revalidate()
+      animationPreviewPanel.repaint()
+    }
   }
 
   override fun dispose() {

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.wear.preview.animation
 
+import com.android.ide.common.rendering.api.Result.Status
 import com.android.testutils.delayUntilCondition
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
@@ -31,24 +33,39 @@ import com.android.tools.idea.wear.preview.animation.analytics.AnimationToolingU
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import javax.swing.JComponent
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 class WearTileAnimationPreviewTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var animationPreview: WearTileAnimationPreview
+
+  private val renderResultMock =
+    Mockito.mock(RenderResult::class.java).apply {
+      whenever(this.sourceFile).thenReturn(mock(PsiFile::class.java))
+      whenever(this.logger).thenReturn(RenderLogger())
+      whenever(this.renderResult).thenReturn(Status.SUCCESS.createResult())
+    }
 
   private val wearTilePreviewElement: PsiWearTilePreviewElement =
     WearTilePreviewElement(
@@ -121,13 +138,19 @@ class WearTileAnimationPreviewTest {
       NlSurfaceBuilder(
           projectRule.project,
           projectRule.testRootDisposable,
-          { s, _ ->
-            SyncLayoutlibSceneManager(s, model).apply {
-              Disposer.register(projectRule.testRootDisposable, this)
+          { s, m ->
+            val realSceneManager =
+              SyncLayoutlibSceneManager(s, model).apply {
+                Disposer.register(projectRule.testRootDisposable, this)
+              }
+            // we mock successful RenderResult
+            spy(realSceneManager).apply {
+              whenever(this.renderResult).doAnswer { renderResultMock }
             }
           },
         )
         .build()
+
     surface.setModel(model)
     delayUntilCondition(200) { surface.models.contains(model) }
 
@@ -242,5 +265,20 @@ class WearTileAnimationPreviewTest {
     }
 
     assertThat(animationPreview.maxDurationPerIteration.value).isEqualTo(500L)
+  }
+
+  @Test
+  fun errorInSurface_showErrorPanel() = runTest {
+    // mock renderResult to return ERROR
+    whenever(renderResultMock.renderResult).thenReturn(Status.ERROR_RENDER_TASK.createResult())
+
+    // trigger collect
+    wearTilePreviewElement.tileServiceViewAdapter.value = mock()
+
+    delayUntilCondition(200) {
+      val errorPanel =
+        FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" }
+      errorPanel != null && errorPanel.isVisible
+    }
   }
 }
