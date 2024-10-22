@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android.completion
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.util.application
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.junit.Before
 import org.junit.Rule
