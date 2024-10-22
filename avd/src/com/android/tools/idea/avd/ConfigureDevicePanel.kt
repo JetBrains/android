@@ -16,7 +16,9 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +31,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
+import com.android.tools.idea.adddevicedialog.DeviceDetails
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
@@ -41,6 +44,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
@@ -56,27 +61,36 @@ internal fun ConfigureDevicePanel(
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-    Text(
-      "Configure virtual device",
-      fontWeight = FontWeight.SemiBold,
-      fontSize = LocalTextStyle.current.fontSize * 1.2,
-      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
-    )
-    Text(
-      "Select the system image you'd like to use with the device profile you selected. You can " +
-        "also change additional settings that affect the emulated device.",
-      color = JewelTheme.globalColors.text.info,
-      modifier = Modifier.padding(bottom = Padding.LARGE),
-    )
-    Tabs(
-      configureDevicePanelState,
-      initialSystemImage,
-      images,
-      deviceNameValidator,
-      onDownloadButtonClick,
-      onSystemImageTableRowClick,
-      onImportButtonClick,
+  Row {
+    Column(Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
+      Text(
+        "Configure virtual device",
+        fontWeight = FontWeight.SemiBold,
+        fontSize = LocalTextStyle.current.fontSize * 1.2,
+        modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+      )
+      Text(
+        "Select the system image you'd like to use with the device profile you selected. You can " +
+          "also change additional settings that affect the emulated device.",
+        color = JewelTheme.globalColors.text.info,
+        modifier = Modifier.padding(bottom = Padding.LARGE),
+      )
+      Tabs(
+        configureDevicePanelState,
+        initialSystemImage,
+        images,
+        deviceNameValidator,
+        onDownloadButtonClick,
+        onSystemImageTableRowClick,
+        onImportButtonClick,
+      )
+    }
+
+    Divider(Orientation.Vertical)
+    DeviceDetails(
+      configureDevicePanelState.device.device.toVirtualDeviceProfile(),
+      systemImage = configureDevicePanelState.systemImageTableSelectionState.selection,
+      modifier = Modifier.width(200.dp).padding(vertical = 12.dp, horizontal = 8.dp),
     )
   }
 }

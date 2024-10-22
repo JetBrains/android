@@ -141,10 +141,10 @@ class LocalVirtualDeviceSourceTest {
     val sdkFixture =
       SdkFixture().apply { repoPackages.setLocalPkgInfos(listOf(api34(), api34ext8())) }
     with(ConfigurationPageFixture(sdkFixture)) {
-      composeTestRule.onNodeWithText("34").assertIsSelected()
+      composeTestRule.onNodeWithClickableText("34").assertIsSelected()
 
       composeTestRule.onNodeWithText("Show SDK extension system images").performClick()
-      composeTestRule.onNodeWithText("34-ext8").performClick()
+      composeTestRule.onNodeWithClickableText("34-ext8").performClick()
 
       composeTestRule.onNodeWithText("Show SDK extension system images").performClick()
       composeTestRule.waitForIdle()
@@ -169,19 +169,19 @@ class LocalVirtualDeviceSourceTest {
 
       with(ConfigurationPageFixture(this)) {
         // The name defaults to "Pixel 8 (2)" since Pixel 8 already exists
-        composeTestRule.onNodeWithText("Pixel 8 (2)").performTextReplacement("Pixel 8")
+        composeTestRule.onNodeWithEditableText("Pixel 8 (2)").performTextReplacement("Pixel 8")
         composeTestRule.waitForIdle()
 
         // We can't use Pixel 8 because it already exists
         assertThat(wizard.finishAction.action).isNull()
 
-        composeTestRule.onNodeWithText("Pixel 8").performTextReplacement("My Pixel!")
+        composeTestRule.onNodeWithEditableText("Pixel 8").performTextReplacement("My Pixel!")
         composeTestRule.waitForIdle()
 
         // We can't use "My Pixel!" because ! is not allowed in device names
         assertThat(wizard.finishAction.action).isNull()
 
-        composeTestRule.onNodeWithText("My Pixel!").performTextReplacement("My Pixel")
+        composeTestRule.onNodeWithEditableText("My Pixel!").performTextReplacement("My Pixel")
         composeTestRule.waitForIdle()
 
         // Create "My Pixel"
@@ -209,14 +209,14 @@ class LocalVirtualDeviceSourceTest {
 
         // Select RISC-V preferred ABI
         composeTestRule.onNodeWithText("Optimal").performScrollTo().performClick()
-        composeTestRule.onNodeWithText(SdkConstants.ABI_RISCV64).performClick()
+        composeTestRule.onNodeWithClickableText(SdkConstants.ABI_RISCV64).performClick()
 
         // We should have no validation error
         composeTestRule.waitForIdle()
         assertThat(wizard.finishAction.action).isNotNull()
 
         // Select a different system image without RISC-V
-        composeTestRule.onNodeWithText("Device").performClick()
+        composeTestRule.onNodeWithClickableText("Device").performClick()
         composeTestRule.onNodeWithText(api34Image.displayName).performClick()
 
         // We get an error banner and cannot proceed
@@ -231,7 +231,7 @@ class LocalVirtualDeviceSourceTest {
         // Change the preferred ABI to something we have
         composeTestRule.onNodeWithText("Additional settings").performClick()
         composeTestRule.onNodeWithText(SdkConstants.ABI_RISCV64).performScrollTo().performClick()
-        composeTestRule.onNodeWithText(recommendedAbiForHost()).performClick()
+        composeTestRule.onNodeWithClickableText(recommendedAbiForHost()).performClick()
 
         // We should be able to finish the edit
         composeTestRule
@@ -293,7 +293,7 @@ class LocalVirtualDeviceSourceTest {
         composeTestRule.onNodeWithText("Loading system images...").assertDoesNotExist()
 
         // We should be able to select Google Play now under Services
-        composeTestRule.onNodeWithText("Google APIs").performClick()
+        composeTestRule.onNodeWithClickableText("Google APIs").performClick()
         composeTestRule.waitForIdle()
         composeTestRule
           .onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup()))

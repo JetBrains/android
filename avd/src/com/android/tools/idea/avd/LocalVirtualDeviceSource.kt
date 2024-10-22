@@ -115,5 +115,5 @@ internal class LocalVirtualDeviceSource(
       .conflate()
 }
 
-private fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
+internal fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
   VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()
