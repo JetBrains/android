@@ -248,15 +248,11 @@ class GradleConnectedAndroidTestInvoker(
       project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       retentionConfiguration, extraInstrumentationOptions)
 
+    gradleExecutionSettings.tasks = taskNames
+
     backgroundTaskExecutor {
       try {
-        gradleTaskManagerFactory().executeTasks(
-          externalTaskId,
-          taskNames,
-          path.path,
-          gradleExecutionSettings,
-          null,
-          listener)
+        gradleTaskManagerFactory().executeTasks(path.path, externalTaskId, gradleExecutionSettings, listener)
       } catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
