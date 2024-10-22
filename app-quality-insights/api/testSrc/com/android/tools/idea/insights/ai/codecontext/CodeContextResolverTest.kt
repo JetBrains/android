@@ -330,8 +330,8 @@ class CodeContextResolverTest(private val experiment: Experiment) {
 
     val expected =
       when (experiment) {
-        Experiment.UNKNOWN,
-        Experiment.CONTROL -> CodeContextData.EMPTY
+        Experiment.UNKNOWN -> CodeContextData.UNASSIGNED
+        Experiment.CONTROL -> CodeContextData.CONTROL
         Experiment.TOP_SOURCE ->
           CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experiment)
         Experiment.TOP_THREE_SOURCES ->
