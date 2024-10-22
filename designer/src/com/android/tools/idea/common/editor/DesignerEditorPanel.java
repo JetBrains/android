@@ -44,11 +44,15 @@ import com.android.tools.idea.util.SyncUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
@@ -89,7 +93,7 @@ import org.jetbrains.annotations.Nullable;
  * The panel will start in the {@link State#DEACTIVATED}. Some heavy initialization might be deferred until the panel changes to one of the
  * other states.
  */
-public class DesignerEditorPanel extends JPanel implements Disposable {
+public class DesignerEditorPanel extends JPanel implements Disposable, UiDataProvider {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
   private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
@@ -268,6 +272,22 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    */
   void updateNotifications(@NotNull VirtualFile file, @NotNull DesignerEditor editor, @NotNull Project project) {
     myNotificationPanel.updateNotifications(file, editor, project);
+  }
+
+  @Override
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    FileEditor fileEditorDelegate = getSurface().getFileEditorDelegate();
+    if (fileEditorDelegate instanceof TextEditor) {
+      sink.set(SplitEditorKt.getSPLIT_TEXT_EDITOR_KEY(), (TextEditor)fileEditorDelegate);
+    }
+  }
+
+  /**
+   * Sets the {@link TextEditor} that the surface will delegate to. This will be the text editor used when moving
+   * the caret to the right position when clicking components.
+   */
+  void setFileEditorDelegate(TextEditor editor) {
+    getSurface().setFileEditorDelegate(editor);
   }
 
   @NotNull

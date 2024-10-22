@@ -23,24 +23,19 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
-import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
@@ -61,10 +56,7 @@ abstract class SplitEditor<P : FileEditor>(
   designEditor: P,
   editorName: String,
   defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW,
-) :
-  TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout),
-  TextEditor,
-  DataProvider {
+) : TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), TextEditor {
 
   private val textViewAction =
     SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.showEditorAction, true)
@@ -99,7 +91,7 @@ abstract class SplitEditor<P : FileEditor>(
     listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction)
   }
 
-  private var isComponentInitialized = false
+  private lateinit var component: JComponent
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
@@ -113,13 +105,14 @@ abstract class SplitEditor<P : FileEditor>(
         .orNull()
         ?.let { it.isVisible = false }
     }
-    if (!isComponentInitialized) {
-      isComponentInitialized = true
+    if (!::component.isInitialized) {
       registerModeNavigationShortcuts(thisComponent)
-
-      DataManager.registerDataProvider(thisComponent, SplitEditorDataProvider(editor))
+      component =
+        UiDataProvider.wrapComponent(thisComponent) { sink ->
+          sink[PlatformCoreDataKeys.EDITOR] = editor
+        }
     }
-    return thisComponent
+    return component
   }
 
   override fun getFile() = myEditor.file
@@ -138,18 +131,6 @@ abstract class SplitEditor<P : FileEditor>(
 
   override val showPreviewAction: SplitEditorAction
     get() = previewViewAction
-
-  override fun getData(dataId: String): Any? {
-    if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
-      val project = editor.project ?: return null
-      return FileEditorManagerEx.getInstanceEx(project)
-        .getData(dataId, editor, editor.caretModel.currentCaret)
-    }
-    if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
-      return myEditor
-    }
-    return null
-  }
 
   private fun getFakeActionEvent() =
     AnActionEvent(
@@ -212,39 +193,6 @@ abstract class SplitEditor<P : FileEditor>(
       KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB),
       applicableTo,
     )
-  }
-
-  /** Data provider attached to the SplitEditor component. */
-  private class SplitEditorDataProvider(private val editor: Editor) : DataProvider {
-
-    override fun getData(dataId: String): Any? {
-      if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-        return SplitEditorBackgroundDataProvider(editor)
-      }
-
-      return null
-    }
-  }
-
-  /** Background data provider attached to the SplitEditor component. */
-  private class SplitEditorBackgroundDataProvider(private val editor: Editor) : DataProvider {
-
-    override fun getData(dataId: String): Any? {
-      if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-        return getBackgroundDataProvider()?.getData(dataId)
-      }
-
-      return null
-    }
-
-    private fun getBackgroundDataProvider(): DataProvider? {
-      return TextEditorPsiDataProvider()
-        .getData(
-          PlatformCoreDataKeys.BGT_DATA_PROVIDER.name,
-          editor,
-          editor.caretModel.currentCaret,
-        ) as? DataProvider
-    }
   }
 
   /**
