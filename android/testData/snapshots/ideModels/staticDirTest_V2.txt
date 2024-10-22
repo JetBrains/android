@@ -757,7 +757,6 @@ MODULE                        : project
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
                         releaseAnnotationProcessor    : <empty>

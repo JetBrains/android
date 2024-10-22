@@ -896,7 +896,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1297,7 +1296,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1522,7 +1520,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>

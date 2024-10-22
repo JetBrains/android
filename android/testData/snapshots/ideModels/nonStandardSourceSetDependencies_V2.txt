@@ -875,7 +875,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1067,7 +1066,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1122,7 +1120,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathMain       : <empty>
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1345,7 +1342,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1670,7 +1666,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1793,7 +1788,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinCompilerPluginClasspathTestEnv    : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -2022,7 +2016,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 kotlinCompilerPluginClasspathJvmTest    : <empty>
                                 kotlinCompilerPluginClasspathMetadataMain         : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
-                                kotlinNativeBundleConfiguration         : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 kotlinScriptDef               : <empty>
                                 kotlinScriptDefExtensions     : <empty>
@@ -2372,7 +2365,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>

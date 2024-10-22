@@ -721,7 +721,6 @@ MODULE                        : My_First_App
                                 kotlinCompilerPluginClasspathRelease    : <empty>
                                 kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
-                                kotlinNativeBundleConfiguration         : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 lintChecks                    : <empty>
                                 lintPublish                   : <empty>
@@ -960,7 +959,6 @@ MODULE                        : My_First_App
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>

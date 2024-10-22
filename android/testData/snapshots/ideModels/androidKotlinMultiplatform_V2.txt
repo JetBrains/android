@@ -877,7 +877,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -977,7 +976,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1102,7 +1100,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>

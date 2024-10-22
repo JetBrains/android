@@ -231,7 +231,7 @@ private val jbModelDumpers = listOf(
   },
 )
 
-const val KOTLIN_VERSION_FOR_TESTS = "2.1.0-Beta1"
+const val KOTLIN_VERSION_FOR_TESTS = "2.1.0-Beta2"
 
 fun String.replaceKotlinVersionForTests(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
 

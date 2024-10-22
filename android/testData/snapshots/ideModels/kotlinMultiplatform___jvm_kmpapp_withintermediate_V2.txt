@@ -854,7 +854,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1197,7 +1196,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathMetadataJvmAndAndroid          : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>

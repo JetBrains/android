@@ -813,7 +813,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1096,7 +1095,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>

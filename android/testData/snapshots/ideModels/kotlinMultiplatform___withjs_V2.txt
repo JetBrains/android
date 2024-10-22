@@ -724,7 +724,6 @@
                             kotlinCompilerPluginClasspathRelease    : <empty>
                             kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             lintChecks                    : <empty>
                             lintPublish                   : <empty>
@@ -880,7 +879,6 @@
                             kotlinCompilerPluginClasspathMain       : <empty>
                             kotlinCompilerPluginClasspathTest       : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             npmAggregated                 : <empty>
                             - publicPackageJsonConfiguration        : <ROOT>/jsModule/build/tmp/publicPackageJson/package.json [-]
@@ -1116,7 +1114,6 @@
                             kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                             kotlinCompilerPluginClasspathMetadataMain         : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             lintChecks                    : <empty>
                             lintPublish                   : <empty>
@@ -2369,19 +2366,16 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         jvmDefault                    : disable
-                        noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
-                            - unknownArgs                 : -meta-info
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
                             - unknownArgs                 : -source-map-embed-sources
                             - unknownArgs                 : -target
-                            - unknownExtraFlags           : -Xir-only
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
@@ -2429,19 +2423,16 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         jvmDefault                    : disable
-                        noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
-                            - unknownArgs                 : -meta-info
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
                             - unknownArgs                 : -source-map-embed-sources
                             - unknownArgs                 : -target
-                            - unknownExtraFlags           : -Xir-only
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
