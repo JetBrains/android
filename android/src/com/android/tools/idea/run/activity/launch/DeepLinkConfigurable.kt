@@ -13,69 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity.launch;
+package com.android.tools.idea.run.activity.launch
 
-import com.android.tools.idea.run.editor.DeepLinkChooserDialog;
-import com.intellij.execution.ExecutionBundle;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithBrowseButton;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.components.JBTextField;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.run.editor.DeepLinkChooserDialog
+import com.intellij.execution.ExecutionBundle
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComponentWithBrowseButton
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.panel
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLaunch.State> {
-  private JPanel myPanel;
-  private ComponentWithBrowseButton<JBTextField> myDeepLinkField;
-
-  public DeepLinkConfigurable(@NotNull final Project project, @NotNull final LaunchOptionConfigurableContext context) {
-    myDeepLinkField.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (!project.isInitialized()) {
-          return;
-        }
-        Module module = context.getModule();
-        if (module == null) {
-          Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher");
-          return;
-        }
-        DeepLinkChooserDialog dialog = new DeepLinkChooserDialog(project, module);
-        dialog.setTitle("Select URL");
-        dialog.show();
-
-        String deepLinkSelected = dialog.getSelectedDeepLink();
-        if (deepLinkSelected != null && !deepLinkSelected.isEmpty()) {
-          myDeepLinkField.getChildComponent().setText(deepLinkSelected);
-        }
+class DeepLinkConfigurable(project: Project, context: LaunchOptionConfigurableContext) : LaunchOptionConfigurable<DeepLinkLaunch.State?> {
+  private val deepLinkField = ComponentWithBrowseButton(JBTextField(), null).apply {
+    addActionListener {
+      if (!project.isInitialized) {
+        return@addActionListener
       }
-    });
-    myDeepLinkField.getChildComponent().getEmptyText().setText("Specify URL declared in the manifest");
+      val module = context.getModule()
+      if (module == null) {
+        Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher")
+        return@addActionListener
+      }
+      val dialog = DeepLinkChooserDialog(project, module)
+      dialog.title = "Select URL"
+      dialog.show()
+      val deepLinkSelected = dialog.selectedDeepLink
+      if (!deepLinkSelected.isNullOrEmpty()) {
+        childComponent.setText(deepLinkSelected)
+      }
+    }
+    childComponent.emptyText.text = "Specify URL declared in the manifest"
+  }
+  private val panel = panel {
+    row {
+      label("URL:")
+      cell(deepLinkField).resizableColumn().align(AlignX.FILL)
+    }
   }
 
-  private void createUIComponents() {
-    myDeepLinkField = new ComponentWithBrowseButton<JBTextField>(new JBTextField(), null);
+  override fun createComponent() = panel
+
+  override fun resetFrom(state: DeepLinkLaunch.State) {
+    deepLinkField.childComponent.setText(StringUtil.notNullize(state.DEEP_LINK))
   }
 
-  @Nullable
-  @Override
-  public JComponent createComponent() {
-    return myPanel;
-  }
-
-  @Override
-  public void resetFrom(@NotNull DeepLinkLaunch.State state) {
-    myDeepLinkField.getChildComponent().setText(StringUtil.notNullize(state.DEEP_LINK));
-  }
-
-  @Override
-  public void applyTo(@NotNull DeepLinkLaunch.State state) {
-    state.DEEP_LINK = StringUtil.notNullize(myDeepLinkField.getChildComponent().getText());
+  override fun applyTo(state: DeepLinkLaunch.State) {
+    state.DEEP_LINK = StringUtil.notNullize(deepLinkField.childComponent.getText())
   }
 }
