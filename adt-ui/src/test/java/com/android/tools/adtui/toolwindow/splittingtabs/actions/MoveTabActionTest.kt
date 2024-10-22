@@ -18,7 +18,7 @@ package com.android.tools.adtui.toolwindow.splittingtabs.actions
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -122,7 +122,7 @@ class MoveTabActionTest {
   private fun createContent(toolWindow: ToolWindowHeadlessManagerImpl.MockToolWindow) =
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
       })
     }
 }

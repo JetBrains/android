@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs
 
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
 /**
@@ -26,7 +26,7 @@ internal interface ChildComponentFactory {
    * Creates a child component.
    *
    * @param state an optional state the child component can restore to
-   * @param popupActionGroup an [ActionGroup] containing "split" related actions.
+   * @param popupActionGroup an [DefaultActionGroup] containing "split" related actions.
    */
-  fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent
+  fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent
 }

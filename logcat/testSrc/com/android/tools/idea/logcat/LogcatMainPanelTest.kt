@@ -78,8 +78,6 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfig
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnAction.ACTIONS_KEY
@@ -105,6 +103,15 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
+import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.any
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
@@ -118,15 +125,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
-import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 
 /** Tests for [LogcatMainPanel] */
 class LogcatMainPanelTest {
@@ -1496,7 +1494,7 @@ class LogcatMainPanelTest {
   }
 
   private fun logcatMainPanel(
-    splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
+    splitterPopupActionGroup: DefaultActionGroup = DefaultActionGroup(),
     logcatColors: LogcatColors = LogcatColors(),
     filter: String = "",
     state: LogcatPanelConfig? =
