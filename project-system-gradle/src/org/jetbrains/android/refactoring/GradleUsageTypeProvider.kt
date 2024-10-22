@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.intellij.psi.PsiElement

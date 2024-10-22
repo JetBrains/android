@@ -21,7 +21,7 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import java.io.File
 
 internal fun findGradleBuildFile(dirPath: File) : File {
