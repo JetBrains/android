@@ -102,6 +102,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.imageio.ImageIO
@@ -323,25 +324,37 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       }
 
       override fun onCompleted() {
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
           finished()
         }
-        backgroundExecutor.submit {
-          val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
-          invokeLaterIfDialogIsShowing {
-            if (snapshot == null) {
-              showError()
-            } else {
-              snapshotTableModel.addRow(snapshot)
-              snapshotTable.selection = listOf(snapshot)
-              TableUtil.scrollSelectionToVisible(snapshotTable)
-              updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
+        try {
+          backgroundExecutor.submit {
+            val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
+            invokeLaterIfDialogIsShowing {
+              if (snapshot == null) {
+                showError()
+              }
+              else {
+                snapshotTableModel.addRow(snapshot)
+                snapshotTable.selection = listOf(snapshot)
+                TableUtil.scrollSelectionToVisible(snapshotTable)
+                updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
+              }
             }
           }
+        }
+        catch (_: RejectedExecutionException) {
+          // The dialog has been closed already.
         }
       }
 
       override fun onError(t: Throwable) {
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
           showError()
           finished()
@@ -350,7 +363,6 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
       @UiThread
       private fun finished() {
-        emulatorView.hideLongRunningOperationIndicator()
         createSnapshotButton.isEnabled = true // Re-enable the button.
         endLongOperation()
       }
