@@ -35,11 +35,16 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
+@RunWith(JUnit4::class)
 class ConstraintLayoutHandlerTest : SceneTest() {
 
+  @Test
   fun testClearConstraintAttributesWithNoComponents() {
     val nlModel =
       model(
@@ -58,6 +63,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     }
   }
 
+  @Test
   fun testClearConstraintAttributes() {
     val handler = myModel.treeReader.find("root")!!.getLayoutHandler {}!!
     val button1 = myModel.treeReader.find("button1")!!
@@ -183,6 +189,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     )
   }
 
+  @Test
   fun testClearAttributesWithDataBinding() {
     val model = createDataBindingModel().build()
     val screen = ScreenFixture(model)
@@ -238,6 +245,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
       )
   }
 
+  @Test
   fun testSelectedIdsNull() {
     val list = ArrayList<NlComponent>()
     assertNull(getSelectedIds(list))
@@ -248,6 +256,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     assertNull(getSelectedIds(list))
   }
 
+  @Test
   fun testSelectedIds() {
     val model = createTestModel()
     val list = ArrayList<NlComponent>()
@@ -258,6 +267,7 @@ class ConstraintLayoutHandlerTest : SceneTest() {
     assertEquals("view1,view2", getSelectedIds(list))
   }
 
+  @Test
   fun testMoveOutRemovesReference() {
     val model = createTestFlowModel()
     val text1 = model.treeReader.find("text1")!!
