@@ -120,7 +120,7 @@ internal fun WizardPageScope.ConfigurationPage(
             device,
             skins,
             filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
-              it.isRecommended()
+              it.isSupported()
             },
           )
 

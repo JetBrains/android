@@ -139,7 +139,7 @@ internal fun ISystemImage.getServices(): Services {
   return Services.ANDROID_OPEN_SOURCE
 }
 
-internal fun ISystemImage.isRecommended(): Boolean = imageWarnings().isEmpty()
+internal fun ISystemImage.isSupported(): Boolean = imageWarnings().isEmpty()
 
 private fun ISystemImage.incompatibleArchitectureWarning(): String? =
   when (osArchitecture) {

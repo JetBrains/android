@@ -26,7 +26,7 @@ internal constructor(
   selectedApi: AndroidVersionSelection,
   selectedServices: Services?,
   showSdkExtensionSystemImages: Boolean = false,
-  showOnlyRecommendedSystemImages: Boolean = true,
+  showUnsupportedSystemImages: Boolean = false,
 ) {
   internal var selectedApi by mutableStateOf(selectedApi)
     private set
@@ -37,7 +37,7 @@ internal constructor(
   internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
     private set
 
-  internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
+  internal var showUnsupportedSystemImages by mutableStateOf(showUnsupportedSystemImages)
     private set
 
   internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
@@ -52,8 +52,8 @@ internal constructor(
     this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
   }
 
-  internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
-    this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
+  internal fun setShowUnsupportedSystemImages(showUnsupportedSystemImages: Boolean) {
+    this.showUnsupportedSystemImages = showUnsupportedSystemImages
   }
 
   fun filter(
@@ -67,9 +67,9 @@ internal constructor(
       val isSdkExtensionMatches =
         showSdkExtensionSystemImages || baseExtensionLevels.isBaseExtension(image.androidVersion)
 
-      val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
+      val isSupportedMatches = showUnsupportedSystemImages || image.isSupported()
 
-      apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
+      apiMatches && servicesMatches && isSdkExtensionMatches && isSupportedMatches
     }
   }
 }

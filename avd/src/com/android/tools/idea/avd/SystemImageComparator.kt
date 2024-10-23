@@ -23,7 +23,7 @@ import kotlinx.collections.immutable.plus
 
 /** Sorts system images by preference: least preferred to most */
 internal object SystemImageComparator :
-  Comparator<ISystemImage> by (compareBy<ISystemImage> { it.isRecommended() }
+  Comparator<ISystemImage> by (compareBy<ISystemImage> { it.isSupported() }
     .thenBy { it.isForTablet() }
     .thenByDescending { it.androidVersion.isPreview }
     .thenBy { it.androidVersion.featureLevel }
