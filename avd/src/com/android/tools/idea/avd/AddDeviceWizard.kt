@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,11 +36,13 @@ import com.android.tools.idea.adddevicedialog.DeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceLoadingPage
 import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
+import com.android.tools.idea.adddevicedialog.DeviceTableShowDetailsState
 import com.android.tools.idea.adddevicedialog.FormFactor
 import com.android.tools.idea.adddevicedialog.SingleSelectionRadioButtons
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
+import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardButton
@@ -87,6 +90,9 @@ internal class AddDeviceWizard(
       withContext(AndroidDispatchers.workerThread) { accelerationError = accelerationCheck() }
     }
 
+    val deviceTableShowDetailsState = getOrCreateState { DeviceTableShowDetailsState() }
+    val lazyListState = getOrCreateState { LazyListState() }
+    val tableSortState = getOrCreateState { TableSortState<VirtualDeviceProfile>() }
     val filterState = getOrCreateState { VirtualDeviceFilterState() }
     val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
@@ -167,6 +173,9 @@ internal class AddDeviceWizard(
                 onCheckedChange = { filterState.showDeprecated = it },
               )
             },
+            showDetailsState = deviceTableShowDetailsState,
+            lazyListState = lazyListState,
+            tableSortState = tableSortState,
             tableSelectionState = selectionState,
             filterState = filterState,
             onRowSecondaryClick = { device, offset ->

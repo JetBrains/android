@@ -28,7 +28,6 @@ import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.devices.Abi
-import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -38,6 +37,7 @@ import com.android.testutils.file.recordExistingFile
 import com.android.testutils.file.someRoot
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.sdk.DeviceManagers
 import com.android.utils.CpuArchitecture
 import com.android.utils.StdLogger
 import com.android.utils.osArchitecture
@@ -56,7 +56,7 @@ class SdkFixture {
   val repoManager = FakeRepoManager(sdkRoot, repoPackages)
   val sdkHandler = AndroidSdkHandler(sdkRoot, avdRoot, repoManager)
   private val logger = StdLogger(StdLogger.Level.INFO)
-  val deviceManager = DeviceManager.createInstance(sdkHandler, logger)
+  val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
   val avdManager = AvdManager.createInstance(sdkHandler, avdRoot, deviceManager, logger)
 
   internal fun systemImageState(

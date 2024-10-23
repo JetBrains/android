@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
@@ -145,6 +154,58 @@ class AddDeviceWizardTest {
       composeTestRule.waitUntilAtLeastOneExists(hasText("No emulator installed"))
       composeTestRule.onNodeWithText("No emulator installed").assertIsDisplayed()
       composeTestRule.onNodeWithText("Install Emulator").assertIsEnabled()
+    }
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun statePreservation() {
+    with(SdkFixture()) {
+      val api34 = createLocalSystemImage("google_apis", listOf(), AndroidVersion(34))
+      repoPackages.setLocalPkgInfos(listOf(api34))
+
+      val pixel3 = deviceManager.getDevice("pixel_3", "Google")!!
+      deviceManager.addUserDevice(
+        Device.Builder(pixel3)
+          .apply {
+            setName("APhone")
+            setId("aphone")
+          }
+          .build()
+      )
+      deviceManager.addUserDevice(
+        Device.Builder(pixel3)
+          .apply {
+            setName("ZPhone")
+            setId("zphone")
+          }
+          .build()
+      )
+
+      val source = createLocalVirtualDeviceSource()
+      val wizard = createTestAddDeviceWizard(source)
+
+      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+
+      // Sort by name then arrow down to bring ZPhone into view
+      composeTestRule.onNodeWithText("Name").performClick()
+      repeat(50) { composeTestRule.onRoot().performKeyInput { pressKey(Key.DirectionDown) } }
+      composeTestRule.onNodeWithText("ZPhone").performClick()
+
+      // Show the details, now we see ZPhone twice
+      composeTestRule.onNodeWithContentDescription("Details").performClick()
+      composeTestRule.onAllNodesWithText("ZPhone").assertCountEquals(2)
+
+      // Go forward and back
+      wizard.performAction(wizard.nextAction)
+      composeTestRule.waitForIdle()
+      wizard.performAction(wizard.prevAction)
+
+      // Sort order is preserved; ZPhone is still selected; details still visible
+      composeTestRule.onNodeWithText("APhone").assertDoesNotExist()
+      composeTestRule.onNodeWithClickableText("ZPhone").assertIsSelected()
+      composeTestRule.onAllNodesWithText("ZPhone").assertCountEquals(2)
+      composeTestRule.onNode(hasText("Name") and hasContentDescription("Sorted ascending"))
     }
   }
 }

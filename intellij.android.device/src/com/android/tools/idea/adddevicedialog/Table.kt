@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
@@ -152,8 +153,8 @@ internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
-    SortOrder.ASCENDING -> Icon(AllIconsKeys.General.ArrowUp, null)
-    SortOrder.DESCENDING -> Icon(AllIconsKeys.General.ArrowDown, null)
+    SortOrder.ASCENDING -> Icon(AllIconsKeys.General.ArrowUp, "Sorted ascending")
+    SortOrder.DESCENDING -> Icon(AllIconsKeys.General.ArrowDown, "Sorted descending")
   }
 
 @Stable
@@ -285,6 +286,7 @@ fun <T> Table(
   rows: List<T>,
   rowId: (T) -> Any,
   modifier: Modifier = Modifier,
+  lazyListState: LazyListState = rememberLazyListState(),
   tableSortState: TableSortState<T> = remember { TableSortState() },
   tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
   onRowClick: (T) -> Unit = { tableSelectionState.selection = it },
@@ -293,7 +295,6 @@ fun <T> Table(
   val sortedRows = tableSortState.comparator?.let { rows.sortedWith(it) } ?: rows
   val tableFocusRequester = remember { FocusRequester() }
   val coroutineScope = rememberCoroutineScope()
-  val lazyListState = rememberLazyListState()
 
   // Keep the selection visible in the list in response to changes in order of rows.
   LaunchedEffect(sortedRows) {

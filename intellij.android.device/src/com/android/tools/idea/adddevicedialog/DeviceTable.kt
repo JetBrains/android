@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -63,11 +65,13 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  showDetailsState: DeviceTableShowDetailsState = remember { DeviceTableShowDetailsState() },
+  lazyListState: LazyListState = rememberLazyListState(),
+  tableSortState: TableSortState<DeviceT> = remember { TableSortState() },
   tableSelectionState: TableSelectionState<DeviceT> = remember { TableSelectionState() },
   filterState: DeviceFilterState<DeviceT> = remember { DeviceFilterState() },
   onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
-  var showDetails by remember { mutableStateOf(false) }
   val textState = rememberTextFieldState(filterState.textFilter.searchText)
   LaunchedEffect(Unit) {
     snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
@@ -105,7 +109,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
           )
           Tooltip(tooltip = { Text("Show device details") }) {
             IconButton(
-              onClick = { showDetails = !showDetails },
+              onClick = { showDetailsState.visible = !showDetailsState.visible },
               Modifier.align(Alignment.CenterVertically).padding(2.dp),
             ) {
               Icon(
@@ -136,10 +140,12 @@ fun <DeviceT : DeviceProfile> DeviceTable(
               filteredDevices,
               { it },
               modifier = Modifier.weight(1f),
+              lazyListState = lazyListState,
+              tableSortState = tableSortState,
               tableSelectionState = tableSelectionState,
               onRowSecondaryClick = onRowSecondaryClick,
             )
-            if (showDetails) {
+            if (showDetailsState.visible) {
               Divider(orientation = Orientation.Vertical)
               when (
                 val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
@@ -166,6 +172,10 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   )
 
   LaunchedEffect(Unit) { searchFieldFocusRequester.requestFocus() }
+}
+
+class DeviceTableShowDetailsState {
+  var visible by mutableStateOf(false)
 }
 
 object DeviceTableColumns {
