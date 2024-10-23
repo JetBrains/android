@@ -66,6 +66,24 @@ val referenceDeviceIds =
   )
 
 /**
+ * Table containing the mapping of some old specs to newer specs.
+ */
+private val specPatchTable =
+  mapOf(
+    // region Compose pre-1.8 specs patch
+    // TODO(b/375166200) pre-1.8 specs: these can be removed once Compose 1.7 is no longer used
+    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to "spec:width=411dp,height=891dp",
+    "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420" to "spec:width=673dp,height=841dp",
+    "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240" to "spec:width=1280dp,height=800dp,dpi=240",
+    "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160" to "spec:width=1920dp,height=1080dp,dpi=160",
+    // TV_720p
+    "spec:shape=Normal,width=1280,height=720,unit=dp,dpi=420" to "spec:width=1280dp,height=720dp",
+    // TV_1080p
+    "spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420" to  "spec:width=1920dp,height=1080dp",
+    //endregion
+  )
+
+/**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
  * [DeviceConfig.toDeviceConfigOrNull].
  *
@@ -235,9 +253,10 @@ open class DeviceConfig(
       availableDevices: Collection<Device>
     ): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
-      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
+      val patchedSerialized = specPatchTable[serialized] ?: serialized
+      val configString = patchedSerialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       // Find if the given spec belongs to a reference device and if it does, use that as device id.
-      val referenceDeviceId = referenceDeviceIds[serialized]
+      val referenceDeviceId = referenceDeviceIds[patchedSerialized]
       val deviceIdMap = referenceDeviceId?.let { mapOf(PARAMETER_ID to it) } ?: emptyMap()
       val paramsMap =
         deviceIdMap +
