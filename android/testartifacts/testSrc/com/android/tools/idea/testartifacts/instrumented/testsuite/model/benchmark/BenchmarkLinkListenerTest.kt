@@ -70,7 +70,9 @@ class BenchmarkLinkListenerTest {
     val listener = BenchmarkLinkListener(projectRule.project)
     val traceFile = FileUtil.createTempFile("traceFile", ".trace")
     traceFile.deleteOnExit()
-    listener.hyperlinkClicked("file://${traceFile.name}")
+    ApplicationManager.getApplication().invokeAndWait {
+      listener.hyperlinkClicked("file://${traceFile.name}")
+    }
     assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
   }
 
