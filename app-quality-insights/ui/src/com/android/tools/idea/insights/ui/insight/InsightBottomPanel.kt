@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -24,7 +25,6 @@ import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.experiments.supportsContextSharing
 import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -158,7 +158,7 @@ class InsightBottomPanel(
 
   private fun canShowEnableContextButton(state: LoadingState.Ready<AiInsight?>) =
     state.value?.isEnhancedWithCodeContext() == false &&
-      !StudioBot.getInstance().isContextAllowed(controller.project) &&
+      !GeminiPluginApi.getInstance().isContextAllowed(controller.project) &&
       AppInsightsExperimentFetcher.instance
         .getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
         .supportsContextSharing()

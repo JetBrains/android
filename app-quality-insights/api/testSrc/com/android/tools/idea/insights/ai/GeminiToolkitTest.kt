@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.Language
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
@@ -37,29 +36,26 @@ class GeminiToolkitTest {
 
   @get:Rule val projectRule = ProjectRule()
 
-  private var isStudioBotAvailable = false
-  private var isContextAllowed = false
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication()
-      .replaceService(
-        StudioBot::class.java,
-        object : StudioBot.StubStudioBot() {
-          override fun isAvailable() = isStudioBotAvailable
-
-          override fun isContextAllowed(project: Project) = isContextAllowed
-        },
-        projectRule.disposable,
-      )
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.disposable,
+    )
   }
 
   @Test
   fun `test is gemini enabled`() {
     val toolKit = GeminiToolkitImpl(projectRule.project)
+
+    fakeGeminiPluginApi.available = false
     assertThat(toolKit.isGeminiEnabled).isEqualTo(false)
 
-    isStudioBotAvailable = true
+    fakeGeminiPluginApi.available = true
     assertThat(toolKit.isGeminiEnabled).isEqualTo(true)
   }
 
@@ -71,9 +67,11 @@ class GeminiToolkitTest {
       projectRule.disposable,
     )
     val toolKit = GeminiToolkitImpl(projectRule.project)
+
+    fakeGeminiPluginApi.contextAllowed = false
     assertThat(toolKit.getSource(StacktraceGroup())).isEqualTo(CodeContextData.EMPTY)
 
-    isContextAllowed = true
+    fakeGeminiPluginApi.contextAllowed = true
     assertThat(toolKit.getSource(StacktraceGroup()).codeContext).isNotEmpty()
   }
 }

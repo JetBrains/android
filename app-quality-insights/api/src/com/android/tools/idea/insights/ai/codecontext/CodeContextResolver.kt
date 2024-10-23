@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.experiments.ExperimentGroup
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.openapi.application.readAction
@@ -90,8 +90,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
             resolve.classes.keys.firstOrNull {
               index.isInSource(it) || index.isInGeneratedSources(it)
             } ?: return@readAction null
-          if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(file))
-            return@readAction null
+          if (GeminiPluginApi.getInstance().isFileExcluded(project, file)) return@readAction null
           val language =
             file.extension?.let { Language.fromExtension(it) } ?: return@readAction null
           CodeContext(className, file.path, file.readText(), language)

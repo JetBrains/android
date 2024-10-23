@@ -15,23 +15,21 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
 import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.experiments.ExperimentGroup
-import com.android.tools.idea.studiobot.AiExcludeService
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -319,37 +317,12 @@ class CodeContextResolverTest(private val experiment: Experiment) {
    */
   @Test
   fun `resolve code context based on assigned experiment`() = runBlocking {
-    projectRule.replaceService(
-      StudioBot::class.java,
-      object : StudioBot.StubStudioBot() {
-        override fun isContextAllowed(project: Project) = true
-
-        override fun aiExcludeService(project: Project) =
-          object : AiExcludeService {
-            override fun isFileExcluded(file: VirtualFile) =
-              file.path == EXCLUDED_ACTIVITY_CONTEXT.filePath
-
-            override fun isFileExcluded(file: Path): Boolean {
-              TODO("Not yet implemented")
-            }
-
-            override fun getExclusionStatus(file: VirtualFile): AiExcludeService.ExclusionStatus {
-              TODO("Not yet implemented")
-            }
-
-            override fun getExclusionStatus(file: Path): AiExcludeService.ExclusionStatus {
-              TODO("Not yet implemented")
-            }
-
-            override fun getBlockingFiles(file: VirtualFile): List<VirtualFile> {
-              TODO("Not yet implemented")
-            }
-
-            override fun getBlockingFiles(file: Path): List<VirtualFile> {
-              TODO("Not yet implemented")
-            }
-          }
-      },
+    val fakeGeminiPluginApi = FakeGeminiPluginApi()
+    fakeGeminiPluginApi.excludedFilePaths = setOf(EXCLUDED_ACTIVITY_CONTEXT.filePath)
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.testRootDisposable,
     )
 
     val resolver = CodeContextResolverImpl(projectRule.project)
