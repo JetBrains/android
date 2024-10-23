@@ -25,14 +25,9 @@ import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
-import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
-import com.android.tools.idea.studiobot.ChatService
-import com.android.tools.idea.studiobot.ModelType
-import com.android.tools.idea.studiobot.StubModel
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
@@ -42,10 +37,8 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.extensions.PluginId
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
-import com.intellij.util.application
 import java.util.concurrent.CountDownLatch
 import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
@@ -67,41 +60,12 @@ class InsightActionTest {
   private val eventList = List(3) { createAppInsightEvent(it) }
 
   private val scope = CoroutineScope(EmptyCoroutineContext)
-  private var isOnboardingComplete = false
-  private var isGeminiToolWindowOpen = false
   private var isGeminiDisabled = false
   private val mockGeminiPlugin = mock<IdeaPluginDescriptor>()
   private lateinit var mockPluginManagerCore: MockedStatic<PluginManagerCore>
   private var eventIdx: Int = 0
 
-  private val fakeChatService =
-    object : ChatService {
-      var stagedPrompt = ""
-
-      override fun sendChatQuery(
-        prompt: Prompt,
-        requestSource: GeminiPluginApi.RequestSource,
-        displayText: String?,
-      ) = Unit
-
-      override fun stageChatQuery(prompt: String, requestSource: GeminiPluginApi.RequestSource) {
-        isGeminiToolWindowOpen = true
-        stagedPrompt = prompt
-      }
-    }
-
-  private val fakeStudioBot =
-    object : StudioBot {
-      override val MAX_QUERY_CHARS = 1000
-
-      override fun isAvailable() = isOnboardingComplete
-
-      override fun aiExcludeService(project: Project) = FakeAiExcludeService()
-
-      override fun chat(project: Project) = fakeChatService
-
-      override fun model(project: Project, modelType: ModelType) = StubModel()
-    }
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
   @Before
   fun setup() {
@@ -115,7 +79,13 @@ class InsightActionTest {
     mockPluginManagerCore
       .whenever<Any> { PluginManagerCore.plugins }
       .thenAnswer { arrayOf(mockGeminiPlugin) }
-    application.replaceService(StudioBot::class.java, fakeStudioBot, projectRule.disposable)
+
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.disposable,
+    )
   }
 
   @After
@@ -125,26 +95,28 @@ class InsightActionTest {
 
   @Test
   fun `insight action opens Gemini toolwindow if not open`() {
+    fakeGeminiPluginApi.available = false
     val insightButton = createInsightButton()
     assertThat(insightButton.text).isEqualTo("Enable insights")
     assertThat(insightButton.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
     InsightAction.actionPerformed(createTestEvent())
-    assertThat(isGeminiToolWindowOpen).isTrue()
+    assertThat(fakeGeminiPluginApi.stagedPrompt).isNotNull()
   }
 
   @Test
   fun `insight action changes text when onboarding state changes`() {
+    fakeGeminiPluginApi.available = false
     val insightButton = createInsightButton()
     assertThat(insightButton.text).isEqualTo("Enable insights")
     assertThat(insightButton.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
 
-    isOnboardingComplete = true
+    fakeGeminiPluginApi.available = true
     InsightAction.update(insightButton)
 
     assertThat(insightButton.text).isEqualTo("Show insights")
     assertThat(insightButton.toolTipText).isEqualTo("Show insights for this issue")
 
-    isOnboardingComplete = false
+    fakeGeminiPluginApi.available = false
     InsightAction.update(insightButton)
 
     assertThat(insightButton.text).isEqualTo("Enable insights")
@@ -154,7 +126,7 @@ class InsightActionTest {
   @Test
   fun `insight action stages prompt when studio bot available`() {
     val insightButton = createInsightButton()
-    isOnboardingComplete = true
+    fakeGeminiPluginApi.available = true
     InsightAction.update(insightButton)
 
     assertThat(insightButton.text).isEqualTo("Show insights")
@@ -163,18 +135,19 @@ class InsightActionTest {
     InsightAction.actionPerformed(createTestEvent())
 
     val expectedPrompt = createExpectedPrompt(0)
-    assertThat(fakeChatService.stagedPrompt).isEqualTo(expectedPrompt)
+    assertThat(fakeGeminiPluginApi.stagedPrompt).isEqualTo(expectedPrompt)
 
     // Simulate navigation of event using left/right arrow buttons
     eventIdx += 1
     InsightAction.actionPerformed(createTestEvent())
 
     val newExpectedPrompt = createExpectedPrompt(1)
-    assertThat(fakeChatService.stagedPrompt).isEqualTo(newExpectedPrompt)
+    assertThat(fakeGeminiPluginApi.stagedPrompt).isEqualTo(newExpectedPrompt)
   }
 
   @Test
   fun `insight action opens plugin window when gemini plugin not enabled`() {
+    fakeGeminiPluginApi.available = false
     isGeminiDisabled = true
     val countDownLatch = CountDownLatch(1)
 

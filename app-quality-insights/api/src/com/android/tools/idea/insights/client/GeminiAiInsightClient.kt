@@ -16,14 +16,13 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.protobuf.Message
-import com.android.tools.idea.studiobot.Content
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.intellij.openapi.project.Project
@@ -66,23 +65,12 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
   ): AiInsight {
     val request = GeminiInsightsRequest.parser().parseFrom(additionalContextMsg.toByteArray())
     val prompt =
-      buildPrompt(project) {
+      buildLlmPrompt(project) {
         systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
         userMessage { text(createPrompt(request), emptyList()) }
       }
     return if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
-      val generateContentFlow = StudioBot.getInstance().model(project).generateContent(prompt)
-      val response =
-        buildString {
-            generateContentFlow.collect { content ->
-              when (content) {
-                // Can't append text from FunctionCall
-                is Content.FunctionCall -> {}
-                is Content.TextContent -> append(content.text)
-              }
-            }
-          }
-          .trim()
+      val response = GeminiPluginApi.getInstance().generate(project, prompt)
       AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
     } else {
       // Simulate a delay that would come generating an actual insight

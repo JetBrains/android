@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
@@ -32,7 +33,6 @@ import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
-import com.android.tools.idea.studiobot.StudioBot
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.AiInsightsOptInStatus
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
@@ -168,7 +168,7 @@ private fun LoadingState.Done<IssueResponse>.hasAppVcsInfo(): Boolean {
 
 private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
   when {
-    !StudioBot.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
+    !GeminiPluginApi.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
     firebaseProject == null -> AiInsightsOptInStatus.UNKNOWN_STATUS
     else ->
       if (TosPersistence.getInstance().isTosAccepted(firebaseProject))

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -24,7 +25,6 @@ import com.android.tools.idea.insights.ui.EMPTY_STATE_LINK_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
-import com.android.tools.idea.studiobot.StudioBot as Gemini
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -159,7 +159,9 @@ class InsightContentPanel(
       override fun update(e: AnActionEvent) {
         // This action is never visible
         e.presentation.isEnabledAndVisible = false
-        if (emptyStateText.text == GEMINI_NOT_AVAILABLE && Gemini.getInstance().isAvailable()) {
+        if (
+          emptyStateText.text == GEMINI_NOT_AVAILABLE && GeminiPluginApi.getInstance().isAvailable()
+        ) {
           controller.refreshInsight(false)
         }
       }

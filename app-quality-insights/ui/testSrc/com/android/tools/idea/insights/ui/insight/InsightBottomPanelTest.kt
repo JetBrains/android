@@ -17,14 +17,15 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.INSIGHT_KEY
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.CopyProvider
@@ -35,10 +36,10 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
@@ -69,7 +70,6 @@ class InsightBottomPanelTest {
   val ruleChain: RuleChain =
     RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
-  private lateinit var studioBot: FakeStudioBot
   private lateinit var copyProvider: FakeCopyProvider
   private lateinit var testEvent: AnActionEvent
   private lateinit var experimentFetcher: FakeExperimentFetcher
@@ -78,10 +78,17 @@ class InsightBottomPanelTest {
   private val currentInsightFlow =
     MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
 
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+
   @Before
   fun setup() {
-    studioBot = FakeStudioBot(false)
-    application.replaceService(StudioBot::class.java, studioBot, projectRule.disposable)
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    fakeGeminiPluginApi.contextAllowed = false
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.disposable,
+    )
     copyProvider = FakeCopyProvider()
     currentInsightFlow.update { LoadingState.Ready(null) }
     testEvent =
@@ -152,7 +159,7 @@ class InsightBottomPanelTest {
 
   @Test
   fun `button is invisible when context is allowed by setting`() {
-    studioBot.isContextAllowed = true
+    fakeGeminiPluginApi.contextAllowed = true
     createInsightBottomPanel()
     currentInsightFlow.update { LoadingState.Ready(AiInsight("")) }
     assertThat(fakeUi.findContextButton().isVisible).isFalse()
@@ -225,11 +232,6 @@ class InsightBottomPanelTest {
 
   private class FakeExperimentFetcher(var experiment: Experiment) : AppInsightsExperimentFetcher {
     override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = experiment
-  }
-
-  private class FakeStudioBot(var isContextAllowed: Boolean) : StudioBot.StubStudioBot() {
-
-    override fun isContextAllowed(project: Project) = isContextAllowed
   }
 
   private fun createInsightBottomPanel(callback: (Boolean) -> Unit = {}) =
