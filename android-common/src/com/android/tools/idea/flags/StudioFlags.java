@@ -530,6 +530,14 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE = new BooleanFlag(
+    RUNDEBUG,
+    "adblib.migration.ddmlib.androiddebugbridgedelegate",
+    "Use adblib version of `AndroidDebugBridgeDelegate`",
+    "Use adblib version of `AndroidDebugBridgeDelegate` in `AndroidDebugBridge` class. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
     "adblib.migration.ddmlib.ideviceusage.tracker",

@@ -19,8 +19,10 @@ import com.android.adblib.AdbChannel
 import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
+import com.android.adblib.ddmlibcompatibility.AdbLibAndroidDebugBridge
 import com.android.adblib.tools.debugging.processinventory.ProcessInventoryJdwpProcessPropertiesCollectorFactory
 import com.android.adblib.tools.debugging.processinventory.server.ProcessInventoryServerConfiguration
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -84,6 +86,10 @@ class AdbLibApplicationService : Disposable {
   }
 
   init {
+    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
+      AndroidDebugBridge.preInit(AdbLibAndroidDebugBridge())
+    }
+
     // Listen to "project closed" events to unregister projects
     ProjectManager.TOPIC.subscribe(this, object: ProjectManagerListener {
       override fun projectClosed(project: Project) {
