@@ -16,10 +16,12 @@
 package com.android.tools.idea.streaming.emulator.settings
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.streaming.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -39,8 +41,12 @@ class EmulatorSettingsPageTest {
   @get:Rule
   val ruleChain = RuleChain(ProjectRule(), EdtRule())
 
-  private val settings
-    get() = EmulatorSettings.getInstance()
+  private val settings: EmulatorSettings by lazy { EmulatorSettings.getInstance() }
+  private val settingsUi: Configurable by lazy {
+    val provider = EmulatorConfigurableProvider()
+    assertThat(provider.canCreateConfigurable()).isTrue()
+    provider.createConfigurable()
+  }
 
   @Before
   fun setUp() {
@@ -50,13 +56,11 @@ class EmulatorSettingsPageTest {
   @After
   fun tearDown() {
     settings.loadState(EmulatorSettings())
+    settingsUi.disposeUIResources()
   }
 
   @Test
   fun testSettingsUi() {
-    val provider = EmulatorConfigurableProvider()
-    assertThat(provider.canCreateConfigurable()).isTrue()
-    val settingsUi = provider.createConfigurable()
     val ui = FakeUi(settingsUi.createComponent()!!)
     val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in the Running Devices tool window" }
     val activateOnAppLaunchCheckBox = ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching an app" }
@@ -76,7 +80,7 @@ class EmulatorSettingsPageTest {
     assertThat(showCameraControlPromptsCheckBox.isSelected).isTrue()
     assertThat(cameraVelocityControlComboBox.selectedItem).isEqualTo(CameraVelocityControls.WASDQE)
     assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
-    assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
+    assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY)
     assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
     assertThat(settingsUi.isModified).isFalse()
 
