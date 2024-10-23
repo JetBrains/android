@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.repository.api.RemotePackage
@@ -129,7 +131,7 @@ private fun Header(text: String) {
     text,
     fontWeight = FontWeight.SemiBold,
     fontSize = LocalTextStyle.current.fontSize * 1.1,
-    modifier = Modifier.padding(top = 4.dp),
+    modifier = Modifier.padding(top = 4.dp).semantics { heading() },
   )
 }
 

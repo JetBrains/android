@@ -16,11 +16,14 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isHeading
 import androidx.compose.ui.test.isPopup
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -58,6 +61,13 @@ class LocalVirtualDeviceSourceTest {
     createLocalSystemImage(
       "google_apis",
       listOf(SystemImageTags.GOOGLE_APIS_TAG),
+      AndroidVersion(34),
+    )
+
+  private fun SdkFixture.api34Play() =
+    createLocalSystemImage(
+      "google_apis_playstore",
+      listOf(SystemImageTags.PLAY_STORE_TAG),
       AndroidVersion(34),
     )
 
@@ -244,6 +254,45 @@ class LocalVirtualDeviceSourceTest {
         // The preferred ABI is written to disk
         assertThat(Files.readString(avdRoot.resolve("Pixel_8.avd").resolve("user-settings.ini")))
           .contains("${UserSettingsKey.PREFERRED_ABI}=${recommendedAbiForHost()}")
+      }
+    }
+  }
+
+  @Test
+  fun configurationPage_deviceDetails() {
+    with(SdkFixture()) {
+      val api34Image = api34()
+      val api34PlayImage = api34Play()
+      repoPackages.setLocalPkgInfos(listOf(api34Image, api34PlayImage))
+
+      with(ConfigurationPageFixture(this)) {
+        // The Play image should be selected by default, and present in the device details
+        composeTestRule.onNodeWithText(api34PlayImage.displayName).assertIsSelected()
+        composeTestRule.onAllNodes(hasText("System Image") and isHeading()).assertCountEquals(2)
+        composeTestRule.onNodeWithText("Google Play").assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("34").assertCountEquals(2)
+
+        // Switch to Google APIs
+        composeTestRule.onNodeWithText("Google Play Store").performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNode(hasText("Google APIs") and hasAnyAncestor(isPopup())).performClick()
+
+        // Device details no longer includes system image
+        composeTestRule.onAllNodes(hasText("System Image") and isHeading()).assertCountEquals(1)
+        composeTestRule.onNodeWithText("Google Play").assertDoesNotExist()
+        composeTestRule.onAllNodesWithText("34").assertCountEquals(1)
+
+        // Switch back to Google Play
+        composeTestRule.onNodeWithText("Google APIs").performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule
+          .onNode(hasText("Google Play Store") and hasAnyAncestor(isPopup()))
+          .performClick()
+
+        // Back where we started
+        composeTestRule.onNodeWithText(api34PlayImage.displayName).assertIsSelected()
+        composeTestRule.onNodeWithText("Google Play").assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("34").assertCountEquals(2)
       }
     }
   }

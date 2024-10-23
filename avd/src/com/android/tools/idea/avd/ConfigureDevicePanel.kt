@@ -88,7 +88,10 @@ internal fun ConfigureDevicePanel(
     Divider(Orientation.Vertical)
     DeviceDetails(
       configureDevicePanelState.device.device.toVirtualDeviceProfile(),
-      systemImage = configureDevicePanelState.systemImageTableSelectionState.selection,
+      systemImage =
+        configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {
+          configureDevicePanelState.validity.isSystemImageTableSelectionValid
+        },
       modifier = Modifier.width(200.dp).padding(vertical = 12.dp, horizontal = 8.dp),
     )
   }
@@ -293,7 +296,7 @@ internal constructor(
 internal data class Validity
 internal constructor(
   private val isDeviceNameValid: Boolean = true,
-  private val isSystemImageTableSelectionValid: Boolean = true,
+  internal val isSystemImageTableSelectionValid: Boolean = true,
   internal val isExpandedStorageValid: Boolean = true,
   val isPreferredAbiValid: Boolean = true,
 ) {
