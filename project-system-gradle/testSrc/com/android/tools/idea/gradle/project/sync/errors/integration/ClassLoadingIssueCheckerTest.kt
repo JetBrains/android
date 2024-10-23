@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.errors.StopGradleDaemonQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.*
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
@@ -81,7 +83,14 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("java.lang.NoSuchMethodError"),
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -101,7 +110,15 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("org.gradle.api.internal.plugins.PluginApplicationException"),
+        GradleException("java.lang.ClassCastException"),
+      )))).toAnalyticsMessage()
     )
   }
 
@@ -122,7 +139,16 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
-      """.trimIndent()
+      """.trimIndent(),
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.tooling.BuildActionFailureException"),
+        GradleException("org.gradle.api.ProjectConfigurationException"),
+        GradleException("org.gradle.api.GradleScriptException"),
+        GradleException("org.gradle.api.internal.plugins.PluginApplicationException"),
+        GradleException("java.lang.RuntimeException"),
+        GradleException("java.lang.ClassNotFoundException"),
+      )))).toAnalyticsMessage()
     )
   }
 

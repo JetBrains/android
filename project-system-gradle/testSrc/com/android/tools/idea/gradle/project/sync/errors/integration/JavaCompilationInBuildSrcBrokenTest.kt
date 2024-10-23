@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -59,6 +62,13 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.tooling.BuildActionFailureException"),
+          GradleException("org.gradle.internal.exceptions.LocationAwareException"),
+          GradleException("org.gradle.api.tasks.TaskExecutionException"),
+          GradleException("org.gradle.api.internal.tasks.compile.CompilationFailedException"),
+        )))).toAnalyticsMessage())
       },
     )
   }

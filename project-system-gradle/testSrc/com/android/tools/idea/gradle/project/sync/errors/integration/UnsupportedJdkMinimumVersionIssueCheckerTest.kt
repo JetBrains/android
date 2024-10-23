@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
@@ -59,7 +62,10 @@ class UnsupportedJdkMinimumVersionIssueCheckerTest : AbstractIssueCheckerIntegra
         expect.that(buildIssue.quickFixes).hasSize(2)
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
+        GradleException("java.lang.RuntimeException"),
+      )))).toAnalyticsMessage()
     )
   }
 }
