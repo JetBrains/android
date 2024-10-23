@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -312,6 +313,8 @@ private fun StorageGroup(
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
+      @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
+
       LaunchedEffect(Unit) {
         state.internalStorage.storageCapacity.collect {
           onDeviceChange(device.copy(internalStorage = it))
@@ -545,6 +548,8 @@ private fun EmulatedPerformanceGroup(
         !hasGooglePlayStore,
       )
     }
+
+    @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
 
     Row {
       Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
