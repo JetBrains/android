@@ -124,13 +124,18 @@ class DeviceMirroringSettingsPageTest {
     redirectAudioCheckBox.isSelected = false
     assertThat(settingsPage.isModified).isTrue()
 
-    maxSyncedClipboardLengthTextField.text = " 3000 "
+    maxSyncedClipboardLengthTextField.text = "3000"
     assertThat(settingsPage.isModified).isTrue()
     settingsPage.apply()
     assertThat(settings.maxSyncedClipboardLength).isEqualTo(3000)
     assertThat(settingsPage.isModified).isFalse()
-    maxSyncedClipboardLengthTextField.text = "   3000   "
-    assertThat(settingsPage.isModified).isFalse()
+    maxSyncedClipboardLengthTextField.text = ""
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
+    assertThat(settings.maxSyncedClipboardLength).isEqualTo(3000)
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.reset()
+    assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo("3000")
 
     synchronizeClipboardCheckBox.isSelected = false
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isFalse()
