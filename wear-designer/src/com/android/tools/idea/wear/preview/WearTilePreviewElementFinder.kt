@@ -135,7 +135,8 @@ internal class WearTilePreviewElementFinder(
   ): Collection<PsiWearTilePreviewElement> {
     val cachedValue =
       vFile.getOrCreateCachedValue(previewElementsCacheKey) {
-        ChangeTrackerCachedValue.weakReference()
+        // weakReferences get cleared almost immediately by the gc, it's best to use softReference
+        ChangeTrackerCachedValue.softReference()
       }
     return ChangeTrackerCachedValue.get(
       cachedValue,
@@ -248,7 +249,8 @@ private suspend fun findUMethodsWithTilePreviewSignature(
 ): List<UMethod> {
   val cachedValue =
     virtualFile.getOrCreateCachedValue(uMethodsWithTilePreviewSignatureCacheKey) {
-      ChangeTrackerCachedValue.weakReference()
+      // weakReferences get cleared almost immediately by the gc, it's best to use softReference
+      ChangeTrackerCachedValue.softReference()
     }
   return ChangeTrackerCachedValue.get(
     cachedValue,
@@ -370,7 +372,8 @@ private suspend fun isTileAnnotationUsed(project: Project, vFile: VirtualFile): 
   val module = vFile.getModule(project) ?: return false
   val cachedValue =
     module.getOrCreateCachedValue(isTileAnnotationUsedCacheKey) {
-      ChangeTrackerCachedValue.weakReference()
+      // weakReferences get cleared almost immediately by the gc, it's best to use softReference
+      ChangeTrackerCachedValue.softReference()
     }
   return ChangeTrackerCachedValue.get(
     cachedValue,
