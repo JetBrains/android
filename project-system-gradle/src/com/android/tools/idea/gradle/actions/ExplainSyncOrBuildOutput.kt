@@ -22,7 +22,7 @@ import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.gradle.GradleProjectSystemBundle
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
-import com.android.tools.idea.studiobot.StudioBotExternalFlags
+import com.android.tools.idea.gemini.StudioBotExternalFlags
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.events.EventResult

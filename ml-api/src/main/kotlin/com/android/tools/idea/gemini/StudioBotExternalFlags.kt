@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.studiobot
+package com.android.tools.idea.gemini
 
 import com.intellij.openapi.extensions.ExtensionPointName
 

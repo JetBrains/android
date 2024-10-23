@@ -19,7 +19,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
-import com.android.tools.idea.studiobot.StudioBotExternalFlags
+import com.android.tools.idea.gemini.StudioBotExternalFlags
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.toIoFile
