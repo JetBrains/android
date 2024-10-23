@@ -38,14 +38,14 @@ import java.io.File
 class AndroidModelTest : GradleFileModelTestCase() {
 
   @Before
-  override fun before(){
+  override fun before() {
     DeclarativeIdeSupport.override(true)
     DeclarativeStudioSupport.override(true)
     super.before()
   }
 
   @After
-  fun onAfter(){
+  fun onAfter() {
     DeclarativeIdeSupport.clearOverride()
     DeclarativeStudioSupport.clearOverride()
   }
@@ -167,6 +167,98 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel = gradleBuildModel
 
     assertEquals("buildToolsVersion", "24.0.0", buildModel.android().buildToolsVersion())
+  }
+
+  @Test
+  fun testAddAndroidElementWithNoSoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    // check that we still have software type element in tree
+    assertEquals("namespace", "abc", android.namespace())
+    // adding defaultPublishConfig element when parent is from build script
+    android.defaultPublishConfig().setValue("debug")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndroidElementWithNoBuildFileParent() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("namespace", "abc", android.namespace())
+    // adding applicationId element when default does not exist in build or settings
+    android.defaultConfig().applicationId().setValue("org.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndroidElementWithSoftwareTypeParent() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT)
+    writeToSettingsFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_SETTINGS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("minSdkVersion", "1.0",  android.defaultConfig().versionName())
+    // adding applicationId element when parent "default" is from settings
+    android.defaultConfig().applicationId().setValue("org.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_EXPECTED)
+  }
+
+  @Test
+  fun testEditAndroidElementSoftwareType() {
+    // case creates new node in build file
+    // parent node is in build file
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("namespace", "abc", android.namespace())
+    android.namespace().setValue("bcd")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_EXPECTED)
+  }
+
+  @Test
+  fun testEditAndroidElementSoftwareTypeWithAppliedParent() {
+    // case creates new node in build file
+    // parent node "default" is in settings only
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT)
+    writeToSettingsFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_SETTINGS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("applicationId", "org.example", android.defaultConfig().applicationId())
+    android.defaultConfig().applicationId().setValue("com.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_EXPECTED)
   }
 
   @Test
@@ -2181,6 +2273,18 @@ class AndroidModelTest : GradleFileModelTestCase() {
     SOFTWARE_TYPE_ANDROID_BLOCK("softwareTypeAndroidBlock"),
     REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT("removeAndroidAssignmentWithAppliedParent"),
     REMOVE_ANDROID_ASSIGNMENT_IN_SOFTWARE_TYPE("removeAndroidAssignmentInSoftwareType"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE("addAndroidElementWithNoSoftwareType"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT("addAndroidElementWithNoBuildFileParent"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT("addAndroidElementWithSoftwareTypeParent"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_SETTINGS("addAndroidElementWithSoftwareTypeParentSettings"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_EXPECTED("addAndroidElementWithSoftwareTypeParentExpected"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE_EXPECTED("addAndroidElementWithNoSoftwareTypeExpected"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT_EXPECTED("addAndroidElementWithNoBuildFileParentExpected"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE("editAndroidElementInSoftwareType"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_EXPECTED("editAndroidElementInSoftwareTypeExpected"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT("editAndroidElementInSoftwareTypeWithAppliedParent"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_SETTINGS("editAndroidElementInSoftwareTypeWithAppliedParentSettings"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_EXPECTED("editAndroidElementInSoftwareTypeWithAppliedParentExpected"),
     ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),

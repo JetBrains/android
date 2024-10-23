@@ -48,11 +48,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Predicates;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -124,6 +126,19 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public void addAppliedProperty(@NotNull GradleDslElement element) {
     element.addHolder(this);
     addPropertyInternal(element, APPLIED);
+    markSubtreeApplied(element, new HashSet<>());
+  }
+
+  private void markSubtreeApplied(@NotNull GradleDslElement element, HashSet<GradleDslElement> seen) {
+    seen.add(element);
+    if (element instanceof GradlePropertiesDslElement propertiesDslElement) {
+      for (ElementList.ElementItem item : propertiesDslElement.myProperties.myElements) {
+        if (!seen.contains(item.myElement)) {
+          item.myElementState = APPLIED;
+          markSubtreeApplied(item.myElement, seen);
+        }
+      }
+    }
   }
 
   public void addDefaultProperty(@NotNull GradleDslElement element) {
@@ -719,10 +734,21 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     myProperties.substituteElement(oldElement, newElement);
   }
 
-  // We will not need it if we represented the dsl as a proper tree. b/158066552
-  public void refreshAfterPsiSubstitution(@NotNull GradleDslElement newElement) {
-    assert newElement.getParent() == this;
-    myProperties.refreshAfterPsiSubstitution(newElement);
+  @Override
+  public void childPsiUpdated(@NotNull GradleDslElement childElement) {
+    assert childElement.getParent() == this;
+    for (ElementList.ElementItem item : myProperties.myElements) {
+      if (childElement == item.myElement) {
+        if (childElement.getPsiElement() == null) {
+          item.myElementState = TO_BE_ADDED;
+          item.myExistsOnFile = false;
+        } else {
+          item.myElementState = EXISTING;
+          item.myExistsOnFile = true;
+        }
+        return;
+      }
+    }
   }
 
   @Nullable
@@ -894,6 +920,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   protected void apply() {
     getDslFile().getWriter().applyDslPropertiesElement(this);
     myProperties.removeElements(GradleDslElement::delete);
+    maybeCreateNewElementsFromApplied();
     myProperties.createElements((e) -> e.create() != null);
     myProperties.applyElements(e -> {
       if (e.isModified()) {
@@ -905,6 +932,38 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         item.myElement.move();
       }
     });
+  }
+
+  // In case some element is applied was modified and included from another file
+  // We need to create new element in current file that will override applied property
+  private void maybeCreateNewElementsFromApplied() {
+      List<GradleDslElement> additionalElements = new ArrayList<>();
+      for (ElementList.ElementItem item : myProperties.myElements) {
+        GradleDslElement element = item.myElement;
+        if (item.myElementState == APPLIED && element.isModified() && !isNativeElementForFile(element)) {
+          if (element instanceof GradleDslSimpleExpression expression) {
+            additionalElements.add(expression.copy());
+            element.resetState();
+          }
+        }
+      }
+      for (GradleDslElement e : additionalElements) {
+        myProperties.addElement(e, TO_BE_ADDED, false);
+      }
+  }
+
+  private boolean isNativeElementForFile(GradleDslElement dslElement) {
+    return isNativeElementForFile(dslElement, dslElement.getDslFile().getFile());
+  }
+
+  private boolean isNativeElementForFile(GradleDslElement dslElement, VirtualFile file) {
+    if (dslElement instanceof GradleDslFile dslFile) return dslFile.getFile().equals(file);
+    if (myParent != null) {
+      return isNativeElementForFile(dslElement.getParent(), file);
+    }
+    else {
+      return false;
+    }
   }
 
   @Override
@@ -960,7 +1019,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @Override
   @NotNull
   public List<GradleReferenceInjection> getDependencies() {
-    return myProperties.getElementsWhere(e -> e.myElementState != APPLIED).stream().map(GradleDslElement::getDependencies)
+    return getAllElements().stream().map(GradleDslElement::getDependencies)
                        .flatMap(Collection::stream).collect(
         Collectors.toList());
   }
@@ -1181,10 +1240,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return null;
     }
 
-    private void refreshAfterPsiSubstitution(@NotNull GradleDslElement element) {
-      substituteElement(element, element);
-    }
-
     @NotNull
     private List<GradleDslElement> removeAll(@NotNull Predicate<ElementItem> filter) {
       List<ElementItem> toBeRemoved = myElements.stream().filter(filter).collect(Collectors.toList());
@@ -1256,7 +1311,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
      * Runs {@code func} across all of the elements stored in this list.
      */
     private void applyElements(@NotNull Consumer<GradleDslElement> func) {
-      myElements.stream().filter(e -> e.myElementState != APPLIED).map(e -> e.myElement).forEach(func);
+      myElements.stream().map(e -> e.myElement).forEach(func);
     }
 
     /**

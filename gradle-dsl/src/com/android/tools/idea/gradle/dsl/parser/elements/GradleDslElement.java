@@ -116,6 +116,9 @@ public interface GradleDslElement extends AnchorProvider {
 
   void setPsiElement(@Nullable PsiElement psiElement);
 
+  // is called once child.psiElement assigned a new value
+  void childPsiUpdated(@NotNull GradleDslElement childElement);
+
   @NotNull
   ExternalNameSyntax getExternalSyntax();
 

@@ -37,8 +37,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
@@ -53,7 +52,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   override fun getContext(): BuildModelContext = context
   override fun moveDslElement(element: GradleDslElement): PsiElement? = null
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    if (element.isAlreadyCreated()) element.psiElement?.let { return it }
+    if (element.isAlreadyCreated()) return element.psiElement
     if (element.isNewEmptyBlockElement()) {
       return null // Avoid creation of an empty block statement.
     }
@@ -112,6 +111,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       is DeclarativeArgument -> addedElement.value
       else -> addedElement
     }
+
     return element.psiElement
   }
 
@@ -151,18 +151,21 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       // elements - even APPLIED
       // TODO consider making same behavior for Kotlin/Groovy allprojects content
       //  and declarative software types b/375168954
-      if (SharedImplUtil.getContainingFile(it.node) != getFileParent(element)) return
+      if (!isInSameFile(element, it)) return
     }
 
     deletePsiElement(element)
   }
 
-  private fun getFileParent(element: GradleDslElement): PsiFile? {
-    var parent = element.parent
-    while (parent != null && parent !is GradleBuildFile) {
-      parent = parent.parent
+  private fun isInSameFile(element: GradleDslElement, psi:PsiElement) =
+    SharedImplUtil.getContainingFile(psi.node) == getFileThroughDsl(element)
+
+  private fun getFileThroughDsl(element: GradleDslElement): PsiFile? {
+    var currentElement:GradleDslElement? = element
+    while (currentElement != null && currentElement !is GradleScriptFile) {
+      currentElement = currentElement.parent
     }
-    return parent?.psiElement as? PsiFile
+    return currentElement?.psiElement?.containingFile
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
@@ -225,9 +228,11 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       element.nameElement.commitNameChange(oldName, this, element.parent)
     }
   }
-  private fun GradleDslElement.isAlreadyCreated(): Boolean = psiElement?.findParentOfType<DeclarativeFile>(strict = false) != null
+  private fun GradleDslElement.isAlreadyCreated(): Boolean =
+    psiElement?.findParentOfType<DeclarativeFile>(strict = false) != null &&
+    psiElement != null && isInSameFile(this, psiElement!!)
 
-  /**
+    /**
    * Delete the psiElement for the given dslElement.
    */
   private fun deletePsiElement(dslElement : GradleDslElement) {

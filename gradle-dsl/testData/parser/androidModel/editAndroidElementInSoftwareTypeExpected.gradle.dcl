@@ -1,0 +1,3 @@
+androidApp {
+   namespace = "bcd"
+}
