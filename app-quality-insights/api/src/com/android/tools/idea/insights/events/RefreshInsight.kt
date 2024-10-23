@@ -30,14 +30,18 @@ class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent 
     cache: AppInsightsCache,
   ): StateTransition<Action> {
     val issue = state.selectedIssue
-    val event = state.selectedEvent
 
-    return if (issue == null || event == null) {
+    return if (issue == null) {
       StateTransition(state, Action.NONE)
     } else {
       StateTransition(
         state.copy(currentInsight = LoadingState.Loading),
-        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, contextSharingOverride),
+        Action.FetchInsight(
+          issue.id,
+          issue.issueDetails.fatality,
+          issue.sampleEvent,
+          contextSharingOverride,
+        ),
       )
     }
   }
