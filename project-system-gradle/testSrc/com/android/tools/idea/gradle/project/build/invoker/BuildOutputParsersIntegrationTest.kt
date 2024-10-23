@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -40,11 +41,12 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.BuildViewTestFixture
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.tree.TreeUtil
 import junit.framework.TestCase.assertEquals
@@ -69,7 +71,7 @@ class BuildOutputParsersIntegrationTest {
 
   companion object {
     @JvmStatic
-    @Parameters(name = "isStudioBotAvailable={0}")
+    @Parameters(name = "isGeminiAvailable={0}")
     fun parameters() = listOf(
       arrayOf(true),
       arrayOf(false),
@@ -78,7 +80,7 @@ class BuildOutputParsersIntegrationTest {
 
   @Parameter
   @JvmField
-  var isStudioBotAvailable: Boolean? = null
+  var isGeminiAvailable: Boolean? = null
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
@@ -109,11 +111,16 @@ class BuildOutputParsersIntegrationTest {
     buildViewTestFixture = BuildViewTestFixture(projectRule.project)
     buildViewTestFixture.setUp()
 
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isAvailable(): Boolean = isStudioBotAvailable!!
-    }
-    ApplicationManager.getApplication().replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
+    val geminiPluginApi = object : GeminiPluginApi {
+      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+      override fun isAvailable(): Boolean = isGeminiAvailable!!
+      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
+      }
 
+      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
+      }
+    }
+    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
   }
 
   @After
@@ -275,7 +282,7 @@ class BuildOutputParsersIntegrationTest {
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$absolutePath" to absolutePath))
     //TODO (b/372180686): extra `Android resource linking failed` message is currently generated
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (isStudioBotAvailable == true) {
+    val expectedConsoleContent = if (isGeminiAvailable == true) {
       testDir.readTestFile("expectedConsoleContent-studiobot.txt", listOf("\$basePath" to basePath))
     }
     else {
@@ -309,7 +316,7 @@ class BuildOutputParsersIntegrationTest {
     val testDir = File(FileUtil.toSystemDependentName(testDataPath)).resolve("xmlParsingError")
     val gradleOutput = testDir.readTestFile("gradleOutput.txt", listOf("\$path" to path))
     val expectedTreeStructure = testDir.readTestFile("expectedTreeStructure.txt")
-    val expectedConsoleContent = if (isStudioBotAvailable == true) {
+    val expectedConsoleContent = if (isGeminiAvailable == true) {
       testDir.readTestFile("expectedConsoleContent-studiobot.txt", listOf("\$basePath" to basePath))
     }
     else {
