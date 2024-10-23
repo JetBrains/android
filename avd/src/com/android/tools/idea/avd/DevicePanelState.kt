@@ -20,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 
 internal class DevicePanelState
 internal constructor(
