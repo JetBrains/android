@@ -25,7 +25,6 @@ import com.android.tools.idea.gemini.LlmPrompt;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.studiobot.StudioBot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;

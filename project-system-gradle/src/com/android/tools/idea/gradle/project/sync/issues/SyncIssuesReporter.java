@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.studiobot.StudioBot;
 import com.android.tools.idea.studiobot.StudioBotBundle;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;

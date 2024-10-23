@@ -39,7 +39,6 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.StudioBotBundle
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.GradleSyncStats
