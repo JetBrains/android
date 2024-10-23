@@ -39,7 +39,6 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     NON_KOTLIN("Non-Kotlin file not supported", "%", false, Status.NON_KOTLIN),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
-    UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
 
     UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_ACCESS),
@@ -160,13 +159,6 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     fun unsupportedTestSrcChange(name: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_TEST_SRC_CHANGE, name, null, null)
 
-    /**
-     * We are unable to locate the Invalidate Group ID of a given Composable function's offsets.
-     * This is unlikely to happen unless the Compose compiler changes how the offset-to-ID mapping works.
-     */
-    fun noInvalidateGroup(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.UNABLE_TO_LOCATE_COMPOSE_GROUP, details, source?.name, cause)
-
     fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source?.name, cause)
 
@@ -194,4 +186,3 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     }
   }
 }
-
