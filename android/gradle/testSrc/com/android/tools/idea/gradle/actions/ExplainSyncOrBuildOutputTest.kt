@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
@@ -154,7 +155,7 @@ Explain this error and how to fix it.
             )
           }
         },
-        StudioBot.RequestSource.BUILD,
+        GeminiPluginApi.RequestSource.BUILD,
         "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
       )
   }
@@ -204,7 +205,7 @@ Explain this error and how to fix it.
             )
           }
         },
-        StudioBot.RequestSource.BUILD,
+        GeminiPluginApi.RequestSource.BUILD,
         "Explain build error: $multilineErrorMessage"
       )
   }
@@ -225,7 +226,7 @@ Explain this error and how to fix it.
         """
           Explain build error: MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
         """.trimIndent(),
-        StudioBot.RequestSource.BUILD,
+        GeminiPluginApi.RequestSource.BUILD,
       )
   }
 
@@ -259,7 +260,7 @@ Explain this error and how to fix it.
             )
           }
         },
-        StudioBot.RequestSource.BUILD,
+        GeminiPluginApi.RequestSource.BUILD,
         "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
       )
     MockStudioBotExternalFlags.isCompilerErrorContextEnabled = true

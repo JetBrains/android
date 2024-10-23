@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
@@ -49,7 +50,6 @@ import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
-import com.android.tools.idea.studiobot.StudioBot.RequestSource.PLAY_VITALS
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider

@@ -68,19 +68,6 @@ interface StudioBot {
    */
   fun model(project: Project, modelType: ModelType = ModelType.CHAT): Model
 
-  /** Used for gathering metrics, like how many queries come from each part of Android Studio. */
-  enum class RequestSource {
-    SYNC,
-    BUILD,
-    DESIGN_TOOLS,
-    EDITOR,
-    PLAY_VITALS,
-    CRASHLYTICS,
-    LOGCAT,
-    PROMPT_LIBRARY,
-    OTHER,
-  }
-
   open class StubStudioBot : StudioBot {
     override val MAX_QUERY_CHARS = Int.MAX_VALUE
     private val aiExcludeServices = mutableMapOf<Project, FakeAiExcludeService>()
@@ -102,7 +89,8 @@ interface StudioBot {
   }
 
   companion object {
-    fun getInstance(): StudioBot = ApplicationManager.getApplication().getService(StudioBot::class.java)
+    fun getInstance(): StudioBot =
+      ApplicationManager.getApplication().getService(StudioBot::class.java)
   }
 }
 

@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.project.build.events.studiobot.Gradl
 import static com.android.tools.idea.gradle.project.sync.quickFixes.IssueCheckersQuickFixesKt.sendChatQueryIfContextAllowed;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
+import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -170,7 +171,7 @@ public class SyncIssuesReporter {
         protected void execute(@NotNull Project project) {
           sendChatQueryIfContextAllowed(studioBot, project,
                                         new GradleErrorContext(/* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC),
-                                        StudioBot.RequestSource.SYNC);
+                                        GeminiPluginApi.RequestSource.SYNC);
         }
       });
     }

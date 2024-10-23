@@ -97,4 +97,17 @@ interface GeminiPluginApi {
       return EP_NAME.extensionList.firstOrNull() ?: geminiUnavailable
     }
   }
+
+  /** Used for gathering metrics, like how many queries come from each part of Android Studio. */
+  enum class RequestSource {
+    SYNC,
+    BUILD,
+    DESIGN_TOOLS,
+    EDITOR,
+    PLAY_VITALS,
+    CRASHLYTICS,
+    LOGCAT,
+    PROMPT_LIBRARY,
+    OTHER,
+  }
 }

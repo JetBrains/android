@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
@@ -152,7 +153,7 @@ class BuildOutputParserWrapperTest {
         """.trimIndent(), emptyList())
           }
         },
-        StudioBot.RequestSource.BUILD)
+        GeminiPluginApi.RequestSource.BUILD)
     }
   }
 
@@ -181,7 +182,7 @@ class BuildOutputParserWrapperTest {
         """.trimIndent(), emptyList())
           }
         },
-        StudioBot.RequestSource.BUILD)
+        GeminiPluginApi.RequestSource.BUILD)
     }
   }
 
@@ -207,7 +208,7 @@ class BuildOutputParserWrapperTest {
         ```
         How do I fix this?
         """.trimIndent(),
-        StudioBot.RequestSource.BUILD)
+        GeminiPluginApi.RequestSource.BUILD)
     }
   }
 
@@ -233,7 +234,7 @@ class BuildOutputParserWrapperTest {
         ```
         How do I fix this?
         """.trimIndent(),
-        StudioBot.RequestSource.BUILD)
+        GeminiPluginApi.RequestSource.BUILD)
     }
   }
 
