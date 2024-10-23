@@ -143,14 +143,14 @@ class LocalVirtualDeviceSourceTest {
     with(ConfigurationPageFixture(sdkFixture)) {
       composeTestRule.onNodeWithClickableText("34").assertIsSelected()
 
-      composeTestRule.onNodeWithText("Show SDK extension system images").performClick()
+      composeTestRule.onNodeWithText("Show system images with SDK extensions").performClick()
       composeTestRule.onNodeWithClickableText("34-ext8").performClick()
 
-      composeTestRule.onNodeWithText("Show SDK extension system images").performClick()
+      composeTestRule.onNodeWithText("Show system images with SDK extensions").performClick()
       composeTestRule.waitForIdle()
       assertThat(wizard.finishAction.action).isNull()
 
-      composeTestRule.onNodeWithText("Show SDK extension system images").performClick()
+      composeTestRule.onNodeWithText("Show system images with SDK extensions").performClick()
       composeTestRule.waitForIdle()
       assertThat(wizard.finishAction.action).isNotNull()
     }

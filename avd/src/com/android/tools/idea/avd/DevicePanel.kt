@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,6 +44,7 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
@@ -50,6 +52,7 @@ import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
+import com.intellij.ide.BrowserUtil
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
@@ -58,6 +61,7 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
@@ -301,16 +305,27 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
 ) {
   Row(modifier) {
     CheckboxRow(
-      "Show SDK extension system images",
+      "Show system images with SDK extensions",
       sdkExtensionSystemImagesVisible,
       onSdkExtensionSystemImagesVisibleChange,
       Modifier.padding(end = Padding.MEDIUM),
     )
 
-    InfoOutlineIcon(
-      "Select this option to see images of SDK extensions for the selected API level",
+    @OptIn(ExperimentalFoundationApi::class)
+    LingeringTooltip(
+      tooltip = {
+        Column(Modifier.widthIn(max = 400.dp)) {
+          Text("SDK extensions add new features to previous versions of Android.")
+          Spacer(Modifier.size(4.dp))
+          val project = LocalProject.current
+          val url = "https://developer.android.com/guide/sdk-extensions"
+          ExternalLink("Learn more", onClick = { BrowserUtil.browse(url, project) })
+        }
+      },
       Modifier.align(Alignment.CenterVertically),
-    )
+    ) {
+      Icon(AllIconsKeys.General.Note, null)
+    }
   }
 }
 
