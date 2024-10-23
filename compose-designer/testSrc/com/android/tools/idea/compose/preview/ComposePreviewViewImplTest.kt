@@ -37,11 +37,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -66,7 +67,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -144,19 +145,34 @@ class ComposePreviewViewImplTest {
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
 
-  private val studioBot =
-    object : StudioBot.StubStudioBot() {
-      var contextAllowed = true
+  private val geminiPluginApi =
+    object : GeminiPluginApi {
+      var contextAllowed = false
+
+      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+
+      override fun isAvailable() = true
 
       override fun isContextAllowed(project: Project) = contextAllowed
 
-      override fun isAvailable() = true
+      override fun sendChatQuery(
+        project: Project,
+        prompt: LlmPrompt,
+        displayText: String?,
+        requestSource: GeminiPluginApi.RequestSource,
+      ) {}
+
+      override fun stageChatQuery(
+        project: Project,
+        prompt: String,
+        requestSource: GeminiPluginApi.RequestSource,
+      ) {}
     }
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
+      .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
       listOf(FakeStudioBotActionFactory()),
@@ -348,7 +364,7 @@ class ComposePreviewViewImplTest {
 
   private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
-    studioBot.contextAllowed = contextSharingEnabled
+    geminiPluginApi.contextAllowed = contextSharingEnabled
     ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false

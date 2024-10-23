@@ -17,10 +17,9 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.studiobot.MimeType
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.Prompt
-import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -30,18 +29,17 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 internal const val PROMPT_PREFIX =
   "An analysis of my project has detected an error. How do I modify my code to fix it?"
 
 /**
- * Quick fix action for asking Studio Bot how to fix a Visual Lint issue.
+ * Quick fix action for asking Gemini how to fix a Visual Lint issue.
  *
- * This action calls on Studio Bot to provide an explanation of the given issue, and to suggest a
- * fix.
+ * This action calls on Gemini to provide an explanation of the given issue, and to suggest a fix.
  */
 class ComposeVisualLintAiFix(
   private val project: Project,
@@ -59,22 +57,21 @@ class ComposeVisualLintAiFix(
   }
 
   private suspend fun askAi(): String {
-    val studioBot = StudioBot.getInstance()
-    // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
-    // can't use the sendQuery API.
-    if (!studioBot.isContextAllowed(project)) {
+    val geminiPluginApi = GeminiPluginApi.getInstance()
+    // The user must complete the Gemini onboarding and enable context sharing, otherwise we
+    // can't use the generate API.
+    if (!geminiPluginApi.isContextAllowed(project)) {
       return "Gemini context sharing needs to be enabled for this feature"
     }
     try {
-      val response = studioBot.model(project).generateContent(getPrompt(issue)).toList()
-      return response.joinToString("\n") { it.text }
+      return geminiPluginApi.generate(getPrompt(issue))
     } catch (t: Throwable) {
       return "An error has occurred"
     }
   }
 
-  private fun getPrompt(issue: VisualLintRenderIssue): Prompt {
-    return buildPrompt(project) {
+  private fun getPrompt(issue: VisualLintRenderIssue): LlmPrompt {
+    return buildLlmPrompt(project) {
       userMessage {
         text(PROMPT_PREFIX, filesUsed = emptyList())
         text("The summary of the issue is: ${issue.summary}", filesUsed = emptyList())
@@ -88,7 +85,7 @@ class ComposeVisualLintAiFix(
           filesUsed = issue.affectedFiles,
         )
         issue.affectedFiles.forEach {
-          code(String(it.contentsToByteArray()), MimeType.KOTLIN, issue.affectedFiles)
+          code(String(it.contentsToByteArray()), KotlinLanguage.INSTANCE, issue.affectedFiles)
         }
       }
     }
