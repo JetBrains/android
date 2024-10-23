@@ -162,6 +162,7 @@ The error is located at the line marked with --->:
 ```
 
 Explain this error and how to fix it.
+<${errorFile.name}>
       """
       .trimIndent()
     assertThat(geminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expected)
@@ -204,6 +205,7 @@ The error is located at the line marked with --->:
 ```
 
 Explain this error and how to fix it.
+<${errorFile.name}>
       """
       .trimIndent()
     assertThat(geminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expectedFullPrompt)

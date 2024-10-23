@@ -64,7 +64,7 @@ class ComposeVisualLintAiFix(
       return "Gemini context sharing needs to be enabled for this feature"
     }
     try {
-      return geminiPluginApi.generate(getPrompt(issue))
+      return geminiPluginApi.generate(project, getPrompt(issue))
     } catch (t: Throwable) {
       return "An error has occurred"
     }

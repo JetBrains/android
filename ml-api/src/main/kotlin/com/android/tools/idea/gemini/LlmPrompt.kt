@@ -37,7 +37,7 @@ interface LlmPrompt {
     USER,
   }
 
-  class Message(val role: Role, val text: String)
+  class Message(val role: Role, val text: String, val filesUsed: Collection<VirtualFile>)
 
   val messages: List<Message>
 }
@@ -48,6 +48,7 @@ fun LlmPrompt.formatForTests(): String {
         append(message.role.name)
         append(message.text)
         appendLine()
+        message.filesUsed.forEach { append("<${it.name}>") }
         appendLine()
       }
     }
@@ -102,6 +103,7 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
 
   class MessageBuilderImpl(val project: Project) : LlmPromptBuilder.MessageBuilder {
     val sb = StringBuilder()
+    val files = mutableSetOf<VirtualFile>()
 
     override fun text(str: String, filesUsed: Collection<VirtualFile>) = content(str, filesUsed)
 
@@ -117,6 +119,7 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
       assertAiExcludeSafe(filesUsed)
       sb.appendLine()
       sb.append(text)
+      files.addAll(filesUsed)
     }
 
     private fun mdFormat(code: String, language: Language) =
@@ -139,7 +142,7 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
       }
     }
 
-    fun build(): String = sb.toString()
+    fun build(role: Role): LlmPrompt.Message = LlmPrompt.Message(role, sb.toString(), files)
   }
 
   override fun systemMessage(builder: LlmPromptBuilder.MessageBuilder.() -> Unit) {
@@ -155,7 +158,6 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
   }
 
   private fun message(role: Role, builder: LlmPromptBuilder.MessageBuilder.() -> Unit) {
-    val content = MessageBuilderImpl(project).apply(builder).build()
-    messages.add(LlmPrompt.Message(role, content))
+    messages.add(MessageBuilderImpl(project).apply(builder).build(role))
   }
 }

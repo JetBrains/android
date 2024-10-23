@@ -29,7 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-class FakeGeminiPluginApi : GeminiPluginApi {
+private class FakeGeminiPluginApi : GeminiPluginApi {
   var contextAllowed = true
   var fileExcluded = false
   var sentPrompt: LlmPrompt? = null
@@ -91,6 +91,25 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
       |
       |USER
       |What is Compose?
+    """
+          .trimMargin()
+          .trim()
+      )
+  }
+
+  @Test
+  fun buildLlmPrompt_withContextFile() {
+    val f1 = myFixture.addFileToProject("file1.txt", "hi").virtualFile
+    geminiPluginApi.contextAllowed = true
+
+    val prompt = buildLlmPrompt(project) { userMessage { text("Hi!", listOf(f1)) } }
+
+    assertThat(prompt.formatForTests())
+      .isEqualTo(
+        """
+      |USER
+      |Hi!
+      |<file1.txt>
     """
           .trimMargin()
           .trim()

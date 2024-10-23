@@ -69,7 +69,7 @@ class NShotXmlToComposeConverterTest {
       requestSource: GeminiPluginApi.RequestSource,
     ) {}
 
-    override suspend fun generate(prompt: LlmPrompt): String {
+    override suspend fun generate(project: Project, prompt: LlmPrompt): String {
       return """
         |Here is your code
         |```kotlin
