@@ -17,7 +17,6 @@ package com.android.tools.idea.avd
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

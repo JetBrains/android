@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.tools.idea.adddevicedialog.ApiFilter
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.SortOrder

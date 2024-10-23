@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.EmulatedProperties
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.DeviceDetails
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
