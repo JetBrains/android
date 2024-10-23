@@ -17,11 +17,13 @@ package com.google.idea.blaze.qsync;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Truth8;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.query.Query;
+import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -36,64 +38,60 @@ public class PartialProjectRefreshTest {
   public void testApplyDelta_replacePackage() {
     QuerySummary base =
         QuerySummary.newBuilder()
-               .putRules(
-                    Label.of("//my/build/package1:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package1:Class1.java")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:Class1.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/Class1.java:1:1")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/BUILD:1:1")
-                        .build())
-                .putRules(
-                    Label.of("//my/build/package2:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package2:Class2.java")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package2:Class2.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/Class2.java:1:1")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package2:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/BUILD:1:1")
-                        .build())
-                .build();
+            .putRules(
+                Label.of("//my/build/package1:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package1:Class1.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:Class1.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/Class1.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:subpackage/AnotherClass.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+            .putRules(
+                Label.of("//my/build/package2:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package2:Class2.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:Class2.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package2/Class2.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+            .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
 
     QuerySummary delta =
         QuerySummary.newBuilder()
-                .putRules(
-                    Label.of("//my/build/package1:newrule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package1:NewClass.java")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:NewClass.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/NewClass.java:1:1")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:BUILD"),
-                    Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD").build())
-                .build();
+            .putRules(
+                Label.of("//my/build/package1:newrule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package1:NewClass.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:NewClass.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/NewClass.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD").build())
+            .build();
 
     PartialProjectRefresh queryStrategy =
         new PartialProjectRefresh(
@@ -119,44 +117,40 @@ public class PartialProjectRefreshTest {
   public void testApplyDelta_deletePackage() {
     QuerySummary base =
         QuerySummary.newBuilder()
-                .putRules(
-                    Label.of("//my/build/package1:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package1:Class1.java")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:Class1.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/Class1.java:1:1")
-                        .build())
-                .putSourceFiles(
-                    Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package1:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/BUILD:1:1")
-                        .build())
-                .putRules(
-                  Label.of("//my/build/package2:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package2:Class2.java")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package2:Class2.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/Class2.java:1:1")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package2:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/BUILD:1:1")
-                        .build())
-                .build();
+            .putRules(
+                Label.of("//my/build/package1:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package1:Class1.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:Class1.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/Class1.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:subpackage/AnotherClass.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+            .putRules(
+                Label.of("//my/build/package2:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package2:Class2.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:Class2.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package2/Class2.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+            .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
 
@@ -181,44 +175,40 @@ public class PartialProjectRefreshTest {
   public void testDelta_addPackage() {
     QuerySummary base =
         QuerySummary.newBuilder()
-                .putRules(
-                  Label.of("//my/build/package1:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package1:Class1.java")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package1:Class1.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/Class1.java:1:1")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package1:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package1/BUILD:1:1")
-                        .build())
-                .build();
+            .putRules(
+                Label.of("//my/build/package1:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package1:Class1.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:Class1.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package1/Class1.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package1:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+            .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
     QuerySummary delta =
         QuerySummary.newBuilder()
-                .putRules(
-                  Label.of("//my/build/package2:rule"),
-                    Query.Rule.newBuilder()
-                        .setRuleClass("java_library")
-                        .addSources("//my/build/package2:Class2.java")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package2:Class2.java"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/Class2.java:1:1")
-                        .build())
-                .putSourceFiles(
-                  Label.of("//my/build/package2:BUILD"),
-                    Query.SourceFile.newBuilder()
-                        .setLocation("my/build/package2/BUILD:1:1")
-                        .build())
-                .build();
+            .putRules(
+                Label.of("//my/build/package2:rule"),
+                QueryData.Rule.builder()
+                    .ruleClass("java_library")
+                    .sources(ImmutableList.of("//my/build/package2:Class2.java"))
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:Class2.java"),
+                Query.SourceFile.newBuilder()
+                    .setLocation("my/build/package2/Class2.java:1:1")
+                    .build())
+            .putSourceFiles(
+                Label.of("//my/build/package2:BUILD"),
+                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+            .build();
 
     PartialProjectRefresh queryStrategy =
         new PartialProjectRefresh(
