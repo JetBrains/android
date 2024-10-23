@@ -32,14 +32,4 @@
     <applicationService serviceInterface="com.android.tools.idea.studiobot.StudioBot"
                         serviceImplementation="com.android.tools.idea.studiobot.StudioBot$StubStudioBot"/>
   </extensions>
-
-  <actions resource-bundle="messages.StudioBotBundle">
-    <group id="sml.studiobot.gemini.editor.group"
-           class="com.android.tools.idea.studiobot.action.GeminiEditorActionGroup"
-           popup="true"
-           icon="AipluginIcons.Logo">
-      <add-to-group anchor="before" group-id="EditorPopupMenu" relative-to-action="$SearchWeb"/>
-      <add-to-group group-id="Floating.CodeToolbar" anchor="before" relative-to-action="Floating.CodeToolbar.Extract"/>
-    </group>
-  </actions>
 </idea-plugin>
