@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -32,10 +33,15 @@ import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.jetbrains.rd.generator.nova.fail
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
@@ -44,6 +50,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.atMost
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class WearTilePreviewElementFinderTest {
@@ -813,6 +822,54 @@ class WearTilePreviewElementFinderTest {
       fail("The invalid PSI element should be handled")
     }
   }
+
+  // Regression test for b/344639845
+  @Test
+  fun testFindMethodsResultIsCachedEvenWhenTakingALongTime() =
+    runBlocking<Unit> {
+      val previewFile =
+        fixture.addFileToProjectAndInvalidate(
+          "app/src/main/java/com/android/test/Test.kt",
+          // language=kotlin
+          """
+          package com.android.test
+
+          import androidx.wear.tiles.tooling.preview.Preview
+          import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+          @Preview
+          private fun tilePreview(): TilePreviewData {
+            return TilePreviewData()
+          }
+          """
+            .trimIndent(),
+        )
+
+      val mockFindMethods = mock<(PsiFile?) -> Collection<PsiElement>>()
+      whenever(mockFindMethods.invoke(previewFile)).then {
+        runBlocking {
+          // simulate taking a bit of time to ensure we don't end up re-calling this method instead
+          // of re-using an existing computation
+          delay(2.seconds)
+        }
+        emptyList<PsiElement>()
+      }
+
+      val finder = WearTilePreviewElementFinder(findMethods = mockFindMethods)
+      withContext(AndroidDispatchers.workerThread) {
+        (0 until 20).forEach {
+          launch { finder.hasPreviewElements(project, previewFile.virtualFile) }
+          launch { finder.findPreviewElements(project, previewFile.virtualFile) }
+        }
+      }
+
+      verify(mockFindMethods, atLeastOnce()).invoke(previewFile)
+      // Checking if the cached value has been set and then setting it is not atomic, so in some
+      // cases the method can be called more than once. The import thing is to ensure the method
+      // is not called 40 times which was the case before. Here "4" should be a safe upper bound
+      // to prevent flakiness.
+      verify(mockFindMethods, atMost(4)).invoke(previewFile)
+    }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {
