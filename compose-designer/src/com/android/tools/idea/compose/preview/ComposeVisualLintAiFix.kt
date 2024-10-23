@@ -29,6 +29,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -64,7 +65,7 @@ class ComposeVisualLintAiFix(
       return "Gemini context sharing needs to be enabled for this feature"
     }
     try {
-      return geminiPluginApi.generate(project, getPrompt(issue))
+      return geminiPluginApi.generate(project, getPrompt(issue)).toList().joinToString("")
     } catch (t: Throwable) {
       return "An error has occurred"
     }

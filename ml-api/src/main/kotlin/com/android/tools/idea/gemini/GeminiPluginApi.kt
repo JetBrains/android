@@ -18,6 +18,8 @@ package com.android.tools.idea.gemini
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * [GeminiPluginApi] is a gateway from the android plugin to access functionality provided by the
@@ -83,7 +85,7 @@ interface GeminiPluginApi {
   fun stageChatQuery(project: Project, prompt: String, requestSource: RequestSource)
 
   /** [generate] returns the (text only) LLM's response to the given [prompt]. */
-  suspend fun generate(project: Project, prompt: LlmPrompt): String = ""
+  fun generate(project: Project, prompt: LlmPrompt): Flow<String> = emptyFlow()
 
   companion object {
     val EP_NAME =
