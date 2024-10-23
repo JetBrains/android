@@ -30,7 +30,7 @@ data class GradleErrorContext(
   private val gradleTask: String?,
   private val errorMessage: String?,
   private val fullErrorDetails: String?,
-  private val source: Source?) {
+  val source: Source?) {
   enum class Source(private val source: String) {
     BUILD("build"),
     SYNC("sync");
