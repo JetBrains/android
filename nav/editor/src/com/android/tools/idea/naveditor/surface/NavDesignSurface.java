@@ -29,8 +29,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -168,7 +166,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           new DefaultSelectionModel(),
           ZoomControlsPolicy.VISIBLE,
-          true);
+          false);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;

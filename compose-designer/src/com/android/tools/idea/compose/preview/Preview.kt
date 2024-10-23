@@ -1032,8 +1032,9 @@ class ComposePreviewRepresentation(
         ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
       )
 
-      // We restore the zoom or apply zoom-to-fit if previews are rendered for the first time
-      surface.restoreZoomOrZoomToFit()
+      // We can now notify to DesignSurface that Preview has rendered for the first time, and we can
+      // now attempt to restore the zoom.
+      surface.notifyRestoreZoom()
     }
   }
 

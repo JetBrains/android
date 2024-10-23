@@ -278,6 +278,89 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.zoomController.setScale(20.0)
     assertEquals(10.0, surface.zoomController.scale)
   }
+
+  // Regression test for b/369957614 and b/368527727)
+  fun testWaitDesignSurfaceResizeBeforeRestoreZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeRestoringZoom = true,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    // We try to notify that we are ready to restore the zoom with a bitwiseNumber of "1"
+    // (NOTIFY_RESTORE_ZOOM_INT_MASK).
+    surface.notifyRestoreZoom()
+    surface.notifyRestoreZoom()
+    surface.notifyRestoreZoom()
+
+    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyComponentResizedForTest()
+
+    // We check that zoom-to-fit has been restored.
+    assertEquals(fitScaleValue, surface.zoomController.scale)
+  }
+
+  // Regression test for b/369957614 and b/368527727)
+  fun testWaitRenderBeforeRestoreZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeRestoringZoom = true,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    // We try to notify that we are ready to restore the zoom with a bitwiseNumber of
+    // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+
+    // Zoom-to-fit shouldn't be applied if notifyReadyToRestoreZoom doesn't have also a
+    // bitwiseNumber of "1" (NOTIFY_RESTORE_ZOOM_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyRestoreZoom()
+
+    // We check that zoom-to-fit has been restored
+    assertEquals(fitScaleValue, surface.zoomController.scale)
+  }
+
+  // Regression test for b/369957614 and b/368527727)
+  fun testDoNotWaitToRestoreZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeRestoringZoom = false,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    // We notify that we are ready to restore the zoom with a bitwiseNumber of
+    // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+
+    // Zoom-to-fit should be applied because of waitForRenderBeforeRestoringZoom set to false even
+    // if surface.notifyRestoreZoom() hasn't called.
+    assertEquals(fitScaleValue, surface.zoomController.scale)
+  }
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
@@ -343,6 +426,8 @@ class TestDesignSurface(
       TestSceneManager(model, surface)
     },
   testLayoutManager: TestLayoutManager = TestLayoutManager(),
+  fitScaleProvider: () -> Double = { 1.0 },
+  waitForRenderBeforeRestoringZoom: Boolean = false,
 ) :
   DesignSurface<SceneManager>(
     project = project,
@@ -351,6 +436,7 @@ class TestDesignSurface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
+    waitForRenderBeforeRestoringZoom = waitForRenderBeforeRestoringZoom,
   ) {
 
   init {
@@ -384,6 +470,7 @@ class TestDesignSurface(
       project = project,
       disposable = disposable,
       trackZoom = null,
+      fitScaleProvider = fitScaleProvider,
     )
   override val zoomController: ZoomController
     get() = zoomControllerFake
