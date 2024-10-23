@@ -294,7 +294,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public Emulator runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags) throws IOException, InterruptedException {
     String curEmulatorName = String.format("emu%d", emulators.size());
     Path workspaceRoot = TestUtils.getWorkspaceRoot(systemImage.path);
-    Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
+    Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot, sdk);
     // Increase grpc port by one after spawning an emulator to avoid conflict
     Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags);
     emulators.add(emulator);
