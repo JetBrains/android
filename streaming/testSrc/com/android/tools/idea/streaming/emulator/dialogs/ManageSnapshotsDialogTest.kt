@@ -42,7 +42,6 @@ import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
@@ -310,8 +309,7 @@ class ManageSnapshotsDialogTest {
                                             .or("android.emulation.control.SnapshotService/ListSnapshots"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
     waitForCondition(2.seconds) { call.completion.isDone }
-    dispatchAllInvocationEventsInIdeEventQueue()
-    assertThat(snapshotSavingPopupVisible).isFalse()
+    waitForCondition(2.seconds) { !snapshotSavingPopupVisible } // The "Saving state..." popup should disappear.
   }
 
   @Test
