@@ -398,12 +398,6 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   }
 
   @Override
-  public Optional<ImmutableSet<Path>> getCachedFiles(Label target) {
-    // TODO(b/323346056) this is only used to find built AARs for a target. Refactor that code.
-    return Optional.empty();
-  }
-
-  @Override
   public ImmutableMap<String, ByteSource> getBugreportFiles() {
     return ImmutableMap.of(stateFile.getFileName().toString(), MoreFiles.asByteSource(stateFile));
   }
