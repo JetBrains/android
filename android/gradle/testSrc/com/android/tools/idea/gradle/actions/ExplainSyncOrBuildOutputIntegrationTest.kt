@@ -35,7 +35,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import com.android.SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
-import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 

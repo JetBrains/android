@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.LlmPrompt
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.build.BuildProgressListener
