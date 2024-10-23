@@ -133,7 +133,10 @@ internal class EditVirtualDeviceDialog(
       val systemImageStateFlow = service<SystemImageStateService>().systemImageStateFlow
       val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageStateFlow, skins)
       return withContext(AndroidDispatchers.uiThread) {
-        val wizard = with(dialog) { ComposeWizard(project, "Edit Device") { Page() } }
+        val wizard =
+          with(dialog) {
+            ComposeWizard(project, "Edit Device", minimumSize = DEVICE_DIALOG_MIN_SIZE) { Page() }
+          }
         wizard.showAndGet()
       }
     }

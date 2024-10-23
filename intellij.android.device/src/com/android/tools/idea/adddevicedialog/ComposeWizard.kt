@@ -63,6 +63,8 @@ import org.jetbrains.jewel.ui.component.Text
 class ComposeWizard(
   val project: Project?,
   title: String,
+  private val minimumSize: Dimension = DEFAULT_MIN_SIZE,
+  private val preferredSize: Dimension = DEFAULT_PREFERRED_SIZE,
   initialPage: @Composable WizardPageScope.() -> Unit,
 ) : DialogWrapper(project) {
 
@@ -131,8 +133,8 @@ class ComposeWizard(
         wizardPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
       }
     }
-    component.preferredSize = DEFAULT_PREFERRED_SIZE
-    component.minimumSize = DEFAULT_MIN_SIZE
+    component.preferredSize = preferredSize
+    component.minimumSize = minimumSize
 
     return component
   }

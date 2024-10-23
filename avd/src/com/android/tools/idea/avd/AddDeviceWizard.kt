@@ -60,6 +60,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
@@ -77,7 +78,9 @@ internal class AddDeviceWizard(
 ) {
 
   fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") { DeviceGridPage() }
+    return ComposeWizard(project, "Add Device", minimumSize = DEVICE_DIALOG_MIN_SIZE) {
+      DeviceGridPage()
+    }
   }
 
   @Composable
@@ -239,3 +242,6 @@ private val avdColumns =
   with(DeviceTableColumns) {
     persistentListOf(icon, virtualDeviceName, playColumn, apiRange, width, height, density)
   }
+
+internal val DEVICE_DIALOG_MIN_SIZE
+  get() = JBUI.size(750, 550)
