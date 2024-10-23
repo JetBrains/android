@@ -109,8 +109,6 @@ internal fun ErrorPanel(modifier: Modifier = Modifier, error: String) {
   }
 }
 
-private fun OpaqueColor(rgb: Int) = Color(rgb.toLong() or 0xff000000)
-
 private object BannerUi {
   object Warning : Colors() {
     override val border: Color
@@ -119,9 +117,9 @@ private object BannerUi {
         rememberColor(
           key = "Banner.warningBorderColor",
           darkFallbackKey = "ColorPalette.Yellow3",
-          darkDefault = OpaqueColor(IntUiPaletteDefaults.Dark.Yellow3),
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Yellow3),
           lightFallbackKey = "ColorPalette.Yellow9",
-          lightDefault = OpaqueColor(IntUiPaletteDefaults.Light.Yellow9),
+          lightDefault = Color(IntUiPaletteDefaults.Light.Yellow9),
         )
 
     override val background: Color
@@ -130,9 +128,9 @@ private object BannerUi {
         rememberColor(
           key = "Banner.warningBackground",
           darkFallbackKey = "ColorPalette.Yellow1",
-          darkDefault = OpaqueColor(IntUiPaletteDefaults.Dark.Yellow1),
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Yellow1),
           lightFallbackKey = "ColorPalette.Yellow10",
-          lightDefault = OpaqueColor(IntUiPaletteDefaults.Light.Yellow10),
+          lightDefault = Color(IntUiPaletteDefaults.Light.Yellow10),
         )
 
     override val foreground: Color

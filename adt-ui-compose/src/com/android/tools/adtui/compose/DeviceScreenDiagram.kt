@@ -161,7 +161,7 @@ fun DeviceScreenDiagram(
 }
 
 @Composable
-private fun rememberColor(dark: Int, light: Int): Color {
+private fun rememberColor(dark: Long, light: Long): Color {
   val isDark = JewelTheme.isDark
-  return remember(isDark) { (if (isDark) Color(dark) else Color(light)).copy(alpha = 1f) }
+  return remember(isDark) { if (isDark) Color(dark) else Color(light) }
 }
