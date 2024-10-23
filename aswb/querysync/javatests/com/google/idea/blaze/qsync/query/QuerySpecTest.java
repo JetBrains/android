@@ -119,6 +119,6 @@ public class QuerySpecTest {
             .excludePath(Path.of("some/included/path/excluded"))
             .excludePath(Path.of("another/included/path/excluded"))
             .build();
-    assertThat(String.format("%.200s", qs)).isEqualTo(qs.toString());
+    assertThat(String.format("%.250s", qs)).isEqualTo(qs.toString());
   }
 }

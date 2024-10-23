@@ -337,7 +337,7 @@ def test_project_package(name, all_targets, visibility, external_sources = []):
         # happens an error is reported when a test attempts to build
         # dependencies of such a target.
         expression = expression,
-        opts = ["--output=streamed_proto"],
+        opts = ["--output=streamed_proto", "--consistent_labels=true"],
         testonly = 1,
         scope = all_targets + [all_srcs_label],
         visibility = visibility,

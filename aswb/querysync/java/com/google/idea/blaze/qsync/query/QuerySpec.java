@@ -43,7 +43,8 @@ public abstract class QuerySpec implements Formattable {
   // LINT.IfChange
   @Memoized
   public ImmutableList<String> getQueryFlags() {
-    return ImmutableList.of("--output=streamed_proto", "--relative_locations=true");
+    return ImmutableList.of(
+        "--output=streamed_proto", "--relative_locations=true", "--consistent_labels=true");
   }
 
   @Memoized
@@ -60,7 +61,7 @@ public abstract class QuerySpec implements Formattable {
             + ")");
   }
 
-  // LINT.ThenChange(/tools/adt/idea/aswb/aswb/testdata/projects/test_projects.bzl)
+  // LINT.ThenChange(/aswb/aswb/testdata/projects/test_projects.bzl)
 
   @Override
   public final String toString() {
