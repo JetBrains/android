@@ -1,3 +1,5 @@
 - name: lib/android-gradle-declarative-lang-ide.jar
   modules:
   - name: intellij.android.gradle.declarative.lang.ide
+  contentModules:
+  - name: intellij.android.gradle.declarative.lang
