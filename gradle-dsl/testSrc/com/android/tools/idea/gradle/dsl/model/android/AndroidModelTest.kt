@@ -116,6 +116,41 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAndroidBlockWithAssignmentStatementsWithSoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val android = gradleBuildModel.android()
+
+    // overridden
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    // from settings
+    assertEquals("namespace", "abc", android.namespace())
+    // only from build file
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertNotNull(android)
+  }
+
+  @Test
+  fun testRemoveElementBackedBySoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    var buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    android.buildToolsVersion().delete()
+
+    applyChangesAndReparse(buildModel)
+
+    buildModel = gradleBuildModel
+    assertEquals("buildToolsVersion", "24.0.0", buildModel.android().buildToolsVersion())
+  }
+
+  @Test
   fun testAndroidLibraryBlockWithAssignmentStatements() {
     isIrrelevantForKotlinScript("android library element is only in Declarative")
     isIrrelevantForGroovy("android library element is only in Declarative")
@@ -2124,6 +2159,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
+    SOFTWARE_TYPE_ANDROID_BLOCK("softwareTypeAndroidBlock"),
+    REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT("removeAndroidAssignmentWithAppliedParent"),
     ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),
