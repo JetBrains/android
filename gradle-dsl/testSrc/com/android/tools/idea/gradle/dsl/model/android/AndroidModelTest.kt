@@ -151,6 +151,25 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testRemoveSoftwareTypeElement() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.REMOVE_ANDROID_ASSIGNMENT_IN_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    var buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    android.buildToolsVersion().delete() // try to remove but should do nothing
+
+    applyChangesAndReparse(buildModel)
+
+    buildModel = gradleBuildModel
+
+    assertEquals("buildToolsVersion", "24.0.0", buildModel.android().buildToolsVersion())
+  }
+
+  @Test
   fun testAndroidLibraryBlockWithAssignmentStatements() {
     isIrrelevantForKotlinScript("android library element is only in Declarative")
     isIrrelevantForGroovy("android library element is only in Declarative")
@@ -2161,6 +2180,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
     SOFTWARE_TYPE_ANDROID_BLOCK("softwareTypeAndroidBlock"),
     REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT("removeAndroidAssignmentWithAppliedParent"),
+    REMOVE_ANDROID_ASSIGNMENT_IN_SOFTWARE_TYPE("removeAndroidAssignmentInSoftwareType"),
     ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),
