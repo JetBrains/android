@@ -17,9 +17,13 @@ package com.android.tools.idea.editing.metrics
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.LightVirtualFile
+import com.intellij.util.application
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -60,6 +64,40 @@ class CodeEditedMetricsServiceTest {
   @Test
   fun noFragmentsNoEvents() {
     service.recordCodeEdited(FakeDocumentEvent("" to ""))
+
+    testScope.runCurrent()
+
+    assertThat(fakeCodeEditedListener.receivedEvents).isEmpty()
+  }
+
+  @Test
+  fun noFileNoEvents() {
+    val document = EditorFactory.getInstance().createDocument("Document with no backing file.")
+    application.invokeAndWait {
+      with(EditorFactory.getInstance()) {
+        // The document must have an editor associated with it or the listener never
+        // gets hooked up.
+        createEditor(document).also {
+          Disposer.register(projectRule.testRootDisposable) {
+            application.invokeAndWait { releaseEditor(it) }
+          }
+        }
+      }
+    }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      document.insertString(10, "inserted text")
+    }
+
+    testScope.runCurrent()
+
+    assertThat(fakeCodeEditedListener.receivedEvents).isEmpty()
+  }
+
+  @Test
+  fun noLocalFileNoEvents() {
+    fixture.configureFromExistingVirtualFile(LightVirtualFile("NotLocal.txt"))
+
+    service.recordCodeEdited(FakeDocumentEvent("foo" to "bar"))
 
     testScope.runCurrent()
 
