@@ -20,11 +20,11 @@ import static com.android.tools.idea.gradle.project.sync.quickFixes.IssueChecker
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gemini.GeminiPluginApi;
+import com.android.tools.idea.gradle.GradleProjectSystemBundle;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.studiobot.StudioBotBundle;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -48,7 +48,7 @@ public class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
-  public static String consoleLinkUnderlinedText = ">> " + StudioBotBundle.message("studiobot.ask.text");
+  public static String consoleLinkUnderlinedText = ">> " + GradleProjectSystemBundle.message("studiobot.ask.text");
   public static String consoleLinkWithSeparatorText = consoleLinkUnderlinedText + " ";
 
   @NotNull

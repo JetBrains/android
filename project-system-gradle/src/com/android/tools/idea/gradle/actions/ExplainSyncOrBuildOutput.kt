@@ -19,9 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource
 import com.android.tools.idea.gemini.buildLlmPrompt
+import com.android.tools.idea.gradle.GradleProjectSystemBundle
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
-import com.android.tools.idea.studiobot.StudioBotBundle
 import com.android.tools.idea.studiobot.StudioBotExternalFlags
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
@@ -54,7 +54,7 @@ private val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">${consoleLinkU
 private val ASK_STUDIO_BOT_UNTIL_EOL = Regex("${consoleLinkUnderlinedText}[^\n]*")
 
 class ExplainSyncOrBuildOutput : DumbAwareAction(
-  StudioBotBundle.message("studiobot.ask.text"), StudioBotBundle.message("studiobot.ask.description"),
+  GradleProjectSystemBundle.message("studiobot.ask.text"), GradleProjectSystemBundle.message("studiobot.ask.description"),
   StudioIcons.StudioBot.ASK
 ) {
 
