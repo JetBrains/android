@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.util.containingFile
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
 import com.android.tools.preview.PreviewParameter
@@ -38,10 +39,12 @@ class StudioParametrizedComposePreviewElementTemplate(
     basePreviewElement,
     parameterProviders,
     StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
-    { element ->
-      element.containingFile
-        ?.let { StudioModuleRenderContext.forFile(it) }
-        ?.let {
+    factory@{ element ->
+      val psiFile = element.containingFile ?: return@factory null
+      var buildTargetRefence = BuildTargetReference.from(psiFile) ?: return@factory null
+      psiFile
+        .let { StudioModuleRenderContext.forFile(buildTargetRefence, it) }
+        .let {
           RenderModelModule.ClassLoaderProvider {
             parent: ClassLoader?,
             additionalProjectTransform: ClassTransform,

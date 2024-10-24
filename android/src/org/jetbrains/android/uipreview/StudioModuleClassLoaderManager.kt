@@ -166,7 +166,7 @@ class StudioModuleClassLoaderManager :
     additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
     onNewModuleClassLoader: Runnable = Runnable {},
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
-    val module: Module? = moduleRenderContext.module
+    val module: Module? = moduleRenderContext.buildTargetReference.moduleIfNotDisposed
     var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
@@ -250,7 +250,7 @@ class StudioModuleClassLoaderManager :
     additionalNonProjectTransformation: ClassTransform  = ClassTransform.identity,
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    val module: Module? = moduleRenderContext.module
+    val module: Module? = moduleRenderContext.buildTargetReference.moduleIfNotDisposed
     module
       ?.project
       ?.getService(ModuleClassLoaderProjectHelperService::class.java)

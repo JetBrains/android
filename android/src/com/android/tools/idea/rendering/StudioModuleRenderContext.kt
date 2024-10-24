@@ -22,33 +22,24 @@ import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.base.util.module
-import java.lang.ref.WeakReference
 import java.util.function.Supplier
 
 /**
  * Studio specific module render context.
  */
 open class StudioModuleRenderContext protected constructor(
-  module: Module,
+  val buildTargetReference: BuildTargetReference,
   val fileProvider: Supplier<PsiFile?>
 )  {
-  private val moduleWeakRef = WeakReference(module)
-  val isDisposed: Boolean
-    get() = module?.isDisposed ?: true
 
-  val module: Module?
-    get() = moduleWeakRef.get()
   open fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
-    val moduleRef = WeakReference(module)
     return ProjectSystemClassLoader { fqcn ->
-      val module = moduleRef.get()
-      if (module == null || module.isDisposed) return@ProjectSystemClassLoader null
+      val moduleSystem = (buildTargetReference.moduleIfNotDisposed ?: return@ProjectSystemClassLoader null).getModuleSystem()
 
       val psiFile = fileProvider.get()
       val virtualFile = psiFile?.virtualFile
 
-      return@ProjectSystemClassLoader module.getModuleSystem()
+      return@ProjectSystemClassLoader moduleSystem
         .getClassFileFinderForSourceFile(virtualFile)
         .findClassFile(fqcn)
     }
@@ -56,19 +47,18 @@ open class StudioModuleRenderContext protected constructor(
 
   companion object {
     @JvmStatic
-    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) =
-      StudioModuleRenderContext(module, fileProvider)
+    fun forFile(buildTargetReference: BuildTargetReference, fileProvider: Supplier<PsiFile?>) =
+      StudioModuleRenderContext(buildTargetReference, fileProvider)
 
     /** Always use one of the methods that can provide a file, only use this for testing. */
     @TestOnly
     @JvmStatic
-    fun forModule(module: Module) = StudioModuleRenderContext(module) { null }
+    fun forModule(module: Module) = StudioModuleRenderContext(BuildTargetReference.gradleOnly(module)) { null }
 
     @JvmStatic
-    fun forFile(file: PsiFile): StudioModuleRenderContext {
+    fun forFile(buildTargetReference: BuildTargetReference, file: PsiFile): StudioModuleRenderContext {
       val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
-      val module = runReadAction { file.module!! }
-      return forFile(module) { runReadAction { filePointer.element } }
+      return forFile(buildTargetReference) { runReadAction { filePointer.element } }
     }
   }
 }
