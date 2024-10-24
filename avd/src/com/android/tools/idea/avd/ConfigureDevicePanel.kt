@@ -283,8 +283,7 @@ internal constructor(
     device =
       device.copy(
         skin = getSkin(skin),
-        expandedStorage =
-          Custom(checkNotNull(storageGroupState.custom.toStorageCapacity()).withMaxUnit()),
+        expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit()),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
         ram = EmulatedProperties.defaultRamSize(device.device).toStorageCapacity(),

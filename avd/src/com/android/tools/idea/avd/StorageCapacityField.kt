@@ -59,29 +59,39 @@ internal fun StorageCapacityField(
 internal class StorageCapacityFieldState internal constructor(value: StorageCapacity) {
   internal val value = TextFieldState(value.value.toString())
   internal var unit by mutableStateOf(value.unit)
-  internal val storageCapacity = snapshotFlow { toStorageCapacity() }
+  internal val storageCapacity = snapshotFlow { result().storageCapacity }
 
-  internal fun valueIsEmpty() = value.text.isEmpty()
+  internal fun valid() = result() as Valid
 
-  internal fun willOverflow() =
-    try {
-      assert(!valueIsEmpty())
-      StorageCapacity(value.text.toString().toLong(), unit)
-      false
-    } catch (exception: NumberFormatException) {
-      // value.text.toString().toLong() overflowed
-      true
-    } catch (exception: ArithmeticException) {
-      // StorageCapacity(value.text.toString().toLong(), unit) can't be expressed in bytes
-      true
+  internal fun result() =
+    if (value.text.isEmpty()) {
+      Empty
+    } else {
+      try {
+        Valid(StorageCapacity(value.text.toString().toLong(), unit))
+      } catch (exception: NumberFormatException) {
+        // value.text.toString().toLong() overflowed
+        Overflow
+      } catch (exception: ArithmeticException) {
+        // StorageCapacity(value.text.toString().toLong(), unit) can't be expressed in bytes
+        Overflow
+      }
     }
 
-  internal fun toStorageCapacity() =
-    try {
-      StorageCapacity(value.text.toString().toLong(), unit)
-    } catch (exception: RuntimeException) {
-      null
-    }
+  internal object Empty : Result() {
+    override val storageCapacity = null
+  }
+
+  internal class Valid internal constructor(override val storageCapacity: StorageCapacity) :
+    Result()
+
+  internal object Overflow : Result() {
+    override val storageCapacity = null
+  }
+
+  internal sealed class Result {
+    internal abstract val storageCapacity: StorageCapacity?
+  }
 }
 
 private val STORAGE_CAPACITY_VALUE_REGEX = Regex("\\d*")

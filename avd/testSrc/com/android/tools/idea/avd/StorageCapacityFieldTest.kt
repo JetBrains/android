@@ -18,8 +18,9 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import org.junit.AfterClass
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -59,6 +60,6 @@ class StorageCapacityFieldTest {
       .performTextReplacement("9223372036854775808")
 
     // Assert
-    assertNull(state.toStorageCapacity())
+    assertTrue(state.result() is Overflow)
   }
 }
