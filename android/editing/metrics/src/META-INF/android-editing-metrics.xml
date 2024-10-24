@@ -30,6 +30,7 @@
     <typedHandler implementation="com.android.tools.idea.editing.metrics.CodeEditedTypedHandlerDelegate"/>
     <backspaceHandlerDelegate implementation="com.android.tools.idea.editing.metrics.CodeEditedBackspaceHandlerDelegate"/>
     <editorFactoryListener implementation="com.android.tools.idea.editing.metrics.CodeEditedEditorFactoryListener"/>
+    <copyPastePreProcessor implementation="com.android.tools.idea.editing.metrics.CodeEditedCopyPastePreProcessor"/>
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.editing.metrics.CodeEditedRefactoringEventListener"
