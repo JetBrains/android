@@ -140,19 +140,54 @@ sealed interface Content {
   }
 }
 
-/**
- * A citation identified for a particular response.
- *
- * @param action The necessary action that must be taken in response to this citation.
- * @param url The url source that should be cited if the action is [CitationAction.CITE_INDIRECT] or
- *   [CitationAction.CITE_DIRECT]
- * @param range The range in [Content.TextContent] that is influenced by this citation
- */
-data class Citation(
-  val action: CitationAction,
-  val url: String? = null,
-  val range: TextRange = TextRange.EMPTY_RANGE,
-)
+sealed interface Citation {
+  val action: CitationAction
+  val range: TextRange
+
+  /**
+   * A citation identified for a particular response. It's used when only source Url is provided.
+   *
+   * @param action The necessary action that must be taken in response to this citation.
+   * @param url The url source that should be cited if the action is [CitationAction.CITE_INDIRECT]
+   *   or [CitationAction.CITE_DIRECT]
+   * @param range The range in [Content.TextContent] that is influenced by this citation
+   */
+  data class Web(
+    override val action: CitationAction,
+    val url: String? = null,
+    override val range: TextRange = TextRange.EMPTY_RANGE,
+  ) : Citation
+
+  /**
+   * A citation identified for a particular response. It's used when repository Url and file path in
+   * the repository is provided.
+   *
+   * @param action The necessary action that must be taken in response to this citation.
+   * @param repositoryUrl The url of the repository with citation
+   * @param filePath The file path to the file with citation in the remote repository
+   * @param range The range in [Content.TextContent] that is influenced by this citation
+   */
+  data class RemoteRepository(
+    override val action: CitationAction,
+    val filePath: String,
+    val repositoryUrl: String,
+    override val range: TextRange = TextRange.EMPTY_RANGE,
+  ) : Citation
+
+  /**
+   * A citation identified for a particular response. It's used when only file path to the local
+   * file is provided.
+   *
+   * @param action The necessary action that must be taken in response to this citation.
+   * @param filePath The file path to the local file with citation
+   * @param range The range in [Content.TextContent] that is influenced by this citation
+   */
+  data class LocalFile(
+    override val action: CitationAction,
+    val filePath: String,
+    override val range: TextRange = TextRange.EMPTY_RANGE,
+  ) : Citation
+}
 
 enum class CitationAction {
   /**
