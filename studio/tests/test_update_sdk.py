@@ -2,7 +2,6 @@ import os
 import unittest
 import subprocess
 import tempfile
-import glob
 from tools.adt.idea.studio.tests import test_utils
 
 class UpdateSdkTest(unittest.TestCase):
@@ -80,10 +79,6 @@ class UpdateSdkTest(unittest.TestCase):
         "Android Studio.app/Contents/plugins/plugin-classpath.txt": "data",
     })
 
-    test_utils.create(download + "/android-studio-1.2.3-no-jbr.tar.gz.spdx.json", "")
-    test_utils.create(download + "/android-studio-1.2.3-no-jbr.win.zip.spdx.json", "")
-    test_utils.create(download + "/android-studio-1.2.3.mac.aarch64-no-jdk.zip.spdx.json", "")
-    test_utils.create(download + "/android-studio-1.2.3.mac.x64-no-jdk.zip.spdx.json", "")
     test_utils.create(download + "/android-studio-1.2.3-sources.zip", {})
     test_utils.create(download + "/updater-full.jar", {})
 
