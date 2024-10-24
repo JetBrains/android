@@ -22,7 +22,7 @@
     <extensionPoint qualifiedName="com.android.tools.idea.ml.mimetypeAugmenter"
                     interface="com.android.tools.idea.studiobot.mimetype.MimeTypeAugmenter" />
     <extensionPoint qualifiedName="com.android.tools.idea.ml.studioBotExternalFlags"
-                    interface="com.android.tools.idea.studiobot.StudioBotExternalFlags" />
+                    interface="com.android.tools.idea.gemini.StudioBotExternalFlags" />
     <extensionPoint qualifiedName="com.android.tools.idea.gemini.geminiPluginApi"
                     interface="com.android.tools.idea.gemini.GeminiPluginApi" />
   </extensionPoints>
