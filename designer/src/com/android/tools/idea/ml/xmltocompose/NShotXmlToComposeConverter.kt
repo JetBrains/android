@@ -21,6 +21,7 @@ import com.android.tools.idea.gemini.buildLlmPrompt
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -74,7 +75,7 @@ private constructor(private val project: Project, private val nShots: List<Strin
     try {
       val response = geminiPluginApi.generate(project, prompt)
       return ConversionResponse(
-        generatedCode = extractKotlinCode(response),
+        generatedCode = extractKotlinCode(response.toList().joinToString("")),
         status = ConversionResponse.Status.SUCCESS,
       )
     } catch (t: Throwable) {

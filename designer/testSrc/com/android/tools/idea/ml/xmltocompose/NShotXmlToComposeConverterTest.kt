@@ -27,6 +27,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerExtension
 import kotlin.test.assertFalse
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -69,14 +71,16 @@ class NShotXmlToComposeConverterTest {
       requestSource: GeminiPluginApi.RequestSource,
     ) {}
 
-    override suspend fun generate(project: Project, prompt: LlmPrompt): String {
-      return """
+    override fun generate(project: Project, prompt: LlmPrompt): Flow<String> {
+      return flowOf(
+        """
         |Here is your code
         |```kotlin
         |$simpleKotlinCode
         |```
       """
-        .trimMargin()
+          .trimMargin()
+      )
     }
   }
 

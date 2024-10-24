@@ -27,6 +27,7 @@ import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Guidelines for the model to provide context and fine tune the response. */
@@ -70,7 +71,8 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
         userMessage { text(createPrompt(request), emptyList()) }
       }
     return if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
-      val response = GeminiPluginApi.getInstance().generate(project, prompt)
+      val response =
+        GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("")
       AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
     } else {
       // Simulate a delay that would come generating an actual insight
