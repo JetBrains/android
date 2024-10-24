@@ -2022,7 +2022,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
@@ -2041,14 +2041,14 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "ai.rethink.action",
                     "Use AI to suggest better variable names",
                     "Enables AI to provide better variable renaming functionalities",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
 
   public static final Flag<Boolean> AI_RENAME_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.rename.action",
                     "Use AI to suggest a better identifier name",
                     "Enables AI rename suggestion functionality",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
 
   public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
