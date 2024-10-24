@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editing.documentation;
 
-import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
+import static com.android.tools.idea.testing.SnapshotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.google.common.truth.Truth.assertThat;
 
