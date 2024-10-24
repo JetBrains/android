@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,9 +72,14 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
 
   public boolean isFile() {
     GradleDslElement element = getPropertyElement(FROM);
-    if(element == null) return true; // default catalog
+    if (element == null) return true; // default catalog
     if (element instanceof GradleDslMethodCall call) {
-      return "files".equals(call.getMethodName());
+      // TODO probably unify parsing of settings files in Groovy and Kotlin
+      // Currently, GroovyDslParser and KotlinDslParser process `from(files("..."))` expression differently.
+      // - KotlinDslParser omits `from` call, so `getPropertyElement(FROM)` returns a call from its argument - `files("...")`
+      // - GroovyDslParser considers `from`, so `getPropertyElement(FROM)` returns an element for `from(...)` call
+      return "files".equals(call.getMethodName()) // works for settings.gradle.kts
+             || callHasFilesArgument(call);       // works for settings.gradle
     }
     return false;
   }
@@ -81,4 +87,10 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
   @Override
   @Nullable
   public String getAccessMethodName() { return VERSION_CATALOG.namedObjectAssociatedName; }
+
+  private static boolean callHasFilesArgument(GradleDslMethodCall call) {
+    return ContainerUtil.exists(call.getArguments(), arg ->
+      arg instanceof GradleDslMethodCall
+      && "files".equals(arg.getName()));
+  }
 }
