@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gemini
 
-import com.android.tools.idea.studiobot.AiExcludeException
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerExtension
-import io.ktor.util.reflect.instanceOf
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Before
 import org.junit.Test
@@ -153,7 +151,7 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
       buildLlmPrompt(project) { userMessage { text("hi", listOf(f1)) } }
       fail("buildLlmPrompt should've failed since context sharing is not enabled")
     } catch (e: Exception) {
-      assertThat(e).instanceOf(AiExcludeException::class)
+      assertThat(e).isInstanceOf(IllegalStateException::class.java)
       assertThat(e.message)
         .isEqualTo(
           "User has not enabled context sharing. This setting must be checked before building a prompt that used any files as context."
@@ -170,7 +168,7 @@ class LlmPromptBuilderTest : BasePlatformTestCase() {
       buildLlmPrompt(project) { userMessage { text("hi", listOf(f1)) } }
       fail("buildLlmPrompt should've failed since file f1 is aiexcluded")
     } catch (e: Exception) {
-      assertThat(e).instanceOf(AiExcludeException::class)
+      assertThat(e).isInstanceOf(AiExcludeException::class.java)
       assertThat(e.message).contains("file1.txt")
     }
   }

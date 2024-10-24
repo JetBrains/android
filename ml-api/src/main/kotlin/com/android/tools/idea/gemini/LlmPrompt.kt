@@ -16,7 +16,6 @@
 package com.android.tools.idea.gemini
 
 import com.android.tools.idea.gemini.LlmPrompt.Role
-import com.android.tools.idea.studiobot.AiExcludeException
 import com.intellij.lang.Language
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -161,3 +160,6 @@ internal class LlmPromptBuilderImpl(private val project: Project) : LlmPromptBui
     messages.add(MessageBuilderImpl(project).apply(builder).build(role))
   }
 }
+
+class AiExcludeException(problemFiles: Collection<VirtualFile>) :
+  RuntimeException("One or more files are blocked by aiexclude: $problemFiles")
