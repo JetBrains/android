@@ -730,7 +730,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1017,9 +1016,7 @@ MODULE                        : kotlinMultiPlatform
                         appleTestIntransitiveDependenciesMetadata         : <empty>
                         appleTestResolvableDependenciesMetadata : <empty>
                         appleTestRuntimeOnly          : <empty>
-                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
-                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
-                        - archives                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
+                        - archives                    : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
@@ -1066,9 +1063,9 @@ MODULE                        : kotlinMultiPlatform
                         debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
-                        - iosArm64ApiElements         : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
+                        - iosArm64ApiElements         : <ROOT>/module2/build/libs/module2-iosArm64Main.klib [-]
                         iosArm64CInterop              : <empty>
-                        iosArm64CInteropApiElements   : <empty>
+                        - iosArm64CInteropApiElements : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosArm64CompilationApi        : <empty>
                         iosArm64CompilationCompileOnly          : <empty>
                         iosArm64CompilationDependenciesMetadata : <empty>
@@ -1111,9 +1108,9 @@ MODULE                        : kotlinMultiPlatform
                         iosMainIntransitiveDependenciesMetadata : <empty>
                         iosMainResolvableDependenciesMetadata   : <empty>
                         iosMainRuntimeOnly            : <empty>
-                        - iosSimulatorArm64ApiElements          : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
+                        - iosSimulatorArm64ApiElements          : <ROOT>/module2/build/libs/module2-iosSimulatorArm64Main.klib [-]
                         iosSimulatorArm64CInterop     : <empty>
-                        iosSimulatorArm64CInteropApiElements    : <empty>
+                        - iosSimulatorArm64CInteropApiElements  : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosSimulatorArm64CompilationApi         : <empty>
                         iosSimulatorArm64CompilationCompileOnly : <empty>
                         iosSimulatorArm64CompilationDependenciesMetadata  : <empty>
@@ -1156,9 +1153,9 @@ MODULE                        : kotlinMultiPlatform
                         iosTestIntransitiveDependenciesMetadata : <empty>
                         iosTestResolvableDependenciesMetadata   : <empty>
                         iosTestRuntimeOnly            : <empty>
-                        - iosX64ApiElements           : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
+                        - iosX64ApiElements           : <ROOT>/module2/build/libs/module2-iosX64Main.klib [-]
                         iosX64CInterop                : <empty>
-                        iosX64CInteropApiElements     : <empty>
+                        - iosX64CInteropApiElements   : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         iosX64CompilationApi          : <empty>
                         iosX64CompilationCompileOnly  : <empty>
                         iosX64CompilationDependenciesMetadata   : <empty>
@@ -1212,7 +1209,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinCompilerPluginClasspathMetadataNativeMain   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -2864,6 +2860,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -2947,6 +2944,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3039,6 +3037,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3122,6 +3121,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3217,6 +3217,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_arm64:<KOTLIN_VERSION>
@@ -3300,6 +3301,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_arm64:<KOTLIN_VERSION>
@@ -3395,6 +3397,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_arm64:<KOTLIN_VERSION>
@@ -3478,6 +3481,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_arm64:<KOTLIN_VERSION>
@@ -3567,6 +3571,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3650,6 +3655,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -3740,6 +3746,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3823,6 +3830,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -3918,6 +3926,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -4001,6 +4010,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_simulator_arm64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_simulator_arm64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_simulator_arm64:<KOTLIN_VERSION>
@@ -4094,6 +4104,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4177,6 +4188,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4267,6 +4279,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_x64:<KOTLIN_VERSION>
@@ -4350,6 +4363,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_x64:<KOTLIN_VERSION>
@@ -4445,6 +4459,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:ios_x64:<KOTLIN_VERSION>
@@ -4528,6 +4543,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:ios_x64:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:ios_x64:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:ios_x64:<KOTLIN_VERSION>
@@ -4615,6 +4631,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4698,6 +4715,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4789,6 +4807,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:AVRouting:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accelerate:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accessibility:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:AccessorySetupKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Accounts:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdServices:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:AdSupport:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -4872,6 +4891,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin.native:LinkPresentation:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthentication:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:LocalAuthenticationEmbeddedUI:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin.native:LockedCameraCapture:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MLCompute:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:MapKit:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin.native:Matter:(ios_arm64, ios_simulator_arm64, ios_x64):<KOTLIN_VERSION>
@@ -5296,6 +5316,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5312,7 +5333,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleMain
                     - fragments                   : nativeMain
                     - fragments                   : commonMain
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_arm64
                     multiPlatform                 : true
@@ -5324,7 +5345,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_arm64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib/module2 [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosArm64/main/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosArm64/main [-]
                 platform                      : NATIVE
@@ -5433,6 +5454,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5449,7 +5471,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleTest
                     - fragments                   : nativeTest
                     - fragments                   : commonTest
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib/module2_test.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_arm64
                     multiPlatform                 : true
@@ -5462,7 +5484,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_arm64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib/module2_test.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib/module2_test [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosArm64/test/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosArm64/test [-]
                 platform                      : NATIVE
@@ -5511,6 +5533,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5527,7 +5550,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleMain
                     - fragments                   : nativeMain
                     - fragments                   : commonMain
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_simulator_arm64
                     multiPlatform                 : true
@@ -5539,7 +5562,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_simulator_arm64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib/module2 [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/main/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosSimulatorArm64/main [-]
                 platform                      : NATIVE
@@ -5582,6 +5605,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5598,7 +5622,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleTest
                     - fragments                   : nativeTest
                     - fragments                   : commonTest
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib/module2_test.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_simulator_arm64
                     multiPlatform                 : true
@@ -5611,7 +5635,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_simulator_arm64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib/module2_test.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib/module2_test [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosSimulatorArm64/test/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosSimulatorArm64/test [-]
                 platform                      : NATIVE
@@ -5660,6 +5684,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5676,7 +5701,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleMain
                     - fragments                   : nativeMain
                     - fragments                   : commonMain
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2
                     - freeArgs                    : library
                     - freeArgs                    : ios_x64
                     multiPlatform                 : true
@@ -5688,7 +5713,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_x64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib/module2 [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosX64/main/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosX64/main [-]
                 platform                      : NATIVE
@@ -5731,6 +5756,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - unknownArgs                 : -g
                         - unknownArgs                 : -ea
                         - unknownArgs                 : -no-endorsed-libs
+                        - unknownArgs                 : -nopack
                         - unknownArgs                 : -nostdlib
                         - unknownArgs                 : -o
                         - unknownArgs                 : -p
@@ -5747,7 +5773,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - fragments                   : appleTest
                     - fragments                   : nativeTest
                     - fragments                   : commonTest
-                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib/module2_test.klib
+                    - freeArgs                    : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib/module2_test
                     - freeArgs                    : library
                     - freeArgs                    : ios_x64
                     multiPlatform                 : true
@@ -5760,7 +5786,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 nativeExtensions              : KotlinNativeCompilationExtensionsImpl
                     konanTarget                   : ios_x64
                 output                        : KotlinCompilationOutputImpl
-                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib/module2_test.klib [-]
+                    - classesDirs                 : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib/module2_test [-]
                     effectiveClassesDir           : <ROOT>/module2/build/classes/kotlin/iosX64/test/klib [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/iosX64/test [-]
                 platform                      : NATIVE

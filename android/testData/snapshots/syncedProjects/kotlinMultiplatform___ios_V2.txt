@@ -799,6 +799,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -882,6 +883,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1035,6 +1037,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -1200,6 +1204,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -1515,7 +1521,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1547,6 +1553,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_arm64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | ios_arm64 [=]
@@ -1630,6 +1637,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_arm64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | ios_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | ios_arm64 [=]
@@ -1739,7 +1747,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -1777,6 +1785,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_arm64 [=]
             Scope                         : Test
@@ -1943,6 +1953,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_arm64 [=]
             Scope                         : Test
@@ -2182,6 +2194,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2265,6 +2278,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -2371,7 +2385,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2403,6 +2417,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_simulator_arm64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | ios_simulator_arm64 [=]
@@ -2486,6 +2501,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_simulator_arm64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | ios_simulator_arm64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | ios_simulator_arm64 [=]
@@ -2595,7 +2611,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -2633,6 +2649,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -2799,6 +2817,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_simulator_arm64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_simulator_arm64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_simulator_arm64 [=]
             Scope                         : Test
@@ -3047,6 +3067,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -3212,6 +3234,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -3408,7 +3432,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3440,6 +3464,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_x64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | ios_x64 [=]
@@ -3523,6 +3548,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_x64 [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | ios_x64 [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | ios_x64 [=]
@@ -3632,7 +3658,7 @@ PROJECT                       : kotlinMultiPlatform
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 multiPlatform                 : true
             CompilerSettings
-                additionalArguments           : -nostdlib
+                additionalArguments           : -nopack -nostdlib
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :module2
@@ -3670,6 +3696,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_x64 [=]
             Scope                         : Test
@@ -3836,6 +3864,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_x64 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_x64 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_x64 [=]
             Scope                         : Test
@@ -4197,6 +4227,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: AVRouting | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accelerate | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: AdSupport | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4280,6 +4311,7 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LinkPresentation | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: MapKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
         LIBRARY                       : Gradle: Kotlin/Native: Matter | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4432,6 +4464,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: AdServices | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
@@ -4597,6 +4631,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthentication | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)] [=]
             Scope                         : Test
@@ -4955,6 +4991,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.Accessibility
         LIBRARY                       : Gradle: Kotlin/Native: Accessibility | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.Accessibility
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.AccessorySetupKit
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.AccessorySetupKit
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.AccessorySetupKit
+        LIBRARY                       : Gradle: Kotlin/Native: AccessorySetupKit | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.AccessorySetupKit
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.Accounts
         LIBRARY                       : Gradle: Kotlin/Native: Accounts | ios_arm64
@@ -5619,6 +5663,14 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.LocalAuthenticationEmbeddedUI
         LIBRARY                       : Gradle: Kotlin/Native: LocalAuthenticationEmbeddedUI | ios_x64
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.LocalAuthenticationEmbeddedUI
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | [(ios_arm64, ios_simulator_arm64, ios_x64)]
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.LockedCameraCapture
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_arm64/org.jetbrains.kotlin.native.platform.LockedCameraCapture
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_simulator_arm64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_simulator_arm64/org.jetbrains.kotlin.native.platform.LockedCameraCapture
+        LIBRARY                       : Gradle: Kotlin/Native: LockedCameraCapture | ios_x64
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/platform/ios_x64/org.jetbrains.kotlin.native.platform.LockedCameraCapture
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | [(ios_arm64, ios_simulator_arm64, ios_x64)]
             *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION>/klib/commonized/<KOTLIN_VERSION>/(ios_arm64, ios_simulator_arm64, ios_x64)/org.jetbrains.kotlin.native.platform.MLCompute
         LIBRARY                       : Gradle: Kotlin/Native: MLCompute | ios_arm64
