@@ -133,11 +133,16 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   @NotNull public static final NotificationGroup BALLOON_NOTIFICATION =
     NotificationGroupManager.getInstance().getNotificationGroup("APK Analyzer (Important)");
 
-  public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
+  public DexFileViewer(
+    @NotNull Project project,
+    @NotNull Path[] dexFiles,
+    @Nullable VirtualFile apkFolder,
+    @Nullable ProguardMappings proguardMappings) {
     Preconditions.checkArgument(dexFiles.length > 0 || apkFolder != null, "Must have at least one dex file or an APK folder");
     myDexFiles = dexFiles;
     myProject = project;
     myApkFolder = apkFolder;
+    myProguardMappings = proguardMappings;
 
     // we need a new instance of this disposable every time, not just a lambda method
     myDisposable = Disposer.newDisposable();
@@ -177,7 +182,10 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     });
 
     myDexTreeRenderer = new DexTreeNodeRenderer();
-
+    if (myProguardMappings != null) {
+      myDeobfuscateNames = true;
+      myDexTreeRenderer.setMappings(myProguardMappings);
+    }
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Class")
