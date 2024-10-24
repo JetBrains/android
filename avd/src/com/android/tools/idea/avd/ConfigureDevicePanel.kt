@@ -60,8 +60,8 @@ internal fun ConfigureDevicePanel(
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  Row {
-    Column(Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
+  Row(Modifier.padding(top = Padding.LARGE)) {
+    Column(Modifier.padding(horizontal = Padding.EXTRA_LARGE).weight(1f)) {
       Text(
         "Configure virtual device",
         fontWeight = FontWeight.SemiBold,
@@ -88,11 +88,11 @@ internal fun ConfigureDevicePanel(
     Divider(Orientation.Vertical)
     DeviceDetails(
       configureDevicePanelState.device.device.toVirtualDeviceProfile(),
+      Modifier.padding(horizontal = Padding.SMALL_MEDIUM).width(200.dp),
       systemImage =
         configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {
           configureDevicePanelState.validity.isSystemImageTableSelectionValid
         },
-      modifier = Modifier.width(200.dp).padding(vertical = 12.dp, horizontal = 8.dp),
     )
   }
 }
@@ -118,7 +118,8 @@ private fun Tabs(
         closable = false,
       )
     },
-    style = JewelTheme.defaultTabStyle,
+    JewelTheme.defaultTabStyle,
+    Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
   val servicesSet =

@@ -120,7 +120,7 @@ internal fun DevicePanel(
       modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
     )
 
-    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Padding.LARGE)) {
       ApiFilter(
         androidVersions,
         devicePanelState.selectedApi,
