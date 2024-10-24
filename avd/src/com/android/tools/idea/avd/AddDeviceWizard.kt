@@ -28,6 +28,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.adddevicedialog.ComposeWizard
@@ -227,7 +229,11 @@ private val virtualDeviceName =
 private val playColumn =
   TableColumn<VirtualDeviceProfile>(
     "Play",
-    TableColumnWidth.Fixed(45.dp),
+    TableColumnWidth.ToFit(
+      "Play",
+      textStyle = TextStyle.Default.copy(fontWeight = FontWeight.Bold),
+      extraPadding = 16.dp,
+    ),
     comparator = compareBy { it.isGooglePlaySupported },
   ) {
     if (it.isGooglePlaySupported) {
