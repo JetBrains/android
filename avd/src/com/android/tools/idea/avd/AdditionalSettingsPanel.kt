@@ -46,6 +46,10 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
+import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
+import com.android.tools.idea.avd.StorageCapacityFieldState.Result
+import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
@@ -309,7 +313,7 @@ private fun StorageGroup(
 
       StorageCapacityField(
         state.internalStorage,
-        validateInternalStorage(state.internalStorage, hasPlayStore),
+        validateInternalStorage(state.internalStorage.result(), hasPlayStore),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -350,7 +354,7 @@ private fun StorageGroup(
       )
 
       val enabled = state.selectedRadioButton == RadioButton.CUSTOM
-      val errorMessage = validateCustomExpandedStorage(state.custom, hasPlayStore, enabled)
+      val errorMessage = validateCustomExpandedStorage(state.custom.result(), hasPlayStore, enabled)
       val isWarningVisible = state.isCustomChangedWarningVisible(errorMessage == null)
 
       StorageCapacityField(
@@ -403,42 +407,42 @@ private fun StorageGroup(
   }
 }
 
-private fun validateInternalStorage(
-  storage: StorageCapacityFieldState,
-  hasPlayStore: Boolean,
-): String? {
-  val capacity = storage.toStorageCapacity()
-
-  return when {
-    storage.valueIsEmpty() -> "Specify an internal storage value"
-    storage.willOverflow() -> "Internal storage is too large"
-    requireNotNull(capacity) < VirtualDevice.MIN_INTERNAL_STORAGE && hasPlayStore ->
-      "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-    capacity < VirtualDevice.MIN_INTERNAL_STORAGE ->
-      "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-    else -> null
+private fun validateInternalStorage(storage: Result, hasPlayStore: Boolean) =
+  when (storage) {
+    is Empty -> "Specify an internal storage value"
+    is Overflow -> "Internal storage is too large"
+    is Valid ->
+      when {
+        storage.storageCapacity < VirtualDevice.MIN_INTERNAL_STORAGE && hasPlayStore ->
+          "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
+        storage.storageCapacity < VirtualDevice.MIN_INTERNAL_STORAGE ->
+          "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
+        else -> null
+      }
   }
-}
 
 private fun validateCustomExpandedStorage(
-  storage: StorageCapacityFieldState,
+  storage: Result,
   hasPlayStore: Boolean,
   customRadioButtonEnabled: Boolean,
-): String? {
-  val capacity = storage.toStorageCapacity()
-
-  return when {
-    !customRadioButtonEnabled -> null
-    storage.valueIsEmpty() -> "Specify an SD card size"
-    storage.willOverflow() -> "SD card size is too large"
-    requireNotNull(capacity) < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE &&
-      hasPlayStore ->
-      "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
-    capacity < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE ->
-      "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
-    else -> null
+) =
+  if (!customRadioButtonEnabled) {
+    null
+  } else {
+    when (storage) {
+      is Empty -> "Specify an SD card size"
+      is Overflow -> "SD card size is too large"
+      is Valid ->
+        when {
+          storage.storageCapacity < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE &&
+            hasPlayStore ->
+            "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
+          storage.storageCapacity < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE ->
+            "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
+          else -> null
+        }
+    }
   }
-}
 
 @Composable
 private fun <E : Enum<E>> RadioButtonRow(
@@ -563,7 +567,7 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         state.ram,
-        validateRam(state.ram),
+        validateRam(state.ram.result()),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
@@ -584,7 +588,7 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         state.vmHeapSize,
-        validateVmHeapSize(state.vmHeapSize),
+        validateVmHeapSize(state.vmHeapSize.result()),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore,
       )
@@ -607,22 +611,28 @@ internal class EmulatedPerformanceGroupState internal constructor(device: Virtua
   internal val vmHeapSize = StorageCapacityFieldState(requireNotNull(device.vmHeapSize))
 }
 
-private fun validateRam(ram: StorageCapacityFieldState) =
-  when {
-    ram.valueIsEmpty() -> "Specify a RAM value"
-    ram.willOverflow() -> "RAM value is too large"
-    requireNotNull(ram.toStorageCapacity()) < VirtualDevice.MIN_RAM ->
-      "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
-    else -> null
+private fun validateRam(ram: Result) =
+  when (ram) {
+    is Empty -> "Specify a RAM value"
+    is Overflow -> "RAM value is too large"
+    is Valid ->
+      when {
+        ram.storageCapacity < VirtualDevice.MIN_RAM ->
+          "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
+        else -> null
+      }
   }
 
-private fun validateVmHeapSize(size: StorageCapacityFieldState) =
-  when {
-    size.valueIsEmpty() -> "Specify a VM heap size"
-    size.willOverflow() -> "VM heap size is too large"
-    requireNotNull(size.toStorageCapacity()) < VirtualDevice.MIN_VM_HEAP_SIZE ->
-      "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
-    else -> null
+private fun validateVmHeapSize(size: Result) =
+  when (size) {
+    is Empty -> "Specify a VM heap size"
+    is Overflow -> "VM heap size is too large"
+    is Valid ->
+      when {
+        size.storageCapacity < VirtualDevice.MIN_VM_HEAP_SIZE ->
+          "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
+        else -> null
+      }
   }
 
 @Composable
@@ -657,7 +667,7 @@ internal class StorageGroupState internal constructor(private val device: Virtua
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
       RadioButton.CUSTOM -> {
-        val value = custom.toStorageCapacity()
+        val value = custom.result().storageCapacity
         if (value == null) null else Custom(value.withMaxUnit())
       }
       RadioButton.EXISTING_IMAGE -> ExistingImage(existingImage.text.toString())
@@ -671,8 +681,7 @@ internal class StorageGroupState internal constructor(private val device: Virtua
       !isValid -> false
       device.existingCustomExpandedStorage == null -> false
       else ->
-        device.existingCustomExpandedStorage !=
-          Custom(checkNotNull(custom.toStorageCapacity()).withMaxUnit())
+        device.existingCustomExpandedStorage != Custom(custom.valid().storageCapacity).withMaxUnit()
     }
 
   private companion object {
