@@ -134,12 +134,16 @@ internal class WearHealthServicesPanelController(
       if (isBalloonShowing) {
         userInformationFlow.value = PanelInformation.TemporaryMessage(message)
       } else {
-        userInformationFlow.value = PanelInformation.EmptyMessage
-        Notifications.Bus.notify(
-          Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
-        )
+        notifyWithBalloon(message, type)
       }
     }
+  }
+
+  private fun notifyWithBalloon(message: String, type: MessageType) {
+    userInformationFlow.value = PanelInformation.EmptyMessage
+    Notifications.Bus.notify(
+      Notification(NOTIFICATION_GROUP_ID, message, type.toNotificationType())
+    )
   }
 
   private fun reset() {
