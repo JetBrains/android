@@ -61,11 +61,25 @@ internal class StorageCapacityFieldState internal constructor(value: StorageCapa
   internal var unit by mutableStateOf(value.unit)
   internal val storageCapacity = snapshotFlow { toStorageCapacity() }
 
+  internal fun valueIsEmpty() = value.text.isEmpty()
+
+  internal fun willOverflow() =
+    try {
+      assert(!valueIsEmpty())
+      StorageCapacity(value.text.toString().toLong(), unit)
+      false
+    } catch (exception: NumberFormatException) {
+      // value.text.toString().toLong() overflowed
+      true
+    } catch (exception: ArithmeticException) {
+      // StorageCapacity(value.text.toString().toLong(), unit) can't be expressed in bytes
+      true
+    }
+
   internal fun toStorageCapacity() =
     try {
       StorageCapacity(value.text.toString().toLong(), unit)
-    } catch (exception: NumberFormatException) {
-      // TODO: http://b/373706926
+    } catch (exception: RuntimeException) {
       null
     }
 }
