@@ -28,6 +28,7 @@
                         serviceInterface="com.android.tools.idea.editing.metrics.CodeEditedMetricsService"/>
 
     <typedHandler implementation="com.android.tools.idea.editing.metrics.CodeEditedTypedHandlerDelegate"/>
+    <backspaceHandlerDelegate implementation="com.android.tools.idea.editing.metrics.CodeEditedBackspaceHandlerDelegate"/>
     <editorFactoryListener implementation="com.android.tools.idea.editing.metrics.CodeEditedEditorFactoryListener"/>
   </extensions>
   <projectListeners>
