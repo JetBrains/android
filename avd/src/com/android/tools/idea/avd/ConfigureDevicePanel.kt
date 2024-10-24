@@ -131,17 +131,19 @@ private fun Tabs(
   val devicePanelState = remember {
     if (initialSystemImage == null) {
       DevicePanelState(
-        AndroidVersionSelection(
-          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-        ),
-        servicesSet.firstOrNull(),
+        selectedApi =
+          AndroidVersionSelection(
+            androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+          ),
+        selectedServices = servicesSet.firstOrNull(),
       )
     } else {
       DevicePanelState(
-        AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
-        initialSystemImage.getServices(),
-        !initialSystemImage.androidVersion.isBaseExtension,
-        initialSystemImage.isRecommended(),
+        selectedApi =
+          AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
+        selectedServices = initialSystemImage.getServices(),
+        showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
+        showUnsupportedSystemImages = !initialSystemImage.isSupported(),
       )
     }
   }

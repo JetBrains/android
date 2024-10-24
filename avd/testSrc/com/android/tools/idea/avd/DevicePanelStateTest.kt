@@ -32,7 +32,7 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 9, false)))
 
     // Act
-    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(images, state.filter(images))
@@ -48,7 +48,7 @@ class DevicePanelStateTest {
       )
 
     // Act
-    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(images, state.filter(images))
@@ -61,7 +61,7 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(34, null, 8, false)), image)
 
     // Act
-    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(listOf(image), state.filter(images))
@@ -74,7 +74,7 @@ class DevicePanelStateTest {
     val images = listOf(mockSystemImage(AndroidVersion(33, null, 3, true)), image)
 
     // Act
-    val state = DevicePanelState(API, null, showOnlyRecommendedSystemImages = false)
+    val state = DevicePanelState(API, null, showUnsupportedSystemImages = true)
 
     // Assert
     assertEquals(listOf(image), state.filter(images))
