@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
+import com.android.testutils.AssumeUtil
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.stats.RunStats
@@ -32,6 +33,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,6 +76,12 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     androidTestRunConfiguration.PACKAGE_NAME = "com.example.test"
 
     return ExecutionEnvironment(executor, DefaultStudioProgramRunner(), configSettings, projectRule.project)
+  }
+
+  @Before
+  fun assumeNotWindows() {
+    // Skip tests on Windows. AndroidProjectRule is flaky on Windows. b/375406411
+    AssumeUtil.assumeNotWindows()
   }
 
   @Test
