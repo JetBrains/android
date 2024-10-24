@@ -29,19 +29,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.flags.Flag
+import com.android.tools.adtui.compose.IntUiPaletteDefaults
+import com.android.tools.adtui.compose.rememberColor
+import com.intellij.openapi.application.invokeLater
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Typography
 import org.jetbrains.jewel.ui.component.painterResource
-import org.jetbrains.jewel.ui.theme.colorPalette
-import com.intellij.openapi.application.invokeLater
-
 
 /** Class representing a Studio Labs Feature Panel. */
 class StudioLabsFeaturePanelUi(
@@ -61,11 +62,13 @@ class StudioLabsFeaturePanelUi(
         Modifier.width(300.dp)
           .clip(RoundedCornerShape(8.dp))
           .background(
-            if (JewelTheme.isDark) {
-              JewelTheme.colorPalette.gray(3)
-            } else {
-              JewelTheme.colorPalette.gray(12)
-            }
+            rememberColor(
+              key = "StudioLabs.featurePanel.background",
+              darkFallbackKey = "ColorPalette.Gray3",
+              darkDefault = Color(IntUiPaletteDefaults.Dark.Gray3),
+              lightFallbackKey = "ColorPalette.Gray12",
+              lightDefault = Color(IntUiPaletteDefaults.Light.Gray12),
+            )
           )
     ) {
       Image(
@@ -99,10 +102,8 @@ class StudioLabsFeaturePanelUi(
   }
 
   fun apply() {
-    val newValue  = currentState.value
-    return invokeLater {
-      flag.override(newValue)
-    }
+    val newValue = currentState.value
+    return invokeLater { flag.override(newValue) }
   }
 
   fun reset() {
