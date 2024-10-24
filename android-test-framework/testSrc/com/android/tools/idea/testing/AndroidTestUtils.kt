@@ -19,6 +19,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.testing.AndroidTestUtilsHelpers.splitWindows
 import com.android.tools.res.LocalResourceRepository
 import com.android.utils.text.ellipsize
 import com.google.common.truth.Truth.assertWithMessage
@@ -50,6 +51,12 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.EDT
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.SwingUtilities
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -59,12 +66,6 @@ import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.runner.Description
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.SwingUtilities
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /** Finds an [IntentionAction] with given name, if present. */
 fun CodeInsightTestFixture.getIntentionAction(message: String) =
@@ -113,75 +114,35 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
     ReplaceWith(
       expression = "this.getEnclosing<T>(window)",
       imports = ["com.android.tools.idea.testing.getEnclosing"],
-    )
+    ),
 )
 inline fun <reified T : PsiElement> CodeInsightTestFixture.findParentElement(window: String): T =
   getEnclosing(window)
 
 /**
- * Returns the smallest [T] in the currently open editor that completely contains the range between
- * the first and last '|' characters in the [window]. If no '|' characters are present, they are
- * assumed to be at the beginning and end of [window]. If one is present, it is assumed to represent
- * both markers.
- *
- * I.e.,
- * * `"foo"` => `"|foo|"`: matches from beginning of "foo" to end of "foo"
- * * `"f|oo"` => `"f||oo"`: matches one position between the 'f' and first 'o'
- * * `"f|o|o"`: matches around the first 'o'
+ * Returns the smallest [T] in the currently open editor that completely contains the range defined
+ * by [window], which is expanded according to [splitWindows].
  */
 inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(window: String): T =
   file.getEnclosing(window)
 
 /**
- * Returns the smallest [T] in the currently open editor that completely contains the range between
- * the first and last '|' characters in the two [windows], respectively. The second element of
- * [windows] is always assumed to start at or after the first element. If no '|' character is
- * present in the first or second window, it is assumed to be at the start or end, respectively.
- *
- * I.e.,
- * * `"foo" to "foo"` => `"|foo" to "foo|"`: matches from beginning of "foo" to end of "foo"
- * * `"f|oo" to "foo"` => `"f|oo" to "foo|"`: matches from before the first 'o' to the end of "foo"
- * * `"foo" to "bar"` => `"|foo" to "bar|"`: matches from the start of the first time "foo" is seen
- *   to the end of the next time (after the first "foo") that "bar" is seen.
+ * Returns the smallest [T] in the currently open editor that completely contains the range defined
+ * by [windows]. See [splitWindows] for more on how this works.
  */
 inline fun <reified T : PsiElement> CodeInsightTestFixture.getEnclosing(
   windows: Pair<String, String>
 ): T = file.getEnclosing(windows)
 
 /**
- * Returns the smallest [T] in this [PsiFile] that completely contains the range between the first
- * and last '|' characters in the [window]. If no '|' characters are present, they are assumed to be
- * at the beginning and end of [window]. If only one is present, it is assumed to represent both
- * markers.
- *
- * I.e.,
- * * `"foo"` => `"|foo|"`: matches from beginning of "foo" to end of "foo"
- * * `"f|oo"` => `"f||oo"`: matches one position between the 'f' and first 'o'
- * * `"f|o|o"`: matches around the first 'o'
+ * Returns the smallest [T] in this [PsiFile] that completely contains the range defined by
+ * [window]. See [splitWindows] for more on how this works.
  */
-inline fun <reified T> PsiFile.getEnclosing(window: String): T =
-  when (window.countChar('|')) {
-    0,
-    1 -> getEnclosing(window to window)
-    2 -> {
-      val windowStart = window.reversed().replaceFirst("|", "").reversed()
-      val windowEnd = window.replaceFirst("|", "")
-      getEnclosing(windowStart to windowEnd)
-    }
-    else -> throw IllegalArgumentException("Must include 0, 1, or 2 '|' characters in the window!")
-  }
+inline fun <reified T> PsiFile.getEnclosing(window: String): T = getEnclosing(splitWindows(window))
 
 /**
- * Returns the smallest [T] in this [PsiFile] that completely contains the range between the first
- * and last '|' characters in the two [windows], respectively. The second element of [windows] is
- * always assumed to start at or after the first element. If no '|' character is present in the
- * first or second window, it is assumed to be at the start or end, respectively.
- *
- * I.e.,
- * * `"foo" to "foo"` => `"|foo" to "foo|"`: matches from beginning of "foo" to end of "foo"
- * * `"f|oo" to "foo"` => `"f|oo" to "foo|"`: matches from before the first 'o' to the end of "foo"
- * * `"foo" to "bar"` => `"|foo" to "bar|"`: matches from the start of the first time "foo" is seen
- *   to the end of the next time (after the first "foo") that "bar" is seen.
+ * Returns the smallest [T] in this [PsiFile] that completely contains the range specified by
+ * [windows]. See [splitWindows] for more on how this works.
  */
 inline fun <reified T> PsiFile.getEnclosing(windows: Pair<String, String>): T {
   val fixedFirst = windows.first.takeIf { it.countChar('|') > 0 } ?: "|${windows.first}"
@@ -247,6 +208,20 @@ private fun String.offsetForWindow(window: String, startIndex: Int = 0): Int {
     .that(start)
     .isAtLeast(0)
   return start + delta
+}
+
+/** Sets the selection to the range defined by [window]. See [splitWindows] for more information. */
+fun CodeInsightTestFixture.setSelection(window: String) = setSelection(splitWindows(window))
+
+/**
+ * Sets the selection to the range defined by [windows]. See [splitWindows] for more information.
+ */
+fun CodeInsightTestFixture.setSelection(windows: Pair<String, String>) {
+  val fixedFirst = windows.first.takeIf { it.countChar('|') > 0 } ?: "|${windows.first}"
+  val fixedSecond = windows.second.takeIf { it.countChar('|') > 0 } ?: "${windows.second}|"
+  val startOffset = offsetForWindow(fixedFirst)
+  val endOffset = offsetForWindow(fixedSecond, startOffset)
+  editor.selectionModel.setSelection(startOffset, endOffset)
 }
 
 /**
@@ -341,7 +316,7 @@ fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): Psi
  */
 fun <T> runDispatching(
   context: CoroutineContext = EmptyCoroutineContext,
-  block: suspend CoroutineScope.() -> T
+  block: suspend CoroutineScope.() -> T,
 ): T {
   require(
     SwingUtilities.isEventDispatchThread()
@@ -363,7 +338,7 @@ fun <T> runDispatching(
 fun waitForResourceRepositoryUpdates(
   facet: AndroidFacet,
   timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS
+  unit: TimeUnit = TimeUnit.SECONDS,
 ) {
   waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
@@ -374,12 +349,12 @@ fun waitForResourceRepositoryUpdates(
 fun waitForResourceRepositoryUpdates(
   module: Module,
   timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS
+  unit: TimeUnit = TimeUnit.SECONDS,
 ) {
   waitForUpdates(
     StudioResourceRepositoryManager.getInstance(module)!!.projectResources,
     timeout,
-    unit
+    unit,
   )
 }
 
@@ -389,7 +364,7 @@ fun waitForResourceRepositoryUpdates(
 fun waitForUpdates(
   repository: LocalResourceRepository<*>,
   timeout: Long = 2,
-  unit: TimeUnit = TimeUnit.SECONDS
+  unit: TimeUnit = TimeUnit.SECONDS,
 ) {
   if (EDT.isCurrentThreadEdt()) {
     EDT.dispatchAllInvocationEvents()
@@ -424,7 +399,7 @@ private fun PsiFile.invalidateDocumentCache() =
  */
 fun CodeInsightTestFixture.addFileToProjectAndInvalidate(
   relativePath: String,
-  fileText: String
+  fileText: String,
 ): PsiFile = addFileToProject(relativePath, fileText).also { it.invalidateDocumentCache() }
 
 @Suppress("UnstableApiUsage")
@@ -438,3 +413,39 @@ val Description.shortDisplayName: String
     val methodName = methodName?.substringBefore('[') // Truncate parameterized tests.
     return if (methodName != null) "${className}.${methodName}" else className
   }
+
+/** Exists mostly to keep helper functions out of the top-level scope. */
+object AndroidTestUtilsHelpers {
+  /**
+   * Turns [window] and into a [Pair] of window [String]s.
+   *
+   * If [window] contains zero or one '|' character, the returned value is simply a [Pair] where
+   * both elements are equal to [window]. If there are 2 '|' characters, the [Pair]'s first element
+   * has the second '|' character removed, while the second element has the first '|' character
+   * removed.
+   *
+   * The [Pair] of windows represents the range between the first and last '|' characters in the two
+   * [windows], respectively. The second element of [windows] is always assumed to start at or after
+   * the first element. If no '|' character is present in the first (or second) window, it is
+   * assumed to be at the start (or end, respectively).
+   *
+   * I.e.,
+   * * `"foo" to "foo"` => `"|foo" to "foo|"`: matches from beginning of "foo" to end of "foo"
+   * * `"f|oo" to "foo"` => `"f|oo" to "foo|"`: matches from before the first 'o' to the end of
+   *   "foo"
+   * * `"foo" to "bar"` => `"|foo" to "bar|"`: matches from the start of the first time "foo" is
+   *   seen to the end of the next time (after the first "foo") that "bar" is seen.
+   */
+  fun splitWindows(window: String) =
+    when (window.countChar('|')) {
+      0,
+      1 -> window to window
+      2 -> {
+        val windowStart = window.reversed().replaceFirst("|", "").reversed()
+        val windowEnd = window.replaceFirst("|", "")
+        windowStart to windowEnd
+      }
+      else ->
+        throw IllegalArgumentException("Must include 0, 1, or 2 '|' characters in the window!")
+    }
+}
