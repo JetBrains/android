@@ -150,8 +150,12 @@ internal class WearHealthServicesPanelController(
     workerScope.launch {
       stateManager
         .reset()
-        .onSuccess { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.success"), MessageType.INFO) }
-        .onFailure { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
+        .onSuccess {
+          notifyUserInPanelIfOpen(message("wear.whs.panel.reset.success"), MessageType.INFO)
+        }
+        .onFailure {
+          notifyUserInPanelIfOpen(message("wear.whs.panel.reset.failure"), MessageType.ERROR)
+        }
     }
   }
 
@@ -165,10 +169,13 @@ internal class WearHealthServicesPanelController(
       stateManager
         .applyChanges()
         .onSuccess {
-          notifyUserInPanelIfOpen(message("wear.whs.panel.$applyType.$changesApplied.success"), MessageType.INFO)
+          notifyWithBalloon(
+            message("wear.whs.panel.$applyType.$changesApplied.success"),
+            MessageType.INFO,
+          )
         }
         .onFailure {
-          notifyUserInPanelIfOpen(
+          notifyWithBalloon(
             message("wear.whs.panel.$applyType.$changesApplied.failure"),
             MessageType.ERROR,
           )
@@ -181,8 +188,12 @@ internal class WearHealthServicesPanelController(
     workerScope.launch {
       stateManager
         .triggerEvent(eventTrigger)
-        .onSuccess { notifyUserInPanelIfOpen(message("wear.whs.event.trigger.success"), MessageType.INFO) }
-        .onFailure { notifyUserInPanelIfOpen(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
+        .onSuccess {
+          notifyWithBalloon(message("wear.whs.event.trigger.success"), MessageType.INFO)
+        }
+        .onFailure {
+          notifyWithBalloon(message("wear.whs.event.trigger.failure"), MessageType.ERROR)
+        }
     }
   }
 }
