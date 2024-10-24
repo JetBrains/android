@@ -128,7 +128,7 @@ internal class WearHealthServicesPanelController(
     balloon.show(position, Balloon.Position.above)
   }
 
-  private fun notifyUser(message: String, type: MessageType) {
+  private fun notifyUserInPanelIfOpen(message: String, type: MessageType) {
     uiScope.launch {
       val isBalloonShowing = currentBalloon != null
       if (isBalloonShowing) {
@@ -146,8 +146,8 @@ internal class WearHealthServicesPanelController(
     workerScope.launch {
       stateManager
         .reset()
-        .onSuccess { notifyUser(message("wear.whs.panel.reset.success"), MessageType.INFO) }
-        .onFailure { notifyUser(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
+        .onSuccess { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.success"), MessageType.INFO) }
+        .onFailure { notifyUserInPanelIfOpen(message("wear.whs.panel.reset.failure"), MessageType.ERROR) }
     }
   }
 
@@ -161,10 +161,10 @@ internal class WearHealthServicesPanelController(
       stateManager
         .applyChanges()
         .onSuccess {
-          notifyUser(message("wear.whs.panel.$applyType.$changesApplied.success"), MessageType.INFO)
+          notifyUserInPanelIfOpen(message("wear.whs.panel.$applyType.$changesApplied.success"), MessageType.INFO)
         }
         .onFailure {
-          notifyUser(
+          notifyUserInPanelIfOpen(
             message("wear.whs.panel.$applyType.$changesApplied.failure"),
             MessageType.ERROR,
           )
@@ -177,8 +177,8 @@ internal class WearHealthServicesPanelController(
     workerScope.launch {
       stateManager
         .triggerEvent(eventTrigger)
-        .onSuccess { notifyUser(message("wear.whs.event.trigger.success"), MessageType.INFO) }
-        .onFailure { notifyUser(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
+        .onSuccess { notifyUserInPanelIfOpen(message("wear.whs.event.trigger.success"), MessageType.INFO) }
+        .onFailure { notifyUserInPanelIfOpen(message("wear.whs.event.trigger.failure"), MessageType.ERROR) }
     }
   }
 }
