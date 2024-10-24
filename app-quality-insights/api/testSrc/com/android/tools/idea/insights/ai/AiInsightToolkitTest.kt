@@ -22,12 +22,16 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.Language
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -58,6 +62,13 @@ class AiInsightToolkitTest {
     projectRule.project.replaceService(
       ToolWindowManager::class.java,
       manager,
+      projectRule.disposable,
+    )
+    application.replaceService(
+      AppInsightsExperimentFetcher::class.java,
+      object : AppInsightsExperimentFetcher {
+        override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = Experiment.ALL_SOURCES
+      },
       projectRule.disposable,
     )
   }

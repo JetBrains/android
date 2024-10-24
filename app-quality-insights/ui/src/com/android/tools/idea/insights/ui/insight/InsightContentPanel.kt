@@ -90,7 +90,7 @@ class InsightContentPanel(
         AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT) !=
           Experiment.UNKNOWN
       ) {
-        add(InsightDisclaimerPanel(scope, currentInsightFlow, onRefresh))
+        add(InsightDisclaimerPanel(controller, scope, currentInsightFlow, onRefresh))
       }
       add(insightTextPane)
 
