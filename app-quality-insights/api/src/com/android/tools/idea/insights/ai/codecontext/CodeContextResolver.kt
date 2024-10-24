@@ -31,7 +31,12 @@ import com.intellij.psi.search.ProjectScope
 
 data class CodeContextData(val codeContext: List<CodeContext>, val experimentType: Experiment) {
   companion object {
-    val EMPTY = CodeContextData(emptyList(), Experiment.CONTROL)
+    /**
+     * The default experiment state for users who disable context sharing settings or for whatever
+     * reason not assigned to an experiment
+     */
+    val UNASSIGNED = CodeContextData(emptyList(), Experiment.UNKNOWN)
+    val CONTROL = CodeContextData(emptyList(), Experiment.CONTROL)
   }
 }
 
@@ -65,8 +70,8 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
         Experiment.TOP_SOURCE -> 1
         Experiment.TOP_THREE_SOURCES -> 3
         Experiment.ALL_SOURCES -> Integer.MAX_VALUE
-        Experiment.CONTROL,
-        Experiment.UNKNOWN -> return CodeContextData.EMPTY
+        Experiment.CONTROL -> return CodeContextData.CONTROL
+        Experiment.UNKNOWN -> return CodeContextData.UNASSIGNED
       }
     return CodeContextData(getSource(stack, limit), experiment)
   }

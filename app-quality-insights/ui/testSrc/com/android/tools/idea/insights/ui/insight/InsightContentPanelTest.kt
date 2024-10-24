@@ -23,6 +23,8 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.protobuf.Any
@@ -31,11 +33,13 @@ import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent.createTestEvent
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
@@ -83,6 +87,8 @@ class InsightContentPanelTest {
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private val scope = CoroutineScope(EmptyCoroutineContext)
 
+  private lateinit var experimentFetcher: FakeExperimentFetcher
+
   @Before
   fun setup() = runBlocking {
     doReturn(projectRule.project).whenever(mockController).project
@@ -94,6 +100,13 @@ class InsightContentPanelTest {
       projectRule.disposable,
     )
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
+    experimentFetcher = FakeExperimentFetcher(Experiment.CONTROL)
+    ApplicationManager.getApplication()
+      .replaceService(
+        AppInsightsExperimentFetcher::class.java,
+        experimentFetcher,
+        projectRule.disposable,
+      )
     insightContentPanel =
       InsightContentPanel(
         mockController,
@@ -309,6 +322,28 @@ class InsightContentPanelTest {
     assertThat(secondaryText)
       .isEqualTo("Insights feature is temporarily unavailable, check back later.")
   }
+
+  @Test
+  fun `disclaimer is not shown for users not assigned to a code context experiment`() =
+    runBlocking {
+      experimentFetcher.experiment = Experiment.UNKNOWN
+      val insightContentPanel =
+        InsightContentPanel(
+          mockController,
+          scope,
+          currentInsightFlow,
+          projectRule.disposable,
+          object : InsightPermissionDeniedHandler {
+            override fun handlePermissionDenied(
+              permissionDenied: LoadingState.PermissionDenied,
+              statusText: StatusText,
+            ) {}
+          },
+          { enableInsightDeferred.complete(true) },
+        ) {}
+
+      assertThat(FakeUi(insightContentPanel).findComponent<InsightDisclaimerPanel>()).isNull()
+    }
 
   private suspend fun delayUntilStatusTextVisible() =
     delayUntilCondition(200) { insightContentPanel.emptyStateText.isStatusVisible }

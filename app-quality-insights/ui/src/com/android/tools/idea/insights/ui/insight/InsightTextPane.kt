@@ -26,7 +26,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.util.ui.HTMLEditorKitBuilder
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import javax.swing.JTextPane
 import javax.swing.text.DefaultCaret
@@ -44,7 +43,6 @@ class InsightTextPane : JTextPane(), CopyProvider {
       HTMLEditorKitBuilder.simple().apply { styleSheet.addRule("body { white-space: pre-wrap; }") }
     isEditable = false
     isOpaque = false
-    border = JBUI.Borders.empty(8)
     font = StartupUiUtil.labelFont
 
     val actionManager = ActionManager.getInstance()

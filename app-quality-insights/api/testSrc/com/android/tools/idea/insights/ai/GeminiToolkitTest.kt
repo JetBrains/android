@@ -69,7 +69,7 @@ class GeminiToolkitTest {
     val toolKit = GeminiToolkitImpl(projectRule.project)
 
     fakeGeminiPluginApi.contextAllowed = false
-    assertThat(toolKit.getSource(StacktraceGroup())).isEqualTo(CodeContextData.EMPTY)
+    assertThat(toolKit.getSource(StacktraceGroup())).isEqualTo(CodeContextData.UNASSIGNED)
 
     fakeGeminiPluginApi.contextAllowed = true
     assertThat(toolKit.getSource(StacktraceGroup()).codeContext).isNotEmpty()

@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.insights.experiments.InsightFeedback
-import com.android.tools.idea.insights.experiments.supportsContextSharing
+import com.android.tools.idea.insights.filterReady
 import com.android.tools.idea.insights.mapReadyOrDefault
 import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -35,8 +31,6 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.ui.ClientProperty
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JButtonAction
@@ -49,8 +43,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
 private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
@@ -59,7 +54,6 @@ class InsightBottomPanel(
   private val controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
-  private val onEnhanceInsight: (Boolean) -> Unit,
 ) : JPanel() {
 
   private val actionManager: ActionManager
@@ -74,30 +68,6 @@ class InsightBottomPanel(
         .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
     ) {
       controller.submitInsightFeedback(it)
-    }
-
-  private val enableCodeContextButton =
-    object : JButton("Use code context") {
-      init {
-        toolTipText = "Grant Gemini in Firebase access to your project code"
-        isVisible = false
-
-        ClientProperty.put(this, DarculaButtonUI.DEFAULT_STYLE_KEY, true)
-
-        addActionListener {
-          val dialogBuilder =
-            MessageDialogBuilder.okCancel(
-              "Confirm Context Sharing",
-              "<html>Android Studio needs to send code and context from " +
-                "your project to enhance the insight for this issue.<br>" +
-                "Would you like to continue?</html>",
-            )
-          if (dialogBuilder.ask(this@InsightBottomPanel)) {
-            onEnhanceInsight(true)
-            isVisible = false
-          }
-        }
-      }
     }
 
   private val copyAction = actionManager.getAction(IdeActions.ACTION_COPY)
@@ -134,32 +104,15 @@ class InsightBottomPanel(
     val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
     val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
     rightToolbar.targetComponent = this
-
-    add(enableCodeContextButton)
     add(feedbackPanel)
     add(rightToolbar.component)
 
     border = JBUI.Borders.customLineTop(JBColor.border())
 
-    scope.launch {
-      currentInsightFlow.distinctUntilChanged().collect { state ->
-        when (state) {
-          is LoadingState.Ready -> {
-            feedbackPanel.resetFeedback()
-            enableCodeContextButton.isVisible = canShowEnableContextButton(state)
-          }
-          else -> {
-            enableCodeContextButton.isVisible = false
-          }
-        }
-      }
-    }
+    currentInsightFlow
+      .distinctUntilChanged()
+      .filterReady()
+      .onEach { feedbackPanel.resetFeedback() }
+      .launchIn(scope)
   }
-
-  private fun canShowEnableContextButton(state: LoadingState.Ready<AiInsight?>) =
-    state.value?.isEnhancedWithCodeContext() == false &&
-      !GeminiPluginApi.getInstance().isContextAllowed(controller.project) &&
-      AppInsightsExperimentFetcher.instance
-        .getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
-        .supportsContextSharing()
 }

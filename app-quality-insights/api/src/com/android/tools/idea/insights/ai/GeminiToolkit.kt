@@ -43,7 +43,7 @@ class GeminiToolkitImpl(private val project: Project) : GeminiToolkit {
     contextSharingOverride: Boolean,
   ): CodeContextData {
     if (!GeminiPluginApi.getInstance().isContextAllowed(project) && !contextSharingOverride)
-      return CodeContextData.EMPTY
+      return CodeContextData.UNASSIGNED
     return codeContextResolver.getSource(stack)
   }
 }

@@ -556,11 +556,11 @@ class VitalsClientTest {
       ISSUE1.issueDetails.fatality,
       ISSUE1.sampleEvent,
       TimeIntervalFilter.ONE_DAY,
-      CodeContextData.EMPTY,
+      CodeContextData.UNASSIGNED,
       false,
     )
     assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true, experiment = Experiment.CONTROL))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test
@@ -584,7 +584,7 @@ class VitalsClientTest {
           ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
-          CodeContextData.EMPTY,
+          CodeContextData.UNASSIGNED,
           false,
         )
       )
@@ -623,11 +623,11 @@ class VitalsClientTest {
           ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
-          CodeContextData.EMPTY,
+          CodeContextData.UNASSIGNED,
           true,
         )
       )
-      .isEqualTo(LoadingState.Ready(newInsight.copy(experiment = Experiment.CONTROL)))
+      .isEqualTo(LoadingState.Ready(newInsight))
   }
 
   @Test
@@ -649,7 +649,7 @@ class VitalsClientTest {
         FailureType.ANR,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.EMPTY,
+        CodeContextData.UNASSIGNED,
       )
 
     assertThat(insight)

@@ -46,6 +46,11 @@ class AppInsightExperimentFetcherImpl : AppInsightsExperimentFetcher {
 }
 
 private val CONTEXT_SHARING_EXPERIMENTS =
-  setOf(Experiment.TOP_SOURCE, Experiment.TOP_THREE_SOURCES, Experiment.ALL_SOURCES)
+  setOf(
+    Experiment.CONTROL,
+    Experiment.TOP_SOURCE,
+    Experiment.TOP_THREE_SOURCES,
+    Experiment.ALL_SOURCES,
+  )
 
 fun Experiment.supportsContextSharing() = this in CONTEXT_SHARING_EXPERIMENTS
