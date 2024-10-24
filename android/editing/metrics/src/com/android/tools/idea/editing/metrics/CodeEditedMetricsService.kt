@@ -19,6 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationListener
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.util.application
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineDispatcher
@@ -94,6 +95,9 @@ constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
     val newFragment = event.newFragment
     val oldFragment = event.oldFragment
     if (newFragment.isEmpty() && oldFragment.isEmpty()) return
+
+    val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+    if (!file.isInLocalFileSystem) return
 
     codeEditingAction
       .get()
