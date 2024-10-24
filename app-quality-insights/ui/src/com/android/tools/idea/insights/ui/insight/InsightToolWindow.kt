@@ -33,7 +33,6 @@ object InsightToolWindow {
     projectController: AppInsightsProjectLevelController,
     parentDisposable: Disposable,
     permissionDeniedHandler: InsightPermissionDeniedHandler,
-    enableInsightHandler: () -> Unit,
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Insights",
@@ -46,12 +45,7 @@ object InsightToolWindow {
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
       ToolWindowDefinition.ALLOW_BASICS,
     ) {
-      InsightToolWindowContent(
-        projectController,
-        parentDisposable,
-        permissionDeniedHandler,
-        enableInsightHandler,
-      )
+      InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
     }
   }
 }
@@ -60,18 +54,12 @@ private class InsightToolWindowContent(
   projectController: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-  enableInsightHandler: () -> Unit,
 ) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {
     component.add(
-      InsightMainPanel(
-        projectController,
-        parentDisposable,
-        permissionDeniedHandler,
-        enableInsightHandler,
-      ),
+      InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler),
       BorderLayout.CENTER,
     )
   }

@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -38,6 +40,9 @@ class GeminiToolkitTest {
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
+  private lateinit var scope: CoroutineScope
+  private lateinit var geminiToolWindow: FakeGeminiToolWindow
+
   @Before
   fun setUp() {
     fakeGeminiPluginApi = FakeGeminiPluginApi()
@@ -46,11 +51,20 @@ class GeminiToolkitTest {
       listOf(fakeGeminiPluginApi),
       projectRule.disposable,
     )
+
+    scope = AndroidCoroutineScope(projectRule.disposable)
+    geminiToolWindow = FakeGeminiToolWindow(projectRule.project)
+    val manager = FakeToolWindowManager(projectRule.project, geminiToolWindow)
+    projectRule.project.replaceService(
+      ToolWindowManager::class.java,
+      manager,
+      projectRule.disposable,
+    )
   }
 
   @Test
   fun `test is gemini enabled`() {
-    val toolKit = GeminiToolkitImpl(projectRule.project)
+    val toolKit = GeminiToolkitImpl(projectRule.project, StubInsightsOnboardingProvider())
 
     fakeGeminiPluginApi.available = false
     assertThat(toolKit.isGeminiEnabled).isEqualTo(false)
@@ -61,12 +75,12 @@ class GeminiToolkitTest {
 
   @Test
   fun `code context resolver returns empty result when context sharing is off`() = runBlocking {
-    projectRule.project.replaceService(
-      CodeContextResolver::class.java,
-      FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),
-      projectRule.disposable,
-    )
-    val toolKit = GeminiToolkitImpl(projectRule.project)
+    val toolKit =
+      GeminiToolkitImpl(
+        projectRule.project,
+        StubInsightsOnboardingProvider(),
+        FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),
+      )
 
     fakeGeminiPluginApi.contextAllowed = false
     assertThat(toolKit.getSource(StacktraceGroup())).isEqualTo(CodeContextData.UNASSIGNED)

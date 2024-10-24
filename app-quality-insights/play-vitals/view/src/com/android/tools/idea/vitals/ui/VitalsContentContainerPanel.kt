@@ -108,7 +108,7 @@ class VitalsContentContainerPanel(
               projectController,
               this@VitalsContentContainerPanel,
               VitalsInsightPermissionDeniedHandler(),
-            ) {}
+            )
           )
         }
 

@@ -43,6 +43,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class VitalsTabProviderTest {
 
@@ -99,8 +100,11 @@ class VitalsTabProviderTest {
       when (index) {
         0 -> {
           assertThat(component.toString()).contains("placeholderContent")
-          modelStateFlow.value =
-            AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+          val stubController =
+            object : StubAppInsightsProjectLevelController() {
+              override val project = projectRule.project
+            }
+          modelStateFlow.value = AppInsightsModel.Authenticated(stubController)
         }
         1 -> {
           assertThat(component).isInstanceOf(VitalsTab::class.java)
@@ -122,6 +126,7 @@ class VitalsTabProviderTest {
     val controller =
       object : StubAppInsightsProjectLevelController() {
         var refreshCount = 0
+        override val project = projectRule.project
 
         override fun refresh() {
           refreshCount++

@@ -20,9 +20,18 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.CONNECTION1
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.FakeGeminiToolkit
+import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
@@ -32,17 +41,16 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
+import java.time.Instant
 import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
@@ -50,6 +58,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -59,7 +68,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
@@ -86,12 +94,32 @@ class InsightContentPanelTest {
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private val scope = CoroutineScope(EmptyCoroutineContext)
+  private val onboardingProvider =
+    object : StubInsightsOnboardingProvider() {
+      override fun performOnboardingAction(connection: Connection) {
+        enableInsightDeferred.complete(true)
+      }
+    }
 
   private lateinit var experimentFetcher: FakeExperimentFetcher
 
   @Before
   fun setup() = runBlocking {
+    doReturn(
+        flowOf(
+          AppInsightsState(
+            Selection(CONNECTION1, listOf(CONNECTION1)),
+            TEST_FILTERS,
+            LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          )
+        )
+      )
+      .whenever(mockController)
+      .state
     doReturn(projectRule.project).whenever(mockController).project
+    doReturn(FakeGeminiToolkit(true, aiInsightOnboardingProvider = onboardingProvider))
+      .whenever(mockController)
+      .geminiToolkit
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.available = false
     ExtensionTestUtil.maskExtensions(
@@ -125,7 +153,6 @@ class InsightContentPanelTest {
             }
           }
         },
-        { enableInsightDeferred.complete(true) },
       ) {}
   }
 
@@ -204,8 +231,8 @@ class InsightContentPanelTest {
   }
 
   @Test
-  fun `test tos not accepted shows enable insight button`() = runBlocking {
-    currentInsightFlow.update { LoadingState.TosNotAccepted }
+  fun `test user needs onboarding shows enable insight button`() = runBlocking {
+    currentInsightFlow.update { LoadingState.Unauthorized("") }
 
     val fakeUi = FakeUi(insightContentPanel)
 
@@ -266,32 +293,6 @@ class InsightContentPanelTest {
   }
 
   @Test
-  fun `show empty state text when gemini is not onboarded, refresh insight when onboarding is complete`() =
-    runBlocking {
-      // Register fake Gemini plugin
-      loginFeatureRule.FEATURE1.name = "Gemini"
-      currentInsightFlow.update { LoadingState.Unauthorized("Gemini is disabled") }
-
-      val fakeUi = FakeUi(insightContentPanel)
-      delayUntilStatusTextVisible()
-
-      assertThat(errorText).isEqualTo(GEMINI_NOT_AVAILABLE)
-      assertThat(secondaryText)
-        .isEqualTo("To see insights, please go through the onboarding process for Gemini")
-
-      val toolbar =
-        fakeUi.findComponent<ActionToolbarImpl> { it.place == "GeminiOnboardingObserver" }
-          ?: fail("Toolbar not found")
-      val action =
-        toolbar.actionGroup.getChildren(null).firstOrNull() ?: fail("Observer action not found")
-
-      fakeGeminiPluginApi.available = true
-      action.update(createTestEvent())
-
-      verify(mockController).refreshInsight(false)
-    }
-
-  @Test
   fun `test unsupported operation`() = runBlocking {
     currentInsightFlow.update { LoadingState.UnsupportedOperation("Some message") }
 
@@ -340,7 +341,7 @@ class InsightContentPanelTest {
             ) {}
           },
           { enableInsightDeferred.complete(true) },
-        ) {}
+        )
 
       assertThat(FakeUi(insightContentPanel).findComponent<InsightDisclaimerPanel>()).isNull()
     }

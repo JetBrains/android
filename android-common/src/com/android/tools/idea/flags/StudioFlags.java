@@ -1786,6 +1786,7 @@ public final class StudioFlags {
       ChannelDefault.enabledUpTo(CANARY)
     );
 
+  // Must re-enable firebase onboarding flow should this be set to true.
   public static final Flag<Boolean> CRASHLYTICS_TITAN_INSIGHT_PROVIDER = new BooleanFlag(
     APP_INSIGHTS,
     "crashlytics.titan.insight.provider",
