@@ -22,8 +22,8 @@ import com.google.common.collect.Maps;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
-import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.Query.SourceFile;
+import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
@@ -107,8 +107,8 @@ class PartialProjectRefresh implements RefreshOperation {
         newSourceFiles.put(sfEntry.getKey(), sfEntry.getValue());
       }
     }
-    Map<Label, Query.Rule> newRules = Maps.newHashMap();
-    for (Map.Entry<Label, Query.Rule> ruleEntry :
+    Map<Label, QueryData.Rule> newRules = Maps.newHashMap();
+    for (Map.Entry<Label, QueryData.Rule> ruleEntry :
         previousState.querySummary().getRulesMap().entrySet()) {
       Path buildPackage = ruleEntry.getKey().getPackage();
       if (!(deletedPackages.contains(buildPackage)

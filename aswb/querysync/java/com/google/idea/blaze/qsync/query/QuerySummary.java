@@ -137,14 +137,15 @@ public abstract class QuerySummary {
   }
 
   /**
-   * An opaque proto buffer to be serialized with the project state and re-create the {@link QuerySummary} using
-   * {@link QuerySummary#create(Query.Summary)}.
+   * An opaque proto buffer to be serialized with the project state and re-create the {@link
+   * QuerySummary} using {@link QuerySummary#create(Query.Summary)}.
    */
   public Query.Summary protoForSerializationOnly() {
     return proto();
   }
 
   private static class StringIndexer {
+
     private final Map<String, Integer> strings = new HashMap<>();
     private final List<String> list = new ArrayList<>();
 
@@ -153,9 +154,10 @@ public abstract class QuerySummary {
       list.add("");
     }
 
-    private Map<Integer, Query.StoredRule> rulesToStoredRules(Map<String, Query.Rule> rulesMap) {
+    private Map<Integer, Query.StoredRule> rulesToStoredRules(
+        Map<String, QueryData.Rule> rulesMap) {
       ImmutableMap.Builder<Integer, Query.StoredRule> r = ImmutableMap.builder();
-      for (Map.Entry<String, Query.Rule> rule : rulesMap.entrySet()) {
+      for (Map.Entry<String, QueryData.Rule> rule : rulesMap.entrySet()) {
         final var key = index(rule.getKey());
         final var value = ruleToStoredRule(rule.getValue());
         r.put(key, value);
@@ -163,23 +165,24 @@ public abstract class QuerySummary {
       return r.build();
     }
 
-    private Query.StoredRule ruleToStoredRule(Query.Rule r) {
-      final var value = Query.StoredRule.newBuilder()
-        .setRuleClass(index(r.getRuleClass()))
-        .addAllSources(index(r.getSourcesList()))
-        .addAllDeps(index(r.getDepsList()))
-        .addAllIdlSources(index(r.getIdlSourcesList()))
-        .addAllRuntimeDeps(index(r.getRuntimeDepsList()))
-        .addAllResourceFiles(index(r.getResourceFilesList()))
-        .setManifest(index(r.getManifest()))
-        .setTestApp(index(r.getTestApp()))
-        .setInstruments(index(r.getInstruments()))
-        .setCustomPackage(index(r.getCustomPackage()))
-        .addAllHdrs(index(r.getHdrsList()))
-        .addAllCopts(index(r.getCoptsList()))
-        .addAllTags(index(r.getTagsList()))
-        .setMainClass(index(r.getMainClass()))
-        .build();
+    private Query.StoredRule ruleToStoredRule(QueryData.Rule r) {
+      final var value =
+          Query.StoredRule.newBuilder()
+              .setRuleClass(index(r.ruleClass()))
+              .addAllSources(index(r.sources()))
+              .addAllDeps(index(r.deps()))
+              .addAllIdlSources(index(r.idlSources()))
+              .addAllRuntimeDeps(index(r.runtimeDeps()))
+              .addAllResourceFiles(index(r.resourceFiles()))
+              .setManifest(index(r.manifest()))
+              .setTestApp(index(r.testApp()))
+              .setInstruments(index(r.instruments()))
+              .setCustomPackage(index(r.customPackage()))
+              .addAllHdrs(index(r.hdrs()))
+              .addAllCopts(index(r.copts()))
+              .addAllTags(index(r.tags()))
+              .setMainClass(index(r.mainClass()))
+              .build();
       return value;
     }
 
@@ -193,7 +196,9 @@ public abstract class QuerySummary {
     }
 
     public List<Integer> index(Collection<String> ss) {
-      return ss.stream().map(s -> strings.computeIfAbsent(s, this::addStringAndGetIndex)).collect(toImmutableList());
+      return ss.stream()
+          .map(s -> strings.computeIfAbsent(s, this::addStringAndGetIndex))
+          .collect(toImmutableList());
     }
 
     public List<String> list() {
@@ -202,34 +207,37 @@ public abstract class QuerySummary {
   }
 
   private static class StringLookup {
+
     private final List<String> list;
 
-    public StringLookup(List<String> list) { this.list = list; }
+    public StringLookup(List<String> list) {
+      this.list = list;
+    }
 
-    private Query.Rule storedRuleToRule(Query.StoredRule r) {
-      return Query.Rule.newBuilder()
-        .setRuleClass(lookup(r.getRuleClass()))
-        .addAllSources(lookup(r.getSourcesList()))
-        .addAllDeps(lookup(r.getDepsList()))
-        .addAllIdlSources(lookup(r.getIdlSourcesList()))
-        .addAllRuntimeDeps(lookup(r.getRuntimeDepsList()))
-        .addAllResourceFiles(lookup(r.getResourceFilesList()))
-        .setManifest(lookup(r.getManifest()))
-        .setTestApp(lookup(r.getTestApp()))
-        .setInstruments(lookup(r.getInstruments()))
-        .setCustomPackage(lookup(r.getCustomPackage()))
-        .addAllHdrs(lookup(r.getHdrsList()))
-        .addAllCopts(lookup(r.getCoptsList()))
-        .addAllTags(lookup(r.getTagsList()))
-        .setMainClass(lookup(r.getMainClass()))
-        .build();
+    private QueryData.Rule storedRuleToRule(Query.StoredRule r) {
+      return QueryData.Rule.builder()
+          .ruleClass(lookup(r.getRuleClass()))
+          .sources(lookup(r.getSourcesList()))
+          .deps(lookup(r.getDepsList()))
+          .idlSources(lookup(r.getIdlSourcesList()))
+          .runtimeDeps(lookup(r.getRuntimeDepsList()))
+          .resourceFiles(lookup(r.getResourceFilesList()))
+          .manifest(lookup(r.getManifest()))
+          .testApp(lookup(r.getTestApp()))
+          .instruments(lookup(r.getInstruments()))
+          .customPackage(lookup(r.getCustomPackage()))
+          .hdrs(lookup(r.getHdrsList()))
+          .copts(lookup(r.getCoptsList()))
+          .tags(lookup(r.getTagsList()))
+          .mainClass(lookup(r.getMainClass()))
+          .build();
     }
 
     public String lookup(Integer s) {
       return list.get(s);
     }
 
-    public List<String> lookup(Collection<Integer> ss) {
+    public ImmutableList<String> lookup(Collection<Integer> ss) {
       return ss.stream().map(list::get).collect(toImmutableList());
     }
   }
@@ -265,7 +273,8 @@ public abstract class QuerySummary {
           //   We could filter the rules here, or even create rule-specific proto messages to
           //   reduce the size of the output proto.
           Query.StoredRule.Builder rule =
-              Query.StoredRule.newBuilder().setRuleClass(indexer.index(target.getRule().getRuleClass()));
+              Query.StoredRule.newBuilder()
+                  .setRuleClass(indexer.index(target.getRule().getRuleClass()));
           for (Build.Attribute a : target.getRule().getAttributeList()) {
             String attributeName = intern(a.getName());
             if (SRCS_ATTRIBUTES.contains(attributeName)) {
@@ -358,10 +367,13 @@ public abstract class QuerySummary {
    * <p>This is a map of rule label to the {@link Query.Rule} proto representing it.
    */
   @Memoized
-  public ImmutableMap<Label, Query.Rule> getRulesMap() {
+  public ImmutableMap<Label, QueryData.Rule> getRulesMap() {
     StringLookup lookup = new StringLookup(proto().getStringStorage().getIndexedStringsList());
     return proto().getStoredRulesMap().entrySet().stream()
-      .collect(toImmutableMap(e -> Label.of(lookup.lookup(e.getKey())), t -> lookup.storedRuleToRule(t.getValue())));
+        .collect(
+            toImmutableMap(
+                e -> Label.of(lookup.lookup(e.getKey())),
+                t -> lookup.storedRuleToRule(t.getValue())));
   }
 
   @Memoized
@@ -430,6 +442,7 @@ public abstract class QuerySummary {
    * QuerySummary#create(InputStream)} instead.
    */
   public static class Builder {
+
     StringIndexer indexer = new StringIndexer();
     private final Query.Summary.Builder builder =
         Query.Summary.newBuilder().setVersion(PROTO_VERSION);
@@ -448,15 +461,15 @@ public abstract class QuerySummary {
       return this;
     }
 
-    public Builder putAllRules(Map<Label, Query.Rule> rulesMap) {
+    public Builder putAllRules(Map<Label, QueryData.Rule> rulesMap) {
       builder.putAllStoredRules(
           indexer.rulesToStoredRules(
-            rulesMap.entrySet().stream()
-              .collect(toImmutableMap(e -> e.getKey().toString(), Map.Entry::getValue))));
+              rulesMap.entrySet().stream()
+                  .collect(toImmutableMap(e -> e.getKey().toString(), Map.Entry::getValue))));
       return this;
     }
 
-    public Builder putRules(Label label, Query.Rule rule) {
+    public Builder putRules(Label label, QueryData.Rule rule) {
       builder.putStoredRules(indexer.index(label.toString()), indexer.ruleToStoredRule(rule));
       return this;
     }
@@ -472,12 +485,16 @@ public abstract class QuerySummary {
     }
 
     public Builder putPackagesWithErrors(Path packageWithErrors) {
-      builder.addPackagesWithErrors(intern(Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD").toString()));
+      builder.addPackagesWithErrors(
+          intern(
+              Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD")
+                  .toString()));
       return this;
     }
 
     public QuerySummary build() {
-      builder.setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()));
+      builder.setStringStorage(
+          Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()));
       return QuerySummary.create(builder.build());
     }
   }

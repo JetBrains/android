@@ -72,8 +72,12 @@ public class QuerySummaryTestBuilder {
 
     QuerySummary.Builder builder = QuerySummary.newBuilder();
     builder.putAllRules(
-      packages.stream().filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
-        .collect(toImmutableMap(l -> Label.of(l.toString()), l -> Query.Rule.newBuilder().setRuleClass("java_library").build())));
+        packages.stream()
+            .filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
+            .collect(
+                toImmutableMap(
+                    l -> Label.of(l.toString()),
+                    l -> QueryData.Rule.builder().ruleClass("java_library").build())));
     builder.putAllSourceFiles(
       sourceFiles.stream().collect(toImmutableMap(src -> src, src -> SourceFile.newBuilder()
         .setLocation(src + ":1:1")
