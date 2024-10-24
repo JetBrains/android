@@ -62,7 +62,7 @@ class InsightsTrackerTest {
   private lateinit var tracker: AppInsightsTracker
 
   private val editor
-    get() = console.editor
+    get() = console.editor!!
 
   @Before
   fun setUp() {
@@ -112,11 +112,11 @@ class InsightsTrackerTest {
     )
 
     // Click on the hyperlink
-    console.editor.caretModel.moveToOffset(
-      console.editor.document.textLength - "Activity.kt:4)".length
+    editor.caretModel.moveToOffset(
+      editor.document.textLength - "Activity.kt:4)".length
     )
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     mouse.clickAtXY(point.x, point.y)
@@ -152,9 +152,9 @@ class InsightsTrackerTest {
     )
 
     // Click on the ", " inlay
-    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    editor.caretModel.moveToOffset(editor.document.textLength - 1)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     mouse.clickAtXY(point.x, point.y)
@@ -176,9 +176,9 @@ class InsightsTrackerTest {
     )
 
     // Click on the "show diff" inlay
-    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    editor.caretModel.moveToOffset(editor.document.textLength - 1)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     // We have a sequence of inlays (", " and "show diff") and we want to click on the second
