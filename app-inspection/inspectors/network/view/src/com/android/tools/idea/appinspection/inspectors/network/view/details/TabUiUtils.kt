@@ -36,6 +36,7 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Point
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.lang.Integer.max
@@ -45,6 +46,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import javax.swing.SwingUtilities.invokeLater
 
 val SCROLL_UNIT
   get() = scale(10)
@@ -140,7 +142,9 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
     mainJPanel.add(currJPanel)
   }
   mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
-  return mainJPanel
+  return createVerticalScrollPane(mainJPanel).apply {
+    invokeLater { viewport.viewPosition = Point(0, 0) }
+  }
 }
 
 /**
