@@ -102,7 +102,6 @@ public abstract class QuerySyncProjectSnapshot {
    *
    * @param path a workspace relative path.
    */
-  @Nullable
   public ImmutableSet<Label> getTargetOwners(Path path) {
     return graph().getTargetOwners(path);
   }
