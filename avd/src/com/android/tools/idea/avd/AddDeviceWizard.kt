@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -240,7 +241,7 @@ private val playColumn =
       Icon(
         StudioIconsCompose.Avd.DevicePlayStore,
         contentDescription = "Play Store supported",
-        modifier = Modifier.size(16.dp),
+        modifier = Modifier.align(Alignment.Center).padding(end = 16.dp).size(16.dp),
       )
     }
   }
