@@ -19,12 +19,11 @@ import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 
-open class FakeGeminiToolkit(
-  override var isGeminiEnabled: Boolean,
+open class FakeAiInsightToolkit(
   val codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
   override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
     StubInsightsOnboardingProvider(),
-) : GeminiToolkit {
+) : AiInsightToolkit {
   override suspend fun getSource(stack: StacktraceGroup, contextSharingOverride: Boolean) =
     codeContextResolver.getSource(stack)
 }

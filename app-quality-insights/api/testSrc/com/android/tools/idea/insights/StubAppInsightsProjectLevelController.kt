@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.ai.FakeGeminiToolkit
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
@@ -32,7 +32,7 @@ open class StubAppInsightsProjectLevelController(
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },
-  override val geminiToolkit: GeminiToolkit = FakeGeminiToolkit(true),
+  override val aiInsightToolkit: AiInsightToolkit = FakeAiInsightToolkit(),
 ) : AppInsightsProjectLevelController {
   override val project: Project = mock()
 
