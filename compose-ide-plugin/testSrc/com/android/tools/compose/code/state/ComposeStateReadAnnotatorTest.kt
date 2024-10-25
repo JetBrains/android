@@ -31,7 +31,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
 import org.junit.Rule
@@ -68,7 +67,6 @@ class ComposeStateReadAnnotatorTest {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
-    fixture.stubKotlinStdlib()
     StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 

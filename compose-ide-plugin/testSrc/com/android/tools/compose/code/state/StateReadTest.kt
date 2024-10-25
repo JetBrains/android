@@ -29,7 +29,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -71,7 +70,6 @@ class StateReadTest {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
-    fixture.stubKotlinStdlib()
   }
 
   @Test

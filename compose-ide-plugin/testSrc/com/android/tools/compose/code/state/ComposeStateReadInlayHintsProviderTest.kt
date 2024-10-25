@@ -42,7 +42,6 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -62,7 +61,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 @RunsInEdt
 @RunWith(JUnit4::class)
 class ComposeStateReadInlayHintsProviderTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
 
   private val scheduler = TestCoroutineScheduler()
   private val dispatcher = StandardTestDispatcher(scheduler)
@@ -78,7 +77,6 @@ class ComposeStateReadInlayHintsProviderTest {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
-    fixture.stubKotlinStdlib()
     StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
