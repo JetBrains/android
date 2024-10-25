@@ -96,14 +96,12 @@ internal fun DevicePanel(
         }
     }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
-      ErrorTooltip(nameError) {
-        TextField(
-          nameState,
-          Modifier.padding(bottom = Padding.MEDIUM_LARGE).alignByBaseline(),
-          outline = if (nameError == null) Outline.None else Outline.Error,
-        )
-      }
+    ErrorTooltip(nameError) {
+      TextField(
+        nameState,
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+        outline = if (nameError == null) Outline.None else Outline.Error,
+      )
     }
 
     Text(
