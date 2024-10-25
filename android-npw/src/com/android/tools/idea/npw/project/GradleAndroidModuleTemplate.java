@@ -104,7 +104,7 @@ public class GradleAndroidModuleTemplate {
   /**
    * Create a {@link NamedModuleTemplate} for a KMP module with default values.
    * Assumes default locations for 'androidMain' and 'commonMain' source directories and default
-   * locations for tests (androidUnitTest, androidInstrumentedTest)
+   * locations for tests (androidTestOnJvm, androidTestOnDevice)
    */
   public static NamedModuleTemplate createMultiplatformTemplateAt(@NotNull File moduleRoot) {
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
@@ -118,8 +118,8 @@ public class GradleAndroidModuleTemplate {
       new File(androidMainDir, FD_KOTLIN),
       new File(commonMainDir, FD_KOTLIN),
       new File(iosMainDir, FD_KOTLIN),
-      new File(baseSrcDir.getPath(), "androidUnitTest" + File.separatorChar + FD_KOTLIN),
-      new File(baseSrcDir.getPath(), "androidInstrumentedTest" + File.separatorChar + FD_KOTLIN),
+      new File(baseSrcDir.getPath(), "androidTestOnJvm" + File.separatorChar + FD_KOTLIN),
+      new File(baseSrcDir.getPath(), "androidTestOnDevice" + File.separatorChar + FD_KOTLIN),
       null,
       ImmutableList.of(new File(androidMainDir, FD_RESOURCES)),
       ImmutableList.of()

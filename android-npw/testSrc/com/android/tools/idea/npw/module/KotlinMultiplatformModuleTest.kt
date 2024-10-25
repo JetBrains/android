@@ -71,11 +71,11 @@ class KotlinMultiplatformModuleTest {
     assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
     val androidUnitTestContent =
-      rootDir.resolve("androidUnitTest").resolve("ExampleUnitTest.kt").readText()
+      rootDir.resolve("androidTestOnJvm").resolve("ExampleUnitTest.kt").readText()
     assertThat(androidUnitTestContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
     val androidInstrumentedTestContent =
-      rootDir.resolve("androidInstrumentedTest").resolve("ExampleInstrumentedTest.kt").readText()
+      rootDir.resolve("androidTestOnDevice").resolve("ExampleInstrumentedTest.kt").readText()
     assertThat(androidInstrumentedTestContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
     val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
@@ -170,8 +170,8 @@ class KotlinMultiplatformModuleTest {
         srcDir = androidMainDir,
         resDir = rootDir.resolve("res").also { it.mkdir() },
         manifestDir = rootDir,
-        testDir = rootDir.resolve("androidInstrumentedTest").also { it.mkdir() },
-        unitTestDir = rootDir.resolve("androidUnitTest").also { it.mkdir() },
+        testDir = rootDir.resolve("androidTestOnDevice").also { it.mkdir() },
+        unitTestDir = rootDir.resolve("androidTestOnJvm").also { it.mkdir() },
         aidlDir = null,
         commonSrcDir = commonMainDir,
         iosSrcDir = iosMainDir,
@@ -216,14 +216,10 @@ androidLibrary {
   compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
   minSdk = 34
 
-  withAndroidTestOnJvmBuilder {
-      compilationName = "unitTest"
-      defaultSourceSetName = "androidUnitTest"
+  withHostTestBuilder {
   }
 
-  withAndroidTestOnDeviceBuilder {
-      compilationName = "instrumentedTest"
-      defaultSourceSetName = "androidInstrumentedTest"
+  withDeviceTestBuilder {
       sourceSetTreeName = "test"
   }.configure {
     instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -282,7 +278,7 @@ sourceSets {
     }
   }
 
-  getByName("androidInstrumentedTest") {
+  getByName("androidTestOnDevice") {
     dependencies {
     }
   }
@@ -380,8 +376,8 @@ package com.kmplib.packagename
       arrayOf(
         "AndroidManifest.xml",
         "commonMain/Platform.kt",
-        "androidUnitTest/ExampleUnitTest.kt",
-        "androidInstrumentedTest/ExampleInstrumentedTest.kt",
+        "androidTestOnJvm/ExampleUnitTest.kt",
+        "androidTestOnDevice/ExampleInstrumentedTest.kt",
         "build.gradle.kts",
         ".gitignore",
         "androidMain/Platform.android.kt",
