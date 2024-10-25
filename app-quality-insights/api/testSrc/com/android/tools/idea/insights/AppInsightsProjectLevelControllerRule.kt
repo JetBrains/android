@@ -18,8 +18,10 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.FakeGeminiToolkit
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
+import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
@@ -31,11 +33,13 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.atomic.AtomicBoolean
@@ -83,7 +87,8 @@ class AppInsightsProjectLevelControllerRule(
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
-  private val geminiToolkit = FakeGeminiToolkit(true)
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+  private val geminiToolkit = FakeAiInsightToolkit()
 
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
@@ -93,6 +98,12 @@ class AppInsightsProjectLevelControllerRule(
     client = spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
     tracker = mock<AppInsightsTracker>()
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      disposable,
+    )
     controller =
       AppInsightsProjectLevelControllerImpl(
         key,
@@ -107,7 +118,7 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
-        geminiToolkit = geminiToolkit,
+        aiInsightToolkit = geminiToolkit,
         cache = cache,
       )
     internalState = Channel(capacity = 5)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -89,7 +89,7 @@ class AppInsightsProjectLevelControllerImpl(
   override val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  override val geminiToolkit: GeminiToolkit,
+  override val aiInsightToolkit: AiInsightToolkit,
   private val cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 
@@ -103,7 +103,7 @@ class AppInsightsProjectLevelControllerImpl(
       clock,
       appInsightsClient,
       defaultFilters,
-      geminiToolkit,
+      aiInsightToolkit,
       ::doEmit,
       onErrorAction,
     )

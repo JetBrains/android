@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events.actions
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
@@ -25,7 +26,7 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
@@ -86,7 +87,7 @@ class ActionDispatcher(
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
   private val defaultFilters: Filters,
-  private val geminiToolkit: GeminiToolkit,
+  private val aiInsightToolkit: AiInsightToolkit,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -355,13 +356,17 @@ class ActionDispatcher(
       .launch {
         val insight =
           when {
-            !geminiToolkit.isGeminiEnabled -> LoadingState.Unauthorized("Gemini is not enabled")
+            !GeminiPluginApi.getInstance().isAvailable() ->
+              LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
               val codeContextData =
-                geminiToolkit.getSource(action.event.stacktraceGroup, action.contextSharingOverride)
+                aiInsightToolkit.getSource(
+                  action.event.stacktraceGroup,
+                  action.contextSharingOverride,
+                )
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,

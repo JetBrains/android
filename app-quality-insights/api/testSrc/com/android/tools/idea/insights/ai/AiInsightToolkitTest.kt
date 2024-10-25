@@ -34,7 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class GeminiToolkitTest {
+class AiInsightToolkitTest {
 
   @get:Rule val projectRule = ProjectRule()
 
@@ -63,20 +63,9 @@ class GeminiToolkitTest {
   }
 
   @Test
-  fun `test is gemini enabled`() {
-    val toolKit = GeminiToolkitImpl(projectRule.project, StubInsightsOnboardingProvider())
-
-    fakeGeminiPluginApi.available = false
-    assertThat(toolKit.isGeminiEnabled).isEqualTo(false)
-
-    fakeGeminiPluginApi.available = true
-    assertThat(toolKit.isGeminiEnabled).isEqualTo(true)
-  }
-
-  @Test
   fun `code context resolver returns empty result when context sharing is off`() = runBlocking {
     val toolKit =
-      GeminiToolkitImpl(
+      AiInsightToolkitImpl(
         projectRule.project,
         StubInsightsOnboardingProvider(),
         FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),

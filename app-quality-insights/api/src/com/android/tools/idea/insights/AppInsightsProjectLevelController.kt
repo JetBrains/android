@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
@@ -55,7 +55,7 @@ interface AppInsightsProjectLevelController {
   val project: Project
 
   /** The set of tools used to assist with Ai */
-  val geminiToolkit: GeminiToolkit
+  val aiInsightToolkit: AiInsightToolkit
 
   // events
   fun refresh()

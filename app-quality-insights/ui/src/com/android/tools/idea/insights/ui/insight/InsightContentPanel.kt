@@ -123,7 +123,7 @@ class InsightContentPanel(
     EnableInsightPanel(
       scope,
       selectedConnectionFlow,
-      controller.geminiToolkit.aiInsightOnboardingProvider,
+      controller.aiInsightToolkit.aiInsightOnboardingProvider,
     )
 
   private val loadingPanel =
