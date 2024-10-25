@@ -18,14 +18,14 @@ package com.android.tools.idea.startup
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.TipAndTrickManager
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.EmptyAction
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.components.serviceOrNull
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.util.application
 import org.junit.ClassRule
 import org.junit.Test
-import org.mockito.kotlin.mock
 
-class SuppressTipOfTheDayTest {
+/** Ensures tip-of-the-day is disabled; it does not work correctly in Android Studio (b/302571384). */
+class AndroidStudioTipOfTheDayTest {
   companion object {
     @JvmStatic
     @get:ClassRule
@@ -33,16 +33,13 @@ class SuppressTipOfTheDayTest {
   }
 
   @Test
-  @Suppress("UnstableApiUsage")
   fun popupDisabled() {
-    val tipAndTrickManager = TipAndTrickManager.getInstance()
-    assertThat(tipAndTrickManager).isInstanceOf(SuppressTipOfTheDay.OverridingTipAndTrickManager::class.java)
-    assertThat(tipAndTrickManager.canShowDialogAutomaticallyNow(mock<Project>())).isFalse()
+    @Suppress("UnstableApiUsage")
+    assertThat(application.serviceOrNull<TipAndTrickManager>()).isNull()
   }
 
   @Test
   fun actionDisabled() {
-    val showTipsAction = ActionManager.getInstance().getAction(SuppressTipOfTheDay.SHOW_TIPS_ACTION_ID)
-    assertThat(showTipsAction).isInstanceOf(EmptyAction::class.java)
+    assertThat(ActionManager.getInstance().getAction("ShowTips")).isNull()
   }
 }
