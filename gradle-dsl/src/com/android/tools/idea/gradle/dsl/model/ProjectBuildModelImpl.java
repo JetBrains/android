@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 
 import com.android.tools.idea.flags.DeclarativeStudioSupport;
@@ -67,7 +68,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleBuildModel getProjectBuildModel() {
-    return myProjectBuildFile == null ? null : new GradleBuildModelImpl(myProjectBuildFile);
+    return myProjectBuildFile == null ? null : createGradleBuildModel(myProjectBuildFile);
   }
 
   @Override
@@ -96,7 +97,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull
   public GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file) {
     GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
-    return new GradleBuildModelImpl(dslFile);
+    return createGradleBuildModel(dslFile);
   }
 
   @Override
@@ -169,7 +170,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
-      allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+      allModels.add(createGradleBuildModel(myProjectBuildFile));
       func.accept(++nModelsSeen[0], null);
     }
 

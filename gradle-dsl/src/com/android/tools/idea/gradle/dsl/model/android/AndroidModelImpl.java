@@ -122,7 +122,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
+public class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
   @NonNls public static final ModelPropertyDescription AIDL_PACKAGED_LIST = new ModelPropertyDescription("mAidlPackagedList", MUTABLE_LIST);
   @NonNls public static final ModelPropertyDescription ASSET_PACKS = new ModelPropertyDescription("mAssetPacks", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription BUILD_TOOLS_VERSION = new ModelPropertyDescription("mBuildToolsVersion", STRING);
