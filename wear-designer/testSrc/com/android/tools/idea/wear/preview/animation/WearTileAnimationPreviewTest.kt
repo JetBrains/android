@@ -60,12 +60,14 @@ class WearTileAnimationPreviewTest {
 
   private lateinit var animationPreview: WearTileAnimationPreview
 
-  private val renderResultMock =
+  private val renderResultMock by lazy {
     Mockito.mock(RenderResult::class.java).apply {
       whenever(this.sourceFile).thenReturn(mock(PsiFile::class.java))
       whenever(this.logger).thenReturn(RenderLogger())
       whenever(this.renderResult).thenReturn(Status.SUCCESS.createResult())
+      whenever(this.module).thenReturn(projectRule.module)
     }
+  }
 
   private val wearTilePreviewElement: PsiWearTilePreviewElement =
     WearTilePreviewElement(
