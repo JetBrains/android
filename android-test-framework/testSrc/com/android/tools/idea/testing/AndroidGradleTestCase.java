@@ -36,7 +36,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivityKt;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -94,7 +93,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /**
  * Base class for unit tests that operate on Gradle projects
