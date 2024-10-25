@@ -37,11 +37,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -85,14 +82,6 @@ internal class WearHealthServicesStateManagerImpl(
 
   private val _isStateStale = MutableStateFlow(true)
   override val isStateStale = _isStateStale
-
-  override val hasUserChanges: StateFlow<Boolean> =
-    combine(ongoingExercise, combine(capabilitiesList.map { getState(it) }) { it }) {
-        ongoingExercise,
-        capabilities ->
-        capabilities.any { it.hasUserChanges(ongoingExercise) }
-      }
-      .stateIn(workerScope, SharingStarted.Eagerly, false)
 
   private var lastSuccessfulSync: Instant = Instant.MIN
 

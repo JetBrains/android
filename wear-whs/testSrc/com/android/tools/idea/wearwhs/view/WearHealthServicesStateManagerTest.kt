@@ -654,26 +654,4 @@ class WearHealthServicesStateManagerTest {
     deviceManager.failState = false
     stateManager.isStateStale.waitForValue(false)
   }
-
-  @Test
-  fun `user changes are notified with a flow`(): Unit = runBlocking {
-    assertThat(stateManager.hasUserChanges.value).isFalse()
-
-    stateManager.setCapabilityEnabled(heartRateBpmCapability, false)
-    stateManager.hasUserChanges.waitForValue(true)
-
-    stateManager.applyChanges()
-    stateManager.hasUserChanges.waitForValue(false)
-
-    stateManager.setCapabilityEnabled(heartRateBpmCapability, true)
-    stateManager.hasUserChanges.waitForValue(true)
-
-    deviceManager.activeExercise = true
-    // when there is an ongoing exercise, the capability availability changes are not considered as
-    // pending user changes
-    stateManager.hasUserChanges.waitForValue(false)
-
-    stateManager.setOverrideValue(heartRateBpmCapability, 30)
-    stateManager.hasUserChanges.waitForValue(true)
-  }
 }

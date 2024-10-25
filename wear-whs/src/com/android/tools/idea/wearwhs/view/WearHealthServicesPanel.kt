@@ -385,12 +385,7 @@ internal fun createWearHealthServicesPanel(
       val resetButton =
         JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } }
       val applyButton =
-        JButton(message("wear.whs.panel.reapply")).apply {
-          stateManager.hasUserChanges
-            .onEach {
-              text = if (it) message("wear.whs.panel.apply") else message("wear.whs.panel.reapply")
-            }
-            .launchIn(uiScope)
+        JButton(message("wear.whs.panel.apply")).apply {
           stateManager.ongoingExercise
             .onEach {
               toolTipText =
