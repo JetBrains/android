@@ -300,32 +300,44 @@ internal class WearHealthServicesStateManagerImpl(
       Result.success(Unit)
     }
 
-  private fun resetUiState() =
-    capabilityToState.forEach { (_, uiState) ->
-      uiState.value =
-        UpToDateCapabilityUIState(
-          if (ongoingExercise.value) uiState.value.upToDateState.clearOverride()
-          else uiState.value.upToDateState.enable()
-        )
-    }
-
   private suspend fun resetOverrides(): Result<Unit> {
     val capabilities =
       capabilityUpdatesLock.withLock { capabilityToState.entries }.map { it.key.dataType.noValue() }
-    return deviceManager.overrideValues(capabilities)
+    return deviceManager.overrideValues(capabilities).also {
+      if (it.isSuccess) {
+        capabilityToState.forEach { (_, uiState) ->
+          uiState.value = UpToDateCapabilityUIState(uiState.value.upToDateState.clearOverride())
+        }
+      }
+    }
+  }
+
+  private suspend fun resetCapabilities(): Result<Unit> {
+    loadPreset(preset.value).join()
+    val resetCapabilities =
+      capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
+    return deviceManager.setCapabilities(resetCapabilities).also {
+      if (it.isSuccess) {
+        capabilityToState.forEach { (capability, uiState) ->
+          uiState.value =
+            UpToDateCapabilityUIState(
+              CapabilityState(
+                enabled = resetCapabilities.getValue(capability.dataType),
+                overrideValue = uiState.value.currentState.overrideValue,
+              )
+            )
+        }
+      }
+    }
   }
 
   override suspend fun reset() =
     runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
-      val reset =
-        if (!ongoingExercise.value) {
-          val loadPresetJob = loadPreset(Preset.ALL)
-          deviceManager.clearContentProvider().also { loadPresetJob.join() }
-        } else {
-          resetOverrides()
-        }
-
-      return@runWithStatus reset.also { if (it.isSuccess) resetUiState() }
+      if (!ongoingExercise.value) {
+        resetCapabilities()
+      } else {
+        resetOverrides()
+      }
     }
 
   override fun dispose() {}
