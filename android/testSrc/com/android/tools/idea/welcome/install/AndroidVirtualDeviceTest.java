@@ -99,7 +99,7 @@ public final class AndroidVirtualDeviceTest {
     builder.put("hw.lcd.height", "2400");
     builder.put("hw.lcd.width", "1080");
     builder.put("hw.mainKeys", "no");
-    builder.put("hw.ramSize", "2G");
+    builder.put("hw.ramSize", "2048");
     builder.put("hw.sdCard", "yes");
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
