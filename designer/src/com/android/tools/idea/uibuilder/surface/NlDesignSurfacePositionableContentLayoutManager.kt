@@ -68,11 +68,6 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     )
   }
 
-  /** Performs a refresh of the layout manager by emptying its cached values. */
-  fun clearCachedGroups() {
-    cachedLayoutGroups.value = emptyList()
-  }
-
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
