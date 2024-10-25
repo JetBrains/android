@@ -346,10 +346,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
     DesignSurface<?> target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
+    System.out.println(">> sceneView " + sceneView);
 
+    System.out.printf(">> Drag %d, %d%n", sceneView.getX() + relativeX, sceneView.getY() + relativeY);
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + relativeX, sceneView.getY() + relativeY));
 
+    System.out.println(">> Dropped");
     // Wait for the button to settle. It sometimes moves after being dropped onto the canvas.
     robot().waitForIdle();
     return this;
@@ -357,10 +360,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   @NotNull
   public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+    GuiTests.waitForBackgroundTasks(robot());
     DesignSurface<?> target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
 
+    System.out.printf(">> Drag %s, %s -- %d, %d%n", group, item, sceneView.getScaledContentSize().width / 2, sceneView.getScaledContentSize().height / 2);
     dragComponentToSurface(group, item, sceneView.getScaledContentSize().width / 2, sceneView.getScaledContentSize().height / 2);
+    System.out.println(">> Drag complete");
     return this;
   }
 
