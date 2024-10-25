@@ -326,7 +326,6 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/src/commonMain [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/commonMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -386,7 +385,6 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1121,7 +1119,6 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/commonMain/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1181,7 +1178,6 @@ PROJECT                       : kotlinMultiPlatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true

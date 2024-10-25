@@ -491,7 +491,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonMain
-            JavaSource                    : file://<PROJECT>/common/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/common/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/common/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -553,7 +553,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2368,7 +2367,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2430,7 +2429,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true

@@ -1186,7 +1186,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpFirstLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1253,7 +1253,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonTest
-            JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
+            TestSourceKotlin (test)       : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1362,7 +1362,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpJvmOnly/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpJvmOnly/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpJvmOnly/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1424,7 +1424,6 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpJvmOnly/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1755,7 +1754,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpSecondLib/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpSecondLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1816,7 +1815,6 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true

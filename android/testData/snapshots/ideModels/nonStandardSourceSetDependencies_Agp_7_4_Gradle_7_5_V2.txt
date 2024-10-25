@@ -2181,6 +2181,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                     qName                         : :kmp-java:sample-test:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample:jvmTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testReleaseUnitTest
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -2429,6 +2436,15 @@ MODULE                        : NonStandardSourceSetDependencies
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :common:jvmTest
+                test                          : test (DefaultExternalTask)
+                    qName                         : :desktop:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
@@ -3263,6 +3279,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3545,6 +3566,11 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -4625,6 +4651,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -5426,6 +5457,11 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -6494,6 +6530,11 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

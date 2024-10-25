@@ -834,6 +834,15 @@ MODULE                        : project
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugScreenshotTest       : testDebugScreenshotTest (DefaultExternalTask)
+                    qName                         : :app:testDebugScreenshotTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseScreenshotTest     : testReleaseScreenshotTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseScreenshotTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

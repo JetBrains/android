@@ -932,6 +932,19 @@ MODULE                        : project
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicDebugUnitTest
+                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicReleaseUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testDebugUnitTest
+                testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidDebugUnitTest
+                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

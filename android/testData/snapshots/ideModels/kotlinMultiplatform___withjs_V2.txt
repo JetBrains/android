@@ -1190,6 +1190,13 @@
                     archives                      : <empty>
                     default                       : <empty>
             taskModel                     : DefaultGradleTaskModel
+                tasks
+                    browserTest                   : browserTest (DefaultExternalTask)
+                        qName                         : :jsModule:browserTest
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
     MODULE                        : kotlinMultiPlatform.app
         GradleModuleModel
             agpVersion                    : <AGP_VERSION>
@@ -2263,6 +2270,11 @@
                         useFirLT                      : true
             gradleUserHome                : <GRADLE>
             hasKotlinPlugin               : true
+            kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+                major                         : 2
+                minor                         : 1
+                patch                         : 0
+                versionString                 : 2.1.0-Beta2
             kotlinTarget                  : kotlin-android
             kotlinTaskProperties
                 debug                         : KotlinTaskPropertiesImpl
