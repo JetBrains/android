@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.ZoomController
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -214,13 +213,6 @@ internal constructor(
         this,
       )
       .apply {
-        scope.launch {
-          beforeZoomChange.collect { zoomType ->
-            if (zoomType == ZoomType.FIT) {
-              sceneViewLayoutManager.clearCachedGroups()
-            }
-          }
-        }
         // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
         screenScalingFactor = sysScale(this@NlDesignSurface).toDouble()
