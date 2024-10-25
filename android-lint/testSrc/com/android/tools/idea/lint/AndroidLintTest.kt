@@ -901,7 +901,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     IdeComponents(null, disposable)
       .replaceApplicationService(
         RepositoryUrlManager::class.java,
-        RepositoryUrlManager(repository, repository, true, false),
+        RepositoryUrlManager(repository, repository, false),
       )
     doTestWithFix(
       AndroidLintGradleDynamicVersionInspection(),

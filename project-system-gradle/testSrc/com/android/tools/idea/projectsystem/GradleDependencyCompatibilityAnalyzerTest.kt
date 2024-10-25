@@ -66,7 +66,6 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   private val repoUrlManager = RepositoryUrlManager(
     googleMavenRepository = mavenRepository,
     cachedGoogleMavenRepository = mavenRepository,
-    forceRepositoryChecksInTests = false,
     useEmbeddedStudioRepo = false
   )
 
