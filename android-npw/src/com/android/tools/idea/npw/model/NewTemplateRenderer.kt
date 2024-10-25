@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.util.ReformatUtil
+import com.android.tools.idea.wizard.template.BytecodeLevel as TemplateBytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -45,39 +46,46 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
-import org.jetbrains.android.util.AndroidBundle.message
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
-import com.android.tools.idea.wizard.template.BytecodeLevel as TemplateBytecodeLevel
+import org.jetbrains.android.util.AndroidBundle.message
 
-private val log: Logger get() = logger<Template>()
+private val log: Logger
+  get() = logger<Template>()
 
 fun Template.render(c: RenderingContext, e: RecipeExecutor, metrics: TemplateMetrics? = null) =
   recipe.render(c, e, titleToTemplateRenderer(name, formFactor), metrics)
 
-fun Recipe.findReferences(c: RenderingContext) =
-  render(c, FindReferencesRecipeExecutor(c))
+fun Recipe.findReferences(c: RenderingContext) = render(c, FindReferencesRecipeExecutor(c))
 
-fun Recipe.actuallyRender(c: RenderingContext) =
-  render(c, DefaultRecipeExecutor(c))
+fun Recipe.actuallyRender(c: RenderingContext) = render(c, DefaultRecipeExecutor(c))
 
 fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
-  val success = if (c.project.isInitialized)
-    doRender(c, e)
-  else
-    PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<Boolean> {
-      doRender(c, e)
-    }
+  val success =
+    if (c.project.isInitialized) doRender(c, e)
+    else
+      PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<
+        Boolean
+      > {
+        doRender(c, e)
+      }
 
   if (!c.dryRun) {
-    ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
+    ApplicationManager.getApplication().invokeAndWait {
+      PsiDocumentManager.getInstance(c.project).commitAllDocuments()
+    }
     ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
 
   return success
 }
 
-fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer, metrics: TemplateMetrics? = null): Boolean {
+fun Recipe.render(
+  c: RenderingContext,
+  e: RecipeExecutor,
+  loggingEvent: TemplateRenderer,
+  metrics: TemplateMetrics? = null,
+): Boolean {
   return render(c, e).also {
     if (!c.dryRun) {
       logRendering(c.projectTemplateData, c.project, loggingEvent)
@@ -100,14 +108,16 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
           e.applyChanges()
         }
       }
-  }
-  catch (e: IOException) {
+  } catch (e: IOException) {
     if (c.showErrors) {
       invokeAndWaitIfNeeded {
-        Messages.showErrorDialog(c.project, formatErrorMessage(c.commandName, !c.dryRun, e), "${c.commandName} Failed")
+        Messages.showErrorDialog(
+          c.project,
+          formatErrorMessage(c.commandName, !c.dryRun, e),
+          "${c.commandName} Failed",
+        )
       }
-    }
-    else {
+    } else {
       throw RuntimeException(e)
     }
     return false
@@ -124,24 +134,32 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
 
   val result = AtomicBoolean()
   ApplicationManager.getApplication().invokeAndWait {
-    val userReply = Messages.showOkCancelDialog(
-      c.project,
-      formatWarningMessage(c),
-      "${c.commandName}, Warnings",
-      "Proceed Anyway", "Cancel", Messages.getWarningIcon())
+    val userReply =
+      Messages.showOkCancelDialog(
+        c.project,
+        formatWarningMessage(c),
+        "${c.commandName}, Warnings",
+        "Proceed Anyway",
+        "Cancel",
+        Messages.getWarningIcon(),
+      )
     result.set(userReply == Messages.OK)
   }
   return result.get()
 }
 
 /**
- * If this is not a dry run, we may have created/changed some files and the project
- * may no longer compile. Let the user know about undo.
+ * If this is not a dry run, we may have created/changed some files and the project may no longer
+ * compile. Let the user know about undo.
  */
-fun formatErrorMessage(commandName: String, canCausePartialRendering: Boolean, ex: IOException): String =
-  if (!canCausePartialRendering)
-    ex.message ?: "Unknown IOException occurred"
-  else """${ex.message}
+fun formatErrorMessage(
+  commandName: String,
+  canCausePartialRendering: Boolean,
+  ex: IOException,
+): String =
+  if (!canCausePartialRendering) ex.message ?: "Unknown IOException occurred"
+  else
+    """${ex.message}
 
 $commandName was only partially completed.
 Your project may not compile.
@@ -152,7 +170,7 @@ fun formatWarningMessage(context: RenderingContext): String {
   val maxWarnings = 10
   val warningCount = context.warnings.size
   var messages: MutableList<String> = context.warnings.toMutableList()
-  if (warningCount > maxWarnings + 1) {  // +1 such that the message can say "warnings" in plural...
+  if (warningCount > maxWarnings + 1) { // +1 such that the message can say "warnings" in plural...
     // Guard against too many warnings (the dialog may become larger than the screen size)
     messages = messages.subList(0, maxWarnings)
     val strippedWarningsCount = warningCount - maxWarnings
@@ -165,103 +183,102 @@ fun formatWarningMessage(context: RenderingContext): String {
 // TODO(qumeric): update TemplateRenderer and this method
 @Suppress("DEPRECATION")
 @VisibleForTesting
-fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
-  "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
-
-  "Android Project" -> TemplateRenderer.ANDROID_PROJECT
-
-  message("android.wizard.module.new.baselineprofiles.module.app") -> TemplateRenderer.BASELINE_PROFILES_MODULE
-  message("android.wizard.module.new.benchmark.module.app") -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
-  message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
-  message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
-  message("android.wizard.module.new.tv") -> TemplateRenderer.ANDROID_TV_MODULE
-  message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
-  message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
-  message("android.wizard.module.new.kotlin.multiplatform.library") -> TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
-
-  "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
-  "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
-  "Empty Views Activity" -> TemplateRenderer.EMPTY_ACTIVITY
-  "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
-  "Login Views Activity" -> TemplateRenderer.LOGIN_ACTIVITY
-  "Tabbed Views Activity" -> TemplateRenderer.TABBED_ACTIVITY
-  "Scrolling Views Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
-  "Google AdMob Ads Views Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
-  "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
-  "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Android TV Blank Views Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Fullscreen Views Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
-  "Empty Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Views Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
-  "Navigation Drawer Views Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
-  "Settings Views Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
-  "Responsive Views Activity" -> TemplateRenderer.RESPONSIVE_ACTIVITY
-  "Primary/Detail Views Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
-  "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
-  "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
-  "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
-  "Google Pay Views Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
-  "Watch Face" -> TemplateRenderer.WATCH_FACE
-  "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
-  "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
-  "Empty Wear App",
-  "Empty Wear App With Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
-
-  "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
-  "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
-  "Google Maps Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_MAPS
-  "Login Fragment" -> TemplateRenderer.FRAGMENT_LOGIN
-  "Modal Bottom Sheet" -> TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET
-  "Scrolling Fragment" -> TemplateRenderer.FRAGMENT_SCROLL
-  "Settings Fragment" -> TemplateRenderer.FRAGMENT_SETTINGS
-  "Fragment (with ViewModel)" -> TemplateRenderer.FRAGMENT_VIEWMODEL
-  "Fragment (Blank)" -> TemplateRenderer.FRAGMENT_BLANK
-  "Fragment (List)" -> TemplateRenderer.FRAGMENT_LIST
-
-  "Assets Folder" -> TemplateRenderer.ASSETS_FOLDER
-  "AIDL File" -> TemplateRenderer.AIDL_FILE
-  "JNI Folder" -> TemplateRenderer.JNI_FOLDER
-  "Java Folder" -> TemplateRenderer.JAVA_FOLDER
-
-  "Service" -> TemplateRenderer.SERVICE
-  "Broadcast Receiver" -> TemplateRenderer.BROADCAST_RECEIVER
-  "Service (IntentService)" -> TemplateRenderer.INTENT_SERVICE
-  "Custom View" -> TemplateRenderer.CUSTOM_VIEW
-  "Res Folder" -> TemplateRenderer.RES_FOLDER
-  "App Widget" -> TemplateRenderer.APP_WIDGET
-  "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
-  "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
-
-  "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
-
-  else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
-}
+fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer =
+  when (title) {
+    "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
+    "Android Project" -> TemplateRenderer.ANDROID_PROJECT
+    message("android.wizard.module.new.baselineprofiles.module.app") ->
+      TemplateRenderer.BASELINE_PROFILES_MODULE
+    message("android.wizard.module.new.benchmark.module.app") ->
+      TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+    message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
+    message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
+    message("android.wizard.module.new.tv") -> TemplateRenderer.ANDROID_TV_MODULE
+    message("android.wizard.module.new.dynamic.module") ->
+      TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
+    message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
+    message("android.wizard.module.new.kotlin.multiplatform.library") ->
+      TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
+    "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
+    "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
+    "Empty Views Activity" -> TemplateRenderer.EMPTY_ACTIVITY
+    "Blank Activity" ->
+      if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY
+      else TemplateRenderer.BLANK_ACTIVITY
+    "Login Views Activity" -> TemplateRenderer.LOGIN_ACTIVITY
+    "Tabbed Views Activity" -> TemplateRenderer.TABBED_ACTIVITY
+    "Scrolling Views Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
+    "Google AdMob Ads Views Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
+    "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
+    "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+    "Android TV Blank Views Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+    "Fullscreen Views Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
+    "Empty Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+    "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+    "Google Maps Views Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+    "Navigation Drawer Views Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
+    "Settings Views Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
+    "Responsive Views Activity" -> TemplateRenderer.RESPONSIVE_ACTIVITY
+    "Primary/Detail Views Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+    "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
+    "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
+    "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
+    "Google Pay Views Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+    "Watch Face" -> TemplateRenderer.WATCH_FACE
+    "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+    "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
+    "Empty Wear App",
+    "Empty Wear App With Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+    "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
+    "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
+    "Google Maps Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_MAPS
+    "Login Fragment" -> TemplateRenderer.FRAGMENT_LOGIN
+    "Modal Bottom Sheet" -> TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET
+    "Scrolling Fragment" -> TemplateRenderer.FRAGMENT_SCROLL
+    "Settings Fragment" -> TemplateRenderer.FRAGMENT_SETTINGS
+    "Fragment (with ViewModel)" -> TemplateRenderer.FRAGMENT_VIEWMODEL
+    "Fragment (Blank)" -> TemplateRenderer.FRAGMENT_BLANK
+    "Fragment (List)" -> TemplateRenderer.FRAGMENT_LIST
+    "Assets Folder" -> TemplateRenderer.ASSETS_FOLDER
+    "AIDL File" -> TemplateRenderer.AIDL_FILE
+    "JNI Folder" -> TemplateRenderer.JNI_FOLDER
+    "Java Folder" -> TemplateRenderer.JAVA_FOLDER
+    "Service" -> TemplateRenderer.SERVICE
+    "Broadcast Receiver" -> TemplateRenderer.BROADCAST_RECEIVER
+    "Service (IntentService)" -> TemplateRenderer.INTENT_SERVICE
+    "Custom View" -> TemplateRenderer.CUSTOM_VIEW
+    "Res Folder" -> TemplateRenderer.RES_FOLDER
+    "App Widget" -> TemplateRenderer.APP_WIDGET
+    "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
+    "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
+    "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
+    else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
+  }
 
 @Suppress("DEPRECATION")
 fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
   return when (titleToTemplateRenderer(title, formFactor)) {
     TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER -> TemplateType.UNKNOWN_TEMPLATE
     // Note: These values where never added/missing from the old TemplateRenderer
-    TemplateRenderer.CUSTOM_TEMPLATE_RENDERER -> when (title) {
-      "Slice Provider" -> TemplateType.SLICE_PROVIDER
-      "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
-      "Bottom Navigation Views Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
-      "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
-      "Game Activity (C++)" -> TemplateType.CPP_GAME_ACTIVITY
-      "AIDL Folder" -> TemplateType.AIDL_FOLDER
-      "Font Folder" -> TemplateType.FONT_FOLDER
-      "Raw Resources Folder" -> TemplateType.RAW_RESOURCES_FOLDER
-      "Java Resources Folder" -> TemplateType.JAVA_RESOURCES_FOLDER
-      "XML Resources Folder" -> TemplateType.XML_RESOURCES_FOLDER
-      "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
-      "Content Provider" -> TemplateType.CONTENT_PROVIDER
-      "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
-      "App Actions XML File (deprecated)" -> TemplateType.APP_ACTIONS_XML_FILE
-      "Shortcuts XML File" -> TemplateType.SHORTCUTS_XML_FILE
-      else -> TemplateType.CUSTOM_TEMPLATE
-    }
-
+    TemplateRenderer.CUSTOM_TEMPLATE_RENDERER ->
+      when (title) {
+        "Slice Provider" -> TemplateType.SLICE_PROVIDER
+        "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
+        "Bottom Navigation Views Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
+        "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
+        "Game Activity (C++)" -> TemplateType.CPP_GAME_ACTIVITY
+        "AIDL Folder" -> TemplateType.AIDL_FOLDER
+        "Font Folder" -> TemplateType.FONT_FOLDER
+        "Raw Resources Folder" -> TemplateType.RAW_RESOURCES_FOLDER
+        "Java Resources Folder" -> TemplateType.JAVA_RESOURCES_FOLDER
+        "XML Resources Folder" -> TemplateType.XML_RESOURCES_FOLDER
+        "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
+        "Content Provider" -> TemplateType.CONTENT_PROVIDER
+        "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
+        "App Actions XML File (deprecated)" -> TemplateType.APP_ACTIONS_XML_FILE
+        "Shortcuts XML File" -> TemplateType.SHORTCUTS_XML_FILE
+        else -> TemplateType.CUSTOM_TEMPLATE
+      }
     TemplateRenderer.EMPTY_ACTIVITY -> TemplateType.EMPTY_ACTIVITY
     TemplateRenderer.LAYOUT_XML_FILE -> TemplateType.LAYOUT_XML_FILE
     TemplateRenderer.FRAGMENT_BLANK -> TemplateType.FRAGMENT_BLANK
@@ -308,7 +325,6 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.GOOGLE_PAY_ACTIVITY -> TemplateType.GOOGLE_PAY_ACTIVITY
     TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> TemplateType.GOOGLE_WALLET_ACTIVITY
     TemplateRenderer.EXPERIMENTAL_ACTIVITY -> TemplateType.EXPERIMENTAL_ACTIVITY
-
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,
     TemplateRenderer.ANDROID_PROJECT,
@@ -331,14 +347,15 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     TemplateRenderer.ANDROID_NATIVE_MODULE,
     TemplateRenderer.BASELINE_PROFILES_MODULE,
-    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE -> throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE ->
+      throw RuntimeException("Invalid Template Title")
   }
 }
 
 fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer): ModuleType {
   return when (moduleTemplateRenderer) {
-
-    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER -> ModuleType.NOT_APPLICABLE // Existing module, can't find what type is
+    TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER ->
+      ModuleType.NOT_APPLICABLE // Existing module, can't find what type is
     TemplateRenderer.ANDROID_MODULE -> ModuleType.PHONE_TABLET
     TemplateRenderer.ANDROID_LIBRARY -> ModuleType.ANDROID_LIBRARY
     TemplateRenderer.DYNAMIC_FEATURE_MODULE -> ModuleType.DYNAMIC_FEATURE
@@ -355,61 +372,79 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
   }
 }
 
-fun logRendering(projectData: ProjectTemplateData, project: Project, templateRenderer: TemplateRenderer) {
-  val aseBuilder = AndroidStudioEvent.newBuilder()
-    .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
-    .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-    .setTemplateRenderer(templateRenderer)
-    .setKotlinSupport(
-      KotlinSupport.newBuilder()
-        .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
-        .setKotlinSupportVersion(projectData.kotlinVersion))
+fun logRendering(
+  projectData: ProjectTemplateData,
+  project: Project,
+  templateRenderer: TemplateRenderer,
+) {
+  val aseBuilder =
+    AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
+      .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
+      .setTemplateRenderer(templateRenderer)
+      .setKotlinSupport(
+        KotlinSupport.newBuilder()
+          .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
+          .setKotlinSupportVersion(projectData.kotlinVersion)
+      )
   UsageTracker.log(aseBuilder.withProjectId(project))
 
   // Log event if user declined to add kotlin support in a new project
-  if (templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.KOTLIN_SUPPORT_DECLINED_EVENT
-      this.templateRenderer = templateRenderer
-    }.withProjectId(project))
+  if (
+    templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin
+  ) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.KOTLIN_SUPPORT_DECLINED_EVENT
+          this.templateRenderer = templateRenderer
+        }
+        .withProjectId(project)
+    )
   }
 }
 
 fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {
-  val templateComponentBuilder = TemplatesUsage.TemplateComponent.newBuilder().apply {
-    templateType = metrics.templateType
-    wizardUiContext = metrics.wizardContext
-  }
+  val templateComponentBuilder =
+    TemplatesUsage.TemplateComponent.newBuilder().apply {
+      templateType = metrics.templateType
+      wizardUiContext = metrics.wizardContext
+    }
 
-  val templateModuleBuilder = TemplatesUsage.TemplateModule.newBuilder().apply {
-    moduleType = metrics.moduleType
-    minSdk = metrics.minSdk
-    if (metrics.bytecodeLevel != null) {
-      bytecodeLevel = when (metrics.bytecodeLevel) {
-        TemplateBytecodeLevel.L11 -> BytecodeLevel.LEVEL_11_NO_TOOLCHAIN
+  val templateModuleBuilder =
+    TemplatesUsage.TemplateModule.newBuilder().apply {
+      moduleType = metrics.moduleType
+      minSdk = metrics.minSdk
+      if (metrics.bytecodeLevel != null) {
+        bytecodeLevel =
+          when (metrics.bytecodeLevel) {
+            TemplateBytecodeLevel.L11 -> BytecodeLevel.LEVEL_11_NO_TOOLCHAIN
+          }
       }
     }
-  }
 
-  val templateProjectBuilder = TemplatesUsage.TemplateProject.newBuilder().apply {
-    usesLegacySupport = metrics.useAppCompat
-    usesBuildGradleKts = metrics.useGradleKts
-  }
+  val templateProjectBuilder =
+    TemplatesUsage.TemplateProject.newBuilder().apply {
+      usesLegacySupport = metrics.useAppCompat
+      usesBuildGradleKts = metrics.useGradleKts
+    }
 
-  val kotlinSupport = KotlinSupport.newBuilder().apply {
-    includeKotlinSupport = projectData.language == Language.Kotlin
-    kotlinSupportVersion = projectData.kotlinVersion
-  }
+  val kotlinSupport =
+    KotlinSupport.newBuilder().apply {
+      includeKotlinSupport = projectData.language == Language.Kotlin
+      kotlinSupportVersion = projectData.kotlinVersion
+    }
 
-  val aseBuilder = AndroidStudioEvent.newBuilder()
-    .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
-    .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
-    .setTemplateUsage(
-      TemplatesUsage.newBuilder()
-        .setTemplateComponent(templateComponentBuilder)
-        .setTemplateModule(templateModuleBuilder)
-        .setTemplateProject(templateProjectBuilder)
-        .setKotlinSupport(kotlinSupport)
-    )
+  val aseBuilder =
+    AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
+      .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
+      .setTemplateUsage(
+        TemplatesUsage.newBuilder()
+          .setTemplateComponent(templateComponentBuilder)
+          .setTemplateModule(templateModuleBuilder)
+          .setTemplateProject(templateProjectBuilder)
+          .setKotlinSupport(kotlinSupport)
+      )
   UsageTracker.log(aseBuilder.withProjectId(project))
 }
