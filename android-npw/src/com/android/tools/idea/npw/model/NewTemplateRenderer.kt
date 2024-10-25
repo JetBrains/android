@@ -272,7 +272,6 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
         "Raw Resources Folder" -> TemplateType.RAW_RESOURCES_FOLDER
         "Java Resources Folder" -> TemplateType.JAVA_RESOURCES_FOLDER
         "XML Resources Folder" -> TemplateType.XML_RESOURCES_FOLDER
-        "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
         "Content Provider" -> TemplateType.CONTENT_PROVIDER
         "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
         "App Actions XML File (deprecated)" -> TemplateType.APP_ACTIONS_XML_FILE

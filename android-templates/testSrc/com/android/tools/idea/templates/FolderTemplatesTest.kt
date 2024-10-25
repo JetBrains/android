@@ -203,18 +203,6 @@ class FolderTemplatesTest {
   }
 
   @Test
-  fun testRenderScriptFolder() {
-    val expectedLine =
-      "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}rs") +
-        "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}renderscript${File.separator}folder") +
-        "\")"
-
-    checkResourcesTemplate("RenderScript Folder", true, "my/renderscript/folder", expectedLine)
-  }
-
-  @Test
   fun testXMLResourcesFolder() {
     val expectedLine = "android {}"
 
