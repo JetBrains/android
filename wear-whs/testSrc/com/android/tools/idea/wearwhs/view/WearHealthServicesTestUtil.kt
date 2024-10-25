@@ -40,10 +40,7 @@ internal suspend fun <T> StateFlow<T>.waitForValue(
 }
 
 internal fun FakeUi.clickOnApplyButton() {
-  val applyButton =
-    waitForDescendant<JButton> {
-      it.text == message("wear.whs.panel.reapply") || it.text == message("wear.whs.panel.apply")
-    }
+  val applyButton = waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
   applyButton.doClick()
 }
 

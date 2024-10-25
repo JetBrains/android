@@ -162,7 +162,6 @@ internal class WearHealthServicesPanelController(
   private fun applyChanges() {
     currentBalloon?.hide()
     workerScope.launch {
-      val applyType = if (stateManager.hasUserChanges.value) "apply" else "reapply"
       val changesApplied =
         if (stateManager.ongoingExercise.value) "sensor.values" else "capabilities"
 
@@ -170,13 +169,13 @@ internal class WearHealthServicesPanelController(
         .applyChanges()
         .onSuccess {
           notifyWithBalloon(
-            message("wear.whs.panel.$applyType.$changesApplied.success"),
+            message("wear.whs.panel.apply.$changesApplied.success"),
             MessageType.INFO,
           )
         }
         .onFailure {
           notifyWithBalloon(
-            message("wear.whs.panel.$applyType.$changesApplied.failure"),
+            message("wear.whs.panel.apply.$changesApplied.failure"),
             MessageType.ERROR,
           )
         }

@@ -65,12 +65,6 @@ internal interface WearHealthServicesStateManager {
    */
   val ongoingExercise: StateFlow<Boolean>
 
-  /**
-   * State flow for any pending user changes that can be applied, emits a single boolean, true if
-   * there are pending user changes that can be applied, false otherwise.
-   */
-  val hasUserChanges: StateFlow<Boolean>
-
   /** Triggers given event on the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 
