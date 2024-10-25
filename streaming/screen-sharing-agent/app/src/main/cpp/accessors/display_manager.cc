@@ -179,9 +179,11 @@ bool DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, int state)
   }
   Log::D("%s display %d", state == DisplayInfo::STATE_OFF ? "Turning off" : "Restoring power of", display_id);
   if (!display_manager_global_.CallBooleanMethod(jni, request_display_power_method_, display_id, state)) {
-    Log::W(jni.GetAndClearException(), "Unable to turn display %d off", display_id);
+    Log::W(jni.GetAndClearException(),
+           state == DisplayInfo::STATE_OFF ? "Unable to turn display %d off" : "Unable to restore power of display %d", display_id);
     return false;
   }
+  Log::I(state == DisplayInfo::STATE_OFF ? "Turned display %d off" : "Restored power of display %d", display_id);
   return true;
 }
 
