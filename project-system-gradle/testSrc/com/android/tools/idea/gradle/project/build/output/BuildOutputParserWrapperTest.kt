@@ -69,6 +69,7 @@ private class FakeGeminiPluginApi : GeminiPluginApi {
 
   override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
     stagedPrompt = prompt
+    this.requestSource = requestSource
   }
 }
 
@@ -254,6 +255,58 @@ class BuildOutputParserWrapperTest {
         How do I fix this?
         """.trimIndent()
       assertThat(fakeGeminiPluginApi.stagedPrompt!!).isEqualTo(expected)
+    }
+  }
+
+
+  @Test
+  fun `test 'Ask Gemini' quick fix sets RequestSource as BUILD for EXECUTE_TASK`() {
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = false
+    messageEvent = createMessageEvent(ERROR, id = "some id")
+
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
+
+    myParserWrapper.parse(null, null) { event ->
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      assertThat(fakeGeminiPluginApi.requestSource!!).isEqualTo(GeminiPluginApi.RequestSource.BUILD)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' quick fix sets RequestSource as SYNC for RESOLVE_PROJECT`() {
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = false
+    messageEvent = createMessageEvent(ERROR, id = "some id")
+
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
+
+    myParserWrapper.parse(null, null) { event ->
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      assertThat(fakeGeminiPluginApi.requestSource!!).isEqualTo(GeminiPluginApi.RequestSource.SYNC)
+    }
+  }
+
+  @Test
+  fun `test 'Ask Gemini' quick fix sets RequestSource as OTHER for REFRESH_TASKS_LIST`() {
+    fakeGeminiPluginApi.available = true
+    fakeGeminiPluginApi.contextAllowed = false
+    messageEvent = createMessageEvent(ERROR, id = "some id")
+
+    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
+
+    myParserWrapper.parse(null, null) { event ->
+      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
+      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
+      quickFixes.first().runQuickFix(projectRule.project) { }
+
+      assertThat(fakeGeminiPluginApi.requestSource!!).isEqualTo(GeminiPluginApi.RequestSource.OTHER)
     }
   }
 
