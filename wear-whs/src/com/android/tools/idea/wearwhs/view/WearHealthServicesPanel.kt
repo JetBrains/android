@@ -334,8 +334,8 @@ private fun createWearHealthServicesPanelHeader(
           toolTipText =
             when {
               isStateStale -> message("wear.whs.panel.stale.data")
-              isActiveExercise -> message("wear.whs.panel.press.apply.for.overrides")
-              else -> message("wear.whs.panel.press.apply.for.toggles")
+              isActiveExercise -> null
+              else -> message("wear.whs.panel.exercise.inactive.tooltip")
             }
         }
         .launchIn(uiScope)
