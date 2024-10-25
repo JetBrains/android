@@ -315,9 +315,10 @@ private fun createWearHealthServicesPanelHeader(
 
   val statusLabel =
     JLabel(message("wear.whs.panel.exercise.inactive")).apply {
-      // setting a minimum width to prevent the label from being cropped when the text
-      // changes
-      minimumSize = Dimension(140, 0)
+      // set the icon pre-emptively so the width is calculated properly and the label is not cropped
+      icon =
+        if (stateManager.isStateStale.value) StudioIcons.Common.WARNING else StudioIcons.Common.INFO
+
       combine(stateManager.ongoingExercise, stateManager.isStateStale) {
           ongoingExercise,
           isStateStale ->
@@ -343,7 +344,7 @@ private fun createWearHealthServicesPanelHeader(
       cell(createLoadCapabilityPresetComboBox(stateManager = stateManager, uiScope = uiScope))
       cell(createTriggerEventGroupsButton(triggerEvent = { triggerEvent(it) }))
     },
-    { cell(statusLabel) },
+    { cell(statusLabel).align(AlignX.RIGHT) },
   )
 }
 
