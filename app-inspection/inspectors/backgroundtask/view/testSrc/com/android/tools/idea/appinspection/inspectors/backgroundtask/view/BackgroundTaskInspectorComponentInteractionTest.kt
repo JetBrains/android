@@ -32,7 +32,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -43,17 +42,12 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.EdtExecutorService
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreePath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -67,10 +61,16 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 
 class BackgroundTaskInspectorComponentInteractionTest {
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   @get:Rule val rule = RuleChain(projectRule, disposableRule)
 

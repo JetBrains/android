@@ -34,19 +34,15 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueComponent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueOf
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.namedChild
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.icons.AllIcons
+import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -58,6 +54,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTextArea
 
 class EntryDetailsViewTest {
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
@@ -68,7 +68,7 @@ class EntryDetailsViewTest {
     }
   }
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var scope: CoroutineScope
   private lateinit var client: BackgroundTaskInspectorClient
