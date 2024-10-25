@@ -315,9 +315,11 @@ private fun createWearHealthServicesPanelHeader(
 
   val statusLabel =
     JLabel(message("wear.whs.panel.exercise.inactive")).apply {
+      // use EMPTY_ICON so that space is available for the icon to show without cropping the text
+      val freshDataIcon = AllIcons.Empty
+      val staleDataIcon = StudioIcons.Common.WARNING
       // set the icon pre-emptively so the width is calculated properly and the label is not cropped
-      icon =
-        if (stateManager.isStateStale.value) StudioIcons.Common.WARNING else StudioIcons.Common.INFO
+      icon = if (stateManager.isStateStale.value) staleDataIcon else freshDataIcon
 
       combine(stateManager.ongoingExercise, stateManager.isStateStale) {
           ongoingExercise,
@@ -325,7 +327,7 @@ private fun createWearHealthServicesPanelHeader(
           ongoingExercise to isStateStale
         }
         .onEach { (isActiveExercise, isStateStale) ->
-          icon = if (isStateStale) StudioIcons.Common.WARNING else StudioIcons.Common.INFO
+          icon = if (isStateStale) staleDataIcon else freshDataIcon
           text =
             if (isActiveExercise) message("wear.whs.panel.exercise.active")
             else message("wear.whs.panel.exercise.inactive")
