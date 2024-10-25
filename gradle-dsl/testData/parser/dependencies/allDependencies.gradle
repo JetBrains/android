@@ -1,5 +1,4 @@
 dependencies {
-  api fileTree(dir: 'libs', include: ['*.jar'])
   implementation 'com.example.libs:lib1:0.+'
   api 'com.android.support:appcompat-v7:+'
   compile files('lib1.jar')
@@ -11,4 +10,5 @@ dependencies {
                         project(':lib3'),
                         fileTree(dir: 'libz', include: ['*.jar']),
                         [group: 'org.springframework', name: 'spring-core', version: '2.5']
+  api fileTree(dir: 'libs', include: ['*.jar'])
 }
