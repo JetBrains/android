@@ -19,17 +19,9 @@
   tools/idea/platform/ml-api/resources/META-INF/ml-api.xml and this causes a name conflict.
   -->
   <extensionPoints>
-    <extensionPoint qualifiedName="com.android.tools.idea.ml.mimetypeAugmenter"
-                    interface="com.android.tools.idea.studiobot.mimetype.MimeTypeAugmenter" />
     <extensionPoint qualifiedName="com.android.tools.idea.ml.studioBotExternalFlags"
                     interface="com.android.tools.idea.gemini.StudioBotExternalFlags" />
     <extensionPoint qualifiedName="com.android.tools.idea.gemini.geminiPluginApi"
                     interface="com.android.tools.idea.gemini.GeminiPluginApi" />
   </extensionPoints>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- The StudioBot service has a stub implementation by default, but is overridden by the Gemini plugin. -->
-    <applicationService serviceInterface="com.android.tools.idea.studiobot.StudioBot"
-                        serviceImplementation="com.android.tools.idea.studiobot.StudioBot$StubStudioBot"/>
-  </extensions>
 </idea-plugin>
