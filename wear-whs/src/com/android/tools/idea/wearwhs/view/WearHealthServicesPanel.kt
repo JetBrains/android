@@ -126,9 +126,9 @@ private fun createCenterPanel(
     capabilities.forEach { capability ->
       add(
         JPanel(BorderLayout()).apply {
-          preferredSize = Dimension(0, 35)
           val label =
             JLabel(message(capability.label)).also { label ->
+              label.preferredSize = Dimension(0, 35)
               val plainFont = label.font.deriveFont(Font.PLAIN)
               val italicFont = label.font.deriveFont(Font.ITALIC)
               combine(stateManager.getState(capability), stateManager.ongoingExercise) {
