@@ -25,7 +25,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.APP_INSPECTION
@@ -36,6 +35,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.concurrency.EdtExecutorService
@@ -52,7 +52,7 @@ import org.junit.Test
 
 /** Tests for [BackgroundTaskEntriesView] */
 class BackgroundTaskEntriesViewTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 

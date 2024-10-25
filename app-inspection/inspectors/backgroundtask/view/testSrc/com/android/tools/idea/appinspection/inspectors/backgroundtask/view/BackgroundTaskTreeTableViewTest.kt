@@ -47,15 +47,12 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.CLASS_NAME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.START_TIME_COMPARATOR
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.STATUS_COMPARATOR
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.util.concurrency.EdtExecutorService
-import javax.swing.JScrollPane
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -67,9 +64,12 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JScrollPane
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeTableViewTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
