@@ -24,6 +24,7 @@ import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.BinaryXmlParser;
+import com.android.tools.apk.analyzer.dex.ProguardMappings;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
@@ -83,6 +84,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
   private final JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
+  private ProguardMappings myProguardMapping;
 
   public ApkEditor(@NotNull Project project, @NotNull VirtualFile baseFile, @NotNull VirtualFile root) {
     myProject = project;
@@ -160,6 +162,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk);
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
+          myProguardMapping = myArchiveContext.getArchive().loadProguardMapping();
           myApkViewPanel = withChecksDisabledForSupplier(() ->
               new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()), apkVirtualFile.getName()));
           myApkViewPanel.setListener(ApkEditor.this);
@@ -338,7 +341,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       for (int i = 0; i < nodes.length; i++) {
         paths[i] = nodes[i].getData().getPath();
       }
-      return new DexFileViewer(myProject, paths, myBaseFile.getParent());
+      return new DexFileViewer(myProject, paths, myBaseFile.getParent(), myProguardMapping);
     }
 
     // Only one file or many files with different extensions are selected. We can only show
@@ -361,7 +364,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (p.toString().endsWith(SdkConstants.EXT_DEX)) {
-      return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent());
+      return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent(), myProguardMapping);
     }
 
     // Attempting to view these kinds of files is going to trigger the Kotlin metadata decompilers, which all assume the .class files
