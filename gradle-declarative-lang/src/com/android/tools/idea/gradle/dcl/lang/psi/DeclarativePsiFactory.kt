@@ -99,20 +99,29 @@ class DeclarativePsiFactory(private val project: Project) {
   private fun createToken(token: String): PsiElement =
     PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
 
-  fun createIdentifier(value: String): DeclarativeIdentifier =
-    createFromText("$value()") ?: error("Failed to create Declarative Identifier with name $value")
+  fun createIdentifier(identifier: String): DeclarativeIdentifier {
+    val id = identifier.maybeAddBackticks()
+    return createFromText("$id()") ?: error("Failed to create Declarative Identifier with name $id")
+  }
 
-  fun createBlock(value: String): DeclarativeBlock =
-    createFromText("$value {\n}") ?: error("Failed to create Declarative Block with name $value")
+  fun createBlock(identifier: String): DeclarativeBlock {
+    val id = identifier.maybeAddBackticks()
+    return createFromText("$id {\n}") ?: error("Failed to create Declarative Block with name $id")
+  }
 
-  fun createAssignment(key: String, value: Any): DeclarativeAssignment =
-    createFromText("$key = $value") ?: error("Failed to create DeclarativeAssignment `$key = $value`")
+  fun createAssignment(key: String, value: Any): DeclarativeAssignment {
+    val id = key.maybeAddBackticks()
+    return createFromText("$id = $value") ?: error("Failed to create DeclarativeAssignment `$id = $value`")
+  }
 
   fun createArgumentList(): DeclarativeArgumentsList {
     val list: DeclarativeArgumentsList = createFromText("function(placeholder)") ?: error("Failed to create DeclarativeArgumentsList")
     list.argumentList.clear()
     return list
   }
+
+  private fun String.maybeAddBackticks(): String =
+    if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
 
   fun createArgument(value: DeclarativeValue, identifier: String? = null): DeclarativeArgument =
     (if (identifier == null)
@@ -125,25 +134,28 @@ class DeclarativePsiFactory(private val project: Project) {
     createFromText("placeholder = $value") ?: error("Failed to create DeclarativeProperty `$value`")
 
   fun createFactory(identifier: String): DeclarativeFactory {
-    val factory = createFromText<DeclarativeFactory>("$identifier()")
-    return factory ?: error("Failed to create createFactory `$identifier( )`")
+    val id = identifier.maybeAddBackticks()
+    val factory = createFromText<DeclarativeFactory>("$id()")
+    return factory ?: error("Failed to create createFactory `$id( )`")
   }
 
   fun createOneParameterFactoryBlock(identifier: String, parameter: String): DeclarativeBlock {
     val param = createLiteral(parameter).text
-    val factory = createFromText<DeclarativeBlock>("$identifier($param){ }")
-    return factory ?: error("Failed to create createFactory `$identifier($param){}`")
+    val id = identifier.maybeAddBackticks()
+    val factory = createFromText<DeclarativeBlock>("$id($param){ }")
+    return factory ?: error("Failed to create createFactory `$id($param){}`")
   }
 
   fun createOneParameterFactory(identifier: String,
                                 plainParameter: Any,
                                 parameterIdentifier: String? = null): DeclarativeFactory {
+    val id = identifier.maybeAddBackticks()
     val factory =
       if (parameterIdentifier == null)
-        createFromText<DeclarativeFactory>("$identifier($plainParameter)")
+        createFromText<DeclarativeFactory>("$id($plainParameter)")
       else
-        createFromText<DeclarativeFactory>("$identifier($parameterIdentifier = $plainParameter)")
+        createFromText<DeclarativeFactory>("$id($parameterIdentifier = $plainParameter)")
 
-    return factory ?: error("Failed to create createFactory `$identifier($plainParameter)`")
+    return factory ?: error("Failed to create createFactory `$id($plainParameter)`")
   }
 }
