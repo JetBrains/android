@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import java.nio.charset.StandardCharsets.UTF_8
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -76,20 +74,6 @@ class MavenClassRegistryManagerTest {
   }
 
   @Test
-  fun blockingRead() {
-    verify(mockGMavenIndexRepository, never()).loadIndexFromDisk()
-
-    val registry1 = mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()
-    verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
-
-    // Second call should not trigger a new load.
-    val registry2 = mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()
-    verify(mockGMavenIndexRepository, times(1)).loadIndexFromDisk()
-
-    assertThat(registry2).isSameAs(registry1)
-  }
-
-  @Test
   fun tryRead() {
     // Multiple calls should kick off the read process only once, and it won't run until the
     // coroutine dispatcher runs.
@@ -138,12 +122,14 @@ class MavenClassRegistryManagerTest {
   fun indexUpdated() {
     assertThat(gMavenIndexRepositoryListeners).isEmpty()
 
-    // Listener should be registered when the registry is initialized.
-    val registry1 = mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()
+    // Initialize the registry
+    assertThat(mavenClassRegistryManager.tryGetMavenClassRegistry()).isNull()
+    testScheduler.runCurrent()
+    val registry1: MavenClassRegistry? = mavenClassRegistryManager.tryGetMavenClassRegistry()
+    assertThat(registry1).isNotNull()
     assertThat(gMavenIndexRepositoryListeners).hasSize(1)
 
     // Subsequent calls to the various getters should all return the same registry.
-    assertThat(mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()).isSameAs(registry1)
     assertThat(mavenClassRegistryManager.tryGetMavenClassRegistry()).isSameAs(registry1)
     assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() })
       .isSameAs(registry1)
@@ -163,26 +149,7 @@ class MavenClassRegistryManagerTest {
     // Now there should be a new registry.
     val registry2 = mavenClassRegistryManager.tryGetMavenClassRegistry()
     assertThat(registry2).isNotSameAs(registry1)
-    assertThat(mavenClassRegistryManager.getMavenClassRegistryBlockingForTest()).isSameAs(registry2)
-    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistryBlockingForTest() })
+    assertThat(runBlocking { mavenClassRegistryManager.getMavenClassRegistry() })
       .isSameAs(registry2)
-  }
-
-  /**
-   * Returns result of [MavenClassRegistryManager.getMavenClassRegistryBlocking].
-   *
-   * To call the blocking read method, we have to use a background thread so that control returns to
-   * the test and we can advance the coroutine scheduler.
-   */
-  private fun MavenClassRegistryManager.getMavenClassRegistryBlockingForTest(): MavenClassRegistry {
-    var result: MavenClassRegistry? = null
-    application.executeOnPooledThread { result = getMavenClassRegistryBlocking() }
-
-    waitForCondition(10.seconds) {
-      testScheduler.runCurrent()
-      result != null
-    }
-
-    return requireNotNull(result)
   }
 }
