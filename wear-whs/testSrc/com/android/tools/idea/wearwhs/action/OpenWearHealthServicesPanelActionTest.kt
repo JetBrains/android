@@ -50,6 +50,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
 class OpenWearHealthServicesPanelActionTest {
@@ -70,25 +72,26 @@ class OpenWearHealthServicesPanelActionTest {
         whenever(it.deviceType).thenReturn(DeviceType.WEAR)
       }
     emulatorController =
-      mock<EmulatorController>().also {
-        whenever(it.emulatorId)
-          .thenReturn(
-            EmulatorId(
-              0,
-              null,
-              null,
-              "avdId",
-              "avdFolder",
-              Paths.get("avdPath"),
-              0,
-              0,
-              emptyList(),
-              "",
-            )
-          )
-        whenever(it.emulatorConfig).thenReturn(emulatorConfig)
-        Disposer.register(projectRule.testRootDisposable, it)
-      }
+      spy(
+        EmulatorController(
+          EmulatorId(
+            0,
+            null,
+            null,
+            "avdId",
+            "avdFolder",
+            Paths.get("avdPath"),
+            0,
+            0,
+            emptyList(),
+            "",
+          ),
+          projectRule.testRootDisposable,
+        )
+      )
+    doReturn(emulatorConfig).whenever(emulatorController).emulatorConfig
+    Disposer.register(projectRule.testRootDisposable, emulatorController)
+
     emulatorView =
       EmulatorView(
         projectRule.testRootDisposable,
@@ -123,6 +126,8 @@ class OpenWearHealthServicesPanelActionTest {
   fun `OpenWearHealthServicesPanelAction opens popup`() {
     val action = OpenWearHealthServicesPanelAction()
 
+    whenever(emulatorController.connectionState)
+      .thenReturn(EmulatorController.ConnectionState.CONNECTED)
     action.actionPerformed(actionEvent)
     assertThat(fakePopupRule.fakePopupFactory.balloonCount).isEqualTo(1)
   }
