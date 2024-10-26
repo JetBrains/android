@@ -353,6 +353,7 @@ private fun createWearHealthServicesPanelHeader(
 private fun createFooter(
   stateManager: WearHealthServicesStateManager,
   informationLabelFlow: Flow<String>,
+  canMakeChangesFlow: Flow<Boolean>,
   uiScope: CoroutineScope,
   reset: () -> Unit,
   applyChanges: () -> Unit,
@@ -384,12 +385,10 @@ private fun createFooter(
         addActionListener { applyChanges() }
       }
 
-    combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
-        val canMakeChanges =
-          status !is WhsStateManagerStatus.Syncing &&
-            (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
-        resetButton.isEnabled = canMakeChanges
-        applyButton.isEnabled = canMakeChanges
+    canMakeChangesFlow
+      .onEach {
+        resetButton.isEnabled = it
+        applyButton.isEnabled = it
       }
       .launchIn(uiScope)
 
@@ -414,6 +413,12 @@ internal fun createWearHealthServicesPanel(
   applyChanges: () -> Unit,
   triggerEvent: (EventTrigger) -> Unit,
 ): WearHealthServicesPanel {
+  val canMakeChangesFlow =
+    combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
+      status !is WhsStateManagerStatus.Syncing &&
+        (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
+    }
+
   val content =
     JBScrollPane().apply {
       setViewportView(
@@ -425,6 +430,7 @@ internal fun createWearHealthServicesPanel(
     createFooter(
       stateManager = stateManager,
       informationLabelFlow = informationLabelFlow,
+      canMakeChangesFlow = canMakeChangesFlow,
       uiScope = uiScope,
       reset = reset,
       applyChanges = applyChanges,
