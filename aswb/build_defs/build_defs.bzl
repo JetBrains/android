@@ -42,8 +42,6 @@ def stamped_plugin_xml(
         changelog_file = None,
         description_file = None,
         vendor_file = None,
-        since_build_numbers = None,
-        until_build_numbers = None,
         application_info_json = None,
         **kwargs):
     """Stamps a plugin xml file with the IJ build number.
@@ -61,12 +59,6 @@ def stamped_plugin_xml(
       changelog_file: A file with the changelog to be included.
       description_file: A file containing a plugin description to be included.
       vendor_file: A file containing the vendor info to be included.
-      since_build_numbers: A map from plugin-api versions to the since build number
-          that should be used in their supporting plugin, the default is the plugin_api
-          major version. Example: {"212": "212.1"}
-      until_build_numbers: A map from plugin-api versions to the until build number
-          that should be used in their supporting plugin, the default is all minor
-          versions of plugin_api major version. Example: {"212": "212.1.*"}
       application_info_json: A product info file, if provided, overrides the default.
       **kwargs: Any additional arguments to pass to the final target.
     """
@@ -118,18 +110,6 @@ def stamped_plugin_xml(
     if vendor_file:
         args.append("--vendor_file=$(location {vendor_file})")
         srcs.append(vendor_file)
-
-    if since_build_numbers:
-        param = "--since_build_numbers "
-        for k, v in since_build_numbers.items():
-            param += k + "=" + v + " "
-        args.append(param)
-
-    if until_build_numbers:
-        param = "--until_build_numbers "
-        for k, v in until_build_numbers.items():
-            param += k + "=" + v + " "
-        args.append(param)
 
     cmd = " ".join(args).format(
         plugin_xml = plugin_xml,

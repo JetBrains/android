@@ -59,8 +59,6 @@ stamped_plugin_xml(
     description_file = "src/META-INF/description.html",
     plugin_id = "com.google.idea.bazel.aswb",
     plugin_name = "Bazel for Android Studio",
-    # #api212: We depend on an API which is only contained in 2021.2.1+.
-    since_build_numbers = {"212": "212.5080.55"},
     stamp_since_build = True,
     stamp_until_build = True,
     version_file = ":plugin_version.txt",
@@ -348,7 +346,7 @@ genrule(
 # Value of BUILD_EMBED_LABEL key comes from --embed_label on the command line
 version="$$(grep BUILD_EMBED_LABEL bazel-out/stable-status.txt | cut -d ' ' -f 2)"
 # Set a default version if --embed_label was not specified
-if [ -z "$$version" ]; then version="9999"; fi
+if [ -z "$$version" ]; then version="99999999"; fi
 
 echo "$$version" > $@
 """,
