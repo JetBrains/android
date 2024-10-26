@@ -16,6 +16,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/analytics/analytics.iml" filepath="$PROJECT_DIR$/analytics/analytics.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" filepath="$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/inspector/analytics-inspector.iml" filepath="$PROJECT_DIR$/../../analytics-library/inspector/analytics-inspector.iml" />
