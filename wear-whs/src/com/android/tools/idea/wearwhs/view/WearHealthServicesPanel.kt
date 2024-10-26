@@ -295,7 +295,7 @@ private fun createCenterPanel(
   }
 }
 
-private fun createWearHealthServicesPanelHeader(
+private fun createHeader(
   stateManager: WearHealthServicesStateManager,
   uiScope: CoroutineScope,
   triggerEvent: (EventTrigger) -> Unit,
@@ -437,7 +437,7 @@ internal fun createWearHealthServicesPanel(
     )
 
   val header =
-    createWearHealthServicesPanelHeader(
+    createHeader(
       stateManager = stateManager,
       uiScope = uiScope,
       triggerEvent = { triggerEvent(it) },
