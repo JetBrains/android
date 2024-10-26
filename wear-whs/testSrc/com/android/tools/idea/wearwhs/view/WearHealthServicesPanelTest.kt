@@ -46,7 +46,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -496,11 +495,11 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `has learn more link`(): Unit = runBlocking {
+  fun `has learn more button`(): Unit = runBlocking {
     val fakeUi = FakeUi(createWhsPanel().component)
 
-    val learnMoreLink =
-      fakeUi.waitForDescendant<ActionLink> { it.text == message("wear.whs.panel.learn.more") }
+    val learnMoreButton =
+      fakeUi.waitForDescendant<JButton> { it.toolTipText == message("wear.whs.panel.learn.more") }
     mockStatic(BrowserUtil::class.java).use { browserUtil ->
       val url = CompletableDeferred<String>()
       browserUtil
@@ -510,7 +509,7 @@ class WearHealthServicesPanelTest {
           Unit
         }
 
-      learnMoreLink.doClick()
+      learnMoreButton.doClick()
 
       assertEquals(LEARN_MORE_URL, url.await())
     }
