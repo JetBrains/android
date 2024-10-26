@@ -350,6 +350,55 @@ private fun createWearHealthServicesPanelHeader(
   )
 }
 
+private fun createFooter(
+  stateManager: WearHealthServicesStateManager,
+  informationLabelFlow: Flow<String>,
+  uiScope: CoroutineScope,
+  reset: () -> Unit,
+  applyChanges: () -> Unit,
+): JPanel {
+  // Display current state e.g. we encountered an error, if there's work in progress, or if an
+  // action was successful
+  val informationLabel = JLabel()
+  uiScope.launch { informationLabelFlow.collectLatest { informationLabel.text = it } }
+
+  return JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
+    border = horizontalBorders
+
+    val resetButton =
+      JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } }
+    val applyButton =
+      JButton(message("wear.whs.panel.apply")).apply {
+        stateManager.ongoingExercise
+          .onEach {
+            toolTipText =
+              if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
+              else message("wear.whs.panel.apply.tooltip.no.exercise")
+          }
+          .launchIn(uiScope)
+
+        stateManager.status
+          .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
+          .launchIn(uiScope)
+
+        addActionListener { applyChanges() }
+      }
+
+    combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
+        val canMakeChanges =
+          status !is WhsStateManagerStatus.Syncing &&
+            (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
+        resetButton.isEnabled = canMakeChanges
+        applyButton.isEnabled = canMakeChanges
+      }
+      .launchIn(uiScope)
+
+    add(informationLabel)
+    add(resetButton)
+    add(applyButton)
+  }
+}
+
 /** Container for the Wear Health Services panel. */
 data class WearHealthServicesPanel(
   /** The UI component containing the Wear Health Services panel. */
@@ -365,12 +414,6 @@ internal fun createWearHealthServicesPanel(
   applyChanges: () -> Unit,
   triggerEvent: (EventTrigger) -> Unit,
 ): WearHealthServicesPanel {
-
-  // Display current state e.g. we encountered an error, if there's work in progress, or if an
-  // action was successful
-  val informationLabel = JLabel()
-  uiScope.launch { informationLabelFlow.collectLatest { informationLabel.text = it } }
-
   val content =
     JBScrollPane().apply {
       setViewportView(
@@ -379,41 +422,13 @@ internal fun createWearHealthServicesPanel(
     }
 
   val footer =
-    JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
-      border = horizontalBorders
-
-      val resetButton =
-        JButton(message("wear.whs.panel.reset")).apply { addActionListener { reset() } }
-      val applyButton =
-        JButton(message("wear.whs.panel.apply")).apply {
-          stateManager.ongoingExercise
-            .onEach {
-              toolTipText =
-                if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
-                else message("wear.whs.panel.apply.tooltip.no.exercise")
-            }
-            .launchIn(uiScope)
-
-          stateManager.status
-            .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
-            .launchIn(uiScope)
-
-          addActionListener { applyChanges() }
-        }
-
-      combine(stateManager.ongoingExercise, stateManager.status) { ongoingExercise, status ->
-          val canMakeChanges =
-            status !is WhsStateManagerStatus.Syncing &&
-              (!ongoingExercise || stateManager.hasAtLeastOneCapabilityEnabled())
-          resetButton.isEnabled = canMakeChanges
-          applyButton.isEnabled = canMakeChanges
-        }
-        .launchIn(uiScope)
-
-      add(informationLabel)
-      add(resetButton)
-      add(applyButton)
-    }
+    createFooter(
+      stateManager = stateManager,
+      informationLabelFlow = informationLabelFlow,
+      uiScope = uiScope,
+      reset = reset,
+      applyChanges = applyChanges,
+    )
 
   val header =
     createWearHealthServicesPanelHeader(
