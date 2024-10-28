@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.component.Icon
 
-open class TestDeviceSource : DeviceSource<TestDevice> {
-  override val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
+open class TestDeviceSource {
+  val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
 
   val selectedProfile = MutableStateFlow<TestDevice?>(null)
 
@@ -35,7 +35,7 @@ open class TestDeviceSource : DeviceSource<TestDevice> {
     profiles.update { LoadingState.Ready(it.value + device) }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
+  open fun WizardPageScope.selectionUpdated(profile: TestDevice) {
     selectedProfile.value = profile
   }
 }

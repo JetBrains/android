@@ -21,7 +21,6 @@ import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
@@ -50,7 +49,7 @@ internal class LocalVirtualDeviceSource(
   private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
   val systemImageStateFlow: StateFlow<SystemImageState> =
     service<SystemImageStateService>().systemImageStateFlow,
-) : DeviceSource<VirtualDeviceProfile> {
+) {
 
   companion object {
     internal fun create(): LocalVirtualDeviceSource {
@@ -62,7 +61,7 @@ internal class LocalVirtualDeviceSource(
     }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
+  fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
     nextAction = WizardAction {
       pushPage {
         leftSideButtons = emptyList()
@@ -88,7 +87,7 @@ internal class LocalVirtualDeviceSource(
     return true
   }
 
-  override val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
+  val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
     callbackFlow {
         send(LoadingState.Loading)
 

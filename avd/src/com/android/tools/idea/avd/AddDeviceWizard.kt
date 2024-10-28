@@ -99,7 +99,8 @@ internal class AddDeviceWizard(
     val filterState = getOrCreateState { VirtualDeviceFilterState() }
     val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
-    DeviceLoadingPage(source) { profiles ->
+    val profilesFlow = remember { source.profiles }
+    DeviceLoadingPage(profilesFlow) { profiles ->
       // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
       // Device is created, we select it automatically.
       var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }

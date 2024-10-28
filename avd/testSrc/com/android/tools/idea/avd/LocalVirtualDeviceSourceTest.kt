@@ -36,8 +36,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.adddevicedialog.DeviceProfile
-import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
@@ -400,8 +398,8 @@ class LocalVirtualDeviceSourceTest {
   }
 }
 
-private suspend fun <T : DeviceProfile> DeviceSource<T>.profilesWhenReady(): List<T> =
-  profiles.filterIsInstance<LoadingState.Ready<List<T>>>().first().value
+private suspend fun LocalVirtualDeviceSource.profilesWhenReady(): List<VirtualDeviceProfile> =
+  profiles.filterIsInstance<LoadingState.Ready<List<VirtualDeviceProfile>>>().first().value
 
 internal fun SdkFixture.createLocalVirtualDeviceSource(
   systemImageStateFlow: StateFlow<SystemImageState> = MutableStateFlow(systemImageState())
