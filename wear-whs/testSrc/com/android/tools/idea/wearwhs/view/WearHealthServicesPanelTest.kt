@@ -698,6 +698,18 @@ class WearHealthServicesPanelTest {
       assertThat(heartRateTextField.text).isEmpty()
     }
 
+  // Regression test for b/373397938
+  @Test
+  fun `the apply button should be set as default`() =
+    runBlocking<Unit> {
+      val panel = createWhsPanel()
+      val fakeUi = FakeUi(panel.component, createFakeWindow = true)
+      val applyButton =
+        fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
+
+      assertThat(applyButton.isDefaultButton).isTrue()
+    }
+
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
       checkbox.hasLabel(text) && checkbox.isSelected == selected

@@ -73,11 +73,13 @@ class WearHealthServicesPanelControllerTest {
 
   private val fakeUi: FakeUi
     get() =
-      FakeUi(
+      checkNotNull(
         fakePopupRule.fakePopupFactory
           .getBalloon(fakePopupRule.fakePopupFactory.balloonCount - 1)
-          .component
-      )
+          .ui
+      ) {
+        "expected fake ui to be created"
+      }
 
   @Before
   fun setup() {
@@ -336,6 +338,17 @@ class WearHealthServicesPanelControllerTest {
             it.type == NotificationType.ERROR
         }
       }
+    }
+
+  // Regression test for b/373397938
+  @Test
+  fun `the apply button should be set as default`() =
+    runBlocking<Unit> {
+      showWhsPopup()
+
+      val applyButton =
+        fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
+      assertThat(applyButton.isDefaultButton).isTrue()
     }
 
   private fun showWhsPopup() {
