@@ -24,36 +24,45 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.io.ZipUtil
+import java.io.File
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
-import java.io.File
 
 private const val COMPOSE_LIB_VERSION = "1.7.1"
 
-private const val COMPOSE_RUNTIME_LIB =
-  "androidx/compose/runtime/runtime-android/$COMPOSE_LIB_VERSION/runtime-android-$COMPOSE_LIB_VERSION.aar"
-
-private const val COMPOSE_UI_LIB =
-  "androidx/compose/ui/ui-android/$COMPOSE_LIB_VERSION/ui-android-$COMPOSE_LIB_VERSION.aar"
-
-private const val COMPOSE_UI_GRAPHICS_LIB =
-  "androidx/compose/ui/ui-graphics-android/$COMPOSE_LIB_VERSION/ui-graphics-android-$COMPOSE_LIB_VERSION.aar"
+private enum class ComposeLib(val libPath: String) {
+  Runtime(
+    "androidx/compose/runtime/runtime-android/$COMPOSE_LIB_VERSION/runtime-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+  RuntimeSaveable(
+    "androidx/compose/runtime/runtime-saveable-android/$COMPOSE_LIB_VERSION/runtime-saveable-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+  Ui("androidx/compose/ui/ui-android/$COMPOSE_LIB_VERSION/ui-android-$COMPOSE_LIB_VERSION.aar"),
+  UiGraphics(
+    "androidx/compose/ui/ui-graphics-android/$COMPOSE_LIB_VERSION/ui-graphics-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+}
 
 fun CodeInsightTestFixture.addComposeRuntimeDep() {
-  addLibDep(COMPOSE_RUNTIME_LIB, "runtime")
+  addLibDep(ComposeLib.Runtime)
+}
+
+fun CodeInsightTestFixture.addComposeRuntimeSaveableDep() {
+  addLibDep(ComposeLib.RuntimeSaveable)
 }
 
 fun CodeInsightTestFixture.addComposeUiDep() {
-  addLibDep(COMPOSE_UI_LIB, "ui")
+  addLibDep(ComposeLib.Ui)
 }
 
 fun CodeInsightTestFixture.addComposeUiGraphicsDep() {
-  addLibDep(COMPOSE_UI_GRAPHICS_LIB, "ui-graphics")
+  addLibDep(ComposeLib.UiGraphics)
 }
 
-private fun CodeInsightTestFixture.addLibDep(libPath: String, libName: String) {
-  val aarPath = File(TestUtils.getLocalMavenRepoFile(libPath).toString()).toPath()
+private fun CodeInsightTestFixture.addLibDep(composeLib: ComposeLib) {
+  val aarPath = File(TestUtils.getLocalMavenRepoFile(composeLib.libPath).toString()).toPath()
 
+  val libName = composeLib.libPath.split("/")[3]
   val tempDir = tempDirFixture.findOrCreateDir("composeTestLib_$libName").toIoFile()
   ZipUtil.extract(aarPath, tempDir.toPath()) { _, filename -> filename == "classes.jar" }
   val jarPath = File(tempDir, "classes.jar").path
@@ -77,7 +86,7 @@ fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
     )
     annotation class Composable
     """
-      .trimIndent()
+      .trimIndent(),
   )
 }
 
@@ -225,7 +234,7 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
       override operator fun component2(): (T) -> Unit = { value = it }
     }
     """
-      .trimIndent()
+      .trimIndent(),
   )
   addFileToProject(
     "src/androidx/compose/runtime/saveable/RememberSaveable.kt",
@@ -241,7 +250,7 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
       init: () -> T
     ): T = init()
     """
-      .trimIndent()
+      .trimIndent(),
   )
 }
 
@@ -289,7 +298,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
         val limit: Int = Int.MAX_VALUE
     )
     """
-      .trimIndent()
+      .trimIndent(),
   )
 }
 
@@ -317,7 +326,7 @@ fun CodeInsightTestFixture.stubConfigurationAsLibrary() {
     "configuration",
     SdkConstants.CLASS_CONFIGURATION,
     JavaFileType.INSTANCE,
-    fileContents
+    fileContents,
   )
 }
 
@@ -346,7 +355,7 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
     "devices",
     "$devicesPackageName.Devices",
     KotlinFileType.INSTANCE,
-    fileContents
+    fileContents,
   )
 }
 
@@ -355,7 +364,7 @@ private fun CodeInsightTestFixture.stubClassAsLibrary(
   libraryName: String,
   fqClassName: String,
   fileType: FileType,
-  fileContents: String
+  fileContents: String,
 ) {
   val filePath = fqClassName.replace('.', '/') + '.' + fileType.defaultExtension
   tempDirFixture.createFile("external/$libraryName/$filePath", fileContents)

@@ -40,8 +40,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
-import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.android.compose.stubComposeRuntime
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeRuntimeSaveableDep
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -61,7 +61,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 @RunsInEdt
 @RunWith(JUnit4::class)
 class ComposeStateReadInlayHintsProviderTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin().onEdt()
 
   private val scheduler = TestCoroutineScheduler()
   private val dispatcher = StandardTestDispatcher(scheduler)
@@ -75,8 +75,8 @@ class ComposeStateReadInlayHintsProviderTest {
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation()
-    fixture.stubComposeRuntime()
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeRuntimeSaveableDep()
     StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
@@ -84,7 +84,7 @@ class ComposeStateReadInlayHintsProviderTest {
   fun createCollector_notKtFile() {
     val javaFile =
       fixture.loadNewFile(
-        "com/example/Foo.java",
+        "src/com/example/Foo.java",
         // language=java
         """
         package com.example;
@@ -102,7 +102,7 @@ class ComposeStateReadInlayHintsProviderTest {
 
     val kotlinFile =
       fixture.loadNewFile(
-        "com/example/Foo.kt",
+        "src/com/example/Foo.kt",
         // language=kotlin
         """
         package com.example
@@ -118,7 +118,7 @@ class ComposeStateReadInlayHintsProviderTest {
   fun createCollector() {
     val kotlinFile =
       fixture.loadNewFile(
-        "com/example/Foo.kt",
+        "src/com/example/Foo.kt",
         // language=kotlin
         """
         package com.example
@@ -134,7 +134,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_notKtNameReferenceExpression() {
     fixture.loadNewFile(
-      "com/example/Foo.java",
+      "src/com/example/Foo.java",
       // language=java
       """
       package com.example;
@@ -152,7 +152,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_notStateRead() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -176,7 +176,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_stateRead() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -185,7 +185,7 @@ class ComposeStateReadInlayHintsProviderTest {
       import androidx.compose.runtime.mutableStateOf
       import androidx.compose.runtime.saveable.rememberSaveable
       @Composable
-      fun Bar(arg: String, onNameChange: (String) -> Unit)
+      fun Bar(arg: String, onNameChange: (String) -> Unit) {}
       @Composable
       fun Foo() {
         var stateVar = rememberSaveable { mutableStateOf("foo") }
@@ -230,7 +230,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_highlightsCorrectRange() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -250,7 +250,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_noHighlightAfterCaretMovement() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -271,7 +271,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_highlightFlash() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
