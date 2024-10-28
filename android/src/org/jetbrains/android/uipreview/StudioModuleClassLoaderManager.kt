@@ -94,7 +94,11 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
     }
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    ModuleManager.getInstance(project).modules.forEach {
+      StudioModuleClassLoaderManager.get().clearCache(it)
+    }
+  }
 }
 
 private val PRELOADER: Key<StudioPreloader> =
