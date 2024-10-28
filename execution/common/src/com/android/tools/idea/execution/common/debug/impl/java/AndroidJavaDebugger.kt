@@ -52,6 +52,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     return true
   }
 
+  override fun isNative(project: Project) = false
 
   override fun getDebugProcessStarterForNewProcess(
     project: Project,
