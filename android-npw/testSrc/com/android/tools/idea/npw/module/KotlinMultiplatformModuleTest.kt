@@ -70,13 +70,13 @@ class KotlinMultiplatformModuleTest {
     val iosPlatformContent = rootDir.resolve("iosMain").resolve("Platform.ios.kt").readText()
     assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
-    val androidUnitTestContent =
+    val androidTestOnJvmContent =
       rootDir.resolve("androidTestOnJvm").resolve("ExampleUnitTest.kt").readText()
-    assertThat(androidUnitTestContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
+    assertThat(androidTestOnJvmContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
-    val androidInstrumentedTestContent =
+    val androidTestOnDeviceContent =
       rootDir.resolve("androidTestOnDevice").resolve("ExampleInstrumentedTest.kt").readText()
-    assertThat(androidInstrumentedTestContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
+    assertThat(androidTestOnDeviceContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
     val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
     assertThat(gradlePropertiesContent)
