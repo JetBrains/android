@@ -25,7 +25,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Before
 import org.junit.Rule
@@ -44,7 +44,7 @@ class ComposeLineMarkerProviderDescriptorTest {
     myFixture = projectRule.fixture
 
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
   }
 
   @Test

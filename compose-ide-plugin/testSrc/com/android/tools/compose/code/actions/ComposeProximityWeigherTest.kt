@@ -28,7 +28,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.ProximityLocation
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.junit.Before
@@ -59,7 +59,7 @@ class ComposeProximityWeigherTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
   }
 
   @Test
