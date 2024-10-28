@@ -84,7 +84,8 @@ class DeviceTableTest {
     val googleFilter = hasText("Google") and hasAnyAncestor(hasTestTag("DeviceFilters"))
     val genericFilter = hasText("Generic") and hasAnyAncestor(hasTestTag("DeviceFilters"))
 
-    composeTestRule.onNode(googleFilter, useUnmergedTree = true).assertIsDisplayed()
+    // Only a single entry -> no filter shown.
+    composeTestRule.onNode(googleFilter, useUnmergedTree = true).assertDoesNotExist()
     composeTestRule.onNode(genericFilter, useUnmergedTree = true).assertDoesNotExist()
 
     source.add(TestDevices.mediumPhone)
