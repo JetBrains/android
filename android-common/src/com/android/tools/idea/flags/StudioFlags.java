@@ -1961,19 +1961,19 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
                     "Enable the transform actions.",
                     "When enabled, the transform actions (document, comment, the custom transform action, etc.) are enabled.",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_CUSTOM_TRANSFORM_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.enabled",
                     "Enable the custom transform action in the editor.",
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
                     "Enable the transform history in the transform diff.",
                     "When enabled, allows the user to navigate transform history in the diff view.",
-                    ChannelDefault.enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_SHOW_TRANSFORM_HISTORY_FORWARD_BACK =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.show.history.forward.back",
