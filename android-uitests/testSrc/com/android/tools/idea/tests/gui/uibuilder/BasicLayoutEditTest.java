@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -98,10 +99,18 @@ public class BasicLayoutEditTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
+    Dimension screenViewSize = editorFixture.getSurface()
+      .target()
+      .getFocusedSceneView()
+      .getScaledContentSize();
+
+    editorFixture
+      .dragComponentToSurface("Common", "TextView", 0, screenViewSize.height / 2)
+      .waitForRenderToFinish();
+    //Click on TextView
+    editorFixture.findView("TextView", 0).getSceneComponent().click();
 
     JTextComponentFixture textAttr = editorFixture
-      .dragComponentToSurface("Common", "TextView")
-      .waitForRenderToFinish()
       .getAttributesPanel()
       .waitForId("textView")
       .findSectionByName("Common Attributes")
@@ -118,7 +127,7 @@ public class BasicLayoutEditTest {
         } else {
           textAttr
             .selectAll()
-            .enterText("@string/app_name")
+            .setText("@string/app_name")
             .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER));
           return false;
         }
