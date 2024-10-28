@@ -464,17 +464,11 @@ class WearHealthServicesPanelTest {
         }
 
       waitForCondition(5.seconds) {
-        val siblingComponents = locationLabel.parent.components
-        siblingComponents
-          .filterIsInstance<JPanel>()
-          .single()
-          .components
-          .filterIsInstance<JLabel>()
-          .any {
-            it.icon == AllIcons.General.Note &&
-              it.toolTipText == message("wear.whs.capability.override.not.supported") &&
-              it.isVisible
-          }
+        (locationLabel.labelFor as JPanel).components.filterIsInstance<JLabel>().any {
+          it.icon == AllIcons.General.Note &&
+            it.toolTipText == message("wear.whs.capability.override.not.supported") &&
+            it.isVisible
+        }
       }
     }
 

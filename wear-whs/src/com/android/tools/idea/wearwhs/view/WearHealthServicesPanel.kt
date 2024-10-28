@@ -39,6 +39,7 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
@@ -82,6 +83,8 @@ private val floatPattern = Regex("^(0|0?[1-9]\\d*)?(\\.[0-9]*)?\$")
 private const val PADDING = 15
 private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
 
+private const val RIGHT_COLUMN_WIDTH_GROUP = "rightColumnWidthGroup"
+
 internal const val LEARN_MORE_URL =
   "https://developer.android.com/health-and-fitness/guides/health-services/simulated-data#use_the_health_services_sensor_panel"
 
@@ -105,34 +108,33 @@ private fun createCenterPanel(
       elementsToDisplayDuringExercise.forEach { element -> element.isVisible = it }
     }
     .launchIn(uiScope)
+
   return JPanel(VerticalFlowLayout()).apply {
     border = horizontalBorders
     add(
-      JPanel(BorderLayout()).apply {
-        add(
-          JLabel(message("wear.whs.panel.sensor")).apply { font = font.deriveFont(Font.BOLD) },
-          BorderLayout.CENTER,
-        )
-        add(
-          JPanel(FlowLayout()).apply {
-            add(
-              JLabel(message("wear.whs.panel.override")).apply {
-                isVisible = stateManager.ongoingExercise.value == true
-                elementsToDisplayDuringExercise.add(this)
-                font = font.deriveFont(Font.BOLD)
-              }
-            )
+      panel {
+        twoColumnsRow(
+          {
+            label(message("wear.whs.panel.sensor")).also {
+              it.component.font = it.component.font.deriveFont(Font.BOLD)
+            }
           },
-          BorderLayout.EAST,
+          {
+            label(message("wear.whs.panel.override"))
+              .also {
+                it.component.font = it.component.font.deriveFont(Font.BOLD)
+                it.component.isVisible = stateManager.ongoingExercise.value == true
+                elementsToDisplayDuringExercise.add(it.component)
+              }
+              .widthGroup(RIGHT_COLUMN_WIDTH_GROUP)
+              .align(AlignX.RIGHT)
+          },
         )
-      }
-    )
-    capabilities.forEach { capability ->
-      add(
-        JPanel(BorderLayout()).apply {
+
+        capabilities.forEach { capability ->
           val label =
             JLabel(message(capability.label)).also { label ->
-              label.preferredSize = Dimension(0, 35)
+              label.preferredSize = Dimension(0, 25)
               val plainFont = label.font.deriveFont(Font.PLAIN)
               val italicFont = label.font.deriveFont(Font.ITALIC)
               combine(stateManager.getState(capability), stateManager.ongoingExercise) {
@@ -204,20 +206,28 @@ private fun createCenterPanel(
             }
             .launchIn(uiScope)
 
-          add(checkBox, BorderLayout.LINE_START)
-          add(label, BorderLayout.CENTER)
-          add(
-            JPanel(FlowLayout()).apply {
-              isVisible = stateManager.ongoingExercise.value == true
-              elementsToDisplayDuringExercise.add(this)
-              add(textField)
-              add(unitLabel)
+          twoColumnsRow(
+            {
+              cell(checkBox).gap(RightGap.SMALL)
+              cell(label)
             },
-            BorderLayout.EAST,
+            {
+              cell(
+                  JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
+                    isVisible = stateManager.ongoingExercise.value == true
+                    elementsToDisplayDuringExercise.add(this)
+                    label.labelFor = this
+                    add(textField)
+                    add(unitLabel)
+                  }
+                )
+                .widthGroup(RIGHT_COLUMN_WIDTH_GROUP)
+                .align(AlignX.RIGHT)
+            },
           )
         }
-      )
-    }
+      }
+    )
   }
 }
 
