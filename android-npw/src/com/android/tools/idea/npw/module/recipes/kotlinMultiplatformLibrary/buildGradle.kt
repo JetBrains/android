@@ -64,7 +64,7 @@ fun buildKmpGradle(
         }
       }
 
-      getByName("androidInstrumentedTest") {
+      getByName("androidTestOnDevice") {
         dependencies {
         }
       }
@@ -115,14 +115,10 @@ private fun androidTargetConfig(
       ${toAndroidFieldVersion("compileSdk", compileApiString, agpVersion)}
       ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
 
-      withAndroidTestOnJvmBuilder {
-          compilationName = "unitTest"
-          defaultSourceSetName = "androidUnitTest"
+      withHostTestBuilder {
       }
 
-      withAndroidTestOnDeviceBuilder {
-          compilationName = "instrumentedTest"
-          defaultSourceSetName = "androidInstrumentedTest"
+      withDeviceTestBuilder {
           sourceSetTreeName = "test"
       }.configure {
         instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
