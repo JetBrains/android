@@ -20,17 +20,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun <DeviceT : DeviceProfile> WizardPageScope.DeviceLoadingPage(
-  source: DeviceSource<DeviceT>,
+  profilesFlow: Flow<LoadingState<List<DeviceT>>>,
   content: @Composable (List<DeviceT>) -> Unit,
 ) {
-  val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
+  val profiles by profilesFlow.collectAsState(LoadingState.Loading)
 
   when (val profiles = profiles) {
     LoadingState.Loading -> {
