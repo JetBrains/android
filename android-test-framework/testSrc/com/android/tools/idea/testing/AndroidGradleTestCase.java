@@ -105,6 +105,7 @@ import org.jetbrains.annotations.SystemIndependent;
  * also providing a more compositional approach - instead of your test class inheriting dozens and
  * dozens of methods you might not be familiar with, those methods will be constrained to the rule.
  */
+@Deprecated
 public abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIntegrationTest {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
