@@ -29,8 +29,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
-import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.android.compose.stubComposeRuntime
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeRuntimeSaveableDep
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
 import org.junit.Rule
@@ -57,7 +57,7 @@ private val COMPOSE_RUNTIME_IMPORTS =
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ComposeStateReadAnnotatorTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
   private val annotator = ComposeStateReadAnnotator()
@@ -65,8 +65,8 @@ class ComposeStateReadAnnotatorTest {
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation()
-    fixture.stubComposeRuntime()
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeRuntimeSaveableDep()
     StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
