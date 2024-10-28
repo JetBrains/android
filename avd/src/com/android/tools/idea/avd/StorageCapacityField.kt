@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.TextField
@@ -52,13 +53,18 @@ internal fun StorageCapacityField(
       )
     }
 
-    Dropdown(state.unit, UNITS, state::unit::set, enabled = enabled)
+    Dropdown(state.selectedUnit, state.units, state::selectedUnit::set, enabled = enabled)
   }
 }
 
-internal class StorageCapacityFieldState internal constructor(value: StorageCapacity) {
+internal class StorageCapacityFieldState
+internal constructor(
+  value: StorageCapacity,
+  internal val units: ImmutableCollection<StorageCapacity.Unit> =
+    enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
+) {
   internal val value = TextFieldState(value.value.toString())
-  internal var unit by mutableStateOf(value.unit)
+  internal var selectedUnit by mutableStateOf(value.unit)
   internal val storageCapacity = snapshotFlow { result().storageCapacity }
 
   internal fun valid() = result() as Valid
@@ -68,7 +74,7 @@ internal class StorageCapacityFieldState internal constructor(value: StorageCapa
       Empty
     } else {
       try {
-        Valid(StorageCapacity(value.text.toString().toLong(), unit))
+        Valid(StorageCapacity(value.text.toString().toLong(), selectedUnit))
       } catch (exception: NumberFormatException) {
         // value.text.toString().toLong() overflowed
         Overflow
@@ -95,4 +101,3 @@ internal class StorageCapacityFieldState internal constructor(value: StorageCapa
 }
 
 private val STORAGE_CAPACITY_VALUE_REGEX = Regex("\\d*")
-private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
