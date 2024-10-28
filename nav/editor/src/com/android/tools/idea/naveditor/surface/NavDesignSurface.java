@@ -635,7 +635,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
       setScrollPosition(targetSwingX - pointSwingValue.x, targetSwingY - pointSwingValue.y);
-      getZoomController().setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
+      getZoomController().setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY, true);
       if (lerpPoint.isComplete(time)) {
         getScheduleRef().get().cancel(false);
         getScheduleRef().set(null);

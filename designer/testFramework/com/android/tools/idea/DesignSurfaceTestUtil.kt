@@ -169,7 +169,7 @@ object DesignSurfaceTestUtil {
       override val maxScale: Double
         get() = 10.0
 
-      override fun setScale(scale: Double, x: Int, y: Int) = true
+      override fun setScale(scale: Double, x: Int, y: Int, doStoreScale: Boolean) = true
 
       override fun zoomToFit(): Boolean = true
 

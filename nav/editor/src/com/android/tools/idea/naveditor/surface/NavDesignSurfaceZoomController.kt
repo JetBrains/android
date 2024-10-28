@@ -116,7 +116,7 @@ class NavDesignSurfaceZoomController(
     return minOf(scaleX, scaleY, maxScale)
   }
 
-  override fun setScale(scale: Double, x: Int, y: Int): Boolean {
+  override fun setScale(scale: Double, x: Int, y: Int, store: Boolean): Boolean {
     var newX = x
     var newY = y
     val view: SceneView = getFocusedSceneView() ?: return false
@@ -130,7 +130,7 @@ class NavDesignSurfaceZoomController(
     @AndroidDpCoordinate val androidX = Coordinates.getAndroidXDip(view, newX)
     @AndroidDpCoordinate val androidY = Coordinates.getAndroidYDip(view, newY)
 
-    val ret = super.setScale(scale, newX, newY)
+    val ret = super.setScale(scale, newX, newY, store)
 
     @SwingCoordinate val shiftedX = Coordinates.getSwingXDip(view, androidX)
     @SwingCoordinate val shiftedY = Coordinates.getSwingYDip(view, androidY)
