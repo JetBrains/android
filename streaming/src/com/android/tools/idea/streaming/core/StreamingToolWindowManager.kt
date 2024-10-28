@@ -123,7 +123,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.guava.asDeferred
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -316,7 +315,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     })
 
     messageBusConnection.subscribe(AvdLaunchListener.TOPIC,
-                                   AvdLaunchListener { avd, commandLine, requestType, project ->
+                                   AvdLaunchListener @AnyThread { avd, commandLine, requestType, project ->
                                      if (project == toolWindow.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
                                        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
@@ -958,6 +957,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
+  @AnyThread
   private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
 
     override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
