@@ -605,13 +605,14 @@ abstract class DesignSurface<T : SceneManager>(
 
   /**
    * A bitwise mask used by [notifyRestoreZoom]. If the "or" operator applied to this mask gets a
-   * value of [CAN_RESTORE_ZOOM_INT_MASK] we can restore the zoom.
+   * bitwise values of [NOTIFY_RESTORE_ZOOM_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] we can
+   * restore the zoom.
    */
   private val readyToRestoreZoomMask = AtomicInteger(0)
 
   /**
    * Notify to [DesignSurface] that we can now try to restore the zoom. Note: this function works
-   * only if [DesignSurface.shouldRestoreZoomSynchronously] is enabled.
+   * only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
    */
   fun notifyRestoreZoom() {
     checkIfReadyToRestoreZoom(NOTIFY_RESTORE_ZOOM_INT_MASK)
@@ -628,14 +629,12 @@ abstract class DesignSurface<T : SceneManager>(
    * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
    * causing a wrong fitScale value.
    *
-   * Note: this function works only if [DesignSurface.shouldRestoreZoomSynchronously] is enabled.
+   * Note: this function works only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
    */
   private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
     val newMask =
       readyToRestoreZoomMask.updateAndGet {
         if (it == expectedRestoreZoomMask || it == RESTORE_ZOOM_DONE_INT_MASK) {
-          // If the current value of the mask is already CAN_RESTORE_ZOOM_INT_MASK we reset the
-          // value to DONE_INT_MASK value.
           RESTORE_ZOOM_DONE_INT_MASK
         } else {
           it or bitwiseNumber
