@@ -1256,7 +1256,9 @@ private val DeviceState.Connected.serialNumber: String
     get() = connectedDevice.serialNumber
 
 private fun ContentManager.addSelectedPanelDataProvider() {
-  addDataProvider { dataId -> (selectedContent?.component as? DataProvider)?.getData(dataId) }
+  (selectedContent?.component as? DataProvider)?.let {
+    addDataProvider(it)
+  }
 }
 
 private val ContentManager.placeholderContent: Content?
