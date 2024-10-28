@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

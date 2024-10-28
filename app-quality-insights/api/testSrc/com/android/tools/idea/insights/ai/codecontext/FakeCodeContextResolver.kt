@@ -18,7 +18,10 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.Experiment
 
-open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeContextResolver {
+open class FakeCodeContextResolver(
+  var codeContext: List<CodeContext>,
+  override val characterLimit: Int = Integer.MAX_VALUE,
+) : CodeContextResolver {
   override suspend fun getSource(stack: StacktraceGroup) =
     CodeContextData(codeContext, Experiment.UNKNOWN)
 }

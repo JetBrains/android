@@ -283,6 +283,8 @@ class CodeContextResolverTest(private val experiment: Experiment) {
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -301,6 +303,14 @@ class CodeContextResolverTest(private val experiment: Experiment) {
     fixture.addFileToProject("src/com/example/myapp/CircleActivity.kt", CIRCLE_ACTIVITY_CONTENT)
     fixture.addFileToProject("src/com/example/myapp/ExcludedActivity.kt", EXCLUDED_ACTIVITY_CONTENT)
 
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    fakeGeminiPluginApi.excludedFilePaths = setOf(EXCLUDED_ACTIVITY_CONTEXT.filePath)
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.testRootDisposable,
+    )
+
     projectRule.replaceService(
       AppInsightsExperimentFetcher::class.java,
       createTestExperimentFetcher(experiment),
@@ -317,15 +327,7 @@ class CodeContextResolverTest(private val experiment: Experiment) {
    */
   @Test
   fun `resolve code context based on assigned experiment`() = runBlocking {
-    val fakeGeminiPluginApi = FakeGeminiPluginApi()
-    fakeGeminiPluginApi.excludedFilePaths = setOf(EXCLUDED_ACTIVITY_CONTEXT.filePath)
-    ExtensionTestUtil.maskExtensions(
-      GeminiPluginApi.EP_NAME,
-      listOf(fakeGeminiPluginApi),
-      projectRule.testRootDisposable,
-    )
-
-    val resolver = CodeContextResolverImpl(projectRule.project)
+    val resolver = CodeContextResolverImpl(projectRule.project, Integer.MAX_VALUE)
     val contexts = resolver.getSource(STACKTRACE)
 
     val expected =
@@ -356,6 +358,19 @@ class CodeContextResolverTest(private val experiment: Experiment) {
       }
 
     assertThat(contexts).isEqualTo(expected)
+  }
+
+  @Test
+  fun `code context does not exceed character limit`() = runBlocking {
+    // This should give just enough character for the first class in ANDROID_LIBRARY_CLASS_CONTENT
+    val resolver = CodeContextResolverImpl(projectRule.project, 350)
+    val context = resolver.getSource(STACKTRACE)
+    if (experiment == Experiment.CONTROL) {
+      assertThat(context).isEqualTo(CodeContextData.CONTROL)
+    } else {
+      assertThat(context)
+        .isEqualTo(CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experiment))
+    }
   }
 
   private fun createTestExperimentFetcher(experiment: Experiment) =
