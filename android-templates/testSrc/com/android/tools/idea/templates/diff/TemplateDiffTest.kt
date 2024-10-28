@@ -725,11 +725,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testNewAppActionsXmlFile() {
-    checkCreateTemplate("App Actions XML File (deprecated)")
-  }
-
-  @Test
   fun testNewLayoutXmlFile() {
     checkCreateTemplate("Layout XML File")
   }
