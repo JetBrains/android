@@ -19,7 +19,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.junit.Rule
 
 abstract class AbstractComposeDiagnosticsTest {
@@ -33,7 +32,6 @@ abstract class AbstractComposeDiagnosticsTest {
       setUpCompilerArgumentsForComposeCompilerPlugin(project)
 
       stubComposeRuntime()
-      stubKotlinStdlib()
 
       val file =
         addFileToProject(
