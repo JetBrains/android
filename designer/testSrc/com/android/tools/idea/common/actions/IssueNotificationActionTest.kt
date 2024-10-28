@@ -203,7 +203,7 @@ class IssueNotificationActionTest {
       }
     val action = IssueNotificationAction()
     action.update(actionEvent)
-    assertFalse(actionEvent.presentation.isEnabled)
+    assertFalse(actionEvent.presentation.isVisible)
   }
 
   private fun createSingleIssueWithSeverity(severity: HighlightSeverity, nlModel: NlModel) =
