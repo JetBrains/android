@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -59,6 +60,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.event.AncestorEvent
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -375,6 +377,14 @@ private fun createApplyButton(
     addActionListener { applyChanges() }
 
     canMakeChangesFlow.onEach { isEnabled = it }.launchIn(uiScope)
+
+    addAncestorListener(
+      object : AncestorListenerAdapter() {
+        override fun ancestorAdded(event: AncestorEvent?) {
+          event?.component?.rootPane?.defaultButton = this@apply
+        }
+      }
+    )
   }
 
 private fun createFooter(
