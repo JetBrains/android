@@ -1564,7 +1564,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_HEALTH_SERVICES_PANEL = new BooleanFlag(
     WEAR_HEALTH_SERVICES, "enable.panel", "Enable Wear Health Services panel",
     "If enabled, a button to display panel for modifying emulator sensors will appear",
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Long> WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS = new LongFlag(
