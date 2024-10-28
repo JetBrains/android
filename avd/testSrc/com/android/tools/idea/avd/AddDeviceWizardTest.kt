@@ -41,11 +41,15 @@ import com.android.tools.idea.adddevicedialog.TestComposeWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Files
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class AddDeviceWizardTest {
+  @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
