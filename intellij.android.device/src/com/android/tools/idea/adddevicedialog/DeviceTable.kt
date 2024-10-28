@@ -51,9 +51,9 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.ToggleableIconButton
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
@@ -108,9 +108,10 @@ fun <DeviceT : DeviceProfile> DeviceTable(
             modifier = Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester),
           )
           Tooltip(tooltip = { Text("Show device details") }) {
-            IconButton(
-              onClick = { showDetailsState.visible = !showDetailsState.visible },
-              Modifier.align(Alignment.CenterVertically).padding(2.dp),
+            ToggleableIconButton(
+              showDetailsState.visible,
+              onValueChange = { showDetailsState.visible = it },
+              Modifier.align(Alignment.CenterVertically).padding(4.dp),
             ) {
               Icon(
                 AllIconsKeys.Actions.PreviewDetails,
