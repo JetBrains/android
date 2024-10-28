@@ -24,13 +24,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Formattable;
-import java.util.Formatter;
 import java.util.Optional;
 
 /** Represents arguments to a {@code query} invocation. */
 @AutoValue
-public abstract class QuerySpec implements Formattable {
+public abstract class QuerySpec implements TruncatingFormattable {
 
   public abstract Path workspaceRoot();
 
@@ -72,24 +70,6 @@ public abstract class QuerySpec implements Formattable {
                 .addAll(getQueryFlags())
                 .add(getQueryExpression().orElse("<empty>"))
                 .build());
-  }
-
-  @Override
-  public void formatTo(Formatter formatter, int flags, int width, int precision) {
-    // We implement Formattable for custom "precision" (max length) handling to allow a truncated
-    // query expression to be shown as such in the log, using normal string formatting.
-    String s = toString();
-    if (precision == -1 || s.length() < precision) {
-      formatter.format(s);
-      return;
-    }
-    final String truncated = "<truncated>";
-    if (precision < truncated.length()) {
-      formatter.format(s.substring(0, precision));
-      return;
-    }
-    formatter.format(s.substring(0, precision - truncated.length()));
-    formatter.format(truncated);
   }
 
   public static Builder builder() {

@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync.query;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 
 import java.nio.file.Path;
@@ -68,57 +67,5 @@ public class QuerySpecTest {
         .hasValue(
             "(//some/included/path/...:* + //another/included/path/...:* -"
                 + " //some/included/path/excluded/...:* - //another/included/path/excluded/...:*)");
-  }
-
-  @Test
-  public void testFormat_noPrecision() {
-    QuerySpec qs =
-        QuerySpec.builder()
-            .workspaceRoot(Path.of("/workspace/"))
-            .includePath(Path.of("some/included/path"))
-            .includePath(Path.of("another/included/path"))
-            .excludePath(Path.of("some/included/path/excluded"))
-            .excludePath(Path.of("another/included/path/excluded"))
-            .build();
-    assertThat(String.format("%s", qs)).isEqualTo(qs.toString());
-  }
-
-  @Test
-  public void testFormat_shortPrecision() {
-    QuerySpec qs =
-        QuerySpec.builder()
-            .workspaceRoot(Path.of("/workspace/"))
-            .includePath(Path.of("some/included/path"))
-            .includePath(Path.of("another/included/path"))
-            .excludePath(Path.of("some/included/path/excluded"))
-            .excludePath(Path.of("another/included/path/excluded"))
-            .build();
-    assertThat(String.format("%.5s", qs)).isEqualTo("query");
-  }
-
-  @Test
-  public void testFormat_longPrecision() {
-    QuerySpec qs =
-        QuerySpec.builder()
-            .workspaceRoot(Path.of("/workspace/"))
-            .includePath(Path.of("some/included/path"))
-            .includePath(Path.of("another/included/path"))
-            .excludePath(Path.of("some/included/path/excluded"))
-            .excludePath(Path.of("another/included/path/excluded"))
-            .build();
-    assertThat(String.format("%.16s", qs)).isEqualTo("query<truncated>");
-  }
-
-  @Test
-  public void testFormat_veryLongPrecision() {
-    QuerySpec qs =
-        QuerySpec.builder()
-            .workspaceRoot(Path.of("/workspace/"))
-            .includePath(Path.of("some/included/path"))
-            .includePath(Path.of("another/included/path"))
-            .excludePath(Path.of("some/included/path/excluded"))
-            .excludePath(Path.of("another/included/path/excluded"))
-            .build();
-    assertThat(String.format("%.250s", qs)).isEqualTo(qs.toString());
   }
 }
