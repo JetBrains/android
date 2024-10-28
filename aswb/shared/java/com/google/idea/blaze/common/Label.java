@@ -45,7 +45,27 @@ public class Label {
   private final String label;
 
   public static Label of(String label) {
-    return interner.intern(new Label(label));
+    if (label.startsWith("@")) {
+      int doubleSlash = label.indexOf("//");
+      Preconditions.checkArgument(doubleSlash > 0, label);
+      int colon = label.indexOf(":");
+      Preconditions.checkArgument(colon > doubleSlash, label);
+      if (!label.startsWith("@@")) {
+        // Normalize `label` to either start with double-at or start with double-slash.
+        label = '@' + label;
+      }
+      if (label.startsWith("@@//")) {
+        label = label.substring(2);
+      }
+    } else {
+      Preconditions.checkArgument(label.startsWith("//"), label);
+      Preconditions.checkArgument(label.contains(":"), label);
+    }
+    return new Label(Interners.STRING.intern(label));
+  }
+
+  public static Label createLabelWithoutValidation(String label) {
+    return new Label(label);
   }
 
   public static Label fromWorkspacePackageAndName(String workspace, Path packagePath, Path name) {
@@ -62,23 +82,7 @@ public class Label {
   }
 
   private Label(String label) {
-    if (label.startsWith("@")) {
-      int doubleSlash = label.indexOf("//");
-      Preconditions.checkArgument(doubleSlash > 0, label);
-      int colon = label.indexOf(":");
-      Preconditions.checkArgument(colon > doubleSlash, label);
-      if (!label.startsWith("@@")) {
-        // Normalize `label` to either start with double-at or start with double-slash.
-        label = '@' + label;
-      }
-      if (label.startsWith("@@//")) {
-        label = label.substring(2);
-        }
-    } else {
-      Preconditions.checkArgument(label.startsWith("//"), label);
-      Preconditions.checkArgument(label.contains(":"), label);
-    }
-    this.label = Interners.STRING.intern(label);
+    this.label = label;
   }
 
   public Path getPackage() {

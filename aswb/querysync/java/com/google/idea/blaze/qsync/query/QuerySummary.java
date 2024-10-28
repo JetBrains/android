@@ -372,7 +372,7 @@ public abstract class QuerySummary {
     return proto().getStoredRulesMap().entrySet().stream()
         .collect(
             toImmutableMap(
-                e -> Label.of(lookup.lookup(e.getKey())),
+                e -> Label.createLabelWithoutValidation(lookup.lookup(e.getKey())),
                 t -> lookup.storedRuleToRule(t.getValue())));
   }
 
