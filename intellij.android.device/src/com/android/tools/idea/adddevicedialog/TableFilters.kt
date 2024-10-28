@@ -54,11 +54,13 @@ fun <V> SetFilter(
   selection: MutableMap<V, Boolean>,
   modifier: Modifier = Modifier,
 ) {
-  HideablePanel(header, modifier.padding(6.dp)) {
-    Column {
-      for (item in values) {
-        CheckboxRow(selection[item] ?: true, onCheckedChange = { selection[item] = it }) {
-          Text(item.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+  if (values.size > 1) {
+    HideablePanel(header, modifier.padding(6.dp)) {
+      Column {
+        for (item in values) {
+          CheckboxRow(selection[item] ?: true, onCheckedChange = { selection[item] = it }) {
+            Text(item.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+          }
         }
       }
     }
