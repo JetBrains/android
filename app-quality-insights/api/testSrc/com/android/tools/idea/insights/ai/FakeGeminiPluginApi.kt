@@ -22,7 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-internal class FakeGeminiPluginApi : GeminiPluginApi {
+class FakeGeminiPluginApi : GeminiPluginApi {
   var available = true
   var contextAllowed = true
   var excludedFilePaths = setOf<String>()

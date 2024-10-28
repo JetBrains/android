@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+// lines 14, characters 344
 private val ANDROID_LIBRARY_CLASS_CONTENT =
   """
    package com.example.mylibrary;
@@ -56,6 +57,7 @@ private val ANDROID_LIBRARY_CLASS_CONTENT =
                              """
     .trimIndent()
 
+// lines 7, characters 174
 private val MAIN_ACTIVITY_CONTENT =
   """
   package com.example.myapp
@@ -67,6 +69,7 @@ private val MAIN_ACTIVITY_CONTENT =
   }
 """
     .trimIndent()
+// lines 18, characters 527
 private val PARTIAL_ACTIVITY_CONTENT =
   """
   package com.example.myapp
@@ -89,6 +92,7 @@ private val PARTIAL_ACTIVITY_CONTENT =
   }
 """
     .trimIndent()
+// lines 7, characters 176
 private val CIRCLE_ACTIVITY_CONTENT =
   """
   package com.example.myapp
@@ -290,6 +294,17 @@ class CodeContextResolverTest(private val experiment: Experiment) {
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val modes = ExperimentGroup.CODE_CONTEXT.experiments
+
+    fun expectedCodeContextTrackingInfoByExperiment(
+      experiment: Experiment
+    ): CodeContextTrackingInfo =
+      when (experiment) {
+        Experiment.UNKNOWN,
+        Experiment.CONTROL -> CodeContextTrackingInfo.EMPTY
+        Experiment.TOP_SOURCE -> CodeContextTrackingInfo(1, 14, 344)
+        Experiment.TOP_THREE_SOURCES -> CodeContextTrackingInfo(3, 39, 1047)
+        Experiment.ALL_SOURCES -> CodeContextTrackingInfo(4, 46, 1221)
+      }
   }
 
   @Before
@@ -335,7 +350,11 @@ class CodeContextResolverTest(private val experiment: Experiment) {
         Experiment.UNKNOWN -> CodeContextData.UNASSIGNED
         Experiment.CONTROL -> CodeContextData.CONTROL
         Experiment.TOP_SOURCE ->
-          CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experiment)
+          CodeContextData(
+            listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT),
+            experiment,
+            expectedCodeContextTrackingInfoByExperiment(experiment),
+          )
         Experiment.TOP_THREE_SOURCES ->
           CodeContextData(
             listOf(
@@ -344,6 +363,7 @@ class CodeContextResolverTest(private val experiment: Experiment) {
               EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
             ),
             experiment,
+            expectedCodeContextTrackingInfoByExperiment(experiment),
           )
         Experiment.ALL_SOURCES ->
           CodeContextData(
@@ -354,6 +374,7 @@ class CodeContextResolverTest(private val experiment: Experiment) {
               EXPECTED_MAIN_ACTIVITY_CONTEXT,
             ),
             experiment,
+            expectedCodeContextTrackingInfoByExperiment(experiment),
           )
       }
 

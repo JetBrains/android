@@ -92,5 +92,6 @@ object TestAppInsightsTracker : AppInsightsTracker {
     unanonymizedAppId: String,
     crashType: FailureType,
     insight: AiInsight,
+    contextLimit: Int,
   ) = Unit
 }

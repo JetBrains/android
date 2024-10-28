@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.openapi.application.readAction
@@ -28,7 +29,25 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.readText
 import com.intellij.psi.search.ProjectScope
 
-data class CodeContextData(val codeContext: List<CodeContext>, val experimentType: Experiment) {
+data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val charCount: Int) {
+  companion object {
+    val EMPTY = CodeContextTrackingInfo(0, 0, 0)
+  }
+
+  fun toCodeContextDetailsProto():
+    AppQualityInsightsUsageEvent.InsightFetchDetails.CodeContextDetails.Builder =
+    AppQualityInsightsUsageEvent.InsightFetchDetails.CodeContextDetails.newBuilder().apply {
+      fileCount = this@CodeContextTrackingInfo.fileCount.toLong()
+      lineCount = this@CodeContextTrackingInfo.lineCount.toLong()
+      charCount = this@CodeContextTrackingInfo.charCount.toLong()
+    }
+}
+
+data class CodeContextData(
+  val codeContext: List<CodeContext>,
+  val experimentType: Experiment,
+  val codeContextTrackingInfo: CodeContextTrackingInfo = CodeContextTrackingInfo.EMPTY,
+) {
   companion object {
     /**
      * The default experiment state for users who disable context sharing settings or for whatever
@@ -86,8 +105,17 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
         Experiment.UNKNOWN -> return CodeContextData.UNASSIGNED
       }
     val sources = getSource(stack, fileLimit)
-    return CodeContextData(sources, experiment)
+    return CodeContextData(sources, experiment, getMetadata(sources))
   }
+
+  private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
+    contexts.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
+      CodeContextTrackingInfo(
+        acc.fileCount + 1,
+        acc.lineCount + context.content.lines().size,
+        acc.charCount + context.content.count(),
+      )
+    }
 
   private suspend fun getSource(stack: StacktraceGroup, fileLimit: Int): List<CodeContext> {
     val index = ProjectFileIndex.getInstance(project)

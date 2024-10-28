@@ -240,7 +240,10 @@ class VitalsClient(
         val insight =
           aiInsightClient
             .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
-            .copy(experiment = codeContextData.experimentType)
+            .copy(
+              experiment = codeContextData.experimentType,
+              codeContextTrackingDetails = codeContextData.codeContextTrackingInfo,
+            )
         cache.putAiInsight(connection, issueId, insight)
         LoadingState.Ready(insight)
       } else {

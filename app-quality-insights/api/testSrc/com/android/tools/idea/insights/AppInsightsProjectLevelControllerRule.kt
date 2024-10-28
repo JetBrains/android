@@ -87,7 +87,7 @@ class AppInsightsProjectLevelControllerRule(
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
-  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+  lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private val geminiToolkit = FakeAiInsightToolkit()
 
   override fun before(description: Description) {
