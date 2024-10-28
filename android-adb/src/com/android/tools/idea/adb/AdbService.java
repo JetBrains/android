@@ -84,7 +84,6 @@ import org.jetbrains.annotations.TestOnly;
 @Service
 public final class AdbService implements Disposable,
                                          AdbOptionsService.AdbOptionsListener,
-                                         AndroidDebugBridge.IDebugBridgeChangeListener,
                                          AndroidDebugBridge.IDeviceChangeListener {
   @TestOnly
   public static boolean disabled = false;
@@ -138,19 +137,11 @@ public final class AdbService implements Disposable,
   private boolean myAllowMdnsOpenscreen = true;
 
   /**
-   * Tracks whether we have shown the notification popup about ADB crashing during initialization.
-   * We use a static variable to ensure we show the notification only once per Android Studio session.
-   */
-  private boolean myInitializationErrorShown = false;
-
-  /**
    * Anticipated adb version for ADB_MDNS_OPENSCREEN option fix.
    */
   private static final String MDNS_OPENSCREEN_FIX_ADB_VERSION = "1.0.42";
 
-  @Override
-  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
-  }
+  private final @NotNull MyDebugBridgeChangeListener myDebugBridgeChangeListener = new MyDebugBridgeChangeListener();
 
   @Override
   public void deviceConnected(@NotNull IDevice device) {
@@ -175,55 +166,6 @@ public final class AdbService implements Disposable,
     } else {
       LOG.info(String.format("Device [%s] is offline (device state is `%s`)", device.getSerialNumber(), device.getState()));
     }
-  }
-
-  @Override
-  public void initializationError(@NotNull Exception exception) {
-    // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
-    // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
-    if (!SystemInfo.isWindows ||
-        !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
-        !(exception instanceof IOException) ||
-        !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
-      return;
-    }
-
-    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-    if (bridge == null) {
-      return;
-    }
-
-    AdbVersion version = bridge.getCurrentAdbVersion();
-    if (version == null || version.compareTo(AdbVersion.parseFrom(MDNS_OPENSCREEN_FIX_ADB_VERSION)) >= 0) {
-      return;
-    }
-
-    Log.w("Remote shutdown of adb host was detected, attempting to restart server without MDNS Openscreen.", exception);
-    String helpMessage = String.format(
-      "Error initializing adb with MDNS Openscreen enabled.\n" +
-      "Attempting restart adb with option disabled.\n" +
-      "Try updating to a newer version of ADB (%s or later).",
-      MDNS_OPENSCREEN_FIX_ADB_VERSION);
-    NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Adb Service");
-    if (notificationGroup != null) {
-      Notification notification = notificationGroup
-        .createNotification(helpMessage, NotificationType.WARNING)
-        .setImportant(true);
-      Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
-    }
-
-    myAllowMdnsOpenscreen = false;
-
-    if (!myInitializationErrorShown) {
-      PopupUtil.showBalloonForActiveComponent(helpMessage, MessageType.WARNING);
-      myInitializationErrorShown = true;
-    }
-    try {
-      terminateDdmlib();
-    }
-    catch (TimeoutException ignored) {
-    }
-    // Leave until next getBridge caller to reinitialize.
   }
 
   public static AdbService getInstance() {
@@ -329,7 +271,7 @@ public final class AdbService implements Disposable,
   @Override
   public void dispose() {
     LOG.info("Disposing AdbService");
-    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
     AndroidDebugBridge.removeDeviceChangeListener(this);
     AdbOptionsService.getInstance().removeListener(this);
     try {
@@ -381,7 +323,7 @@ public final class AdbService implements Disposable,
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
     AdbOptionsService.getInstance().addListener(this);
-    AndroidDebugBridge.addDebugBridgeChangeListener(this);
+    AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener);
     AndroidDebugBridge.addDeviceChangeListener(this);
 
     // TODO Also connect to adblib
@@ -615,6 +557,67 @@ public final class AdbService implements Disposable,
 
       LOG.info("Restart adb server");
       getAndroidDebugBridge(myAdbExecutableFile);
+    }
+  }
+
+  private class MyDebugBridgeChangeListener implements AndroidDebugBridge.IDebugBridgeChangeListener {
+    /**
+     * Tracks whether we have shown the notification popup about ADB crashing during initialization.
+     * We use a static variable to ensure we show the notification only once per Android Studio session.
+     */
+    private boolean myInitializationErrorShown = false;
+
+    @Override
+    public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+    }
+
+    @Override
+    public void initializationError(@NotNull Exception exception) {
+      // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
+      // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
+      if (!SystemInfo.isWindows ||
+          !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
+          !(exception instanceof IOException) ||
+          !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
+        return;
+      }
+
+      AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+      if (bridge == null) {
+        return;
+      }
+
+      AdbVersion version = bridge.getCurrentAdbVersion();
+      if (version == null || version.compareTo(AdbVersion.parseFrom(MDNS_OPENSCREEN_FIX_ADB_VERSION)) >= 0) {
+        return;
+      }
+
+      Log.w("Remote shutdown of adb host was detected, attempting to restart server without MDNS Openscreen.", exception);
+      String helpMessage = String.format(
+        "Error initializing adb with MDNS Openscreen enabled.\n" +
+        "Attempting restart adb with option disabled.\n" +
+        "Try updating to a newer version of ADB (%s or later).",
+        MDNS_OPENSCREEN_FIX_ADB_VERSION);
+      NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Adb Service");
+      if (notificationGroup != null) {
+        Notification notification = notificationGroup
+          .createNotification(helpMessage, NotificationType.WARNING)
+          .setImportant(true);
+        Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
+      }
+
+      myAllowMdnsOpenscreen = false;
+
+      if (!myInitializationErrorShown) {
+        PopupUtil.showBalloonForActiveComponent(helpMessage, MessageType.WARNING);
+        myInitializationErrorShown = true;
+      }
+      try {
+        terminateDdmlib();
+      }
+      catch (TimeoutException ignored) {
+      }
+      // Leave until next getBridge caller to reinitialize.
     }
   }
 }
