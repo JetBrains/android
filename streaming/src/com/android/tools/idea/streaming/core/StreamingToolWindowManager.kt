@@ -100,6 +100,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEve
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.MovedOrResized
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow
 import com.intellij.openapi.wm.impl.InternalDecorator
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.content.Content
@@ -558,8 +559,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     if (placeholderContent != null) {
+      placeholderContent.removeAndDispose() // Remove the placeholder panel.
       showLiveIndicator()
-      placeholderContent.removeAndDispose() // Remove the placeholder panel if it was present.
+      hideToolWindowName()
     }
 
     return content
@@ -603,6 +605,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     try {
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
+      showToolWindowName()
     }
     catch (e: IncorrectOperationException) {
       // Content manager has been disposed already.
@@ -662,6 +665,20 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun hideLiveIndicator() {
     toolWindow.setIcon(INACTIVE_ICON)
+  }
+
+  private fun showToolWindowName() {
+    if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
+      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
+      (toolWindow as ToolWindowEx).updateContentUi()
+    }
+  }
+
+  private fun hideToolWindowName() {
+    if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
+      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
+      (toolWindow as ToolWindowEx).updateContentUi()
+    }
   }
 
   @AnyThread
