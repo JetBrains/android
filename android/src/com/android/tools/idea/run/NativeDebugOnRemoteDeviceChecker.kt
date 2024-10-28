@@ -21,7 +21,6 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
-import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -45,14 +44,14 @@ class NativeDebugOnRemoteDeviceChecker(private val project: Project) {
     }
 
   fun showWarningIfNeeded(debugger: AndroidDebugger<*>, devices: List<AndroidDevice>): Boolean {
-    if (debugger.isNativeDebugger() && devices.any { it.isRemote }) {
+    if (debugger.isNative(project) && devices.any { it.isRemote }) {
       return showWarningIfNeeded()
     }
     return true
   }
 
   fun showWarningIfNeeded(debugger: AndroidDebugger<*>, deviceSerial: String): Boolean {
-    if (debugger.isNativeDebugger() && deviceProvisioner.isRemote(deviceSerial)) {
+    if (debugger.isNative(project) && deviceProvisioner.isRemote(deviceSerial)) {
       return showWarningIfNeeded()
     }
     return true
@@ -91,8 +90,6 @@ class NativeDebugOnRemoteDeviceChecker(private val project: Project) {
 }
 
 private fun DeviceHandle.isRemote() = state.properties.isRemote == true
-
-private fun AndroidDebugger<*>.isNativeDebugger() = this !is AndroidJavaDebugger
 
 private fun DeviceProvisioner.isRemote(serialNumber: String) =
   devices.value.find { it.state.connectedDevice?.serialNumber == serialNumber }?.isRemote() == true
