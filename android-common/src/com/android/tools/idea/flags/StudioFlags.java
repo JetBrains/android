@@ -32,8 +32,8 @@ import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
+import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1061,6 +1061,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS = new BooleanFlag(
     EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
     "Enables Gesture Navigation setting in Device UI Shortcuts",
+    ChannelDefault.enabledUpTo(CANARY));
+  public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
+    EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
+    "Hides the name of the Running Devices window when it contains any device tabs",
     ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
