@@ -18,14 +18,17 @@ package com.android.tools.compose
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.getEnclosing
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.application
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeUiDep
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,9 +36,18 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposeAutoDocumentationTest {
-  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
+  private val fixture by lazy { projectRule.fixture }
+
+  private val project by lazy { projectRule.project }
+
+  @Before
+  fun setUp() {
+    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeUiDep()
+  }
 
   @Test
   fun noDocumentationForNullElement() {
@@ -43,11 +55,8 @@ class ComposeAutoDocumentationTest {
     assertThat(psiElement.shouldShowDocumentation()).isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun documentationForComposables() {
-    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation()
     val file =
       fixture.addFileToProject(
         "/src/the/hold/steady/Albums.kt",
@@ -71,30 +80,27 @@ class ComposeAutoDocumentationTest {
           .trimIndent(),
       )
 
-    fixture.openFileInEditor(file.virtualFile)
+    application.invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
 
     val windows = listOf("BoysAnd|Girls", "Stay|Positive", "Price|Of")
 
     windows.forEach {
-      assertThat(fixture.findParentElement<KtNamedFunction>(it).shouldShowDocumentation()).isTrue()
+      assertThat(
+          runReadAction { fixture.getEnclosing<KtNamedFunction>(it).shouldShowDocumentation() }
+        )
+        .isTrue()
     }
 
-    assertThat(fixture.findParentElement<KtNamedFunction>("Open|Door").shouldShowDocumentation())
+    assertThat(
+        runReadAction {
+          fixture.getEnclosing<KtNamedFunction>("Open|Door").shouldShowDocumentation()
+        }
+      )
       .isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun documentationForModifierExtensionFunctions() {
-    fixture.addFileToProject(
-      "/src/androidx/compose/ui/Modifier.kt",
-      // language=kotlin
-      """
-      package androidx.compose.ui
-      interface Modifier
-      """
-        .trimIndent(),
-    )
     val file =
       fixture.addFileToProject(
         "/src/metric/Albums.kt",
@@ -108,44 +114,39 @@ class ComposeAutoDocumentationTest {
       """
           .trimIndent(),
       )
-    fixture.openFileInEditor(file.virtualFile)
+    application.invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
 
     val windows = listOf("artOf|Doubt", "formen|tera")
 
     windows.forEach {
-      assertThat(fixture.findParentElement<KtNamedFunction>(it).shouldShowDocumentation()).isTrue()
+      assertThat(
+          runReadAction { fixture.getEnclosing<KtNamedFunction>(it).shouldShowDocumentation() }
+        )
+        .isTrue()
     }
 
-    assertThat(fixture.findParentElement<KtNamedFunction>("Blow|Away").shouldShowDocumentation())
+    assertThat(
+        runReadAction {
+          fixture.getEnclosing<KtNamedFunction>("Blow|Away").shouldShowDocumentation()
+        }
+      )
       .isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun documentationForModifierBlahBlah() {
-    val file =
-      fixture.addFileToProject(
-        "/src/androidx/compose/ui/Modifier.kt",
-        // language=kotlin
-        """
-      package androidx.compose.ui
-      interface Modifier {
-        fun fantasies() {}
-        companion object: Modifier {
-          fun synthetica() = 3
-          fun pagansInVegas() = 42L
-        }
+    runReadAction {
+      val modifierClass =
+        JavaPsiFacade.getInstance(project)
+          .findClass("androidx.compose.ui.Modifier", GlobalSearchScope.everythingScope(project))
+      requireNotNull(modifierClass) { "Must be able to find Modifier definition." }
+
+      assertThat(modifierClass.methods).isNotEmpty()
+      for (method in modifierClass.methods) {
+        val navigationElement = method.navigationElement
+        assertThat(navigationElement).isInstanceOf(KtNamedFunction::class.java)
+        assertThat(navigationElement.shouldShowDocumentation()).isTrue()
       }
-      """
-          .trimIndent(),
-      )
-
-    fixture.openFileInEditor(file.virtualFile)
-
-    val windows = listOf("synth|etica", "In|Vegas")
-
-    windows.forEach {
-      assertThat(fixture.findParentElement<KtNamedFunction>(it).shouldShowDocumentation()).isTrue()
     }
   }
 }
