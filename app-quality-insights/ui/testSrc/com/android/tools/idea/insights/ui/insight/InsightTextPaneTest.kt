@@ -62,4 +62,64 @@ class InsightTextPaneTest {
     assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor))
       .isEqualTo(renderedText)
   }
+
+  @Test
+  fun `test something`() {
+    val pane = InsightTextPane()
+
+    pane.text =
+      """
+        First Line
+
+        **Header:**
+        1. **ListItem1**
+        2. **ListItem2**
+
+        **Header2:**
+
+        Some text
+
+        **Header3:**
+        * **Item1**
+        * **Item2**
+
+        Paragraph of text
+        
+        **Header4:**
+        Another paragraph
+    """
+        .trimIndent()
+
+    assertThat(pane.text.stripSpaceAndNonTextHtmlTags())
+      .isEqualTo(
+        """
+  <p>First Line</p>
+  <br><p><strong>Header:</strong></p>
+  <ol>
+  <li><strong>ListItem1</strong></li>
+  <li><strong>ListItem2</strong></li>
+  </ol>
+  <p><strong>Header2:</strong></p><br>
+  <p>Some text</p>
+  <br><p><strong>Header3:</strong></p>
+  <ul>
+  <li><strong>Item1</strong></li>
+  <li><strong>Item2</strong></li>
+  </ul>
+  <p>Paragraph of text</p>
+  <br><p><strong>Header4:</strong><br>
+  Another paragraph</p>
+"""
+          .trimIndent()
+          .replace("\n", "")
+      )
+  }
+
+  private fun String.stripSpaceAndNonTextHtmlTags(): String {
+    var text = this
+    listOf("<html>", "<head>", "</head>", "<body>", "</body>", "</html>").forEach {
+      text = text.replace(it, "")
+    }
+    return text.lines().filter { it.isNotBlank() }.joinToString("") { it.trim() }.trim()
+  }
 }

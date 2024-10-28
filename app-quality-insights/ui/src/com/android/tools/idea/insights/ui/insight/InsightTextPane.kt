@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.insights.ui.AqiHtmlRenderer
 import com.android.tools.idea.insights.ui.MarkDownConverter
+import com.android.tools.idea.insights.ui.correctInsightHtmlText
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.actions.CopyAction
@@ -63,7 +64,8 @@ class InsightTextPane : JTextPane(), CopyProvider {
       // random (un)ordered list tags
       super.setText(EMPTY_PARAGRAPH)
     } else {
-      super.setText(markDownConverter.toHtml(text))
+      val htmlText = markDownConverter.toHtml(text)
+      super.setText(correctInsightHtmlText(htmlText))
     }
     val caret = caret
     if (caret is DefaultCaret) {
