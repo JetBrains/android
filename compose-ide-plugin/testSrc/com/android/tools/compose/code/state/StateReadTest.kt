@@ -27,8 +27,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.android.compose.stubComposeRuntime
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeRuntimeSaveableDep
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -61,15 +61,15 @@ private val COMPOSE_RUNTIME_IMPORTS =
 @RunWith(JUnit4::class)
 @RunsInEdt
 class StateReadTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation()
-    fixture.stubComposeRuntime()
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeRuntimeSaveableDep()
   }
 
   @Test
