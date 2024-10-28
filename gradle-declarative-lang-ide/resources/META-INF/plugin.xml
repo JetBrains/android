@@ -31,7 +31,7 @@
   </dependencies>
 
   <content>
-    <module name="intellij.android.gradle.declarative.lang" />
+    <module name="intellij.android.gradle.declarative.lang" loading="required"/>
   </content>
 
   <idea-version since-build="242"/>
