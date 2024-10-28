@@ -353,36 +353,39 @@ private fun createHeader(
   )
 }
 
-private fun createFooter(
+private fun createApplyButton(
   stateManager: WearHealthServicesStateManager,
-  informationLabelFlow: Flow<String>,
   canMakeChangesFlow: Flow<Boolean>,
   uiScope: CoroutineScope,
   applyChanges: () -> Unit,
+) =
+  JButton(message("wear.whs.panel.apply")).apply {
+    stateManager.ongoingExercise
+      .onEach {
+        toolTipText =
+          if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
+          else message("wear.whs.panel.apply.tooltip.no.exercise")
+      }
+      .launchIn(uiScope)
+
+    stateManager.status
+      .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
+      .launchIn(uiScope)
+
+    addActionListener { applyChanges() }
+
+    canMakeChangesFlow.onEach { isEnabled = it }.launchIn(uiScope)
+  }
+
+private fun createFooter(
+  applyButton: JButton,
+  informationLabelFlow: Flow<String>,
+  uiScope: CoroutineScope,
 ): JPanel {
   // Display current state e.g. we encountered an error, if there's work in progress, or if an
   // action was successful
   val informationLabel = JLabel()
   uiScope.launch { informationLabelFlow.collectLatest { informationLabel.text = it } }
-
-  val applyButton =
-    JButton(message("wear.whs.panel.apply")).apply {
-      stateManager.ongoingExercise
-        .onEach {
-          toolTipText =
-            if (it) message("wear.whs.panel.apply.tooltip.during.exercise")
-            else message("wear.whs.panel.apply.tooltip.no.exercise")
-        }
-        .launchIn(uiScope)
-
-      stateManager.status
-        .onEach { isEnabled = it !is WhsStateManagerStatus.Syncing }
-        .launchIn(uiScope)
-
-      addActionListener { applyChanges() }
-    }
-
-  canMakeChangesFlow.onEach { applyButton.isEnabled = it }.launchIn(uiScope)
 
   return panel {
     row {
@@ -426,13 +429,19 @@ internal fun createWearHealthServicesPanel(
       )
     }
 
-  val footer =
-    createFooter(
+  val applyButton =
+    createApplyButton(
       stateManager = stateManager,
-      informationLabelFlow = informationLabelFlow,
       canMakeChangesFlow = canMakeChangesFlow,
       uiScope = uiScope,
       applyChanges = applyChanges,
+    )
+
+  val footer =
+    createFooter(
+      applyButton = applyButton,
+      informationLabelFlow = informationLabelFlow,
+      uiScope = uiScope,
     )
 
   val header =
