@@ -90,6 +90,7 @@ private fun createCenterPanel(
   uiScope: CoroutineScope,
   workerScope: CoroutineScope,
   capabilities: List<WhsCapability>,
+  onOverride: (WhsCapability, String) -> Unit,
 ): JPanel {
   // List of elements that should be disabled if there's an active exercise
   val elementsToDisableDuringExercise = Collections.synchronizedList(mutableListOf<JComponent>())
@@ -157,6 +158,37 @@ private fun createCenterPanel(
               }
             }
 
+          val textField =
+            createTextField(onValidInput = { onOverride(capability, it) }).also { textField ->
+              stateManager
+                .getState(capability)
+                .map { it.currentState }
+                .onEach { state ->
+                  val overrideValueAsText = state.overrideValue.asText().trim()
+                  when {
+                    !state.enabled -> textField.text = ""
+                    !textField.isFocusOwner && textField.text.trim() != overrideValueAsText ->
+                      textField.text = overrideValueAsText
+                  }
+                }
+                .launchIn(uiScope)
+              textField.preferredSize = JBUI.size(75, 25)
+              textField.isEnabled = checkBox.isSelected
+              checkBox.selected.addListener { textField.isEnabled = it }
+              textField.isVisible = capability.isOverrideable
+            }
+
+          val unitLabel =
+            JLabel(message(capability.unit)).also { label ->
+              checkBox.selected.addListener { label.isEnabled = it }
+              label.preferredSize = JBUI.size(75, 25)
+
+              if (!capability.isOverrideable) {
+                label.icon = AllIcons.General.Note
+                label.toolTipText = message("wear.whs.capability.override.not.supported")
+              }
+            }
+
           combine(stateManager.getState(capability), stateManager.ongoingExercise) {
               uiState,
               ongoingExercise ->
@@ -178,117 +210,8 @@ private fun createCenterPanel(
             JPanel(FlowLayout()).apply {
               isVisible = stateManager.ongoingExercise.value == true
               elementsToDisplayDuringExercise.add(this)
-              add(
-                JTextField().also { textField ->
-                  (textField.document as AbstractDocument).documentFilter =
-                    object : DocumentFilter() {
-                      fun validate(string: String): Boolean {
-                        if (
-                          !floatPattern.matches(string) || string.length > MAX_OVERRIDE_VALUE_LENGTH
-                        ) {
-                          return false
-                        }
-                        workerScope.launch {
-                          when (capability.dataType.overrideDataType) {
-                            WhsDataValue.IntValue::class.java -> {
-                              string.toIntOrNull()?.let {
-                                stateManager.setOverrideValue(capability, it)
-                              } ?: stateManager.clearOverrideValue(capability)
-                            }
-                            else -> {
-                              string.toFloatOrNull()?.let {
-                                stateManager.setOverrideValue(capability, it)
-                              } ?: stateManager.clearOverrideValue(capability)
-                            }
-                          }
-                        }
-                        return true
-                      }
-
-                      override fun insertString(
-                        fb: FilterBypass,
-                        offset: Int,
-                        text: String,
-                        attr: AttributeSet?,
-                      ) {
-                        val newValue =
-                          fb.document.getText(0, offset) +
-                            text +
-                            fb.document.getText(offset, fb.document.length - offset)
-
-                        if (validate(newValue)) {
-                          super.insertString(fb, offset, text, attr)
-                        } else {
-                          Toolkit.getDefaultToolkit().beep()
-                        }
-                      }
-
-                      override fun replace(
-                        fb: FilterBypass,
-                        offset: Int,
-                        length: Int,
-                        text: String,
-                        attr: AttributeSet?,
-                      ) {
-                        val newValue =
-                          fb.document.getText(0, offset) +
-                            text +
-                            fb.document.getText(
-                              offset + length,
-                              fb.document.length - offset - length,
-                            )
-
-                        if (validate(newValue)) {
-                          super.replace(fb, offset, length, text, attr)
-                        } else {
-                          Toolkit.getDefaultToolkit().beep()
-                        }
-                      }
-
-                      override fun remove(fb: FilterBypass, offset: Int, length: Int) {
-                        val newValue =
-                          fb.document.getText(0, offset) +
-                            fb.document.getText(
-                              offset + length,
-                              fb.document.length - offset - length,
-                            )
-
-                        if (validate(newValue)) {
-                          super.remove(fb, offset, length)
-                        } else {
-                          Toolkit.getDefaultToolkit().beep()
-                        }
-                      }
-                    }
-                  stateManager
-                    .getState(capability)
-                    .map { it.currentState }
-                    .onEach { state ->
-                      val overrideValueAsText = state.overrideValue.asText().trim()
-                      when {
-                        !state.enabled -> textField.text = ""
-                        !textField.isFocusOwner && textField.text.trim() != overrideValueAsText ->
-                          textField.text = overrideValueAsText
-                      }
-                    }
-                    .launchIn(uiScope)
-                  textField.preferredSize = JBUI.size(75, 25)
-                  textField.isEnabled = checkBox.isSelected
-                  checkBox.selected.addListener { textField.isEnabled = it }
-                  textField.isVisible = capability.isOverrideable
-                }
-              )
-              add(
-                JLabel(message(capability.unit)).also { label ->
-                  checkBox.selected.addListener { label.isEnabled = it }
-                  label.preferredSize = JBUI.size(75, 25)
-
-                  if (!capability.isOverrideable) {
-                    label.icon = AllIcons.General.Note
-                    label.toolTipText = message("wear.whs.capability.override.not.supported")
-                  }
-                }
-              )
+              add(textField)
+              add(unitLabel)
             },
             BorderLayout.EAST,
           )
@@ -435,7 +358,27 @@ internal fun createWearHealthServicesPanel(
   val content =
     JBScrollPane().apply {
       setViewportView(
-        createCenterPanel(stateManager, uiScope, workerScope, stateManager.capabilitiesList)
+        createCenterPanel(
+          stateManager = stateManager,
+          uiScope = uiScope,
+          workerScope = workerScope,
+          capabilities = stateManager.capabilitiesList,
+          onOverride = { capability, overrideValue ->
+            workerScope.launch {
+              when (capability.dataType.overrideDataType) {
+                WhsDataValue.IntValue::class.java -> {
+                  overrideValue.toIntOrNull()?.let { stateManager.setOverrideValue(capability, it) }
+                    ?: stateManager.clearOverrideValue(capability)
+                }
+                else -> {
+                  overrideValue.toFloatOrNull()?.let {
+                    stateManager.setOverrideValue(capability, it)
+                  } ?: stateManager.clearOverrideValue(capability)
+                }
+              }
+            }
+          },
+        )
       )
     }
 
@@ -555,3 +498,66 @@ private fun createHelpButton(): JComponent {
   helpButton.toolTipText = message("wear.whs.panel.learn.more")
   return helpButton
 }
+
+private fun createTextField(onValidInput: (String) -> Unit) =
+  JTextField().also { textField ->
+    (textField.document as AbstractDocument).documentFilter =
+      object : DocumentFilter() {
+        fun validate(string: String): Boolean {
+          if (!floatPattern.matches(string) || string.length > MAX_OVERRIDE_VALUE_LENGTH) {
+            return false
+          }
+          onValidInput(string)
+          return true
+        }
+
+        override fun insertString(
+          fb: FilterBypass,
+          offset: Int,
+          text: String,
+          attr: AttributeSet?,
+        ) {
+          val newValue =
+            fb.document.getText(0, offset) +
+              text +
+              fb.document.getText(offset, fb.document.length - offset)
+
+          if (validate(newValue)) {
+            super.insertString(fb, offset, text, attr)
+          } else {
+            Toolkit.getDefaultToolkit().beep()
+          }
+        }
+
+        override fun replace(
+          fb: FilterBypass,
+          offset: Int,
+          length: Int,
+          text: String,
+          attr: AttributeSet?,
+        ) {
+          val newValue =
+            fb.document.getText(0, offset) +
+              text +
+              fb.document.getText(offset + length, fb.document.length - offset - length)
+
+          if (validate(newValue)) {
+            super.replace(fb, offset, length, text, attr)
+          } else {
+            Toolkit.getDefaultToolkit().beep()
+          }
+        }
+
+        override fun remove(fb: FilterBypass, offset: Int, length: Int) {
+          val newValue =
+            fb.document.getText(0, offset) +
+              fb.document.getText(offset + length, fb.document.length - offset - length)
+
+          if (validate(newValue)) {
+            super.remove(fb, offset, length)
+          } else {
+            Toolkit.getDefaultToolkit().beep()
+          }
+        }
+      }
+  }
