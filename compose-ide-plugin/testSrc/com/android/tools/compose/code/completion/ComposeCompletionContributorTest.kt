@@ -60,6 +60,8 @@ class ComposeCompletionContributorTest {
       import androidx.compose.runtime.Composable
 
       // "Foobar" is a unique prefix that no other lookup elements will match.
+      @Composable
+      fun FoobarZero() {}
 
       @Composable
       fun FoobarOne(required: Int) {}
@@ -90,14 +92,11 @@ class ComposeCompletionContributorTest {
 
     val expectedLookupItems =
       listOf(
+        "FoobarZero() (com.example)",
         "FoobarOne(required: Int) (com.example)",
         "FoobarTwo(required: Int, ...) (com.example)",
         "FoobarThree(...) {...} (com.example)",
-        if (KotlinPluginModeProvider.isK2Mode()) {
-          "FoobarFour {...} (children: @Composable (() -> Unit)) (com.example)"
-        } else {
-          "FoobarFour {...} (children: () -> Unit) (com.example)"
-        },
+        "FoobarFour {...} (com.example)",
         "FoobarFive(icon: String) {...} (com.example)",
         "FoobarSix(icon: String, ...) (com.example)",
         "FoobarSeven(a: Int, b: Int, c: Int, d: Int) {...} (com.example)",
@@ -970,11 +969,11 @@ class ComposeCompletionContributorTest {
     val expectedLookupItems =
       listOf(
         "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...) (com.example)",
-        "FoobarTwo(optionalArg: Int = ...) (com.example)",
+        "FoobarTwo(...) (com.example)",
         "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
         "FoobarFive(requiredArg: () -> Unit, ...) (com.example)",
-        "FoobarSix(optionalArg: Int = ...) (com.example)",
+        "FoobarSix(...) (com.example)",
       )
 
     // Given:
