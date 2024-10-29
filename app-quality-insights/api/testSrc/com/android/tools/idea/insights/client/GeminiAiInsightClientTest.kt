@@ -17,8 +17,13 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.Language
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.testing.disposable
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
@@ -159,6 +164,79 @@ class GeminiAiInsightClientTest {
       |
       |fun helloWorld2() {
       |  println("Hello World 2")
+      |}
+      |```"""
+        .trimMargin()
+    val insight = client.fetchCrashInsight("", request)
+
+    assertThat(fakeGeminiPluginApi.receivedPrompt!!.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
+  }
+
+  @Test
+  fun `create gemini insight request truncates at the context limit`() = runBlocking {
+    val client = GeminiAiInsightClient.create(projectRule.project)
+
+    val event = ISSUE1.sampleEvent
+    val codeContextData =
+      CodeContextData(
+        listOf(
+          CodeContext(
+            "HelloWorld.kt",
+            "a/b/c/HelloWorld.kt",
+            """
+            |package a.b.c
+            |
+            |fun helloWorld() {
+            |  println("Hello World")
+            |}"""
+              .trimMargin(),
+            Language.KOTLIN,
+          ),
+          CodeContext(
+            "HelloWorld2.kt",
+            "a/b/c/HelloWorld2.kt",
+            """
+            |package a.b.c
+            |
+            |fun helloWorld2() {
+            |  println("Hello World 2")
+            |}"""
+              .trimMargin(),
+            Language.KOTLIN,
+          ),
+        ),
+        Experiment.TOP_THREE_SOURCES,
+      )
+
+    // This should truncate the second source code file.
+    fakeGeminiPluginApi.MAX_QUERY_CHARS = 650
+    val request = createGeminiInsightRequest(event, codeContextData)
+
+    expectedPromptText =
+      """
+      |SYSTEM
+      |
+      |    Begin with the explanation directly. Do not add fillers at the start of response.
+      |  
+      |
+      |USER
+      |Explain this exception from my app running on Google Pixel 4a with Android version 12.
+      |Please reference the provided source code if they are helpful.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
       |}
       |```"""
         .trimMargin()

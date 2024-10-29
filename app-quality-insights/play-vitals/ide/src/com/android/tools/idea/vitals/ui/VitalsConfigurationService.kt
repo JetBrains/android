@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
@@ -245,7 +244,7 @@ class VitalsConfigurationManager(
               AiInsightToolkitImpl(
                 project,
                 GeminiAiInsightsOnboardingProvider(project),
-                CodeContextResolverImpl(project, GeminiPluginApi.getInstance().MAX_QUERY_CHARS),
+                CodeContextResolverImpl(project),
               ),
             cache = cache,
           )

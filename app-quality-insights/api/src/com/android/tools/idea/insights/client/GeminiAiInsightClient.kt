@@ -58,6 +58,9 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+// Extra space reserved for system preamble
+private const val CONTEXT_WINDOW_PADDING = 150
+
 class GeminiAiInsightClient private constructor(private val project: Project) : AiInsightClient {
 
   override suspend fun fetchCrashInsight(
@@ -81,20 +84,30 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
     }
   }
 
-  private fun createPrompt(request: GeminiInsightsRequest) =
-    "${
+  private fun createPrompt(request: GeminiInsightsRequest): String {
+    val initialPrompt =
       String.format(
-        if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
-        request.deviceName,
-        request.apiLevel,
-        request.stackTrace,
-      )
+          if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
+          else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
+          request.deviceName,
+          request.apiLevel,
+          request.stackTrace,
+        )
         .trim()
-    }${request.codeSnippetsList.toPromptString()}"
-
-  private fun List<CodeSnippet>.toPromptString() =
-    if (isEmpty()) ""
-    else "\n" + joinToString("\n") { "${it.filePath}:\n```\n${it.codeSnippet}\n```" }
+    var availableContextSpace =
+      GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
+    val codeContextPrompt =
+      request.codeSnippetsList
+        .takeWhile { codeSnippet ->
+          val nextContextString = "\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+          availableContextSpace -= nextContextString.count()
+          availableContextSpace >= 0
+        }
+        .fold("") { acc, codeSnippet ->
+          "$acc\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+        }
+    return "$initialPrompt$codeContextPrompt"
+  }
 
   companion object {
     fun create(project: Project) = GeminiAiInsightClient(project)
