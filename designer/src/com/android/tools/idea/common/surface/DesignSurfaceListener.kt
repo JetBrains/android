@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.surface;
+package com.android.tools.idea.common.surface
 
-import com.android.annotations.concurrency.UiThread;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 
-import java.util.List;
-
-/**
- * Interface implemented by listeners for {@link DesignSurface} events
- */
-public interface DesignSurfaceListener {
+/** Interface implemented by listeners for [DesignSurface] events */
+interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
-  default void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {}
+  fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {}
 
-  /** The current model changed */
+  /** The current models changed */
   @UiThread
-  default void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {}
+  fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {}
 }
