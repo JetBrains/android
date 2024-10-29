@@ -988,7 +988,7 @@ class ComposePreviewRepresentationTest {
     init {
       mainSurface.addListener(
         object : DesignSurfaceListener {
-          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+          override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
             val id = UUID.randomUUID().toString().substring(0, 5)
             logger.info("modelChanged ($id)")
             newModelAddedLatch.countDown()

@@ -26,5 +26,7 @@ interface DesignSurfaceListener {
 
   /** The current models changed */
   @UiThread
-  fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {}
+  // TODO(b/352512443): some implementations of this interface still work under the assumption of
+  //   having a single model and this needs to be addressed.
+  fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {}
 }

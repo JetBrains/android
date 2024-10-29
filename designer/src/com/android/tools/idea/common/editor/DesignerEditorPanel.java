@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
 import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
+import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.util.PropertiesComponent;
@@ -224,7 +225,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
     mySurfaceListener = new DesignSurfaceListener() {
       @Override
       @UiThread
-      public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
+      public void modelsChanged(@NotNull DesignSurface<?> surface, @NotNull List<? extends @Nullable NlModel> models) {
+        // This class works under the assumption of having a single model, so the last one is used.
+        NlModel model = Iterables.getFirst(models, null);
         if (bottomModelComponent != null) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);

@@ -135,8 +135,8 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     designEditor.getComponent().getSurface().addListener(new DesignSurfaceListener() {
       @Override
       @UiThread
-      public void modelChanged(@NotNull DesignSurface<?> surface,
-                               @Nullable NlModel model) {
+      public void modelsChanged(@NotNull DesignSurface<?> surface,
+                                @NotNull List<? extends @Nullable NlModel> models) {
         surface.removeListener(this);
         CaretModel caretModel = editor.getEditor().getCaretModel();
         caretListener.caretPositionChanged(

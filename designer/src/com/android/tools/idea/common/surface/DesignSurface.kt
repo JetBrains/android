@@ -589,10 +589,10 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private fun notifyModelChanged(model: NlModel) {
+  private fun notifyModelsChanged(models: List<NlModel?>) {
     val listeners = getSurfaceListeners()
     for (listener in listeners) {
-      runInEdt { listener.modelChanged(this, model) }
+      runInEdt { listener.modelsChanged(this, models) }
     }
   }
 
@@ -1175,14 +1175,14 @@ abstract class DesignSurface<T : SceneManager>(
         revalidateScrollArea()
       }
 
-      notifyModelChanged(newModel)
+      notifyModelsChanged(listOf(newModel))
     }
   }
 
   /**
    * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
    * then it just returns the associated [SceneManager] which created before. In this function, the
-   * scene views are not updated and [DesignSurfaceListener.modelChanged] callback is triggered
+   * scene views are not updated and [DesignSurfaceListener.modelsChanged] callback is triggered
    * immediately.
    *
    * Note that the order of the addition might be important for the rendering order.
@@ -1199,7 +1199,7 @@ abstract class DesignSurface<T : SceneManager>(
       .whenCompleteAsync(
         { _, _ ->
           if (project.isDisposed || modelToAdd.isDisposed) return@whenCompleteAsync
-          notifyModelChanged(modelToAdd)
+          notifyModelsChanged(listOf(modelToAdd))
           reactivateGuiInputHandler()
         },
         EdtExecutorService.getInstance(),

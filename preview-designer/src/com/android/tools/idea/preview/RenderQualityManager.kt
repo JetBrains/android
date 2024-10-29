@@ -117,7 +117,7 @@ class DefaultRenderQualityManager(
             }
           val designSurfaceListener =
             object : DesignSurfaceListener {
-              override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+              override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
                 trySend(Unit)
               }
             }

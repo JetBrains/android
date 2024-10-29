@@ -72,6 +72,11 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private var layoutType: DesignerEditorFileType? = null
   private var toolbarActionGroups: ToolbarActionGroups? = null
   private var model: NlModel? = null
+    set(value) {
+      field?.removeListener(this)
+      field = value
+      field?.addListener(this)
+    }
 
   init {
     Disposer.register(parent, this)
@@ -210,10 +215,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   @UiThread
-  override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-    this.model?.removeListener(this)
-    model?.addListener(this)
-    this.model = model
+  override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+    // Here it is only necessary to keep the reference to one of the models in order to set the
+    // ModelListener to one of them
+    this.model = models.firstOrNull()
     northToolbar?.updateActionsImmediately()
     northEastToolbar?.updateActionsImmediately()
     val surfaceLayoutType = surface.layoutType
