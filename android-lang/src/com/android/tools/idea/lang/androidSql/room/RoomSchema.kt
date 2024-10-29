@@ -47,6 +47,7 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUClass
 import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.getUastParentOfType
+import org.jetbrains.uast.sourcePsiElement
 
 typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
 typealias PsiMemberPointer = SmartPsiElementPointer<out PsiMember>
@@ -248,7 +249,7 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     val allTables = schema.tables
     val databases = schema.databases
     var databasesHostBelongsTo = emptyList<RoomDatabase>()
-    val hostClass = hostRoomAnnotation.getContainingUClass()?.sourceElement ?: return allTables
+    val hostClass = hostRoomAnnotation.getContainingUClass()?.sourcePsiElement ?: return allTables
     if (RoomAnnotations.DATABASE_VIEW.isEquals(hostRoomAnnotation.qualifiedName)) {
       databasesHostBelongsTo = databases.filter { database -> database.views.any { it.element == hostClass } }
     }
