@@ -29,7 +29,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.application
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
@@ -39,14 +39,14 @@ import org.junit.Test
 /** Tests for [ComposeCompletionContributor]. */
 class ComposeCompletionContributorTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
   }
 
   @Test
@@ -78,6 +78,12 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarSix(icon: String, optionalOnClick: () -> Unit = {}) {}
+
+      @Composable
+      fun FoobarSeven(a: Int, b: Int, c: Int, d: Int, children: @Composable () -> Unit) {}
+
+      @Composable
+      fun FoobarEight(a: Int, b: Int = 0, c: Int = 0, d: Int = 0, children: @Composable () -> Unit) {}
       """
         .trimIndent(),
     )
@@ -94,6 +100,8 @@ class ComposeCompletionContributorTest {
         },
         "FoobarFive(icon: String) {...} (com.example)",
         "FoobarSix(icon: String, ...) (com.example)",
+        "FoobarSeven(a: Int, b: Int, c: Int, d: Int) {...} (com.example)",
+        "FoobarEight(a: Int, ...) {...} (com.example)",
       )
 
     // Given:
