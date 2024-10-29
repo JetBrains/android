@@ -13,161 +13,112 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.execution.RunConfigurationProducerService;
-import com.intellij.execution.actions.RunConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.mock.MockModule;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ServiceContainerUtil;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.BuildersKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.execution.RunConfigurationProducerService
+import com.intellij.execution.actions.RunConfigurationProducer
+import com.intellij.execution.junit.JUnitConfigurationType
+import com.intellij.mock.MockModule
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /**
- * Tests for {@link AndroidGradleProjectStartupActivity}.
+ * Tests for [AndroidGradleProjectStartupActivity].
  */
-public class AndroidGradleProjectStartupActivityTest {
-
-  @Rule public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
-  private Info myInfo;
-  private AndroidGradleProjectStartupActivity myStartupActivity;
-  private GradleSyncInvoker mySyncInvoker;
-  private GradleSyncInvoker.Request myRequest;
-  private Project myProject;
-  private Disposable myTestRootDisposable;
+class AndroidGradleProjectStartupActivityTest {
+  @get:Rule val myProjectRule = AndroidProjectRule.inMemory()
+  @Mock private lateinit var myInfo: Info
+  private lateinit var myStartupActivity: AndroidGradleProjectStartupActivity
+  private var myRequest: GradleSyncInvoker.Request? = null
+  private val myProject: Project
+    get() = myProjectRule.project
+  private val myTestRootDisposable: Disposable
+    get() = myProjectRule.testRootDisposable
 
   @Before
-  public void setUp() throws Exception {
-    myProject = myProjectRule.getProject();
-    myTestRootDisposable = myProjectRule.getTestRootDisposable();
-    mySyncInvoker = new GradleSyncInvoker.FakeInvoker() {
-      @Override
-      public void requestProjectSync(@NotNull Project project,
-                                     @NotNull GradleSyncInvoker.Request request,
-                                     @Nullable GradleSyncListener listener) {
-        super.requestProjectSync(project, request, listener);
-        assertThat(myRequest).isNull();
-        myRequest = request;
+  fun setUp() {
+    val syncInvoker = object : GradleSyncInvoker.FakeInvoker() {
+      override fun requestProjectSync(
+        project: Project,
+        request: GradleSyncInvoker.Request,
+        listener: GradleSyncListener?
+      ) {
+        super.requestProjectSync(project, request, listener)
+        assertThat(myRequest).isNull()
+        myRequest = request
       }
-    };
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, myTestRootDisposable);
-    myInfo = mock(Info.class);
-    myStartupActivity = new AndroidGradleProjectStartupActivity();
-  }
-
-  @After
-  public void tearDown() {
-    myInfo = null;
+    }
+    ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myTestRootDisposable)
+    myInfo = mock()
+    myStartupActivity = AndroidGradleProjectStartupActivity()
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
   }
 
   @Test
-  public void testRunActivityWithImportedProject() {
+  fun testRunActivityWithImportedProject() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio()) return;
-
-    when(myInfo.isBuildWithGradle()).thenReturn(true);
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
-
-    try {
-      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
-    }
-    catch(InterruptedException ignored) { }
-
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
-    assertThat(myRequest).isEqualTo(request);
+    if (!IdeInfo.getInstance().isAndroidStudio) return
+    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    runBlocking { myStartupActivity.execute(myProject) }
+    val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN)
+    assertThat(myRequest).isEqualTo(request)
   }
 
   @Test
-  public void testRunActivityWithExistingGradleProject() {
-    when(myInfo.isBuildWithGradle()).thenReturn(true);
-    when(myInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(myProjectRule.getTestRootDisposable())));
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
-
-    try {
-      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
-    }
-    catch(InterruptedException ignored) { }
-
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
-    assertThat(myRequest).isEqualTo(request);
+  fun testRunActivityWithExistingGradleProject() {
+    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    whenever(myInfo.androidModules).thenReturn(listOf<Module>(MockModule(myProjectRule.testRootDisposable)))
+    runBlocking { myStartupActivity.execute(myProject) }
+    val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN)
+    assertThat(myRequest).isEqualTo(request)
   }
 
   @Test
-  public void testRunActivityWithNonGradleProject() {
-    when(myInfo.isBuildWithGradle()).thenReturn(false);
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
-
-    try {
-      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
-    }
-    catch(InterruptedException ignored) { }
-
-    assertThat(myRequest).isNull();
+  fun testRunActivityWithNonGradleProject() {
+    whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    runBlocking { myStartupActivity.execute(myProject) }
+    assertThat(myRequest).isNull()
   }
 
   @Test
-  public void testJunitProducersAreIgnored() {
+  fun testJunitProducersAreIgnored() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio()) return;
-
-    when(myInfo.isBuildWithGradle()).thenReturn(true);
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
-    try {
-      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
-    }
-    catch(InterruptedException ignored) { }
-
-    Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
-
-    List<String> allJUnitProducers =
-      RunConfigurationProducer.EP_NAME.getExtensionList().stream()
-        .filter(it ->it.getConfigurationType() == JUnitConfigurationType.getInstance())
-        .map(it -> it.getClass().getName()).toList();
-
-
-    assertThat(ignoredProducersService).containsAllIn(allJUnitProducers);
+    if (!IdeInfo.getInstance().isAndroidStudio) return
+    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    runBlocking { myStartupActivity.execute(myProject) }
+    val ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers
+    val allJUnitProducers =
+      RunConfigurationProducer.EP_NAME.extensionList
+        .filter { it.configurationType == JUnitConfigurationType.getInstance() }
+        .map { it.javaClass.name }
+        .toList()
+    assertThat(ignoredProducersService).containsAllIn(allJUnitProducers)
   }
 
   @Test
-  public void testJunitProducersAreNotIgnoredInNonGradleProjects() {
+  fun testJunitProducersAreNotIgnoredInNonGradleProjects() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
-    if (!IdeInfo.getInstance().isAndroidStudio()) return;
-
-    when(myInfo.isBuildWithGradle()).thenReturn(false);
-    ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, myProjectRule.getTestRootDisposable());
-    Set<String> ignoredProducers = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
-    assertThat(ignoredProducers).isEmpty(); // arguably this test is too strong, but it works.
-    try {
-      BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE,
-                             (scope, continuation) -> myStartupActivity.execute(myProject, continuation));
-    }
-    catch (InterruptedException ignored) {
-    }
-    assertThat(RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers).isEmpty();
+    if (!IdeInfo.getInstance().isAndroidStudio) return
+    whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    val ignoredProducers = RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers
+    assertThat(ignoredProducers).isEmpty() // arguably this test is too strong, but it works.
+    runBlocking { myStartupActivity.execute(myProject) }
+    assertThat(RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers).isEmpty()
   }
 }
