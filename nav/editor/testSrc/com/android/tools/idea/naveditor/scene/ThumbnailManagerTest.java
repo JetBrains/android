@@ -61,6 +61,14 @@ public class ThumbnailManagerTest extends NavTestCase {
     TestableThumbnailManager.register(myFacet);
     NavDesignSurface surface = new NavDesignSurface(myFacet.getModule().getProject());
     Disposer.register(getMyRootDisposable(), surface);
+    // This class uses rendering
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() {
+    super.tearDown();
+    RenderTestUtil.afterRenderTestCase();
   }
 
   public void testCaching() throws Exception {

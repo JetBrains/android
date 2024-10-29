@@ -126,7 +126,7 @@ public class RenderTestUtil {
    */
   public static void waitForRenderTaskDisposeToFinish() {
     // Make sure there is no RenderTask disposing event in the event queue.
-    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(UIUtil::dispatchAllInvocationEvents);
     Thread.getAllStackTraces().keySet().stream()
       .filter(t -> t.getName().startsWith("RenderTask dispose"))
       .forEach(t -> {
