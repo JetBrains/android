@@ -589,7 +589,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           doRefreshSync(filePreviewElements, refreshProgressIndicator, request.refreshEventBuilder)
         }
       } catch (t: Throwable) {
-        requestLogger.warn("Request failed", t)
+        // Make sure to propagate cancellations
+        if (t is CancellationException) throw t else requestLogger.warn("Request failed", t)
       } finally {
         previewViewModel.refreshFinished()
       }

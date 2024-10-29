@@ -1310,10 +1310,8 @@ class ComposePreviewRepresentation(
             )
           }
         } catch (t: Throwable) {
-          // It's normal for refreshes to get cancelled by the refreshManager, so log the
-          // CancellationExceptions as 'debug' to avoid being too noisy.
-          if (t is CancellationException) requestLogger.debug("Request cancelled", t)
-          else requestLogger.warn("Request failed", t)
+          // Make sure to propagate cancellations
+          if (t is CancellationException) throw t else requestLogger.warn("Request failed", t)
         } finally {
           // Force updating toolbar icons after refresh
           ActivityTracker.getInstance().inc()
