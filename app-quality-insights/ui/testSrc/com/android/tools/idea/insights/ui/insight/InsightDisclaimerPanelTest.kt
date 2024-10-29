@@ -15,12 +15,23 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.CommonHyperLinkLabel
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.CONNECTION1
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
@@ -34,9 +45,11 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.time.Instant
 import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,9 +67,29 @@ class InsightDisclaimerPanelTest {
   private val insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
 
   @get:Rule val edtRule = EdtRule()
-
   @get:Rule val projectRule = ProjectRule()
 
+  private val codeContextResolver =
+    FakeCodeContextResolver(
+      listOf(
+        CodeContext("Class", "/a/b/c", "fileContent", Language.KOTLIN),
+        CodeContext("Class2", "/a/b/c2", "fileContent2", Language.KOTLIN),
+        CodeContext("Class3", "/a/b/c3", "fileContent3", Language.KOTLIN),
+      )
+    )
+  private val stateFlow =
+    MutableStateFlow(
+      AppInsightsState(
+        Selection(CONNECTION1, listOf(CONNECTION1)),
+        TEST_FILTERS,
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+      )
+    )
+  private val stubController =
+    StubAppInsightsProjectLevelController(
+      state = stateFlow,
+      aiInsightToolkit = FakeAiInsightToolkit(codeContextResolver),
+    )
   private lateinit var fakeUi: FakeUi
   private lateinit var experimentFetcher: FakeExperimentFetcher
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
@@ -88,17 +121,17 @@ class InsightDisclaimerPanelTest {
   fun `test disclaimer text`() = runBlocking {
     insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.ALL_SOURCES)) }
 
-    val disclaimerPanel = InsightDisclaimerPanel(scope, insightFlow) {}
+    val disclaimerPanel = createDisclaimerPanel()
     val fakeUi = FakeUi(disclaimerPanel)
 
-    delayUntilCondition(200) {
+    waitForCondition(2.seconds) {
       fakeUi.findVisibleLabel()?.strippedHtmlText() ==
         "This insight was generated with code context."
     }
 
     insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
 
-    delayUntilCondition(200) {
+    waitForCondition(2.seconds) {
       fakeUi.findVisibleLabel()?.strippedHtmlText() ==
         "This insight was generated without code context. For better results, review and share limited code context with Gemini."
     }
@@ -111,17 +144,32 @@ class InsightDisclaimerPanelTest {
     var message = ""
     TestDialogManager.setTestDialog {
       message = it
-      Messages.OK
+      Messages.CANCEL
     }
 
     clickOnLink()
+    waitForCondition(2.seconds) { message.isNotEmpty() }
 
     assertThat(message)
-      .contains(
-        "Android Studio needs to send code and context from your project " +
-          "to enhance the insight for this issue."
+      .isEqualTo(
+        "<html>Android Studio needs to send code context from your project to enhance the insight for this issue." +
+          "<br>Would you like to continue?<br><b>Files to be shared</b>: c, c2, c3\n" +
+          "<p style=\"color:#999999;margin-top:5px;\">" +
+          "You can change your context sharing preference from Settings > Tools > Gemini.</p></html>"
       )
-    assertThat(message).contains("Would you like to continue?")
+
+    experimentFetcher.experiment = Experiment.CONTROL
+    message = ""
+    clickOnLink()
+    waitForCondition(2.seconds) { message.isNotEmpty() }
+
+    assertThat(message)
+      .isEqualTo(
+        "<html>Android Studio needs to send code context from your project to enhance the insight for this issue." +
+          "<br>Would you like to continue?\n" +
+          "<p style=\"color:#999999;margin-top:5px;\">" +
+          "You can change your context sharing preference from Settings > Tools > Gemini.</p></html>"
+      )
   }
 
   @Test
@@ -131,7 +179,7 @@ class InsightDisclaimerPanelTest {
     insightFlow.update {
       LoadingState.Ready(AiInsight("", experiment = experimentFetcher.experiment))
     }
-    delayUntilCondition(200) { !isPromptingContextDisclaimer() }
+    waitForCondition(2.seconds) { !isPromptingContextDisclaimer() }
   }
 
   @Test
@@ -142,13 +190,13 @@ class InsightDisclaimerPanelTest {
       createDisclaimerPanel { onCallBack = true }
       insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
       TestDialogManager.setTestDialog { Messages.OK }
-      delayUntilCondition(200) { isPromptingContextDisclaimer() }
+      waitForCondition(2.seconds) { isPromptingContextDisclaimer() }
 
       clickOnLink()
       insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.TOP_SOURCE)) }
-      delayUntilCondition(200) { !isPromptingContextDisclaimer() }
+      waitForCondition(2.seconds) { !isPromptingContextDisclaimer() }
 
-      assertThat(onCallBack).isTrue()
+      waitForCondition(2.seconds) { onCallBack }
     }
 
   @Test
@@ -176,10 +224,10 @@ class InsightDisclaimerPanelTest {
         )) {
         experimentFetcher.experiment = experiment
         insightFlow.update { LoadingState.Ready(AiInsight("")) }
-        delayUntilCondition(200) { isPromptingContextDisclaimer() }
+        waitForCondition(2.seconds) { isPromptingContextDisclaimer() }
         // Reset the button visibility for the next experiment
         insightFlow.update { LoadingState.Ready(AiInsight("", experiment)) }
-        delayUntilCondition(200) { !isPromptingContextDisclaimer() }
+        waitForCondition(2.seconds) { !isPromptingContextDisclaimer() }
       }
     }
 
@@ -188,11 +236,13 @@ class InsightDisclaimerPanelTest {
   private fun JLabel.strippedHtmlText() = text.replace("<html>", "").replace("</html>", "")
 
   private fun createDisclaimerPanel(onRefreshInsight: (Boolean) -> Unit = {}) =
-    InsightDisclaimerPanel(scope, insightFlow, onRefreshInsight).also { fakeUi = FakeUi(it) }
+    InsightDisclaimerPanel(stubController, scope, insightFlow, onRefreshInsight).also {
+      fakeUi = FakeUi(it)
+    }
 
   private fun clickOnLink() = fakeUi.findHyperLinkLabel().hyperLinkListeners.forEach { it() }
 
-  private fun FakeUi.findHyperLinkLabel() = fakeUi.findComponent<CommonHyperLinkLabel>()!!
+  private fun FakeUi.findHyperLinkLabel() = findComponent<CommonHyperLinkLabel>()!!
 
   private fun isPromptingContextDisclaimer() =
     fakeUi.findComponent<JPanel> { it.name == "without_code_disclaimer_panel" }!!.isVisible

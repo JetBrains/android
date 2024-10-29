@@ -16,12 +16,23 @@
 package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.android.tools.idea.insights.experiments.supportsContextSharing
 
 open class FakeCodeContextResolver(
-  var codeContext: List<CodeContext>,
+  private var codeContext: List<CodeContext>,
   override val characterLimit: Int = Integer.MAX_VALUE,
 ) : CodeContextResolver {
-  override suspend fun getSource(stack: StacktraceGroup) =
-    CodeContextData(codeContext, Experiment.UNKNOWN)
+  override suspend fun getSource(stack: StacktraceGroup): CodeContextData {
+    val experiment =
+      AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+
+    return if (experiment.supportsContextSharing() && experiment != Experiment.CONTROL) {
+      CodeContextData(codeContext, experiment)
+    } else {
+      CodeContextData(emptyList(), experiment)
+    }
+  }
 }
