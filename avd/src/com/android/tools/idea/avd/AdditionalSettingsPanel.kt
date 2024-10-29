@@ -34,9 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.Dp
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
@@ -74,7 +72,6 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Composable
 internal fun AdditionalSettingsPanel(
   state: ConfigureDevicePanelState,
-  onImportButtonClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val hasPlayStore = state.hasPlayStore()
@@ -493,7 +490,6 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
       )
       .withFileFilter { it.name.endsWith(".img", ignoreCase = true) }
 
-  // TODO chooseFile logs an error because it does slow things on the EDT
   val virtualFile = FileChooser.chooseFile(descriptor, parent, project, null) ?: return null
 
   val path = virtualFile.toNioPath()
@@ -705,11 +701,4 @@ internal enum class RadioButton {
         is None -> NONE
       }
   }
-}
-
-/** Extends the maxWidth of the incoming constraints by the given [extraWidth]. */
-internal fun Modifier.expandWidth(extraWidth: Dp) = layout { measurable, constraints ->
-  val placeable =
-    measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + extraWidth.roundToPx()))
-  layout(placeable.width, placeable.height) { placeable.place(0, 0) }
 }

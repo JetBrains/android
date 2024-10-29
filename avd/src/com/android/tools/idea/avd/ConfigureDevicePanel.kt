@@ -59,7 +59,6 @@ internal fun ConfigureDevicePanel(
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
-  onImportButtonClick: () -> Unit,
 ) {
   Row(Modifier.padding(top = Padding.LARGE)) {
     Column(Modifier.weight(1f)) {
@@ -84,7 +83,6 @@ internal fun ConfigureDevicePanel(
         deviceNameValidator,
         onDownloadButtonClick,
         onSystemImageTableRowClick,
-        onImportButtonClick,
       )
     }
 
@@ -108,7 +106,6 @@ private fun Tabs(
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
-  onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
 
@@ -175,7 +172,6 @@ private fun Tabs(
       VerticallyScrollableContainer {
         AdditionalSettingsPanel(
           configureDevicePanelState,
-          onImportButtonClick,
           Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
         )
       }
