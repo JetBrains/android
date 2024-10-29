@@ -66,7 +66,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -230,7 +229,7 @@ internal fun <T> TableHeader(
           }
           .padding(horizontal = CELL_SPACING / 2, vertical = CELL_SPACING)
       ) {
-        Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(it.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
           sortOrder.Icon()
         }
