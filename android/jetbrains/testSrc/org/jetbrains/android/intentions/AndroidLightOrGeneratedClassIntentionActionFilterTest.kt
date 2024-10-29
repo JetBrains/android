@@ -31,7 +31,7 @@ import org.jetbrains.jps.model.java.JpsJavaExtensionService
 
 private const val CREATE_FIELD = "Create field"
 
-class AndroidIntentionActionFilterTest : AndroidTestCase() {
+class AndroidLightOrGeneratedClassIntentionActionFilterTest : AndroidTestCase() {
 
   fun testLightClasses() {
     myFixture.addFileToProject("res/values/strings.xml", "<resources><string name='existing_res'></string></resources>")
