@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import icons.StudioIconsCompose
@@ -208,19 +209,41 @@ object DeviceTableColumns {
   val apiRange =
     TableColumn(
       "API",
-      width = TableColumnWidth.Weighted(1f),
+      width = TableColumnWidth.ToFit("30-35", extraPadding = 8.dp),
       comparator = apiRangeAscendingOrder,
       reverseComparator = apiRangeDescendingOrder,
       rowContent = { Text(it.apiRange.firstAndLastApiLevel()) },
     )
 
+  // Make it just big enough to fit the header plus the sort icon.
+  private val widthHeightColumnWidth =
+    TableColumnWidth.ToFit(
+      "Height",
+      textStyle = TextStyle.Default.copy(fontWeight = FontWeight.Bold),
+      extraPadding = 16.dp,
+    )
+
   val width =
-    DefaultSortableTableColumn<DeviceProfile, Int>("Width", attribute = { it.resolution.width })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "Width",
+      width = widthHeightColumnWidth,
+      attribute = { it.resolution.width },
+    )
   val height =
-    DefaultSortableTableColumn<DeviceProfile, Int>("Height", attribute = { it.resolution.height })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "Height",
+      width = widthHeightColumnWidth,
+      attribute = { it.resolution.height },
+    )
   val density =
     TableTextColumn<DeviceProfile>(
       "Density",
+      width =
+        TableColumnWidth.ToFit(
+          "Density",
+          textStyle = TextStyle.Default.copy(fontWeight = FontWeight.Bold),
+          extraPadding = 16.dp,
+        ),
       attribute = { "${it.displayDensity} dpi" },
       comparator = compareBy { it.displayDensity },
     )

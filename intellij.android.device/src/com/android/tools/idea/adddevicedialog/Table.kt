@@ -21,7 +21,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +28,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -61,9 +61,12 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -72,6 +75,7 @@ import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
@@ -97,14 +101,38 @@ data class TableColumn<in T>(
 
 @Suppress("ModifierFactoryExtensionFunction")
 sealed interface TableColumnWidth {
-  fun RowScope.widthModifier(): Modifier
+  @Composable fun RowScope.widthModifier(): Modifier
 
   class Fixed(val width: Dp) : TableColumnWidth {
-    override fun RowScope.widthModifier(): Modifier = Modifier.width(width)
+    @Composable override fun RowScope.widthModifier(): Modifier = Modifier.width(width)
   }
 
   class Weighted(val weight: Float) : TableColumnWidth {
+    @Composable
     override fun RowScope.widthModifier(): Modifier = Modifier.weight(weight, fill = true)
+  }
+
+  /** Sizes the column to fit a specified bit of text, optionally with extra padding. */
+  class ToFit(
+    val text: String,
+    val textStyle: TextStyle = TextStyle.Default,
+    val extraPadding: Dp = 0.dp,
+  ) : TableColumnWidth {
+    @Composable
+    override fun RowScope.widthModifier(): Modifier {
+      val textMeasurer = rememberTextMeasurer()
+      val density = LocalDensity.current
+      val style = LocalTextStyle.current
+      val widthDp =
+        remember(density, style) {
+          with(density) {
+            val measurement =
+              textMeasurer.measure(text, style = style.merge(textStyle), maxLines = 1)
+            measurement.size.width.toDp()
+          }
+        }
+      return Modifier.width(widthDp + extraPadding + CELL_SPACING)
+    }
   }
 }
 
@@ -153,8 +181,10 @@ internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
-    SortOrder.ASCENDING -> Icon(AllIconsKeys.General.ArrowUp, "Sorted ascending")
-    SortOrder.DESCENDING -> Icon(AllIconsKeys.General.ArrowDown, "Sorted descending")
+    SortOrder.ASCENDING ->
+      Icon(AllIconsKeys.General.ArrowUp, "Sorted ascending", Modifier.size(16.dp))
+    SortOrder.DESCENDING ->
+      Icon(AllIconsKeys.General.ArrowDown, "Sorted descending", Modifier.size(16.dp))
   }
 
 @Stable
@@ -266,16 +296,19 @@ internal fun <T> TableRow(
         indication = null,
         onClick = { onClick(value) },
       )
-      .padding(ROW_PADDING)
-      .fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
+      .fillMaxWidth()
+      .padding(ROW_PADDING),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     val contentColor =
       if (selected) retrieveColorOrUnspecified("Table.selectionForeground")
       else LocalContentColor.current
     CompositionLocalProvider(LocalContentColor provides contentColor) {
-      columns.forEach { Box(with(it.width) { widthModifier() }) { it.rowContent(value) } }
+      columns.forEach {
+        Box(with(it.width) { widthModifier() }.padding(horizontal = CELL_SPACING / 2)) {
+          it.rowContent(value)
+        }
+      }
     }
   }
 }
