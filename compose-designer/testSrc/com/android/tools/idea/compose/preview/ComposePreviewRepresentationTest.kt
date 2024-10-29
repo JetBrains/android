@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
-import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.TestPannable
@@ -168,6 +167,11 @@ class ComposePreviewRepresentationTest {
 
   private var composePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
+      if (
+        field == value &&
+          AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled == value
+      )
+        return
       runWriteActionAndWait {
         AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = value
         ApplicationManager.getApplication()
@@ -741,10 +745,10 @@ class ComposePreviewRepresentationTest {
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
       composePreviewEssentialsModeEnabled = true
-      retryUntilPassing(5.seconds) { assertEquals(10, preview.interactiveManager.fpsLimit) }
+      delayUntilCondition(delayPerIterationMs = 500) { preview.interactiveManager.fpsLimit == 10 }
 
       composePreviewEssentialsModeEnabled = false
-      retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
+      delayUntilCondition(delayPerIterationMs = 500) { preview.interactiveManager.fpsLimit == 30 }
     }
 
   @Test
@@ -991,7 +995,7 @@ class ComposePreviewRepresentationTest {
           override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
             val id = UUID.randomUUID().toString().substring(0, 5)
             logger.info("modelChanged ($id)")
-            newModelAddedLatch.countDown()
+            repeat(models.size) { newModelAddedLatch.countDown() }
           }
         }
       )

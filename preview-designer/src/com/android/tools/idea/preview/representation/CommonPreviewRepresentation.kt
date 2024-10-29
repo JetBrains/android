@@ -524,7 +524,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     refreshProgressIndicator: BackgroundableProcessIndicator,
     invalidateIfCancelled: AtomicBoolean,
   ) =
-    launchWithProgress(refreshProgressIndicator, uiThread) {
+    launchWithProgress(refreshProgressIndicator, workerThread) {
       val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to request.requestId))
 
       if (DumbService.isDumb(project)) {

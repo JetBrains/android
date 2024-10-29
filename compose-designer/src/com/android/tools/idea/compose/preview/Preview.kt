@@ -1034,7 +1034,7 @@ class ComposePreviewRepresentation(
 
       // We can now notify to DesignSurface that Preview has rendered for the first time, and we can
       // now attempt to restore the zoom.
-      surface.notifyRestoreZoom()
+      launch(uiThread) { surface.notifyRestoreZoom() }
     }
   }
 
@@ -1237,7 +1237,7 @@ class ComposePreviewRepresentation(
     var invalidateIfCancelled = false
 
     val refreshJob =
-      launchWithProgress(refreshProgressIndicator, uiThread) {
+      launchWithProgress(refreshProgressIndicator, workerThread) {
         refreshTriggers.forEach {
           requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", it)
         }
