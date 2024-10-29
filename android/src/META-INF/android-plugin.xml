@@ -432,6 +432,7 @@
 
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidLightOrGeneratedClassIntentionActionFilter"/>
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidFindJarFixIntentionActionFilter"/>
+    <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidOrderEntryFixIntentionActionFilter"/>
 
     <localInspection language="JAVA" shortName="AndroidNonConstantResIdsInSwitch" bundle="messages.AndroidBundle"
                      key="android.inspections.non.constant.res.ids.in.switch.name" groupKey="android.inspections.group.name"
