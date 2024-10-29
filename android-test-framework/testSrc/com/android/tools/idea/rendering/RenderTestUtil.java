@@ -86,6 +86,7 @@ public class RenderTestUtil {
   public static void afterRenderTestCase() {
     RenderLogger.resetFidelityErrorsFilters();
     RenderTestUtil.waitForRenderTaskDisposeToFinish();
+    RenderService.shutdownRenderExecutor(30);
   }
 
   @Nullable
