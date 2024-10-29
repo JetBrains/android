@@ -25,8 +25,9 @@ import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
+import com.android.tools.idea.avd.showAddDeviceDialog
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -62,6 +63,8 @@ import javax.swing.Icon
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 
 private val PIXEL_DEVICE_COMPARATOR =
   PixelDeviceComparator(VarianceComparator.reversed()).reversed()
@@ -409,14 +412,12 @@ class AddDeviceDefinitionAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val config = e.dataContext.getData(CONFIGURATIONS)?.firstOrNull() ?: return
     val project = ConfigurationManager.getFromConfiguration(config).project
+    val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project))
 
-    val optionsModel = AvdOptionsModel(null)
-    val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)
-
-    if (dialog.showAndGet()) {
-      optionsModel.createdAvd.map(config.settings::createDeviceForAvd).ifPresent { device ->
-        config.setDevice(device, true)
-      }
+    coroutineScope.launch(uiThread) {
+      val avdInfo = showAddDeviceDialog(project) ?: return@launch
+      val device = config.settings.createDeviceForAvd(avdInfo) ?: return@launch
+      config.setDevice(device, true)
     }
   }
 }

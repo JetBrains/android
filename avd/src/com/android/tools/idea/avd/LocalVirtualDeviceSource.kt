@@ -29,7 +29,6 @@ import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.avdmanager.ui.NameComparator
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
@@ -41,12 +40,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
   val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
-  private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+  val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
   val systemImageStateFlow: StateFlow<SystemImageState> =
     service<SystemImageStateService>().systemImageStateFlow,
 ) {
@@ -61,7 +59,10 @@ internal class LocalVirtualDeviceSource(
     }
   }
 
-  fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
+  fun WizardPageScope.selectionUpdated(
+    profile: VirtualDeviceProfile,
+    finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+  ) {
     nextAction = WizardAction {
       pushPage {
         leftSideButtons = emptyList()
@@ -75,16 +76,11 @@ internal class LocalVirtualDeviceSource(
           skins,
           deviceNameValidator,
           sdkHandler,
-          ::add,
+          finish,
         )
       }
     }
     finishAction = WizardAction.Disabled
-  }
-
-  private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
-    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(avdManager).add(device, image) }
-    return true
   }
 
   val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
