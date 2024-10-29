@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
@@ -71,18 +70,6 @@ internal constructor(
         MavenClassRegistry.createFrom { gmavenIndexRepository.loadIndexFromDisk() }
       }
     }
-
-  /**
-   * Returns a [MavenClassRegistry]. Blocks for disk IO if the registry hasn't been initialized yet.
-   */
-  @OptIn(ExperimentalCoroutinesApi::class)
-  @Deprecated("Use tryGetMavenClassRegistry or getMavenClassRegistry instead.")
-  fun getMavenClassRegistryBlocking(): MavenClassRegistry {
-    val job = registryJob
-    if (job.isCompleted) return job.getCompleted()
-
-    return runBlocking { job.await() }
-  }
 
   /**
    * Returns [MavenClassRegistry] if it has been initialized. Otherwise, kicks off initialization in
