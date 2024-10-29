@@ -140,7 +140,7 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         // For sync-related issues, attach source code from Gradle files in the project
         val areGradleFilesRelevant = (isSyncIssue || result is FailureResult) && !isCompilerIssue
         if (areGradleFilesRelevant && gradleErrorContextEnabled) {
-          getGradleFilesContext(project) { geminiPluginApi.isFileExcluded(project, it) }?.let {
+          getGradleFilesContext(project) { !geminiPluginApi.isFileExcluded(project, it) }?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.addAll(it.second)
           }
