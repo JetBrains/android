@@ -45,7 +45,7 @@ import org.jetbrains.jewel.ui.component.Typography
 import org.jetbrains.jewel.ui.component.painterResource
 
 /** Class representing a Studio Labs Feature Panel. */
-class StudioLabsFeaturePanelUi(
+open class StudioLabsFeaturePanelUi(
   val flag: Flag<Boolean>,
   val heading: String,
   val description: String,
@@ -110,3 +110,24 @@ class StudioLabsFeaturePanelUi(
     currentState.value = flag.get()
   }
 }
+
+/**
+ * This class should be used only for creating feature panels for internal testing. Use
+ * [StudioLabsFeaturePanelUi] for production use-cases.
+ */
+class FakeStudioLabsFeaturePanelUi(
+  flag: Flag<Boolean>,
+  heading: String,
+  description: String,
+  imageSourceDefault: String,
+  imageSourceDark: String,
+  imageDescription: String,
+) :
+  StudioLabsFeaturePanelUi(
+    flag,
+    heading,
+    description,
+    imageSourceDefault,
+    imageSourceDark,
+    imageDescription,
+  )

@@ -40,6 +40,7 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.panel
 import icons.StudioIcons
 import javax.swing.Icon
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
 
@@ -51,6 +52,7 @@ class StudioLabsSettingsConfigurable :
   ),
   Promo,
   Disposable {
+  @VisibleForTesting val panelList = getStudioLabsFeaturePanelList()
 
   override fun createPanel(): DialogPanel {
     log(PageInteraction.OPENED)
@@ -64,7 +66,7 @@ class StudioLabsSettingsConfigurable :
       Text("Opt in to Studio Labs to get early access to experimental features.")
       Column(modifier = Modifier.verticalScroll(scrollState)) {
         Spacer(modifier = Modifier.size(12.dp))
-        PANEL_LIST.chunked(2).forEach { item ->
+        panelList.chunked(2).forEach { item ->
           Row(modifier = Modifier.padding(bottom = 8.dp)) {
             item.forEach {
               it.PanelContent()
@@ -81,38 +83,23 @@ class StudioLabsSettingsConfigurable :
   }
 
   override fun isModified(): Boolean {
-    return PANEL_LIST.any { it.isModified() }
+    return panelList.any { it.isModified() }
   }
 
-  override fun apply() {
-    // Handles both apply and Ok button clicks
+  override fun apply() { // Handles both apply and Ok button clicks
     log(PageInteraction.APPLY_BUTTON_CLICKED)
-    PANEL_LIST.forEach { it.apply() }
+    panelList.forEach { it.apply() }
   }
 
   override fun reset() {
-    PANEL_LIST.forEach { it.reset() }
+    panelList.forEach { it.reset() }
   }
 
   override fun dispose() {}
 
   companion object {
-    private val PANEL_LIST =
-      listOf(
-        StudioLabsFeaturePanelUi(
-          flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
-          heading = "Prompt Library",
-          description =
-            "Allows to store frequently used prompts for quick access." +
-              " Optionally share prompts with other people working on a same project.",
-          imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-          imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
-          imageDescription = "Prompt Library settings",
-        )
-      )
-
     fun isThereAnyFeatureInLabs(): Boolean {
-      return PANEL_LIST.isNotEmpty()
+      return getStudioLabsFeaturePanelList().isNotEmpty()
     }
 
     private fun log(pageInteraction: PageInteraction) {
@@ -120,6 +107,50 @@ class StudioLabsSettingsConfigurable :
         AndroidStudioEvent.newBuilder()
           .setKind(STUDIO_LABS_EVENT)
           .setStudioLabsEvent(StudioLabsEvent.newBuilder().setPageInteraction(pageInteraction))
+      )
+    }
+
+    /**
+     * Returns feature panels to display on Studio Labs page. If
+     * [StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED] is set to true, returns a fake
+     * feature panel list for internal testing.
+     */
+    private fun getStudioLabsFeaturePanelList(): List<StudioLabsFeaturePanelUi> {
+      val labsFeatures =
+        listOf<StudioLabsFeaturePanelUi>(
+          // Add a pane for every feature that should be in labs.
+          // e.g.,
+          //    StudioLabsFeaturePanelUi(
+          //      flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+          //      heading = "Prompt Library",
+          //      description =
+          //      "Allows to store frequently used prompts for quick access." +
+          //      " Optionally share prompts with other people working on a same project.",
+          //      imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+          //      imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+          //      imageDescription = "Prompt Library settings",
+          //    )
+        )
+      if (labsFeatures.isNotEmpty()) {
+        return labsFeatures
+      }
+
+      if (!StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
+        return emptyList()
+      }
+      // Add a fake feature so that QA can test out Studio Labs in scenarios
+      // where there are no real features available under Labs.
+      return listOf(
+        FakeStudioLabsFeaturePanelUi(
+          flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+          heading = "(Test only) Prompt Library",
+          description =
+            "Allows to store frequently used prompts for quick access." +
+              " Optionally share prompts with other people working on a same project.",
+          imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+          imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+          imageDescription = "Prompt Library settings",
+        )
       )
     }
   }

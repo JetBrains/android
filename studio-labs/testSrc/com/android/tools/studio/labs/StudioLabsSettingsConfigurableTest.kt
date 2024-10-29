@@ -16,6 +16,7 @@
 package com.android.tools.studio.labs
 
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.flags.StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioLabsEvent
@@ -29,11 +30,10 @@ import org.junit.Test
 
 // TODO(b/371060411): Add more tests, figure out how to test compose components in JSwing
 class StudioLabsSettingsConfigurableTest {
+  @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val configurable: StudioLabsSettingsConfigurable = StudioLabsSettingsConfigurable()
-
-  @get:Rule val usageTrackerRule = UsageTrackerRule()
-  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun configurable_hasStudioLabsIcon() {
@@ -64,6 +64,24 @@ class StudioLabsSettingsConfigurableTest {
           .setPageInteraction(StudioLabsEvent.PageInteraction.APPLY_BUTTON_CLICKED)
           .build()
       )
+  }
+
+  @Test
+  fun configurable_whenFakeFeatureEnabled_onlyHasTestFeaturePanels() {
+    STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.override(true)
+
+    StudioLabsSettingsConfigurable().panelList.forEach {
+      assertThat(it).isInstanceOf(FakeStudioLabsFeaturePanelUi::class.java)
+    }
+  }
+
+  @Test
+  fun configurable_whenFakeFeatureDisabled_doesNotHaveAnyTestFeaturePanels() {
+    STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.override(false)
+
+    StudioLabsSettingsConfigurable().panelList.forEach {
+      assertThat(it).isNotInstanceOf(FakeStudioLabsFeaturePanelUi::class.java)
+    }
   }
 
   private fun UsageTrackerRule.studioLabsUsageEvents(): List<StudioLabsEvent> {
