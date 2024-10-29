@@ -15,9 +15,9 @@
  */
 package org.jetbrains.kotlin.android.configure
 
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
@@ -61,6 +61,14 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     protected lateinit var buildFile: VirtualFile
 
+    private val repository = object : GoogleMavenRepository(useNetwork = false) {
+        override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
+            throw (UnsupportedOperationException("Should not attempt to read the network"))
+
+        override fun error(throwable: Throwable, message: String?) =
+            throw (UnsupportedOperationException("Should not have i/o errors"))
+    }
+
   companion object {
     // Note: this default version was chosen arbitrarily based on current test expectations.
     private const val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
@@ -82,7 +90,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
     val rawVersion = versionFromFile ?: DEFAULT_VERSION
-    val rawKtxCoreVersion = IdeGoogleMavenRepository.findVersion("androidx.core", "core-ktx").toString()
+    val rawKtxCoreVersion = repository.findVersion("androidx.core", "core-ktx").toString()
     val version = IdeKotlinVersion.get(rawVersion)
 
     val project = projectRule.project
