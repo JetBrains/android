@@ -19,9 +19,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
-import org.junit.AfterClass
 import org.junit.Assert.assertTrue
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,23 +27,6 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class StorageCapacityFieldTest {
-  // TODO: http://b/87654321
-  private companion object {
-    private val oldHome: String = System.getProperty("user.home")
-
-    @BeforeClass
-    @JvmStatic
-    fun overrideUserHome() {
-      System.setProperty("user.home", System.getProperty("java.io.tmpdir"))
-    }
-
-    @AfterClass
-    @JvmStatic
-    fun restoreUserHome() {
-      System.setProperty("user.home", oldHome)
-    }
-  }
-
   @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
