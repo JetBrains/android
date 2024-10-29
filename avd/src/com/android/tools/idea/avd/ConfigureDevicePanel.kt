@@ -48,6 +48,7 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.theme.defaultTabStyle
 
 @Composable
@@ -61,19 +62,21 @@ internal fun ConfigureDevicePanel(
   onImportButtonClick: () -> Unit,
 ) {
   Row(Modifier.padding(top = Padding.LARGE)) {
-    Column(Modifier.padding(horizontal = Padding.EXTRA_LARGE).weight(1f)) {
-      Text(
-        "Configure virtual device",
-        fontWeight = FontWeight.SemiBold,
-        fontSize = LocalTextStyle.current.fontSize * 1.2,
-        modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
-      )
-      Text(
-        "Select the system image you'd like to use with the device profile you selected. You can " +
-          "also change additional settings that affect the emulated device.",
-        color = JewelTheme.globalColors.text.info,
-        modifier = Modifier.padding(bottom = Padding.LARGE),
-      )
+    Column(Modifier.weight(1f)) {
+      Column(Modifier.padding(horizontal = Padding.EXTRA_LARGE)) {
+        Text(
+          "Configure virtual device",
+          fontWeight = FontWeight.SemiBold,
+          fontSize = LocalTextStyle.current.fontSize * 1.2,
+          modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+        )
+        Text(
+          "Select the system image you'd like to use with the device profile you selected. You can " +
+            "also change additional settings that affect the emulated device.",
+          color = JewelTheme.globalColors.text.info,
+          modifier = Modifier.padding(bottom = Padding.SMALL),
+        )
+      }
       Tabs(
         configureDevicePanelState,
         initialSystemImage,
@@ -119,7 +122,7 @@ private fun Tabs(
       )
     },
     JewelTheme.defaultTabStyle,
-    Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+    Modifier.padding(start = Padding.EXTRA_LARGE),
   )
 
   val servicesSet =
@@ -160,14 +163,23 @@ private fun Tabs(
         deviceNameValidator,
         onDownloadButtonClick,
         onSystemImageTableRowClick,
-        Modifier.padding(Padding.SMALL),
+        Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
       )
-    Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(
-        configureDevicePanelState,
-        onImportButtonClick,
-        Modifier.padding(Padding.SMALL),
-      )
+    Tab.ADDITIONAL_SETTINGS -> {
+      if (configureDevicePanelState.hasPlayStore()) {
+        WarningBanner(
+          "Some device settings cannot be configured when using a Google Play Store image"
+        )
+      }
+
+      VerticallyScrollableContainer {
+        AdditionalSettingsPanel(
+          configureDevicePanelState,
+          onImportButtonClick,
+          Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
+        )
+      }
+    }
   }
 }
 

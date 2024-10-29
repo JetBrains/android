@@ -37,7 +37,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
@@ -70,7 +69,6 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
@@ -80,59 +78,47 @@ internal fun AdditionalSettingsPanel(
   modifier: Modifier = Modifier,
 ) {
   val hasPlayStore = state.hasPlayStore()
-  if (hasPlayStore) {
-    WarningBanner(
-      "Some device settings cannot be configured when using a Google Play Store image",
-      Modifier.expandWidth(24.dp),
-    )
-  }
+  Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
+    Row {
+      Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
-  VerticallyScrollableContainer(modifier) {
-    Column(
-      Modifier.padding(vertical = Padding.SMALL),
-      verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
-    ) {
-      Row {
-        Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
-
-        Dropdown(
-          state.device.skin,
-          state.skins,
-          onSelectedItemChange = { state.device = state.device.copy(skin = it) },
-          Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
-          !hasPlayStore && !state.device.isFoldable,
-        )
-      }
-
-      CameraGroup(state.device, state::device::set)
-      NetworkGroup(state.device, state::device::set)
-      StartupGroup(state.device, state::device::set)
-
-      StorageGroup(
-        state.device,
-        state.storageGroupState,
-        hasPlayStore,
-        state.validity.isExpandedStorageValid,
-        state::device::set,
-      )
-
-      LaunchedEffect(Unit) {
-        state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
-      }
-
-      EmulatedPerformanceGroup(
-        state.device,
-        state.emulatedPerformanceGroupState,
-        hasPlayStore,
-        state::device::set,
-      )
-
-      PreferredAbiGroup(
-        state.device.preferredAbi,
-        state.systemImageTableSelectionState.selection,
-        onPreferredAbiChange = state::setPreferredAbi,
+      Dropdown(
+        state.device.skin,
+        state.skins,
+        onSelectedItemChange = { state.device = state.device.copy(skin = it) },
+        Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
+        !hasPlayStore && !state.device.isFoldable,
       )
     }
+
+    CameraGroup(state.device, state::device::set)
+    NetworkGroup(state.device, state::device::set)
+    StartupGroup(state.device, state::device::set)
+
+    StorageGroup(
+      state.device,
+      state.storageGroupState,
+      hasPlayStore,
+      state.validity.isExpandedStorageValid,
+      state::device::set,
+    )
+
+    LaunchedEffect(Unit) {
+      state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
+    }
+
+    EmulatedPerformanceGroup(
+      state.device,
+      state.emulatedPerformanceGroupState,
+      hasPlayStore,
+      state::device::set,
+    )
+
+    PreferredAbiGroup(
+      state.device.preferredAbi,
+      state.systemImageTableSelectionState.selection,
+      onPreferredAbiChange = state::setPreferredAbi,
+    )
   }
 }
 
