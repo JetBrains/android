@@ -1518,9 +1518,15 @@ class ComposePreviewRepresentation(
         withContext(uiThread) {
           composeWorkBench.galleryMode = GalleryMode(composeWorkBench.mainSurface)
         }
+        resetFirstRendering()
       }
     }
     surface.background = mode.backgroundColor
+  }
+
+  private fun resetFirstRendering() {
+    hasRenderedAtLeastOnce.set(false)
+    surface.resetRestoreZoomNotifier()
   }
 
   /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */
@@ -1545,6 +1551,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Gallery -> {
         withContext(uiThread) { composeWorkBench.galleryMode = null }
+        resetFirstRendering()
       }
     }
   }

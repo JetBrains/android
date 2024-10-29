@@ -618,6 +618,16 @@ abstract class DesignSurface<T : SceneManager>(
     checkIfReadyToRestoreZoom(NOTIFY_RESTORE_ZOOM_INT_MASK)
   }
 
+  /**
+   * Resets the bitwise mask so DesignSurface can listen again onResize and trying to call
+   * restoreZoomOrZoomToFit when possible.
+   *
+   * Note: this function works only if [DesignSurface. waitForRenderBeforeRestoringZoom] is enabled.
+   */
+  fun resetRestoreZoomNotifier() {
+    readyToRestoreZoomMask.set(0)
+  }
+
   @TestOnly
   fun notifyComponentResizedForTest() {
     checkIfReadyToRestoreZoom(NOTIFY_COMPONENT_RESIZED_INT_MASK)
@@ -805,7 +815,7 @@ abstract class DesignSurface<T : SceneManager>(
    * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no
    *   model.
    */
-  fun restoreZoomOrZoomToFit(): Boolean {
+  private fun restoreZoomOrZoomToFit(): Boolean {
     val model = model ?: return false
     if (!restorePreviousScale(model)) {
       zoomController.zoomToFit()
