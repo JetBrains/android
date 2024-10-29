@@ -542,7 +542,7 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
     tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",
+        "manual",  # b/356595844
         "noci:studio-linux",
         "noci:studio-win",
     ],
