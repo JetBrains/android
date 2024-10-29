@@ -55,7 +55,6 @@ private const val SCALE_CHANGES_PER_ANIMATION = 50
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner The owner of this [ZoomController].
- * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 abstract class DesignSurfaceZoomController(
   private val designerAnalyticsManager: DesignerAnalyticsManager?,
