@@ -44,8 +44,6 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import java.awt.Component
@@ -161,18 +159,6 @@ internal fun WizardPageScope.ConfigurationPage(
       onSystemImageTableRowClick = {
         state.setSystemImageSelection(it)
         state.setSkin(resolve(sdkHandler, state.device.skin.path(), it.skins))
-      },
-      onImportButtonClick = {
-        // TODO Validate the skin
-        val skin =
-          FileChooser.chooseFile(
-            FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-            null, // TODO: add component from CompositionLocal?
-            null,
-            null,
-          )
-
-        if (skin != null) state.setSkin(skin.toNioPath())
       },
     )
   }
