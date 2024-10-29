@@ -92,12 +92,16 @@ fun DeviceScreenDiagram(
     // and we want the inner screen portion to have the correct aspect ratio.
     var verticalInset = 0f
     var horizontalInset = 0f
-    val innerWidth = (size.width - heightTextMeasurement.size.height.toFloat()).coerceAtLeast(0f)
-    val innerHeight = (size.height - widthTextMeasurement.size.height.toFloat()).coerceAtLeast(0f)
+    var verticalDiagramInset = 0f
+    var horizontalDiagramInset = 0f
+    val innerWidth = (size.width - heightTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
+    val innerHeight = (size.height - widthTextMeasurement.size.height.toFloat() - 4.dp.toPx()).coerceAtLeast(0f)
     if (innerHeight * aspectRatio > innerWidth) {
-      verticalInset = (innerHeight - (innerWidth / aspectRatio)) / 2
+      verticalDiagramInset = ((innerHeight - (innerWidth / aspectRatio)) / 2) - 4.dp.toPx()
+      verticalInset = verticalDiagramInset.coerceAtMost((size.height - heightTextMeasurement.size.width.toFloat()) / 2)
     } else {
-      horizontalInset = (innerWidth - (innerHeight * aspectRatio)) / 2
+      horizontalDiagramInset = ((innerWidth - (innerHeight * aspectRatio)) / 2) - 4.dp.toPx()
+      horizontalInset = horizontalDiagramInset.coerceAtMost((size.width - widthTextMeasurement.size.width.toFloat()) / 2)
     }
     inset(horizontal = horizontalInset, vertical = verticalInset) {
       inset(left = heightTextMeasurement.size.height.toFloat(), top = 0f, bottom = 0f, right = 0f) {
@@ -116,6 +120,8 @@ fun DeviceScreenDiagram(
           )
         }
       }
+    }
+    inset(horizontal = horizontalDiagramInset, vertical = verticalDiagramInset) {
       inset(
         left = heightTextMeasurement.size.height.toFloat(),
         top = widthTextMeasurement.size.height.toFloat(),
