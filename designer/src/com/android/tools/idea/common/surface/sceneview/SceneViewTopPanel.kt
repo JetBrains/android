@@ -46,7 +46,7 @@ import javax.swing.SwingUtilities
 class SceneViewTopPanel(
   private val toolbarTargetComponent: JComponent,
   private val statusIconAction: AnAction?,
-  toolbarActions: List<AnAction>,
+  private val toolbarActions: List<AnAction>,
   private val labelPanel: JComponent,
 ) : JPanel(BorderLayout()) {
 
@@ -204,4 +204,12 @@ class SceneViewTopPanel(
   }
 
   private fun JComponent?.minimumWidth(): Int = this?.minimumSize?.width ?: 0
+
+  /**
+   * Returns the visibility of the [SceneViewTopPanel]. The panel is visible if there are any
+   * actions available or if the [labelPanel] is visible.
+   */
+  override fun isVisible(): Boolean {
+    return labelPanel.isVisible || toolbarActions.isNotEmpty()
+  }
 }

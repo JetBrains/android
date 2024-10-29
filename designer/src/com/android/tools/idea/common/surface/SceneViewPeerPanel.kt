@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 class SceneViewPeerPanel(
   val scope: CoroutineScope,
   val sceneView: SceneView,
-  private val labelPanel: JComponent,
+  labelPanel: JComponent,
   statusIconAction: AnAction?,
   toolbarActions: List<AnAction>,
   leftPanel: JComponent?,
@@ -241,8 +241,7 @@ class SceneViewPeerPanel(
     //       ←-------→                         ←--------→
     //       preferredWidth                    preferredWidth
 
-    sceneViewTopPanel.isVisible = labelPanel.isVisible
-    if (labelPanel.isVisible) {
+    if (sceneViewTopPanel.isVisible) {
       sceneViewTopPanel.setBounds(
         0,
         0,
