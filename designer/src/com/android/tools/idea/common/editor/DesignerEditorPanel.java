@@ -41,10 +41,13 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
 import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
+import com.intellij.codeInsight.navigation.NavigationUtil;
+import com.intellij.ide.IdeView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -58,10 +61,11 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -138,6 +142,25 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
   /** Notification panel to be used for the surface. */
   NotificationPanel myNotificationPanel = new NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.uibuilder.editorNotificationProvider"));
+
+  /** {@link IdeView} that allows the IDE to present the correct File menu options by detecting where the current file is located. */
+  private final IdeView myIdeView = new IdeView() {
+    @Override
+    public void selectElement(@NotNull PsiElement element) {
+      NavigationUtil.activateFileWithPsiElement(element);
+    }
+
+    @Override
+    public @NotNull PsiDirectory @NotNull [] getDirectories() {
+      PsiDirectory directory = getOrChooseDirectory();
+      return directory != null ? new PsiDirectory[] { directory } : PsiDirectory.EMPTY_ARRAY;
+    }
+
+    @Override
+    public @Nullable PsiDirectory getOrChooseDirectory() {
+      return getFile().getContainingDirectory();
+    }
+  };
 
   /**
    * Creates a new {@link DesignerEditorPanel}.
@@ -279,6 +302,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
     FileEditor fileEditorDelegate = getSurface().getFileEditorDelegate();
     if (fileEditorDelegate instanceof TextEditor) {
       sink.set(SplitEditorKt.getSPLIT_TEXT_EDITOR_KEY(), (TextEditor)fileEditorDelegate);
+      sink.set(LangDataKeys.IDE_VIEW, myIdeView);
     }
   }
 
