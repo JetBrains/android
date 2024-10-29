@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Ladybug Feature Drop"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "2.8"
-STUDIO_RELEASE_NUMBER = 8
+STUDIO_MICRO_PATCH = "2.9"
+STUDIO_RELEASE_NUMBER = 9
