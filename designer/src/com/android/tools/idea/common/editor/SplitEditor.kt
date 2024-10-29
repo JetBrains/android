@@ -30,7 +30,6 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
@@ -91,7 +90,7 @@ abstract class SplitEditor<P : FileEditor>(
     listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction)
   }
 
-  private lateinit var component: JComponent
+  private var isComponentInitialized = false
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
@@ -105,14 +104,11 @@ abstract class SplitEditor<P : FileEditor>(
         .orNull()
         ?.let { it.isVisible = false }
     }
-    if (!::component.isInitialized) {
+    if (!isComponentInitialized) {
+      isComponentInitialized = true
       registerModeNavigationShortcuts(thisComponent)
-      component =
-        UiDataProvider.wrapComponent(thisComponent) { sink ->
-          sink[PlatformCoreDataKeys.EDITOR] = editor
-        }
     }
-    return component
+    return thisComponent
   }
 
   override fun getFile() = myEditor.file
