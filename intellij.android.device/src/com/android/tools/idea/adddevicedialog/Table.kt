@@ -22,6 +22,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -96,7 +97,7 @@ data class TableColumn<in T>(
   val width: TableColumnWidth,
   val comparator: Comparator<in T>? = null,
   val reverseComparator: Comparator<in T>? = comparator?.reversed(),
-  val rowContent: @Composable (T) -> Unit,
+  val rowContent: @Composable BoxScope.(T) -> Unit,
 )
 
 @Suppress("ModifierFactoryExtensionFunction")
@@ -306,7 +307,7 @@ internal fun <T> TableRow(
     CompositionLocalProvider(LocalContentColor provides contentColor) {
       columns.forEach {
         Box(with(it.width) { widthModifier() }.padding(horizontal = CELL_SPACING / 2)) {
-          it.rowContent(value)
+          it.rowContent.invoke(this@Box, value)
         }
       }
     }
