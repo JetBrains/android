@@ -47,7 +47,71 @@ private val log: Logger
 /** A collection of utility methods for interacting with an `Recipe`. */
 object RecipeUtils {
   // TODO(qumeric): remove this cache. It is not needed anymore, everything is fast without it.
-  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> = hashMapOf()
+  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> =
+    hashMapOf()
+
+  @JvmStatic
+  /**
+   * Creates a [RecipeMetadata] for the given [Recipe] for each module in the [Project]
+   *
+   * A [RecipeMetadata] contains information about what will be changed when the recipe is applied
+   * to a module. This can potentially be a slow process (particularly for projects with a lot of
+   * modules) as it does a bunch of file I/O for each module.
+   */
+  fun getRecipeMetadata(recipe: Recipe, project: Project): List<RecipeMetadata> {
+    val key = Pair(recipe, project)
+
+    val cached = recipeMetadataCache[key]
+    if (cached != null) {
+      return cached
+    }
+
+    val metadataBuilder = ImmutableList.builder<RecipeMetadata>()
+    for (module in getAndroidModules(project)) {
+      metadataBuilder.add(getRecipeMetadata(recipe, module))
+    }
+
+    val metadata = metadataBuilder.build()
+    recipeMetadataCache[key] = metadata
+
+    Disposer.register(AndroidPluginDisposable.getProjectInstance(project)) {
+      recipeMetadataCache.remove(key)
+    }
+
+    return metadata
+  }
+
+  @JvmStatic
+  /**
+   * Executes the given [Recipe] in the context of the given [Module]
+   *
+   * Any new files that are generated will be saved in a unique temporary directory that will be
+   * deleted either by the operating system or when the virtual machine terminates
+   */
+  fun execute(recipe: Recipe, module: Module) {
+    val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
+    val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
+    rootPath.deleteOnExit()
+
+    val context =
+      RenderingContext(
+        project = module.project,
+        module = module,
+        commandName = "Unnamed",
+        templateData = getExistingModuleTemplateDataBuilder(module).build(),
+        outputRoot = rootPath,
+        moduleRoot = moduleRoot,
+        dryRun = false,
+        showErrors = true,
+      )
+
+    writeCommandAction(module.project).withName("Executing recipe instructions").run<Exception> {
+      // TODO(b/149085696): create logging events for Firebase?
+      recipe.actuallyRender(context)
+    }
+
+    openEditors(module.project, context.filesToOpen, true)
+  }
 
   private fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
     val key = Pair(recipe, module.project)
@@ -80,6 +144,7 @@ object RecipeUtils {
     recipe.findReferences(context)
 
     setUpMetadata(context, metadata)
+
     return metadata
   }
 
@@ -104,66 +169,17 @@ object RecipeUtils {
     }
   }
 
-  @JvmStatic
-  fun getRecipeMetadata(recipe: Recipe, project: Project): List<RecipeMetadata> {
-    val key = Pair(recipe, project)
-
-    val cached = recipeMetadataCache[key]
-    if (cached != null) {
-      return cached
-    }
-
-    val metadataBuilder = ImmutableList.builder<RecipeMetadata>()
-    for (module in getAndroidModules(project)) {
-      metadataBuilder.add(getRecipeMetadata(recipe, module))
-    }
-
-    val metadata = metadataBuilder.build()
-    recipeMetadataCache[key] = metadata
-
-    Disposer.register(AndroidPluginDisposable.getProjectInstance(project)) {
-      recipeMetadataCache.remove(key)
-    }
-
-    return metadata
-  }
-
-  @JvmStatic
-  fun execute(recipe: Recipe, module: Module) {
-    val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
-    val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
-
-    val context =
-      RenderingContext(
-        project = module.project,
-        module = module,
-        commandName = "Unnamed",
-        templateData = getExistingModuleTemplateDataBuilder(module).build(),
-        outputRoot = rootPath,
-        moduleRoot = moduleRoot,
-        dryRun = false,
-        showErrors = true,
-      )
-
-    writeCommandAction(module.project).withName("Executing recipe instructions").run<Exception> {
-      // TODO(b/149085696): create logging events for Firebase?
-      recipe.actuallyRender(context)
-    }
-
-    openEditors(module.project, context.filesToOpen, true)
-  }
-
   @VisibleForTesting
   fun getRecipeMetadataCacheSize(): Int {
     return recipeMetadataCache.size
   }
 
-  private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) =
+  private fun parseManifestForPermissions(file: File, metadata: RecipeMetadata) =
     try {
       val factory = SAXParserFactory.newInstance()
       val saxParser = factory.newSAXParser()
       saxParser.parse(
-        f,
+        file,
         object : DefaultHandler() {
           override fun startElement(
             uri: String,
@@ -194,7 +210,7 @@ object RecipeUtils {
       log.warn("Failed to read permissions from AndroidManifest.xml", e)
     }
 
-  private fun getAndroidModules(project: Project) =
+  private fun getAndroidModules(project: Project): List<Module> =
     ModuleManager.getInstance(project)
       .modules
       .filter { module -> AndroidFacet.getInstance(module) != null }
