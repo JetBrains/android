@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FailureResult
@@ -105,4 +106,22 @@ abstract class AbstractSyncFailureIntegrationTest {
   fun GradleSyncStats.printPhases() = gradleSyncPhasesDataList.joinToString(separator = "\n") {
     it.phaseResult.name + " : " + it.phaseStackList.joinToString(separator = "/") { it.name }
   }
+
+}
+
+fun GradleFailureDetails.toTestString(): String = buildString {
+  appendLine("failure {")
+  errorsList.forEach { error ->
+    appendLine("  error {")
+    error.exceptionsList.forEach { exception ->
+      val frame = if (exception.hasTopFrameInfo()) {
+        exception.topFrameInfo.let { "[${it.frameIndex}]${it.className}#${it.methodName}" }
+      }
+      else "no info"
+      appendLine("    exception: ${exception.exceptionClassName}")
+      appendLine("      at: $frame")
+    }
+    appendLine("  }")
+  }
+  append("}")
 }

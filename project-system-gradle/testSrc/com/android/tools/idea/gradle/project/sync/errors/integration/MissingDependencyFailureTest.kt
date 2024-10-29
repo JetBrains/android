@@ -93,13 +93,22 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.api.ProjectConfigurationException"),
-          GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
-          GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
-        )))).toAnalyticsMessage())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                at: no info
+            }
+          }
+        """.trimIndent())
       }
     )
   }
@@ -149,13 +158,22 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.api.ProjectConfigurationException"),
-          GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
-          GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
-        )))).toAnalyticsMessage())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                at: no info
+            }
+          }
+        """.trimIndent())
       }
     )
   }
@@ -245,14 +263,24 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent())
-      expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
-        GradleException("org.gradle.internal.resolve.ModuleVersionResolveException"),
-        GradleException("org.gradle.internal.resolve.ModuleVersionResolveException"),
-      )))).toAnalyticsMessage())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionResolveException
+              at: no info
+            exception: org.gradle.internal.resolve.ModuleVersionResolveException
+              at: no info
+          }
+        }
+        """.trimIndent())
     }
   }
 }

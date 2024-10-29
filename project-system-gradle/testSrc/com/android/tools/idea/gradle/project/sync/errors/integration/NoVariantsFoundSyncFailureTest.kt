@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalytic
 import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.BuildConsoleUtils
 import com.intellij.build.events.BuildIssueEvent
@@ -73,9 +74,14 @@ class NoVariantsFoundSyncFailureTest : AbstractSyncFailureIntegrationTest() {
           SUCCESS : SYNC_TOTAL/GRADLE_RUN_MAIN_TASKS
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-          GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException"),
-        )))).toAnalyticsMessage())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+            }
+          }
+        """.trimIndent())
       }
     )
   }

@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.gradle.plugin.AgpVersions.latestKnown
 import com.android.tools.idea.gradle.project.sync.errors.AddGoogleMavenRepositoryQuickFix
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.util.toIoFile
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -69,13 +67,22 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
-        GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+              at: no info
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -115,13 +122,22 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.internal.artifacts.ivyservice.TypedResolveException"),
-        GradleException("org.gradle.internal.resolve.ModuleVersionNotFoundException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+              at: no info
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -159,13 +175,22 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.api.ProjectConfigurationException"),
-          GradleException("org.gradle.internal.exceptions.LocationAwareException"),
-          GradleException("org.gradle.api.plugins.UnknownPluginException"),
-        )))).toAnalyticsMessage())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.internal.exceptions.LocationAwareException
+                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+              exception: org.gradle.api.plugins.UnknownPluginException
+                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+            }
+          }
+        """.trimIndent())
       }
     )
   }

@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySettingsQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -68,11 +65,18 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("java.lang.RuntimeException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.lang.RuntimeException
+              at: [0]org.gradle.internal.file.locking.ExclusiveFileAccessManager#access
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -108,11 +112,18 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("java.net.ConnectException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.net.ConnectException
+              at: [0]sun.nio.ch.Net#pollConnect
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -149,11 +160,18 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("org.gradle.tooling.GradleConnectionException"),
-        GradleException("java.net.UnknownHostException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.net.UnknownHostException
+              at: [0]sun.nio.ch.NioSocketImpl#connect
+          }
+        }
+      """.trimIndent()
     )
   }
 }
