@@ -54,5 +54,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )

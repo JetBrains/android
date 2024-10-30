@@ -34,5 +34,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
   </component>
 </module>
