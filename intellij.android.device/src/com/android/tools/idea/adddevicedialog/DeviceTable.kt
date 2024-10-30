@@ -82,7 +82,7 @@ fun <DeviceT : DeviceProfile> DeviceTable(
     first = { DeviceFiltersPanel { filterContent() } },
     second = {
       Column {
-        Row(Modifier.padding(horizontal = 4.dp)) {
+        Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp)) {
           TextField(
             textState,
             leadingIcon = {
