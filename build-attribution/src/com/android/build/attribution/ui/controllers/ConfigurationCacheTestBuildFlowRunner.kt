@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import java.util.concurrent.CancellationException
 
 class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 
@@ -142,7 +143,9 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
       override fun onFailure(t: Throwable) {
         runningFirstConfigurationCacheBuild = false
         testConfigurationCacheBuildRequest = null
-        throw t
+        if (t !is CancellationException) {
+          throw t // TODO(b/376340244) Throwing any exception from FutureCallback.onFailure is wrong
+        }
       }
     }, MoreExecutors.directExecutor())
   }
