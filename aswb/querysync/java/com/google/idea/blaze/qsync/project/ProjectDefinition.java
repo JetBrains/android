@@ -77,8 +77,8 @@ public abstract class ProjectDefinition {
    * Constructs a query spec from a sync spec. Filters the import roots to those that can be safely
    * queried.
    */
-  public QuerySpec deriveQuerySpec(Context<?> context, Path workspaceRoot) throws IOException {
-    QuerySpec.Builder result = QuerySpec.builder().workspaceRoot(workspaceRoot);
+  public QuerySpec deriveQuerySpec(Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot) throws IOException {
+    QuerySpec.Builder result = QuerySpec.builder(queryStrategy).workspaceRoot(workspaceRoot);
     for (Path include : projectIncludes()) {
       if (isValidPathForQuery(context, workspaceRoot.resolve(include))) {
         result.includePath(include);

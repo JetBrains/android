@@ -16,6 +16,13 @@ message Summary {
   repeated string packages_with_errors = 4;
   StringStorage string_storage = 5;
   map<int32, StoredRule> stored_rules = 6;
+
+  enum QueryStrategy {
+    QUERY_STRATEGY_UNKNOWN = 0;
+    QUERY_STRATEGY_PLAIN = 1;
+  }
+
+  QueryStrategy query_strategy = 7;
 }
 
 /**

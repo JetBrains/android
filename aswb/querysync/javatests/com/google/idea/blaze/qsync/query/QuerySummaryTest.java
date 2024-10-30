@@ -39,7 +39,7 @@ public class QuerySummaryTest {
   @Test
   public void testCreate_javaLibrary_noDeps() throws IOException {
     QuerySummary qs =
-        QuerySummary.create(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
+        QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
     Label nodeps = Label.of(TestData.ROOT_PACKAGE + "/nodeps:nodeps");
     assertThat(qs.getRulesMap().keySet()).containsExactly(nodeps);
     QueryData.Rule rule = qs.getRulesMap().get(nodeps);
@@ -56,7 +56,7 @@ public class QuerySummaryTest {
 
   @Test
   public void testCreate_ccLibrary_noDeps() throws Exception {
-    QuerySummary qs = QuerySummary.create(TestData.CC_LIBRARY_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs = QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.CC_LIBRARY_QUERY.getQueryOutputPath().toFile());
     Label cc = Label.of(TestData.ROOT_PACKAGE + "/cc:cc");
     assertThat(qs.getRulesMap().keySet()).containsExactly(cc);
     QueryData.Rule rule = Preconditions.checkNotNull(qs.getRulesMap().get(cc));
@@ -76,7 +76,7 @@ public class QuerySummaryTest {
 
   @Test
   public void testCreate_androidLibrary_manifest() throws IOException {
-    QuerySummary qs = QuerySummary.create(TestData.ANDROID_LIB_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs = QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.ANDROID_LIB_QUERY.getQueryOutputPath().toFile());
     Label android = Label.of(TestData.ROOT_PACKAGE + "/android:android");
     assertThat(qs.getRulesMap().keySet()).contains(android);
     QueryData.Rule rule = qs.getRulesMap().get(android);
@@ -139,7 +139,7 @@ public class QuerySummaryTest {
   @Test
   public void testBuildIncludes() throws IOException {
     QuerySummary qs =
-        QuerySummary.create(TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
+        QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
@@ -153,11 +153,19 @@ public class QuerySummaryTest {
 
   @Test
   public void getPackages_withEmptyPackage_containsEmptyPackage() throws IOException {
-    QuerySummary qs = QuerySummary.create(TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
+    QuerySummary qs = QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
     assertThat(qs.getRulesMap()).isEmpty();
     assertThat(qs.getSourceFilesMap().keySet())
         .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/empty:BUILD"));
     assertThat(qs.getPackages().size()).isEqualTo(1);
     assertThat(qs.getPackages().asPathSet()).containsExactly(TestData.ROOT.resolve("empty"));
+  }
+
+  @Test
+  public void testCreate_proto() throws IOException {
+    QuerySummary qs =
+      QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getQueryOutputPath().toFile());
+
+    assertThat(qs.protoForSerializationOnly().getQueryStrategy()).isEqualTo(Query.Summary.QueryStrategy.QUERY_STRATEGY_PLAIN);
   }
 }

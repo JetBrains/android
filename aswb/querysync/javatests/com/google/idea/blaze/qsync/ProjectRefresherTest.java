@@ -28,6 +28,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.Query;
+import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryTestUtil;
 import java.nio.file.Path;
@@ -53,7 +54,7 @@ public class ProjectRefresherTest {
 
   private ProjectRefresher createRefresher(
       VcsStateDiffer vcsDiffer, Optional<QuerySyncProjectSnapshot> existingSnapshot) {
-    return new ProjectRefresher(vcsDiffer, Path.of("/"), Suppliers.ofInstance(existingSnapshot));
+    return new ProjectRefresher(vcsDiffer, Path.of("/"), QuerySpec.QueryStrategy.PLAIN, Suppliers.ofInstance(existingSnapshot));
   }
 
   @Test

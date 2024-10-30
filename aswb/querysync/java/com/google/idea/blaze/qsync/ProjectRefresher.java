@@ -21,6 +21,7 @@ import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.query.QuerySpec;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -33,14 +34,17 @@ public class ProjectRefresher {
 
   private final VcsStateDiffer vcsDiffer;
   private final Path workspaceRoot;
+  private final QuerySpec.QueryStrategy queryStrategy;
   private final Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier;
 
   public ProjectRefresher(
       VcsStateDiffer vcsDiffer,
       Path workspaceRoot,
+      QuerySpec.QueryStrategy queryStrategy,
       Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier) {
     this.vcsDiffer = vcsDiffer;
     this.workspaceRoot = workspaceRoot;
+    this.queryStrategy = queryStrategy;
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
   }
 
@@ -51,7 +55,7 @@ public class ProjectRefresher {
       Optional<String> bazelVersion) {
     Path effectiveWorkspaceRoot =
         vcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
-    return new FullProjectUpdate(context, effectiveWorkspaceRoot, spec, vcsState, bazelVersion);
+    return new FullProjectUpdate(context, effectiveWorkspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
   }
 
   public RefreshOperation startPartialRefresh(

@@ -62,6 +62,8 @@ import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.query.QuerySpec;
+import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
@@ -192,6 +194,7 @@ public class ProjectLoader {
         new ProjectRefresher(
             vcsHandler.map(BlazeVcsHandler::getVcsStateDiffer).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
+            QueryStrategy.PLAIN,
             graph::getCurrent);
     SnapshotBuilder snapshotBuilder =
         new SnapshotBuilder(

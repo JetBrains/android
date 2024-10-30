@@ -37,6 +37,7 @@ java_test(
     size = "small",
     srcs = ["QuerySpecTest.java"],
     deps = [
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/query",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
