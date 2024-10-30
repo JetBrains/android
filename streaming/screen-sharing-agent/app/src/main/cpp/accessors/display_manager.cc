@@ -187,6 +187,11 @@ bool DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, int state)
   return true;
 }
 
+bool DisplayManager::DisplayPowerControlSupported(Jni jni) {
+  InitializeStatics(jni);
+  return request_display_power_method_ != nullptr;
+}
+
 JClass DisplayManager::display_manager_global_class_;
 JObject DisplayManager::display_manager_global_;
 jmethodID DisplayManager::get_display_info_method_ = nullptr;

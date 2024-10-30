@@ -56,10 +56,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
     // Turn off display.
     Jni jni = Jvm::GetJni();
     if (Controller::ControlDisplayPower(jni, DisplayInfo::STATE_OFF)) {
-      Log::D("Device display has been turned off");
       restore_normal_display_power_mode_ = true;
-    } else {
-      Log::W(jni.GetAndClearException(), "Unable to turn off display");
     }
   }
 
@@ -69,9 +66,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
     Jni jni = Jvm::GetJni();
-    if (!Controller::ControlDisplayPower(jni, DisplayInfo::STATE_UNKNOWN)) {
-      Log::W(jni.GetAndClearException(), "Unable to restore display power");
-    }
+    Controller::ControlDisplayPower(jni, DisplayInfo::STATE_UNKNOWN);
   }
   stay_on_.Restore();
   accelerometer_rotation_.Restore();
