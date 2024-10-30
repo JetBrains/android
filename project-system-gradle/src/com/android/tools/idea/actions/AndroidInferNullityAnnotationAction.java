@@ -26,11 +26,11 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.module.AndroidModuleInfo;
@@ -86,6 +86,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import javax.swing.JComponent;
 import one.util.streamex.StreamEx;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
@@ -261,8 +262,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
 
       @Override
-      public void onFailure(@Nullable Throwable t) {
-        if (t != null) LOG.warn(t);
+      public void onFailure(@NotNull Throwable t) {
+        if (!(t instanceof CancellationException)) LOG.warn(t);
       }
     }, MoreExecutors.directExecutor());
   }
