@@ -1470,4 +1470,10 @@ public class RenderTask {
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
     return RenderSessionCleaner.dispose(renderSession, myModuleClassLoaderReference.getClassLoader());
   }
+
+  @TestOnly
+  @NotNull
+  public static ExecutorService getDisposeService() {
+    return ourDisposeService;
+  }
 }
