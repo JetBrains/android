@@ -64,6 +64,7 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
@@ -79,6 +80,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>This class also manages injection of external (to querysync) dependencies.
  */
 public class ProjectLoader {
+
+  public final static BoolExperiment enableExperimentalQuery = new BoolExperiment("query.sync.experimental.query", false);
 
   private final ListeningExecutorService executor;
   private final SimpleModificationTracker projectModificationTracker;
@@ -194,7 +197,7 @@ public class ProjectLoader {
         new ProjectRefresher(
             vcsHandler.map(BlazeVcsHandler::getVcsStateDiffer).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
-            QueryStrategy.PLAIN,
+            enableExperimentalQuery.getValue() ? QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS : QueryStrategy.PLAIN,
             graph::getCurrent);
     SnapshotBuilder snapshotBuilder =
         new SnapshotBuilder(

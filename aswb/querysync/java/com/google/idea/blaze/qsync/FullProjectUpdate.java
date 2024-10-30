@@ -60,16 +60,17 @@ public class FullProjectUpdate implements RefreshOperation {
     return Optional.of(
       projectDefinition
         .deriveQuerySpec(context, queryStrategy, effectiveWorkspaceRoot)
-    );
+        .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
+        .build());
   }
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
     return PostQuerySyncData.builder()
-        .setProjectDefinition(projectDefinition)
-        .setVcsState(vcsState)
-        .setBazelVersion(bazelVersion)
-        .setQuerySummary(output)
-        .build();
+      .setProjectDefinition(projectDefinition)
+      .setVcsState(vcsState)
+      .setBazelVersion(bazelVersion)
+      .setQuerySummary(output)
+      .build();
   }
 }

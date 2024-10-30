@@ -77,7 +77,7 @@ public abstract class ProjectDefinition {
    * Constructs a query spec from a sync spec. Filters the import roots to those that can be safely
    * queried.
    */
-  public QuerySpec deriveQuerySpec(Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot) throws IOException {
+  public QuerySpec.Builder deriveQuerySpec(Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot) throws IOException {
     QuerySpec.Builder result = QuerySpec.builder(queryStrategy).workspaceRoot(workspaceRoot);
     for (Path include : projectIncludes()) {
       if (isValidPathForQuery(context, workspaceRoot.resolve(include))) {
@@ -89,7 +89,7 @@ public abstract class ProjectDefinition {
         result.excludePath(exclude);
       }
     }
-    return result.build();
+    return result;
   }
 
   /**

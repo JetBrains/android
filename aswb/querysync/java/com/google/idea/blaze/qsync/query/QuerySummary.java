@@ -335,6 +335,9 @@ public abstract class QuerySummary {
 
   public QuerySpec.QueryStrategy getQueryStrategy() {
     switch (proto().getQueryStrategy()) {
+      case QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS -> {
+        return QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS;
+      }
       case QUERY_STRATEGY_PLAIN, QUERY_STRATEGY_UNKNOWN -> {
         return QuerySpec.QueryStrategy.PLAIN;
       }
@@ -347,6 +350,7 @@ public abstract class QuerySummary {
   private static Summary.QueryStrategy convertQueryStrategy(QuerySpec.QueryStrategy queryStrategy) {
     switch(queryStrategy) {
       case PLAIN: return Summary.QueryStrategy.QUERY_STRATEGY_PLAIN;
+      case FILTERING_TO_KNOWN_AND_USED_TARGETS: return Summary.QueryStrategy.QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS;
       default: throw new IllegalStateException(queryStrategy.toString());
     }
   }

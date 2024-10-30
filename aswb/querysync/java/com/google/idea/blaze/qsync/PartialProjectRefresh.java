@@ -71,6 +71,7 @@ class PartialProjectRefresh implements RefreshOperation {
         QuerySpec.builder(this.previousState.querySummary().getQueryStrategy())
             .includePackages(modifiedPackages)
             .workspaceRoot(effectiveWorkspaceRoot)
+            .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
             .build());
   }
 

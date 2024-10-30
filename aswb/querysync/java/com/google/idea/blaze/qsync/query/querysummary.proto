@@ -20,6 +20,7 @@ message Summary {
   enum QueryStrategy {
     QUERY_STRATEGY_UNKNOWN = 0;
     QUERY_STRATEGY_PLAIN = 1;
+    QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS = 2;
   }
 
   QueryStrategy query_strategy = 7;
