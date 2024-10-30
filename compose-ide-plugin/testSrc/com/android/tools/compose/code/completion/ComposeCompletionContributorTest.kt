@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -437,7 +438,6 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-      // Space after caret.
         $caret {
 
         }
@@ -461,54 +461,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-      // Space after caret.
         FoobarOne {
-
-        }
-      }
-      """
-        .trimIndent(),
-      true,
-    )
-
-    // Given:
-    file =
-      myFixture.addFileToProject(
-        "src/com/example/Test2.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-      // No space after caret.
-        $caret{
-
-        }
-      }
-      """
-          .trimIndent(),
-      )
-
-    // When:
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    myFixture.type("Foobar")
-    myFixture.completeBasic()
-
-    // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-      // No space after caret.
-        FoobarOne{
 
         }
       }
@@ -1159,6 +1112,14 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
+    // TODO(b/376276611): Remove this version check after 2024.3 merge.
+    val expectedCompletion =
+      if (
+        KotlinPluginModeProvider.isK2Mode() &&
+          ApplicationInfo.getInstance().build.baselineVersion < 243
+      )
+        "FoobarOne {  }"
+      else "FoobarOne()"
     myFixture.checkResult(
       // language=kotlin
       """
@@ -1168,7 +1129,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        ${if (KotlinPluginModeProvider.isK2Mode()) "FoobarOne {  }" else "FoobarOne()"}
+        $expectedCompletion
       }
       """
         .trimIndent(),
