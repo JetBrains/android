@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 
 @Suppress("AddDependencyUsage")
 class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) : DependenciesInserter(projectModel) {
-  @JvmOverloads
   override fun addClasspathDependency(dependency: String,
                                       excludes: List<ArtifactDependencySpec>,
                                       matcher: DependencyMatcher): Set<PsiFile> {
@@ -57,7 +56,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
-  @JvmOverloads
   override fun addPlatformDependency(
     configuration: String,
     dependency: String,
@@ -75,7 +73,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
-  @JvmOverloads
   override fun addClasspathDependencyWithVersionVariable(dependency: String,
                                                          variableName: String,
                                                          excludes: List<ArtifactDependencySpec>,

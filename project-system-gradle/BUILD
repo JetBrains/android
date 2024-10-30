@@ -178,6 +178,7 @@ iml_module(
                 "//tools/data-binding:data_binding_runtime.zip",
                 "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
                 "//prebuilts/studio/jdk:jdk21",
+                "//tools/base/build-system:declarative_android_gradle_plugin.zip",
             ],
         },
         "runs_gradle_VersionCatalogAndDeclarative": {
@@ -333,6 +334,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
+        "//tools/external/gradle:gradle-8.12-20241105002153+0000",
     ],
     test_resources = ["testSrc/resources"],
     test_srcs = ["testSrc"],

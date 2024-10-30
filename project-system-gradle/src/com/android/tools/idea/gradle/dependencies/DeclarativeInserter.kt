@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,11 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 
-enum class AddDependencyPolicy {
-  VERSION_CATALOG, BUILD_FILE, DECLARATIVE;
+/**
+ * We assume for now that declarative project is pure (no non-declarative modules)
+ * and no version catalog in it.
+ */
+class DeclarativeInserter(projectModel: ProjectBuildModel): DependenciesInserter(projectModel) {
 
-  companion object {
-    @JvmStatic
-    fun calculateAddDependencyPolicy(projectModel: ProjectBuildModel): AddDependencyPolicy {
-      if (DependenciesHelper.isDeclarativeModel(projectModel.projectSettingsModel)) {
-        return DECLARATIVE
-      }
-      val catalog = DependenciesHelper.getDefaultCatalogModel(projectModel)
-      return if (catalog != null) VERSION_CATALOG else BUILD_FILE
-    }
-  }
 }
