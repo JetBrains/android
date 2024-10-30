@@ -68,6 +68,8 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
 
@@ -148,6 +150,8 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
 )
 

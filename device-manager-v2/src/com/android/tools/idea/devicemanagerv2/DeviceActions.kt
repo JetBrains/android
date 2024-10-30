@@ -69,7 +69,7 @@ fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
   }
 }
 
-internal fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
+fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
 
