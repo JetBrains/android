@@ -29,7 +29,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  * For light classes this is not possible (and fails when attempted), for generated classes like `BuildConfig` it's confusing to offer this
  * to users, since the right way to add new fields to it is via build.gradle.
  */
-class AndroidIntentionActionFilter : IntentionActionFilter {
+class AndroidLightOrGeneratedClassIntentionActionFilter : IntentionActionFilter {
 
   override fun accept(intentionAction: IntentionAction, file: PsiFile?): Boolean {
    val targetPsiClass = file?.let(intentionAction::getElementToMakeWritable) as? PsiClass ?: return true
