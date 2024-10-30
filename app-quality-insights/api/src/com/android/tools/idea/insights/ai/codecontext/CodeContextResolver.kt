@@ -50,7 +50,16 @@ data class CodeContext(
 
 /** Pulls source code from the editor based on the provided stack trace. */
 interface CodeContextResolver {
-  suspend fun getSource(stack: StacktraceGroup): CodeContextData
+  /**
+   * Gets the source files for the given [stack].
+   *
+   * @param stack [StacktraceGroup] for which the files are needed.
+   * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
+   */
+  suspend fun getSource(
+    stack: StacktraceGroup,
+    overrideSourceLimit: Boolean = false,
+  ): CodeContextData
 }
 
 class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
@@ -58,14 +67,22 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
   private val experimentFetcher: AppInsightsExperimentFetcher
     get() = AppInsightsExperimentFetcher.instance
 
-  override suspend fun getSource(stack: StacktraceGroup): CodeContextData {
+  override suspend fun getSource(
+    stack: StacktraceGroup,
+    overrideSourceLimit: Boolean,
+  ): CodeContextData {
     val experiment = experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
     val fileLimit =
       when (experiment) {
         Experiment.TOP_SOURCE -> 1
         Experiment.TOP_THREE_SOURCES -> 3
         Experiment.ALL_SOURCES -> Integer.MAX_VALUE
-        Experiment.CONTROL -> return CodeContextData.CONTROL
+        Experiment.CONTROL ->
+          if (overrideSourceLimit) {
+            1
+          } else {
+            return CodeContextData.CONTROL
+          }
         Experiment.UNKNOWN -> return CodeContextData.UNASSIGNED
       }
     val sources = getSource(stack, fileLimit)

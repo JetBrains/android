@@ -19,15 +19,24 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
+import com.android.tools.idea.insights.experiments.Experiment
 import com.intellij.openapi.project.Project
 
 /** Exposes AI related tools to AQI. */
 interface AiInsightToolkit {
   val aiInsightOnboardingProvider: InsightsOnboardingProvider
 
+  /**
+   * Gets the source files for the given [stack].
+   *
+   * @param stack [StacktraceGroup] for which the files are needed.
+   * @param contextSharingOverride one time override to access source files.
+   * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
+   */
   suspend fun getSource(
     stack: StacktraceGroup,
     contextSharingOverride: Boolean = false,
+    overrideSourceLimit: Boolean = false,
   ): CodeContextData
 }
 
@@ -42,9 +51,10 @@ class AiInsightToolkitImpl(
   override suspend fun getSource(
     stack: StacktraceGroup,
     contextSharingOverride: Boolean,
+    overrideSourceLimit: Boolean,
   ): CodeContextData {
     if (!GeminiPluginApi.getInstance().isContextAllowed(project) && !contextSharingOverride)
       return CodeContextData.UNASSIGNED
-    return codeContextResolver.getSource(stack)
+    return codeContextResolver.getSource(stack, overrideSourceLimit)
   }
 }
