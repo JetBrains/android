@@ -262,7 +262,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
       @Override
       public void onFailure(@Nullable Throwable t) {
-        throw new RuntimeException(t);
+        if (t != null) LOG.warn(t);
       }
     }, MoreExecutors.directExecutor());
   }
