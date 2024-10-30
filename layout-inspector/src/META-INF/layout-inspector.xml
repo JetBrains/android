@@ -73,4 +73,8 @@
   <extensions defaultExtensionNs="com.android.tools.idea.transport">
     <transportConfigContributor implementation="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.LayoutInspectorTransportConfigContributor" />
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.devicemanagerv2">
+    <deviceManagerOverflowActionContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorDeviceManagerOverflowActionContributor" />
+  </extensions>
 </idea-plugin>
