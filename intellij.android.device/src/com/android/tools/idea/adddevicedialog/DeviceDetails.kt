@@ -88,11 +88,15 @@ fun DeviceDetails(
 
       Header("Device")
       LabeledValue("OEM", device.manufacturer)
-      TwoLineLabeledValue(
-        "Supported API Levels",
-        device.apiRange.firstAndLastApiLevel(),
-        Modifier.padding(top = 4.dp),
-      )
+      if (device.apiRange.isSingleton() && systemImage == null) {
+        LabeledValue("API Level", device.apiRange.lowerEndpoint().toString())
+      } else {
+        TwoLineLabeledValue(
+          "Supported API Levels",
+          device.apiRange.firstAndLastApiLevel(),
+          Modifier.padding(top = 4.dp),
+        )
+      }
 
       if (systemImage != null) {
         Header("System Image")
@@ -118,6 +122,9 @@ internal val ISystemImage.services: String
       hasGoogleApis() -> "Google APIs"
       else -> "Android Open Source"
     }
+
+private fun Range<Int>.isSingleton(): Boolean =
+  hasLowerBound() && hasUpperBound() && lowerEndpoint() == upperEndpoint()
 
 internal fun Range<Int>.firstAndLastApiLevel(): String =
   if (hasUpperBound()) {
