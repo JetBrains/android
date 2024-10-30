@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -133,6 +134,9 @@ class BasicCompileTest {
 
   @Test
   fun inlineTarget() {
+    // TODO(376127488): We will fix the issue from the upstream KT compiler. When the fix is ready, we can enable this test for K2.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     val inlined = projectRule.createKtFile("InlineTarget.kt", "inline fun it1() = \"I am foo\"")
     val file = projectRule.createKtFile("CallInlineTarget.kt", "fun callInlineTarget() = \"\"")
 
