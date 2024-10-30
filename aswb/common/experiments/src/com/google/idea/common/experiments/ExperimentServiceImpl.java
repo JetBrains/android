@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import kotlinx.coroutines.CoroutineScope;
+
 
 /**
  * An experiment service that delegates to {@link ExperimentLoader ExperimentLoaders}, in a specific
@@ -41,12 +43,12 @@ import javax.annotation.Nullable;
  * then finally all files specified by the system property blaze.experiments.file.
  */
 public class ExperimentServiceImpl implements ApplicationComponent, ExperimentService {
+
   private static final Logger logger = Logger.getInstance(ExperimentServiceImpl.class);
 
   private static final Duration REFRESH_FREQUENCY = Duration.ofMinutes(5);
 
-  private final Alarm alarm =
-      new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
+  private final Alarm alarm;
   private final List<ExperimentLoader> services;
   private final Supplier<String> channelSupplier;
   private final AtomicInteger experimentScopeCounter = new AtomicInteger(0);
@@ -60,14 +62,23 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   }
 
   @VisibleForTesting
-  ExperimentServiceImpl(ExperimentLoader... loaders) {
-    this(MorePlatformUtils::getIdeChannel, loaders);
+  ExperimentServiceImpl(CoroutineScope scope, ExperimentLoader... loaders) {
+    this(scope, MorePlatformUtils::getIdeChannel, loaders);
   }
 
   @VisibleForTesting
   ExperimentServiceImpl(Supplier<String> channelSupplier, ExperimentLoader... loaders) {
+    this(null, channelSupplier, loaders);
+  }
+
+  @VisibleForTesting
+  ExperimentServiceImpl(@Nullable CoroutineScope scope, Supplier<String> channelSupplier,
+      ExperimentLoader... loaders) {
     services = ImmutableList.copyOf(loaders);
     this.channelSupplier = channelSupplier;
+    // Bypass unregistered application service AlarmSharedCoroutineScopeHolder. It's a private service which hard to mock
+    this.alarm = new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication(), null,
+        scope);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       refreshExperiments();
     }
