@@ -214,7 +214,7 @@ class DeviceHandleAndroidDevice(
       )
     // If the device is running, assume that these errors don't matter.
     val deviceLaunchCompatibility =
-      deviceHandle.state.error?.takeUnless { isRunning }.toLaunchCompatibility()
+      deviceHandle.state.error.toLaunchCompatibility()
 
     // Favor the project launch compatibility, since handle state tends to be more temporary.
     return projectLaunchCompatibility.combine(deviceLaunchCompatibility)
