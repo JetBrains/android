@@ -24,7 +24,7 @@ import com.android.ide.common.repository.GoogleMavenRepositoryKt;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
@@ -48,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleInitScripts {
-  @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
   @NotNull private static final String STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode";
   @NotNull private static final String STUDIO_PROJECT_EXCLUDED_JARS_KEY = "studio.project.sync.excluded.jars";
@@ -65,13 +64,12 @@ public class GradleInitScripts {
   // Used by intellij
   @SuppressWarnings("unused")
   public GradleInitScripts() {
-    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
+    this(new ContentCreator());
   }
 
   @NonInjectable
   @VisibleForTesting
-  GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
-    myEmbeddedDistributionPaths = embeddedDistributionPaths;
+  GradleInitScripts(@NotNull ContentCreator contentCreator) {
     myContentCreator = contentCreator;
   }
 
@@ -103,7 +101,7 @@ public class GradleInitScripts {
     if (!StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.get()) {
       return Collections.emptyList();
     }
-    List<String> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
+    List<String> repoPaths = GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths().stream()
       .map(File::getPath).collect(Collectors.toCollection(ArrayList::new));
 
     if (!GoogleMavenRepositoryKt.DEFAULT_GMAVEN_URL.equals(GoogleMavenRepositoryKt.GMAVEN_BASE_URL)) {

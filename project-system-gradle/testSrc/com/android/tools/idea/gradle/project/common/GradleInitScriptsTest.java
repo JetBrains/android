@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.common;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.Collections;
 import org.mockito.Mock;
@@ -47,7 +46,7 @@ public class GradleInitScriptsTest extends HeavyPlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myInitScripts = new GradleInitScripts(EmbeddedDistributionPaths.getInstance(), myContentCreator);
+    myInitScripts = new GradleInitScripts(myContentCreator);
   }
 
   @Override

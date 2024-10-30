@@ -20,8 +20,8 @@ import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
@@ -332,7 +332,7 @@ private fun getSystemHomeLocation() = getStudioSourcesLocation()?.toPath()?.pare
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
 private fun getOfflineM2Repositories(): List<File> =
-    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths())
+    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths())
         .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
 /**

@@ -33,6 +33,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
@@ -59,11 +60,14 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
@@ -85,6 +89,10 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -352,7 +360,7 @@ public class GradleProjectSystemUtil {
         if (gradleVersion != null &&
             isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
             !GradleLocalCache.getInstance().containsGradleWrapperVersion(gradleVersion, project)) {
-          File embeddedGradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
+          File embeddedGradlePath = findEmbeddedGradleDistributionPath();
           if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
@@ -594,7 +602,7 @@ public class GradleProjectSystemUtil {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (IdeInfo.getInstance().isAndroidStudio()) {
       if (executionSettings == null) {
-        File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
+        File gradlePath = findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
         executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
       }
@@ -765,5 +773,113 @@ public class GradleProjectSystemUtil {
     File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
+  }
+
+  /**
+   * @return the directory in the source repository that contains the checked-in Gradle distributions. In Android Studio production builds,
+   * it returns null.
+   */
+  @Nullable
+  public static File findEmbeddedGradleDistributionPath() {
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development build.
+      Path distribution = StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle");
+      if (Files.isDirectory(distribution)) {
+        return distribution.toFile();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param gradleVersion the version of Gradle to search for
+   * @return The archive file for the requested Gradle distribution, if exists, that is checked into the source repository. In Android
+   * Studio production builds, this method always returns null.
+   */
+  @Nullable
+  public static File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
+    File distributionPath = findEmbeddedGradleDistributionPath();
+    if (distributionPath != null) {
+      File allDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-all.zip");
+      if (allDistributionFile.isFile() && allDistributionFile.exists()) {
+        return allDistributionFile;
+      }
+
+      File binDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
+      if (binDistributionFile.isFile() && binDistributionFile.exists()) {
+        return binDistributionFile;
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public static List<File> findAndroidStudioLocalMavenRepoPaths() {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode() && StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()) {
+      return ImmutableList.of();
+    }
+    return doFindAndroidStudioLocalMavenRepoPaths();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
+    List<File> repoPaths = new ArrayList<>();
+
+    List<String> studioFlagOfflineRepos = on(File.pathSeparatorChar).omitEmptyStrings().splitToList(StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get());
+    for (String offlineRepo : studioFlagOfflineRepos) {
+      validateAndAdd(offlineRepo, repoPaths);
+    }
+
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
+      return repoPaths;
+    }
+
+    String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
+    if (studioCustomRepo != null) {
+      validateAndAdd(studioCustomRepo, repoPaths);
+    }
+
+    if (StudioPathManager.isRunningFromSources()) {
+      if (studioCustomRepo == null) {
+        addIfExists("out/repo", repoPaths);
+      }
+      // Add locally published offline studio repo
+      addIfExists("out/studio/repo", repoPaths);
+      addIfExists(System.getProperty("java.io.tmpdir") + "/offline-maven-repo", repoPaths);
+      // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
+      addIfExists("../maven/repository", repoPaths);
+      // Add prebuilts repo only if any have already been added
+      if (!repoPaths.isEmpty()) {
+        addIfExists("prebuilts/tools/common/m2/repository", repoPaths);
+      }
+    }
+
+    return ImmutableList.copyOf(repoPaths);
+  }
+
+  private static void validateAndAdd(String studioCustomRepo, List<File> repoPaths) {
+    try {
+      Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
+      if (!Files.isDirectory(customRepoPath)) {
+        Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo + " is not a directory.");
+        return;
+      }
+      repoPaths.add(customRepoPath.toFile());
+    }
+    catch (IOException e) {
+      Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo, e);
+    }
+  }
+
+  /**
+   * Adds paths that correspond to directories which exist to repoPaths
+   *
+   * The path should be relative to tools/idea.
+   */
+  private static void addIfExists(String path, List<File> repoPaths) {
+    Path directory = StudioPathManager.resolvePathFromSourcesRoot(path);
+    if (!Files.isDirectory(directory)) return;
+    repoPaths.add(directory.toFile());
   }
 }
