@@ -193,6 +193,7 @@ object DeviceTableColumns {
   val api =
     DefaultSortableTableColumn<DeviceProfile, Int>(
       "API",
+      width = TableColumnWidth.ToFit("API", extraPadding = 16.dp),
       attribute = { it.apiRange.lowerEndpoint() },
     )
 
