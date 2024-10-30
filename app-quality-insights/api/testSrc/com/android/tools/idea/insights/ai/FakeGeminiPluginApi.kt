@@ -30,7 +30,7 @@ internal class FakeGeminiPluginApi : GeminiPluginApi {
   var receivedPrompt: LlmPrompt? = null
   var generateResponse: String = ""
 
-  override val MAX_QUERY_CHARS = Int.MAX_VALUE
+  override var MAX_QUERY_CHARS = Int.MAX_VALUE
 
   override fun isAvailable() = available
 

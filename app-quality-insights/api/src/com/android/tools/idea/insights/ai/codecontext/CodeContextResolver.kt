@@ -50,13 +50,10 @@ data class CodeContext(
 
 /** Pulls source code from the editor based on the provided stack trace. */
 interface CodeContextResolver {
-  val characterLimit: Int
-
   suspend fun getSource(stack: StacktraceGroup): CodeContextData
 }
 
-class CodeContextResolverImpl(private val project: Project, override val characterLimit: Int) :
-  CodeContextResolver {
+class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
 
   private val experimentFetcher: AppInsightsExperimentFetcher
     get() = AppInsightsExperimentFetcher.instance
@@ -71,54 +68,36 @@ class CodeContextResolverImpl(private val project: Project, override val charact
         Experiment.CONTROL -> return CodeContextData.CONTROL
         Experiment.UNKNOWN -> return CodeContextData.UNASSIGNED
       }
-    return CodeContextData(getSource(stack, fileLimit, characterLimit), experiment)
+    val sources = getSource(stack, fileLimit)
+    return CodeContextData(sources, experiment)
   }
 
-  private fun trimToCharLimit(contexts: List<CodeContext>, characterLimit: Int): List<CodeContext> {
-    var charsSoFar = 0
-    val resultList = mutableListOf<CodeContext>()
-
-    for (ctx in contexts) {
-      charsSoFar += ctx.content.length
-      if (charsSoFar > characterLimit) break
-      resultList.add(ctx)
-    }
-    return resultList
-  }
-
-  private suspend fun getSource(
-    stack: StacktraceGroup,
-    fileLimit: Int,
-    characterLimit: Int,
-  ): List<CodeContext> {
+  private suspend fun getSource(stack: StacktraceGroup, fileLimit: Int): List<CodeContext> {
     val index = ProjectFileIndex.getInstance(project)
     val exceptionInfoCache = ExceptionInfoCache(project, ProjectScope.getContentScope(project))
-    return trimToCharLimit(
-      stack.exceptions
-        .flatMap { it.stacktrace.frames }
-        .mapNotNull { frame ->
-          val parsedException = parseExceptionLine(frame.rawSymbol) ?: return@mapNotNull null
-          val className =
-            frame.rawSymbol.substring(
-              parsedException.classFqnRange.startOffset,
-              parsedException.classFqnRange.endOffset,
-            )
-          readAction {
-            val resolve = exceptionInfoCache.resolveClassOrFile(className, frame.file)
-            if (resolve.isInLibrary || resolve.classes.isEmpty()) return@readAction null
-            val file =
-              resolve.classes.keys.firstOrNull {
-                index.isInSource(it) || index.isInGeneratedSources(it)
-              } ?: return@readAction null
-            if (GeminiPluginApi.getInstance().isFileExcluded(project, file)) return@readAction null
-            val language =
-              file.extension?.let { Language.fromExtension(it) } ?: return@readAction null
-            CodeContext(className, file.path, file.readText(), language)
-          }
+    return stack.exceptions
+      .flatMap { it.stacktrace.frames }
+      .mapNotNull { frame ->
+        val parsedException = parseExceptionLine(frame.rawSymbol) ?: return@mapNotNull null
+        val className =
+          frame.rawSymbol.substring(
+            parsedException.classFqnRange.startOffset,
+            parsedException.classFqnRange.endOffset,
+          )
+        readAction {
+          val resolve = exceptionInfoCache.resolveClassOrFile(className, frame.file)
+          if (resolve.isInLibrary || resolve.classes.isEmpty()) return@readAction null
+          val file =
+            resolve.classes.keys.firstOrNull {
+              index.isInSource(it) || index.isInGeneratedSources(it)
+            } ?: return@readAction null
+          if (GeminiPluginApi.getInstance().isFileExcluded(project, file)) return@readAction null
+          val language =
+            file.extension?.let { Language.fromExtension(it) } ?: return@readAction null
+          CodeContext(className, file.path, file.readText(), language)
         }
-        .distinctBy { it.className }
-        .take(fileLimit),
-      characterLimit,
-    )
+      }
+      .distinctBy { it.className }
+      .take(fileLimit)
   }
 }

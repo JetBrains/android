@@ -327,7 +327,7 @@ class CodeContextResolverTest(private val experiment: Experiment) {
    */
   @Test
   fun `resolve code context based on assigned experiment`() = runBlocking {
-    val resolver = CodeContextResolverImpl(projectRule.project, Integer.MAX_VALUE)
+    val resolver = CodeContextResolverImpl(projectRule.project)
     val contexts = resolver.getSource(STACKTRACE)
 
     val expected =
@@ -358,19 +358,6 @@ class CodeContextResolverTest(private val experiment: Experiment) {
       }
 
     assertThat(contexts).isEqualTo(expected)
-  }
-
-  @Test
-  fun `code context does not exceed character limit`() = runBlocking {
-    // This should give just enough character for the first class in ANDROID_LIBRARY_CLASS_CONTENT
-    val resolver = CodeContextResolverImpl(projectRule.project, 350)
-    val context = resolver.getSource(STACKTRACE)
-    if (experiment == Experiment.CONTROL) {
-      assertThat(context).isEqualTo(CodeContextData.CONTROL)
-    } else {
-      assertThat(context)
-        .isEqualTo(CodeContextData(listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT), experiment))
-    }
   }
 
   private fun createTestExperimentFetcher(experiment: Experiment) =
