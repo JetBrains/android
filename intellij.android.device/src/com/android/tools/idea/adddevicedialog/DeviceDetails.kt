@@ -52,6 +52,10 @@ import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.icon.IconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+/**
+ * A panel showing a summary of a [DeviceProfile] and (optionally) a system image. Contains a
+ * diagram of the screen, along with various metadata in a tabular format.
+ */
 @Composable
 fun DeviceDetails(
   device: DeviceProfile,

@@ -22,11 +22,16 @@ import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
 import kotlin.time.Duration
 
+/**
+ * A description of a device that can be displayed in a [DeviceTable].
+ *
+ * This interface uses an "extensible data class" pattern. Concrete subtypes are implemented as data
+ * classes, and are free to add additional fields. The Builder class exists in order to allow
+ * updates to the common fields generically. (This ended up being mostly irrelevant after the
+ * de-unification of the dialog.)
+ */
 interface DeviceProfile {
-  // TODO: alert icon, text
-
   val apiRange: Range<Int>
-
   val manufacturer: String
   val name: String
   val resolution: Resolution
@@ -47,9 +52,12 @@ interface DeviceProfile {
 
   @Composable fun Icon(modifier: Modifier)
 
+  /**
+   * Subtypes should extend this Builder with the additional fields needed, and create their own
+   * [copyFrom] overload that calls super.copyFrom() to initialize the superclass fields.
+   */
   abstract class Builder {
     lateinit var apiRange: Range<Int>
-
     lateinit var manufacturer: String
     lateinit var name: String
     lateinit var resolution: Resolution

@@ -32,9 +32,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBUI
@@ -67,12 +64,6 @@ class ComposeWizard(
   private val preferredSize: Dimension = DEFAULT_PREFERRED_SIZE,
   initialPage: @Composable WizardPageScope.() -> Unit,
 ) : DialogWrapper(project) {
-
-  val dialogScope =
-    AndroidCoroutineScope(
-      disposable,
-      AndroidDispatchers.uiThread(ModalityState.stateForComponent(rootPane)),
-    )
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
   private val currentPage
@@ -183,14 +174,19 @@ internal fun WizardPageScope.WizardButtonBar(
 
 /** Scope providing access to operations allowed in WizardActions. */
 interface WizardDialogScope {
+  /** Adds a new page to the page stack, generally in response to pressing Next. */
   fun pushPage(page: @Composable WizardPageScope.() -> Unit)
 
+  /** Returns to the previous page in the page stack, generally in response to pressing Previous. */
   fun popPage()
 
+  /** The number of pages currently on the page stack. */
   fun pageStackSize(): Int
 
+  /** Causes the wizard to exit, returning [DialogWrapper.OK_EXIT_CODE]. */
   fun close()
 
+  /** Causes the wizard to exit, returning [DialogWrapper.CANCEL_EXIT_CODE]. */
   fun cancel()
 }
 

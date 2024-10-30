@@ -58,6 +58,7 @@ import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+/** A table of [DeviceProfile]s, along with filters, a search box, and device details pane. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <DeviceT : DeviceProfile> DeviceTable(

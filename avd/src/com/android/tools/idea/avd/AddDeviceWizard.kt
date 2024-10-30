@@ -138,6 +138,10 @@ internal class AddDeviceWizard(
     }
   }
 
+  /**
+   * The first page of the AVD creation wizard; displays a [DeviceTable] allowing selection of a
+   * [VirtualDeviceProfile].
+   */
   @Composable
   internal fun WizardPageScope.DeviceGridPage() {
     val component = LocalComponent.current
