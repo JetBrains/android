@@ -302,7 +302,7 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotSavingPopupVisible).isTrue()
     dialog.close(CLOSE_EXIT_CODE)
     emulator.resumeGrpc()
-    var call = emulator.getNextGrpcCall(2.seconds,
+    val call = emulator.getNextGrpcCall(2.seconds,
                                         DEFAULT_CALL_FILTER
                                             .or("android.emulation.control.EmulatorController/streamClipboard")
                                             .or("android.emulation.control.EmulatorController/setClipboard")
