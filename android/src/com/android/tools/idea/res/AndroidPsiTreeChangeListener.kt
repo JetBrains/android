@@ -20,7 +20,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
@@ -215,9 +215,9 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
     ResourceNotificationManager.getInstance(project).psiListener?.let(invokeCallback::consume)
   }
 
-  class MyStartupActivity : StartupActivity.DumbAware {
-    override fun runActivity(project: Project) {
-      val listener = AndroidPsiTreeChangeListener.getInstance(project)
+  class MyProjectActivity : ProjectActivity {
+    override suspend fun execute(project: Project) {
+      val listener = getInstance(project)
       PsiManager.getInstance(project).addPsiTreeChangeListener(listener, listener)
     }
   }
