@@ -464,6 +464,16 @@ public final class StudioFlags {
     " build are still verified by ART regardless of this flag.",
     ChannelDefault.enabledUpTo(CANARY));
 
+
+  public static final Flag<Boolean> INSTALL_WITH_ASSUME_VERIFIED_ON_DEFAULT = new BooleanFlag(
+    RUNDEBUG,
+    "install.with.assume.verified.on.default",
+    "Turn on ART assume-verified compiler filter for API 35+ deployment by default in all run configurations",
+    "When deploying to API 35+ device for debuggable deployment, the deployment pipeline will leverage the assume-verified" +
+    " compiler filter in ART to avoid bytecode verification when possible. This would speed up development cycles. Note that all release" +
+    " build are still verified by ART regardless of this flag. This flag turns on this feature for all run configurations.",
+    ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = new BooleanFlag(
     RUNDEBUG,
     "applychanges.structuralredefinition",
