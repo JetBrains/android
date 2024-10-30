@@ -211,7 +211,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! })
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
         fastPreviewManager.stopAllDaemons().join()
       }
@@ -246,7 +246,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
         assertTrue("Compilation must pass", result == CompilationResult.Success)
       }
     }

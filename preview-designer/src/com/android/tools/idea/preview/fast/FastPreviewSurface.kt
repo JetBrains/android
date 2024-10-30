@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.readAction
@@ -98,8 +99,8 @@ class CommonFastPreviewSurface(
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File is not valid")
         )
-    val previewFileModule =
-      readAction { previewFile.module }
+    val previewFileBuildTargetReference =
+      readAction { BuildTargetReference.from(previewFile) }
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
@@ -108,12 +109,17 @@ class CommonFastPreviewSurface(
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileModule = readAction { modifiedFile.module } ?: return@filter false
+          val modifiedFileBuildTargetReference =
+            readAction { BuildTargetReference.from(modifiedFile) } ?: return@filter false
 
           // Keep the file if the file is from this module or from a module we depend on
-          modifiedFileModule == previewFileModule ||
+          modifiedFileBuildTargetReference == previewFileBuildTargetReference ||
+            // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
             ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(previewFileModule, modifiedFileModule)
+              .isModuleDependent(
+                previewFileBuildTargetReference.module,
+                modifiedFileBuildTargetReference.module,
+              )
         }
         .toSet()
 
@@ -122,12 +128,12 @@ class CommonFastPreviewSurface(
 
     return requestFastPreviewRefreshAndTrack(
       parentDisposable = this,
-      previewFileModule,
+      previewFileBuildTargetReference,
       outOfDateFiles,
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileModule)
+      ModuleClassLoaderOverlays.getInstance(previewFileBuildTargetReference.module)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }

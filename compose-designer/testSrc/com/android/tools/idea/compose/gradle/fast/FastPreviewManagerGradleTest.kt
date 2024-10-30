@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.toFileNameSet
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -149,10 +150,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testSingleFileCompileSuccessfully() {
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
-      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+      val (result, _) =
+        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
@@ -165,10 +166,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     projectRule.requestSyncAndWait()
     projectRule.buildAndAssertIsSuccessful()
 
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(stringResource(R.string.greeting))\n")
     runBlocking {
-      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
+      val (result, outputPath) =
+        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
 
       // Decompile the generated Preview code
@@ -216,15 +217,16 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testDaemonIsRestartedAutomatically() {
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
-      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+      val (result, _) =
+        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       fastPreviewManager.stopAllDaemons().join()
     }
     runBlocking {
-      val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+      val (result, _) =
+        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
@@ -243,7 +245,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
-      val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
+      val (result, outputPath) =
+        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
     }
@@ -259,7 +262,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     // TODO(352403444): K2 fails on this test. After fixing it, re-enable this test for K2.
     if (KotlinPluginModeProvider.isK2Mode()) return
 
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     val psiSecondFile = runReadAction {
       val vFile =
         projectRule.project
@@ -269,7 +271,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     }
     runBlocking {
       val (result, outputPath) =
-        fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
+        fastPreviewManager.compileRequest(
+          listOf(psiMainFile, psiSecondFile),
+          BuildTargetReference.from(psiMainFile)!!,
+        )
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       val generatedFilesSet =
         withContext(diskIoThread) { File(outputPath).toPath().toFileNameSet() }
@@ -290,11 +295,11 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val previewCompilations = AtomicLong(0)
     val previewThread = thread {
       startCountDownLatch.await()
-      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
       while (compile) {
         typeAndSaveDocument("Text(\"Hello 3\")\n")
         runBlocking {
-          val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+          val (result, _) =
+            fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
           if (result.isSuccess) previewCompilations.incrementAndGet()
         }
       }

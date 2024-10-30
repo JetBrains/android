@@ -22,9 +22,9 @@ import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
@@ -57,7 +57,7 @@ private suspend fun PsiFile.saveIfNeeded() {
 @VisibleForTesting
 internal suspend fun fastCompile(
   parentDisposable: Disposable,
-  contextModule: Module,
+  contextBuildTargetReference: BuildTargetReference,
   files: Set<PsiFile>,
   fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(files.first().project),
   requestTracker: FastPreviewTrackerManager.Request =
@@ -76,7 +76,11 @@ internal suspend fun fastCompile(
 
     val (result, outputAbsolutePath) =
       withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-        fastPreviewManager.compileRequest(files, contextModule, tracker = requestTracker)
+        fastPreviewManager.compileRequest(
+          files,
+          contextBuildTargetReference,
+          tracker = requestTracker,
+        )
       }
 
     return@coroutineScope result to outputAbsolutePath
@@ -100,7 +104,7 @@ internal suspend fun fastCompile(
  */
 suspend fun requestFastPreviewRefreshAndTrack(
   parentDisposable: Disposable,
-  contextModule: Module,
+  contextBuildTargetReference: BuildTargetReference,
   files: Set<PsiFile>,
   currentStatus: PreviewViewModelStatus,
   launcher: UniqueTaskCoroutineLauncher,
@@ -169,7 +173,12 @@ suspend fun requestFastPreviewRefreshAndTrack(
     try {
       if (!currentStatus.hasSyntaxErrors) {
         val (result, outputAbsolutePath) =
-          fastCompile(parentDisposable, contextModule, files, requestTracker = requestTracker)
+          fastCompile(
+            parentDisposable,
+            contextBuildTargetReference,
+            files,
+            requestTracker = requestTracker,
+          )
         deferredCompilationResult.complete(result)
         if (result is CompilationResult.Success) {
           val refreshStartMs = System.currentTimeMillis()

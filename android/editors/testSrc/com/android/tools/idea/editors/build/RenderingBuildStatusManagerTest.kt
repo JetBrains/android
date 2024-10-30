@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -113,11 +114,11 @@ class RenderingBuildStatusManagerTest {
         )
 
     runBlocking {
-      val module = projectRule.fixture.module
+      val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
       val asyncScope = AndroidCoroutineScope(projectRule.fixture.testRootDisposable)
       val latch = CountDownLatch(11)
       asyncScope.launch(AndroidDispatchers.workerThread) {
-        fastPreviewManager.compileRequest(psiFile, module)
+        fastPreviewManager.compileRequest(psiFile, buildTargetReference)
         latch.countDown()
       }
       blockingDaemon.firstRequestReceived.await()
@@ -127,7 +128,7 @@ class RenderingBuildStatusManagerTest {
       // Launch additional requests
       repeat(10) {
         asyncScope.launch(AndroidDispatchers.workerThread) {
-          fastPreviewManager.compileRequest(psiFile, module)
+          fastPreviewManager.compileRequest(psiFile, buildTargetReference)
           latch.countDown()
         }
       }
@@ -198,6 +199,7 @@ class RenderingBuildStatusManagerTest {
   @Test
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
+    val buildTargetReference = BuildTargetReference.gradleOnly(projectRule.fixture.module)
 
     val statusManager =
         RenderingBuildStatusManager.create(
@@ -222,7 +224,7 @@ class RenderingBuildStatusManagerTest {
         WriteCommandAction.runWriteCommandAction(project) {
           projectRule.fixture.editor.executeAndSave { insertText("BrokenText") }
         }
-        FastPreviewManager.getInstance(project).compileRequest(psiFile, projectRule.fixture.module)
+        FastPreviewManager.getInstance(project).compileRequest(psiFile, buildTargetReference)
       }
 
       // Disabling Live Edit will bring the out of date state

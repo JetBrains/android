@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
@@ -354,7 +355,7 @@ class FastPreviewManager private constructor(
    * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
   suspend fun compileRequest(files: Collection<PsiFile>,
-                             module: Module,
+                             contextBuildTargetReference: BuildTargetReference,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
@@ -377,7 +378,7 @@ class FastPreviewManager private constructor(
     val outputDir = Files.createTempDirectory("overlay")
     log.debug("Compiling $outputDir (id=$requestId)")
     indicator.text = "Looking for compiler daemon"
-    val runtimeVersion = moduleRuntimeVersionLocator(module).toString()
+    val runtimeVersion = moduleRuntimeVersionLocator(contextBuildTargetReference.module).toString()
 
     val result = try {
       val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
@@ -389,7 +390,7 @@ class FastPreviewManager private constructor(
       }
       indicator.text = "Compiling"
       try {
-        daemon.compileRequest(ApplicationLiveEditServices.Legacy(project), files, module, outputDir, indicator)
+        daemon.compileRequest(ApplicationLiveEditServices.Legacy(project), files, contextBuildTargetReference, outputDir, indicator)
       }
       catch (t: CancellationException) {
         CompilationResult.CompilationAborted(t)
@@ -473,10 +474,10 @@ class FastPreviewManager private constructor(
    * Sends a compilation request for a single [file]. See [FastPreviewManager.compileRequest].
    */
   suspend fun compileRequest(file: PsiFile,
-                             module: Module,
+                             contextBuildTargetReference: BuildTargetReference,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> =
-    compileRequest(listOf(file), module, indicator, tracker)
+    compileRequest(listOf(file), contextBuildTargetReference, indicator, tracker)
 
   /**
    * Adds a [FastPreviewManagerListener] that will be notified when this manager has completed a build.
