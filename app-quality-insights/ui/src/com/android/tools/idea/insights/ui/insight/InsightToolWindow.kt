@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -41,7 +42,7 @@ object InsightToolWindow {
       Side.RIGHT,
       Split.TOP,
       AutoHide.DOCKED,
-      ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
+      JBUI.scale(400),
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
       ToolWindowDefinition.ALLOW_BASICS,
     ) {
