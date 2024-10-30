@@ -64,7 +64,7 @@ fun buildKmpGradle(
         }
       }
 
-      getByName("androidTestOnDevice") {
+      getByName("androidDeviceTest") {
         dependencies {
         }
       }
