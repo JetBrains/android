@@ -30,6 +30,48 @@ import java.util.Optional;
 @AutoValue
 public abstract class QuerySpec implements TruncatingFormattable {
 
+  /**
+   * A way to transform the query specification to a bazel query and flags.
+   *
+   * <p>Querying all targets in the project view may generate too large output,
+   * while querying just targets the IDE needs may result in a too slow query.
+   *
+   * <p>{@link QueryStrategy} instances allow experiment with queries and bazel flags.
+   */
+  public enum QueryStrategy {
+    PLAIN {
+      @Override
+      public ImmutableList<String> getQueryFlags() {
+        return ImmutableList.of(
+          "--output=streamed_proto",
+          "--relative_locations=true",
+          "--consistent_labels=true"
+        );
+      }
+
+      @Override
+      public Optional<String> getQueryExpression(QuerySpec querySpec) {
+        String baseExpression = baseExpression(querySpec);
+        if (baseExpression.isEmpty()) {
+          return Optional.empty();
+        }
+        return Optional.of("(" + baseExpression + ")");
+      }
+    };
+
+    public abstract ImmutableList<String> getQueryFlags();
+    public abstract Optional<String> getQueryExpression(QuerySpec querySpec);
+
+    protected final String baseExpression(QuerySpec querySpec) {
+      return querySpec.includes().stream().map(s -> String.format("%s:*", s)).collect(joining(" + ")) +
+             querySpec.excludes().stream().map(s -> String.format(" - %s:*", s)).collect(joining());
+    }
+  }
+
+  private static final ImmutableList<String> SOURCE_FILE_AS_LIST = ImmutableList.of("source file");
+
+  public abstract QueryStrategy queryStrategy();
+
   public abstract Path workspaceRoot();
 
   /** The set of package patterns to include. */
@@ -38,28 +80,15 @@ public abstract class QuerySpec implements TruncatingFormattable {
   /** The set of package patterns to include. */
   abstract ImmutableList<String> excludes();
 
-  // LINT.IfChange
   @Memoized
   public ImmutableList<String> getQueryFlags() {
-    return ImmutableList.of(
-        "--output=streamed_proto", "--relative_locations=true", "--consistent_labels=true");
+    return queryStrategy().getQueryFlags();
   }
 
   @Memoized
   public Optional<String> getQueryExpression() {
-    // This is the main query, note the use of :* that means that the query output has
-    // all the files in that directory too. So we can identify all that is reachable.
-    if (includes().isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        "("
-            + includes().stream().map(s -> String.format("%s:*", s)).collect(joining(" + "))
-            + excludes().stream().map(s -> String.format(" - %s:*", s)).collect(joining())
-            + ")");
+    return queryStrategy().getQueryExpression(this);
   }
-
-  // LINT.ThenChange(/aswb/aswb/testdata/projects/test_projects.bzl)
 
   @Override
   public final String toString() {
@@ -72,8 +101,8 @@ public abstract class QuerySpec implements TruncatingFormattable {
                 .build());
   }
 
-  public static Builder builder() {
-    return new AutoValue_QuerySpec.Builder();
+  public static Builder builder(QuerySpec.QueryStrategy queryStrategy) {
+    return new AutoValue_QuerySpec.Builder().queryStrategy(queryStrategy);
   }
 
   /**
@@ -88,6 +117,7 @@ public abstract class QuerySpec implements TruncatingFormattable {
    */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder queryStrategy(QueryStrategy queryStrategy);
 
     public abstract Builder workspaceRoot(Path workspaceRoot);
 

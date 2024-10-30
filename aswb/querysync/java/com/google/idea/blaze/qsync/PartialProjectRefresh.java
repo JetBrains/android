@@ -68,7 +68,7 @@ class PartialProjectRefresh implements RefreshOperation {
     }
     // TODO should we also consider excludes here?
     return Optional.of(
-        QuerySpec.builder()
+        QuerySpec.builder(this.previousState.querySummary().getQueryStrategy())
             .includePackages(modifiedPackages)
             .workspaceRoot(effectiveWorkspaceRoot)
             .build());

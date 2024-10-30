@@ -112,7 +112,7 @@ public class BazelQueryRunner implements QueryRunner {
     try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper();
         InputStream in =
             commandRunner.runQuery(project, commandBuilder, buildResultHelper, context)) {
-      QuerySummary querySummary = readFrom(in, context);
+      QuerySummary querySummary = readFrom(query.queryStrategy(), in, context);
       int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();
       context.output(
           PrintOutput.output("Total query time ms: " + timer.elapsed(TimeUnit.MILLISECONDS)));
@@ -131,11 +131,11 @@ public class BazelQueryRunner implements QueryRunner {
   /** Allows derived classes to add proprietary flags to the query invocation. */
   protected void addExtraFlags(BlazeCommand.Builder commandBuilder, BuildInvoker invoker) {}
 
-  protected QuerySummary readFrom(InputStream in, BlazeContext context) throws BuildException {
+  protected QuerySummary readFrom(QuerySpec.QueryStrategy queryStrategy, InputStream in, BlazeContext context) throws BuildException {
     logger.info(String.format("Summarising query from %s", in));
     Instant start = Instant.now();
     try {
-      QuerySummary summary = QuerySummary.create(in);
+      QuerySummary summary = QuerySummary.create(queryStrategy, in);
       logger.info(
           String.format(
               "Summarised query in %ds", Duration.between(start, Instant.now()).toSeconds()));

@@ -38,6 +38,7 @@ import com.google.devtools.build.lib.query2.proto.proto2api.Build.Target;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.query.Query.SourceFile;
+import com.google.idea.blaze.qsync.query.Query.Summary;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -246,7 +247,7 @@ public abstract class QuerySummary {
     return new AutoValue_QuerySummary(proto);
   }
 
-  public static QuerySummary create(InputStream protoInputStream) throws IOException {
+  public static QuerySummary create(QuerySpec.QueryStrategy queryStrategy, InputStream protoInputStream) throws IOException {
     // IMPORTANT: when changing the logic herein, you should also update PROTO_VERSION above.
     // Failure to do so is likely to result in problems during a partial sync.
     Map<String, Query.SourceFile> sourceFileMap = Maps.newHashMap();
@@ -323,12 +324,31 @@ public abstract class QuerySummary {
     }
     return create(
         Query.Summary.newBuilder()
+            .setQueryStrategy(convertQueryStrategy(queryStrategy))
             .setVersion(PROTO_VERSION)
             .putAllSourceFiles(sourceFileMap)
             .putAllStoredRules(ruleMap)
             .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()))
             .addAllPackagesWithErrors(packagesWithErrors)
             .build());
+  }
+
+  public QuerySpec.QueryStrategy getQueryStrategy() {
+    switch (proto().getQueryStrategy()) {
+      case QUERY_STRATEGY_PLAIN, QUERY_STRATEGY_UNKNOWN -> {
+        return QuerySpec.QueryStrategy.PLAIN;
+      }
+      default -> {
+        throw new IllegalStateException(proto().getQueryStrategy().toString());
+      }
+    }
+  }
+
+  private static Summary.QueryStrategy convertQueryStrategy(QuerySpec.QueryStrategy queryStrategy) {
+    switch(queryStrategy) {
+      case PLAIN: return Summary.QueryStrategy.QUERY_STRATEGY_PLAIN;
+      default: throw new IllegalStateException(queryStrategy.toString());
+    }
   }
 
   private static boolean attributeIsTrackedDependency(String attributeName, Build.Target target) {
@@ -342,8 +362,8 @@ public abstract class QuerySummary {
     return false;
   }
 
-  public static QuerySummary create(File protoFile) throws IOException {
-    return create(new BufferedInputStream(new FileInputStream(protoFile)));
+  public static QuerySummary create(QuerySpec.QueryStrategy querySpecStrategy, File protoFile) throws IOException {
+    return create(querySpecStrategy, new BufferedInputStream(new FileInputStream(protoFile)));
   }
 
   public static Builder newBuilder() {
