@@ -152,9 +152,9 @@ class ManageSnapshotsDialogTest {
     assertThat(coldBootCheckBox.isSelected).isTrue()
 
     emulator.clearGrpcCallLog()
-    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
+    val createSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
     // Create a snapshot.
-    ui.clickOn(takeSnapshotButton)
+    ui.clickOn(createSnapshotButton)
     var call = emulator.getNextGrpcCall(2.seconds)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
@@ -190,7 +190,7 @@ class ManageSnapshotsDialogTest {
     assertThat(snapshotDetailsPanel.text).contains(description)
 
     // Create second snapshot.
-    ui.clickOn(takeSnapshotButton)
+    ui.clickOn(createSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
     waitForCondition(2.seconds) { table.items.size == 4 }
     val secondSnapshot = checkNotNull(table.selectedObject)
@@ -198,7 +198,7 @@ class ManageSnapshotsDialogTest {
     editSnapshot(actionsPanel, secondSnapshot.displayName, secondSnapshot.description, false)
     assertThat(isUseToBoot(table, 1)).isTrue() // The first snapshot is still used to boot.
     // Create third snapshot.
-    ui.clickOn(takeSnapshotButton)
+    ui.clickOn(createSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
     waitForCondition(2.seconds) { table.items.size == 5 }
     assertThat(table.selectedRowCount).isEqualTo(1)
@@ -277,17 +277,17 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  fun testDialogClosedWhileSavingSnapshot() {
-    var snapshotSavingPopupVisible = false
+  fun testDialogClosedWhileCreatingSnapshot() {
+    var snapshotCreationPopupVisible = false
     val loadingPanel = StreamingLoadingPanel(testRootDisposable)
     loadingPanel.addListener(object : JBLoadingPanelListener {
 
       override fun onLoadingStart() {
-        snapshotSavingPopupVisible = true
+        snapshotCreationPopupVisible = true
       }
 
       override fun onLoadingFinish() {
-        snapshotSavingPopupVisible = false
+        snapshotCreationPopupVisible = false
       }
     })
 
@@ -297,19 +297,57 @@ class ManageSnapshotsDialogTest {
     val table = ui.getComponent<TableView<SnapshotInfo>>()
     waitForCondition(4.seconds) { table.items.isNotEmpty() } // Wait for the snapshot list to be populated.
     emulator.pauseGrpc()
-    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
-    ui.clickOn(takeSnapshotButton)
-    assertThat(snapshotSavingPopupVisible).isTrue()
+    val createSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
+    ui.clickOn(createSnapshotButton)
+    assertThat(snapshotCreationPopupVisible).isTrue()
     dialog.close(CLOSE_EXIT_CODE)
     emulator.resumeGrpc()
-    val call = emulator.getNextGrpcCall(2.seconds,
-                                        DEFAULT_CALL_FILTER
-                                            .or("android.emulation.control.EmulatorController/streamClipboard")
-                                            .or("android.emulation.control.EmulatorController/setClipboard")
-                                            .or("android.emulation.control.SnapshotService/ListSnapshots"))
+    val call = emulator.getNextGrpcCall(2.seconds, GRPC_CALL_FILTER)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
     waitForCondition(2.seconds) { call.completion.isDone }
-    waitForCondition(2.seconds) { !snapshotSavingPopupVisible } // The "Saving state..." popup should disappear.
+    waitForCondition(2.seconds) { !snapshotCreationPopupVisible } // The "Saving state..." popup should disappear.
+  }
+
+  @Test
+  fun testDialogClosedWhileLoadingSnapshot() {
+    var snapshotLoadingPopupVisible = false
+    val loadingPanel = StreamingLoadingPanel(testRootDisposable)
+    loadingPanel.addListener(object : JBLoadingPanelListener {
+
+      override fun onLoadingStart() {
+        snapshotLoadingPopupVisible = true
+      }
+
+      override fun onLoadingFinish() {
+        snapshotLoadingPopupVisible = false
+      }
+    })
+
+    loadingPanel.add(emulatorView)
+    val dialog = showManageSnapshotsDialog()
+    val ui = FakeUi(dialog.rootPane)
+    val table = ui.getComponent<TableView<SnapshotInfo>>()
+    waitForCondition(4.seconds) { table.items.isNotEmpty() } // Wait for the snapshot list to be populated.
+
+    val createSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
+    // Create a snapshot.
+    ui.clickOn(createSnapshotButton)
+    var call = emulator.getNextGrpcCall(2.seconds, GRPC_CALL_FILTER)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
+
+    // Wait for the snapshot to be created and the snapshot list to be updated.
+    waitForCondition(5.seconds) { table.items.size == 2 }
+
+    emulator.pauseGrpc()
+    val actionsPanel = ui.getComponent<CommonActionsPanel>()
+    performAction(getLoadSnapshotAction(actionsPanel))
+    assertThat(snapshotLoadingPopupVisible).isTrue()
+    dialog.close(CLOSE_EXIT_CODE)
+    emulator.resumeGrpc()
+    call = emulator.getNextGrpcCall(2.seconds, GRPC_CALL_FILTER)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/LoadSnapshot")
+    waitForCondition(2.seconds) { call.completion.isDone }
+    waitForCondition(2.seconds) { !snapshotLoadingPopupVisible } // The "Loading snapshot..." popup should disappear.
   }
 
   @Test
@@ -557,3 +595,8 @@ private const val SNAPSHOT_NAME_COLUMN_INDEX = 0
 private const val USE_TO_BOOT_COLUMN_INDEX = 3
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/ManageSnapshotsDialogTest/golden"
+
+val GRPC_CALL_FILTER = DEFAULT_CALL_FILTER
+    .or("android.emulation.control.EmulatorController/streamClipboard")
+    .or("android.emulation.control.EmulatorController/setClipboard")
+    .or("android.emulation.control.SnapshotService/ListSnapshots")

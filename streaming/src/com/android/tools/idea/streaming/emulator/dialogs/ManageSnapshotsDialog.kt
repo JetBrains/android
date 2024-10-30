@@ -94,7 +94,6 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import java.io.IOException
-import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.text.Collator
 import java.text.SimpleDateFormat
@@ -394,7 +393,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
           }
         }
         else {
-          val error = message.err.toString(UTF_8)
+          val error = message.err.toStringUtf8()
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterIfDialogIsShowing {
             showError(message("manage.snapshots.error.loading.snapshot", snapshotToLoad.displayName, detail))
@@ -403,20 +402,21 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       }
 
       override fun onCompleted() {
-        finished()
-      }
-
-      override fun onError(t: Throwable) {
-        finished()
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
-          showError(message("manage.snapshots.error.loading.snapshot.with.log"))
+          endLongOperation()
         }
       }
 
-      private fun finished() {
-        invokeLaterIfDialogIsShowing {
-          endLongOperation()
+      override fun onError(t: Throwable) {
+        EventQueue.invokeLater {
           emulatorView.hideLongRunningOperationIndicator()
+        }
+        invokeLaterIfDialogIsShowing {
+          showError(message("manage.snapshots.error.loading.snapshot.with.log"))
+          endLongOperation()
         }
       }
     }
