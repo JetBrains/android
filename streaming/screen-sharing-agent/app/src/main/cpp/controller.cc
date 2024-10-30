@@ -603,7 +603,7 @@ void Controller::WakeUpDevice() {
 }
 
 bool Controller::ControlDisplayPower(Jni jni, int state) {
-  if (Agent::feature_level() >= 35) {
+  if (DisplayManager::DisplayPowerControlSupported(jni)) {
     return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
     // TODO: Turn off secondary physical displays.
   } else {
@@ -612,6 +612,7 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
     if (display_ids.empty()) {
       JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
       if (display_token.IsNull()) {
+        Log::W(jni.GetAndClearException(), "Unable to find the display to turn it %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
         return false;
       }
       SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
@@ -621,6 +622,12 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
         SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
       }
     }
+    JObject exception = jni.GetAndClearException();
+    if (exception.IsNotNull()) {
+      Log::W(jni.GetAndClearException(), "Unable to turn display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
+      return false;
+    }
+    Log::I("Turned display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
   }
   return true;
 }
