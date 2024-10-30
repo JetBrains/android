@@ -652,7 +652,15 @@ abstract class DesignSurface<T : SceneManager>(
       revalidateScrollArea()
       return
     }
-    models.firstOrNull()?.let { storeCurrentScale(it) }
+    if (update.shouldStoreScale) {
+      models.firstOrNull()?.let { storeCurrentScale(it) }
+    } else {
+      // If we shouldn't store the scale we remove the existing one.
+      models.firstOrNull()?.let {
+        val state = getInstance(project).surfaceState
+        state.saveFileScale(project, it.virtualFile, null)
+      }
+    }
     revalidateScrollArea()
     notifyScaleChanged(update.previousScale, update.newScale)
   }

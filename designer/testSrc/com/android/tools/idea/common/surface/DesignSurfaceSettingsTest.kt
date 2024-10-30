@@ -241,7 +241,7 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
         override val maxScale: Double
           get() = 10.0
 
-        override fun setScale(scale: Double, x: Int, y: Int): Boolean {
+        override fun setScale(scale: Double, x: Int, y: Int, doStoreScale: Boolean): Boolean {
           currentScale = scale
           return true
         }
