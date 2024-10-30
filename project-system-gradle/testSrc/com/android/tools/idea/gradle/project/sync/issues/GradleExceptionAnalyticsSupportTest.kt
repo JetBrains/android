@@ -20,18 +20,36 @@ import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalytic
 import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
 import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.google.common.truth.Truth
+import com.ibm.icu.impl.Assert
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.serialize.PlaceholderException
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import java.lang.reflect.InvocationTargetException
 
 class GradleExceptionAnalyticsSupportTest {
+
+  @get:Rule
+  val testNameRule = TestName()
+
   val gradleExceptionAnalyticsSupport = GradleExceptionAnalyticsSupport(listOf(
+    "jdk.",
     "java.lang.",
     "org.gradle.",
     "com.android."
   ))
+
+  private val defaultTopFrameInfo: GradleExceptionAnalyticsSupport.GradleExceptionStackFrame by lazy {
+    GradleExceptionAnalyticsSupport.GradleExceptionStackFrame(
+      className = GradleExceptionAnalyticsSupportTest::class.java.name,
+      methodName = testNameRule.methodName,
+      fileName = "",
+      lineNumber = 0,
+      frameIndex = 0,
+    )
+  }
 
   @Test
   fun testSingleException() {
@@ -39,11 +57,16 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
-      GradleError(listOf(
-        GradleException("java.lang.RuntimeException")
-      ))
-    )))
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo("""
+      GradleFailureDetails(
+        GradleError(
+          GradleException(
+            exceptionClass=java.lang.RuntimeException
+            topFrame=GradleExceptionStackFrame(${GradleExceptionAnalyticsSupportTest::class.java.name}#${testNameRule.methodName}, frameIndex=0)
+          )
+        )
+      )
+    """.trimIndent())
   }
 
   @Test
@@ -52,13 +75,13 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -67,11 +90,47 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = GradleExceptionAnalyticsSupport(listOf("com.android.")).extractFailureDetails(exception)
 
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
+      GradleError(listOf(
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("<hidden>", defaultTopFrameInfo)
+      ))
+    ))))
+  }
+
+  @Test
+  fun testAllowListFiltersFirstStackFrame() {
+    try { Assert.fail("message") } catch (exception: Throwable) {
+      val gradleFailureDetails = GradleExceptionAnalyticsSupport(listOf("com.android.")).extractFailureDetails(exception)
+      // This also tests file name and line number. It will fail with changes to this file as line numbers would change.
+      // If it starts failing too much will have to think of smth else.
+      val reportedFrame = GradleExceptionAnalyticsSupport.GradleExceptionStackFrame(
+        className = GradleExceptionAnalyticsSupportTest::class.java.name,
+        methodName = testNameRule.methodName,
+        fileName = "GradleExceptionAnalyticsSupportTest.kt",
+        lineNumber = 104,
+        frameIndex = 1
+      )
+      Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+        GradleError(listOf(
+          GradleException("<hidden>", reportedFrame),
+        ))
+      )))
+    }
+  }
+
+  @Test
+  fun testAllowListFiltersAllStackFrames() {
+    val exception = TestThrowable1(TestThrowable2(RuntimeException("Exception")))
+
+    val gradleFailureDetails = GradleExceptionAnalyticsSupport(emptyList()).extractFailureDetails(exception)
+
     Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("<hidden>")
+        GradleException("<hidden>", null),
+        GradleException("<hidden>", null),
+        GradleException("<hidden>", null)
       ))
     )))
   }
@@ -85,20 +144,20 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("org.gradle.internal.exceptions.DefaultMultiCauseException"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("org.gradle.internal.exceptions.DefaultMultiCauseException", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       )),
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("org.gradle.internal.exceptions.DefaultMultiCauseException"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("org.gradle.internal.exceptions.DefaultMultiCauseException", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -110,20 +169,20 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowableMultiCause"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowableMultiCause", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       )),
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowableMultiCause"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowableMultiCause", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -138,13 +197,13 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -155,14 +214,14 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("java.lang.reflect.InvocationTargetException"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("java.lang.reflect.InvocationTargetException", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -198,14 +257,21 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    val reflectionFrame = GradleExceptionAnalyticsSupport.GradleExceptionStackFrame(
+      className = "jdk.internal.reflect.DirectConstructorHandleAccessor",
+      methodName = "newInstance",
+      fileName = "",
+      lineNumber = 0,
+      frameIndex = 0
+    )
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2"),
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable2", reflectionFrame),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable3", reflectionFrame),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 
   @Test
@@ -216,14 +282,14 @@ class GradleExceptionAnalyticsSupportTest {
 
     val gradleFailureDetails = gradleExceptionAnalyticsSupport.extractFailureDetails(exception)
 
-    Truth.assertThat(gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(
+    Truth.assertThat(toTestString(gradleFailureDetails)).isEqualTo(toTestString(GradleFailureDetails(listOf(
       GradleError(listOf(
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1"),
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.TestThrowable1", defaultTopFrameInfo),
         // Not able to retrieve real class name, placeholder name is used.
-        GradleException("com.android.tools.idea.gradle.project.sync.issues.FailingTestPlaceholderException"),
-        GradleException("java.lang.RuntimeException")
+        GradleException("com.android.tools.idea.gradle.project.sync.issues.FailingTestPlaceholderException", defaultTopFrameInfo),
+        GradleException("java.lang.RuntimeException", defaultTopFrameInfo)
       ))
-    )))
+    ))))
   }
 }
 
@@ -242,4 +308,21 @@ class FailingTestPlaceholderException(exception: Throwable) : PlaceholderExcepti
   exception.cause
 ) {
   override fun getExceptionClassName(): String = error("error in getExceptionClassName")
+}
+
+private fun toTestString(failure: GradleFailureDetails): String = buildString {
+  appendLine("GradleFailureDetails(")
+  failure.errors.forEach { error ->
+    appendLine("  GradleError(")
+    error.exceptions.forEach { exception ->
+      appendLine("    GradleException(")
+      appendLine("      exceptionClass=${exception.exceptionClass}")
+      exception.topFrame?.also {
+        appendLine("      topFrame=GradleExceptionStackFrame(${it.className}#${it.methodName}, frameIndex=${it.frameIndex})")
+      }
+      appendLine("    )")
+    }
+    appendLine("  )")
+  }
+  append(")")
 }

@@ -165,10 +165,15 @@ class EmptyDimensionSyncErrorTest {
     Truth.assertThat(issuesEvents.map { it.studioEvent.gradleSyncIssuesList.map { issue -> issue.type } })
       .containsExactly(listOf(AndroidStudioEvent.GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION))
 
-    Truth.assertThat(usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-                       .studioEvent.gradleFailureDetails
-    ).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-      GradleException("com.android.tools.idea.gradle.project.sync.AndroidSyncException"),
-    )))).toAnalyticsMessage())
+    val gradleFailureDetails = usageTracker.usages.single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+      .studioEvent.gradleFailureDetails
+    Truth.assertThat(gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+            }
+          }
+        """.trimIndent())
   }
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.testing.TestProjectPaths
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -56,13 +57,22 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-      expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.internal.exceptions.LocationAwareException"),
-        GradleException("org.gradle.kotlin.dsl.support.ScriptCompilationException"),
-      )))).toAnalyticsMessage())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.internal.exceptions.LocationAwareException
+              at: [0]org.gradle.kotlin.dsl.execution.Interpreter${'$'}ProgramHost${'$'}compileSecondStageOf${'$'}cacheDir${'$'}1#invoke
+            exception: org.gradle.kotlin.dsl.support.ScriptCompilationException
+              at: [0]org.gradle.kotlin.dsl.support.KotlinCompilerKt#compileKotlinScriptModuleTo
+          }
+        }
+      """.trimIndent())
     }
 
   )

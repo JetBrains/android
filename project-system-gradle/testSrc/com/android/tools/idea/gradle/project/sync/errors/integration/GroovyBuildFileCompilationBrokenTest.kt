@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalytic
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -33,7 +34,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
     expectedErrorNodeNameVerifier: (String) -> Unit,
-    expectedGradleFailureDetails: GradleFailureDetails
+    expectedFailureDetailsString: String
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
@@ -57,7 +58,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-      expect.that(it.gradleFailureDetails).isEqualTo(expectedGradleFailureDetails.toAnalyticsMessage())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
     },
   )
 
@@ -72,13 +73,22 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       expectedErrorNodeNameVerifier = {
         expect.that(it).startsWith("Unexpected input: '(\"This is a simple application!\")")
       },
-      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.groovy.scripts.ScriptCompilationException"),
-        GradleException("org.codehaus.groovy.control.MultipleCompilationErrorsException"),
-      ))))
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.groovy.scripts.ScriptCompilationException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#lambda${'$'}wrapCompilationFailure${'$'}0
+            exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
+              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -96,13 +106,22 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       expectedErrorNodeNameVerifier = {
         expect.that(it).startsWith("Unexpected input: 'throw'")
       },
-      expectedGradleFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.groovy.scripts.ScriptCompilationException"),
-        GradleException("org.codehaus.groovy.control.MultipleCompilationErrorsException"),
-      ))))
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.groovy.scripts.ScriptCompilationException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#lambda${'$'}wrapCompilationFailure${'$'}0
+            exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
+              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -136,13 +155,22 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
-        expect.that(it.gradleFailureDetails).isEqualTo(GradleFailureDetails(listOf(GradleError(listOf(
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.tooling.BuildActionFailureException"),
-          GradleException("org.gradle.api.ProjectConfigurationException"),
-          GradleException("org.gradle.api.GradleScriptException"),
-          GradleException("org.codehaus.groovy.runtime.typehandling.GroovyCastException"),
-        )))).toAnalyticsMessage())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.GradleScriptException
+                at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+              exception: org.codehaus.groovy.runtime.typehandling.GroovyCastException
+                at: [1]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            }
+          }
+        """.trimIndent())
       }
     )
   }

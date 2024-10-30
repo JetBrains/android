@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.errors.StopGradleDaemonQuickFix
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport
-import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.*
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
@@ -84,13 +82,22 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.GradleScriptException"),
-        GradleException("java.lang.NoSuchMethodError"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: java.lang.NoSuchMethodError
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -111,14 +118,24 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.GradleScriptException"),
-        GradleException("org.gradle.api.internal.plugins.PluginApplicationException"),
-        GradleException("java.lang.ClassCastException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.api.internal.plugins.PluginApplicationException
+              at: [0]org.gradle.api.internal.plugins.DefaultPluginManager#doApply
+            exception: java.lang.ClassCastException
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -140,15 +157,26 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent(),
-      expectedFailureDetails = GradleFailureDetails(listOf(GradleError(listOf(
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.tooling.BuildActionFailureException"),
-        GradleException("org.gradle.api.ProjectConfigurationException"),
-        GradleException("org.gradle.api.GradleScriptException"),
-        GradleException("org.gradle.api.internal.plugins.PluginApplicationException"),
-        GradleException("java.lang.RuntimeException"),
-        GradleException("java.lang.ClassNotFoundException"),
-      )))).toAnalyticsMessage()
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [1]kotlinx.coroutines.channels.BufferedChannel${'$'}BufferedChannelIterator#onClosedHasNext
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.api.internal.plugins.PluginApplicationException
+              at: [0]org.gradle.api.internal.plugins.DefaultPluginManager#doApply
+            exception: java.lang.RuntimeException
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+            exception: java.lang.ClassNotFoundException
+              at: [0]org.gradle.internal.classloader.VisitableURLClassLoader${'$'}InstrumentingVisitableURLClassLoader#findClass
+          }
+        }
+      """.trimIndent()
     )
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.google.wireless.android.sdk.stats.GradleFailureDetails.GradleExceptionInfo
+import com.google.wireless.android.sdk.stats.GradleFailureDetails.GradleExceptionStackFrameInfo
 import com.intellij.util.ReflectionUtil
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -88,10 +89,33 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
     private const val hiddenNameReplacement = "<hidden>"
   }
 
-  data class GradleException(val exceptionClass: String) {
+  data class GradleException(
+    val exceptionClass: String,
+    val topFrame: GradleExceptionStackFrame? = null //TODO remove to enforce
+  ) {
     fun toAnalyticsMessage(): GradleExceptionInfo {
       return GradleExceptionInfo
-        .newBuilder().setExceptionClassName(exceptionClass).build()
+        .newBuilder()
+        .setExceptionClassName(exceptionClass)
+        .also { if (topFrame != null) it.setTopFrameInfo(topFrame.toAnalyticsMessage()) }
+        .build()
+    }
+  }
+  data class GradleExceptionStackFrame(
+    val className: String,
+    val methodName: String,
+    val fileName: String?,
+    val lineNumber: Int,
+    val frameIndex: Int
+  ) {
+    fun toAnalyticsMessage(): GradleExceptionStackFrameInfo {
+      return GradleExceptionStackFrameInfo.newBuilder()
+        .setClassName(className)
+        .setMethodName(methodName)
+        .also { if (fileName != null) it.setFileName(fileName) }
+        .setLineNumber(lineNumber)
+        .setFrameIndex(frameIndex)
+        .build()
     }
   }
   data class GradleError(val exceptions: List<GradleException>) {
@@ -113,7 +137,13 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
   }
 
   private fun convertError(e: Throwable): List<GradleError> {
-    val exception = GradleException(clearClassName(getClassName(e)))
+    val frame = e.stackTrace.let { stackTrace ->
+      val frameIndex = stackTrace.indexOfFirst { isClassAllowed(it.className) }
+      return@let if (frameIndex == -1) null else stackTrace[frameIndex].let { frame ->
+        GradleExceptionStackFrame(frame.className, frame.methodName, frame.fileName, frame.lineNumber, frameIndex)
+      }
+    }
+    val exception = GradleException(clearClassName(getClassName(e)), frame)
     val convertedCauses = getConvertedCauses(e)
     if (convertedCauses.isEmpty()) {
       return listOf(GradleError(listOf(exception)))
@@ -170,9 +200,11 @@ class GradleExceptionAnalyticsSupport @VisibleForTesting constructor(val package
   }
 
   private fun clearClassName(className: String): String {
-    if (packagesAllowList.any { allowedPackagePrefix ->  className.startsWith(allowedPackagePrefix) }) {
+    if (isClassAllowed(className)) {
       return className
     }
     return hiddenNameReplacement
   }
+
+  private fun isClassAllowed(className: String) = packagesAllowList.any { allowedPackagePrefix ->  className.startsWith(allowedPackagePrefix) }
 }
