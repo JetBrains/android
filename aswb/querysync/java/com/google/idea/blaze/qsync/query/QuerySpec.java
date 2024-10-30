@@ -15,12 +15,15 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.Iterables.concat;
 import static java.util.stream.Collectors.joining;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -57,6 +60,35 @@ public abstract class QuerySpec implements TruncatingFormattable {
         }
         return Optional.of("(" + baseExpression + ")");
       }
+    },
+
+    FILTERING_TO_KNOWN_AND_USED_TARGETS {
+      @Override
+      public ImmutableList<String> getQueryFlags() {
+        return ImmutableList.of(
+          "--output=streamed_proto",
+          "--noproto:rule_inputs_and_outputs",
+          "--relative_locations=true",
+          "--consistent_labels=true"
+        );
+      }
+
+      @Override
+      public Optional<String> getQueryExpression(QuerySpec querySpec) {
+        final var baseQuery = baseExpression(querySpec);
+        if (baseQuery.isEmpty()) {
+          return Optional.empty();
+        }
+        String ruleClassPattern = String.join("|", concat(SOURCE_FILE_AS_LIST, querySpec.supportedRuleClasses()));
+        return Optional.of(
+
+          "let base = " +
+          baseQuery +
+          "\n" +
+          " in let known = kind(\"" + ruleClassPattern + "\", $base) \n" +
+          " in let unknown = $base except $known \n" +
+          " in $known union ($base intersect allpaths($known, $unknown)) \n");
+      }
     };
 
     public abstract ImmutableList<String> getQueryFlags();
@@ -79,6 +111,9 @@ public abstract class QuerySpec implements TruncatingFormattable {
 
   /** The set of package patterns to include. */
   abstract ImmutableList<String> excludes();
+
+  /** The set of rule classes that query sync supports directly. */
+  abstract ImmutableSet<String> supportedRuleClasses();
 
   @Memoized
   public ImmutableList<String> getQueryFlags() {
@@ -124,6 +159,8 @@ public abstract class QuerySpec implements TruncatingFormattable {
     abstract ImmutableList.Builder<String> includesBuilder();
 
     abstract ImmutableList.Builder<String> excludesBuilder();
+
+    public abstract Builder supportedRuleClasses(ImmutableSet<String> supportedRuleClasses);
 
     @CanIgnoreReturnValue
     public Builder includePath(Path include) {
