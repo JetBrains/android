@@ -445,7 +445,6 @@ filegroup(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/vendor/google/asfp/base:studio-intellijext",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
-        "//tools/vendor/google/directaccess-oem-labs:libda_oem_labs_proto",
         "//tools/vendor/google/firebase/integration:titan_java_proto",
         "//tools/vendor/google/firebase:firebase_java_proto",
         "//tools/vendor/google/firebase:gemini_java_proto",
