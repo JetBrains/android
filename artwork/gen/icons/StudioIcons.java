@@ -221,7 +221,11 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_TV = load("studio/icons/device-explorer/firebase-device-tv.svg", "intui/icons/device-explorer/firebase-device-tv.svg", -1398133332, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_WEAR = load("studio/icons/device-explorer/firebase-device-wear.svg", "intui/icons/device-explorer/firebase-device-wear.svg", -1705649727, 2);
     /** 16x16 */ public static final @NotNull Icon MULTIPLE_DEVICES = load("studio/icons/device-explorer/multiple-devices.svg", "intui/icons/device-explorer/multiple-devices.svg", 258441174, 2);
+    /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_CAR = load("studio/icons/device-explorer/oem-lab-device-car.svg", 1416066005, 2);
+    /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_DESKTOP = load("studio/icons/device-explorer/oem-lab-device-desktop.svg", -524922808, 2);
     /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_PHONE = load("studio/icons/device-explorer/oem-lab-device-phone.svg", 243467045, 2);
+    /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_TV = load("studio/icons/device-explorer/oem-lab-device-tv.svg", -1446845516, 2);
+    /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_WEAR = load("studio/icons/device-explorer/oem-lab-device-wear.svg", 1546987870, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_CAR = load("studio/icons/device-explorer/physical-device-car.svg", "intui/icons/device-explorer/physical-device-car.svg", 561759189, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_HEADSET = load("studio/icons/device-explorer/physical-device-headset.svg", -1057877647, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_PHONE = load("studio/icons/device-explorer/physical-device-phone.svg", "intui/icons/device-explorer/physical-device-phone.svg", -2054075724, 2);
