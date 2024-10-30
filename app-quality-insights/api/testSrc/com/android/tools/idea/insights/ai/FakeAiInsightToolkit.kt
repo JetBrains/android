@@ -16,14 +16,18 @@
 package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 
 open class FakeAiInsightToolkit(
-  val codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
+  var codeContextResolver: CodeContextResolver = FakeCodeContextResolver(emptyList()),
   override val aiInsightOnboardingProvider: InsightsOnboardingProvider =
     StubInsightsOnboardingProvider(),
 ) : AiInsightToolkit {
-  override suspend fun getSource(stack: StacktraceGroup, contextSharingOverride: Boolean) =
-    codeContextResolver.getSource(stack)
+  override suspend fun getSource(
+    stack: StacktraceGroup,
+    contextSharingOverride: Boolean,
+    overrideSourceLimit: Boolean,
+  ): CodeContextData = codeContextResolver.getSource(stack, overrideSourceLimit)
 }

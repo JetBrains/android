@@ -30,6 +30,7 @@ import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
@@ -150,26 +151,32 @@ class InsightDisclaimerPanelTest {
     clickOnLink()
     waitForCondition(2.seconds) { message.isNotEmpty() }
 
+    val expectedMessage =
+      "<html>Android Studio needs to send code context from your project to enhance the insight for this issue." +
+        "<br>Would you like to continue?<br><b>Files to be shared</b>: c, c2, c3\n" +
+        "<p style=\"color:#999999;margin-top:5px;\">" +
+        "You can change your context sharing preference from Settings > Tools > Gemini.</p></html>"
+
+    assertThat(message).isEqualTo(expectedMessage)
+
+    // Assert no context popup
+    setCodeContextResolver(FakeCodeContextResolver(emptyList()))
+    message = ""
+    clickOnLink()
+    waitForCondition(2.seconds) { message.isNotEmpty() }
     assertThat(message)
       .isEqualTo(
-        "<html>Android Studio needs to send code context from your project to enhance the insight for this issue." +
-          "<br>Would you like to continue?<br><b>Files to be shared</b>: c, c2, c3\n" +
-          "<p style=\"color:#999999;margin-top:5px;\">" +
-          "You can change your context sharing preference from Settings > Tools > Gemini.</p></html>"
+        "Android Studio attempted to find relevant files to improve this insight but found none. Please try again at a later time."
       )
 
+    // For CONTROL, it should show the message with files when the context is available
+    setCodeContextResolver(codeContextResolver)
     experimentFetcher.experiment = Experiment.CONTROL
     message = ""
     clickOnLink()
     waitForCondition(2.seconds) { message.isNotEmpty() }
 
-    assertThat(message)
-      .isEqualTo(
-        "<html>Android Studio needs to send code context from your project to enhance the insight for this issue." +
-          "<br>Would you like to continue?\n" +
-          "<p style=\"color:#999999;margin-top:5px;\">" +
-          "You can change your context sharing preference from Settings > Tools > Gemini.</p></html>"
-      )
+    assertThat(message).isEqualTo(expectedMessage)
   }
 
   @Test
@@ -246,4 +253,9 @@ class InsightDisclaimerPanelTest {
 
   private fun isPromptingContextDisclaimer() =
     fakeUi.findComponent<JPanel> { it.name == "without_code_disclaimer_panel" }!!.isVisible
+
+  private fun setCodeContextResolver(codeContextResolver: CodeContextResolver) {
+    (stubController.aiInsightToolkit as FakeAiInsightToolkit).codeContextResolver =
+      codeContextResolver
+  }
 }
