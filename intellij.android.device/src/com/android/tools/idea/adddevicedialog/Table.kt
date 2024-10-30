@@ -81,15 +81,12 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
+import org.jetbrains.jewel.ui.component.scrollbarContentSafePadding
 import org.jetbrains.jewel.ui.component.styling.ScrollbarStyle
-import org.jetbrains.jewel.ui.component.styling.ScrollbarVisibility.AlwaysVisible
-import org.jetbrains.jewel.ui.component.styling.ScrollbarVisibility.WhenScrolling
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.colorPalette
 import org.jetbrains.jewel.ui.theme.scrollbarStyle
 import org.jetbrains.jewel.ui.util.thenIf
-import org.jetbrains.skiko.OS
-import org.jetbrains.skiko.hostOs
 
 data class TableColumn<in T>(
   val name: String,
@@ -246,13 +243,7 @@ internal fun <T> TableHeader(
  */
 @Composable
 private fun scrollbarHeaderPadding(style: ScrollbarStyle = JewelTheme.scrollbarStyle): Dp =
-  // This is org.jetbrains.jewel.ui.component.scrollbarContentSafePadding() with two values swapped.
-  when {
-    hostOs != OS.MacOS -> style.scrollbarVisibility.trackThicknessExpanded
-    style.scrollbarVisibility is AlwaysVisible -> style.scrollbarVisibility.trackThicknessExpanded
-    style.scrollbarVisibility is WhenScrolling -> 0.dp
-    else -> error("Unsupported visibility: ${style.scrollbarVisibility}")
-  }
+  style.scrollbarVisibility.trackThicknessExpanded - scrollbarContentSafePadding(style)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
