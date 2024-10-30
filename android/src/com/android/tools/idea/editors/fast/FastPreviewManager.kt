@@ -213,14 +213,14 @@ private typealias CompileRequestId = String
  * Creates a [CompileRequestId] for the given inputs. [files] will be used to ensure the [CompileRequestId] changes if
  * one of the given files contents have changed.
  */
-private fun createCompileRequestId(files: Collection<PsiFile>, module: Module): CompileRequestId {
+private fun createCompileRequestId(files: Collection<PsiFile>, project: Project): CompileRequestId {
   val filesDependency = files
     .sortedBy { it.virtualFile.path }.joinToString("\n") {
       "${it.virtualFile.path}@${it.modificationStamp}"
     }
   val compilationRequestContents = """
         $filesDependency
-        ${ProjectRootModificationTracker.getInstance(module.project).modificationCount}
+        ${ProjectRootModificationTracker.getInstance(project).modificationCount}
         """.trimIndent()
 
   @Suppress("UnstableApiUsage")
@@ -358,7 +358,7 @@ class FastPreviewManager private constructor(
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
-    val requestId = createCompileRequestId(files, module)
+    val requestId = createCompileRequestId(files, project)
     val (existingRequest: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
       var existingRequest = true
       val request = requestTracker.get(requestId) {
