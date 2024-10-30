@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CancellationException
@@ -40,7 +40,7 @@ class BlockingDaemonClient : CompilerDaemonClient {
   override suspend fun compileRequest(
     applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
-    module: Module,
+    contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
     indicator: ProgressIndicator
   ): CompilationResult {

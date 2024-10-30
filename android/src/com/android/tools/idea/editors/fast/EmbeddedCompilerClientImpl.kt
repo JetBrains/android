@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.fast
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
@@ -193,7 +194,7 @@ class EmbeddedCompilerClientImpl private constructor(
   override suspend fun compileRequest(
     applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
-    module: Module,
+    contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult = coroutineScope {
     daemonLock.withLock(this) {

@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.IJLogger
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -137,13 +138,14 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   override suspend fun compileRequest(
     applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
-    module: Module,
+    contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
     indicator: ProgressIndicator,
   ): CompilationResult {
     indicator.text = "Building classpath"
-    val moduleClassPath = moduleClassPathLocator(module)
-    val moduleDependenciesClassPath = moduleDependenciesClassPathLocator(module)
+    val moduleClassPath = moduleClassPathLocator(contextBuildTargetReference.module)
+    val moduleDependenciesClassPath =
+      moduleDependenciesClassPathLocator(contextBuildTargetReference.module)
 
     return daemonClient.compile(
       files.map { it.virtualFile.path }.toList(),
