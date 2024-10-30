@@ -2188,6 +2188,17 @@ public final class StudioFlags {
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
+  // region DEV_SERVICES_DEPRECATION_SUPPORT
+  // See go/android-studio-developer-services-compat-policy and go/as-kill-feature-past-deadline
+  // These flags are mostly meant to be changed via server flags.
+  private static final FlagGroup DEV_SERVICES_SLA = new FlagGroup(FLAGS, "gservices", "Dev Services Support SLA");
+
+  public static final Flag<Boolean> DEV_SERVICES_SUPPORTED_V1 = new BooleanFlag(
+    DEV_SERVICES_SLA, "supported.v1", "Dev Services Supported", "Dev Services Supported", true);
+  public static final Flag<Boolean> DEV_SERVICES_DEPRECATED_V1 = new BooleanFlag(
+    DEV_SERVICES_SLA, "deprecated.v1", "Dev Services Supported", "Dev Services Deprecated", false);
+  // endregion DEV_SERVICES_DEPRECATION_SUPPORT
+
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
     // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
