@@ -233,9 +233,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   }
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
-    // If there are fewer than two parameters, then there's no need to rewrite the completion entry
-    // to handle verbose @Composable functions.
-    if (parts.totalParameterCount < 2) return
+    // If there are no parameters, don't spend any time rewriting.
+    if (parts.totalParameterCount < 1) return
 
     // Rewrite the function signature to avoid showing too many parameters, since @Composable
     // functions often have a large number. The first fragment contains the portion we want to
@@ -262,8 +261,14 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
       }
     }
 
-    // Copy the remaining fragments that came from the Kotlin plugin.
-    for (fragment in existingTailFragments.drop(1)) {
+    // We need to drop one or two fragments from the existing tail.
+    // The first fragment from the Kotlin plugin contains the parameters, which we've already
+    // written out above; these are always dropped.
+    // If the second fragment contains the string "->", then it's a type specifier for the trailing
+    // lambda that we want to omit for rewritten Composables.
+    val dropCount =
+      if (existingTailFragments.elementAtOrNull(1)?.text?.contains("->") == true) 2 else 1
+    for (fragment in existingTailFragments.drop(dropCount)) {
       // Technically each fragment may have a color associated with it which we are not persisting.
       // But the only time that can be set is with LookupElementPresentation.setTailText, which
       // clears the tail before adding the fragment with color. That means only the first fragment
@@ -275,20 +280,14 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   }
 }
 
-/** A function to remove the first "(.*)" string from [LookupElementPresentation.TextFragment]. */
+/**
+ * A function to extract the package name (eg " (com.example)") at the end of a
+ * [LookupElementPresentation.TextFragment].
+ */
 private fun LookupElementPresentation.TextFragment.removeParameters(): String {
-  if (text.firstOrNull() != '(') return text
-  var parenOpenCount = 0
-  for (i in text.indices) {
-    when (text[i]) {
-      '(' -> ++parenOpenCount
-      ')' -> {
-        --parenOpenCount
-        if (parenOpenCount == 0) return text.substring(startIndex = i + 1)
-      }
-    }
-  }
-  return ""
+  val lastParen = text.lastIndexOf(" (")
+  if (lastParen == -1) return text
+  return text.substring(lastParen)
 }
 
 /**
