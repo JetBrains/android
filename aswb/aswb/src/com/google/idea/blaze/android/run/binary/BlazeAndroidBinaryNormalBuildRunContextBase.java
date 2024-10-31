@@ -19,7 +19,6 @@ import static com.google.idea.blaze.android.run.runner.BlazeAndroidLaunchTasksPr
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.DeployOptions;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
@@ -30,6 +29,7 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.blaze.BlazeLaunchTask;
 import com.android.tools.idea.run.blaze.BlazeLaunchTasksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService;

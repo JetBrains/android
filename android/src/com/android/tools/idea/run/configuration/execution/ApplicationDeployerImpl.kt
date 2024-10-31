@@ -22,7 +22,7 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
