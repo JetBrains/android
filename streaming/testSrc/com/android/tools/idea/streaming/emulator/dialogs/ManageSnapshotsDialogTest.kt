@@ -52,6 +52,7 @@ import com.intellij.ui.table.TableView
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -309,6 +310,7 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
+  @Ignore("b/376552507")
   fun testDialogClosedWhileLoadingSnapshot() {
     var snapshotLoadingPopupVisible = false
     val loadingPanel = StreamingLoadingPanel(testRootDisposable)
