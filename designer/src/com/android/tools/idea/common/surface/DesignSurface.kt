@@ -624,10 +624,16 @@ abstract class DesignSurface<T : SceneManager>(
    * Resets the bitwise mask so DesignSurface can listen again onResize and trying to call
    * restoreZoomOrZoomToFit when possible.
    *
-   * Note: this function works only if [DesignSurface. waitForRenderBeforeRestoringZoom] is enabled.
+   * Note: this function works only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
    */
   fun resetRestoreZoomNotifier() {
-    readyToRestoreZoomMask.set(0)
+    if (readyToRestoreZoomMask.get() == RESTORE_ZOOM_DONE_INT_MASK && height > 0 && width > 0) {
+      // If we have performed already the first [DesignSurface.waitForRenderBeforeRestoringZoom]
+      // we can just set the bitwise map with the NOTIFY_RESTORE_ZOOM_INT_MASK flag.
+      readyToRestoreZoomMask.set(NOTIFY_RESTORE_ZOOM_INT_MASK)
+    } else {
+      readyToRestoreZoomMask.set(0)
+    }
   }
 
   @TestOnly
