@@ -142,7 +142,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
           CodeContext(className, file.path, file.readText(), language)
         }
       }
-      .distinctBy { it.className }
+      .distinctBy { it.filePath }
       .take(fileLimit)
   }
 }

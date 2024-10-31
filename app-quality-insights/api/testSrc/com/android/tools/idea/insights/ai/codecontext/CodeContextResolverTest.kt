@@ -100,6 +100,13 @@ private val CIRCLE_ACTIVITY_CONTENT =
   class CircleActivity : ComponentActivity() {
      override fun onCreate(savedInstanceState: Bundle?) {
          super.onCreate(savedInstanceState)
+         Foo().bar()
+     }
+  }
+
+  private class Foo {
+     fun bar() {
+        // Do something fun
      }
   }
 """
@@ -174,10 +181,20 @@ private val STACKTRACE =
                   blame = Blames.NOT_BLAMED,
                 ),
                 Frame(
+                  line = 6,
+                  file = "CircleActivity.kt",
+                  rawSymbol = "com.example.myapp.CircleActivity.onCreate(CircleActivity.kt:6)",
+                  symbol = "com.example.myapp.CircleActivity.onCreate",
+                  offset = 31,
+                  address = 0,
+                  library = "com.example.mylibrary.debug",
+                  blame = Blames.NOT_BLAMED,
+                ),
+                Frame(
                   line = 5,
                   file = "CircleActivity.kt",
-                  rawSymbol = "com.example.myapp.CircleActivity.onCreate(CircleActivity.kt:5)",
-                  symbol = "com.example.myapp.CircleActivity.onCreate",
+                  rawSymbol = "com.example.myapp.CircleActivity.Foo.bar(CircleActivity.kt:12)",
+                  symbol = "com.example.myapp.CircleActivity.Foo.bar",
                   offset = 31,
                   address = 0,
                   library = "com.example.mylibrary.debug",
