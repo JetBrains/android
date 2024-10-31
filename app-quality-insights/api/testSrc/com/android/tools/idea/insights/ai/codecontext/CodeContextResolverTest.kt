@@ -92,7 +92,7 @@ private val PARTIAL_ACTIVITY_CONTENT =
   }
 """
     .trimIndent()
-// lines 7, characters 176
+// lines 14, characters 264
 private val CIRCLE_ACTIVITY_CONTENT =
   """
   package com.example.myapp
@@ -319,8 +319,8 @@ class CodeContextResolverTest(private val experiment: Experiment) {
         Experiment.UNKNOWN,
         Experiment.CONTROL -> CodeContextTrackingInfo.EMPTY
         Experiment.TOP_SOURCE -> CodeContextTrackingInfo(1, 14, 344)
-        Experiment.TOP_THREE_SOURCES -> CodeContextTrackingInfo(3, 39, 1047)
-        Experiment.ALL_SOURCES -> CodeContextTrackingInfo(4, 46, 1221)
+        Experiment.TOP_THREE_SOURCES -> CodeContextTrackingInfo(3, 46, 1135)
+        Experiment.ALL_SOURCES -> CodeContextTrackingInfo(4, 53, 1309)
       }
   }
 
