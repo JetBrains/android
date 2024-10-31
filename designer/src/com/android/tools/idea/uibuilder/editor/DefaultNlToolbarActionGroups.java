@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.ColorBlindModeAction;
 import com.android.tools.idea.actions.DeviceMenuAction;
+import com.android.tools.idea.actions.LocaleMenuAction;
+import com.android.tools.idea.actions.OrientationMenuAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.actions.SystemUiModeAction;
-import com.android.tools.idea.actions.SystemUiOptionsAction;
+import com.android.tools.idea.actions.TargetMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
@@ -29,11 +32,6 @@ import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.actions.LocaleMenuAction;
-import com.android.tools.idea.actions.OrientationMenuAction;
-import com.android.tools.idea.actions.TargetMenuAction;
-import com.android.tools.idea.actions.ThemeMenuAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
@@ -124,10 +122,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
     group.addSeparator();
 
-    if (StudioFlags.NELE_SYSTEM_UI_OPTIONS.get()) {
-      group.add(new SystemUiOptionsAction());
-      group.addSeparator();
-    }
     return group;
   }
 
