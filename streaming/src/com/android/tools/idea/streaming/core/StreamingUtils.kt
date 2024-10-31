@@ -41,6 +41,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -269,4 +270,15 @@ internal fun textComponent(
     }
     this.text = text
   }
+}
+
+internal fun Component.containsFocus(): Boolean {
+  var component = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+  while (component != null) {
+    if (component == this) {
+      return true
+    }
+    component = component.parent
+  }
+  return false
 }

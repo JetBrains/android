@@ -132,8 +132,10 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
-import java.time.Duration
 import java.util.function.Supplier
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
@@ -143,8 +145,9 @@ private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000L
 
 private val ID_KEY = Key.create<DeviceId>("device-id")
 
-private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
-private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
+private val ATTENTION_REQUEST_EXPIRATION = 30.seconds
+private val REMOTE_DEVICE_REQUEST_EXPIRATION = 60.seconds
+private val AUTO_RECONNECTION_TIMEOUT = 5.seconds // Auto reconnection timeout is just long enough to reconnect after adb kill-server.
 
 @VisibleForTesting
 internal val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
@@ -186,17 +189,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private var devicesExcludedFromMirroring = mutableMapOf<String, DeviceDescription>()
 
   /** Requested activation levels of devices that recently requested attention keyed by their serial numbers. */
-  private val recentAttentionRequests =
-      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
+  private val recentAttentionRequests = buildCache<String, ActivationLevel>(ATTENTION_REQUEST_EXPIRATION)
   /** Requested activation levels of AVDs keyed by their IDs. */
-  private val recentAvdLaunches =
-      Caffeine.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ActivationLevel>()
+  private val recentAvdLaunches = buildCache<String, ActivationLevel>(ATTENTION_REQUEST_EXPIRATION)
+  /** Recently disconnected mirrored devices. */
+  private val recentDisconnections = buildCache<String, ActivationLevel>(AUTO_RECONNECTION_TIMEOUT)
   /** Links pending AVD starts to the content managers that requested them. Keyed by AVD IDs. */
-  private val recentAvdStartRequesters =
-      Caffeine.newBuilder().weakValues().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, ContentManager>()
+  private val recentAvdStartRequesters = buildCache<String, ContentManager>(ATTENTION_REQUEST_EXPIRATION)
   /** Links pending remote device mirroring starts to the content managers that requested them. Keyed by AVD IDs. */
-  private val recentRemoteDeviceRequesters =
-      Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(REMOTE_DEVICE_REQUEST_EXPIRATION).build<DeviceHandle, ContentManager>()
+  private val recentRemoteDeviceRequesters = buildWeakCache<DeviceHandle, ContentManager>(REMOTE_DEVICE_REQUEST_EXPIRATION)
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   private val toolWindowScope = createCoroutineScope(extraContext = Dispatchers.EDT)
@@ -354,7 +355,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun addAttentionRequestAndTriggerEmulatorCatalogUpdate(serialNumber: String, activation: ActivationLevel) {
     recentAttentionRequests.put(serialNumber, activation)
-    alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+    alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
     if (isLocalEmulator(serialNumber)) {
       val future = RunningEmulatorCatalog.getInstance().updateNow()
       future.addCallback(EdtExecutorService.getInstance(),
@@ -388,7 +389,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (content == null) {
       RunningEmulatorCatalog.getInstance().updateNow()
       recentAvdLaunches.put(avdId, activation)
-      alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+      alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
     }
     else {
       content.select(activation)
@@ -863,12 +864,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
     if (serialNumber in onlineDevices && serialNumber !in deviceClients) {
-      val activation = when {
-        recentAttentionRequests.remove(serialNumber) != null -> ActivationLevel.SELECT_TAB
-        deviceMirroringSettings.activateOnConnection -> ActivationLevel.SHOW_TOOL_WINDOW
-        deviceClientRegistry.clientsBySerialNumber.containsKey(serialNumber) -> ActivationLevel.CREATE_TAB
-        else -> null
-      }
+      val activation = maxOf(maxOf(recentAttentionRequests.remove(serialNumber), recentDisconnections.remove(serialNumber)),
+                             when {
+                               deviceMirroringSettings.activateOnConnection -> ActivationLevel.SHOW_TOOL_WINDOW
+                               deviceClientRegistry.clientsBySerialNumber.containsKey(serialNumber) -> ActivationLevel.CREATE_TAB
+                               else -> null
+                             })
       if (activation == null) {
         // The device is excluded from mirroring.
         val deviceDescription = devicesExcludedFromMirroring[serialNumber]
@@ -881,6 +882,17 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         activateMirroring(serialNumber, deviceHandle, config, activation)
       }
     }
+  }
+
+  private fun rememberDisconnectedDevice(serialNumber: String) {
+    val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
+    val activation = when {
+      content.component.containsFocus() -> ActivationLevel.ACTIVATE_TAB
+      content.isSelected -> ActivationLevel.SELECT_TAB
+      else -> ActivationLevel.CREATE_TAB
+    }
+    recentDisconnections.put(serialNumber, activation)
+    alarm.addRequest(recentDisconnections::cleanUp, AUTO_RECONNECTION_TIMEOUT.inWholeMicroseconds)
   }
 
   private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
@@ -1062,6 +1074,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       if (removed.isNotEmpty()) {
         if (contentShown) {
           for (device in removed) {
+            rememberDisconnectedDevice(device)
             removePhysicalDevicePanel(device)
           }
         }
@@ -1136,7 +1149,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val contentManager = event.contentManager
       if (contentManager != null) {
         recentRemoteDeviceRequesters.put(device, contentManager)
-        alarm.addRequest(recentRemoteDeviceRequesters::cleanUp, REMOTE_DEVICE_REQUEST_EXPIRATION.toMillis())
+        alarm.addRequest(recentRemoteDeviceRequesters::cleanUp, REMOTE_DEVICE_REQUEST_EXPIRATION.inWholeMicroseconds)
       }
       device.scope.launch { device.activationAction?.activate() }
     }
@@ -1164,7 +1177,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val contentManager = event.contentManager
       if (contentManager != null) {
         recentAvdStartRequesters.put(avd.id, contentManager)
-        alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+        alarm.addRequest(recentAvdStartRequesters::cleanUp, ATTENTION_REQUEST_EXPIRATION.inWholeMicroseconds)
       }
       toolWindowScope.launch(Dispatchers.IO) {
         val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
@@ -1322,6 +1335,14 @@ private enum class ActivationLevel {
   ACTIVATE_TAB,
 }
 
+private fun maxOf(a: ActivationLevel?, b: ActivationLevel?): ActivationLevel? {
+  return when {
+    b == null -> a
+    a == null -> b
+    else -> kotlin.comparisons.maxOf(a, b)
+  }
+}
+
 @Service(Service.Level.APP)
 internal class DeviceClientRegistry : Disposable {
 
@@ -1399,4 +1420,8 @@ internal class DeviceClientRegistry : Disposable {
   }
 }
 
+private fun <K, V> buildCache(expiration: Duration): Cache<K, V> =
+    Caffeine.newBuilder().expireAfterWrite(expiration.toJavaDuration()).build()
+private fun <K, V> buildWeakCache(expiration: Duration): Cache<K, V> =
+    Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(expiration.toJavaDuration()).build()
 private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
