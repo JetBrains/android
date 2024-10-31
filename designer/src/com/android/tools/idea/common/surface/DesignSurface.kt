@@ -79,6 +79,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -614,6 +615,7 @@ abstract class DesignSurface<T : SceneManager>(
    * Notify to [DesignSurface] that we can now try to restore the zoom. Note: this function works
    * only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
    */
+  @UiThread
   fun notifyRestoreZoom() {
     checkIfReadyToRestoreZoom(NOTIFY_RESTORE_ZOOM_INT_MASK)
   }
@@ -641,6 +643,7 @@ abstract class DesignSurface<T : SceneManager>(
    *
    * Note: this function works only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
    */
+  @UiThread
   private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
     val newMask =
       readyToRestoreZoomMask.updateAndGet {
@@ -815,6 +818,7 @@ abstract class DesignSurface<T : SceneManager>(
    * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no
    *   model.
    */
+  @UiThread
   private fun restoreZoomOrZoomToFit(): Boolean {
     val model = model ?: return false
     if (!restorePreviousScale(model)) {
@@ -1204,6 +1208,20 @@ abstract class DesignSurface<T : SceneManager>(
         },
         EdtExecutorService.getInstance(),
       )
+  }
+
+  /**
+   * Bulk version of [addModelWithoutRender].
+   *
+   * This method is expected to be called in the background thread, and it will schedule the
+   * corresponding call to [DesignSurfaceListener.modelsChanged] in EDT for later.
+   */
+  @RequiresBackgroundThread
+  fun addModelsWithoutRender(models: List<NlModel>): List<T> {
+    val sceneManagers = models.map { addModel(it) }
+    notifyModelsChanged(models)
+    reactivateGuiInputHandler()
+    return sceneManagers
   }
 
   private var lintIssueProvider: LintIssueProvider? = null
