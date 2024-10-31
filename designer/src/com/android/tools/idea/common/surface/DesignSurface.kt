@@ -596,7 +596,7 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private fun notifySelectionChanged(newSelection: List<NlComponent?>) {
+  private fun notifySelectionChanged(newSelection: List<NlComponent>) {
     val listeners = getSurfaceListeners()
     for (listener in listeners) {
       listener.componentSelectionChanged(this, newSelection)
