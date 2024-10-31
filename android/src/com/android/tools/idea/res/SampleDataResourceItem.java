@@ -212,7 +212,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
         return null;
       }
 
-      PsiElement source = jsonPointer.getElement();
+      PsiElement source = runReadAction(jsonPointer::getElement);
       if (source == null) {
         LOG.warn("JSON file pointer was invalidated and the repository was not refreshed");
         return null;
