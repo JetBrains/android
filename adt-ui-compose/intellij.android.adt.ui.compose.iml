@@ -43,7 +43,7 @@
     <orderEntry type="module" module-name="intellij.platform.editor" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module-library" exported="" scope="RUNTIME">
-      <library name="jetbrains.skiko.awt.runtime.all.0.8.9" type="repository">
+      <library name="jetbrains.skiko.awt.runtime.all.0.8.12" type="repository">
         <properties maven-id="org.jetbrains.skiko:skiko-awt-runtime-all:0.8.12">
           <verification>
             <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt-runtime-all/0.8.12/skiko-awt-runtime-all-0.8.12.jar">
