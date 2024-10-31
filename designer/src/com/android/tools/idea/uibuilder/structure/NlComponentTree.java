@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
 import com.intellij.openapi.Disposable;
@@ -54,6 +55,7 @@ import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.client.ClientSystemInfo;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
@@ -526,8 +528,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   @UiThread
-  public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
-    setModel(model, true);
+  public void modelsChanged(@NotNull DesignSurface<?> surface, @NotNull List<? extends @Nullable NlModel> models) {
+    // This class works under the assumption of having a single model, so the last one is used.
+    NlModel model = Iterables.getFirst(models, null);
+    setModel(model , true);
   }
 
   private class StructurePaneMouseListener extends MouseAdapter {

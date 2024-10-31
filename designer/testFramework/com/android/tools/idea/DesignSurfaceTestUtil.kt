@@ -194,8 +194,8 @@ object DesignSurfaceTestUtil {
     var modelChanged = false
     val surfaceListener =
       object : DesignSurfaceListener {
-        override fun modelChanged(surface: DesignSurface<*>, newModel: NlModel?) {
-          if (newModel === model) modelChanged = true
+        override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
+          if (models.firstOrNull() === model) modelChanged = true
         }
       }
     surface.addListener(surfaceListener)

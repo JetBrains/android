@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
@@ -26,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +89,7 @@ public class BackNavigationComponent extends JPanel {
     return new DesignSurfaceListener() {
       @Override
       @UiThread
-      public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
+      public void modelsChanged(@NotNull DesignSurface<?> surface, @NotNull List<? extends @Nullable NlModel> models) {
         updateBackNavigation();
       }
     };
