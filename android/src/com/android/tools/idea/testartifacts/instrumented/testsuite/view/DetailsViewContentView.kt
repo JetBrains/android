@@ -50,6 +50,8 @@ import java.awt.Dimension
 import java.io.File
 import java.util.Arrays
 import java.util.Locale
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JPanel
 
 /**
@@ -62,7 +64,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
    */
   val rootPanel: JPanel
 
-  @VisibleForTesting val myTestResultLabel: JBLabel = JBLabel().apply { border = JBUI.Borders.empty(10) }
+  @VisibleForTesting val myTestResultLabel: JBLabel = JBLabel()
+  @VisibleForTesting val myDeviceTestResultLabel: JBLabel = JBLabel()
   @VisibleForTesting val myLogsView: ConsoleViewImpl
   @VisibleForTesting val myBenchmarkTab: TabInfo
   @VisibleForTesting val myBenchmarkView: ConsoleViewImpl
@@ -139,9 +142,14 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
 
 
     rootPanel = JPanel(BorderLayout()).apply {
-      add(JPanel(BorderLayout()).apply {
-        add(myTestResultLabel, BorderLayout.CENTER)
+      add(JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.LINE_AXIS)
         GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
+        add(myDeviceTestResultLabel)
+        add(AndroidTestSuiteView.MyItemSeparator())
+        add(myTestResultLabel)
+        border = JBUI.Borders.empty(10)
+        add(Box.createHorizontalGlue())
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
@@ -216,8 +224,11 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       return
     }
     val testCaseResult = myAndroidTestCaseResult
+    myDeviceTestResultLabel.text = String.format(Locale.US,
+                                                 "<html>%s</html>",
+                                                 device.getName().htmlEscape())
     if (testCaseResult == null) {
-      myTestResultLabel.text = "No test status available on " + device.getName()
+      myTestResultLabel.text = "No test status available"
       return
     }
     if (testCaseResult.isTerminalState) {
@@ -225,9 +236,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       when (testCaseResult) {
         AndroidTestCaseResult.PASSED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Passed</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Passed</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         AndroidTestCaseResult.FAILED -> {
           val errorMessage =
             Arrays.stream(StringUtil.splitByLines(myErrorStackTrace))
@@ -236,29 +246,26 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
           if (StringUtil.isEmptyOrSpaces(errorMessage)) {
             myTestResultLabel.text = String.format(
               Locale.US,
-              "<html><font color='%s'>Failed</font> on %s</html>",
-              ColorUtil.toHtmlColor(statusColor),
-              device.getName().htmlEscape())
+              "<html><font color='%s'>Failed</font></html>",
+              ColorUtil.toHtmlColor(statusColor))
           }
           else {
             myTestResultLabel.text = String.format(
               Locale.US,
-              "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
-              errorMessage.htmlEscape(),
+              "<html><font color='%s'>Failed</font> %s</html>",
               ColorUtil.toHtmlColor(statusColor),
-              device.getName().htmlEscape())
+              errorMessage.htmlEscape()
+              )
           }
         }
         AndroidTestCaseResult.SKIPPED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Skipped</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Skipped</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         AndroidTestCaseResult.CANCELLED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Cancelled</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Cancelled</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         else -> {
           myTestResultLabel.text = ""
           Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))

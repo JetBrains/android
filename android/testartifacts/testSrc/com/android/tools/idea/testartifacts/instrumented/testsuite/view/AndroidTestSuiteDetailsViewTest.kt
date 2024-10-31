@@ -72,8 +72,9 @@ class AndroidTestSuiteDetailsViewTest {
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
+    assertThat(view.contentView.myDeviceTestResultLabel.text).isEqualTo("<html>deviceName</html>")
     assertThat(view.contentView.myTestResultLabel.text)
-      .isEqualTo("<html><font color='#6cad74'>Passed</font> on deviceName</html>")
+      .isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
   }
 
   @Test
@@ -84,7 +85,8 @@ class AndroidTestSuiteDetailsViewTest {
     view.setAndroidTestResults(createTestResults(null))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
-    assertThat(view.contentView.myTestResultLabel.text).isEqualTo("No test status available on deviceName")
+    assertThat(view.contentView.myDeviceTestResultLabel.text).isEqualTo("<html>deviceName</html>")
+    assertThat(view.contentView.myTestResultLabel.text).isEqualTo("No test status available")
   }
 
   @Test

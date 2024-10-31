@@ -83,8 +83,9 @@ class DetailsViewContentViewTest {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
     view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text)
-      .isEqualTo("<html><font color='#6cad74'>Passed</font> on device name</html>")
+      .isEqualTo("<html><font color='#6cad74'>Passed</font></html>")
   }
 
   @Test
@@ -92,8 +93,9 @@ class DetailsViewContentViewTest {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
     view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font color='#b81708'>Failed</font> on device name</html>")
+      "<html><font color='#b81708'>Failed</font></html>")
   }
 
   @Test
@@ -102,8 +104,9 @@ class DetailsViewContentViewTest {
     view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
     view.setAndroidDevice(device("device id", "device name"))
     view.setErrorStackTrace("ErrorStackTrace")
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font size='+1'>ErrorStackTrace</font><br><font color='#b81708'>Failed</font> on device name</html>")
+      "<html><font color='#b81708'>Failed</font> ErrorStackTrace</html>")
   }
 
   @Test
@@ -112,8 +115,9 @@ class DetailsViewContentViewTest {
     view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
     view.setAndroidDevice(device("device id", "<device name>"))
     view.setErrorStackTrace("<ErrorStackTrace>")
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>&lt;device name&gt;</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo(
-      "<html><font size='+1'>&lt;ErrorStackTrace&gt;</font><br><font color='#b81708'>Failed</font> on &lt;device name&gt;</html>")
+      "<html><font color='#b81708'>Failed</font> &lt;ErrorStackTrace&gt;</html>")
   }
 
   @Test
@@ -121,6 +125,7 @@ class DetailsViewContentViewTest {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.IN_PROGRESS)
     view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
     assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
   }
 
@@ -129,7 +134,8 @@ class DetailsViewContentViewTest {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
     view.setAndroidTestCaseResult(null)
     view.setAndroidDevice(device("device id", "device name"))
-    assertThat(view.myTestResultLabel.text).isEqualTo("No test status available on device name")
+    assertThat(view.myDeviceTestResultLabel.text).isEqualTo("<html>device name</html>")
+    assertThat(view.myTestResultLabel.text).isEqualTo("No test status available")
   }
 
   @Test

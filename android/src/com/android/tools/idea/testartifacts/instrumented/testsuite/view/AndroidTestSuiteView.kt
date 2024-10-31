@@ -737,7 +737,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     myLogger.reportImpressions()
   }
 
-  private class MyItemSeparator : JComponent() {
+  class MyItemSeparator : JComponent() {
     init {
       val mySize = JBDimension(JBUIScale.scale(20), JBUIScale.scale(24), /*preScaled=*/true)
       minimumSize = mySize
