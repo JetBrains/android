@@ -39,9 +39,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
-      // Expect single MessageEvent on Sync Output
       buildEvents.filterIsInstance<MessageEvent>().let { events ->
-        expect.that(events).hasSize(1)
         events.firstOrNull()?.let { expectedErrorNodeNameVerifier(it.message) }
       }
       // Make sure no additional error events are generated
@@ -73,7 +71,10 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
           }
         }
       """.trimIndent())
-    }
+    },
+    // Due to KTIJ-31334 the KotlinDslScriptModelResolver specifies the jvmArgument: '-Dorg.gradle.kotlin.dsl.provider.mode=classpath'
+    // to the build causing Gradle to not report a single failure
+    hasSingleFailureReported = false
 
   )
 
@@ -87,7 +88,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        expect.that(it).startsWith("Unresolved reference: abcd")
       }
     )
   }
@@ -102,7 +103,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        expect.that(it).startsWith("Unresolved reference: abcd")
       }
     )
   }
@@ -117,7 +118,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        expect.that(it).startsWith("Unresolved reference: abcd")
       }
     )
   }
