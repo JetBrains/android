@@ -64,7 +64,6 @@ import org.junit.runners.model.Statement
 import java.awt.Dimension
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Duration
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
 
@@ -217,7 +216,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     Disposer.register(testRootDisposable, deviceClient)
     val deviceProvisioner = project.getService(DeviceProvisionerService::class.java).deviceProvisioner
     val selector = DeviceSelector.fromSerialNumber(emulator.serialNumber)
-    val handle = deviceProvisioner.findConnectedDeviceHandle(selector, Duration.ofSeconds(30)) ?: error("No handle found")
+    val handle = deviceProvisioner.findConnectedDeviceHandle(selector, 30.seconds) ?: error("No handle found")
     return DeviceToolWindowPanel(testRootDisposable, project, handle, deviceClient)
   }
 
