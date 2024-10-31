@@ -205,6 +205,7 @@ class AppInsightsTrackerImpl(
     unanonymizedAppId: String,
     crashType: FailureType,
     insight: AiInsight,
+    contextLimit: Int,
   ) {
     log(unanonymizedAppId) {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.INSIGHT_FETCH
@@ -215,6 +216,11 @@ class AppInsightsTrackerImpl(
             this.experiment = insight.experiment.toProto()
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
+            this.codeContextDetails =
+              insight.codeContextTrackingDetails
+                .toCodeContextDetailsProto()
+                .apply { this.contextLimit = contextLimit.toLong() }
+                .build()
           }
           .build()
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
@@ -35,7 +36,12 @@ data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsi
     val appId = state.connections.selected?.appId
     val insight = (fetchedInsight as? LoadingState.Ready)?.value
     if (insight != null && crashType != null && appId != null) {
-      tracker.logInsightFetch(appId, crashType, insight)
+      tracker.logInsightFetch(
+        appId,
+        crashType,
+        insight,
+        GeminiPluginApi.getInstance().MAX_QUERY_CHARS,
+      )
     }
     return StateTransition(newState = state.copy(currentInsight = fetchedInsight), Action.NONE)
   }

@@ -45,6 +45,7 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContextTrackingInfo
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
@@ -357,12 +358,23 @@ class AppInsightsTrackerTest {
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
       )
     val insight =
-      AiInsight("", Experiment.CONTROL, insightSource = InsightSource.STUDIO_BOT, isCached = true)
+      AiInsight(
+        "",
+        Experiment.CONTROL,
+        insightSource = InsightSource.STUDIO_BOT,
+        isCached = true,
+        codeContextTrackingDetails = CodeContextTrackingInfo(1, 2, 3),
+      )
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
     insightFetch.transition(testState, controllerRule.tracker, TEST_KEY, AppInsightsCacheImpl())
 
     verify(controllerRule.tracker, times(1))
-      .logInsightFetch(any(), eq(ISSUE1.issueDetails.fatality), eq(insight))
+      .logInsightFetch(
+        any(),
+        eq(ISSUE1.issueDetails.fatality),
+        eq(insight),
+        eq(controllerRule.fakeGeminiPluginApi.MAX_QUERY_CHARS),
+      )
   }
 
   private suspend fun consumeAndCompleteIssuesCall() {
