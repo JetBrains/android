@@ -70,6 +70,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.android.tools.adtui.compose.IntUiPaletteDefaults
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.foundation.modifier.onHover
@@ -84,7 +85,6 @@ import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.component.scrollbarContentSafePadding
 import org.jetbrains.jewel.ui.component.styling.ScrollbarStyle
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
-import org.jetbrains.jewel.ui.theme.colorPalette
 import org.jetbrains.jewel.ui.theme.scrollbarStyle
 import org.jetbrains.jewel.ui.util.thenIf
 
@@ -211,15 +211,15 @@ internal fun <T> TableHeader(
   modifier: Modifier = Modifier,
 ) {
   Row(modifier.fillMaxWidth().padding(horizontal = ROW_PADDING)) {
+    val focusedBackgroundColor =
+      rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
     columns.forEach {
       val widthModifier = with(it.width) { widthModifier() }
       var isFocused by remember { mutableStateOf(false) }
       Row(
         widthModifier
           .semantics(mergeDescendants = true) { heading() }
-          .thenIf(isFocused) {
-            background(JewelTheme.colorPalette.gray(if (JewelTheme.isDark) 3 else 12))
-          }
+          .thenIf(isFocused) { background(focusedBackgroundColor) }
           .onFocusChanged { isFocused = it.isFocused }
           .thenIf(it.comparator != null) {
             clickable(interactionSource = null, indication = null) { onClick(it) }
@@ -402,6 +402,12 @@ fun <T> Table(
       }
     }
   }
+}
+
+@Composable
+private fun rememberColor(dark: Int, light: Int): Color {
+  val isDark = JewelTheme.isDark
+  return remember(isDark) { if (isDark) Color(dark) else Color(light) }
 }
 
 private val CELL_SPACING = 4.dp

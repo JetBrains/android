@@ -40,7 +40,6 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icon.IconKey
-import org.jetbrains.jewel.ui.theme.colorPalette
 
 @Composable
 internal fun WarningBanner(text: String, modifier: Modifier = Modifier) {
@@ -144,9 +143,9 @@ private object BannerUi {
         rememberColor(
           key = "Banner.errorBorderColor",
           darkFallbackKey = "ColorPalette.Red3",
-          darkDefault = JewelTheme.colorPalette.red(3),
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Red3),
           lightFallbackKey = "ColorPalette.Red9",
-          lightDefault = JewelTheme.colorPalette.red(9),
+          lightDefault = Color(IntUiPaletteDefaults.Light.Red9),
         )
 
     override val background: Color
@@ -155,9 +154,9 @@ private object BannerUi {
         rememberColor(
           key = "Banner.errorBackground",
           darkFallbackKey = "ColorPalette.Red1",
-          darkDefault = JewelTheme.colorPalette.red(1),
+          darkDefault = Color(IntUiPaletteDefaults.Dark.Red1),
           lightFallbackKey = "ColorPalette.Red12",
-          lightDefault = JewelTheme.colorPalette.red(12),
+          lightDefault = Color(IntUiPaletteDefaults.Light.Red12),
         )
 
     override val foreground: Color
