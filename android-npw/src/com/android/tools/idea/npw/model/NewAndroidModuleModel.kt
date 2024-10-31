@@ -186,7 +186,8 @@ class NewAndroidModuleModel(
     override val recipe: Recipe
       get() =
         when (formFactor.get()) {
-          FormFactor.Mobile -> { data: TemplateData ->
+          FormFactor.Mobile,
+          FormFactor.XR -> { data: TemplateData ->
               generateAndroidModule(
                 data = data as ModuleTemplateData,
                 appTitle = applicationName.get(),
@@ -288,7 +289,8 @@ internal fun Project.findNewModuleRecommendedBuildSdk(): AndroidVersion? =
 
 private fun FormFactor.toModuleRenderingLoggingEvent() =
   when (this) {
-    FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
+    FormFactor.Mobile,
+    FormFactor.XR -> RenderLoggingEvent.ANDROID_MODULE
     FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
     FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
     FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
