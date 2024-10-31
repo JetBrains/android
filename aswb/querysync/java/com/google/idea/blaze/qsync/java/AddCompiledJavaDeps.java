@@ -15,11 +15,10 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableCollection;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -28,20 +27,17 @@ import com.google.idea.blaze.qsync.project.ProjectProto.JarDirectory;
 
 /** Adds compiled jars from dependencies to the project. */
 public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
-  private final Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier;
 
-  public AddCompiledJavaDeps(Supplier<ImmutableCollection<TargetBuildInfo>> builtTargetsSupplier) {
-    this.builtTargetsSupplier = builtTargetsSupplier;
-  }
+  public AddCompiledJavaDeps() {}
 
   @Override
-  public void update(ProjectProtoUpdate update) {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
-    for (TargetBuildInfo target : builtTargetsSupplier.get()) {
+    for (TargetBuildInfo target : artifactState.depsMap().values()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
         for (BuildArtifact jar : javaInfo.jars()) {
-          javaDepsDir.addIfNewer(jar.path(), jar, target.buildContext());
+          javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
         }
       }
     }

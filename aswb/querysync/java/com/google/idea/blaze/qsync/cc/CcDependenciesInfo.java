@@ -17,12 +17,11 @@ package com.google.idea.blaze.qsync.cc;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.deps.CcCompilationInfo;
+import com.google.idea.blaze.qsync.deps.CcToolchain;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 
 /**
@@ -32,51 +31,23 @@ import java.util.Map;
 public abstract class CcDependenciesInfo {
   public static final CcDependenciesInfo EMPTY = create(ImmutableMap.of(), ImmutableMap.of());
 
-  public abstract ImmutableMap<Label, CcTargetInfo> targetInfoMap();
+  public abstract ImmutableMap<Label, CcCompilationInfo> targetInfoMap();
 
-  public abstract ImmutableMap<String, CcToolchainInfo> toolchainInfoMap();
+  public abstract ImmutableMap<String, CcToolchain> toolchainInfoMap();
 
-  public Builder toBuilder() {
-    Builder b = new Builder();
-    b.targetInfoMap.putAll(targetInfoMap());
-    b.toolchainInfoMap.putAll(toolchainInfoMap());
-    return b;
+  public static CcDependenciesInfo create(ArtifactTracker.State artifactState) {
+    return create(
+        artifactState.depsMap().entrySet().stream()
+            .filter(e -> e.getValue().ccInfo().isPresent())
+            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().ccInfo().get()))
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
+        artifactState.ccToolchainMap());
   }
 
   public static CcDependenciesInfo create(
-      ImmutableMap<Label, CcTargetInfo> targetInfoMap,
-      ImmutableMap<String, CcToolchainInfo> toolchainInfoMap) {
+      ImmutableMap<Label, CcCompilationInfo> targetInfoMap,
+      ImmutableMap<String, CcToolchain> toolchainInfoMap) {
     return new AutoValue_CcDependenciesInfo(targetInfoMap, toolchainInfoMap);
   }
 
-  public static CcDependenciesInfo create(CcCompilationInfo fromProto) {
-    return create(
-        Maps.uniqueIndex(fromProto.getTargetsList(), t -> Label.of(t.getLabel())),
-        Maps.uniqueIndex(fromProto.getToolchainsList(), t -> t.getId()));
-  }
-
-  /**
-   * Builder class used to combine several {@link CcCompilationInfo} proto messages into a single
-   * object.
-   *
-   * <p>Note we do not use a standard autovalue builder as the natural way of doing that would rely
-   * on {@link ImmutableMap.Builder}, and on the {@code buildKeepingLast} method (since we expect
-   * duplicate keys in the case of several sequential dependency builds). We have had issues using
-   * that method due to IJ bundling older versions of guava that do not include it (b/255307289).
-   */
-  public static class Builder {
-    private final Map<Label, CcTargetInfo> targetInfoMap = Maps.newHashMap();
-    private final Map<String, CcToolchainInfo> toolchainInfoMap = Maps.newHashMap();
-
-    @CanIgnoreReturnValue
-    public Builder add(CcCompilationInfo proto) {
-      targetInfoMap.putAll(Maps.uniqueIndex(proto.getTargetsList(), t -> Label.of(t.getLabel())));
-      toolchainInfoMap.putAll(Maps.uniqueIndex(proto.getToolchainsList(), t -> t.getId()));
-      return this;
-    }
-
-    public CcDependenciesInfo build() {
-      return create(ImmutableMap.copyOf(targetInfoMap), ImmutableMap.copyOf(toolchainInfoMap));
-    }
-  }
 }

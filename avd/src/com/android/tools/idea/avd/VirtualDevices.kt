@@ -19,20 +19,20 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdName
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.IdeAvdManagers
+import java.nio.file.Files
+import java.nio.file.Path
 
-internal class VirtualDevices(
-  private val avdManager: AvdManager =
-    IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
-) {
+internal class VirtualDevices(private val avdManager: AvdManager) {
   internal fun add(device: VirtualDevice, image: ISystemImage) {
     val avdBuilder = avdManager.createAvdBuilder(device.device)
-    avdBuilder.copyFrom(device)
+    avdBuilder.copyFrom(device, image)
     avdBuilder.avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(device.name))
+    avdBuilder.avdFolder = avdBuilder.avdFolder.parent.uniquifyAvdFolder(avdBuilder.avdName)
     avdBuilder.displayName = device.name
-    avdBuilder.systemImage = image
 
     avdManager.createAvd(avdBuilder)
   }
 }
+
+private fun Path.uniquifyAvdFolder(name: String): Path =
+  resolve(AvdNames.uniquify(name, "_") { Files.exists(resolve("$it.avd")) } + ".avd")

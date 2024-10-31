@@ -26,11 +26,13 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 
 public interface DeclarativeElementTypeHolder {
 
+  IElementType ARGUMENT = new DeclarativeElementType("ARGUMENT");
   IElementType ARGUMENTS_LIST = new DeclarativeElementType("ARGUMENTS_LIST");
   IElementType ASSIGNMENT = new DeclarativeElementType("ASSIGNMENT");
   IElementType BARE = new DeclarativeElementType("BARE");
   IElementType BLOCK = new DeclarativeElementType("BLOCK");
   IElementType BLOCK_GROUP = new DeclarativeElementType("BLOCK_GROUP");
+  IElementType EMBEDDED_FACTORY = new DeclarativeElementType("EMBEDDED_FACTORY");
   IElementType FACTORY = new DeclarativeElementType("FACTORY");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
@@ -39,6 +41,7 @@ public interface DeclarativeElementTypeHolder {
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
+  IElementType DOUBLE_LITERAL = new DeclarativeTokenType("double_literal");
   IElementType INTEGER_LITERAL = new DeclarativeTokenType("integer_literal");
   IElementType LINE_COMMENT = new DeclarativeTokenType("line_comment");
   IElementType LONG_LITERAL = new DeclarativeTokenType("long_literal");
@@ -59,7 +62,10 @@ public interface DeclarativeElementTypeHolder {
 
   class Factory {
     public static CompositePsiElement createElement(IElementType type) {
-       if (type == ARGUMENTS_LIST) {
+       if (type == ARGUMENT) {
+        return new DeclarativeArgumentImpl(type);
+      }
+      else if (type == ARGUMENTS_LIST) {
         return new DeclarativeArgumentsListImpl(type);
       }
       else if (type == ASSIGNMENT) {
@@ -73,6 +79,9 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == BLOCK_GROUP) {
         return new DeclarativeBlockGroupImpl(type);
+      }
+      else if (type == EMBEDDED_FACTORY) {
+        return new DeclarativeEmbeddedFactoryImpl(type);
       }
       else if (type == FACTORY) {
         return new DeclarativeFactoryImpl(type);

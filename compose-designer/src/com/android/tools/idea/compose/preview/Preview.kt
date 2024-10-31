@@ -1048,13 +1048,8 @@ class ComposePreviewRepresentation(
         ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
       )
 
-      // In specific scenarios, e.g. when creating a project and waiting for build to happen, this
-      // might be called before previews are actually rendered. In this case, we skip zoom-to-fit
-      // here, otherwise we'll end up with minimum zoom. In that case, zoom-to-fit will be triggered
-      // through another flow (DesignSurface's componentResized callback).
-      if (composePreviewFlowManager.hasRenderedPreviewElements()) {
-        surface.restoreZoomOrZoomToFit()
-      }
+      // We restore the zoom or apply zoom-to-fit if previews are rendered for the first time
+      surface.restoreZoomOrZoomToFit()
     }
   }
 
@@ -1589,7 +1584,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.AnimationInspection -> {
         currentAnimationPreview?.let {
-          Disposer.dispose(it)
+          withContext(uiThread) { Disposer.dispose(it) }
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null

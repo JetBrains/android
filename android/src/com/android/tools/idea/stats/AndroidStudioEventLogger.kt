@@ -17,7 +17,6 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
@@ -33,6 +32,11 @@ import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
 import com.google.wireless.android.sdk.stats.StartupEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceCodeLoadedAndVisibleInEditor
+import com.google.wireless.android.sdk.stats.StartupPerformanceFirstUiShownEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameInteractiveEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameVisibleEvent
+import com.google.wireless.android.sdk.stats.StartupPerformanceFrameBecameVisibleEvent.ProjectType
 import com.google.wireless.android.sdk.stats.VfsRefresh
 import com.intellij.ide.ui.experimental.ExperimentalUiCollector
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
@@ -46,15 +50,9 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
-import java.lang.Boolean.getBoolean
-import java.nio.file.Files
-import java.nio.file.Path
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import kotlin.io.path.isDirectory
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
 
@@ -70,16 +68,14 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                           "file.types.usage" to ::logFileTypeUsage,
                           "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
                           "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
+                          "reopen.project.startup.performance" to ::logReopenProjectStartupPerformance,
                           "run.configuration.exec" to ::logRunConfigurationExec,
                           "startup" to ::logStartupEvent,
                           "vfs" to ::logVfsEvent,
                           "xdebugger.actions" to ::logDebuggerEvent)
     val c = callbacks[group.id] ?: return CompletableFuture.completedFuture(null)
     val builder = c(eventId, data) ?: return CompletableFuture.completedFuture(null)
-    return CompletableFuture.runAsync({
-      UsageTracker.log(builder)
-      dumpStudioEventToDirectory(builder, group)
-    }, logExecutor)
+    return CompletableFuture.runAsync({ UsageTracker.log(builder) }, logExecutor)
   }
 
   override fun logAsync(group: EventLogGroup,
@@ -296,23 +292,62 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       StartupEvent.newBuilder().setType(type).setDurationMs(data["duration"] as Int))
   }
 
-  @Suppress("SpellCheckingInspection")
-  private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-
-  private fun formatTime(time: ZonedDateTime): String = dateFormat.format(time)
-
-  private fun dumpStudioEventToDirectory(studioEvent: AndroidStudioEvent.Builder, group: EventLogGroup) {
-    if (!getBoolean("studio.event.dump.group.${group.id}")) {
-      return
-    }
-
-    System.getProperty("studio.event.dump.dir")?.let { traceDir ->
-      val traceDirPath = Path.of(traceDir)
-      if (traceDirPath.isDirectory()) {
-        val studioEventFile = traceDirPath.resolve("${studioEvent.kind.name}-${formatTime(ZonedDateTime.now())}.textproto")
-        Files.createFile(studioEventFile)
-        Files.writeString(studioEventFile, TextFormat.printer().printToString(studioEvent))
+  private fun logReopenProjectStartupPerformance(eventId: String, data: Map<String, Any>) : AndroidStudioEvent.Builder? {
+    return when (eventId) {
+      "first.ui.shown" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FIRST_UI_SHOWN
+        startupPerformanceFirstUiShownEvent = StartupPerformanceFirstUiShownEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["type"] as? String?)?.let {
+            type = when (it) {
+              "Splash" -> StartupPerformanceFirstUiShownEvent.UiResponseType.SPLASH
+              "Frame" -> StartupPerformanceFirstUiShownEvent.UiResponseType.FRAME
+              else -> StartupPerformanceFirstUiShownEvent.UiResponseType.UNKNOWN_UI_RESPONSE_TYPE
+            }
+          }
+        }.build()
       }
+
+      "frame.became.visible" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE
+        startupPerformanceFrameBecameVisibleEvent = StartupPerformanceFrameBecameVisibleEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+          (data["projects_type"] as? String?)?.let {
+            projectType = when (it) {
+              "Reopened" -> ProjectType.REOPENED
+              "FromFilesToLoad" -> ProjectType.FROM_FILES_TO_LOAD
+              "FromArgs" -> ProjectType.FROM_ARGS
+              else -> ProjectType.UNKNOWN_PROJECT_TYPE
+            }
+          }
+        }.build()
+      }
+
+      "frame.became.interactive" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_FRAME_BECAME_INTERACTIVE
+        startupPerformanceFrameBecameInteractiveEvent = StartupPerformanceFrameBecameInteractiveEvent.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+        }.build()
+      }
+
+      "code.loaded.and.visible.in.editor" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.STARTUP_PERFORMANCE_CODE_LOADED_AND_VISIBLE_IN_EDITOR
+        startupPerformanceCodeLoadedAndVisibleInEditor = StartupPerformanceCodeLoadedAndVisibleInEditor.newBuilder().apply {
+          (data["duration_ms"] as? Int?)?.let { durationMs = it }
+          (data["file_type"] as? String?)?.let { fileType = it }
+          (data["has_settings"] as? Boolean?)?.let { hasSettings = it }
+          (data["loaded_cached_markup"] as? Boolean?)?.let { loadedCachedMarkup = it }
+          (data["no_editors_to_open"] as? Boolean?)?.let { noEditorsToOpen = it }
+          (data["source_of_selected_editor"] as? String?)?.let { sourceOfSelectedEditor = when(it) {
+            "TextEditor" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.TEXT_EDITOR
+            "FoundReadmeFile" -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.FOUND_README_FILE
+            else -> StartupPerformanceCodeLoadedAndVisibleInEditor.SourceOfSelectedEditor.UNKNOWN_SOURCE_OF_SELECTED_EDITOR
+          } }
+        }.build()
+      }
+
+      else -> null
     }
   }
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.featuresTrainer" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.structuralSearch" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.unscramble" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.java.vcs" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.ktor.client" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.microba" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.clouds" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.collaborationTools" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.coverage" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.coverage.agent" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.dashboard" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.serviceView" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.backend.svg" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.kernel" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.kernel.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.lvcs.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.navbar" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.navbar.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.navbar.frontend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.navbar.monolith" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.settings.local" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.smRunner.vcs" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.smart.update" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin" level="project" />
+  </component>
+</module>

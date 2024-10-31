@@ -242,17 +242,7 @@ public final class BlazeNewProjectBuilder {
     return projectViewParser
         .getResult()
         .getScalarValue(UseQuerySyncSection.KEY)
-        .orElse(useQuerySyncDefault());
-  }
-
-  /** Checks if query sync for new project is enabled via experiment or settings page. */
-  private boolean useQuerySyncDefault() {
-    if (QuerySync.useByDefault()) {
-      return QuerySyncSettings.getInstance().useQuerySync();
-    } else {
-      return QuerySync.isLegacyExperimentEnabled()
-          || QuerySyncSettings.getInstance().useQuerySyncBeta();
-    }
+        .orElse(QuerySync.useForNewProjects());
   }
 
   private BlazeImportSettings getImportSettings() {

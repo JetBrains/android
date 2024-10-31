@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
+
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.JavaExecutionUtil;
@@ -24,6 +26,7 @@ import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -96,14 +99,21 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
     configuration.setLaunchActivity(activityName);
     configuration.setName(JavaExecutionUtil.getPresentableClassName(activityName));
     setupConfigurationModule(context, configuration);
-
-    final TargetSelectionMode targetSelectionMode = AndroidUtils
-      .getDefaultTargetSelectionMode(context.getModule(), AndroidRunConfigurationType.getInstance(),
-                                     AndroidTestRunConfigurationType.getInstance());
-    if (targetSelectionMode != null) {
-      configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
+    Project project = context.getProject();
+    if (project != null) {
+      final TargetSelectionMode targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
+        project, AndroidRunConfigurationType.getInstance(), AndroidTestRunConfigurationType.getInstance());
+      if (targetSelectionMode != null) {
+        configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
+      }
     }
     return true;
+  }
+
+  @Override
+  protected Module findModule(AndroidRunConfiguration configuration, Module contextModule) {
+    Module module = super.findModule(configuration, contextModule);
+    return (module == null) ? null : getHolderModule(module);
   }
 
   @Override
@@ -118,7 +128,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
       return false;
     }
 
-    final Module contextModule = AndroidUtils.getAndroidModule(context);
+    final Module contextModule = findModule(configuration, AndroidUtils.getAndroidModule(context));
     final Module confModule = configuration.getConfigurationModule().getModule();
     return Objects.equals(contextModule, confModule) && configuration.isLaunchingActivity(activityName);
   }

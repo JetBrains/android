@@ -26,7 +26,6 @@ import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -37,6 +36,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class ConstraintLayoutHandlerTest : SceneTest() {
 

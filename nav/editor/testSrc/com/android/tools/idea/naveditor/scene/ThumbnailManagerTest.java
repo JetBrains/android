@@ -59,7 +59,8 @@ public class ThumbnailManagerTest extends NavTestCase {
   public void setUp() {
     super.setUp();
     TestableThumbnailManager.register(myFacet);
-    new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
+    NavDesignSurface surface = new NavDesignSurface(myFacet.getModule().getProject());
+    Disposer.register(getMyRootDisposable(), surface);
   }
 
   public void testCaching() throws Exception {

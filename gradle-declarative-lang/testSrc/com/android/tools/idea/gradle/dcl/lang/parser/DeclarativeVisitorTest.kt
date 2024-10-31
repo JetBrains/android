@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dcl.lang.parser
 
 import com.android.test.testutils.TestUtils
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeVisitor
 import com.intellij.lang.LanguageASTFactory
+import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.ParsingTestCase
 import kotlin.reflect.KClass
@@ -127,5 +128,4 @@ class DeclarativeVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", Dec
   }
 
   override fun getTestDataPath(): String = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
-
 }

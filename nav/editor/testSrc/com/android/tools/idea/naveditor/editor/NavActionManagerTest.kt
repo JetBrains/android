@@ -61,6 +61,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys.PASTE_PROVIDER
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
@@ -81,7 +82,7 @@ class NavActionManagerTest : NavTestCase() {
           navigation("subnav") { fragment("fragment2") }
         }
       }
-    surface = NavDesignSurface(project, myRootDisposable)
+    surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     surface.setSize(1000, 1000)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
   }

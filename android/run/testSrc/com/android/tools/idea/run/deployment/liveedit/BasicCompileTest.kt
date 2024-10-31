@@ -24,6 +24,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.runInEdtAndWait
@@ -181,10 +182,8 @@ class BasicCompileTest {
       }
     """)
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
     val state = getPsiValidationState(file)
     val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
     Assert.assertEquals(1, output.supportClassesMap.size)
@@ -256,10 +255,8 @@ class BasicCompileTest {
     projectRule.createKtFile("A.kt", "fun foo() = \"\"")
     val fileCallA = projectRule.createKtFile("CallA.kt", "fun callA() = foo()")
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(fileCallA)
-    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val apk = projectRule.directApiCompileByteArray(fileCallA)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
     val state = getPsiValidationState(fileCallA)
     compile(listOf(LiveEditCompilerInput(fileCallA, state)), compiler)
   }

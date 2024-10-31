@@ -56,7 +56,7 @@ public abstract class ArtifactsDiff {
       throws InterruptedException, ExecutionException {
     return diffArtifacts(
         oldState,
-        newArtifacts.stream().collect(toImmutableMap(OutputArtifactInfo::getRelativePath, a -> a)));
+        newArtifacts.stream().collect(toImmutableMap(OutputArtifactInfo::getBazelOutRelativePath, a -> a)));
   }
 
   public static ArtifactsDiff diffArtifacts(
@@ -92,14 +92,14 @@ public abstract class ArtifactsDiff {
       return artifacts.stream()
           .collect(
               toImmutableMap(
-                  OutputArtifactInfo::getRelativePath,
+                  OutputArtifactInfo::getBazelOutRelativePath,
                   OutputArtifactWithoutDigest::toArtifactState));
     }
     // for local files, diffing requires checking the timestamps, which we multi-thread
     return FileAttributeScanner.readAttributes(artifacts, TO_ARTIFACT_STATE, FetchExecutor.EXECUTOR)
         .entrySet()
         .stream()
-        .collect(toImmutableMap(e -> e.getKey().getRelativePath(), Map.Entry::getValue));
+        .collect(toImmutableMap(e -> e.getKey().getBazelOutRelativePath(), Map.Entry::getValue));
   }
 
   private static FileAttributeScanner.AttributeReader<OutputArtifactWithoutDigest, ArtifactState>

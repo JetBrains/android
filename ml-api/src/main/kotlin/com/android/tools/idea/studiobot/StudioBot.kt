@@ -76,6 +76,7 @@ interface StudioBot {
     PLAY_VITALS,
     CRASHLYTICS,
     LOGCAT,
+    PROMPT_LIBRARY,
     OTHER,
   }
 
@@ -100,8 +101,7 @@ interface StudioBot {
   }
 
   companion object {
-    fun getInstance(): StudioBot =
-      ApplicationManager.getApplication().getService(StudioBot::class.java) ?: StubStudioBot()
+    fun getInstance(): StudioBot = ApplicationManager.getApplication().getService(StudioBot::class.java)
   }
 }
 

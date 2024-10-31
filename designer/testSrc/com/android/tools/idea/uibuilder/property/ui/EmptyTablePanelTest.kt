@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.ptable.PTableItem
@@ -28,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlin.properties.Delegates
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class EmptyTablePanelTest {
 

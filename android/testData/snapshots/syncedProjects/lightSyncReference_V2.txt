@@ -727,8 +727,8 @@ PROJECT                       : reference
                 COMPILE_JAVA                  : :javalib:compileJava, :javalib:testClasses
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : reference.app.main
-        Module                        : reference.app.main
+        ModuleName                    : reference.app
+        Module                        : reference.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/

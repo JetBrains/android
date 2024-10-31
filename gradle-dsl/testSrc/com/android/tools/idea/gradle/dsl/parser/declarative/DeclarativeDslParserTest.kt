@@ -32,10 +32,10 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
 
   fun testBlock() {
     val text = """
-      androidApplication {
+      androidApp {
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf<String, Any>())
+    val expected = mapOf("androidApp" to mapOf<String, Any>())
     doTest(text, expected)
   }
 
@@ -50,120 +50,120 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
 
   fun testRepeatingEmbeddedBlock() {
     val text = """
-      androidApplication {
+      androidApp {
         defaultConfig {
         }
       }
-      androidApplication {
+      androidApp {
         dataBinding {
         }
         defaultConfig {
         }
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("defaultConfig" to mapOf<String, Any>(), "dataBinding" to mapOf()))
+    val expected = mapOf("androidApp" to mapOf("defaultConfig" to mapOf<String, Any>(), "dataBinding" to mapOf()))
     doTest(text, expected)
   }
 
   fun testAssignmentWithString() {
     val file = """
-      androidApplication {
+      androidApp {
         namespace = "com.my"
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("mNamespace" to "com.my"))
+    val expected = mapOf("androidApp" to mapOf("mNamespace" to "com.my"))
     doTest(file, expected)
   }
 
   fun testAssignmentWithNumber() {
     val file = """
-      androidApplication {
+      androidApp {
         namespace = 5
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("mNamespace" to 5))
+    val expected = mapOf("androidApp" to mapOf("mNamespace" to 5))
     doTest(file, expected)
   }
 
 
   fun testAssignmentWithBoolean() {
     val file = """
-      androidApplication {
+      androidApp {
         namespace = true
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("mNamespace" to true))
+    val expected = mapOf("androidApp" to mapOf("mNamespace" to true))
     doTest(file, expected)
   }
 
   fun testFactory() {
     val file = """
-      androidApplication {
+      androidApp {
         api("androidx.application")
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application")))
+    val expected = mapOf("androidApp" to mapOf("api" to listOf("androidx.application")))
     doTest(file, expected)
   }
 
   fun testFactoryWithMultipleArguments() {
     val toml = """
-      androidApplication {
-        api("androidx.application", true,123)
+      androidApp {
+        api("androidx.application", true, 123)
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application", true, 123)))
+    val expected = mapOf("androidApp" to mapOf("api" to listOf("androidx.application", true, 123)))
     doTest(toml, expected)
   }
 
   fun testTwoFactoryMethods() {
     val file = """
-      androidApplication {
+      androidApp {
         api("androidx.application")
         api2("androidx.application2")
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application"), "api2" to listOf("androidx.application2")))
+    val expected = mapOf("androidApp" to mapOf("api" to listOf("androidx.application"), "api2" to listOf("androidx.application2")))
     doTest(file, expected)
   }
 
   fun testFactoryMethodNumberArgument() {
     val file = """
-      androidApplication {
+      androidApp {
         api(23)
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("api" to listOf(23)))
+    val expected = mapOf("androidApp" to mapOf("api" to listOf(23)))
     doTest(file, expected)
   }
 
   fun testFactoryMethodBooleanArgument() {
     val file = """
-      androidApplication {
+      androidApp {
         fixit(true)
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("fixit" to listOf(true)))
+    val expected = mapOf("androidApp" to mapOf("fixit" to listOf(true)))
     doTest(file, expected)
   }
 
   fun testFactoryMethodRecursiveArgument() {
     val file = """
-      androidApplication {
+      androidApp {
         api(project(":myProject"))
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("api" to listOf(mapOf("project" to listOf(":myProject")))))
+    val expected = mapOf("androidApp" to mapOf("api" to listOf(mapOf("project" to listOf(":myProject")))))
     doTest(file, expected)
   }
 
   fun testFactoryMethodNoAttributes(){
     val file = """
-      androidApplication {
+      androidApp {
         method()
       }
     """.trimIndent()
-    val expected = mapOf("android" to mapOf("method" to listOf<String>()))
+    val expected = mapOf("androidApp" to mapOf("method" to listOf<String>()))
     doTest(file, expected)
   }
 

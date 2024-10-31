@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext.Source.SYNC;
+import static com.android.tools.idea.gradle.project.sync.quickFixes.IssueCheckersQuickFixesKt.sendChatQueryIfContextAllowed;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilterKt;
+import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.studiobot.StudioBot;
@@ -166,9 +168,9 @@ public class SyncIssuesReporter {
       ) {
         @Override
         protected void execute(@NotNull Project project) {
-          ExplainBuildErrorFilterKt.sendChatQueryIfContextAllowed(studioBot, project,
-                                                                  "Explain gradle sync issue: " + message,
-                                                                  StudioBot.RequestSource.SYNC);
+          sendChatQueryIfContextAllowed(studioBot, project,
+                                        new GradleErrorContext(/* gradleTask = */ null, message, /* fullErrorDetails = */ null, SYNC),
+                                        StudioBot.RequestSource.SYNC);
         }
       });
     }

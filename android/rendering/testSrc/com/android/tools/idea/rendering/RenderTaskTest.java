@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.rendering.RenderResults.createRenderTaskErrorResult;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
 import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
@@ -55,6 +56,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
 import java.awt.Color;
@@ -1021,5 +1023,13 @@ public class RenderTaskTest extends AndroidTestCase {
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");
     }
+  }
+
+  public void testTaskError() {
+    PsiFile file = myFixture.addFileToProject("src/EmptyFile.kt", "");
+    RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"));
+
+    assertTrue(result.getLogger().hasErrors());
+    assertEquals("Render error (<A HREF=\"\">Details</A>)", result.getLogger().getMessages().get(0).getHtml());
   }
 }

@@ -26,8 +26,10 @@ import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -81,7 +83,7 @@ class BasicAndroidMonitorTest {
     `when`(client.device).thenReturn(device)
 
     project.replaceService(GradleSyncState::class.java, mySyncState, projectRule.testRootDisposable)
-
+    FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
     val clientData: ClientData = MockitoKt.mock()
     `when`(client.clientData).thenReturn(clientData)
     `when`(clientData.packageName).thenReturn(appId)
@@ -100,7 +102,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24), emptyList()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext(appId), device, LiveEditApp(emptySet(), 24), emptyList()) { true }
   }
 
   @Test

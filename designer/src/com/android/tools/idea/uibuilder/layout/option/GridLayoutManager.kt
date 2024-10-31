@@ -22,6 +22,7 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
@@ -32,10 +33,10 @@ import com.android.tools.idea.uibuilder.surface.layout.MAX_ITERATION_TIMES
 import com.android.tools.idea.uibuilder.surface.layout.SCALE_UNIT
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
-import kotlin.math.sqrt
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
@@ -69,7 +70,10 @@ class GridLayoutManager(
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
     val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
     val requiredHeight = groupSizes.sumOf { it.height }
-    return Dimension(requiredWidth, max(0, padding.canvasTopPadding + requiredHeight))
+    return Dimension(
+      max(0, padding.canvasLeftPadding + requiredWidth),
+      max(0, padding.canvasTopPadding + requiredHeight),
+    )
   }
 
   /**
@@ -152,12 +156,10 @@ class GridLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
   ): Double {
-    if (content.isEmpty()) {
-      // No content. Use 100% as zoom level
+    if (content.none { it !is HeaderPositionableContent }) {
+      // No content or only Headers are showing. Use 100% as zoom level
       return 1.0
     }
-
-    // Use binary search to find the proper zoom-to-fit value.
 
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
@@ -171,22 +173,17 @@ class GridLayoutManager(
         )
       }
 
-    val upperBound = run {
-      // Find the scale the total areas of contents equals to the available spaces.
-      // This happens when the contents perfectly full-fill the available space.
-      // It is not possible that the zoom-to-fit scale is larger than this value.
-      val contentAreas = rawSizes.sumOf { it.width * it.height }
-      val availableArea =
-        (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding)
-      // The zoom-to-fit value cannot be smaller than 1%.
-      maxOf(0.01, sqrt(availableArea.toDouble() / contentAreas))
-    }
+    // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level, to
+    // calculate this number we get the max scale, and we multiply by the screen scaling factor
+    val upperBound = ZoomConstants.DEFAULT_MAX_SCALE * JBUIScale.sysScale()
 
+    // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
+    // This scale can fit all the content in a single row or a single column, which is the worst
+    // case.
     val lowerBound = run {
-      // This scale can fit all the content in a single row or a single column, which is the worst
-      // case.
-      // The zoom-to-fit scale should not be smaller than this value.
+      // We get the total width if all the content would be on one single row
       val totalWidth = rawSizes.sumOf { it.width }
+      // We get the total height if all the content would be on one single column
       val totalHeight = rawSizes.sumOf { it.height }
       // The zoom-to-fit value cannot be smaller than 1%.
       maxOf(
@@ -198,11 +195,15 @@ class GridLayoutManager(
       )
     }
 
-    if (upperBound <= lowerBound) {
-      return lowerBound
-    }
-
-    return getMaxZoomToFitScale(content, lowerBound, upperBound, availableWidth, availableHeight)
+    // Use binary search to find the proper zoom-to-fit value, we use lowerBound and upperBound as
+    // the min and max values of zoom-to-fit
+    return getMaxZoomToFitScale(
+      content = content,
+      min = lowerBound,
+      max = upperBound,
+      width = availableWidth,
+      height = availableHeight,
+    )
   }
 
   /** Binary search to find the largest scale for [width] x [height] space. */
@@ -216,22 +217,22 @@ class GridLayoutManager(
     depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
-      // because we want to show the content as wide as possible we return max even in case we reach
-      // the max iteration, and we haven't found the perfect zoom to fit value.
-      // It could be that the resulting zoom to fit is a bit higher than the available height. For a
-      // better granularity we can increase MAX_ITERATION_TIMES
-      return max
+      // because we want to show the content within the available space we get minimum resulting fit
+      // scale even in case we reach the max iteration number and we haven't found the perfect zoom
+      // to fit value.
+      // It could be that the applying the resulting zoom to fit there could be additional available
+      // space, for a better granularity we can increase MAX_ITERATION_TIMES.
+      return min
     }
     if (max - min <= SCALE_UNIT) {
-      // max and min are minor than the unit scale, because we want to show the content as wide as
-      // possible we return max
-      // It could be that the resulting zoom to fit is a bit higher than the available height.
-      return max
+      // max and min are minor than the unit scale, because we want to show the content within the
+      // available space we get minimum resulting fit scale
+      return min
     }
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
     val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
-    return if (dim.height <= height) {
+    return if (dim.height <= height && dim.width <= width) {
       // We want the resulting content fitting into the height we try to lower the scale
       getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
     } else {

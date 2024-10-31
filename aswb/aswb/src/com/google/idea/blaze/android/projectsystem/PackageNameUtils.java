@@ -17,7 +17,6 @@ package com.google.idea.blaze.android.projectsystem;
 
 import com.android.manifmerger.ManifestSystemProperty;
 import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.model.AndroidManifestIndexCompat;
 import com.android.tools.idea.model.AndroidManifestRawText;
 import com.android.tools.idea.model.MergedManifestModificationTracker;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
@@ -41,8 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public class PackageNameUtils {
   /**
    * Determines whether we use the {@link AndroidManifestIndex} to obtain the raw text package name
-   * from a module's primary manifest. Note that we still won't use the index if {@link
-   * AndroidManifestIndex#indexEnabled()} returns false.
+   * from a module's primary manifest.
    *
    * @see PackageNameUtils#getPackageName(Module)
    * @see PackageNameUtils#doGetPackageName(AndroidFacet, boolean)
@@ -58,9 +56,7 @@ public class PackageNameUtils {
         .getCachedValue(
             facet,
             () -> {
-              boolean useIndex =
-                  AndroidManifestIndexCompat.indexEnabled()
-                      && USE_ANDROID_MANIFEST_INDEX.getValue();
+              boolean useIndex = USE_ANDROID_MANIFEST_INDEX.getValue();
               String packageName = doGetPackageName(facet, useIndex);
               return CachedValueProvider.Result.create(
                   StringUtil.nullize(packageName, true),
@@ -92,7 +88,7 @@ public class PackageNameUtils {
   @VisibleForTesting
   static String doGetPackageName(AndroidFacet facet, boolean useIndex) {
     ManifestOverrides manifestOverrides =
-        BlazeModuleSystem.getInstance(facet.getModule()).getManifestOverrides();
+        BazelModuleSystem.getInstance(facet.getModule()).getManifestOverrides();
     String packageOverride =
         ManifestValueProcessor.getPackageOverride(manifestOverrides.getDirectOverrides());
     if (packageOverride != null) {

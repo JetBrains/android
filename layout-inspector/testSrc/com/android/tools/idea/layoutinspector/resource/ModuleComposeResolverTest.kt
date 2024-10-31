@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.packageNameHash
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.testing.AndroidModuleModelBuilder

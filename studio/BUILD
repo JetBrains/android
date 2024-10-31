@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
-load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
@@ -70,7 +70,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:jetty",
-        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
@@ -88,7 +87,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:zxing-core",
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
@@ -98,9 +96,10 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
         "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
-        "//tools/adt/idea/app-quality-insights/ui:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/logcat/proto:logcat-proto",
@@ -191,9 +190,12 @@ studio_plugin(
             "//tools/adt/idea/avd:intellij.android.avd",
             "//tools/adt/idea/intellij.android.device",
             "//tools/adt/idea/android:intellij.android.core",
+            "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation",
+            "//tools/adt/idea/android/editing/metrics:intellij.android.core.editing.metrics",
             "//tools/adt/idea/android-navigator:intellij.android.navigator",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
+            "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
             "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",
             "//tools/adt/idea/backup:intellij.android.backup",
             "//tools/adt/idea/backup:intellij.android.backup.api",
@@ -203,11 +205,9 @@ studio_plugin(
             "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files",
             "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor",
             "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
-            "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/ml-api:intellij.android.ml-api",
             "//tools/adt/idea/streaming:intellij.android.streaming",
-            "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
@@ -402,12 +402,17 @@ studio_plugin(
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.android.tools.gradle.dcl",
         ":com.android.tools.idea.smali",
         "@intellij//:JUnit",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
+        "@intellij//:intellij.platform.lvcs.impl",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.webp",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.intellij.intelliLang",
@@ -521,6 +526,7 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:firebase_java_proto",
+        "//tools/vendor/google/firebase:gemini_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
@@ -560,6 +566,8 @@ studio_plugin(
         ":com.google.services.firebase",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
 )
 
@@ -608,6 +616,8 @@ studio_plugin(
         "@intellij//:Git4Idea",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.jetbrains.plugins.gradle",
@@ -644,6 +654,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )
 
@@ -664,6 +675,26 @@ studio_plugin(
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:org.intellij.groovy",
+        "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+studio_plugin(
+    name = "com.android.tools.gradle.dcl",
+    directory = "gradle-declarative",
+    libs = [
+        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
+    ],
+    modules = {
+        "gradle-declarative.jar": [
+            "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+            "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
+        ],
+    },
+    visibility = ["//visibility:public"],
+    deps = [
+        "@intellij//:com.intellij.gradle",
+        "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
@@ -702,6 +733,8 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
@@ -748,6 +781,7 @@ android_studio(
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
         ":com.google.targetsdkversionassistant",
+        ":com.android.tools.gradle.dcl",
     ],
     properties = select({
         "//conditions:default": [],
@@ -1064,7 +1098,7 @@ iml_module(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "StartUpTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
@@ -1072,7 +1106,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "StartUpCustomJvmTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
@@ -1080,7 +1114,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.StartUpCustomJvmTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "UpdateTest",
     data = [
         ":updater",
@@ -1092,7 +1126,7 @@ iml_studio_test(
     test_class = "com.android.tools.idea.UpdateTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "WebpSupportTest",
     module = ":intellij.android.studio.integration",
     # TODO(b/302730760) enable test when WebP support is fully fixed
@@ -1149,6 +1183,36 @@ iml_module(
         "@intellij//:com.jetbrains.performancePlugin",
         "@intellij//:com.jetbrains.sh",
         "@intellij//:hg4idea",
+        "@intellij//:intellij.java.featuresTrainer",
+        "@intellij//:intellij.java.structuralSearch",
+        "@intellij//:intellij.java.unscramble",
+        "@intellij//:intellij.java.vcs",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
+        "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.microba",
+        "@intellij//:intellij.platform.clouds",
+        "@intellij//:intellij.platform.collaborationTools",
+        "@intellij//:intellij.platform.coverage",
+        "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij.platform.execution.dashboard",
+        "@intellij//:intellij.platform.execution.serviceView",
+        "@intellij//:intellij.platform.images.backend.svg",
+        "@intellij//:intellij.platform.images.copyright",
+        "@intellij//:intellij.platform.kernel",
+        "@intellij//:intellij.platform.kernel.backend",
+        "@intellij//:intellij.platform.lvcs.impl",
+        "@intellij//:intellij.platform.navbar",
+        "@intellij//:intellij.platform.navbar.backend",
+        "@intellij//:intellij.platform.navbar.frontend",
+        "@intellij//:intellij.platform.navbar.monolith",
+        "@intellij//:intellij.platform.settings.local",
+        "@intellij//:intellij.platform.smRunner.vcs",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.smart.update",
+        "@intellij//:intellij.turboComplete.languages.kotlin",
         "@intellij//:intellij.webp",
         "@intellij//:org.editorconfig.editorconfigjetbrains",
         "@intellij//:org.intellij.groovy",
@@ -1169,5 +1233,43 @@ iml_module(
         "@intellij//:org.jetbrains.plugins.textmate",
         "@intellij//:org.jetbrains.plugins.yaml",
         "@intellij//:org.toml.lang",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "studio-sdk-all-modules",
+    iml_files = ["studio-sdk-all-modules.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "@intellij//:intellij.java.featuresTrainer",
+        "@intellij//:intellij.java.structuralSearch",
+        "@intellij//:intellij.java.unscramble",
+        "@intellij//:intellij.java.vcs",
+        "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.microba",
+        "@intellij//:intellij.platform.clouds",
+        "@intellij//:intellij.platform.collaborationTools",
+        "@intellij//:intellij.platform.coverage",
+        "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij.platform.execution.dashboard",
+        "@intellij//:intellij.platform.execution.serviceView",
+        "@intellij//:intellij.platform.images.backend.svg",
+        "@intellij//:intellij.platform.images.copyright",
+        "@intellij//:intellij.platform.kernel",
+        "@intellij//:intellij.platform.kernel.backend",
+        "@intellij//:intellij.platform.lvcs.impl",
+        "@intellij//:intellij.platform.navbar",
+        "@intellij//:intellij.platform.navbar.backend",
+        "@intellij//:intellij.platform.navbar.frontend",
+        "@intellij//:intellij.platform.navbar.monolith",
+        "@intellij//:intellij.platform.settings.local",
+        "@intellij//:intellij.platform.smRunner.vcs",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.smart.update",
+        "@intellij//:intellij.turboComplete.languages.kotlin",
     ],
 )

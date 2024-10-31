@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.runBlockingMaybeCancellable
@@ -29,25 +29,17 @@ import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilat
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
-import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
@@ -127,11 +119,14 @@ interface CompileScope {
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project,
-                     analysisResult: AnalysisResult,
-                     input: List<KtFile>,
-                     module: Module,
-                     inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState
+  fun backendCodeGen(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    project: Project,
+    analysisResult: AnalysisResult,
+    input: List<KtFile>,
+    moduleForAllInputs: Module,
+    inlineClassRequest: Set<SourceInlineCandidate>?
+  ): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -189,13 +184,15 @@ private object CompileScopeImpl : CompileScope {
     }
   }
 
-  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
-                              inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
+  override fun backendCodeGen(
+    applicationLiveEditServices: ApplicationLiveEditServices,
+    project: Project, analysisResult: AnalysisResult, input: List<KtFile>, moduleForAllInputs: Module,
+    inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
     // Ideally, we want to make sure that each compilation only contains files of a single module.
     // However, the current algorithm would fail if a file depends on an inline function that is in another module.
     // If we are unable to pull the binary version of the inline function from the .class directories, we would need to include the .kt
     // file in the input.
-    if (input.isNotEmpty() && input.first().module != module) {
+    if (input.isNotEmpty() && input.first().module != moduleForAllInputs) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(input.first())
     }
 
@@ -208,29 +205,7 @@ private object CompileScopeImpl : CompileScope {
     // file already so this is the best time to check.
     input.checkPsiErrorElement()
 
-    val compilerConfiguration = CompilerConfiguration().apply {
-      put(CommonConfigurationKeys.MODULE_NAME,
-          module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
-      KotlinFacet.get(module)?.let { kotlinFacet ->
-        val moduleName = when(val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-          is K2JVMCompilerArguments -> compilerArguments.moduleName
-          is K2MetadataCompilerArguments -> compilerArguments.moduleName
-          else -> null
-        }
-        moduleName?.let {
-          put(CommonConfigurationKeys.MODULE_NAME, it)
-        }
-      }
-
-      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.isOverridden) {
-        val flags = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_COMPILER_FLAGS.get().split(" ")
-        val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(flags)
-        val languageSettings = mainKotlinCompilerOptions.toLanguageVersionSettings(MessageCollector.NONE)
-        setOptions(languageSettings)
-      } else {
-        setOptions(input.first().languageVersionSettings)
-      }
-    }
+    val compilerConfiguration = getCompilerConfiguration(moduleForAllInputs, input.first())
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
@@ -254,7 +229,7 @@ private object CompileScopeImpl : CompileScope {
 
     val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
-      it.fetchByteCodeFromBuildIfNeeded()
+      it.fetchByteCodeFromBuildIfNeeded(applicationLiveEditServices)
       it.fillInlineCache(generationState.inlineCache)
     }
 

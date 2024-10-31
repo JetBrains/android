@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.tree.ClassNode
 
@@ -53,7 +54,8 @@ class IrClass(node: ClassNode) {
  */
 data class EnclosingMethod(val outerClass: String?, val outerMethod: String?, val outerMethodDesc: String?)
 
-private fun ByteArray.toClassNode(): ClassNode {
+@VisibleForTesting
+fun ByteArray.toClassNode(): ClassNode {
   val node = ClassNode()
   val reader = ClassReader(this)
   reader.accept(node, 0)

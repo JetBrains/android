@@ -50,7 +50,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.NULL_CON
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater.updateSkin
 import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder
-import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory
@@ -65,7 +64,6 @@ import com.android.utils.PathUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.ExecutionException
@@ -79,11 +77,9 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.net.HttpConfigurable
 import java.io.File
 import java.io.IOException
@@ -210,7 +206,8 @@ constructor(
 
   /** Boots the AVD, using its .ini file to determine the booting method. */
   @Deprecated("Use suspend version")
-  open fun asyncStartAvd(
+  @VisibleForTesting
+  fun asyncStartAvd(
     project: Project?,
     info: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
@@ -218,19 +215,6 @@ constructor(
     return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<IDevice> {
       // This is only used by the old Device Manager.
       runBlocking { startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory()) }
-    }
-  }
-
-  /** Performs a cold boot and saves the emulator state on exit. */
-  @Deprecated("Use suspend version")
-  fun startAvdWithColdBoot(
-    project: Project?,
-    info: AvdInfo,
-    requestType: AvdLaunchListener.RequestType,
-  ): ListenableFuture<IDevice> {
-    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<IDevice> {
-      // This is only used by the old Device Manager.
-      runBlocking { startAvd(project, info, requestType, ::ColdBootNowEmulatorCommandBuilder) }
     }
   }
 
@@ -614,10 +598,6 @@ constructor(
       return avdManager?.reloadAvd(avd)
     }
     return null
-  }
-
-  fun wipeUserDataAsync(avd: AvdInfo): ListenableFuture<Boolean> {
-    return Futures.submit<Boolean>({ wipeUserData(avd) }, AppExecutorUtil.getAppExecutorService())
   }
 
   @Slow

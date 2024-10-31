@@ -80,6 +80,7 @@ private class ComposeGradleProjectRuleImpl(
 
   override fun after(description: Description) {
     StudioRenderService.setForTesting(projectRule.project, null)
+    RenderService.shutdownRenderExecutor(5)
   }
 }
 

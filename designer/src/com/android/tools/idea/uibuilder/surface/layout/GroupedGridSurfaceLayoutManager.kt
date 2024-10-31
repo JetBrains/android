@@ -22,6 +22,8 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import com.android.tools.idea.uibuilder.layout.option.GroupedSurfaceLayoutManager
@@ -155,8 +157,6 @@ open class GroupedGridSurfaceLayoutManager(
         content
       }
 
-    // Use binary search to find the proper zoom-to-fit value.
-
     // Calculate the sum of the area of the original content sizes. This considers the margins and
     // paddings of every content.
     val rawSizes =
@@ -170,44 +170,58 @@ open class GroupedGridSurfaceLayoutManager(
         )
       }
 
+    // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level.
+    // It is not possible that the zoom-to-fit scale is larger than this value.
     val upperBound = run {
-      // Find the scale the total areas of contents equals to the available spaces.
+      // Finds the scale the total areas of contents equals to the available spaces.
       // This happens when the contents perfectly full-fill the available space.
-      // It is not possible that the zoom-to-fit scale is larger than this value.
-      val contentAreas = rawSizes.sumOf { it.width * it.height }
-      val availableArea =
-        (availableWidth - padding.canvasLeftPadding) * (availableHeight - padding.canvasTopPadding)
+      val contentAreas: Double = rawSizes.sumOf { it.width.toDouble() * it.height.toDouble() }
+      val availableArea: Double =
+        (availableWidth - padding.canvasLeftPadding).toDouble() *
+          (availableHeight - padding.canvasTopPadding).toDouble()
       // The zoom-to-fit value cannot be smaller than 1%.
-      maxOf(0.01, sqrt(availableArea.toDouble() / contentAreas))
+      sqrt(availableArea / contentAreas)
+        .coerceAtLeast(DEFAULT_MIN_SCALE)
+        .coerceAtMost(DEFAULT_MAX_SCALE)
     }
 
+    // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
+    // This scale can fit all the content in a single row or a single column, which is the worst
+    // case.
     val lowerBound = run {
+      // We get the total width if all the content would be on one single row
       // This scale can fit all the content in a single row or a single column, which is the worst
       // case.
       // The zoom-to-fit scale should not be smaller than this value.
-      val totalWidth = rawSizes.sumOf { it.width }
-      val totalHeight = rawSizes.sumOf { it.height }
+      val totalWidth = rawSizes.sumOf { it.width.toDouble() }
+      val totalHeight = rawSizes.sumOf { it.height.toDouble() }
       // The zoom-to-fit value cannot be smaller than 1%.
-      maxOf(
-        0.01,
-        minOf(
-          (availableWidth - padding.canvasLeftPadding) / totalWidth.toDouble(),
-          (availableHeight - padding.canvasTopPadding) / totalHeight.toDouble(),
-        ),
-      )
+      minOf(
+          (availableWidth - padding.canvasLeftPadding) / totalWidth,
+          (availableHeight - padding.canvasTopPadding) / totalHeight,
+        )
+        .coerceAtLeast(DEFAULT_MIN_SCALE)
+        .coerceAtMost(DEFAULT_MAX_SCALE)
     }
 
     if (upperBound <= lowerBound) {
       return lowerBound
     }
 
-    return getMaxZoomToFitScale(
-      content = contentToFit,
-      min = lowerBound,
-      max = upperBound,
-      width = availableWidth,
-      height = availableHeight,
-    )
+    // Use binary search to find the proper zoom-to-fit value.
+    val maxZoomToFitScale =
+      getMaxZoomToFitScale(
+        content = contentToFit,
+        min = lowerBound,
+        max = upperBound,
+        width = availableWidth,
+        height = availableHeight,
+        depth = 0,
+      )
+    // We round up to the 3rd decimal number as it is enough having this granularity for zooming
+    // calculation,
+    // rounding up to the 2nd decimal number would cause some issues with dynamic zoom to fit.
+    return Math.round(maxZoomToFitScale * 1000) / 1000.0
   }
 
   /** Binary search to find the largest scale for [width] x [height] space. */
@@ -218,7 +232,7 @@ open class GroupedGridSurfaceLayoutManager(
     @SurfaceScale max: Double,
     @SwingCoordinate width: Int,
     @SwingCoordinate height: Int,
-    depth: Int = 0,
+    depth: Int,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
@@ -231,13 +245,13 @@ open class GroupedGridSurfaceLayoutManager(
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
     val dim = getSize(content, { contentSize.scaleOf(scale) }, { scale }, width, null)
-    return if (dim.height <= height) {
+    return if (dim.height <= height && dim.width <= width) {
       // We want the resulting content fitting into the height we try to lower the scale
-      getMaxZoomToFitScale(content, scale, max, width, height)
+      getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
     } else {
       // We want can increase the scale as the scaled dimension results on a lower height than the
       // available height
-      getMaxZoomToFitScale(content, min, scale, width, height)
+      getMaxZoomToFitScale(content, min, scale, width, height, depth + 1)
     }
   }
 

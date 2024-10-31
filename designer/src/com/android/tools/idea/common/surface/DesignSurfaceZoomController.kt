@@ -24,16 +24,14 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
+import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
 import java.awt.Point
 import javax.swing.JViewport
 import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
-
-@SurfaceScale private const val MIN_SCALE: Double = 0.03
-
-@SurfaceScale private const val MAX_SCALE: Double = 10.0
 
 /**
  * If the difference between old and new scaling values is less than threshold, the scaling will be
@@ -64,7 +62,6 @@ abstract class DesignSurfaceZoomController(
   private val designerAnalyticsManager: DesignerAnalyticsManager?,
   private val selectionModel: SelectionModel?,
   private val scenesOwner: ScenesOwner?,
-  override val maxZoomToFitLevel: Double = Double.MAX_VALUE,
 ) : ZoomController {
 
   /** Emits an event of [ZoomType] before the given zoom is applied. */
@@ -72,18 +69,13 @@ abstract class DesignSurfaceZoomController(
 
   override var storeId: String? = null
 
-  override val minScale: Double = MIN_SCALE
+  /** The minimum scale allowed. */
+  override val minScale: Double = DEFAULT_MIN_SCALE
 
-  override val maxScale: Double = MAX_SCALE
+  /** The maximum scale allowed. */
+  override val maxScale: Double = DEFAULT_MAX_SCALE
 
   open val shouldShowZoomAnimation: Boolean = false
-
-  /**
-   * The max zoom level allowed in zoom to fit could not correspond if [screenScalingFactor] is
-   * different from 1.0.
-   */
-  protected val maxZoomToFitScale
-    get() = maxZoomToFitLevel / screenScalingFactor
 
   /**
    * The current scale of [DesignSurface]. This variable should be only changed by [setScale]. If
@@ -266,7 +258,7 @@ abstract class DesignSurfaceZoomController(
 
   override fun canZoomIn(): Boolean = currentScale < maxScale && !isScaleSame(scale, maxScale)
 
-  override fun canZoomOut(): Boolean = minScale < currentScale && !isScaleSame(minScale, scale)
+  override fun canZoomOut(): Boolean = currentScale > minScale && !isScaleSame(minScale, scale)
 
   override fun canZoomToFit(): Boolean {
     @SurfaceScale val zoomToFitScale = getFitScale()

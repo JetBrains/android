@@ -28,11 +28,15 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
+import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.artifact.TestOutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
@@ -40,7 +44,9 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +56,8 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mock.Strictness;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -59,14 +67,27 @@ public class NewArtifactTrackerTest {
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
   @Rule public TemporaryFolder cacheDir = new TemporaryFolder();
 
-  @Mock BuildArtifactCache cache;
+  @Mock(strictness = Strictness.STRICT_STUBS) BuildArtifactCache cache;
   @Captor ArgumentCaptor<ImmutableCollection<OutputArtifact>> cachedArtifactsCaptor;
+
+  private Map<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata>> artifactMetadataMap =
+      Maps.newHashMap();
 
   private NewArtifactTracker<NoopContext> artifactTracker;
 
   @Before
   public void createArtifactTracker() {
-    artifactTracker = new NewArtifactTracker<>(cacheDir.getRoot().toPath(), cache);
+    artifactTracker =
+        new NewArtifactTracker<>(
+            cacheDir.getRoot().toPath(),
+            cache,
+            t -> artifactMetadataMap.getOrDefault(t.label(), ImmutableSetMultimap.of()),
+            MoreExecutors.directExecutor());
+  }
+
+  @After
+  public void verifyMocks() {
+    Mockito.verifyNoMoreInteractions(cache);
   }
 
   @Test
@@ -81,11 +102,11 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build(),
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/anothertest.jar")
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
                             .setDigest("anotherjar_digest")
                             .build())
                     .build())
@@ -140,7 +161,7 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -192,7 +213,7 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/anothertest.jar")
+                            .setArtifactPath(Path.of("out/anothertest.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -256,7 +277,7 @@ public class NewArtifactTrackerTest {
                             .putAll(
                                 OutputGroup.JARS,
                                 TestOutputArtifact.builder()
-                                    .setRelativePath("out/test.jar")
+                                    .setArtifactPath(Path.of("out/test.jar"))
                                     .setDigest("jar_digest")
                                     .build())
                             .build())
@@ -290,13 +311,13 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .putAll(
                         OutputGroup.GENSRCS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .build())
@@ -325,17 +346,17 @@ public class NewArtifactTrackerTest {
                     .putAll(
                         OutputGroup.JARS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/test.jar")
+                            .setArtifactPath(Path.of("out/test.jar"))
                             .setDigest("jar_digest")
                             .build())
                     .putAll(
                         OutputGroup.GENSRCS,
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/src/Class1.java")
+                            .setArtifactPath(Path.of("out/src/Class1.java"))
                             .setDigest("class1_digest")
                             .build(),
                         TestOutputArtifact.builder()
-                            .setRelativePath("out/src/Class2.java")
+                            .setArtifactPath(Path.of("out/src/Class2.java"))
                             .setDigest("class2_digest")
                             .build())
                     .build())
@@ -359,5 +380,68 @@ public class NewArtifactTrackerTest {
                 "class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
             BuildArtifact.create(
                 "class2_digest", Path.of("out/src/Class2.java"), Label.of("//test:test")));
+  }
+
+  static class TestArtifactMetadata implements ArtifactMetadata {
+
+    private final String key;
+
+    TestArtifactMetadata(String key) {
+      this.key = key;
+    }
+
+    @Override
+    public String key() {
+      return key;
+    }
+
+    @Override
+    public String extract(CachedArtifact buildArtifact, Object nameForLogs) {
+      return "extracted-by-" + key;
+    }
+  }
+
+  @Test
+  public void extract_artifact_metadata() throws BuildException {
+    when(cache.addAll(cachedArtifactsCaptor.capture(), any()))
+        .thenReturn(Futures.immediateFuture(null));
+    when(cache.get("jar_digest"))
+        .thenReturn(
+            Optional.of(Futures.immediateFuture(new CachedArtifact(Path.of("/cache/jar_digest")))));
+    BuildArtifact jarArtifact =
+        BuildArtifact.create("jar_digest", Path.of("out/test.jar"), Label.of("//test:test"));
+    artifactMetadataMap.put(
+        Label.of("//test:test"),
+        ImmutableSetMultimap.<BuildArtifact, ArtifactMetadata>builder()
+            .putAll(jarArtifact, new TestArtifactMetadata("key1"), new TestArtifactMetadata("key2"))
+            .build());
+    artifactTracker.update(
+        ImmutableSet.of(Label.of("//test:test")),
+        OutputInfo.builder()
+            .setOutputGroups(
+                ImmutableListMultimap.<OutputGroup, OutputArtifact>builder()
+                    .putAll(
+                        OutputGroup.JARS,
+                        TestOutputArtifact.builder()
+                            .setArtifactPath(Path.of("out/test.jar"))
+                            .setDigest("jar_digest")
+                            .build())
+                    .build())
+            .setArtifactInfo(
+                JavaArtifacts.newBuilder()
+                    .addArtifacts(
+                        JavaTargetArtifacts.newBuilder()
+                            .setTarget("//test:test")
+                            .addJars(fileArtifact("out/test.jar"))
+                            .build())
+                    .build())
+            .build(),
+        new NoopContext());
+
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    assertThat(Iterables.getOnlyElement(builtDeps).getMetadata(jarArtifact, "key1"))
+        .isEqualTo("extracted-by-key1");
+    assertThat(Iterables.getOnlyElement(builtDeps).getMetadata(jarArtifact, "key2"))
+        .isEqualTo("extracted-by-key2");
   }
 }

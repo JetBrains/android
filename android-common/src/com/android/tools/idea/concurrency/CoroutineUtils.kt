@@ -52,14 +52,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -506,3 +511,19 @@ fun psiFileChangeFlow(psiManager: PsiManager, scope: CoroutineScope, logger: Log
 
 fun psiFileChangeFlow(project: Project, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
   psiFileChangeFlow(PsiManager.getInstance(project), scope, logger, onConnected)
+
+/** Like Flow.map(), but returns a StateFlow. */
+fun <T, M> StateFlow<T>.mapState(mapper: (value: T) -> M): StateFlow<M> = MappedStateFlow(this) { mapper(value) }
+
+private class MappedStateFlow<T, R>(private val source: StateFlow<T>, private val mapper: (T) -> R) : StateFlow<R> {
+  override val value: R
+    get() = mapper(source.value)
+
+  override val replayCache: List<R>
+    get() = source.replayCache.map(mapper)
+
+  override suspend fun collect(collector: FlowCollector<R>): Nothing {
+    source.map(mapper).distinctUntilChanged().collect(collector)
+    awaitCancellation()
+  }
+}

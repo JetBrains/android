@@ -17,11 +17,11 @@ package com.android.tools.idea.uibuilder.menu
 
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_MENU
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class MenuHandlerTest {
 

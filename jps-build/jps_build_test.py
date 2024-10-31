@@ -1,7 +1,10 @@
+import importlib
 import os
 import unittest
 import zipfile
-import jps_build
+
+# Import module using importlib because package name contains a dash.
+jps_build = importlib.import_module("tools.adt.idea.jps-build.jps_build")
 
 def get_path(name):
   return os.path.join(os.getenv("TEST_TMPDIR"), name)

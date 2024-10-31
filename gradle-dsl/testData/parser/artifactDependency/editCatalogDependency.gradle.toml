@@ -1,7 +1,0 @@
-[dependencies]
-implementation = [
-    { alias = "libs.core.ktx" },
-    { alias = "libs.junit" },
-    { alias = "libs.ui" }
-]
-

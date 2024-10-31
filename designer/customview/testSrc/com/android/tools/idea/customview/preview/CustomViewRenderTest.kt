@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.idea.preview.rendering.createRenderTaskFuture
+import com.android.tools.idea.preview.rendering.createRenderTaskFutureForTest
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -72,7 +72,7 @@ class CustomViewRenderTest {
       CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
 
     val renderTask =
-      createRenderTaskFuture(projectRule.androidFacet(":app"), customPreviewXml, true).get()
+      createRenderTaskFutureForTest(projectRule.androidFacet(":app"), customPreviewXml, true).get()
     val renderResult = renderTask.render().get()
     val image = renderResult!!.renderedImage
 

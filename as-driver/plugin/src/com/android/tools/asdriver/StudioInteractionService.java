@@ -76,6 +76,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
 
@@ -100,6 +101,17 @@ public class StudioInteractionService {
     Consumer<Component> invoke = this::invokeComponent;
     long startTime = System.currentTimeMillis();
     filterAndExecuteComponent(matchers, timeoutMillis, filter, invoke);
+    log(String.format(Locale.getDefault(), "Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
+  }
+
+  public void findAndSetTextOnComponent(List<ASDriver.ComponentMatcher> matchers, String text) throws InterruptedException, TimeoutException, InvocationTargetException {
+    log("Attempting to set text on a component with matchers: " + matchers);
+    // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
+    long timeoutMillis = 180000;
+    Function<Component, Boolean> filter = this::isComponentInvokable;
+    Consumer<Component> setText = (component) -> setTextOnComponent(component, text);
+    long startTime = System.currentTimeMillis();
+    filterAndExecuteComponent(matchers, timeoutMillis, filter, setText);
     log(String.format(Locale.getDefault(), "Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
   }
 
@@ -149,6 +161,15 @@ public class StudioInteractionService {
       componentAsMenuItem.doClick();
     } else {
       throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
+    }
+  }
+
+  private void setTextOnComponent(Component component, String text) {
+    if (component instanceof JTextField componentAsJTextField) {
+      log("Setting text on JTextField: " + componentAsJTextField);
+      componentAsJTextField.setText(text);
+    } else {
+      throw new IllegalArgumentException(String.format("Don't know how to invoke set text on class \"%s\"", component.getClass()));
     }
   }
 
@@ -405,6 +426,9 @@ public class StudioInteractionService {
     }
     if (c instanceof SimpleColoredComponent scc) {
       result = scc.toString();
+    }
+    if (c instanceof JTextField jtf) {
+      result = jtf.getText();
     }
     if (StringUtil.nullize(result) == null) {
       AccessibleContext context = c.getAccessibleContext();

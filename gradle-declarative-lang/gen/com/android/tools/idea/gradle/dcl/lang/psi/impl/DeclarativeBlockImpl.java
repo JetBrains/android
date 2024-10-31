@@ -52,20 +52,20 @@ public class DeclarativeBlockImpl extends CompositePsiElement implements Declara
 
   @Override
   @Nullable
+  public DeclarativeEmbeddedFactory getEmbeddedFactory() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeEmbeddedFactory.class);
+  }
+
+  @Override
+  @Nullable
   public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+    return PsiImplUtil.getIdentifier(this);
   }
 
   @Override
   @NotNull
   public List<DeclarativeEntry> getEntries() {
     return PsiImplUtil.getEntries(this);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeFactory getFactory() {
-    return PsiImplUtil.getFactory(this);
   }
 
   @Override

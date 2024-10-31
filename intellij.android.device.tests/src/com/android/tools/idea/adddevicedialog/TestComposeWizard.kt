@@ -20,6 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
   WizardDialogScope, WizardPageScope() {
@@ -42,7 +47,17 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
     pageStack.removeLast()
   }
 
-  override fun close() {}
+  private val closeLatch = CountDownLatch(1)
+
+  override fun close() {
+    closeLatch.countDown()
+  }
+
+  fun awaitClose(timeout: Duration = 30.seconds) {
+    if (!closeLatch.await(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)) {
+      throw TimeoutException("Close did not occur after $timeout")
+    }
+  }
 
   override var nextActionName by mutableStateOf("Next")
   override var finishActionName by mutableStateOf("Finish")
@@ -53,6 +68,7 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
   var prevAction: WizardAction = WizardAction.Disabled
 
   fun performAction(action: WizardAction) {
-    action.action?.invoke(this)
+    checkNotNull(action.action) { "Action is disabled" }
+    action.action!!.invoke(this)
   }
 }

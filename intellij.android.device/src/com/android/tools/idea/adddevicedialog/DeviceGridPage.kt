@@ -26,10 +26,9 @@ import androidx.compose.ui.Modifier
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun WizardPageScope.DeviceGridPage(
-  source: DeviceSource,
-  filterContent: @Composable (List<DeviceProfile>) -> Unit,
-  filterState: DeviceFilterState,
+fun <DeviceT : DeviceProfile> WizardPageScope.DeviceLoadingPage(
+  source: DeviceSource<DeviceT>,
+  content: @Composable (List<DeviceT>) -> Unit,
 ) {
   val profiles by remember { source.profiles }.collectAsState(LoadingState.Loading)
 
@@ -43,30 +42,41 @@ fun WizardPageScope.DeviceGridPage(
       Box(Modifier.fillMaxSize()) { Text("Loading devices...", Modifier.align(Alignment.Center)) }
     }
     is LoadingState.Ready -> {
-      DeviceGridPage(
-        profiles.value,
-        { filterContent(profiles.value) },
-        filterState,
-        onSelectionUpdated = { with(source) { selectionUpdated(it) } },
-      )
+      content(profiles.value)
     }
   }
 }
 
 @Composable
-private fun WizardPageScope.DeviceGridPage(
-  profiles: List<DeviceProfile>,
+fun <DeviceT : DeviceProfile> WizardPageScope.DefaultDeviceGridPage(
+  profiles: List<DeviceT>,
+  columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
-  filterState: DeviceFilterState,
-  onSelectionUpdated: (DeviceProfile) -> Unit,
+  filterState: DeviceFilterState<DeviceT>,
+  selectionState: TableSelectionState<DeviceT> = getOrCreateState { TableSelectionState() },
+  onSelectionUpdated: (DeviceT) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  val selectionState = getOrCreateState { TableSelectionState<DeviceProfile>() }
-  DeviceTable(
-    profiles,
-    filterContent = filterContent,
-    tableSelectionState = selectionState,
-    filterState = filterState,
-  )
+  DeviceGridPage(filterState, selectionState, onSelectionUpdated) {
+    DeviceTable(
+      profiles,
+      columns,
+      filterContent = filterContent,
+      tableSelectionState = selectionState,
+      filterState = filterState,
+      modifier = modifier,
+    )
+  }
+}
+
+@Composable
+fun <DeviceT : DeviceProfile> WizardPageScope.DeviceGridPage(
+  filterState: DeviceFilterState<DeviceT>,
+  selectionState: TableSelectionState<DeviceT> = getOrCreateState { TableSelectionState() },
+  onSelectionUpdated: (DeviceT) -> Unit,
+  content: @Composable () -> Unit,
+) {
+  content()
 
   val selection = selectionState.selection
   if (selection == null || !filterState.apply(selection)) {

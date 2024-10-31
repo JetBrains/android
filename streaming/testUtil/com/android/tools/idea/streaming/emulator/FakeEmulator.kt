@@ -55,6 +55,7 @@ import com.android.io.writeImage
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
+import com.android.tools.adtui.util.normalizedRotation
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
 import com.android.tools.idea.io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener
 import com.android.tools.idea.io.grpc.Metadata
@@ -74,7 +75,6 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
-import com.android.tools.idea.streaming.core.normalizedRotation
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.utils.FileUtils.copyDirectory
 import com.google.common.base.Predicates.alwaysTrue

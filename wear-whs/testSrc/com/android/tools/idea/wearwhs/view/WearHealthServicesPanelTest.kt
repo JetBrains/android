@@ -19,12 +19,14 @@ import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
@@ -36,13 +38,19 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.ActionLink
 import icons.StudioIcons
 import java.awt.Dimension
-import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -58,11 +66,15 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mockStatic
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class WearHealthServicesPanelTest {
@@ -88,6 +100,7 @@ class WearHealthServicesPanelTest {
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
   private lateinit var whsPanel: WearHealthServicesPanel
+  private lateinit var fakePopup: FakeActionPopupMenu
 
   @Before
   fun setUp() {
@@ -107,6 +120,19 @@ class WearHealthServicesPanelTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
     whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
+
+    ApplicationManager.getApplication()
+      .replaceService(
+        ActionManager::class.java,
+        org.mockito.kotlin.mock(),
+        projectRule.testRootDisposable,
+      )
+    doAnswer { invocation ->
+        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+        fakePopup
+      }
+      .whenever(ActionManager.getInstance())
+      .createActionPopupMenu(anyString(), any<ActionGroup>())
   }
 
   @Test
@@ -132,20 +158,22 @@ class WearHealthServicesPanelTest {
       testDataPath = testDataPath,
       fileNameBase = "screens/whs-panel-default",
       actual = fakeUi.render(),
-      maxPercentDifferent = 4.0,
+      maxPercentDifferent = 0.0,
     )
   }
 
   @Test
   fun `test panel screenshot matches expectation with modified state manager values`() =
     runBlocking {
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
+      stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
+      stateManager.applyChanges()
+
       deviceManager.activeExercise = true
 
       stateManager.forceUpdateState()
 
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
-      stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
       stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
       stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
       stateManager.applyChanges()
@@ -163,7 +191,7 @@ class WearHealthServicesPanelTest {
         testDataPath = testDataPath,
         fileNameBase = "screens/whs-panel-state-manager-modified",
         actual = fakeUi.render(),
-        maxPercentDifferent = 4.0,
+        maxPercentDifferent = 0.0,
       )
     }
 
@@ -176,8 +204,7 @@ class WearHealthServicesPanelTest {
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     delay(2 * TEST_POLLING_INTERVAL_MILLISECONDS)
 
@@ -246,17 +273,24 @@ class WearHealthServicesPanelTest {
   }
 
   @Test
-  fun `test panel displays the dropdown for event triggers`() = runBlocking {
+  fun `test panel displays a popup for event triggers`(): Unit = runBlocking {
     val fakeUi = FakeUi(whsPanel.component)
-    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-    assertThat(dropDownButton).isNotNull()
-    assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
-    assertThat(dropDownButton.action.childrenActions[0].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[0].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[1].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[1].eventTriggers.size)
-    assertThat(dropDownButton.action.childrenActions[2].childrenActions)
-      .hasSize(EVENT_TRIGGER_GROUPS[2].eventTriggers.size)
+    val eventsButton = fakeUi.triggerEventsButton()
+    assertThat(eventsButton).isNotNull()
+
+    eventsButton.doClick()
+
+    val eventTriggerGroups = fakePopup.getActions().mapNotNull { it as? DropDownAction }
+    assertThat(eventTriggerGroups).hasSize(EVENT_TRIGGER_GROUPS.size)
+
+    for (i in EVENT_TRIGGER_GROUPS.indices) {
+      assertThat(eventTriggerGroups[i].templatePresentation.text)
+        .isEqualTo(EVENT_TRIGGER_GROUPS[i].eventGroupLabel)
+      val eventTriggerActions = eventTriggerGroups[i].childActionsOrStubs
+
+      assertThat(eventTriggerActions.map { it.templatePresentation.text })
+        .isEqualTo(EVENT_TRIGGER_GROUPS[i].eventTriggers.map { it.eventLabel })
+    }
   }
 
   @Test
@@ -296,8 +330,7 @@ class WearHealthServicesPanelTest {
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
@@ -308,7 +341,7 @@ class WearHealthServicesPanelTest {
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
-    applyButton.doClick()
+    fakeUi.clickOnApplyButton()
 
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
   }
@@ -336,12 +369,14 @@ class WearHealthServicesPanelTest {
     runBlocking<Unit> {
       val fakeUi = FakeUi(whsPanel.component)
 
+      val heartRateCapability = WHS_CAPABILITIES[0]
+      stateManager.setCapabilityEnabled(heartRateCapability, false)
+      stateManager.applyChanges()
+
       deviceManager.activeExercise = true
       stateManager.ongoingExercise.waitForValue(true)
 
-      // Heart Rate
-      stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
-      stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
+      stateManager.setOverrideValue(heartRateCapability, 50f)
       stateManager.applyChanges()
 
       fakeUi.waitForCheckbox("Heart rate", false)
@@ -359,23 +394,33 @@ class WearHealthServicesPanelTest {
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.apply") }
     applyButton.doClick()
 
     userApplyChanges.take(1).collect {}
   }
 
   @Test
-  fun `test successful apply changes shows in information label when panel is showing`(): Unit =
+  fun `test successful apply and reapply shows in information label when panel is showing`(): Unit =
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.success") }
+      }
 
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.success") }
+      }
     }
 
   @Test
@@ -385,12 +430,21 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.reapply.failure") }
+      }
 
-      fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.panel.apply.failure") }
+      }
     }
 
   @Test
@@ -398,15 +452,29 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.reapply.success") &&
+              it.type == NotificationType.INFORMATION
+          }
+        }
+      }
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.success") &&
-            it.type == NotificationType.INFORMATION
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.apply.success") &&
+              it.type == NotificationType.INFORMATION
+          }
         }
       }
     }
@@ -418,14 +486,29 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
-      applyButton.doClick()
+      // without user changes
+      run {
+        fakeUi.clickOnApplyButton()
 
-      whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.reapply.failure") &&
+              it.type == NotificationType.ERROR
+          }
+        }
+      }
 
-      waitForCondition(2, TimeUnit.SECONDS) {
-        notifications.any {
-          it.content == message("wear.whs.panel.apply.failure") && it.type == NotificationType.ERROR
+      // with user changes
+      run {
+        stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+        fakeUi.clickOnApplyButton()
+
+        waitForCondition(2, TimeUnit.SECONDS) {
+          notifications.any {
+            it.content == message("wear.whs.panel.apply.failure") &&
+              it.type == NotificationType.ERROR
+          }
         }
       }
     }
@@ -489,10 +572,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = true)
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.success") }
     }
@@ -504,10 +584,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       fakeUi.waitForDescendant<JLabel> { it.text == message("wear.whs.event.trigger.failure") }
     }
@@ -517,10 +594,7 @@ class WearHealthServicesPanelTest {
     runBlocking {
       val fakeUi = FakeUi(whsPanel.component, createFakeWindow = false)
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -537,10 +611,7 @@ class WearHealthServicesPanelTest {
 
       deviceManager.failState = true
 
-      val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-      val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-      triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
-      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+      fakeUi.clickOnTriggerEvent()
 
       waitForCondition(2, TimeUnit.SECONDS) {
         notifications.any {
@@ -579,7 +650,8 @@ class WearHealthServicesPanelTest {
     val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = false
-    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
     assertThat(applyButton.toolTipText)
       .isEqualTo(message("wear.whs.panel.apply.tooltip.no.exercise"))
 
@@ -587,6 +659,23 @@ class WearHealthServicesPanelTest {
     waitForCondition(5.seconds) {
       applyButton.toolTipText == message("wear.whs.panel.apply.tooltip.during.exercise")
     }
+  }
+
+  @Test
+  fun `the apply button has the label 'Reapply' when there no pending user changes and 'Apply' when there are`():
+    Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val applyButton =
+      fakeUi.waitForDescendant<JButton> { it.text == message("wear.whs.panel.reapply") }
+
+    stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
+
+    waitForCondition(1.seconds) { applyButton.text == message("wear.whs.panel.apply") }
+
+    // Once the changes are applied, the label should go back to "Reapply"
+    stateManager.applyChanges()
+    waitForCondition(1.seconds) { applyButton.text == message("wear.whs.panel.reapply") }
   }
 
   @Test
@@ -621,9 +710,7 @@ class WearHealthServicesPanelTest {
     val fakeUi = FakeUi(whsPanel.component)
     val triggerEventFlow = whsPanel.onUserTriggerEventFlow
 
-    val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
-    val triggerEventAction = dropDownButton.action.childrenActions.first().childrenActions.first()
-    triggerEventAction.actionPerformed(ActionEvent("source", 1, ""))
+    fakeUi.clickOnTriggerEvent(consumeTriggerEventFlow = false)
 
     withTimeout(1.seconds) { triggerEventFlow.take(1).collect {} }
   }
@@ -649,13 +736,142 @@ class WearHealthServicesPanelTest {
     }
   }
 
+  @Test
+  fun `an asterisk only shows if a capability has a different value than what is on the device`():
+    Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    run {
+      hrCheckBox.doClick()
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      hrCheckBox.doClick()
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    run {
+      textField.text = "50"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      textField.text = ""
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
+    textField.text = "50"
+    fakeUi.clickOnApplyButton()
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+
+    run {
+      textField.text = "60"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      // revert value
+      textField.text = "50"
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+  }
+
+  @Test
+  @Suppress("UnstableApiUsage")
+  fun `override text fields handle backspaces and clears overrides when empty`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component)
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
+      val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+      runInEdt {
+        fakeUi.keyboard.setFocus(textField)
+        fakeUi.keyboard.type(KeyEvent.VK_5)
+      }
+
+      assertThat(textField.text).isEqualTo("5")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(5))
+
+      runInEdt { fakeUi.keyboard.type(KeyEvent.VK_0) }
+
+      assertThat(textField.text).isEqualTo("50")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(50))
+
+      runInEdt { fakeUi.keyboard.pressAndRelease(KeyEvent.VK_BACK_SPACE) }
+
+      assertThat(textField.text).isEqualTo("5")
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? PendingUserChangesCapabilityUIState)?.userState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.value(5))
+
+      runInEdt { fakeUi.keyboard.pressAndRelease(KeyEvent.VK_BACK_SPACE) }
+
+      assertThat(textField.text).isEmpty()
+      stateManager
+        .getState(WHS_CAPABILITIES[0])
+        .mapState { (it as? UpToDateCapabilityUIState)?.upToDateState?.overrideValue }
+        .waitForValue(WhsDataType.HEART_RATE_BPM.noValue())
+    }
+
+  @Test
+  fun `when an exercise is started pending capability changes are hidden`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+
+    val heartRateCapability = WHS_CAPABILITIES[0]
+    stateManager.setCapabilityEnabled(heartRateCapability, false)
+    fakeUi.waitForCheckbox("Heart rate*", selected = false)
+    fakeUi.waitForDescendant<JLabel> { it.text == "Heart rate*" && it.isEnabled }
+
+    deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
+
+    fakeUi.waitForCheckbox("Heart rate", selected = true)
+    fakeUi.waitForDescendant<JLabel> { it.text == "Heart rate" && it.isEnabled }
+  }
+
+  @Test
+  fun `when an exercise is stopped pending user override changes are not shown`(): Unit =
+    runBlocking {
+      val fakeUi = FakeUi(whsPanel.component)
+      deviceManager.activeExercise = true
+      stateManager.ongoingExercise.waitForValue(true)
+
+      val heartRateCapability = WHS_CAPABILITIES[0]
+      stateManager.setOverrideValue(heartRateCapability, 50)
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
+
+      deviceManager.activeExercise = false
+      stateManager.ongoingExercise.waitForValue(false)
+      fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
+    }
+
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
       checkbox.hasLabel(text) && checkbox.isSelected == selected
     }
 
   private fun JCheckBox.hasLabel(text: String) =
-    parent.findDescendant<JLabel> { it.text.contains(text) } != null
+    parent.findDescendant<JLabel> { it.text == text } != null
+
+  private suspend fun FakeUi.clickOnApplyButton() {
+    val applyButton =
+      waitForDescendant<JButton> {
+        it.text == message("wear.whs.panel.reapply") || it.text == message("wear.whs.panel.apply")
+      }
+    applyButton.doClick()
+    // we need to consume this flow to allow calling StateManager.applyChanges
+    whsPanel.onUserApplyChangesFlow.take(1).collectLatest {}
+  }
 
   // The UI loads on asynchronous coroutine, we need to wait
   private inline fun <reified T> FakeUi.waitForDescendant(
@@ -665,5 +881,24 @@ class WearHealthServicesPanelTest {
       root.findDescendant(predicate) != null
     }
     return root.findDescendant(predicate)!!
+  }
+
+  private fun FakeUi.triggerEventsButton() =
+    waitForDescendant<JButton> { it.text == message("wear.whs.panel.trigger.events") }
+
+  private suspend fun FakeUi.clickOnTriggerEvent(consumeTriggerEventFlow: Boolean = true) {
+    val triggerEventsButton = triggerEventsButton()
+    triggerEventsButton.doClick()
+
+    val triggerEventGroupAction = fakePopup.getActions().firstOrNull() as? DropDownAction
+    assertNotNull("An event trigger group action was expected", triggerEventGroupAction)
+
+    val triggerEventAction = triggerEventGroupAction!!.childActionsOrStubs.firstOrNull()
+    assertNotNull("An event trigger action was expected", triggerEventAction)
+
+    triggerEventAction!!.actionPerformed(createTestEvent())
+    if (consumeTriggerEventFlow) {
+      whsPanel.onUserTriggerEventFlow.take(1).collectLatest {}
+    }
   }
 }

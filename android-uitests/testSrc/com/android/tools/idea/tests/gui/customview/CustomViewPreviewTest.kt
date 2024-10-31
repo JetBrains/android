@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.customview
 
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
@@ -59,17 +60,16 @@ class CustomViewPreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/CustomViews.kt"
 
+    fixture.invokeProjectMake(null)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     editor.open(file)
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
+    editor.waitUntilErrorAnalysisFinishes()
     val multiRepresentationFixture = editor.getSplitEditorFixture().apply {
       setSplitMode()
-      setRepresentation("Custom views")
       waitForRenderToFinish()
     }
-    guiTest.robot().waitForIdle()
-    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
-
-    multiRepresentationFixture.waitForRenderToFinish()
-    guiTest.robot().waitForIdle()
 
     assertFalse(multiRepresentationFixture.hasRenderErrors())
 

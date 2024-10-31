@@ -25,9 +25,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +37,11 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class LayoutEditorMemoryUseTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @After
+  public void after() {
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
 
   /**
    * Shows the layout and editor tabs of three different layout files.
@@ -99,6 +106,7 @@ public class LayoutEditorMemoryUseTest {
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
+      .waitForPaletteInitialization(20, LayoutFileType.INSTANCE)
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 

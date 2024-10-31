@@ -48,6 +48,7 @@
     <orderEntry type="module" module-name="intellij.android.rendering.tests" scope="TEST" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />
 </module>

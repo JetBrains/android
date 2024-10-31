@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
@@ -45,6 +43,8 @@ import org.junit.Test
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 class HandshakeExecutorTest {
 

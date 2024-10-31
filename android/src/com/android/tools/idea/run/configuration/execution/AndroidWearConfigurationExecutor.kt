@@ -24,11 +24,9 @@ import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 
@@ -36,7 +34,6 @@ abstract class AndroidWearConfigurationExecutor(
   environment: ExecutionEnvironment,
   deviceFutures: DeviceFutures,
   appRunSettings: AppRunSettings,
-  applicationIdProvider: ApplicationIdProvider,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
@@ -44,7 +41,6 @@ abstract class AndroidWearConfigurationExecutor(
   environment,
   deviceFutures,
   appRunSettings,
-  applicationIdProvider,
   apkProvider,
   applicationContext,
   deployer

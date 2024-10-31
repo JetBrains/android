@@ -219,6 +219,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_TV = load("intui/icons/device-explorer/firebase-device-tv.svg", "studio/icons/device-explorer/firebase-device-tv.svg", -1398133332, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_WEAR = load("intui/icons/device-explorer/firebase-device-wear.svg", "studio/icons/device-explorer/firebase-device-wear.svg", -1705649727, 2);
     /** 16x16 */ public static final @NotNull Icon MULTIPLE_DEVICES = load("intui/icons/device-explorer/multiple-devices.svg", "studio/icons/device-explorer/multiple-devices.svg", 258441174, 2);
+    /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_PHONE = load("studio/icons/device-explorer/oem-lab-device-phone.svg", 243467045, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_CAR = load("intui/icons/device-explorer/physical-device-car.svg", "studio/icons/device-explorer/physical-device-car.svg", 561759189, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_PHONE = load("intui/icons/device-explorer/physical-device-phone.svg", "studio/icons/device-explorer/physical-device-phone.svg", -2054075724, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_THINGS = load("intui/icons/device-explorer/physical-device-things.svg", "studio/icons/device-explorer/physical-device-things.svg", 1009602247, 2);
@@ -640,6 +641,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon LOAD_OVERLAY = load("intui/icons/layout-inspector/toolbar/load-overlay.svg", "studio/icons/layout-inspector/toolbar/load-overlay.svg", 1255383941, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_2D = load("intui/icons/layout-inspector/toolbar/mode-2d.svg", "studio/icons/layout-inspector/toolbar/mode-2d.svg", -1147798209, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_3D = load("intui/icons/layout-inspector/toolbar/mode-3d.svg", "studio/icons/layout-inspector/toolbar/mode-3d.svg", -1509657011, 2);
+      /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_CHILDREN_COUNT = load("intui/icons/layout-inspector/toolbar/recomposition-children-count.svg", "studio/icons/layout-inspector/toolbar/recomposition-children-count.svg", -1911998265, 2);
       /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_COUNT = load("intui/icons/layout-inspector/toolbar/recomposition-count.svg", "studio/icons/layout-inspector/toolbar/recomposition-count.svg", 874662391, 2);
       /** 16x16 */ public static final @NotNull Icon RECOMPOSITION_SKIPPED = load("intui/icons/layout-inspector/toolbar/recomposition-skipped.svg", "studio/icons/layout-inspector/toolbar/recomposition-skipped.svg", -1158058756, 2);
       /** 16x16 */ public static final @NotNull Icon RESET_VIEW = load("intui/icons/layout-inspector/toolbar/reset-view.svg", "studio/icons/layout-inspector/toolbar/reset-view.svg", 626597057, 2);
@@ -912,6 +914,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("intui/icons/shell/toolbar/apply-code-swap.svg", "studio/icons/shell/toolbar/apply-code-swap.svg", 76680901, 2);
       /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("intui/icons/shell/toolbar/attach-debugger.svg", "studio/icons/shell/toolbar/attach-debugger.svg", 13949104, 2);
       /** 16x16 */ public static final @NotNull Icon BUILD_MODULE = load("intui/icons/shell/toolbar/build-module.svg", "studio/icons/shell/toolbar/build-module.svg", -1925160451, 2);
+      /** 16x16 */ public static final @NotNull Icon BUILD_RUN_CONFIGURATION = load("intui/icons/shell/toolbar/build-run-configuration.svg", "studio/icons/shell/toolbar/build-run-configuration.svg", 1041663503, 2);
       /** 16x16 */ public static final @NotNull Icon DEBUG = load("studio/icons/shell/toolbar/debug.svg", -99692157, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("intui/icons/shell/toolbar/device-manager.svg", "studio/icons/shell/toolbar/device-manager.svg", -1910046491, 2);
       /** 16x16 */ public static final @NotNull Icon GRADLE_SYNC = load("intui/icons/shell/toolbar/gradle-sync.svg", "studio/icons/shell/toolbar/gradle-sync.svg", 1294995316, 2);

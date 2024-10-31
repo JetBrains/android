@@ -20,7 +20,9 @@ package org.jetbrains.android.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -199,17 +201,12 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
       PsiElement[] elements = PlatformCoreDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
       if (elements == null) return PsiElement.EMPTY_ARRAY;
       // Prioritize selecting the file in the main module if any or the test module otherwise.
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
       module = Arrays.stream(elements)
         .map(AndroidPsiUtils::getModuleSafely)
         .filter(Objects::nonNull)
         .distinct()
-        .min(Comparator
-               .<Module>comparingInt((comparingModule) -> {
-                 if (ModuleSystemUtil.isMainModule(comparingModule)) return 0;
-                 if (ModuleSystemUtil.isAndroidTestModule(comparingModule)) return 1;
-                 return 2;
-               })
-               .thenComparing(Module::getName))
+        .min(projectSystem.getProjectSystemModuleTypeComparator().thenComparing(Module::getName))
         .orElse(null);
 
       if (module == null) return PsiElement.EMPTY_ARRAY;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
@@ -24,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.intellij.ide.util.PropertiesComponent
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class ToggleAutoConnectActionTest : AndroidTestCase() {
 

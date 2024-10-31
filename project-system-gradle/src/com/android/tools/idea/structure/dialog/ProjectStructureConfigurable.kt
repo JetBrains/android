@@ -25,7 +25,6 @@ import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.collaboration.ui.util.name
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.JavaUiBundle
 import com.intellij.ide.util.PropertiesComponent
@@ -129,6 +128,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         isInEventLoop = false
       }
     }
+
+    private val Action.name: String? get() = getValue(Action.NAME) as? String
 
     fun setActions(allActions: List<Action>) {
       myOkAction = allActions.firstOrNull { action ->

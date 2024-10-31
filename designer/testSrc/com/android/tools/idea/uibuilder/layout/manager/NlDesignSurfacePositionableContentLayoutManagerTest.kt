@@ -16,11 +16,10 @@
 package com.android.tools.idea.uibuilder.layout.manager
 
 import com.android.testutils.MockitoKotlinUtils.safeAny
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -28,14 +27,15 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableConte
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
-import kotlin.test.assertFalse
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NlDesignSurfacePositionableContentLayoutManagerTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -55,28 +55,6 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   }
 
   @Test
-  fun updateIsCancelled() {
-    runBlocking(uiThread) {
-      val disposable = Disposer.newDisposable()
-      val mockedSurface = mock<NlDesignSurface>()
-      whenever(mockedSurface.onLayoutUpdated(safeAny(SurfaceLayoutOption::class.java, testOption)))
-        .then {}
-
-      val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
-      val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
-      val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(
-          mockedSurface,
-          disposable,
-          SurfaceLayoutOption("", layoutManager1),
-        )
-      contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
-      Disposer.dispose(disposable)
-      assertFalse(contentLayoutManager.scope.isActive)
-    }
-  }
-
-  @Test
   fun testSetLayoutManagerWillResetTheScrollPosition() {
     runBlocking(uiThread) {
       val mockedSurface = mock<NlDesignSurface>()
@@ -87,12 +65,12 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(
-          mockedSurface,
-          parentDisposable,
-          SurfaceLayoutOption("", layoutManager1),
-        )
+        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
+          .apply { surface = mockedSurface }
       assertEquals(0, layoutUpdates)
+      AndroidCoroutineScope(parentDisposable).launch(uiThread) {
+        contentLayoutManager.currentLayout.collect { mockedSurface.onLayoutUpdated(it) }
+      }
       contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
       delayUntilCondition(250) { layoutUpdates == 1 }
       assertEquals(1, layoutUpdates)
@@ -108,11 +86,8 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(
-          mockedSurface,
-          parentDisposable,
-          SurfaceLayoutOption("", layoutManager1),
-        )
+        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
+          .apply { surface = mockedSurface }
       contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
 
       val content1 = TestPositionableContent(width = 100, height = 100)

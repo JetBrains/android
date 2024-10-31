@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="studio-plugin-intellij.platform.vcs.impl">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.vcs.impl.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

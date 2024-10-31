@@ -84,6 +84,7 @@ data class KotlinMultiplatformModulePathsImpl(
   override val manifestDirectory: File?,
   private val androidSrcRoot: File?,
   private val commonSrcRoot: File?,
+  private val iosSrcRoot: File?,
   private val unitTestRoot: File?,
   private val instrumentedTestRoot: File?,
   private val aidlRoot: File?,
@@ -95,6 +96,7 @@ data class KotlinMultiplatformModulePathsImpl(
   override fun getUnitTestDirectory(packageName: String?): File? = unitTestRoot?.appendPackageToRoot(packageName)
   override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
   fun getCommonSrcDirectory(packageName: String?): File? = commonSrcRoot?.appendPackageToRoot(packageName)
+  fun getIosSrcDirectory(packageName: String?): File? = iosSrcRoot?.appendPackageToRoot(packageName)
 }
 
 private fun File.appendPackageToRoot(packageName: String?): File? {

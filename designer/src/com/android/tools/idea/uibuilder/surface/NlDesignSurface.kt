@@ -71,22 +71,25 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Iterables
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.scale.JBUIScale.sysScale
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
-import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import java.util.stream.Collectors
+import javax.swing.JLayeredPane
+import javax.swing.JPanel
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
 /**
@@ -99,46 +102,57 @@ import kotlinx.coroutines.launch
 class NlDesignSurface
 internal constructor(
   project: Project,
-  parentDisposable: Disposable,
   private val sceneManagerProvider: (NlDesignSurface, NlModel) -> LayoutlibSceneManager,
-  defaultLayoutOption: SurfaceLayoutOption,
   actionManagerProvider:
     (DesignSurface<LayoutlibSceneManager>) -> ActionManager<
         out DesignSurface<LayoutlibSceneManager>
       >,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
-  @SurfaceScale minScale: Double,
-  @SurfaceScale maxScale: Double,
   actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler,
   private val delegateDataProvider: DataProvider?,
   selectionModel: SelectionModel,
   zoomControlsPolicy: ZoomControlsPolicy,
   private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
   private val shouldRenderErrorsPanel: Boolean,
-  maxZoomToFitLevel: Double,
+  shouldZoomOnFirstComponentResize: Boolean,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
+  nlDesignSurfacePositionableContentLayoutManager: NlDesignSurfacePositionableContentLayoutManager,
 ) :
   DesignSurface<LayoutlibSceneManager>(
     project,
-    parentDisposable,
     actionManagerProvider,
     interactableProvider,
     interactionHandlerProvider,
-    { surface ->
-      NlDesignSurfacePositionableContentLayoutManager(
-        surface as NlDesignSurface,
-        parentDisposable,
-        defaultLayoutOption,
-      )
-    },
+    nlDesignSurfacePositionableContentLayoutManager,
     actionHandlerProvider,
     selectionModel,
     zoomControlsPolicy,
+    shouldZoomOnFirstComponentResize,
   ),
   NlDiagnosticKey {
 
+  /**
+   * [EditorNotificationPanel] to indicate List mode is deprecated. It should only be visible if
+   * List is selected.
+   *
+   * TODO(b/369564706): remove this banner when List mode is removed
+   */
+  private val listDeprecationBanner =
+    object : EditorNotificationPanel(Status.Warning) {
+      init {
+        text = "List mode will be deprecated in the next release. Please use Grid mode if possible."
+        isVisible = false
+      }
+    }
+
   init {
+    val deprecationBannerPanel =
+      JPanel(BorderLayout()).apply {
+        add(listDeprecationBanner, BorderLayout.NORTH)
+        isOpaque = false
+      }
+    layeredPane.add(deprecationBannerPanel, JLayeredPane.DEFAULT_LAYER)
     viewport.addChangeListener {
       val scroller = viewportScroller
       viewportScroller = null
@@ -153,7 +167,7 @@ internal constructor(
         field = value
 
         for (manager in sceneManagers) {
-          manager.updateSceneView()
+          manager.updateSceneViews()
           manager.requestRenderAsync()
         }
         revalidateScrollArea()
@@ -199,10 +213,9 @@ internal constructor(
         analyticsManager,
         selectionModel,
         this,
-        maxZoomToFitLevel,
       )
       .apply {
-        zoomControllerScope.launch {
+        scope.launch {
           beforeZoomChange.collect { zoomType ->
             if (zoomType == ZoomType.FIT) {
               sceneViewLayoutManager.clearCachedGroups()
@@ -211,8 +224,6 @@ internal constructor(
         }
         // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
-        this@apply.maxScale = maxScale
-        this@apply.minScale = minScale
         screenScalingFactor = sysScale(this@NlDesignSurface).toDouble()
       }
 
@@ -233,10 +244,18 @@ internal constructor(
     revalidateScrollArea()
   }
 
+  @UiThread
+  fun updateLayoutDeprecationBannerVisibility(visible: Boolean) {
+    listDeprecationBanner.isVisible = visible
+  }
+
+  /** Triggers a re-inflation and re-render, but it doesn't wait for it to finish. */
   override fun forceRefresh() {
-    requestSequentialRender {
-      it.sceneRenderConfiguration.needsInflation.set(true)
-      it.requestRenderAsync()
+    scope.launch {
+      sceneManagers.forEach {
+        it.sceneRenderConfiguration.needsInflation.set(true)
+        it.requestRenderAsync()
+      }
     }
   }
 
@@ -280,7 +299,7 @@ internal constructor(
   fun setColorBlindMode(mode: ColorBlindMode) {
     screenViewProvider.colorBlindFilter = mode
     for (manager in sceneManagers) {
-      manager.updateSceneView()
+      manager.updateSceneViews()
       manager.requestRenderAsync()
     }
     revalidateScrollArea()
@@ -378,15 +397,22 @@ internal constructor(
     return sceneManagers.any { it.renderResult != null }
   }
 
+  /**
+   * Triggers a re-inflation and re-render. This method doesn't wait for the refresh to finish, but
+   * it sets up a progress indicator to inform the user about the refresh progress.
+   */
   override fun forceUserRequestedRefresh() {
     // When the user initiates the refresh, give some feedback via progress indicator.
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(project, "Refreshing...", "", "", false)
-    requestSequentialRender {
-        it.sceneRenderConfiguration.needsInflation.set(true)
-        it.requestUserInitiatedRenderAsync()
+    scope
+      .launch {
+        sceneManagers.forEach {
+          it.sceneRenderConfiguration.needsInflation.set(true)
+          it.requestRenderAsync().await()
+        }
       }
-      .whenComplete { _, _ -> refreshProgressIndicator.processFinish() }
+      .invokeOnCompletion { refreshProgressIndicator.processFinish() }
   }
 
   fun findSceneViewRectangles(): Map<SceneView, Rectangle?> {
@@ -579,7 +605,7 @@ internal constructor(
     isRenderingSynchronously = enabled
 
     // If animation is enabled, scanner must be paused.
-    layoutScannerControl?.let { if (enabled) it.pause() else it.resume() }
+    if (enabled) layoutScannerControl.pause() else layoutScannerControl.resume()
   }
 
   /** Return whenever surface is rotating. */

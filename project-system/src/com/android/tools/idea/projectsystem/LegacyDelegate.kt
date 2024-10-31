@@ -152,6 +152,7 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
     currentHostTestSourceProviders = emptyMap(),
     currentDeviceTestSourceProviders = emptyMap(),
     currentTestFixturesSourceProviders = emptyList(),
+    allVariantAllArtifactsSourceProviders = listOf(mainSourceProvider),
     currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(mainSourceProvider),
     mainAndFlavorSourceProviders = listOf(mainSourceProvider),
     generatedSources = createMergedSourceProvider(ScopeType.MAIN, emptyList()),

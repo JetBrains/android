@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DexDslElement extends GradleDslBlockElement {
   public static PropertiesElementDescription<DexDslElement> DEX =
-    new PropertiesElementDescription<>("dex", DexDslElement.class, DexDslElement::new, DexDslElementSchema::new);
+    new PropertiesElementDescription<>("dex", DexDslElement.class, DexDslElement::new);
 
   public DexDslElement(GradleDslElement parent, GradleNameElement name) {
     super(parent, name);
@@ -58,17 +57,4 @@ public class DexDslElement extends GradleDslBlockElement {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
-  public static final class DexDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.DexPackaging";
-    }
-  }
 }

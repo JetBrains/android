@@ -45,11 +45,22 @@ class SyncBenchmarkVersionTest {
 
     Truth.assertThat(benchmarkVersions.resolvedAgpVersion() >= latestVersions.resolvedAgpVersion()).isTrue()
     Truth.assertThat(benchmarkVersions.resolvedGradleVersion() >= latestVersions.resolvedGradleVersion()).isTrue()
-    // TODO: Update Kotlin snapshot version used for benchmarks
-    Truth.assertThat(benchmarkVersions.resolvedKotlinVersion() < latestVersions.resolvedKotlinVersion()).isTrue()
+    Truth.assertThat(
+      benchmarkVersions.resolvedKotlinVersion().ignorePreviewVersion()
+      >= latestVersions.resolvedKotlinVersion().ignorePreviewVersion()
+    ).isTrue()
   }
 
-  fun AgpVersionSoftwareEnvironment.resolvedAgpVersion() = AgpVersion.parse(agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion)
-  fun AgpVersionSoftwareEnvironment.resolvedGradleVersion() = GradleVersion.version(gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION)
-  fun AgpVersionSoftwareEnvironment.resolvedKotlinVersion() = Version.parse(kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS)
+  private fun AgpVersionSoftwareEnvironment.resolvedAgpVersion() =
+    AgpVersion.parse(agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion)
+
+  private fun AgpVersionSoftwareEnvironment.resolvedGradleVersion() =
+    GradleVersion.version(gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION)
+
+  private fun AgpVersionSoftwareEnvironment.resolvedKotlinVersion() =
+    Version.parse(kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS)
+
+  /** Removes the preview part of the version (e.g., given "2.1.0-dev-6784" or "2.1.0-Beta1", return "2.1.0"). */
+  private fun Version.ignorePreviewVersion(): Version = Version.parse(toString().substringBefore("-"))
+
 }

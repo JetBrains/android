@@ -30,30 +30,15 @@ import com.android.tools.idea.flags.StudioFlags
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner the scene owner of this [ZoomController].
- * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 class NlDesignSurfaceZoomController(
   private val fitScaleProvider: () -> Double,
   designerAnalyticsManager: DesignerAnalyticsManager?,
   selectionModel: SelectionModel?,
   scenesOwner: ScenesOwner?,
-  maxZoomToFitLevel: Double = Double.MAX_VALUE,
-) :
-  DesignSurfaceZoomController(
-    designerAnalyticsManager,
-    selectionModel,
-    scenesOwner,
-    maxZoomToFitLevel,
-  ) {
+) : DesignSurfaceZoomController(designerAnalyticsManager, selectionModel, scenesOwner) {
 
-  override var minScale: Double = super.minScale
-
-  override var maxScale: Double = super.maxScale
-
-  override fun getFitScale(): Double {
-    val fitScale = fitScaleProvider()
-    return minOf(maxZoomToFitScale, fitScale)
-  }
+  override fun getFitScale() = fitScaleProvider()
 
   override val shouldShowZoomAnimation: Boolean = StudioFlags.PREVIEW_ZOOM_ANIMATION.get()
 

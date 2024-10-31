@@ -127,7 +127,7 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = if (!screen.isFoldable)
     screen.diagonalLength
   else
-    hypot(screen.xDimension/screen.pixelDensity.dpiValue.toDouble(), screen.yDimension/screen.pixelDensity.dpiValue.toDouble())
+    hypot(screen.foldedWidth/screen.pixelDensity.dpiValue.toDouble(), screen.foldedHeight/screen.pixelDensity.dpiValue.toDouble())
 
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS

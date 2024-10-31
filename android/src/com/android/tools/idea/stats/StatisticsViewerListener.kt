@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
  */
 object StatisticsViewerListener {
   @JvmStatic
-  fun register(disposable: Disposable, callback: (AndroidStudioEvent.Builder) -> Void) {
+  fun register(disposable: Disposable, callback: (AndroidStudioEvent.Builder) -> Unit) {
     AndroidCoroutineScope((disposable)).launch {
       AndroidStudioUsageTracker.channel.openSubscription().consumeEach {
         callback(it)

@@ -35,6 +35,7 @@ import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_SRC_COMPAT
 import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
+import com.android.SdkConstants.ATTR_STYLE
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -53,7 +54,6 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
@@ -71,14 +71,13 @@ import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
-import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -102,6 +101,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 private const val HELLO_WORLD = "Hello World"
 
@@ -859,6 +859,28 @@ class NlPropertyItemTest {
       }
     }
 
+  @Test
+  fun testFontFamilyProperty() {
+    val util = SupportTestUtil(projectRule, createTextView())
+    val property = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STRING)
+    val textView = util.components.single()
+    val snapshot: TagSnapshot = mock()
+    textView.snapshot = snapshot
+    val styleName = "?android:attr/textAppearanceLarge"
+    whenever(snapshot.getAttribute(ATTR_STYLE, "")).thenReturn(styleName)
+    val manager = getSceneManager(property)
+    manager.putDefaultPropertyValue(
+      textView,
+      ResourceNamespace.ANDROID,
+      ATTR_TEXT_APPEARANCE,
+      styleName,
+    )
+    waitUntilLastSelectionUpdateCompleted(property.model)
+
+    assertThat(property.value).isNull()
+    assertThat(property.defaultValue).isEqualTo("sans-serif")
+  }
+
   private fun createTextView(): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
       .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
@@ -1089,14 +1111,12 @@ class NlPropertyItemTest {
     </resources>
   """
 
-  private fun findLineAtOffset(file: VirtualFile, offset: Int): String {
-    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
-    val line = StringUtil.offsetToLineColumn(text, offset)
-    val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
-    return lineText.trim()
-  }
-
   private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager {
-    return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager =
+      property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    // Given that some default values are forced/hardcoded in some tests, it's needed to avoid
+    // refreshing on resource changes to avoid losing those forced values.
+    manager.listenResourceChange = false
+    return manager
   }
 }

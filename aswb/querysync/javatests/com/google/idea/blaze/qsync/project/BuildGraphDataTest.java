@@ -77,7 +77,7 @@ public class BuildGraphDataTest {
     assertThat(
             graph.getFileDependencies(
                 TESTDATA_ROOT.resolve("externaldep/TestClassExternalDep.java")))
-        .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
+        .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
   @Test
@@ -111,7 +111,7 @@ public class BuildGraphDataTest {
     assertThat(
             graph.getFileDependencies(
                 TESTDATA_ROOT.resolve("transitivedep/TestClassTransitiveDep.java")))
-        .containsExactly(Label.of("@@maven//:com.google.guava.guava"));
+        .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
   @Test
@@ -122,82 +122,87 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-        assertThat(
-                        graph.getFileDependencies(
-                                TESTDATA_ROOT.resolve("protodep/TestClassProtoDep.java")))
-                .containsExactly(
-                        Label.of("//" + TESTDATA_ROOT + "/protodep:proto_java_proto"),
-                        Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"),
-                        Label.of("@@bazel_tools//tools/proto:java_toolchain"));
+    assertThat(graph.getFileDependencies(TESTDATA_ROOT.resolve("protodep/TestClassProtoDep.java")))
+        .containsExactly(
+            Label.of("//" + TESTDATA_ROOT + "/protodep:proto_java_proto"),
+            Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"),
+            Label.of("@@bazel_tools//tools/proto:java_toolchain"));
 
-        Path protoSourceFilePath = TESTDATA_ROOT.resolve("protodep/testproto.proto");
-        assertThat(graph.getProtoSourceFiles()).containsExactly(protoSourceFilePath);
+    Path protoSourceFilePath = TESTDATA_ROOT.resolve("protodep/testproto.proto");
+    assertThat(graph.getProtoSourceFiles()).containsExactly(protoSourceFilePath);
 
-        Collection<ProjectTarget> firstConsumingTargets =
-                graph.getFirstReverseDepsOfType(
-                        protoSourceFilePath, ImmutableSet.of("java_proto_library"));
-        assertThat(firstConsumingTargets.stream().map(ProjectTarget::label))
-                .containsExactly(
-                        Label.of("//" + TESTDATA_ROOT + "/protodep:proto_java_proto"),
-                        Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"));
+    Collection<ProjectTarget> firstConsumingTargets =
+        graph.getFirstReverseDepsOfType(protoSourceFilePath, ImmutableSet.of("java_proto_library"));
+    assertThat(firstConsumingTargets.stream().map(ProjectTarget::label))
+        .containsExactly(
+            Label.of("//" + TESTDATA_ROOT + "/protodep:proto_java_proto"),
+            Label.of("//" + TESTDATA_ROOT + "/protodep:indirect_proto_java_proto"));
   }
 
   @Test
   public void testDoesDependencyPathContainRules() throws Exception {
     BuildGraphData graph =
         new BlazeQueryParser(
-            getQuerySummary(TestData.DOES_DEPENDENCY_PATH_CONTAIN_RULES),
-            NOOP_CONTEXT,
-            ImmutableSet.of())
+                getQuerySummary(TestData.DOES_DEPENDENCY_PATH_CONTAIN_RULES),
+                NOOP_CONTEXT,
+                ImmutableSet.of())
             .parse();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
-        ImmutableSet.of("java_proto_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
+                ImmutableSet.of("java_proto_library")))
+        .isTrue();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
-        ImmutableSet.of("java_lite_proto_library")
-    )).isFalse();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
+                ImmutableSet.of("java_lite_proto_library")))
+        .isFalse();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
-        ImmutableSet.of("android_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
+                ImmutableSet.of("android_library")))
+        .isTrue();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
-        ImmutableSet.of("java_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
+                ImmutableSet.of("java_library")))
+        .isTrue();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/AndroidOnlyFile.java"),
-        ImmutableSet.of("android_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/AndroidOnlyFile.java"),
+                ImmutableSet.of("android_library")))
+        .isTrue();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/AndroidOnlyFile.java"),
-        ImmutableSet.of("java_library")
-    )).isFalse();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/AndroidOnlyFile.java"),
+                ImmutableSet.of("java_library")))
+        .isFalse();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/AndroidUsingJava.java"),
-        ImmutableSet.of("java_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/AndroidUsingJava.java"),
+                ImmutableSet.of("java_library")))
+        .isTrue();
 
-    assertThat(graph.doesDependencyPathContainRules(
-        TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
-        TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
-        ImmutableSet.of("proto_library")
-    )).isTrue();
+    assertThat(
+            graph.doesDependencyPathContainRules(
+                TESTDATA_ROOT.resolve("deppathkinds/testproto.proto"),
+                TESTDATA_ROOT.resolve("deppathkinds/TestClassProtoDep.java"),
+                ImmutableSet.of("proto_library")))
+        .isTrue();
   }
 
   @Test
@@ -376,9 +381,8 @@ public class BuildGraphDataTest {
     assertThat(targets).isPresent();
     assertThat(targets.get().buildTargets)
         .containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
-    String expected = "@@maven//:com.google.guava.guava";
-    expected = "@@maven//:com.google.guava.guava";
-    assertThat(targets.get().expectedDependencyTargets).containsExactly(Label.of(expected));
+    assertThat(targets.get().expectedDependencyTargets)
+        .containsExactly(TestData.JAVA_LIBRARY_NO_DEPS_QUERY.getAssumedOnlyLabel());
   }
 
   @Test

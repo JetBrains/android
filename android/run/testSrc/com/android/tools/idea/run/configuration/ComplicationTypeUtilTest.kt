@@ -40,10 +40,9 @@ import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 import com.intellij.util.ui.UIUtil
 
-
 class ComplicationTypeUtilsTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
+  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
   private val manifestString = """
         <manifest package="google.simpleapplication"
@@ -72,7 +71,6 @@ class ComplicationTypeUtilsTest {
 """
 
   @Test
-  @RunsInEdt
   fun testExtractSupportedComplicationTypes() {
     val mergedManifest: MergedManifestSnapshot =
       getMergedManifest(String.format(manifestString, "RANGED_VALUE,, , INVALID, SHORT_TEXT, LONG_TEXT"))!!
@@ -102,9 +100,8 @@ class ComplicationTypeUtilsTest {
 
   @Test
   fun tesGetComplicationTypesFromManifestWhileHoldingReadLockReturnsNullIfNotReady() {
-    val module = projectRule.projectRule.project.findAppModule()
+    val module = projectRule.project.findAppModule()
     addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
-    UIUtil.pump()
     val readLockIsReady = CountDownLatch(1)
     val testIsComplete = CountDownLatch(1)
 
@@ -133,7 +130,7 @@ class ComplicationTypeUtilsTest {
 
   @Test
   fun tesGetComplicationTypesFromManifest() {
-    val module = projectRule.projectRule.project.findAppModule()
+    val module = projectRule.project.findAppModule()
     addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
     val complicationTypes = getComplicationTypesFromManifest(module,
       "google.simpleapplication.provider.IncrementingNumberComplicationProviderService")
@@ -168,6 +165,6 @@ class ComplicationTypeUtilsTest {
   private fun getMergedManifest(manifestContents: String): MergedManifestSnapshot? {
     addMergedManifest(manifestContents)
 
-    return MergedManifestManager.getMergedManifest(projectRule.projectRule.project.findAppModule()).get()
+    return MergedManifestManager.getMergedManifest(projectRule.project.findAppModule()).get()
   }
 }

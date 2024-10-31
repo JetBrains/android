@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.AndroidXConstants
-import com.android.testutils.MockitoKt.whenever
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -25,6 +24,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
 

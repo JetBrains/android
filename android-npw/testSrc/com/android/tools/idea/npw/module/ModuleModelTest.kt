@@ -62,12 +62,12 @@ class ModuleModelTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM)
 
     val kmpModuleModel = NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
-      packageName.set("com.example.kmplibrary")
+      packageName.set("com.example.shared")
       agpVersion.set(AgpVersion(8, 1, 0))
     }
     multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
 
-    val module = myFixture.project.findModule("kmplibrary")
+    val module = myFixture.project.findModule("shared")
     val invocationResult = invokeGradle(project) {
       it.assemble(arrayOf(module))
     }

@@ -314,7 +314,7 @@ public class DeploymentTest {
       .expecting("launched client to appear on " + iDevice.getSerialNumber())
       .until(() -> Arrays.stream(iDevice.getClients()).anyMatch(
         c ->
-          PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
+          PACKAGE_NAME.equals(c.getClientData().getProcessName()) ||
           PACKAGE_NAME.equals(c.getClientData().getPackageName())));
 
     AndroidProcessHandlerCaptor captor = new AndroidProcessHandlerCaptor(myProject, iDevice);
@@ -335,7 +335,7 @@ public class DeploymentTest {
       .expecting("launched app to stop")
       .until(() -> Arrays.stream(iDevice.getClients()).noneMatch(
         c ->
-          PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
+          PACKAGE_NAME.equals(c.getClientData().getProcessName()) ||
           PACKAGE_NAME.equals(c.getClientData().getPackageName())));
   }
 

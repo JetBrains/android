@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -43,6 +41,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class LambdaParameterItemTest {

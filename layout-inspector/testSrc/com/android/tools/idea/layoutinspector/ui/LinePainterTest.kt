@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SYSTEM_PKG
@@ -38,6 +36,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val USER_PKG = 123
 

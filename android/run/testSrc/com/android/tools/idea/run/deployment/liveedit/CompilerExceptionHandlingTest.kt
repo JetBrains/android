@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.junit.Assert
@@ -31,6 +32,7 @@ class CompilerExceptionHandlingTest {
 
   @Before
   fun setUp() {
+    //    FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
   }
 
@@ -40,7 +42,10 @@ class CompilerExceptionHandlingTest {
     val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
     Mockito.`when`(cache["AKt"]).thenThrow(ProcessCanceledException())
-    val output = LiveEditCompiler(file.project, cache).compile(listOf(input))
+    val output =
+      LiveEditCompiler(file.project, cache)
+        .also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
+        .compile(listOf(input))
     assert(output.isEmpty)
   }
 
@@ -52,9 +57,11 @@ class CompilerExceptionHandlingTest {
     Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError("some syntax error in file A.kt"))
 
     try {
-      LiveEditCompiler(file.project, cache).compile(listOf(input))
+      LiveEditCompiler(file.project, cache)
+        .also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
+        .compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
-    } catch (e : LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
       assertEquals(LiveEditUpdateException.Error.COMPILATION_ERROR, e.error)
     }
   }
@@ -71,7 +78,7 @@ class CompilerExceptionHandlingTest {
     try {
       LiveEditCompiler(file.project, cache).compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
-    } catch (e : LiveEditUpdateException) {
+    } catch (e: LiveEditUpdateException) {
 
     }
   }

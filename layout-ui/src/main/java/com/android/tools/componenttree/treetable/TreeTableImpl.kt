@@ -309,15 +309,7 @@ class TreeTableImpl(
   }
 
   override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
-    object : TreeTableModelAdapter(treeTableModel, tree, this) {
-      override fun fireTableDataChanged() {
-        // Note: This is called when a tree node is expanded/collapsed.
-        // Delay the table update to avoid paint problems during tree node expansions and closures.
-        // The problem seem to be caused by this being called from the selection update of the
-        // table.
-        invokeLater { treeTableSelectionModel.update { super.fireTableDataChanged() } }
-      }
-    }
+    TreeTableModelAdapterImpl(tableModel, tree, this)
 
   override fun paintComponent(g: Graphics) {
     tree.putClientProperty(Control.Painter.KEY, painter?.invoke())
@@ -361,11 +353,6 @@ class TreeTableImpl(
   fun computeLeftOffset(nodeDepth: Int): Int {
     val ourUi = tree.ui as BasicTreeUI
     return tree.insets.left + (ourUi.leftChildIndent + ourUi.rightChildIndent) * (nodeDepth - 1)
-  }
-
-  private fun computeLeftOffset(item: Any): Int {
-    val depth = tableModel.computeDepth(item)
-    return computeLeftOffset(depth)
   }
 
   private fun alwaysExpanded(path: TreePath): Boolean {
@@ -455,9 +442,7 @@ class TreeTableImpl(
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          // Do not emit double click with mouse to the left of the item:
-          cell.column == 0 && event.clickCount == 2 && event.x > computeLeftOffset(item) ->
-            doubleClick(item)
+          cell.column == 0 && event.clickCount == 2 -> doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)

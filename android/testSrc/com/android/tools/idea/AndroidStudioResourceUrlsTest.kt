@@ -86,6 +86,22 @@ class AndroidStudioResourceUrlsTest {
     assertThat(patchUrl).endsWith(".jar")
   }
 
+  // Tests for the patch url
+  // Expected on a linux local host: http://localhost:42213/AI-111.2.3-444.5.6-patch-unix.jar
+  // Default expected on linux: https://dl.google.com/android/studio/patches/AI-111.2.3-444.5.6-patch-unix.jar
+  // In the case of chain updates, build numbers may not embed the product data
+  @Test
+  @Suppress("OverrideOnly")
+  fun updatePatchUrlWithoutProductDataInBuildNumber() {
+    val from = BuildNumber.fromString("111.2.3")!!
+    val to = BuildNumber.fromString("444.5.6")!!
+    val patchUrl = ExternalProductResourceUrls.getInstance().computePatchUrl(from, to).toString()
+
+    // logic for different OS support and the different naming scheme for mac_arm
+    assertThat(patchUrl).startsWith("https://dl.google.com/android/studio/patches/AI-111.2.3-444.5.6-patch-")
+    assertThat(patchUrl).endsWith(".jar")
+  }
+
   @Test
   fun mac_arm() {
     val resourceUrls = AndroidStudioResourceUrls()

@@ -7,14 +7,13 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.declarative.iml"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module]",
     ],
 )

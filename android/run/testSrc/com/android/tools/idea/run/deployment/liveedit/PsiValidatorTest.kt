@@ -19,16 +19,16 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.editors.liveedit.LiveEditService
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
+import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
-import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,8 +37,11 @@ class PsiValidatorTest {
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory().withKotlin()
 
+  private val fakeBuildSystemLiveEditServices = FakeBuildSystemLiveEditServices()
+
   @Before
   fun setUp() {
+    fakeBuildSystemLiveEditServices.register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
   }
 
@@ -49,14 +52,14 @@ class PsiValidatorTest {
       val y = 100
     """.trimIndent())
 
-    val apk = provider(projectRule.directApiCompileIr(file))
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project, apk);
+    val apk = projectRule.directApiCompileByteArray(file)
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
 
     val device: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x = 999
       val y = 100
@@ -76,14 +79,15 @@ class PsiValidatorTest {
       }
     """.trimIndent())
 
-    val apk = provider(projectRule.directApiCompileIr(file))
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project, apk);
+    val apk = projectRule.directApiCompileByteArray(file)
+    fakeBuildSystemLiveEditServices.withClasses(apk)
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
 
     val device: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       val x: Int by lazy {
         999
@@ -105,14 +109,15 @@ class PsiValidatorTest {
       }
     """.trimIndent())
 
-    val apk = provider(projectRule.directApiCompileIr(file))
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project, apk);
+    val apk = projectRule.directApiCompileByteArray(file)
+    fakeBuildSystemLiveEditServices.withClasses(apk)
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
 
     val device: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {}
@@ -138,14 +143,15 @@ class PsiValidatorTest {
       }
     """.trimIndent())
 
-    val apk = provider(projectRule.directApiCompileIr(file))
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project, apk);
+    val apk = projectRule.directApiCompileByteArray(file)
+    fakeBuildSystemLiveEditServices.withClasses(apk)
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
 
     val device: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device.isEmulator).thenReturn(false)
 
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
     projectRule.modifyKtFile(file, """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {
@@ -163,9 +169,5 @@ class PsiValidatorTest {
     monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Loading", status.title)
-  }
-
-  private fun provider(apk: Map<String, IrClass>): ApkClassProvider = object: ApkClassProvider {
-    override fun getClass(ktFile: KtFile, className: String) = apk[className]
   }
 }

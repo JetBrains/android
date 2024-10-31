@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeLanguage
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NonNls
 

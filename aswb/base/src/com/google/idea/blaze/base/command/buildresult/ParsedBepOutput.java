@@ -313,7 +313,7 @@ public final class ParsedBepOutput {
     return fileSets.values().stream()
         .map(s -> s.parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getRelativePath()))
+        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
 
@@ -323,7 +323,7 @@ public final class ParsedBepOutput {
     return targetFileSets.get(label.toString()).stream()
         .map(s -> fileSets.get(s).parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getRelativePath()))
+        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
 
@@ -333,7 +333,7 @@ public final class ParsedBepOutput {
         .filter(f -> f.outputGroups.contains(outputGroup))
         .map(f -> f.parsedOutputs)
         .flatMap(List::stream)
-        .filter(o -> pathFilter.test(o.getRelativePath()))
+        .filter(o -> pathFilter.test(o.getBazelOutRelativePath()))
         .distinct()
         .collect(toImmutableList());
   }
@@ -350,7 +350,7 @@ public final class ParsedBepOutput {
     return fileSets.values().stream()
         .flatMap(FileSet::toPerArtifactData)
         .collect(
-            toImmutableMap(d -> d.artifact.getRelativePath(), d -> d, BepArtifactData::update));
+            toImmutableMap(d -> d.artifact.getBazelOutRelativePath(), d -> d, BepArtifactData::update));
   }
 
   /** Returns the set of build targets that had an error. */

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
@@ -39,6 +38,7 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class NlLayoutScannerTest {

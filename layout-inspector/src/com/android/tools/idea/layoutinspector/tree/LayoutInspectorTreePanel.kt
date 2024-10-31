@@ -314,6 +314,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       GotoDeclarationAction.navigateToSelectedView(
         it.coroutineScope,
         it.inspectorModel,
+        it.currentClient,
         it.notificationModel,
       )
     }

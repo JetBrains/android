@@ -129,7 +129,7 @@ suspend fun <T> runGrpcCatching(
         else -> {
           val parsed = StatusProto.fromThrowable(exception)
           log().warn("Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
-          LoadingState.UnknownFailure(exception.message, exception)
+          LoadingState.UnknownFailure(exception.message, exception, parsed)
         }
       }
     } catch (exception: IOException) {

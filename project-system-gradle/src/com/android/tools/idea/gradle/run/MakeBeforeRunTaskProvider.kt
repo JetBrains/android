@@ -63,7 +63,6 @@ import com.google.common.base.Charsets
 import com.google.common.base.Joiner
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.BeforeRunTaskProvider
-import com.intellij.execution.configurations.ModuleRunProfile
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption
 import com.intellij.execution.junit.JUnitConfiguration
@@ -313,7 +312,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     return when (configuration) {
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
-      is ModuleRunProfile -> configuration.modules
+      is RunProfileWithCompileBeforeLaunchOption -> configuration.modules
       else -> Info.getInstance(configuration.project).getModulesToBuildFromSelection(context)
     }
   }

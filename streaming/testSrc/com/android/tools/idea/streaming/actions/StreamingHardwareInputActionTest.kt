@@ -149,7 +149,7 @@ class StreamingHardwareInputActionTest {
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
-    return DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
+    return DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
   }
 
   private fun showPopup(presentation: Presentation): FakeJBPopup<Unit> {

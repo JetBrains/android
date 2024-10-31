@@ -190,7 +190,7 @@ class ComposePreviewRepresentationProvider(
       if (globalState.showSplitViewForPreviewFiles && hasPreviewMethods) {
         SPLIT
       } else {
-        globalState.preferredKotlinEditorMode.getVisibility(HIDDEN)
+        globalState.preferredEditorMode.getVisibility(HIDDEN)
       }
 
     return ComposePreviewRepresentation(psiFile, preferredVisibility, ::ComposePreviewViewImpl)

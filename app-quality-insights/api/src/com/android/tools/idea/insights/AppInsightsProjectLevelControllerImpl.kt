@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.ai.GeminiToolkit
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
-import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ActiveConnectionChanged
 import com.android.tools.idea.insights.events.AddNoteRequested
@@ -32,6 +32,7 @@ import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
 import com.android.tools.idea.insights.events.PersistSettingsAdapter
+import com.android.tools.idea.insights.events.RefreshInsight
 import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
@@ -82,10 +83,10 @@ class AppInsightsProjectLevelControllerImpl(
   @TestOnly private val flowStart: SharingStarted = SharingStarted.Eagerly,
   private val tracker: AppInsightsTracker,
   private val clock: Clock,
-  private val project: Project,
+  override val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  cache: AppInsightsCache,
+  geminiToolkit: GeminiToolkit,
 ) : AppInsightsProjectLevelController {
 
   override val state: SharedFlow<AppInsightsState>
@@ -98,7 +99,7 @@ class AppInsightsProjectLevelControllerImpl(
       clock,
       appInsightsClient,
       defaultFilters,
-      cache,
+      geminiToolkit,
       ::doEmit,
       onErrorAction,
     )
@@ -237,6 +238,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun selectIssueVariant(variant: IssueVariant?) {
     emit(SelectedIssueVariantChanged(variant))
+  }
+
+  override fun refreshInsight(contextSharingOverride: Boolean) {
+    emit(RefreshInsight(contextSharingOverride))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {

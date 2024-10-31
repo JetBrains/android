@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -24,7 +23,11 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//prebuilts/tools/common/m2:commonmark-0.22.0",
-        "//tools/adt/idea/app-quality-insights/ui:libandroid-core-proto",
+        "@intellij//:intellij.platform.vcs.impl",
+        "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
 )
 
@@ -61,13 +64,8 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//prebuilts/tools/common/m2:commonmark-0.22.0[test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
-        "//tools/adt/idea/app-quality-insights/ui:libandroid-core-proto[test]",
+        "@intellij//:intellij.platform.vcs.impl[test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libandroid-core-proto",
-    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
-    visibility = ["//visibility:public"],
 )

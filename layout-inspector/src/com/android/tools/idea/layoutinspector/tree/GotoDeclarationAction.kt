@@ -19,9 +19,12 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.NO_COMPOSE_SOURCE_INFO_APP_KEY
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -33,7 +36,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val VIEW_NOT_FOUND_KEY = "view.not.found"
+const val VIEW_NOT_FOUND_KEY = "view.not.found"
+const val NO_COMPOSE_SOURCE_INFO_NODE_KEY = "no.compose.source.info.node"
 
 /** Action for navigating to the currently selected node in the layout inspector. */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
@@ -47,6 +51,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     navigateToSelectedView(
       inspector.coroutineScope,
       inspector.inspectorModel,
+      inspector.currentClient,
       inspector.notificationModel,
     )
   }
@@ -65,11 +70,13 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   fun navigateToSelectedView(
     coroutineScope: CoroutineScope,
     inspectorModel: InspectorModel,
+    client: InspectorClient,
     notificationModel: NotificationModel,
   ) {
     lastAction =
       coroutineScope.launch {
-        val navigatable = findNavigatable(inspectorModel, notificationModel) ?: return@launch
+        val navigatable =
+          findNavigatable(inspectorModel, client, notificationModel) ?: return@launch
         withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
       }
   }
@@ -77,27 +84,78 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   @Slow
   private suspend fun findNavigatable(
     model: InspectorModel,
+    client: InspectorClient,
     notificationModel: NotificationModel,
   ): Navigatable? =
     withContext(AndroidDispatchers.workerThread) {
       val resourceLookup = model.resourceLookup
       val node = model.selection ?: return@withContext null
-      if (node is ComposeViewNode) {
-        resourceLookup.findComposableNavigatable(node)
-      } else {
-        val navigatable =
+      val navigatable =
+        if (node is ComposeViewNode) {
+          resourceLookup.findComposableNavigatable(node)
+        } else {
           withContext(AndroidDispatchers.uiThread) {
             resourceLookup.findFileLocation(node)?.navigatable
           }
-        val layout = node.layout?.name
-        if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
-          notificationModel.addNotification(
-            VIEW_NOT_FOUND_KEY,
-            LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
-            Status.Warning,
-          )
         }
-        navigatable
+      updateNotifications(notificationModel, navigatable, client, node)
+      navigatable
+    }
+
+  private fun updateNotifications(
+    notificationModel: NotificationModel,
+    navigatable: Navigatable?,
+    client: InspectorClient,
+    node: ViewNode,
+  ) {
+    val layout = node.layout?.name
+    when {
+      navigatable == null && node is ComposeViewNode ->
+        reportMissingSourceInformation(notificationModel, client, node)
+      navigatable == null && node.viewId == null && layout != null && !node.isSystemNode ->
+        reportViewNotFound(notificationModel, node, layout)
+      else -> {
+        notificationModel.removeNotification(VIEW_NOT_FOUND_KEY)
+        notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
       }
     }
+  }
+
+  private fun reportViewNotFound(
+    notificationModel: NotificationModel,
+    node: ViewNode,
+    layout: String,
+  ) {
+    notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
+    notificationModel.addNotification(
+      VIEW_NOT_FOUND_KEY,
+      LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
+      Status.Warning,
+    )
+  }
+
+  private fun reportMissingSourceInformation(
+    notificationModel: NotificationModel,
+    client: InspectorClient,
+    node: ComposeViewNode,
+  ) {
+    notificationModel.removeNotification(VIEW_NOT_FOUND_KEY)
+    val appHasNoSourceInformation =
+      client.capabilities.contains(InspectorClient.Capability.SUPPORTS_COMPOSE) &&
+        !client.capabilities.contains(InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION)
+    if (appHasNoSourceInformation) {
+      notificationModel.removeNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
+      notificationModel.addNotification(
+        NO_COMPOSE_SOURCE_INFO_APP_KEY,
+        LayoutInspectorBundle.message(NO_COMPOSE_SOURCE_INFO_APP_KEY),
+        Status.Warning,
+      )
+    } else {
+      notificationModel.addNotification(
+        NO_COMPOSE_SOURCE_INFO_NODE_KEY,
+        LayoutInspectorBundle.message(NO_COMPOSE_SOURCE_INFO_NODE_KEY, node.unqualifiedName),
+        Status.Warning,
+      )
+    }
+  }
 }

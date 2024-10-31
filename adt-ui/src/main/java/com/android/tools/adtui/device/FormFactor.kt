@@ -56,6 +56,10 @@ enum class FormFactor(
    * The maximum API level supported by this form factor, as known at compile time.
    * Only used if offline; if we are online, we will query SDK Manager for
    * available system images.
+   *
+   * If the form factor [hasUpperLimitForMinimumSdkSelection], this value is also
+   * used to clamp the known target versions, whether online or offline. That list
+   * is used to populate the minimum SDK dropdown in new module wizards.
    */
   val maxOfflineApiLevel: Int,
   val icon: Icon,

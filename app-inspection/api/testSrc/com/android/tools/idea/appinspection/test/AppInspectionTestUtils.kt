@@ -80,12 +80,16 @@ object AppInspectionTestUtils {
     chunkSize: Int,
   ): List<AppInspection.AppInspectionPayload> {
     val chunks = data.toList().chunked(chunkSize)
-    return chunks.map { chunk ->
-      AppInspection.AppInspectionPayload.newBuilder()
-        .setChunk(ByteString.copyFrom(chunk.toByteArray()))
-        .build()
-    }
+    val count = chunks.size
+    return chunks.mapIndexed { index, chunk -> createPayload(count, index, chunk.toByteArray()) }
   }
+
+  fun createPayload(count: Int, index: Int, data: ByteArray) =
+    AppInspection.AppInspectionPayload.newBuilder()
+      .setChunk(ByteString.copyFrom(data))
+      .setChunkCount(count)
+      .setChunkIndex(index)
+      .build()
 
   /** Creates an [AppInspectionEvent] with the provided [data] and inspector [name]. */
   fun createRawAppInspectionEvent(

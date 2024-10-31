@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.output.BuildOutputErrorsListener
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser.Companion.isTomlError
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -117,7 +118,7 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
       error?.message?.startsWith("Compilation failed; see the compiler error output for details.") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
       error?.message?.startsWith("Cannot cast object ") == true -> GradleSyncFailure.CANNOT_BE_CAST_TO // Cast exception in groovy code
-      error?.message?.startsWith("Invalid TOML catalog definition:") == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
+      error?.isTomlError() == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
       error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
         GradleSyncFailure.GROOVY_COMPILATION_ERROR
       error?.cause?.toString()?.startsWith("org.gradle.api.plugins.UnknownPluginException: Plugin [id: 'com.android.") == true ->

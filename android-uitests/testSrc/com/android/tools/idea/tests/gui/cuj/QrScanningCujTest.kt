@@ -153,7 +153,7 @@ class QrScanningCujTest {
       .doubleClick()
 
     // Check that the project compiles
-    ide.invokeAndWaitForBuildAction("Build", "Rebuild Project")
+    ide.invokeAndWaitForBuildAction("Build", "Assemble Project")
 
     // Add dependency by typing it in build.gradle file
     ide.editor

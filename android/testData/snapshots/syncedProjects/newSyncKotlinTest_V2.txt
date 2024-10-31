@@ -113,20 +113,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -322,20 +322,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -473,20 +473,20 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -712,9 +712,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -724,7 +724,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false
@@ -901,9 +901,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -913,7 +913,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false
@@ -1033,9 +1033,9 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           :
@@ -1045,7 +1045,7 @@ PROJECT                       : project
             Kind                          : DEFAULT
             LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             Platform                      : JVM (21)
             UseProjectSettings            : false
@@ -1204,10 +1204,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1219,10 +1219,10 @@ PROJECT                       : project
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1280,10 +1280,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1295,10 +1295,10 @@ PROJECT                       : project
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1343,8 +1343,8 @@ PROJECT                       : project
                 COMPILE_JAVA                  : :contentLib:compileJava, :contentLib:testClasses
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.main
-        Module                        : project.app.main
+        ModuleName                    : project.app
+        Module                        : project.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

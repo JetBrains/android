@@ -1,0 +1,13 @@
+FILE
+  PsiComment(DeclarativeTokenType.line_comment)('// comment')
+  PsiWhiteSpace('\n')
+  PsiElement(BLOCK)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('dependencies')
+    PsiWhiteSpace(' ')
+    PsiElement(BLOCK_GROUP)
+      PsiElement(DeclarativeTokenType.{)('{')
+      PsiWhiteSpace('\n')
+      PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+      PsiWhiteSpace('\n')
+      PsiElement(DeclarativeTokenType.})('}')

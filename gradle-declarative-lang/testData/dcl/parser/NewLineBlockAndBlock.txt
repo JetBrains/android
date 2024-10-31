@@ -1,0 +1,14 @@
+FILE
+  PsiElement(BLOCK)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('block1')
+    PsiElement(BLOCK_GROUP)
+      PsiElement(DeclarativeTokenType.{)('{')
+      PsiWhiteSpace('\n\n')
+      PsiElement(DeclarativeTokenType.})('}')
+  PsiWhiteSpace(' ')
+  PsiErrorElement:DeclarativeTokenType.; expected, got 'block2'
+    PsiElement(DeclarativeTokenType.token)('block2')
+  PsiElement(DeclarativeTokenType.{)('{')
+  PsiWhiteSpace(' ')
+  PsiElement(DeclarativeTokenType.})('}')

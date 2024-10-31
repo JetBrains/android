@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
 import com.intellij.build.BuildViewManager
@@ -31,7 +32,7 @@ import org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErro
 
 class BuildOutputParserManager @TestOnly constructor(
   private val project: Project,
-  val buildOutputParsers: List<BuildOutputParser>
+  private val buildOutputParsers: List<BuildOutputParser>
 ) {
   // TODO(b/143478291): with linked projects, there will be multiple build tasks with the same project. buildOutputParsers should be updated to a map from task id to list of BuildOutputParser.
   @Suppress("unused")
@@ -47,7 +48,10 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       KotlincWithQuickFixesParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
-                                                      GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
+                                                      GradleBuildScriptErrorParser()))
+
+  fun getBuildOutputParsers(taskId: ExternalSystemTaskId): List<BuildOutputParser> =
+    buildOutputParsers.map { BuildOutputParserWrapper(it, taskId) }
 
   fun onBuildStart(externalSystemTaskId: ExternalSystemTaskId) {
     val disposable = Disposer.newDisposable("syncViewListenerDisposable")

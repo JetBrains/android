@@ -28,9 +28,7 @@ import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
@@ -41,6 +39,8 @@ import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidTestRunConfiguration
 import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
@@ -80,8 +80,18 @@ import javax.swing.Icon
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-open class AndroidRunConfiguration(internal val project: Project, factory: ConfigurationFactory?) :
-  AndroidRunConfigurationBase(project, factory, false), RefactoringListenerProvider, RunnerIconProvider {
+open class AndroidRunConfiguration(internal val project: Project, factory: ConfigurationFactory?, isTestConfiguration: Boolean) :
+  AndroidRunConfigurationBase(project, factory, isTestConfiguration), RefactoringListenerProvider, RunnerIconProvider {
+  constructor(project: Project, factory: ConfigurationFactory?): this(project, factory, false)
+
+  /**
+   * For internal use: [readExternal] should test whether this is less than specific values in order to take
+   * whatever steps are necessary to convert run configurations serialized under older schema versions to the
+   * current version.  See [CURRENT_SCHEMA_VERSION].
+   */
+  @JvmField
+  var ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
+
   private val myLaunchOptionStates: MutableMap<String, LaunchOptionState> = Maps.newHashMap()
 
   // Deploy options
@@ -105,6 +115,9 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
 
   @JvmField
   var ALWAYS_INSTALL_WITH_PM = false
+
+  @JvmField
+  var ALLOW_ASSUME_VERIFIED = false
 
   @JvmField
   var CLEAR_APP_STORAGE = false
@@ -133,6 +146,18 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true)
   }
 
+  /**
+   * Coordinate with the (Gradle Project System) MakeBeforeRunTaskProvider to build the appropriate artifacts: if
+   * we are a test configuration, then make sure to build the test artifacts as well as the main one.  (Compose Preview
+   * sets up a generalized instance of AndroidRunConfiguration with isTestConfiguration set to true.)
+   */
+  override fun getModules(): Array<Module> {
+    return super.getModules().mapNotNull {
+      // if getModuleForAndroidTestRunConfiguration(it) is null, we are (probably) not in a Gradle project: use the base module.
+      if (isTestConfiguration) (getModuleForAndroidTestRunConfiguration(it) ?: it) else getModuleForAndroidRunConfiguration(it)
+    }.toTypedArray()
+  }
+
   override fun validate(executor: Executor?, quickFixCallback: Runnable?): MutableList<ValidationError> {
     val errors = super.validate(executor, quickFixCallback)
     if (StudioFlags.BACKUP_ENABLED.get()) {
@@ -151,7 +176,6 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
     return AndroidRunConfigurationExecutor(
-      applicationIdProvider,
       FacetBasedApplicationProjectContext(applicationIdProvider.packageName, facet),
       env,
       deployFutures,
@@ -183,15 +207,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
     return AndroidRunConfigurationEditor(
       project, Predicate { module: Module? ->
-        if (module == null) return@Predicate false
-        val facet = AndroidFacet.getInstance(module) ?: return@Predicate false
-        val moduleSystem = facet.getModuleSystem()
-        when (moduleSystem.type) {
-          AndroidModuleSystem.Type.TYPE_APP, AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> return@Predicate module.isMainModule()
-          AndroidModuleSystem.Type.TYPE_ATOM, AndroidModuleSystem.Type.TYPE_FEATURE, AndroidModuleSystem.Type.TYPE_INSTANTAPP -> return@Predicate false // Legacy not-supported module types.
-          AndroidModuleSystem.Type.TYPE_NON_ANDROID -> return@Predicate false
-          AndroidModuleSystem.Type.TYPE_LIBRARY, AndroidModuleSystem.Type.TYPE_TEST -> return@Predicate false // Supported via AndroidTestRunConfiguration.
-        }
+        return@Predicate module?.getModuleSystem()?.isValidForAndroidRunConfiguration() ?: false
       }, this, true, false
     ) { moduleSelector: ConfigurationModuleSelector -> ApplicationRunParameters(project, moduleSelector) }
   }
@@ -276,6 +292,13 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     (state as DeepLinkLaunch.State).DEEP_LINK = url
   }
 
+  fun setLaunchUrlToActivity(url: String, activityName: String) {
+    MODE = LAUNCH_DEEP_LINK
+    val state = (getLaunchOptionState(LAUNCH_DEEP_LINK) as DeepLinkLaunch.State)
+    state.DEEP_LINK = url
+    state.ACTIVITY = activityName
+  }
+
   fun isLaunchingActivity(activityName: String?): Boolean {
     if (!StringUtil.equals(MODE, LAUNCH_SPECIFIC_ACTIVITY)) {
       return false
@@ -302,6 +325,19 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     if (DEPLOY_APK_FROM_BUNDLE) {
       DEPLOY = true
     }
+
+    // Treat unserialized ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION as version 0
+    if (element.getChildren("option").none { it.getAttributeValue("name") == "ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" }) {
+      ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION = 0
+    }
+    if (ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION < 1) {
+      // Migrate old-style sourceSet modules to the holder module.  (Although in principle we could have had other non-main
+      // sourceSets, in practice we only ever had the main module.)
+      if (configurationModule.moduleName.endsWith(".main")) {
+        setModuleName(configurationModule.moduleName.removeSuffix(".main"))
+      }
+    }
+    ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
   }
 
   @Throws(WriteExternalException::class)
@@ -374,5 +410,15 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
 
     @NonNls
     private val FEATURE_LIST_SEPARATOR = ","
+
+    /**
+     * This tracks changes to AndroidRunConfiguration which affect deserializing existing run configurations, for use in [readExternal].
+     * Previous states had differences such that:
+     *
+     * 0 (unset): the RunConfiguration would be given (under Gradle projects) a sourceSet module, rather than a holder module.
+     *
+     * When incrementing this value, please also add to the implementation of [readExternal], and the list of previous states (above).
+     */
+    private const val CURRENT_SCHEMA_VERSION = 1
   }
 }

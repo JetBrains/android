@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.AndroidXConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
@@ -26,10 +25,11 @@ import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
-import org.mockito.Mockito
-import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.intThat
 import java.awt.event.KeyEvent
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.intThat
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class VisualizationInteractionHandlerTest : SceneTest() {
 
@@ -39,7 +39,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val sceneManager = surface.getSceneManager(myModel)!!
 
     // Return SceneView when hover on it, null otherwise.
-    val view = sceneManager.sceneView
+    val view = sceneManager.sceneViews.single()
     whenever(surface.getSceneViewAt(anyInt(), anyInt())).thenReturn(null)
     val xMatcher = intThat { view.x <= it && it <= view.x + view.scaledContentSize.width }
     val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
@@ -63,7 +63,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
         )
       }
 
-    val view = surface.getSceneManager(myModel)!!.sceneView
+    val view = surface.getSceneManager(myModel)!!.sceneViews.single()
     val mouseEvent =
       MouseEventBuilder(
           view.x + view.scaledContentSize.width * 2,

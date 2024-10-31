@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
@@ -60,11 +58,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.awt.Component
+import javax.swing.JTextArea
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Component
-import javax.swing.JTextArea
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 

@@ -20,7 +20,6 @@ import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_BACKGROUND_TINT
 import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_TEXT
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.impl.model.util.FakePTableModel
@@ -30,6 +29,7 @@ import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 class InspectorPanelModelTest {
 

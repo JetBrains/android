@@ -67,7 +67,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Iconable
 import com.intellij.openapi.util.Iconable.IconFlags
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -75,11 +74,11 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
+import java.util.EnumSet
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
-import java.util.EnumSet
-import javax.swing.Icon
 
 class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResult>() {
 
@@ -195,9 +194,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
-      } else if (
-        Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") && name.endsWith(EXT_GRADLE_DECLARATIVE)
-      ) {
+      } else if (name.endsWith(EXT_GRADLE_DECLARATIVE)) {
         scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
       } else if (
         name == OLD_PROGUARD_FILE ||
@@ -313,7 +310,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val descriptionRef =
         "<a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}${issue.id}\"></a>"
 
-      // We add a "More... (Ctrl+F1)" link to the end of the error message so that users can expand
+      // We add a "Toggle info (Ctrl+F1)" link to the end of the error message so that users can
+      // expand
       // the tooltip to see the issue description, which typically includes useful context and links
       // to documentation. Any "unhandled" link click that is not just an HTTP link will toggle
       // expansion of the inspection description. See
@@ -321,7 +319,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       // com.intellij.codeInsight.hint.LineTooltipRenderer.createHint. We could just use href="",
       // but using LINK_PREFIX seems more future-proof.
       val moreLink =
-        " <a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}\">More...</a> ${DaemonTooltipsUtil.getShortcutText()}"
+        " <a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}\">Toggle info ${DaemonTooltipsUtil.getShortcutText()}</a>"
 
       var messageHtml = RAW.convertTo(message, HTML)
 

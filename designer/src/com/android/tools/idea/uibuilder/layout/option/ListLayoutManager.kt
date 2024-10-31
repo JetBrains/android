@@ -21,6 +21,7 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
+import com.android.tools.idea.common.surface.ZoomConstants
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
@@ -29,14 +30,12 @@ import com.android.tools.idea.uibuilder.surface.layout.MINIMUM_SCALE
 import com.android.tools.idea.uibuilder.surface.layout.SCALE_UNIT
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlin.math.min
 import org.jetbrains.annotations.ApiStatus
-
-/** The minumum height what should be available for the preview. */
-private const val minumumPreviewHeightPx = 65
 
 /**
  * Experimental list layout. All previews are organized in groups.
@@ -55,27 +54,21 @@ class ListLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int,
   ): Double {
-    if (content.isEmpty()) {
-      // No content. Use 100% as zoom level
+    if (content.none { it !is HeaderPositionableContent }) {
+      // No content or only Headers are showing. Use 100% as zoom level
       return 1.0
     }
-    // Use binary search to find the proper zoom-to-fit value.
-    val maxNumberOfPreviews = min(content.size, availableHeight / minumumPreviewHeightPx)
-    val maxWidth =
-      content.maxOf { it.contentSize.width } +
-        padding.canvasLeftPadding +
-        padding.groupLeftPadding +
-        40
-    // The zoom-to-fit scale can not be larger than this scale - even the largest preview should
-    // fit.
-    val upperBound = availableWidth.toDouble() / maxWidth
 
-    if (upperBound <= MINIMUM_SCALE) {
-      return MINIMUM_SCALE
+    // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level, to
+    // calculate this number we get the max scale, and we multiply by the screen scaling factor
+    val upperBound = ZoomConstants.DEFAULT_MAX_SCALE * JBUIScale.sysScale()
+
+    if (upperBound <= ZoomConstants.DEFAULT_MIN_SCALE) {
+      return ZoomConstants.DEFAULT_MIN_SCALE
     }
-    // binary search between MINIMUM_SCALE to upper bound.
+    // Use binary search between MINIMUM_SCALE to upperBound.
     return getMaxZoomToFitScale(
-      content.take(maxNumberOfPreviews),
+      content,
       MINIMUM_SCALE,
       upperBound,
       availableWidth,
@@ -96,12 +89,17 @@ class ListLayoutManager(
     depth: Int = 0,
   ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
+      // Because we want to show the content within the available space we get minimum resulting fit
+      // scale even in case we reach the max iteration number and we haven't found the perfect zoom
+      // to fit value.
+      // It could be that the applying the resulting zoom to fit there could be additional available
+      // space, for a better granularity we can increase MAX_ITERATION_TIMES.
       return min
     }
     if (max - min <= SCALE_UNIT) {
-      // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, 0, cache)
-      return if (dim.width <= width && dim.height <= height) max else min
+      // max and min are minor than the unit scale, because we want to show the content within the
+      // available space we get minimum resulting fit scale
+      return min
     }
     val scale = (min + max) / 2
     val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, 0, cache)
@@ -130,28 +128,32 @@ class ListLayoutManager(
     }
 
     var requiredWidth = 0
-    var totalRequiredHeight = padding.canvasTopPadding
+    var requiredHeight = 0
 
     fun updateSize(view: PositionableContent, addGroupOffset: Boolean) {
       val scale = view.scaleFunc()
       val margin = view.getMargin(scale)
       val viewSize = view.sizeFunc()
+      val groupOffsetPadding = padding.groupLeftPadding.takeIf { addGroupOffset } ?: 0
       val viewWidth =
-        if (addGroupOffset) padding.groupLeftPadding
-        else 0 + viewSize.width + margin.horizontal + padding.previewRightPadding(scale, view)
-      val requiredHeight =
-        viewSize.height + margin.vertical + padding.previewBottomPadding(scale, view)
+        groupOffsetPadding +
+          viewSize.width +
+          margin.horizontal +
+          padding.previewRightPadding(scale, view)
+      val viewHeight = viewSize.height + margin.vertical + padding.previewBottomPadding(scale, view)
 
-      requiredWidth = maxOf(requiredWidth, viewWidth)
-      totalRequiredHeight += requiredHeight
+      requiredWidth = maxOf(0, requiredWidth, viewWidth)
+      requiredHeight += viewHeight
     }
 
     groups.forEach { group ->
       group.header?.let { updateSize(it, false) }
       group.content.forEach { view -> updateSize(view, group.hasHeader) }
     }
-
-    dim.setSize(requiredWidth + padding.canvasLeftPadding, max(0, totalRequiredHeight))
+    dim.setSize(
+      max(0, padding.canvasLeftPadding + requiredWidth),
+      max(0, padding.canvasTopPadding + requiredHeight),
+    )
     return dim
   }
 

@@ -910,11 +910,9 @@ public class NlModelTest extends LayoutTestCase {
     model.notifyModified(ChangeType.EDIT);
     model.notifyModified(ChangeType.EDIT);
     model.notifyModified(ChangeType.RESOURCE_CHANGED);
-    model.flushPendingUpdates();
     assertEquals("", listener.callLogToString());
 
     model.activate(this);
-    model.flushPendingUpdates();
     assertEquals(
       """
         modelActivated (null)

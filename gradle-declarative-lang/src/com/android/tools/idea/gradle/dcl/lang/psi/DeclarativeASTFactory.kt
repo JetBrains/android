@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENTS_LIST
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.EMBEDDED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.IDENTIFIER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignmentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockGroupImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeEmbeddedFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeIdentifierImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeLiteralImpl
@@ -45,9 +49,11 @@ class DeclarativeASTFactory : ASTFactory() {
     BLOCK -> DeclarativeBlockImpl(type)
     BLOCK_GROUP -> DeclarativeBlockGroupImpl(type)
     FACTORY -> DeclarativeFactoryImpl(type)
+    EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
     IDENTIFIER -> DeclarativeIdentifierImpl(type)
     LITERAL -> DeclarativeLiteralImpl(type)
     QUALIFIED -> DeclarativeQualifiedImpl(type)
+    ARGUMENT -> DeclarativeArgumentImpl(type)
 
     else -> error("Unknown Declarative element type: `$type`")
   }

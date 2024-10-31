@@ -21,16 +21,15 @@ import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import java.util.EnumSet
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
-import java.awt.Rectangle
-import java.util.EnumSet
 
 /**
- * Helper class which handles the logic of using data from a
- * [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to create [ComposeViewNode]s.
+ * Helper class for creating [ComposeViewNode]s.
+ *
+ * @param result A compose tree received from the compose agent
  */
 class ComposeViewNodeCreator(result: GetComposablesResult) {
   private val response = result.response
@@ -96,9 +95,12 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       throw InterruptedException()
     }
 
-    val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
+    val layoutBounds = bounds.layout.toRectangle()
+
+    // The Quad coordinates are supplied relative to the View that contains the composables.
+    // We need to convert them to the coordinates the inspector works in.
     val renderBounds =
-      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toPolygon() ?: layoutBounds
     val actualFlags =
       if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
     val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0

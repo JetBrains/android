@@ -39,9 +39,9 @@ import java.awt.geom.AffineTransform;
  * Base Class for drawing text components
  */
 public class DrawTextRegion extends DrawRegion {
-  protected static final int DEFAULT_FONT_SIZE = 14;
+  private static final int DEFAULT_FONT_POINT_SIZE = 22;
   protected static final float DEFAULT_SCALE = 1.0f;
-  protected static final float SCALE_ADJUST = .88f; // a factor to scale fonts from android to Java2d
+  protected static final float SCALE_ADJUST = .68f; // a factor to scale fonts from android to Java2d
   @SuppressWarnings("UseJBColor")
   private static final Color TEXT_PANE_BACKGROUND = new Color(0, 0, 0, 0);
 
@@ -175,7 +175,7 @@ public class DrawTextRegion extends DrawRegion {
                         int mode,
                         int baseLineOffset,
                         String text) {
-    this(x, y, width, height, mode, baseLineOffset, text, false, false, TEXT_ALIGNMENT_TEXT_START, TEXT_ALIGNMENT_TEXT_START, DEFAULT_FONT_SIZE,
+    this(x, y, width, height, mode, baseLineOffset, text, false, false, TEXT_ALIGNMENT_TEXT_START, TEXT_ALIGNMENT_TEXT_START, 14,
          DEFAULT_SCALE);
   }
 
@@ -294,29 +294,27 @@ public class DrawTextRegion extends DrawRegion {
     return alignmentX;
   }
 
+  /**
+   * Returns the approximate Swing Font point size for the given {@link NlComponent} text.
+   * If the component does not specify a size, this method returns {@link DrawTextRegion#DEFAULT_FONT_POINT_SIZE}.
+   */
   @Slow
-  public static int getFont(NlComponent nlc, String default_dim) {
-    // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
-    //  getResourceResolver in non-smart mode.
-    if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
-    Configuration configuration = nlc.getModel().getConfiguration();
-    ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
-
-    Integer size = null;
-
+  public static int getFont(NlComponent nlc) {
     String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
     if (textSize != null) {
-      size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
+      // TODO(b/324574786): Remove the smart mode check. It's only needed here to avoid invoking
+      //  getResourceResolver in non-smart mode.
+      if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
+      Configuration configuration = nlc.getModel().getConfiguration();
+      ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
+
+      Integer size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
+
+      if (size != null) {
+        return size;
+      }
     }
 
-    if (size == null) {
-      // With the specified string, this method cannot return null
-      //noinspection ConstantConditions
-      size = ViewEditor.resolveDimensionPixelSize(resourceResolver, default_dim, configuration);
-    }
-    if (size != null) {
-      return size;
-    }
-    return -1;
+    return DEFAULT_FONT_POINT_SIZE;
   }
 }

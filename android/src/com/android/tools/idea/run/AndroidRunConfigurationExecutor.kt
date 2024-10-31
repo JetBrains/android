@@ -48,7 +48,7 @@ import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLink
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
-import com.android.tools.idea.run.configuration.execution.getApplicationIdAndDevices
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.tasks.RunInstantApp
@@ -77,7 +77,6 @@ import java.util.Locale
 
 
 class AndroidRunConfigurationExecutor(
-  private val applicationIdProvider: ApplicationIdProvider,
   private val applicationContext: ApplicationProjectContext,
   private val env: ExecutionEnvironment,
   val deviceFutures: DeviceFutures,
@@ -94,7 +93,8 @@ class AndroidRunConfigurationExecutor(
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
@@ -111,10 +111,6 @@ class AndroidRunConfigurationExecutor(
       }
       if (configuration.CLEAR_APP_STORAGE) {
         clearAppStorage(project, it, applicationId, RunStats.from(env))
-      }
-      if (configuration.isRestoreEnabled()) {
-        indicator.text = "Restoring app data"
-        restoreAppFromFile(project, it, configuration.RESTORE_FILE, RunStats.from(env))
       }
       LaunchUtils.initiateDismissKeyguard(it)
     }
@@ -137,8 +133,14 @@ class AndroidRunConfigurationExecutor(
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+
+            if (configuration.isRestoreEnabled()) {
+              indicator.text = "Restoring app data"
+              restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+            }
+
             if (launch(mainApp.app, device, console, isDebug = false)) {
-              notifyLiveEditService(device, apks, applicationId)
+              notifyLiveEditService(device, apks, applicationContext)
             }
           }
         }
@@ -173,9 +175,13 @@ class AndroidRunConfigurationExecutor(
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
 
-  private fun notifyLiveEditService(device: IDevice, apkInfos: MutableCollection<ApkInfo>, applicationId: String) {
+  private fun notifyLiveEditService(
+    device: IDevice,
+    apkInfos: MutableCollection<ApkInfo>,
+    applicationProjectContext: ApplicationProjectContext
+  ) {
     try {
-      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkInfos, device)
+      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationProjectContext, apkInfos, device)
     } catch (e: Exception) {
 
       // Monitoring should always start successfully.
@@ -197,7 +203,8 @@ class AndroidRunConfigurationExecutor(
     }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
@@ -218,10 +225,6 @@ class AndroidRunConfigurationExecutor(
     }
     if (configuration.CLEAR_APP_STORAGE) {
       clearAppStorage(project, device, applicationId, RunStats.from(env))
-    }
-    if (configuration.isRestoreEnabled()) {
-      indicator.text = "Restoring app data"
-      restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
@@ -245,10 +248,16 @@ class AndroidRunConfigurationExecutor(
         val deployResults =
           deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
 
-        notifyLiveEditService(device, apks, applicationId)
+        notifyLiveEditService(device, apks, applicationContext)
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
+
+        if (configuration.isRestoreEnabled()) {
+          indicator.text = "Restoring app data"
+          restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+        }
+
         launch(mainApp.app, device, console, isDebug = true)
       }
     }
@@ -284,7 +293,8 @@ class AndroidRunConfigurationExecutor(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
@@ -352,7 +362,8 @@ class AndroidRunConfigurationExecutor(
   }
 
   override fun applyCodeChanges(indicator: ProgressIndicator) = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
@@ -479,6 +490,6 @@ class AndroidRunConfigurationExecutor(
 }
 
 private val AndroidRunConfiguration.deployOptions
-  get() = DeployOptions(disabledDynamicFeatures, PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM)
+  get() = DeployOptions(disabledDynamicFeatures, PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM, ALLOW_ASSUME_VERIFIED)
 
 fun AndroidRunConfiguration.isRestoreEnabled() = StudioFlags.BACKUP_ENABLED.get() && RESTORE_ENABLED

@@ -22,7 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
 import com.android.tools.tests.KotlinAdtTestProjectDescriptor
@@ -431,8 +431,8 @@ class TestEnvironmentRuleImpl(
 
     userHome = System.getProperty("user.home")
     // Disable antivirus checks on Windows.
-    StudioFlags.ANTIVIRUS_METRICS_ENABLED.override(false, flagsDisposable)
-    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.override(false, flagsDisposable)
+    StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
+    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, flagsDisposable)
   }
 
   override fun after(description: Description) {

@@ -73,7 +73,7 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
         Text(TaskBasedUxStrings.STOPPING_TIME_WARNING, fontStyle = FontStyle.Italic)
       }
       else {
-        Text(recordingScreenModel.formatElapsedTime(elapsedNs))
+        Text(RecordingScreenModel.formatElapsedTime(elapsedNs))
       }
     }
     if (isUserStoppable) {

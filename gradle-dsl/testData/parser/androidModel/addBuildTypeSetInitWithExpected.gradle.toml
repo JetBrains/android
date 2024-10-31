@@ -1,4 +1,0 @@
-[android.buildTypes.foo]
-minifyEnabled = true
-[android.buildTypes.bar]
-initWith = "foo"

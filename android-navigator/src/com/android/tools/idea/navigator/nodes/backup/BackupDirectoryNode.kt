@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.backup
 
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.NodeSortOrder
 import com.intellij.ide.projectView.NodeSortSettings
 import com.intellij.ide.projectView.PresentationData
@@ -55,5 +56,6 @@ internal open class BackupDirectoryNode internal constructor(
 
   override fun update(presentation: PresentationData) {
     presentation.presentableText = dirName
+    presentation.setIcon(AllIcons.Nodes.Folder)
   }
 }

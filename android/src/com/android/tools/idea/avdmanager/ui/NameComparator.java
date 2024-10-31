@@ -38,10 +38,10 @@ import org.jetbrains.annotations.NotNull;
  * </ol>
  */
 @SuppressWarnings("GrazieInspection")
-final class NameComparator implements Comparator<Device> {
+public final class NameComparator implements Comparator<Device> {
   private final @NotNull Comparator<@NotNull Device> myComparator;
 
-  NameComparator() {
+  public NameComparator() {
     this(StudioFlags.RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED::get);
   }
 
@@ -56,20 +56,41 @@ final class NameComparator implements Comparator<Device> {
     SMALL_PHONE,
     MEDIUM_PHONE,
     MEDIUM_TABLET,
+    // All other devices, sorted in reverse order
     DEVICE,
-    PIXEL_XL,
-    PIXEL,
+    // Pixel 10+ family of devices (future proofing as of writing this code)
+    PIXEL_10_PLUS_FAMILY,
+    // Pixel 9 family of devices
+    PIXEL_9_FAMILY,
+    // Pixel 8 family of devices
+    PIXEL_8_FAMILY,
+    // Pixel Fold is between Pixel 7 and 8
+    PIXEL_FOLD,
+    // All other devices, sorted in reverse order
+    PIXEL_2_to_7_FAMILY,
+    // "Pixel" at the end because they don't have a number but are logically "1".
+    PIXEL_1,
     RESIZABLE_EXPERIMENTAL;
 
     private static @NotNull SortKey valueOfDevice(@NotNull Device device, @NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
-      return switch (device.getDisplayName()) {
+      String displayName = device.getDisplayName();
+      return switch (displayName) {
         case "Small Phone" -> SMALL_PHONE;
         case "Medium Phone" -> MEDIUM_PHONE;
         case "Medium Tablet" -> MEDIUM_TABLET;
-        case "Pixel XL" -> PIXEL_XL;
-        case "Pixel" -> PIXEL;
+        case "Pixel XL", "Pixel" -> PIXEL_1;
+        case "Pixel Fold" -> PIXEL_FOLD;
         case "Resizable (Experimental)" -> resizableExperimentalTweaksEnabledGet.getAsBoolean() ? DEVICE : RESIZABLE_EXPERIMENTAL;
-        default -> DEVICE;
+        default -> {
+          var prefix = displayName.length() >= 7 ? displayName.substring(0, 7) : "";
+          yield switch(prefix) {
+            case "Pixel 1" ->  PIXEL_10_PLUS_FAMILY;
+            case "Pixel 9" ->  PIXEL_9_FAMILY;
+            case "Pixel 8" ->  PIXEL_8_FAMILY;
+            case "Pixel 7", "Pixel 6", "Pixel 5", "Pixel 4", "Pixel 3", "Pixel 2" ->  PIXEL_2_to_7_FAMILY;
+            default -> DEVICE;
+          };
+        }
       };
     }
   }

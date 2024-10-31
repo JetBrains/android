@@ -946,7 +946,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
             }
           }
 
-          SceneView view = myComponent.getScene().getSceneManager().getSceneView();
+          SceneView view = myComponent.getScene().getSceneManager().getSceneViews().get(0);
           int swingX = Coordinates.getSwingXDip(view, x);
           int swingY = Coordinates.getSwingYDip(view, y);
 

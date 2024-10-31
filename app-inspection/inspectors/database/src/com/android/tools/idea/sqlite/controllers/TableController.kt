@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.Companion.DEFAULT_ROW_BATCH_SIZE
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultsDialogParams
@@ -65,7 +66,7 @@ import kotlin.math.min
 @UiThread
 class TableController(
   project: Project,
-  private var rowBatchSize: Int = 50,
+  private var rowBatchSize: Int = DEFAULT_ROW_BATCH_SIZE,
   private val view: TableView,
   private val databaseId: SqliteDatabaseId,
   private val tableSupplier: () -> SqliteTable?,
@@ -75,6 +76,7 @@ class TableController(
   private val showExportDialog: (ExportDialogParams) -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor,
+  private var liveUpdatesEnabled: Boolean = false,
 ) : DatabaseInspectorController.TabController {
   private var isDisposed: Boolean = false
   private lateinit var resultSet: SqliteResultSet
@@ -97,8 +99,6 @@ class TableController(
    */
   private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
 
-  private var liveUpdatesEnabled = false
-
   fun setUp(): ListenableFuture<Unit> {
     if (databaseId !is SqliteDatabaseId.LiveSqliteDatabaseId) {
       view.setLiveUpdatesButtonState(false)
@@ -111,6 +111,7 @@ class TableController(
       .transformAsync(edtExecutor) { newResultSet ->
         view.setEditable(isEditable())
         view.showPageSizeValue(rowBatchSize)
+        view.setLiveUpdatesEnabled(liveUpdatesEnabled)
         view.addListener(listener)
 
         resultSet = newResultSet
@@ -140,6 +141,10 @@ class TableController(
     view.stopTableLoading()
     view.removeListener(listener)
   }
+
+  override fun isLiveUpdateEnabled() = liveUpdatesEnabled
+
+  override fun getRowBatchSize() = rowBatchSize
 
   /**
    * Gets columns and rows from [resultSet] and updates the view.

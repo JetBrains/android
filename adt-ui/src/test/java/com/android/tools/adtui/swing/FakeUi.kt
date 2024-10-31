@@ -17,7 +17,6 @@
 
 package com.android.tools.adtui.swing
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
@@ -36,6 +35,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Container
 import java.awt.Graphics2D
@@ -65,7 +65,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 class FakeUi @JvmOverloads constructor(
   val root: Component,
-  val screenScale: Double = 1.0,
+  screenScale: Double = 1.0,
   createFakeWindow: Boolean = false,
   parentDisposable: Disposable? = null,
 ) {
@@ -75,6 +75,17 @@ class FakeUi @JvmOverloads constructor(
 
   @JvmField
   val mouse: FakeMouse = FakeMouse(this, keyboard)
+
+  var screenScale: Double
+    get() = screenScaleInternal
+    set(value) {
+      if (screenScaleInternal != value) {
+        screenScaleInternal = value
+        ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(value))
+      }
+    }
+
+  private var screenScaleInternal: Double = screenScale
 
   init {
     if (root.parent == null && createFakeWindow) {

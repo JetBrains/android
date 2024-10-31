@@ -92,13 +92,12 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
         FileEditorManagerListener.FILE_EDITOR_MANAGER,
         object : FileEditorManagerListener {
           override fun fileOpened(source: FileEditorManager, file: VirtualFile) =
-            updateAvailable(toolWindow, file)
+            updateAvailable(toolWindow)
 
           override fun fileClosed(source: FileEditorManager, file: VirtualFile) =
-            updateAvailable(toolWindow, null)
+            updateAvailable(toolWindow)
 
-          override fun selectionChanged(event: FileEditorManagerEvent) =
-            updateAvailable(toolWindow, event.newFile)
+          override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow)
         },
       )
     // The file editor may be opened before the listener is registered. But we cannot change the
@@ -133,8 +132,8 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   }
 
   /** Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise. */
-  private fun updateAvailable(toolWindow: ToolWindow, file: VirtualFile?) {
-    toolWindow.isAvailable = file?.let { getFolderType(it) == ResourceFolderType.LAYOUT } ?: false
+  private fun updateAvailable(toolWindow: ToolWindow) {
+    toolWindow.isAvailable = hasSelectedLayoutFile(toolWindow.project)
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

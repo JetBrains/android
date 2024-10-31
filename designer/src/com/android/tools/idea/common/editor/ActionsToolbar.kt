@@ -41,7 +41,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.awt.event.AdjustmentEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -162,10 +161,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
    * wait the default 500ms automatic delay where toolbars are updated automatically.
    */
   private fun refreshToolbarState() {
-    northToolbar?.updateActionsImmediately()
-    northEastToolbar?.updateActionsImmediately()
-    eastToolbar?.updateActionsImmediately()
-    centerToolbar?.updateActionsImmediately()
+    UIUtil.invokeAndWaitIfNeeded {
+      northToolbar?.updateActionsImmediately()
+      northEastToolbar?.updateActionsImmediately()
+      eastToolbar?.updateActionsImmediately()
+      centerToolbar?.updateActionsImmediately()
+    }
   }
 
   fun updateActions() {
@@ -247,7 +248,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
   }
 
-  override fun panningChanged(event: AdjustmentEvent) {
+  override fun panningChanged() {
     UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.io.readImage
-import com.android.testutils.MockitoKt.mock
 import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -42,6 +41,7 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 

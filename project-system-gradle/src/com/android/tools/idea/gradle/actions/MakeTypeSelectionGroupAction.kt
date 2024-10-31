@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.SplitButtonAction
 
 /**
- * Action used to select between different types of make in the project: [MakeGradleProjectAction] and [MakeGradleModuleAction].
+ * Action used to select between different types of make in the project: [AssembleGradleProjectWithTestsAction] and [AssembleGradleModuleAction].
  */
 class MakeTypeSelectionGroupAction : SplitButtonAction(AllMakeActionsGroup()) {
 
@@ -36,8 +36,9 @@ class MakeTypeSelectionGroupAction : SplitButtonAction(AllMakeActionsGroup()) {
   }
 
   internal class AllMakeActionsGroup : DefaultActionGroup() {
-    private val makeModule = MakeGradleModuleActionFromGroupAction()
-    private val children: Array<AnAction> = arrayOf(makeModule, MakeGradleProjectAction())
+    private val makeModule = AssembleGradleModuleActionFromGroupAction()
+    private val children: Array<AnAction> = arrayOf(makeModule,
+                                                    AssembleGradleProjectWithTestsAction())
 
     override fun getChildren(e: AnActionEvent?): Array<AnAction> {
       return children

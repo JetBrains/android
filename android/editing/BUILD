@@ -2,8 +2,8 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.editing.tests",
-    iml_files = ["intellij.android.editing.tests.iml"],
+    name = "intellij.android.core.editing.tests",
+    iml_files = ["intellij.android.core.editing.tests.iml"],
     test_class = "com.android.tools.idea.editing.EditingTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

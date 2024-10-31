@@ -40,6 +40,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,12 +65,11 @@ public class StatisticsViewer extends JPanel implements Disposable {
     createDialog(project);
   }
 
-  private Void processEvent(AndroidStudioEvent.Builder builder) {
+  private Unit processEvent(AndroidStudioEvent.Builder builder) {
     myConsoleView.print("===\n", ConsoleViewContentType.NORMAL_OUTPUT);
     myConsoleView.print(AnalyticsSettings.getDateProvider().now().toString() + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
     myConsoleView.print(builder.build().toString(), ConsoleViewContentType.NORMAL_OUTPUT);
-
-    return null;
+    return Unit.INSTANCE;
   }
 
   // Create a non-modal dialog with this panel so the user can interact with Android Studio while looking at metrics on another screen.

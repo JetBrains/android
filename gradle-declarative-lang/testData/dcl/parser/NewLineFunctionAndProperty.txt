@@ -1,0 +1,13 @@
+FILE
+  PsiElement(FACTORY)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('function')
+    PsiElement(DeclarativeTokenType.()('(')
+    PsiElement(ARGUMENTS_LIST)
+      <empty list>
+    PsiElement(DeclarativeTokenType.))(')')
+  PsiWhiteSpace(' ')
+  PsiErrorElement:DeclarativeTokenType.; expected, got 'k'
+    PsiElement(DeclarativeTokenType.token)('k')
+  PsiElement(DeclarativeTokenType.=)('=')
+  PsiElement(DeclarativeTokenType.integer_literal)('5')

@@ -59,6 +59,22 @@ class DynamicFeatureModel(
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
+  override fun getParamsToLog(): String {
+    val deviceFeaturesString = deviceFeatures.get().joinToString("\n  ") { featureModel ->
+      "Type: ${featureModel.deviceFeatureType.get()} Value: ${featureModel.deviceFeatureValue}"
+    }
+
+    return super.getParamsToLog() + """
+      |
+      |[Dynamic Feature params]
+      |Base Application Module: ${baseApplication.valueOrNull ?: "N/A"}
+      |Module title: ${featureTitle.get()}
+      |Install-time inclusion: ${downloadInstallKind.valueOrNull?.displayName ?: "N/A"}
+      |Fusing: ${featureFusing.get()}
+      |Device features: $deviceFeaturesString
+    """.trimMargin()
+  }
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(

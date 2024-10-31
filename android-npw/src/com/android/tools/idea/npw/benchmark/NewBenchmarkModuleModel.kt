@@ -53,6 +53,15 @@ class NewBenchmarkModuleModel(
   val benchmarkModuleType = ObjectValueProperty<BenchmarkModuleType>(MACROBENCHMARK)
   val targetModule = OptionalValueProperty<Module>()
 
+  override fun getParamsToLog(): String {
+    return super.getParamsToLog() + """
+      |
+      |[Benchmark params]
+      |Benchmark module type: ${benchmarkModuleType.get().name}
+      |Target application: ${targetModule.valueOrNull ?: "N/A"}
+    """.trimMargin()
+  }
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe
       get() = { td: TemplateData ->

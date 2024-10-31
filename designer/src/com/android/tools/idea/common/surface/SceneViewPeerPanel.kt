@@ -44,6 +44,7 @@ import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.StateFlow
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
 @SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
@@ -60,11 +61,12 @@ class SceneViewPeerPanel(
   val scope: CoroutineScope,
   val sceneView: SceneView,
   private val labelPanel: JComponent,
-  sceneViewStatusIconAction: AnAction?,
-  sceneViewToolbarActions: List<AnAction>,
-  sceneViewLeftBar: JComponent?,
-  sceneViewRightBar: JComponent?,
-  private val sceneViewErrorsPanel: JComponent?,
+  statusIconAction: AnAction?,
+  toolbarActions: List<AnAction>,
+  leftPanel: JComponent?,
+  rightPanel: JComponent?,
+  private val errorsPanel: JComponent?,
+  private val isOrganizationEnabled: StateFlow<Boolean>,
 ) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
@@ -112,7 +114,7 @@ class SceneViewPeerPanel(
             /* right */ sceneViewRightPanel.preferredSize.width,
           )
 
-        if (sceneViewErrorsPanel?.isVisible == true) {
+        if (errorsPanel?.isVisible == true) {
           margin.bottom += sceneViewCenterPanel.preferredSize.height
         }
 
@@ -167,12 +169,11 @@ class SceneViewPeerPanel(
    * aligned (the toolbar).
    */
   @VisibleForTesting
-  val sceneViewTopPanel =
-    SceneViewTopPanel(this, sceneViewStatusIconAction, sceneViewToolbarActions, labelPanel)
+  val sceneViewTopPanel = SceneViewTopPanel(this, statusIconAction, toolbarActions, labelPanel)
 
-  val sceneViewLeftPanel = wrapPanel(sceneViewLeftBar)
-  val sceneViewRightPanel = wrapPanel(sceneViewRightBar)
-  val sceneViewCenterPanel = wrapPanel(sceneViewErrorsPanel)
+  val sceneViewLeftPanel = wrapPanel(leftPanel)
+  val sceneViewRightPanel = wrapPanel(rightPanel)
+  val sceneViewCenterPanel = wrapPanel(errorsPanel)
 
   private fun wrapPanel(panel: JComponent?) =
     JPanel(BorderLayout()).apply {
@@ -287,9 +288,12 @@ class SceneViewPeerPanel(
   }
 
   override fun isVisible(): Boolean {
-    return sceneView.isVisible &&
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.value ?: true
+    return sceneView.isVisible && !isHiddenInOrganizationGroup()
   }
+
+  private fun isHiddenInOrganizationGroup() =
+    isOrganizationEnabled.value &&
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SCENE_VIEW] = sceneView

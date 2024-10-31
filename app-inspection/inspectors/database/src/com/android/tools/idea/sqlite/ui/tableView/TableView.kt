@@ -79,6 +79,12 @@ interface TableView {
 
   fun updateIsForcedBanner(show: Boolean)
 
+  fun setLiveUpdatesEnabled(value: Boolean)
+
+  fun isLiveUpdatesEnabled(): Boolean
+
+  fun getPageSize(): Int
+
   interface Listener {
     fun loadPreviousRowsInvoked()
 

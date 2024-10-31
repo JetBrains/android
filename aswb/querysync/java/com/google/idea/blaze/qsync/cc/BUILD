@@ -14,7 +14,7 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/shared",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
     ],
 )

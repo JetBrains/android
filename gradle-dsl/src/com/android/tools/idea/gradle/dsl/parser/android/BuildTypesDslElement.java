@@ -21,16 +21,14 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<BuildTypesDslElement> BUILD_TYPES =
-    new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new, BuildTypesDslElementSchema::new);
+    new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(
@@ -63,13 +61,5 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
       }
     }
     return result;
-  }
-
-  public static final class BuildTypesDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @Nullable
-    public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
-      return BuildTypeDslElement.BUILD_TYPE;
-    }
   }
 }

@@ -17,9 +17,12 @@ package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -46,8 +49,7 @@ interface PreviewCanvasTracker {
         NOP_TRACKER,
       )
 
-    // This tracker is shared between all compose preview. No key is needed.
-    fun getInstance() = MANAGER.getInstance(null)
+    fun getInstance(surface: DesignSurface<*>) = MANAGER.getInstance(surface)
   }
 }
 
@@ -64,6 +66,8 @@ class PreviewCanvasTrackerImpl(
           is GridSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GRID
           is GroupedListSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GROUPED_LIST
           is GroupedGridSurfaceLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GROUPED_GRID
+          is GridLayoutManager -> ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
+          is ListLayoutManager -> ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_LIST
           else -> ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
         }
       myExecutor.execute {

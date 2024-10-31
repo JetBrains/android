@@ -17,7 +17,6 @@ package com.android.tools.adtui.device;
 
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.webp.WebpMetadata;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -38,32 +37,14 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void testBasics() throws IOException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
-    assertEquals(28, specs.size());
-
-    DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
-    assertNotNull(nexus4);
-
-    Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
-    assertEquals(94, offsets.x);
-    assertEquals(187, offsets.y);
-
-    offsets = nexus4.getScreenPos(ScreenOrientation.LANDSCAPE);
-    assertEquals(257, offsets.x);
-    assertEquals(45, offsets.y);
-
-    verifyFileExists(nexus4.getFrame(ScreenOrientation.LANDSCAPE));
-    verifyFileExists(nexus4.getFrame(ScreenOrientation.PORTRAIT));
-    verifyFileExists(nexus4.getDropShadow(ScreenOrientation.LANDSCAPE));
-    verifyFileExists(nexus4.getDropShadow(ScreenOrientation.PORTRAIT));
-    verifyFileExists(nexus4.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
-    verifyFileExists(nexus4.getReflectionOverlay(ScreenOrientation.PORTRAIT));
+    assertEquals(2, specs.size());
 
     for (DeviceArtDescriptor descriptor : specs) {
       String id = descriptor.getId();
       assertNotNull(id);
       assertNotNull(descriptor.getName());
       for (ScreenOrientation orientation : new ScreenOrientation[] { ScreenOrientation.LANDSCAPE, ScreenOrientation.PORTRAIT}) {
-        if (orientation == ScreenOrientation.PORTRAIT && (id.startsWith("tv_") || id.startsWith("automotive_"))) {
+        if (orientation == ScreenOrientation.PORTRAIT) {
           continue;
         }
         assertNotNull(id, descriptor.getFrameSize(orientation));
@@ -106,34 +87,6 @@ public class DeviceArtDescriptorTest extends TestCase {
     }
   }
 
-  public void testWatchRound() {
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("watch_round".equals(spec.getId())) {
-        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
-        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
-        verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
-        verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
-        return;  // pass: found watch_round spec
-      }
-    }
-    fail("Did not find watch_round spec");
-  }
-
-  public void testWatchSquare() {
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("watch_square".equals(spec.getId())) {
-        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
-        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
-        verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
-        verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
-        return;  // pass: found watch_round spec
-      }
-    }
-    fail("Did not find watch_square spec");
-  }
-
   private static void verifyFileExists(@Nullable File f) {
     assertNotNull(f);
     assertTrue(f.exists());
@@ -157,17 +110,5 @@ public class DeviceArtDescriptorTest extends TestCase {
       }
     }
     return null;
-  }
-
-  public void testAutomotiveSpecs() {
-    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
-    for (DeviceArtDescriptor spec : specs) {
-      if ("automotive_1024".equals(spec.getId())) {
-        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
-        verifyFileExists(spec.getFrame(ScreenOrientation.LANDSCAPE));
-        return;  // pass: found automotive spec
-      }
-    }
-    fail("Did not find automotive_1024 spec");
   }
 }

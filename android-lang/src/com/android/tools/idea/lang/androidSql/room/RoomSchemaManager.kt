@@ -22,12 +22,10 @@ import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
-import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getScopeType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.originalFileOrSelf
 import com.intellij.psi.JavaPsiFacade
@@ -67,11 +65,11 @@ class RoomSchemaManager(val module: Module) {
     fun getInstance(module: Module): RoomSchemaManager = module.getService(RoomSchemaManager::class.java)!!
   }
 
-  private val schemas = ScopeType.values().associate { it to createCachedValue(it) }
+  private val schemas = sequenceOf(true, false).associateWith { createCachedValue(it) }
 
-  private fun createCachedValue(scope: ScopeType): CachedValue<RoomSchema> {
+  private fun createCachedValue(includeTests: Boolean): CachedValue<RoomSchema> {
     return CachedValuesManager.getManager(module.project).createCachedValue {
-      CachedValueProvider.Result(buildSchema(module, scope), PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result(buildSchema(module, includeTests), PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
 
@@ -86,19 +84,19 @@ class RoomSchemaManager(val module: Module) {
     vFile = vFile.originalFileOrSelf()
     if (!module.moduleContentScope.contains(vFile)) return null
 
-    val scopeType = module.getModuleSystem().getScopeType(vFile, module.project)
-    return schemas[scopeType]!!.value
+    val includeTests = TestSourcesFilter.isTestSources(vFile, module.project)
+    return schemas[includeTests]!!.value
   }
 
   private val pointerManager = SmartPointerManager.getInstance(module.project)
 
   /** Builds the schema using IJ indexes. */
-  private fun buildSchema(module: Module, scopeType: ScopeType): RoomSchema? {
-    val scope = module.getModuleSystem().getResolveScope(scopeType)
+  private fun buildSchema(module: Module, includeTests: Boolean): RoomSchema? {
+    val scope = module.getModuleWithDependenciesAndLibrariesScope(includeTests)
 
     if (!isRoomPresentInScope(scope)) return null
 
-    LOG.debug { "Recalculating Room schema for module ${module.name} for scope ${scopeType}" }
+    LOG.debug { "Recalculating Room schema for module ${module.name} ${if (includeTests) "including" else "excluding"} tests" }
 
     val psiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
 

@@ -6,6 +6,10 @@ directories:
   prebuilts/r8
   tools/idea/bazel
   tools/idea/plugins/kotlin/jvm-debugger
+
+targets:
+  tools/adt/idea/ij-debugger-tests:attacher
+
 additional_languages:
   kotlin
   python

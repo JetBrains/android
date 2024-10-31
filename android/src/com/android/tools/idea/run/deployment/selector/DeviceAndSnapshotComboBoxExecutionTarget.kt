@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.selector
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice.deploysToLocalDevice
+import com.android.tools.idea.execution.common.DeployableToDevice.isLocalDeviceAware
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -94,7 +95,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
     }
 
   override fun canRun(configuration: RunConfiguration): Boolean =
-    deploysToLocalDevice(configuration)
+    !isLocalDeviceAware(configuration) || deploysToLocalDevice(configuration)
 
   override fun equals(other: Any?): Boolean =
     other is DeviceAndSnapshotComboBoxExecutionTarget &&

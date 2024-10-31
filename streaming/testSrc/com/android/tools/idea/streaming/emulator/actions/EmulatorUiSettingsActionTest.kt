@@ -21,7 +21,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -36,7 +35,6 @@ import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -91,19 +89,7 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testUpdateWhenUnused() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(false, testRootDisposable)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
-    val view = createEmulatorView(controller)
-    val action = EmulatorUiSettingsAction()
-    val event = createTestMouseEvent(action, controller, view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
-  }
-
-  @Test
   fun testActionOnApi32Emulator() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.createAndStartEmulator(api = 32))
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
@@ -115,7 +101,6 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testActiveAction() {
     simulateDarkTheme(false)
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
@@ -134,7 +119,6 @@ class EmulatorUiSettingsActionTest {
 
   @Test
   fun testHasResetLink() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
@@ -148,7 +132,6 @@ class EmulatorUiSettingsActionTest {
 
   @Test
   fun testWearControls() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.createAndStartWatchEmulator())
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
@@ -172,7 +155,6 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testActiveActionFromActionButtonInPopup() {
     simulateDarkTheme(false)
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
     val action = EmulatorUiSettingsAction()
@@ -194,7 +176,6 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testActiveActionFromKeyEvent() {
     simulateDarkTheme(true)
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true)
     val action = EmulatorUiSettingsAction()
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
@@ -214,7 +195,6 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testPickerClosesWhenWindowCloses() {
     simulateDarkTheme(false)
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
@@ -244,7 +224,6 @@ class EmulatorUiSettingsActionTest {
     Disposer.register(testRootDisposable, parentDisposable)
 
     simulateDarkTheme(false)
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller, parentDisposable)
     val action = EmulatorUiSettingsAction()
@@ -287,7 +266,7 @@ class EmulatorUiSettingsActionTest {
   ).apply { size = Dimension(16, 16) }
 
   private fun createEmulatorView(controller: EmulatorController, parentDisposable: Disposable = testRootDisposable): EmulatorView =
-    EmulatorView(parentDisposable, controller, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
+    EmulatorView(parentDisposable, controller, uiRule.project, displayId = 0, Dimension(600, 800), deviceFrameVisible = false)
 
   private fun createTestDataContext(controller: EmulatorController, view: EmulatorView): DataContext {
     return DataContext { dataId ->

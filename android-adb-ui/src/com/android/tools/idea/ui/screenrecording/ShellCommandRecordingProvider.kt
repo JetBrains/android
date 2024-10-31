@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.io.delete
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +69,7 @@ internal class ShellCommandRecordingProvider(
       try {
         val commandOutput = adbSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
         if (commandOutput.exitCode != 0) {
-          throw RuntimeException("Screen recording terminated with exit code ${commandOutput.exitCode}")
+          throw RuntimeException("Screen recording terminated with exit code ${commandOutput.exitCode}. Try to reduce video resolution.")
         }
         result.complete(Unit)
       }
@@ -105,6 +106,7 @@ internal class ShellCommandRecordingProvider(
   }
 
   override suspend fun pullRecording(target: Path) {
+    target.delete()
     adbSession.deviceServices.sync(deviceSelector).use { sync ->
       try {
         adbSession.channelFactory.createNewFile(target).use {

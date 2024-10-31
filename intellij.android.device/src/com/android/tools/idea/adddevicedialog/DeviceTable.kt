@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,66 +25,84 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
-import icons.StudioIcons
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
+import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun DeviceTable(
-  devices: List<DeviceProfile>,
+fun <DeviceT : DeviceProfile> DeviceTable(
+  devices: List<DeviceT>,
+  columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
-  tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
-  filterState: DeviceFilterState = remember { DeviceFilterState() },
+  tableSelectionState: TableSelectionState<DeviceT> = remember { TableSelectionState() },
+  filterState: DeviceFilterState<DeviceT> = remember { DeviceFilterState() },
+  onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
   var showDetails by remember { mutableStateOf(false) }
-
-  val columns: List<TableColumn<DeviceProfile>> = remember {
-    listOf(
-      TableColumn("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) },
-      TableTextColumn("OEM", attribute = { it.manufacturer }),
-      TableTextColumn("Name", TableColumnWidth.Weighted(2f), attribute = { it.name }, maxLines = 2),
-      TableTextColumn("API", attribute = { it.apiLevels.last().apiStringWithExtension }),
-      TableTextColumn("Width", attribute = { it.resolution.width.toString() }),
-      TableTextColumn("Height", attribute = { it.resolution.height.toString() }),
-      TableTextColumn("Density", attribute = { "${it.displayDensity} dpi" }),
-      TableTextColumn("Type", attribute = { if (it.isVirtual) "Virtual" else "Physical" }),
-      TableTextColumn("Source", attribute = { if (it.isRemote) "Remote" else "Local" }),
-    )
+  val textState = rememberTextFieldState(filterState.textFilter.searchText)
+  LaunchedEffect(Unit) {
+    snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
   }
+
   Column(modifier) {
     Row {
       TextField(
-        filterState.textFilter.searchText,
-        onValueChange = { filterState.textFilter.searchText = it },
-        leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
+        textState,
+        leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
+        trailingIcon = {
+          Icon(
+            AllIconsKeys.General.CloseSmall,
+            contentDescription = "Clear search",
+            Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
+              .pointerHoverIcon(PointerIcon.Default),
+          )
+        },
         placeholder = {
           Text(
-            "Search for a device by name, model, or OEM",
+            filterState.textFilter.description,
             fontWeight = FontWeight.Light,
             modifier = Modifier.padding(start = 4.dp),
           )
         },
         modifier = Modifier.weight(1f).padding(2.dp),
       )
-      IconButton(
-        onClick = { showDetails = !showDetails },
-        Modifier.align(Alignment.CenterVertically).padding(2.dp),
-      ) {
-        Icon("actions/previewDetails.svg", "Details", AllIcons::class.java, Modifier.size(20.dp))
+      Tooltip(tooltip = { Text("Show device details") }) {
+        IconButton(
+          onClick = { showDetails = !showDetails },
+          Modifier.align(Alignment.CenterVertically).padding(2.dp),
+        ) {
+          Icon(
+            key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
+            contentDescription = "Details",
+            modifier = Modifier.size(20.dp),
+          )
+        }
       }
     }
     if (devices.none(filterState.textFilter::apply)) {
@@ -92,9 +112,9 @@ internal fun DeviceTable(
       )
     } else {
       HorizontalSplitLayout(
-        first = { DeviceFiltersPanel(it) { filterContent() } },
+        first = { DeviceFiltersPanel { filterContent() } },
         second = {
-          Row(modifier = it) {
+          Row {
             val filteredDevices = devices.filter(filterState::apply)
             if (filteredDevices.isEmpty()) {
               EmptyStatePanel(
@@ -108,6 +128,7 @@ internal fun DeviceTable(
                 { it },
                 modifier = Modifier.weight(1f),
                 tableSelectionState = tableSelectionState,
+                onRowSecondaryClick = onRowSecondaryClick,
               )
               if (showDetails) {
                 when (val selection = tableSelectionState.selection) {
@@ -120,11 +141,38 @@ internal fun DeviceTable(
           }
         },
         modifier = Modifier.fillMaxSize(),
-        minRatio = 0.1f,
-        maxRatio = 0.5f,
+        firstPaneMinWidth = 100.dp,
+        secondPaneMinWidth = 300.dp,
+        state = rememberSplitLayoutState(.3f),
       )
     }
   }
+}
+
+object DeviceTableColumns {
+  val icon =
+    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) }
+  val oem = TableTextColumn<DeviceProfile>("OEM", attribute = { it.manufacturer })
+  val name =
+    TableTextColumn<DeviceProfile>(
+      "Name",
+      TableColumnWidth.Weighted(2f),
+      attribute = { it.name },
+      maxLines = 2,
+    )
+  val api =
+    TableTextColumn<DeviceProfile>("API", attribute = { it.apiRange.lowerEndpoint().toString() })
+  val width =
+    TableTextColumn<DeviceProfile>("Width", attribute = { it.resolution.width.toString() })
+  val height =
+    TableTextColumn<DeviceProfile>("Height", attribute = { it.resolution.height.toString() })
+  val density =
+    TableTextColumn<DeviceProfile>("Density", attribute = { "${it.displayDensity} dpi" })
+  val type =
+    TableTextColumn<DeviceProfile>(
+      "Type",
+      attribute = { if (it.isVirtual) "Virtual" else "Physical" },
+    )
 }
 
 @Composable

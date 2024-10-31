@@ -68,13 +68,15 @@ class RecordingScreenModel<T>(stage: T) : AspectObserver(), Updatable where T : 
 
   private val stopRecordingAction = Runnable { stage.stop() }
 
-  fun formatElapsedTime(elapsedNs: Long): String {
-    val minutes = TimeUnit.NANOSECONDS.toMinutes(elapsedNs)
-    val seconds = TimeUnit.NANOSECONDS.toSeconds(elapsedNs) - TimeUnit.MINUTES.toSeconds(minutes)
-    return "$minutes min, $seconds sec"
-  }
-
   override fun update(elapsedNs: Long) {
     _elapsedNs.value += elapsedNs
+  }
+
+  companion object {
+    fun formatElapsedTime(elapsedNs: Long): String {
+      val minutes = TimeUnit.NANOSECONDS.toMinutes(elapsedNs)
+      val seconds = TimeUnit.NANOSECONDS.toSeconds(elapsedNs) - TimeUnit.MINUTES.toSeconds(minutes)
+      return "$minutes min, $seconds sec"
+    }
   }
 }

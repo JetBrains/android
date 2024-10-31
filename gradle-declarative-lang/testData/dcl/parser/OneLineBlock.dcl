@@ -1,0 +1,1 @@
+block{ func2(); property=1 }

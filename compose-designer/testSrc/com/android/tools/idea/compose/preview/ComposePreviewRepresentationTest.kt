@@ -120,7 +120,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -571,7 +570,6 @@ class ComposePreviewRepresentationTest {
       assertFalse(overlayClassLoader.state.paths.isEmpty())
     }
 
-  @Ignore("http://b/351760199")
   @Test
   fun testRerunUiCheckAction() {
     // Use the real FileEditorManager

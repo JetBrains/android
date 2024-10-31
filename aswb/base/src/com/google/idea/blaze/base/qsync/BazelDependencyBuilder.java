@@ -25,10 +25,12 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteSource;
 import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
@@ -78,12 +80,15 @@ import com.intellij.openapi.util.text.StringUtilRt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -222,17 +227,37 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     }
   }
 
-  protected CharSource getAspect() throws IOException {
-    return MoreFiles.asCharSource(getBundledAspectPath(), UTF_8);
+  /**
+   * Provides information about files that must be create in the workspace root for the aspect to operate.
+   *
+   * @return A map of (workspace-relative path) to (contents to write there).
+   */
+  protected ImmutableMap<Path, ByteSource> getAspectFiles() {
+    return ImmutableMap.of(
+      Path.of(".aswb/BUILD"), ByteSource.empty(),
+      Path.of(".aswb/build_dependencies.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")),
+      Path.of(".aswb/build_dependencies_deps.bzl"), MoreFiles.asByteSource(getBundledAspectPath("build_dependencies_deps.bzl"))
+      );
   }
 
-  protected Path getBundledAspectPath() {
-    String aspectPath = System.getProperty("blaze.idea.build_dependencies.bzl.file");
+  /**
+   * Returns the label of the build_dependencies aspect. This must refer to a file populated from {@link #getAspectFiles()}.
+   */
+  protected Label getGeneratedAspectLabel() {
+    return Label.of("//.aswb:build_dependencies.bzl");
+  }
+
+  protected Path getBundledAspectPath(String dir, String filename) {
+    String aspectPath = System.getProperty(String.format("blaze.idea.%s.file", filename));
     if (aspectPath != null) {
       return Path.of(aspectPath);
     }
     PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
-    return Paths.get(plugin.getPluginPath().toString(), "aspect", "build_dependencies.bzl");
+    return Paths.get(plugin.getPluginPath().toString(), dir, filename);
+  }
+
+  protected Path getBundledAspectPath(String filename) {
+    return getBundledAspectPath("aspect", filename);
   }
 
   /**
@@ -242,21 +267,12 @@ public class BazelDependencyBuilder implements DependencyBuilder {
    * the name of the aspect within that file. For example, {@code //package:aspect.bzl}.
    */
   protected String prepareAspect(BlazeContext context) throws IOException, BuildException {
-    Label generatedAspectLabel = getGeneratedAspectLabel();
-    Path generatedAspectDir = workspaceRoot.path().resolve(generatedAspectLabel.getPackage());
-    Files.createDirectories(generatedAspectDir);
-    Path generatedAspect = generatedAspectDir.resolve(generatedAspectLabel.getName());
-    Files.writeString(generatedAspect, getAspect().read());
-    // bazel asks BUILD file exists with the .bzl file. It's ok that BUILD file contains nothing.
-    Path buildPath = generatedAspect.resolveSibling("BUILD");
-    if (!Files.exists(buildPath)) {
-      Files.createFile(buildPath);
+    for (Map.Entry<Path, ByteSource> e : getAspectFiles().entrySet()) {
+      Path absolutePath = workspaceRoot.path().resolve(e.getKey());
+      Files.createDirectories(absolutePath.getParent());
+      Files.copy(e.getValue().openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
     }
-    return generatedAspectLabel.toString();
-  }
-
-  protected Label getGeneratedAspectLabel() {
-    return Label.of("//.aswb:build_dependencies.bzl");
+    return getGeneratedAspectLabel().toString();
   }
 
   private OutputInfo createOutputInfo(

@@ -28,6 +28,7 @@ import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
+import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.ArrayList;
@@ -69,12 +70,12 @@ public final class RemoteOutputArtifacts
     return proto.build();
   }
 
-  public static RemoteOutputArtifacts fromProto(ProjectData.RemoteOutputArtifacts proto) {
+  public static RemoteOutputArtifacts fromProto(BuildSystemName buildSystemName, ProjectData.RemoteOutputArtifacts proto) {
     ImmutableMap.Builder<String, RemoteOutputArtifact> map = ImmutableMap.builder();
     proto.getArtifactsList().stream()
-        .map(RemoteOutputArtifact::fromProto)
+        .map(it -> RemoteOutputArtifact.fromProto(buildSystemName, it))
         .filter(Objects::nonNull)
-        .forEach(a -> map.put(a.getRelativePath(), a));
+        .forEach(a -> map.put(a.getBazelOutRelativePath(), a));
     return new RemoteOutputArtifacts(map.build());
   }
 
@@ -87,7 +88,7 @@ public final class RemoteOutputArtifacts
     // more recently built artifacts replace existing ones with the same path
     outputs.forEach(
         a -> {
-          String key = a.getRelativePath();
+          String key = a.getBazelOutRelativePath();
           if (!(a instanceof RemoteOutputArtifact)) {
             map.remove(key);
           } else {
@@ -118,7 +119,7 @@ public final class RemoteOutputArtifacts
             .map(this::findRemoteOutput)
             .filter(Objects::nonNull)
             .distinct()
-            .collect(toImmutableMap(RemoteOutputArtifact::getRelativePath, o -> o));
+            .collect(toImmutableMap(RemoteOutputArtifact::getBazelOutRelativePath, o -> o));
     return new RemoteOutputArtifacts(tracked);
   }
 
@@ -192,7 +193,7 @@ public final class RemoteOutputArtifacts
   }
 
   private static String parseConfigurationMnemonic(RemoteOutputArtifact output) {
-    return BlazeConfigurationHandler.getConfigurationMnemonic(output.getRelativePath());
+    return BlazeConfigurationHandler.getConfigurationMnemonic(output.getBazelOutRelativePath());
   }
 
   @Override

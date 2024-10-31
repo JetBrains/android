@@ -200,14 +200,9 @@ abstract class SupportedAnimationManager(
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setup() {
     setupInitialAnimationState()
-    scope.launch {
-      animationState.state.collect {
-        syncAnimationWithState()
-        loadTransition()
-        loadAnimatedPropertiesAtCurrentTime(false)
-        updateTimelineElementsCallback()
-      }
-    }
+
+    // To make sure that we load everything at least once before exiting the setup.
+    syncState()
 
     withContext(uiThread) {
       card =
@@ -238,6 +233,7 @@ abstract class SupportedAnimationManager(
     }
 
     // Launch coroutines to handle state changes
+    scope.launch { animationState.state.collect { syncState() } }
     scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
     scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
     scope.launch {
@@ -246,6 +242,13 @@ abstract class SupportedAnimationManager(
         updateTimelineElementsCallback()
       }
     }
+  }
+
+  private suspend fun syncState() {
+    syncAnimationWithState()
+    loadTransition()
+    loadAnimatedPropertiesAtCurrentTime(false)
+    updateTimelineElementsCallback()
   }
 
   /**

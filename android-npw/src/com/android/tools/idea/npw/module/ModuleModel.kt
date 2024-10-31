@@ -19,9 +19,6 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -30,6 +27,9 @@ import com.android.tools.idea.npw.model.TemplateMetrics
 import com.android.tools.idea.npw.model.moduleTemplateRendererToModuleType
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
@@ -93,6 +93,17 @@ abstract class ModuleModel(
     multiTemplateRenderer.skipRender()
   }
 
+  open fun getParamsToLog(): String {
+    return """isLibrary: $isLibrary
+      |Application name: ${applicationName.get()}
+      |Module name: ${moduleName.get()}
+      |Package name: ${packageName.get()}
+      |Language: ${language.value}
+      |Minimum SDK: ${androidSdkInfo.valueOrNull?.minApiLevel ?: "N/A"}
+      |Kotlin DSL: ${useGradleKts.get()}
+    """.trimMargin()
+  }
+
   abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     /**
      * A [Recipe] which should be run from [render].
@@ -141,6 +152,14 @@ abstract class ModuleModel(
       if (success) {
         DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
       }
+    }
+
+    override fun logUsage() {
+      val moduleModel = this@ModuleModel
+      log.info("Rendering module with commandName \"${moduleModel.commandName}\" " +
+               "for form factor \"${moduleModel.formFactor}\" " +
+               "and category \"${moduleModel.category}\". " +
+               "Parameters:\n${moduleModel.getParamsToLog()}")
     }
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {

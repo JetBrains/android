@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.testing.ui
 
-import com.android.testutils.MockitoKt
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent
+import org.mockito.Mockito.mock
 import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
-class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
-  private val popup: JPopupMenu = MockitoKt.mock()
+class FakeActionPopupMenu(private val group: ActionGroup, private val popup: JPopupMenu = mock()) : ActionPopupMenu {
   private var dataProvider: Supplier<out DataContext>? = null
 
   override fun getComponent(): JPopupMenu = popup

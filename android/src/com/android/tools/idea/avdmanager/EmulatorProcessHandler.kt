@@ -16,20 +16,20 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
-import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.process.BaseOSProcessHandler
-import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputType
+import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.util.io.BaseOutputReader
 
-private const val SEVERITY = "(?<severity>VERBOSE|DEBUG|INFO|WARNING|ERROR|FATAL|UNKNOWN)"
+private const val NOTIFY_USER = "(?<notifyUser>USER_)?"
+private const val SEVERITY = "(?<severity>VERBOSE|DEBUG|INFO|WARNING|ERROR|FATAL)"
 private const val MESSAGE = "(?<message>.*)"
 private const val TIMESTAMP = "(?<timestamp>\\d+:\\d+:\\d+\\.\\d+)"
 private const val THREAD = "(?<thread>\\d+)"
@@ -41,7 +41,7 @@ private const val LOCATION = "(?<location>[\\w-]+\\.[A-Za-z]+:\\d+)"
 class EmulatorProcessHandler(
   process: Process,
   commandLine: String,
-  avdInfo: AvdInfo
+  private val avdInfo: AvdInfo
 ) : BaseOSProcessHandler(process, commandLine, null) {
 
   private val avdName = avdInfo.displayName
@@ -52,12 +52,13 @@ class EmulatorProcessHandler(
    *
    * Example messages:
    * ```
-   * INFO    | Advertising in: /Users/janedoe/Library/Caches/TemporaryItems/avd/running/pid_82179.ini
-   * INFO    | boot completed
-   * INFO    | boot time 32239 ms
+   * INFO         | Advertising in: /Users/janedoe/Library/Caches/TemporaryItems/avd/running/pid_82179.ini
+   * INFO         | boot completed
+   * INFO         | boot time 32239 ms
+   * USER_WARNING | Emulator failed to start. Deleting quickboot snapshot and performing a cold boot.
    * ```
    */
-  private val defaultMessagePattern = Regex("""^$SEVERITY\s+\| $MESSAGE""")
+  private val defaultMessagePattern = Regex("""^$NOTIFY_USER$SEVERITY\s+\| $MESSAGE""")
 
   /**
    * Matches emulator messages in the verbose logging format that is enabled by the `-debug-log` command line flag.
@@ -69,19 +70,24 @@ class EmulatorProcessHandler(
    * 13:06:17.220560 123145368940544 INFO    GrpcServices.cpp:315               | Started GRPC server at 127.0.0.1:8554, security: Local
    * ```
    */
-  private val verboseMessagePattern = Regex("""^$TIMESTAMP $THREAD\s+$SEVERITY\s+$LOCATION\s+\| $MESSAGE""")
+  private val verboseMessagePattern = Regex("""^$TIMESTAMP $THREAD\s+$NOTIFY_USER$SEVERITY\s+$LOCATION\s+\| $MESSAGE""")
 
-  private val isEmbedded = getCommandLine().contains(" -qt-hide-window ")
+  private val isEmbedded = commandLine.contains(" -qt-hide-window ")
+  val messageBus = ApplicationManager.getApplication().messageBus
 
   init {
     addProcessListener(ConsoleListener())
     ProcessTerminatedListener.attach(this)
   }
 
+  private fun notifyListeners(avd: AvdInfo, severity: EmulatorLogListener.Severity, notifyUser: Boolean, message: String) {
+    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, severity, notifyUser, message)
+  }
+
   override fun readerOptions(): BaseOutputReader.Options =
       BaseOutputReader.Options.forMostlySilentProcess()
 
-  private inner class ConsoleListener : ProcessAdapter() {
+  private inner class ConsoleListener : ProcessListener {
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
       val text = event.text?.trim { it <= ' ' }
@@ -100,38 +106,43 @@ class EmulatorProcessHandler(
     }
 
     private fun parseAndLogMessage(text: String) {
-      val severity: String
+      val notifyUser: Boolean
+      val severity: EmulatorLogListener.Severity
       val message: String
       var groups = defaultMessagePattern.matchEntire(text)?.groups as MatchNamedGroupCollection?
       if (groups != null) {
-        severity = groups["severity"]!!.value
+        notifyUser = groups["notifyUser"] != null
+        severity = mapSeverity(groups["severity"]!!.value)
         message = groups["message"]!!.value
       }
       else {
         groups = verboseMessagePattern.matchEntire(text)?.groups as MatchNamedGroupCollection?
         if (groups != null) {
-          severity = groups["severity"]!!.value
+          notifyUser = groups["notifyUser"] != null
+          severity = mapSeverity(groups["severity"]!!.value)
           message = groups["timestamp"]!!.value + ' ' + groups["thread"]!!.value + ' ' + groups["location"]!!.value + ' ' +
                     groups["message"]!!.value
         }
         else {
           // Legacy unstructured message.
-          severity = "INFO"
+          notifyUser = false
+          severity = EmulatorLogListener.Severity.INFO
           message = text
         }
       }
       when (severity) {
-        "VERBOSE" -> log.trace(message)
-        "DEBUG" -> log.debug(message)
-        // Emulator errors are treated as warning to prevent them from appearing in Studio crash reports.
+        EmulatorLogListener.Severity.VERBOSE -> log.trace(message)
+        EmulatorLogListener.Severity.DEBUG -> log.debug(message)
+        EmulatorLogListener.Severity.INFO -> log.info(message)
+        // Emulator errors are logged as warning to prevent them from appearing in Studio crash reports.
         // Such crash reports would not be actionable due to insufficient information.
-        "WARNING", "ERROR" -> log.warn(message)
-        "FATAL" -> {
+        EmulatorLogListener.Severity.WARNING, EmulatorLogListener.Severity.ERROR -> log.warn(message)
+        EmulatorLogListener.Severity.FATAL -> {
           log.warn(message)
           notify("Emulator: $avdName", message, NotificationType.ERROR)
         }
-        else -> log.info(message)
       }
+      notifyListeners(avdInfo, severity, notifyUser, message)
     }
 
     private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {
@@ -140,5 +151,17 @@ class EmulatorProcessHandler(
         ?.createNotification(title, content, notificationType)
         ?.notify(null)
     }
+  }
+}
+
+private fun mapSeverity(severity: String?): EmulatorLogListener.Severity {
+  return when (severity) {
+    "VERBOSE" -> EmulatorLogListener.Severity.VERBOSE
+    "DEBUG" -> EmulatorLogListener.Severity.DEBUG
+    "INFO" -> EmulatorLogListener.Severity.INFO
+    "WARNING" -> EmulatorLogListener.Severity.WARNING
+    "ERROR" -> EmulatorLogListener.Severity.ERROR
+    "FATAL" -> EmulatorLogListener.Severity.FATAL
+    else -> EmulatorLogListener.Severity.INFO
   }
 }

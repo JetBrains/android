@@ -915,6 +915,34 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     );
   }
 
+  public void testToolsNodeAttributeValuesCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=XML
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+      "        package=\"p1.p2\" >\n" +
+      "  <application>\n" +
+      "    <activity" +
+      "      android:name=\".MainActivity\"" +
+      "      tools:node=\"<caret>\"\n" +
+      "    />\n" +
+      "  </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    assertThat(myFixture.getLookupElementStrings()).containsExactly(
+      "merge",
+      "mergeOnlyAttributes",
+      "remove",
+      "removeAll",
+      "replace",
+      "strict"
+    );
+  }
+
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",

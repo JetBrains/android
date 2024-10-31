@@ -1,74 +1,85 @@
 """This module implements IntelliJ Debugger Test rules."""
 
-load("//tools/adt/idea/jps-build:idea.bzl", "jps_test", "split")
+load("//tools/adt/idea/jps-build:idea.bzl", "jps_test")
 
 def debugger_test(
         name,
-        suite,
-        split_tests_jvm,
-        test_exclude_filter_jvm,
-        split_tests_art,
-        test_exclude_filter_art,
-        **kwargs):
+        test_include_filter,
+        test_exclude_filter = [],
+        expected_to_fail_art = None,
+        expected_to_fail_jvm = None,
+        shard_count = None):
     """Define a debugger test that runs on a ART and JVM.
 
     Args:
-        name: the target name
-        suite: the fqn of the test suite class
-        split_tests_jvm: A dictionary of test name suffix to test filter to include in the split.
-                         The test filter can be constructed with the function 'shard' if shards are needed.
-                         This is for the jvm based tests.
-        split_tests_art: Similar but for the ART tests.
-        test_exclude_filter_jvm: A list of exclude filters for the jvm tests.
-        test_exclude_filter_art: A list of exclude filters for the ART tests.
-        **kwargs: arguments to pass through to _debugger_test
-
+        name: The base name of the tests
+        test_include_filter: Patterns of tests to include
+        test_exclude_filter: Patterns of tests to exclude
+        expected_to_fail_art: A file with a list of tests that are expected to fail on ART
+        expected_to_fail_jvm: A file with a list of tests that are expected to fail on JVM
+        shard_count: Number of shards to run
     """
-
+    expected_to_fail_dep_art = []
+    if expected_to_fail_art:
+        expected_to_fail_dep_art = [":%s" % expected_to_fail_art]
     jps_test(
-        name = name + "_jvm",
-        test_exclude_filter = test_exclude_filter_jvm,
-        test_suite = suite,
-        split_tests = _make_splits(split_tests_jvm),
-        **kwargs
-    )
-
-    jps_test(
-        name = name + "_art",
-        test_exclude_filter = test_exclude_filter_art,
-        split_tests = _make_splits(split_tests_art),
-        test_suite = suite,
-        env = {
-            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "art",
-            "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
-        },
+        name = "%s-art" % name,
+        size = "large",
+        shard_count = shard_count,
+        test_include_filter = test_include_filter,
+        test_exclude_filter = test_exclude_filter,
+        expected_failures_file = expected_to_fail_art,
         data = [
             "//prebuilts/r8:r8-jar",
-            "//prebuilts/tools/linux-x86_64/art:art",
+            "//prebuilts/tools/linux-x86_64/art",
             "//prebuilts/tools/linux-x86_64/art:art_deps",
         ],
-        **kwargs
+        download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
+        env = {
+            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.ArtAttacher",
+            "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "$PWD/dex_cache",
+            "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
+        },
+        module = "kotlin.jvm-debugger.test",
+        tags = ["manual"],
+        test_suite = "com.android.tools.test.ModuleTestSuite",
+        runtime_deps = [":attacher"],
+        deps = [
+            ":kotlin.jvm-debugger.test_lib",
+            ":test_repo.zip",
+            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
+            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
+            "//tools/idea:idea_source",
+        ] + expected_to_fail_dep_art,
     )
 
-def shard(filter, shard_count):
-    return struct(filter = filter, shard_count = shard_count)
+    expected_to_fail_dep_jvm = []
+    if expected_to_fail_jvm:
+        expected_to_fail_dep_jvm = [":%s" % expected_to_fail_jvm]
+    jps_test(
+        name = "%s-jvm" % name,
+        size = "large",
+        shard_count = shard_count,
+        test_include_filter = test_include_filter,
+        test_exclude_filter = test_exclude_filter,
+        expected_failures_file = expected_to_fail_jvm,
+        download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
+        module = "kotlin.jvm-debugger.test",
+        tags = ["manual"],
+        test_suite = "com.android.tools.test.ModuleTestSuite",
+        deps = [
+            ":kotlin.jvm-debugger.test_lib",
+            ":test_repo.zip",
+            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_lib",
+            "//prebuilts/tools/jps-build-caches:kotlin.jvm-debugger.test_tests",
+            "//tools/idea:idea_source",
+        ] + expected_to_fail_dep_jvm,
+    )
 
-def _make_splits(splits):
-    ret = []
-    for k, v in splits.items():
-        name = k
-        filter = None
-        shard_count = None
-        if type(v) == "string":
-            filter = v
-        else:
-            filter = v.filter
-            shard_count = v.shard_count
-        ret.append(
-            split(
-                name = name,
-                filter = filter,
-                shard_count = shard_count,
-            ),
-        )
-    return ret
+    native.test_suite(
+        name = name,
+        tests = [
+            "%s-art" % name,
+            "%s-jvm" % name,
+        ],
+    )

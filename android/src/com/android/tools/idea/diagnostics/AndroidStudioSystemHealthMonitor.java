@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics;
 
 import static com.android.tools.idea.diagnostics.heap.ComponentsSet.MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME;
+import static com.android.tools.idea.stats.StudioStatsLocalFileDumper.STUDIO_EVENT_DUMP_DIR;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.HistogramUtil;
@@ -41,6 +42,8 @@ import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.diagnostics.typing.TypingEventWatcher;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
+import com.android.tools.idea.stats.AndroidStudioEventLogger;
+import com.android.tools.idea.stats.StudioStatsLocalFileDumper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
@@ -150,6 +153,7 @@ import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.HdrHistogram.SingleWriterRecorder;
+import org.jetbrains.android.AndroidPluginDisposable;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -451,6 +455,7 @@ public final class AndroidStudioSystemHealthMonitor {
       case "ConcurrentMarkSweep": return GcPauseInfo.GcType.CMS_OLD;
       case "G1 Young Generation": return GcPauseInfo.GcType.G1_YOUNG;
       case "G1 Old Generation": return GcPauseInfo.GcType.G1_OLD;
+      case "G1 Concurrent": return GcPauseInfo.GcType.G1_CONCURRENT;
       default: return GcPauseInfo.GcType.UNKNOWN;
     }
   }
@@ -471,6 +476,9 @@ public final class AndroidStudioSystemHealthMonitor {
     if (Boolean.getBoolean(STUDIO_RUN_UNDER_INTEGRATION_TEST_KEY)) {
       HeapSnapshotTraverseService.getInstance().registerIntegrationTestCollectMemoryUsageStatisticsAction();
     }
+    if (System.getProperty(STUDIO_EVENT_DUMP_DIR) != null) {
+      StudioStatsLocalFileDumper.registerStudioEventFileDumper(AndroidPluginDisposable.getApplicationInstance());
+    }
     if (ServerFlagService.Companion.getInstance()
           .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null &&
         !ApplicationManager.getApplication().isHeadlessEnvironment() &&
@@ -485,7 +493,8 @@ public final class AndroidStudioSystemHealthMonitor {
       //noinspection UnstableApiUsage
       EventWatcher eventWatcher = ApplicationManager.getApplication().getService(EventWatcher.class);
       if (eventWatcher instanceof TypingEventWatcher) {
-        ((TypingEventWatcher)eventWatcher).collectTypingLatencyDumpsAndSendReport();
+        ((TypingEventWatcher)eventWatcher).collectTypingLatencyDumpsAndSendReport(true);
+        ((TypingEventWatcher)eventWatcher).enableTypingLatencyTracking();
         //noinspection UnstableApiUsage
         eventWatcher.reset();
       }

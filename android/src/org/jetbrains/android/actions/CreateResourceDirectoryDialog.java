@@ -120,10 +120,15 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
       return null;
     }
 
-    PsiFileSystemItem subdirectory = directory.findSubdirectory(myDirectoryNameTextField.getText());
+    String name = myDirectoryNameTextField.getText();
+    PsiFileSystemItem subdirectory = directory.findSubdirectory(name);
 
     if (subdirectory != null && !myForceDirectoryDoesNotExist) {
       return new ValidationInfo(subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.");
+    }
+
+    if (ResourceFolderType.getFolderType(name) == null) {
+      return new ValidationInfo(String.format("'%s' is not a valid resource directory name", name));
     }
 
     return null;

@@ -60,13 +60,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jetbrains-compose-ui-test-junit4-desktop" type="repository">
-        <properties maven-id="org.jetbrains.compose.ui:ui-test-junit4-desktop:1.7.0-dev1743">
+        <properties maven-id="org.jetbrains.compose.ui:ui-test-junit4-desktop:1.7.0-beta02">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-dev1743/ui-test-junit4-desktop-1.7.0-dev1743.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta02/ui-test-junit4-desktop-1.7.0-beta02.jar">
               <sha256sum>f1e334b73d49ceab00afe776a4c393de77b4fc805e9ff488dac596a2663b1dc1</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-dev1743/ui-test-desktop-1.7.0-dev1743.jar">
-              <sha256sum>b93fdaf4ac452198b343c99b1d6b8190c04f61ff4c8eff3b7ccfd7d6671b7447</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta02/ui-test-desktop-1.7.0-beta02.jar">
+              <sha256sum>34dfab5b4fa8b2913f00facdddc049e2fef4b176f8e7cde0ad306485674c3b5c</sha256sum>
             </artifact>
           </verification>
           <exclude>
@@ -86,8 +86,8 @@
           </exclude>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-dev1743/ui-test-junit4-desktop-1.7.0-dev1743.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-dev1743/ui-test-desktop-1.7.0-dev1743.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.7.0-beta02/ui-test-junit4-desktop-1.7.0-beta02.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.7.0-beta02/ui-test-desktop-1.7.0-beta02.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -95,15 +95,15 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jewel-markdown-int-ui-standalone-styling-242" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling-242:0.22.1">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling-242:0.25.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.22.1/jewel-markdown-int-ui-standalone-styling-242-0.22.1.jar">
-              <sha256sum>be1234c3903af6538ea8ab8fd5dcb8d981ebdd855eeb93375d92b6a7e2f2e1d4</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.25.0/jewel-markdown-int-ui-standalone-styling-242-0.25.0.jar">
+              <sha256sum>5cd0874b1aa1ee4925c315cc599412b497d056c601be1fb5ca81209686cec674</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.22.1/jewel-markdown-int-ui-standalone-styling-242-0.22.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-242/0.25.0/jewel-markdown-int-ui-standalone-styling-242-0.25.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -111,15 +111,15 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jewel-int-ui-standalone-242" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.jewel:jewel-int-ui-standalone-242:0.22.1">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.jewel:jewel-int-ui-standalone-242:0.25.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.22.1/jewel-int-ui-standalone-242-0.22.1.jar">
-              <sha256sum>0a6b9d4682e389057215fe8a076efd7a488c4356df1046f3dfbb951a60ab1d1b</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.25.0/jewel-int-ui-standalone-242-0.25.0.jar">
+              <sha256sum>b45ecb2a78ba691c0df2886d8adffb67106d6644cdbd628edd005b8c2688ebdc</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.22.1/jewel-int-ui-standalone-242-0.22.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone-242/0.25.0/jewel-int-ui-standalone-242-0.25.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

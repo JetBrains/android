@@ -23,6 +23,8 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.JavaModuleType;
@@ -56,7 +58,7 @@ public class SupportedModuleChecker {
    */
   public void checkForSupportedModules(@NotNull Project project) {
     Module[] modules = ModuleManager.getInstance(project).getModules();
-    if (modules.length == 0 || !Info.getInstance(project).isBuildWithGradle()) {
+    if (modules.length == 0 || !(ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem)) {
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();

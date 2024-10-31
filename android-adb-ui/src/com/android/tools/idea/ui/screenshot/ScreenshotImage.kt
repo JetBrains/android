@@ -41,8 +41,6 @@ class ScreenshotImage(
   // e.g. Android TV, report fictitious display density.
   val displayDensity: Double = computeDisplayDensity()
 
-  val isTv
-    get() = deviceType == DeviceType.TV
   val isWear
     get() = deviceType == DeviceType.WEAR
 

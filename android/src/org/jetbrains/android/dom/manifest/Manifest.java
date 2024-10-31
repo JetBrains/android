@@ -17,7 +17,9 @@ package org.jetbrains.android.dom.manifest;
 
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
@@ -37,7 +39,7 @@ public interface Manifest extends ManifestElement {
 
   /**
    * Creates and returns a DOM representation of the main manifest. Note that most manifest information can be spread between multiple
-   * manifest files that get merged at build time. Callers should consider using {@link com.android.tools.idea.model.MergedManifestManager}
+   * manifest files that get merged at build time. Callers should consider using {@link MergedManifestManager}
    * or specialized methods in {@link AndroidManifestUtils}.
    *
    * <p>Calling this method may come with significant overhead, as the DOM layer needs to be initialized. In performance-critical

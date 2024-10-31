@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.layout.option
 
+import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
@@ -355,6 +356,60 @@ class GridLayoutManagerTest {
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
     }
+  }
+
+  @Test
+  fun testFitIntoScaleWithBiggerPreviews() {
+    val group = OrganizationGroup("1", "1")
+    val manager = createGridLayoutManager()
+
+    val tolerance = 0.01
+
+    val contents = (0..50).map { TestPositionableContent(group, Dimension(17000, 9000)) }
+
+    run {
+      val scale = manager.getFitIntoScale(contents, 300, 100)
+      assertEquals(0.01, scale, tolerance)
+    }
+  }
+
+  @Test
+  fun testFitIntoScaleWithNoContentOrOnlyHeaders() {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
+    val group3 = OrganizationGroup("3", "3")
+    val group4 = OrganizationGroup("4", "4")
+
+    val manager = createGridLayoutManager()
+
+    val tolerance = 0.01
+
+    val contents =
+      mutableListOf<PositionableContent>(
+        HeaderTestPositionableContent(group1),
+        HeaderTestPositionableContent(group2),
+        HeaderTestPositionableContent(group3),
+        HeaderTestPositionableContent(group4),
+      )
+
+    // We start with no content to show
+    var scale = manager.getFitIntoScale(emptyList(), 300, 100)
+
+    // The fit scale should be 1.0 (100%)
+    assertEquals(1.0, scale, tolerance)
+
+    // We now have no content other than Headers
+    scale = manager.getFitIntoScale(contents, 300, 100)
+
+    // The fit scale should be 1.0 (100%)
+    assertEquals(1.0, scale, tolerance)
+
+    // We now expand the last header so we have now content to show
+    contents.add(TestPositionableContent(group4, Dimension(400, 500)))
+    scale = manager.getFitIntoScale(contents, 300, 100)
+
+    // The fit scale should not be 1.0 (100%) anymore
+    assertNotEquals(1.0, scale, tolerance)
   }
 
   private fun createGroups(): List<PositionableGroup> {

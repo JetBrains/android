@@ -18,13 +18,14 @@ package com.android.tools.idea.adblib
 import com.android.adblib.DeviceConnectionType
 import com.android.adblib.DeviceState
 import com.android.adblib.deviceInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.hasAndroidFacet
+import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent
 import com.intellij.notification.BrowseNotificationAction
@@ -57,7 +58,7 @@ class DeviceCableMonitor : ProjectActivity {
         ?: NotificationGroup(NOTIFICATION_GROUP_ID, NotificationDisplayType.BALLOON)
 
   override suspend fun execute(project: Project) {
-    if (!project.hasAndroidFacet()) {
+    if (!isAndroidEnvironment(project)) {
       return
     }
     val service = project.service<DeviceProvisionerService>()
@@ -88,7 +89,9 @@ class DeviceCableMonitor : ProjectActivity {
     // Some older devices have USB controller bugs where they report being able to do USB 3 while
     // only being USB 2 capable. We filter them out via the API level since which they are likely to
     // not have been updated.
-    if (!handle.state.properties.androidVersion!!.isGreaterOrEqualThan(11)) {
+    if (
+      !handle.state.properties.androidVersion!!.isGreaterOrEqualThan(AndroidVersion.VersionCodes.R)
+    ) {
       return
     }
 

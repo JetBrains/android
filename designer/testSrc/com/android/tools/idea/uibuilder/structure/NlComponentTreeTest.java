@@ -792,7 +792,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   private NlComponentTree createTree(@NotNull SyncNlModel model) {
-    model.getUpdateQueue().setPassThrough(true);
     NlVisibilityGutterPanel gutterPanel = new NlVisibilityGutterPanel();
     Disposer.register(getTestRootDisposable(), gutterPanel);
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();

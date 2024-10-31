@@ -113,20 +113,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -356,20 +356,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -513,20 +513,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -887,67 +887,67 @@ PROJECT                       : BuildSrcWithComposite
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -1008,67 +1008,67 @@ PROJECT                       : BuildSrcWithComposite
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.21.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
         LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -1202,20 +1202,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -1359,20 +1359,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -1487,20 +1487,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -1694,20 +1694,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -1795,20 +1795,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -1893,20 +1893,20 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 2.0
+            ApiLevel                      : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
                 additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 2.0
+            LanguageLevel                 : <KOTLIN-MAJOR-MINOR-VERSION>
             MergedCompilerArguments
-                apiVersion                    : 2.0
-                languageVersion               : 2.0
+                apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
+                languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             Platform                      : JVM (21)
             UseProjectSettings            : false
             Version                       : 5
@@ -2034,12 +2034,12 @@ PROJECT                       : BuildSrcWithComposite
                 COMPILE_JAVA                  : <PROJECT>::java-included:compileJava, <PROJECT>::java-included:testClasses
     RUN_CONFIGURATION             : android-included.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : android-included.app.main
-        Module                        : android-included.app.main
+        ModuleName                    : android-included.app
+        Module                        : android-included.app
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : BuildSrcWithComposite.app.main
-        Module                        : BuildSrcWithComposite.app.main
+        ModuleName                    : BuildSrcWithComposite.app
+        Module                        : BuildSrcWithComposite.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity-ktx:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-ktx-1.1.0/AndroidManifest.xml

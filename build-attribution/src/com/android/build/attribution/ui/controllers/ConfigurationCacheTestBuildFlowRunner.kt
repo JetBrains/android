@@ -73,7 +73,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
               firstBuild = false,
               onBuildFailure = this::showFailureMessage
             ) {
-              showFinalSuccessMessage(isFeatureConsideredStable)
+              showFinalSuccessMessage(isFeatureConsideredStable, originalBuildRequestData)
             }
           }
         }
@@ -81,7 +81,10 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  private fun showFinalSuccessMessage(isFeatureConsideredStable: Boolean) {
+  private fun showFinalSuccessMessage(
+    isFeatureConsideredStable: Boolean,
+    originalBuildRequestData: GradleBuildInvoker.Request.RequestData
+  ) {
     invokeLater(ModalityState.nonModal()) {
       val message = if (isFeatureConsideredStable) {
         """
@@ -108,7 +111,9 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
         Messages.getInformationIcon(), null
       )
-      if (confirmationResult == Messages.OK) StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
+      if (confirmationResult == Messages.OK) {
+        StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, originalBuildRequestData, isFeatureConsideredStable)
+      }
     }
   }
 

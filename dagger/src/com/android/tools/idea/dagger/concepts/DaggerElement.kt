@@ -19,7 +19,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -57,15 +56,12 @@ sealed class DaggerElement {
 
   /** Looks up related Dagger elements. */
   fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
-    if (StudioFlags.DAGGER_CACHE_RELATED_ELEMENTS.get()) {
-      return CachedValuesManager.getCachedValue(psiElement) {
-        CachedValueProvider.Result(
-          doGetRelatedDaggerElements(),
-          PsiModificationTracker.MODIFICATION_COUNT,
-        )
-      }
+    return CachedValuesManager.getCachedValue(psiElement) {
+      CachedValueProvider.Result(
+        doGetRelatedDaggerElements(),
+        PsiModificationTracker.MODIFICATION_COUNT,
+      )
     }
-    return doGetRelatedDaggerElements()
   }
 
   /** Looks up related Dagger elements. */

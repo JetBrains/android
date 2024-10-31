@@ -1,0 +1,16 @@
+FILE
+  PsiElement(ASSIGNMENT)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('property1')
+    PsiWhiteSpace(' ')
+    PsiElement(DeclarativeTokenType.=)('=')
+    PsiWhiteSpace(' ')
+    PsiElement(LITERAL)
+      PsiElement(DeclarativeTokenType.one_line_string_literal)('"value"')
+  PsiWhiteSpace(' ')
+  PsiErrorElement:DeclarativeTokenType.; expected, got 'block'
+    PsiElement(DeclarativeTokenType.token)('block')
+  PsiWhiteSpace(' ')
+  PsiElement(DeclarativeTokenType.{)('{')
+  PsiWhiteSpace('\n\n')
+  PsiElement(DeclarativeTokenType.})('}')

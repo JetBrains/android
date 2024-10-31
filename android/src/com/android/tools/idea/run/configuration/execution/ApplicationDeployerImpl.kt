@@ -52,8 +52,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       deployOptions.pmInstallFlags,
       deployOptions.installOnAllUsers,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider
-    )
+      deployOptions.allowAssumeVerified,
+      installPathProvider)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -68,8 +68,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider
-    )
+      deployOptions.allowAssumeVerified,
+      installPathProvider)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -84,8 +84,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider
-    )
+      deployOptions.allowAssumeVerified,
+      installPathProvider)
 
     return runDeployTask(app, deployTask, device, indicator)
   }

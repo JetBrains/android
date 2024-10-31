@@ -1,5 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -19,7 +18,7 @@ iml_module(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "DeviceManagerTest",
     module = ":device-manager-v2.integration",
     tags_linux = ["block-network"],

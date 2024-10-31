@@ -72,8 +72,7 @@ object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
   override fun getModificationCount(): Long = 0
 }
 
-private class CodeOutOfDateTrackerImpl
-constructor(
+private class CodeOutOfDateTrackerImpl(
   buildTargetReference: BuildTargetReference,
   parentDisposable: Disposable,
   needsRefreshCallback: () -> Unit,
@@ -111,8 +110,7 @@ constructor(
 
   init {
     // TODO: Remove this code. This is a workaround for setupBuildListener not supporting multiple
-    // listeners for the
-    //       same parentDisposable
+    // listeners for the same parentDisposable
     val buildDisposable = Disposer.newDisposable()
     Disposer.register(parentDisposable, buildDisposable)
     setupBuildListener(

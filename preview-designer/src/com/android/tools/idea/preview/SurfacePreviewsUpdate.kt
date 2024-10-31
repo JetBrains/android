@@ -21,7 +21,8 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
-import com.android.tools.idea.common.scene.render
+import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
+import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
@@ -31,6 +32,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
+import com.android.tools.idea.rendering.isSuccess
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -44,7 +46,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import com.intellij.util.io.await
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -231,7 +233,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
 
-  /** Reuse existing organizationGroup. */
+  // Load organization group state.
+  val previousOrganizationState =
+    getInstance(project).surfaceState.getOrganizationGroupState(psiFile.virtualFile)
+
+  // Reuse existing groups.
   val groups =
     elementsToReusableModels
       .mapNotNull { (_, model) -> model?.organizationGroup }
@@ -306,9 +312,26 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.organizationGroup =
           groups.getOrPut(methodPreviewElement.methodFqn) {
             OrganizationGroup(
-              methodPreviewElement.methodFqn,
-              methodPreviewElement.displaySettings.baseName,
-            )
+                methodPreviewElement.methodFqn,
+                methodPreviewElement.displaySettings.baseName,
+              ) {
+                // Everytime state is changed we need to save it.
+                isOpened ->
+                getInstance(project)
+                  .surfaceState
+                  .saveOrganizationGroupState(
+                    psiFile.virtualFile,
+                    methodPreviewElement.methodFqn,
+                    isOpened,
+                  )
+              }
+              .apply {
+                // Load previously saved state.
+                setOpened(
+                  previousOrganizationState[methodPreviewElement.methodFqn]
+                    ?: DEFAULT_ORGANIZATION_GROUP_STATE
+                )
+              }
           }
       }
       val newSceneManager =
@@ -349,7 +372,8 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
-    renderAndTrack(sceneManager, refreshEventBuilder) { if (it == null) previewsRendered++ }
+    renderAndTrack(sceneManager, refreshEventBuilder)
+    if (sceneManager.renderResult.isSuccess()) previewsRendered++
   }
   onRenderCompleted(previewsRendered)
 
@@ -361,20 +385,17 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 private suspend fun renderAndTrack(
   sceneManager: LayoutlibSceneManager,
   refreshEventBuilder: PreviewRefreshEventBuilder?,
-  onCompleteCallback: (Throwable?) -> Unit = {},
 ) {
   val inflate = sceneManager.sceneRenderConfiguration.needsInflation.get()
   val quality = sceneManager.sceneRenderConfiguration.quality
   val startMs = System.currentTimeMillis()
-  sceneManager.render {
-    onCompleteCallback(it)
-    val renderResult = sceneManager.renderResult
-    refreshEventBuilder?.addPreviewRenderDetails(
-      renderResult?.isErrorResult() ?: false,
-      inflate,
-      quality,
-      System.currentTimeMillis() - startMs,
-      renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
-    )
-  }
+  sceneManager.requestRenderAsync().await()
+  val renderResult = sceneManager.renderResult
+  refreshEventBuilder?.addPreviewRenderDetails(
+    renderResult?.isErrorResult() ?: false,
+    inflate,
+    quality,
+    System.currentTimeMillis() - startMs,
+    renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
+  )
 }

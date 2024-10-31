@@ -22,7 +22,8 @@ class DeclarativeArgumentsListTest : LightPlatformTestCase() {
   fun testGetStringArgument() {
     val psiFactory = DeclarativePsiFactory(project)
     val factory = psiFactory.createFactory("abc")
-    factory.argumentsList!!.add(psiFactory.createLiteral("def"))
+    factory.addArgument(psiFactory.createLiteral("def"))
+    assertThat(factory.text).isEqualTo("abc(\"def\")")
     val arguments = factory.argumentsList!!.arguments
     assertThat(arguments.map { it.text }).containsExactly("\"def\"")
   }
@@ -30,7 +31,7 @@ class DeclarativeArgumentsListTest : LightPlatformTestCase() {
   fun testGetIntArgument() {
     val psiFactory = DeclarativePsiFactory(project)
     val factory = psiFactory.createFactory("abc")
-    factory.argumentsList!!.add(psiFactory.createLiteral(123))
+    factory.addArgument(psiFactory.createLiteral(123))
     val arguments = factory.argumentsList!!.arguments
     assertThat(arguments.map { it.text }).containsExactly("123")
   }
@@ -38,9 +39,10 @@ class DeclarativeArgumentsListTest : LightPlatformTestCase() {
   fun testGetMultipleArguments() {
     val psiFactory = DeclarativePsiFactory(project)
     val factory = psiFactory.createFactory("abc")
-    factory.argumentsList!!.add(psiFactory.createLiteral(123))
-    factory.argumentsList!!.add(psiFactory.createLiteral("hello, world"))
-    factory.argumentsList!!.add(psiFactory.createLiteral(true))
+    factory.addArgument(psiFactory.createLiteral(123))
+    factory.addArgument(psiFactory.createLiteral("hello, world"))
+    factory.addArgument(psiFactory.createLiteral(true))
+    assertThat(factory.text).isEqualTo("abc(123,\"hello, world\",true)")
     val arguments = factory.argumentsList!!.arguments
     assertThat(arguments.map { it.text }).containsExactly("123", "\"hello, world\"", "true").inOrder()
   }
@@ -50,5 +52,13 @@ class DeclarativeArgumentsListTest : LightPlatformTestCase() {
     val factory = psiFactory.createOneParameterFactory("abc", "\"hello, world\"")
     val arguments = factory.argumentsList!!.arguments
     assertThat(arguments.map { it.text }).containsExactly("\"hello, world\"")
+  }
+
+  fun testOneParameterWithIdentifierFactory() {
+    val psiFactory = DeclarativePsiFactory(project)
+    val factory = psiFactory.createOneParameterFactory("abc", "\"hello, world\"", "param")
+    val argumentList = factory.argumentsList!!.argumentList
+    assertThat(argumentList.map { it.identifier!!.text }).containsExactly("param")
+    assertThat(argumentList.map { it.value.text }).containsExactly("\"hello, world\"")
   }
 }

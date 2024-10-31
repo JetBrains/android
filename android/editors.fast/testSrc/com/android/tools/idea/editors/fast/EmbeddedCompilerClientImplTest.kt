@@ -19,6 +19,7 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.withComposeRuntime
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -69,8 +70,10 @@ internal class EmbeddedCompilerClientImplTest {
     .withKotlin()
 
   private val compiler: EmbeddedCompilerClientImpl by lazy {
-    EmbeddedCompilerClientImpl(project = projectRule.project,
-                               log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))
+    EmbeddedCompilerClientImpl(
+      project = projectRule.project,
+      log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java)
+    )
   }
 
   @Before
@@ -89,16 +92,25 @@ internal class EmbeddedCompilerClientImplTest {
         fun testMethodB() {
           testMethod()
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val module = readAction { file.module!! }
-      val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+      val result = compiler.compileRequest(
+        ApplicationLiveEditServices.Legacy(projectRule.project),
+        listOf(file),
+        module,
+        outputDirectory,
+        EmptyProgressIndicator()
+      )
       assertTrue(result.toString(), result is CompilationResult.Success)
-      assertEquals("""
+      assertEquals(
+        """
         EmbeddedCompilerClientImplTest_simple compilation request.app.main.kotlin_module
         SourceKt.class
-      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
+      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
+      )
     }
   }
 
@@ -115,7 +127,8 @@ internal class EmbeddedCompilerClientImplTest {
         fun testMethodB() {
           testMethod()
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val fileInLib = projectRule.fixture.addFileToProject(
       "lib/src/main/java/com/test/lib/Source.kt",
       """
@@ -123,17 +136,26 @@ internal class EmbeddedCompilerClientImplTest {
 
         fun aLibMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val module = readAction { file.module!! }
-      val result = compiler.compileRequest(listOf(file, fileInLib), module, outputDirectory, EmptyProgressIndicator())
+      val result = compiler.compileRequest(
+        ApplicationLiveEditServices.Legacy(projectRule.project),
+        listOf(file, fileInLib),
+        module,
+        outputDirectory,
+        EmptyProgressIndicator()
+      )
       assertInstanceOf<CompilationResult.Success>(result)
-      assertEquals("""
+      assertEquals(
+        """
         EmbeddedCompilerClientImplTest_multi module compilation request succeeds.app.main.kotlin_module
         EmbeddedCompilerClientImplTest_multi module compilation request succeeds.lib.main.kotlin_module
         SourceKt.class
-      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
+      """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
+      )
     }
   }
 
@@ -144,10 +166,17 @@ internal class EmbeddedCompilerClientImplTest {
       """
         fun testMethod(
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
-      val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+      val result = compiler.compileRequest(
+        ApplicationLiveEditServices.Legacy(projectRule.project),
+        listOf(file),
+        projectRule.module,
+        outputDirectory,
+        EmptyProgressIndicator()
+      )
       assertTrue(result.toString(), result is CompilationResult.CompilationError)
       assertTrue(outputDirectory.toFileNameSet().isEmpty())
     }
@@ -160,7 +189,8 @@ internal class EmbeddedCompilerClientImplTest {
       """
         fun testMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val outputDirectories = (1..200).map { Files.createTempDirectory("out") }.toList()
     try {
@@ -168,17 +198,24 @@ internal class EmbeddedCompilerClientImplTest {
         outputDirectories.forEach { outputDirectory ->
           launch {
             val module = readAction { file.module!! }
-            val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+            val result = compiler.compileRequest(
+              ApplicationLiveEditServices.Legacy(projectRule.project),
+              listOf(file),
+              module,
+              outputDirectory,
+              EmptyProgressIndicator()
+            )
             assertTrue(result.toString(), result is CompilationResult.Success)
-            assertEquals("""
+            assertEquals(
+              """
               EmbeddedCompilerClientImplTest_parallel requests.app.main.kotlin_module
               SourceKt.class
-            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
+            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
+            )
           }
         }
       }
-    }
-    finally {
+    } finally {
       outputDirectories.forEach { it.delete(true) }
     }
   }
@@ -190,29 +227,41 @@ internal class EmbeddedCompilerClientImplTest {
       """
         inline fun inlineMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val file = projectRule.fixture.addFileToProject(
       "app/src/main/java/src/com/test/Source.kt",
       """
         fun testMethod() {
           inlineMethod()
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     // Test with inline analysis enabled. This should pass when using inline methods in other files.
     run {
-      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
-                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), true)
+      val compiler = EmbeddedCompilerClientImpl(
+        project = projectRule.project,
+        log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), true
+      )
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
         val module = readAction { file.module!! }
-        val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+        val result = compiler.compileRequest(
+          ApplicationLiveEditServices.Legacy(projectRule.project),
+          listOf(file),
+          module,
+          outputDirectory,
+          EmptyProgressIndicator()
+        )
         assertTrue(result.toString(), result is CompilationResult.Success)
-        assertEquals("""
+        assertEquals(
+          """
               EmbeddedCompilerClientImplTest_inline test.app.main.kotlin_module
               InlineKt.class
               SourceKt.class
-            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n"))
+            """.trimIndent(), outputDirectory.toFileNameSet().sorted().joinToString("\n")
+        )
       }
     }
   }
@@ -233,11 +282,18 @@ internal class EmbeddedCompilerClientImplTest {
         fun testMethod() {
           Test.
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val module = readAction { file.module!! }
-      val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+      val result = compiler.compileRequest(
+        ApplicationLiveEditServices.Legacy(projectRule.project),
+        listOf(file),
+        module,
+        outputDirectory,
+        EmptyProgressIndicator()
+      )
       assertTrue((result as CompilationResult.CompilationError).e is LiveEditUpdateException)
     }
   }
@@ -257,7 +313,8 @@ internal class EmbeddedCompilerClientImplTest {
         fun testMethod() {
           Test.
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     run {
       val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
@@ -267,11 +324,18 @@ internal class EmbeddedCompilerClientImplTest {
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
         val module = readAction { file.module!! }
-        val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+        val result = compiler.compileRequest(
+          ApplicationLiveEditServices.Legacy(projectRule.project),
+          listOf(file),
+          module,
+          outputDirectory,
+          EmptyProgressIndicator()
+        )
         assertTrue(result.toString(), result is CompilationResult.RequestException)
         assertEquals(
           "Fast Preview does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.",
-          (result as CompilationResult.RequestException).e?.message?.trim())
+          (result as CompilationResult.RequestException).e?.message?.trim()
+        )
       }
     }
 
@@ -284,11 +348,18 @@ internal class EmbeddedCompilerClientImplTest {
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
         val module = readAction { file.module!! }
-        val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+        val result = compiler.compileRequest(
+          ApplicationLiveEditServices.Legacy(projectRule.project),
+          listOf(file),
+          module,
+          outputDirectory,
+          EmptyProgressIndicator()
+        )
         assertTrue(result.toString(), result is CompilationResult.RequestException)
         assertEquals(
           "Message",
-          (result as CompilationResult.RequestException).e?.message?.trim())
+          (result as CompilationResult.RequestException).e?.message?.trim()
+        )
       }
     }
   }
@@ -304,15 +375,17 @@ internal class EmbeddedCompilerClientImplTest {
 
         fun testMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+    )
 
     val compilationHasStarted = CompletableDeferred<Unit>()
     val countDownLatch = CountDownLatch(1)
     val beforeCompileCallCount = AtomicInteger(0)
     run {
-      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
-                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
-                                                isKotlinPluginBundled = true
+      val compiler = EmbeddedCompilerClientImpl(
+        project = projectRule.project,
+        log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
+        isKotlinPluginBundled = true
       ) {
           beforeCompileCallCount.incrementAndGet()
           compilationHasStarted.complete(Unit)
@@ -332,7 +405,13 @@ internal class EmbeddedCompilerClientImplTest {
       val outputDirectory = Files.createTempDirectory("out")
 
       val module = readAction { file.module!! }
-      val result = compiler.compileRequest(listOf(file), module, outputDirectory, EmptyProgressIndicator())
+      val result = compiler.compileRequest(
+        ApplicationLiveEditServices.Legacy(projectRule.project),
+        listOf(file),
+        module,
+        outputDirectory,
+        EmptyProgressIndicator()
+      )
       assertEquals(CompilationResult.Success, result)
       assertTrue("Write Action should trigger a compilation re-start", beforeCompileCallCount.get() > 1)
     }

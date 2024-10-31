@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgument
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
@@ -63,7 +64,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val psiElement = when (element) {
       is GradleDslLiteral ->
         if (parentPsiElement is DeclarativeArgumentsList)
-          factory.createLiteral(element.value)
+          factory.createArgument(factory.createLiteral(element.value))
         else if (element.externalSyntax == ASSIGNMENT)
           factory.createAssignment(name, "\"placeholder\"")
         else
@@ -71,11 +72,14 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
 
       is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
       is GradleDslMethodCall -> {
-        if (element.isDoubleFunction()) {
+        val function = if (element.isDoubleFunction()) {
           val internal = factory.createFactory(element.methodName)
           factory.createOneParameterFactory(name, internal.text)
         }
         else factory.createFactory(name)
+        if (parentPsiElement is DeclarativeArgumentsList)
+          factory.createArgument(function)
+        else function
       }
 
       else -> null
@@ -98,6 +102,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
 
     element.psiElement = when (addedElement) {
       is DeclarativeAssignment -> addedElement.value
+      is DeclarativeArgument -> addedElement.value
       else -> addedElement
     }
     return element.psiElement

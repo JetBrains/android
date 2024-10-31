@@ -18,8 +18,6 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -50,15 +48,17 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.treeStructure.Tree
+import java.util.EnumSet
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.util.EnumSet
-import javax.swing.JComponent
-import javax.swing.JPanel
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val DO_NOT_CARE: () -> Boolean = { false }
 

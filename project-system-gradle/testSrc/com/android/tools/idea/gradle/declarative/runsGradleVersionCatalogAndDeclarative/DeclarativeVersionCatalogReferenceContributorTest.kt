@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.findTopmostParentOfType
@@ -41,14 +40,12 @@ class DeclarativeVersionCatalogReferenceContributorTest {
 
   @Before
   fun setUp() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
+    DeclarativeIdeSupport.override(true)
   }
 
   @After
   fun tearDown() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
+    DeclarativeIdeSupport.clearOverride()
   }
 
   @Test

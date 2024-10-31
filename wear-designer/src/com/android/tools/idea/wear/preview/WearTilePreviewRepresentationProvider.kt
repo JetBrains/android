@@ -42,7 +42,7 @@ internal class WearTileAdapterLightVirtualFile(
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
   private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> =
-    WearTilePreviewElementFinder
+    WearTilePreviewElementFinder()
 ) : PreviewRepresentationProvider {
 
   private object WearTileEditorFileType :

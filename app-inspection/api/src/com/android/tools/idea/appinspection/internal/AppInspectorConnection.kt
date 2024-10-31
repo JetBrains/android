@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefully
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_PAYLOAD
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
@@ -46,7 +47,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -272,6 +272,7 @@ internal class AppInspectorConnection(
         // most recent just in case
         .last()
         .eventsList
+        .reassemble()
         .map { commonEvent -> commonEvent.appInspectionPayload.chunk.toByteArray() }
         .toList()
 
@@ -281,6 +282,44 @@ internal class AppInspectorConnection(
         chunk.copyInto(this, bufferPos)
         bufferPos += chunk.size
       }
+    }
+  }
+
+  /**
+   * Reassemble the events such that the payload can be reconstructed.
+   *
+   * Some events may be duplicated by the agent (see b/362688559). Remove duplicates and return a
+   * list of events that are forming the original payload. On error return an empty list.
+   */
+  private fun List<Common.Event>.reassemble(): List<Common.Event> {
+    if (isEmpty()) {
+      return this
+    }
+    val chunkCount = first().appInspectionPayload.chunkCount
+    if (chunkCount == 0) {
+      // This may happen if the device is running with an older version of the app inspection agent:
+      return this
+    } else {
+      // There should be exactly [chunkCount] number of events:
+      val wantedEvents =
+        mutableListOf<Common.Event>().apply {
+          repeat(chunkCount) { add(Common.Event.getDefaultInstance()) }
+        }
+      // Keep the events by the index they were encoded with.
+      // If there are duplicates: keep the latest version.
+      forEach {
+        val index = it.appInspectionPayload.chunkIndex
+        if (index >= chunkCount) {
+          // If an index is out of range: abort and return an empty list:
+          return emptyList()
+        }
+        wantedEvents[index] = it
+      }
+      // If any chunks were missing, return an empty list:
+      if (wantedEvents.contains(Common.Event.getDefaultInstance())) {
+        return emptyList()
+      }
+      return wantedEvents
     }
   }
 

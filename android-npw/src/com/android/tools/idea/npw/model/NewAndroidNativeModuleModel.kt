@@ -48,6 +48,14 @@ class NewAndroidNativeModuleModel(
     applicationName.set("nativelib")
   }
 
+  override fun getParamsToLog(): String {
+    return super.getParamsToLog() + """
+      |
+      |[Android Native Library params]
+      |C++ Standard: ${cppStandard.valueOrNull?.name ?: "N/A"}
+    """.trimMargin()
+  }
+
   override val renderer = object : ModuleTemplateRenderer() {
     @WorkerThread
     override fun init() {

@@ -16,6 +16,5 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics" />
-    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

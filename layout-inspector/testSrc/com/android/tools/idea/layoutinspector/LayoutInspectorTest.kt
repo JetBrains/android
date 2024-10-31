@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -50,6 +49,7 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
 
 class LayoutInspectorTest {
 

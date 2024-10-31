@@ -28,7 +28,7 @@ import com.android.sdklib.NameDetails
 import com.android.sdklib.getApiNameAndDetails
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.items
+import org.jetbrains.jewel.ui.component.separator
 
 /** A Composable that allows selection of API level via a dropdown. */
 @Composable
@@ -36,22 +36,28 @@ fun ApiFilter(
   apiLevels: List<AndroidVersion>,
   selectedApiLevel: AndroidVersionSelection,
   onApiLevelChange: (AndroidVersionSelection) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  Column(modifier = Modifier.padding(6.dp)) {
-    Text("API")
+  Column(modifier) {
+    Text("API", Modifier.padding(bottom = 6.dp))
 
     Dropdown(
-      modifier = Modifier.padding(2.dp),
       menuContent = {
-        val apiLevels = apiLevels.map { AndroidVersionSelection(it) }
-        items(
-          apiLevels.size,
-          isSelected = { index -> apiLevels[index] == selectedApiLevel },
-          onItemClick = { index -> onApiLevelChange(apiLevels[index]) },
-        ) { index ->
-          ApiLevel(apiLevels[index])
+        val apiLevels =
+          apiLevels.map { AndroidVersionSelection(it) } + AndroidVersionSelection(null)
+        repeat(apiLevels.size) { index ->
+          // Add a separator before the final "Show All"
+          if (index == apiLevels.size - 1) {
+            separator()
+          }
+          selectableItem(
+            selected = apiLevels[index] == selectedApiLevel,
+            onClick = { onApiLevelChange(apiLevels[index]) },
+          ) {
+            ApiLevel(apiLevels[index])
+          }
         }
-      },
+      }
     ) {
       ApiLevel(selectedApiLevel)
     }
@@ -73,11 +79,14 @@ fun ApiLevel(apiLevel: AndroidVersionSelection) {
   }
 }
 
-data class AndroidVersionSelection(private val androidVersion: AndroidVersion) {
+data class AndroidVersionSelection(private val androidVersion: AndroidVersion?) {
   val nameDetails: NameDetails
-    get() = androidVersion.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
+    get() =
+      androidVersion?.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
+        ?: NameDetails("Show All", null)
 
   /** Don't worry about extension levels. */
   fun matches(version: AndroidVersion) =
-    androidVersion.apiLevel == version.apiLevel && androidVersion.codename == version.codename
+    androidVersion == null ||
+      androidVersion.apiLevel == version.apiLevel && androidVersion.codename == version.codename
 }

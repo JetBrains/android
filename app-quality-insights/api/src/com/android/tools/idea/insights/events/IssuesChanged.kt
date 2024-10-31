@@ -29,8 +29,12 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
+import com.android.tools.idea.studiobot.StudioBot
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.AiInsightsOptInStatus
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import java.time.Clock
 
 /** List of issues changed(fetched). */
@@ -38,6 +42,7 @@ data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
   private val previousGoodState: AppInsightsState?,
+  private val source: FetchSource = FetchSource.UNKNOWN_SOURCE,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
@@ -52,6 +57,7 @@ data class IssuesChanged(
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           currentEvents = LoadingState.Ready(null),
+          currentInsight = LoadingState.Ready(null),
         ),
         Action.NONE,
       )
@@ -80,6 +86,7 @@ data class IssuesChanged(
             numRetries = 0
             cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
+            aiInsightsOptInStatus = getOptInStatus(state.connections.selected.projectId)
           }
           .build(),
       )
@@ -137,7 +144,14 @@ data class IssuesChanged(
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
-        if (newSelectedIssue != null) actionsForSelectedIssue(key, newSelectedIssue.id)
+        if (newSelectedIssue != null)
+          actionsForSelectedIssue(
+            key,
+            newSelectedIssue.id,
+            newSelectedIssue.issueDetails.fatality,
+            newSelectedIssue.sampleEvent,
+            source == FetchSource.REFRESH,
+          )
         else Action.NONE,
     )
   }
@@ -149,3 +163,13 @@ private fun LoadingState.Done<IssueResponse>.hasAppVcsInfo(): Boolean {
 
   return true
 }
+
+private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
+  when {
+    !StudioBot.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
+    firebaseProject == null -> AiInsightsOptInStatus.UNKNOWN_STATUS
+    else ->
+      if (TosPersistence.getInstance().isTosAccepted(firebaseProject))
+        AiInsightsOptInStatus.OPTED_IN
+      else AiInsightsOptInStatus.UNKNOWN_STATUS
+  }

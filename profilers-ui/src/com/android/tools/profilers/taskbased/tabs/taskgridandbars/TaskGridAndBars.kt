@@ -45,8 +45,7 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
 
 @Composable
 fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
-                    ideProfilerComponents: IdeProfilerComponents,
-                    modifier: Modifier) {
+                    ideProfilerComponents: IdeProfilerComponents) {
   val taskTypes = taskHomeTabModel.taskHandlers.keys.toList()
   val profilers = taskHomeTabModel.profilers
   val taskGridModel = taskHomeTabModel.taskGridModel
@@ -59,5 +58,5 @@ fun TaskGridAndBars(taskHomeTabModel: TaskHomeTabModel,
     taskActionBar = {
       TaskActionBar(taskHomeTabModel)
     },
-    modifier = modifier)
+  )
 }

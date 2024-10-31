@@ -22,6 +22,6 @@ java_library(
     name = "autoovalue",
     srcs = glob(["java/**/*.java"]),
     deps = [
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
     ],
 )

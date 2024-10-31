@@ -18,9 +18,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
@@ -43,6 +40,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 

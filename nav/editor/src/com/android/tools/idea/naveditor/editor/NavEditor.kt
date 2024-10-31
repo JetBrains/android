@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.tree.TreePanelDefinition
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -35,10 +36,11 @@ private const val WORKBENCH_NAME = "NAV_EDITOR"
 const val NAV_EDITOR_ID = "nav-designer"
 
 private fun getDefaultSurfaceState(): DesignerEditorPanel.State =
-  when (AndroidEditorSettings.getInstance().globalState.preferredEditorMode) {
+  when (AndroidEditorSettings.getInstance().globalState.preferredResourcesEditorMode) {
     AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
     AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
-    else -> DesignerEditorPanel.State.FULL
+    AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+    null -> throw IllegalStateException("preferredResourcesEditorMode should not be null")
   }
 
 open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
@@ -51,7 +53,12 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
       myProject,
       myFile,
       WorkBench(myProject, WORKBENCH_NAME, this, this),
-      { NavDesignSurface(myProject, it, this).apply { name = "Navigation" } },
+      {
+        NavDesignSurface(myProject, it).apply {
+          Disposer.register(this@NavEditor, this)
+          name = "Navigation"
+        }
+      },
       NavComponentRegistrar,
       {
         listOf(

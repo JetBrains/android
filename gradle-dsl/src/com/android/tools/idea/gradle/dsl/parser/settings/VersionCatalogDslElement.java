@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class VersionCatalogDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<VersionCatalogDslElement> VERSION_CATALOG =
-    new PropertiesElementDescription<>(null, VersionCatalogDslElement.class, VersionCatalogDslElement::new);
+    new PropertiesElementDescription<>(null, VersionCatalogDslElement.class, VersionCatalogDslElement::new, "versionCatalog");
 
   private @Nullable String methodName;
 

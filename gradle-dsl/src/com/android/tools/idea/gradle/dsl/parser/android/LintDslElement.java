@@ -60,12 +60,10 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LintDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -207,8 +205,7 @@ public class LintDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<LintDslElement> LINT =
     new PropertiesElementDescription<>("lint",
                                        LintDslElement.class,
-                                       LintDslElement::new,
-                                       LintDslElementSchema::new);
+                                       LintDslElement::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
@@ -217,19 +214,5 @@ public class LintDslElement extends GradleDslBlockElement {
 
   public LintDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class LintDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.Lint";
-    }
   }
 }

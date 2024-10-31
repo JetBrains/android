@@ -128,7 +128,10 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
 
   private suspend fun updateIssuePanelVisibility(file: VirtualFile) {
     withContext(workerThread) {
-      val psiFileType = readAction { file.toPsiFile(project)?.typeOf() }
+      val psiFileType = readAction {
+        if (!file.isValid) return@readAction null
+        file.toPsiFile(project)?.typeOf()
+      }
       if (psiFileType is DrawableFileType) {
         withContext(uiThread) {
           // We don't support Shared issue panel for Drawable files.
@@ -223,6 +226,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
 
   @WorkerThread
   private fun isComposeFile(file: VirtualFile): Boolean {
+    if (!file.isValid) return false
     val extension = file.extension
     val fileType = file.fileType
     val psiFile = file.toPsiFile(project)
@@ -240,6 +244,7 @@ class IssuePanelService(private val project: Project) : Disposable.Default {
   private suspend fun getTabNameOfSupportedDesignerFile(file: VirtualFile): String? {
     return withContext(workerThread) {
       readAction {
+        if (!file.isValid) return@readAction null
         val psiFile = file.toPsiFile(project) ?: return@readAction null
         return@readAction when {
           isComposeFile(file) -> "Compose"

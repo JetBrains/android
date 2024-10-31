@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -33,6 +34,8 @@ import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProdu
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.run.util.LaunchUtils
+import com.android.utils.cache.ChangeTracker
+import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -42,7 +45,9 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
@@ -75,8 +80,8 @@ class AndroidRunConfigurations {
 
   private fun createAndroidRunConfiguration(facet: AndroidFacet) {
     LOG.debug { "createAndroidRunConfiguration($facet)" }
-    // Android run configuration should always be created with the main module
-    val module = facet.module.getMainModule()
+    // Android run configuration should always be created with the holder module
+    val module = facet.module
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
     for (configuration in configurations) {
@@ -130,7 +135,7 @@ class AndroidRunConfigurations {
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
     LOG.debug { "addAndroidRunConfiguration($facet)" }
-    val module = facet.module.getMainModule()
+    val module = facet.module
     val project = module.project
     val runManager = runReadAction {
       if (project.isDisposed) return@runReadAction null
@@ -138,7 +143,7 @@ class AndroidRunConfigurations {
     } ?: return LOG.debug { "addAndroidRunConfiguration: Get RunManager for module $module and project $project - project s already disposed." }
 
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
-    val moduleName = module.getHolderModule().name
+    val moduleName = module.getModuleSystem().getDisplayNameForModuleGroup()
     val configurationName = moduleName.removePrefix("$projectNameInExternalSystemStyle.")
     LOG.debug {
       "addAndroidRunConfiguration: project.name = ${project.name}, " +
@@ -189,7 +194,7 @@ class AndroidRunConfigurations {
     val runManager = RunManager.getInstance(module.project)
     val configurationAndSettings = runManager.createConfiguration(configurationName(module, component), component.configurationFactory)
     val configuration = configurationAndSettings.configuration as AndroidWearConfiguration
-    configuration.configurationModule.module = module
+    configuration.setModule(module)
     configuration.componentLaunchOptions.componentName = component.name
     return configurationAndSettings
   }
@@ -201,6 +206,24 @@ class AndroidRunConfigurations {
   }
 
   private suspend fun extractWearComponents(module: Module): List<WearComponent> {
+    val modificationTracker = MergedManifestModificationTracker.getInstance(module)
+    val dumbServiceTracker = DumbService.getInstance(module.project)
+    val wearComponentsCache =
+      module.getUserData(extractWearComponentsCacheKey)
+        ?: ChangeTrackerCachedValue.softReference<List<WearComponent>>().also {
+          module.putUserData(extractWearComponentsCacheKey, it)
+        }
+    return ChangeTrackerCachedValue.get(
+      wearComponentsCache,
+      { extractWearComponentsNonCached(module) },
+      ChangeTracker(
+        ChangeTracker { modificationTracker.modificationCount },
+        ChangeTracker { dumbServiceTracker.modificationTracker.modificationCount },
+      ),
+    )
+  }
+
+  private suspend fun extractWearComponentsNonCached(module: Module): List<WearComponent> {
     return module.project.runReadActionInSmartModeWithIndexes {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
@@ -254,5 +277,8 @@ class AndroidRunConfigurations {
     @JvmStatic
     val instance: AndroidRunConfigurations
       get() = ApplicationManager.getApplication().getService(AndroidRunConfigurations::class.java)
+
+    private val extractWearComponentsCacheKey =
+      Key<ChangeTrackerCachedValue<List<WearComponent>>>("extractWearComponents")
   }
 }

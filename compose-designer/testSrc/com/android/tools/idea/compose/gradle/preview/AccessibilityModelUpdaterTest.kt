@@ -139,7 +139,7 @@ class AccessibilityModelUpdaterTest {
     var children = twoElementsPreviewRoot.children
     assertThat(children.size).isGreaterThan(0)
     assertNotEquals(-1, children[0].accessibilityId)
-    assertEquals(306, children[0].w)
+    assertEquals(303, children[0].w)
     assertEquals(126, children[0].y)
 
     children = children[0].children
@@ -148,7 +148,7 @@ class AccessibilityModelUpdaterTest {
     val textViewComponent = children[0]
     assertEquals(0, textViewComponent.childCount)
     assertNotEquals(-1, textViewComponent.accessibilityId)
-    assertEquals(141, textViewComponent.w)
+    assertEquals(139, textViewComponent.w)
     assertEquals(126, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1158, textViewNavigatable.offset)
@@ -160,7 +160,7 @@ class AccessibilityModelUpdaterTest {
     val buttonTextViewComponent = children[0]
     assertEquals(0, buttonTextViewComponent.childCount)
     assertNotEquals(-1, buttonTextViewComponent.accessibilityId)
-    assertEquals(222, buttonTextViewComponent.w)
+    assertEquals(219, buttonTextViewComponent.w)
     assertEquals(222, buttonTextViewComponent.y)
     val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonTextViewNavigatable.offset)
@@ -169,7 +169,7 @@ class AccessibilityModelUpdaterTest {
     val buttonComponent = children[1]
     assertEquals(0, buttonComponent.childCount)
     assertNotEquals(-1, buttonComponent.accessibilityId)
-    assertEquals(306, buttonComponent.w)
+    assertEquals(303, buttonComponent.w)
     assertEquals(199, buttonComponent.y)
     val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonNavigatable.offset)

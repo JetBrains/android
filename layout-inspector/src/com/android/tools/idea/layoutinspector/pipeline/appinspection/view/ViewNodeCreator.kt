@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeViewNodeCreator
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import java.awt.Rectangle
 
 private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
 
@@ -39,6 +38,7 @@ class ViewNodeCreator(
 ) {
   val strings: StringTable = StringTableImpl(layoutEvent.stringsList)
   private val rootView = layoutEvent.rootView
+
   private val composeNodeCreator = composeResult?.let { ComposeViewNodeCreator(it) }
 
   /** The collected capabilities based on the loaded data. */
@@ -67,11 +67,11 @@ class ViewNodeCreator(
     val resource = view.resource.convert().createReference(strings)
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
-    val layoutBounds = view.bounds.layout.let { Rectangle(it.x, it.y, it.w, it.h) }
+    val layoutBounds = view.bounds.layout.toRectangle()
     val renderBounds =
       view.bounds.render
         .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
-        ?.toShape() ?: layoutBounds
+        ?.toPolygon() ?: layoutBounds
 
     val node =
       ViewNode(

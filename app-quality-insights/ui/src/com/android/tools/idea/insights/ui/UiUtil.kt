@@ -193,3 +193,5 @@ fun createInsightToolBar(place: String, target: JComponent) =
       )
       targetComponent = target
     }
+
+val MINIMUM_ACTION_BUTTON_SIZE = JBUI.size(26)

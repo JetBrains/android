@@ -53,9 +53,7 @@ import java.util.concurrent.Executors
 import javax.swing.Icon
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Tests for [StreamingToolWindowManager] involving two projects.
- */
+/** Tests for [StreamingToolWindowManager] involving two projects. */
 @RunsInEdt
 class StreamingToolWindowManagerMultiProjectTest {
 
@@ -133,7 +131,7 @@ class StreamingToolWindowManagerMultiProjectTest {
 
     toolWindow2.show()
     // The same devices are shown in the second tool window.
-    waitForCondition(2.seconds) { deviceProvisioner2.devices.value.size == 2 }
+    waitForCondition(5.seconds) { deviceProvisioner2.devices.value.size == 2 }
     val pixel4Handle2 = deviceProvisioner2.devices.value.find { it.state.properties.model == "Pixel 4" }!!
     val pixel7Handle2 = deviceProvisioner2.devices.value.find { it.state.properties.model == "Pixel 7" }!!
     waitForCondition(2.seconds) { contentManager2.contents.size == 2 }

@@ -98,6 +98,7 @@ object TypeResolver {
       SdkConstants.ATTR_CONTENT,
       SdkConstants.ATTR_DROP_DOWN_ANCHOR,
       SdkConstants.ATTR_HANDLE,
+      SdkConstants.ATTR_LAYOUT_ANCHOR,
       SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE,
       SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
       SdkConstants.ATTR_LIFT_ON_SCROLL_TARGET_VIEW_ID,

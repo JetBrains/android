@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.common.fixtures
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.LayoutTestUtilities
-import org.intellij.lang.annotations.JdkConstants
-import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import org.intellij.lang.annotations.JdkConstants
+import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 open class MouseEventBuilder(
   @SwingCoordinate private val myX: Int,

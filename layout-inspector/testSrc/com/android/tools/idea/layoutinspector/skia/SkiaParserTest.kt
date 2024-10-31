@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.skia
 import com.android.SdkConstants
 import com.android.testutils.AssumeUtil.assumeNotMac
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.mock
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
@@ -29,12 +28,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
+import java.awt.image.BufferedImage
+import kotlin.test.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.image.BufferedImage
-import kotlin.test.assertTrue
+import org.mockito.kotlin.mock
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val RUN_MAC_INTEGRATION_TESTS = false

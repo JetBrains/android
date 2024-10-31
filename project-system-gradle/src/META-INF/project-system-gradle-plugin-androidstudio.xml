@@ -71,23 +71,32 @@
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
     <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
-    <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
-    </action>
+    <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
-    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty">
-      <add-to-group group-id="BuildMenu" anchor="first"/>
+    <action id="BuildRunConfigModule" class="com.android.tools.idea.gradle.actions.BuildRunConfigurationAction" use-shortcut-of="CompileDirty">
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
+      <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+    </action>
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="AssembleGradleModule"/>
+    </action>
+    <action id="AssembleGradleProjectWithTests" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectWithTestsAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
     </action>
     <action internal="true" id="VerifyGradleTokensAction" class="com.android.tools.idea.projectsystem.VerifyGradleTokensAction">
       <add-to-group group-id="Internal.Android"/>
     </action>
-    <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
-      <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
+    <action id="AssembleGradleModule" class="com.android.tools.idea.gradle.actions.AssembleGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="before" relative-to-action="Android.BuildApkOrBundle"/>
     </action>
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
+    </action>
+    <action id="CompileGradleModule" class="com.android.tools.idea.gradle.actions.CompileGradleModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="BuildRunConfigModule"/>
+    </action>
+    <action id="CompileAllSources" class="com.android.tools.idea.gradle.actions.CompileAllSources">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileGradleModule"/>
     </action>
     <group id="AndroidToolbarMakeGroup">
       <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>

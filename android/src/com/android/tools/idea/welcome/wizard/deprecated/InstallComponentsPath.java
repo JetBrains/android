@@ -42,12 +42,10 @@ import com.android.tools.idea.welcome.install.ComponentCategory;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.Aehd;
-import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.VmInstallationIntention;
 import com.android.tools.idea.welcome.install.Platform;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -122,11 +120,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (platforms != null) {
       components.add(platforms);
     }
-    VmInstallationIntention installationIntention = myInstallUpdates ? VmInstallationIntention.INSTALL_WITH_UPDATES
-                                                                     : VmInstallationIntention.INSTALL_WITHOUT_UPDATES;
-    if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.InstallerInfo.canRun()) {
-      components.add(new Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
-    }
+    Aehd.InstallationIntention installationIntention =
+                                   myInstallUpdates ? Aehd.InstallationIntention.INSTALL_WITH_UPDATES
+                                                    : Aehd.InstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && Aehd.InstallerInfo.canRun()) {
       components.add(new Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }

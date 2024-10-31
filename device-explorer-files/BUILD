@@ -20,7 +20,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",

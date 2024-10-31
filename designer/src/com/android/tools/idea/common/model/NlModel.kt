@@ -24,8 +24,6 @@ import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
-import com.android.tools.idea.rendering.BuildTargetReference
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -37,19 +35,13 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.Alarm
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
 import java.util.Collections
 import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Model for an XML file
@@ -107,22 +99,11 @@ protected constructor(
   private val modelVersion = ModelVersion()
   private var configurationModificationCount: Long = configuration.modificationCount
 
-  @get:VisibleForTesting
-  val updateQueue =
-    MergingUpdateQueue(
-        "android.layout.preview.edit",
-        DELAY_AFTER_TYPING_MS,
-        true,
-        null,
-        this,
-        null,
-        Alarm.ThreadToUse.SWING_THREAD,
-      )
-      .also { queue ->
-        queue.setRestartTimerOnAdd(true)
-        // Suspend events until there is an activation.
-        queue.suspend()
-      }
+  /**
+   * Field indicating whether a modification should be notified the next time this model is
+   * activated, which should be true if a modification happened while this model was not active.
+   */
+  private val notifyModificationWhenActivated = AtomicBoolean(false)
 
   /** Variable to track what triggered the latest render (if known). */
   var lastChangeType: ChangeType? = null
@@ -182,7 +163,8 @@ protected constructor(
         themeUpdater.updateTheme()
       }
       listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
-      updateQueue.resume()
+      if (notifyModificationWhenActivated.getAndSet(false))
+        notifyModified(ChangeType.MODEL_ACTIVATION)
       return true
     } else {
       return false
@@ -191,7 +173,6 @@ protected constructor(
 
   private fun deactivate() {
     configurationModificationCount = configuration.modificationCount
-    updateQueue.suspend()
   }
 
   /**
@@ -336,42 +317,11 @@ protected constructor(
   }
 
   fun notifyModified(reason: ChangeType) {
-    if (!isActive) {
-      // The model is not currently active so delay the notification. The queue will deliver this
-      // notification
-      // when it is active again.
-      notifyModifiedViaUpdateQueue(ChangeType.MODEL_ACTIVATION)
-    } else {
+    // Notify modification now if the model is active, or in the next activation if it's currently
+    // not active.
+    if (isActive) {
       fireNotifyModified(reason)
-    }
-  }
-
-  /**
-   * Schedules [notifyModified] to be called via an [MergingUpdateQueue], so once user activity
-   * (typing) has stopped. [notifyModified] gets called on the EDT, just like the "original"
-   * callback from [ResourceNotificationManager].
-   */
-  fun notifyModifiedViaUpdateQueue(reason: ChangeType) {
-    updateQueue.queue(
-      object : Update("edit") {
-        override fun run() {
-          fireNotifyModified(reason)
-        }
-
-        override fun canEat(update: Update): Boolean {
-          return true
-        }
-      }
-    )
-  }
-
-  /**
-   * Flushes any pending updates created by [.notifyModifiedViaUpdateQueue]. After this method
-   * returns, all pending updates will have been processed.
-   */
-  @TestOnly
-  fun flushPendingUpdates() {
-    updateQueue.flush()
+    } else notifyModificationWhenActivated.set(true)
   }
 
   fun resetLastChange() {

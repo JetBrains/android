@@ -72,6 +72,12 @@ class DeclarativeLiteralTest : LightPlatformTestCase() {
     assertThat(literal.value).isEqualTo(42)
   }
 
+  fun testLiteralDoubleValue() {
+    val literal = DeclarativePsiFactory(project).createLiteral(0.1)
+    assertThat(literal.value).isInstanceOf(java.lang.Double::class.java)
+    assertThat(literal.value).isEqualTo(0.1)
+  }
+
   fun testLiteralUIntegerValue() {
     val literal = DeclarativePsiFactory(project).createLiteral(42U)
     assertThat(literal.value).isInstanceOf(UInt::class.java)

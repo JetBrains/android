@@ -97,11 +97,13 @@ class WearTileAnimationPreview(
 
   private suspend fun updateAllAnimations(protoAnimations: List<ProtoAnimation>) {
     invalidatePanel().join()
-    protoAnimations.forEach {
-      val tab = withContext(AndroidDispatchers.uiThread) { createAnimationManager(it) }
-      tab.setup()
-      withContext(AndroidDispatchers.uiThread) { addAnimationManager(tab) }
-    }
+    protoAnimations
+      .filter { it.isTerminal }
+      .forEach {
+        val tab = withContext(AndroidDispatchers.uiThread) { createAnimationManager(it) }
+        tab.setup()
+        withContext(AndroidDispatchers.uiThread) { addAnimationManager(tab) }
+      }
     updateMaxDuration(true)
     updateTimelineElements()
   }

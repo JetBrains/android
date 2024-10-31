@@ -26,6 +26,12 @@
                     interface="com.android.tools.idea.studiobot.StudioBotExternalFlags" />
   </extensionPoints>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- The StudioBot service has a stub implementation by default, but is overridden by the Gemini plugin. -->
+    <applicationService serviceInterface="com.android.tools.idea.studiobot.StudioBot"
+                        serviceImplementation="com.android.tools.idea.studiobot.StudioBot$StubStudioBot"/>
+  </extensions>
+
   <actions resource-bundle="messages.StudioBotBundle">
     <group id="sml.studiobot.gemini.editor.group"
            class="com.android.tools.idea.studiobot.action.GeminiEditorActionGroup"

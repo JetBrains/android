@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -36,13 +35,15 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 class SelectDeviceActionTest {
 
@@ -331,7 +332,7 @@ class SelectDeviceActionTest {
     val deviceModel =
       DeviceModel(projectRule.testRootDisposable, model, setOf(stream.device.toDeviceDescriptor()))
 
-    val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = MockitoKt.mock()
+    val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = mock()
 
     val selectDeviceAction =
       SelectDeviceAction(deviceModel, {}, {}, customDeviceAttribution = deviceAttribution)
@@ -341,8 +342,7 @@ class SelectDeviceActionTest {
     Truth.assertThat(children).hasLength(2)
     val deviceAction = children[0] as ToggleAction
     val event1 = update(deviceAction)
-    Mockito.verify(deviceAttribution)
-      .invoke(MockitoKt.eq(stream.device.toDeviceDescriptor()), MockitoKt.eq(event1))
+    Mockito.verify(deviceAttribution).invoke(eq(stream.device.toDeviceDescriptor()), eq(event1))
   }
 
   @Test
@@ -480,7 +480,7 @@ class SelectDeviceActionTest {
 
   private fun update(action: AnAction): AnActionEvent {
     val presentation = action.templatePresentation.clone()
-    val event: AnActionEvent = MockitoKt.mock()
+    val event: AnActionEvent = mock()
     Mockito.`when`(event.presentation).thenReturn(presentation)
     action.update(event)
     return event

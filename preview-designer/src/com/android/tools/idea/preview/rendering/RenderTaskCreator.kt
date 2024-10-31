@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.rendering
 
+import com.android.annotations.TestOnly
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -33,10 +34,11 @@ import java.util.concurrent.CompletableFuture
 
 /**
  * Returns a [CompletableFuture] that creates a [RenderTask] for a single [VirtualFile]. It is the
- * responsibility of a client of this function to dispose the resulting [RenderTask] when no loner
+ * responsibility of a client of this function to dispose the resulting [RenderTask] when no longer
  * needed.
  */
-fun createRenderTaskFuture(
+@TestOnly
+fun createRenderTaskFutureForTest(
   facet: AndroidFacet,
   file: VirtualFile,
   privateClassLoader: Boolean = false,

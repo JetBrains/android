@@ -189,10 +189,44 @@ public final class AttributeDefinition implements Cloneable {
 
   @Override
   public String toString() {
-    return myAttr.getQualifiedName() + " [" + myFormats + ']';
+    return myAttr.getQualifiedName() + " (" + myLibraryName +") [" + myFormats + ']';
   }
 
   private static Logger getLog() {
     return Logger.getInstance(AttributeDefinition.class);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (!(obj instanceof AttributeDefinition)) {
+      return false;
+    }
+
+    AttributeDefinition other = (AttributeDefinition)obj;
+    return Objects.equals(myAttr, other.myAttr) &&
+           Objects.equals(myLibraryName, other.myLibraryName) &&
+           Objects.equals(myGlobalDescription, other.myGlobalDescription) &&
+           Objects.equals(myGroupName, other.myGroupName) &&
+           Objects.equals(myValueMappings, other.myValueMappings) &&
+           Objects.equals(myValueDescriptions, other.myValueDescriptions) &&
+           Objects.equals(myFormats, other.myFormats) &&
+           Objects.equals(myDescriptionsInStyleableContexts, other.myDescriptionsInStyleableContexts);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+      myAttr,
+      myLibraryName,
+      myGlobalDescription,
+      myGroupName,
+      myValueMappings,
+      myValueDescriptions,
+      myFormats,
+      myDescriptionsInStyleableContexts);
   }
 }

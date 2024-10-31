@@ -142,7 +142,7 @@
     reason: withProjectLibrary
   - name: layoutlib
     files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/14/layoutlib-14.jar
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
     reason: <- intellij.android.rendering
   - name: studio-platform
     files:
@@ -174,9 +174,12 @@
   - name: intellij.android.compose-common
   - name: intellij.android.device
   - name: intellij.android.core
+  - name: intellij.android.core.editing.documentation
+  - name: intellij.android.core.editing.metrics
   - name: intellij.android.navigator
   - name: intellij.android.dagger
   - name: intellij.android.databinding
+  - name: intellij.android.databinding.gradle
   - name: intellij.android.app-inspection.inspectors.database
   - name: intellij.android.debuggers
   - name: intellij.android.deploy
@@ -184,7 +187,6 @@
   - name: intellij.android.device-explorer-files
   - name: intellij.android.device-explorer-monitor
   - name: intellij.android.device-explorer-common
-  - name: intellij.android.device-manager
   - name: intellij.android.device-manager-v2
   - name: intellij.android.ml-api
   - name: intellij.android.lang-databinding

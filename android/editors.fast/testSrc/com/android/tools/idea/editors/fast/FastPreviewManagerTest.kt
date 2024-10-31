@@ -20,6 +20,7 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.diagnostic.Logger
@@ -55,6 +56,7 @@ private val TEST_VERSION = Version.parse("0.0.1-test")
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
   override suspend fun compileRequest(
+    applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,
@@ -277,6 +279,7 @@ internal class FastPreviewManagerTest {
           daemonFactory = { _, _, _, _ ->
             object : CompilerDaemonClient by NopCompilerDaemonClient {
               override suspend fun compileRequest(
+                applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
                 module: Module,
                 outputDirectory: Path,
@@ -418,6 +421,7 @@ internal class FastPreviewManagerTest {
           daemonFactory = { _, _, _, _ ->
             object : CompilerDaemonClient by NopCompilerDaemonClient {
               override suspend fun compileRequest(
+                applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
                 module: Module,
                 outputDirectory: Path,
@@ -450,6 +454,7 @@ internal class FastPreviewManagerTest {
           daemonFactory = { _, _, _, _ ->
             object : CompilerDaemonClient by NopCompilerDaemonClient {
               override suspend fun compileRequest(
+                applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
                 module: Module,
                 outputDirectory: Path,
@@ -482,6 +487,7 @@ internal class FastPreviewManagerTest {
           daemonFactory = { _, _, _, _ ->
             object : CompilerDaemonClient by NopCompilerDaemonClient {
               override suspend fun compileRequest(
+                applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
                 module: Module,
                 outputDirectory: Path,
@@ -553,6 +559,7 @@ internal class FastPreviewManagerTest {
           daemonFactory = { _, _, _, _ ->
             object : CompilerDaemonClient by NopCompilerDaemonClient {
               override suspend fun compileRequest(
+                applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
                 module: Module,
                 outputDirectory: Path,
@@ -669,6 +676,7 @@ internal class FastPreviewManagerTest {
           get() = false
 
         override suspend fun compileRequest(
+          applicationLiveEditServices: ApplicationLiveEditServices,
           files: Collection<PsiFile>,
           module: Module,
           outputDirectory: Path,

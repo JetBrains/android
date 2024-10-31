@@ -63,12 +63,15 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -363,7 +366,7 @@ public class BuildVariantView {
     }
 
     @Nullable
-    private DefaultCellEditor createCellEditor(int row, BuildVariantTableRow tableRow) {
+    private DefaultCellEditor createCellEditor(BuildVariantTableRow tableRow) {
       BuildVariantItem[] items = tableRow.buildVariantsAsArray();
       if (items == null) return null;
       BuildVariantItem selected = tableRow.variantItem();
@@ -392,7 +395,7 @@ public class BuildVariantView {
     }
 
     @Nullable
-    private DefaultCellEditor createAbiCellEditor(int row, BuildVariantTableRow tableRow) {
+    private DefaultCellEditor createAbiCellEditor(BuildVariantTableRow tableRow) {
       AbiItem[] items = tableRow.abisAsArray();
       if (items == null) return null;
       AbiItem selected = tableRow.abiItem();
@@ -428,10 +431,14 @@ public class BuildVariantView {
         return myModuleCellRenderer;
       }
 
+      BuildVariantTableRow tableRow = ((BuildVariantTableModel)getModel()).getRows().get(row);
+
       if (column == VARIANT_COLUMN_INDEX) {
+        myVariantsCellRenderer.setTableRow(tableRow);
         return myVariantsCellRenderer;
       }
 
+      myAbisCellRenderer.setTableRow(tableRow);
       return myAbisCellRenderer;
     }
 
@@ -439,10 +446,10 @@ public class BuildVariantView {
     public TableCellEditor getCellEditor(int row, int column) {
       BuildVariantTableRow tableRow = ((BuildVariantTableModel)getModel()).getRows().get(row);
       if ((column == VARIANT_COLUMN_INDEX)) {
-        return createCellEditor(row, tableRow);
+        return createCellEditor(tableRow);
       }
       if ((column == ABI_COLUMN_INDEX)) {
-        return createAbiCellEditor(row, tableRow);
+        return createAbiCellEditor(tableRow);
       }
       return myModuleCellEditor;
     }
@@ -451,70 +458,85 @@ public class BuildVariantView {
   /**
    * Determines how the cells in the Build Variants column will be displayed.
    */
-  private static class VariantsCellRenderer extends DefaultTableCellRenderer {
+  private static class VariantsCellRenderer extends JComboBox implements TableCellRenderer {
     // Default help text that will be displayed as a tooltip on the Variants cells.
     private static final String variantsCellHelpTooltipText =
       "Determines the build variant that will be deployed to device and used by the editor";
 
+    private BuildVariantTableRow tableRow;
+
+    public void setTableRow(BuildVariantTableRow tableRow) {
+      this.tableRow = tableRow;
+    }
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      if (tableRow == null) return this;
 
-      if (c instanceof JLabel) {
-        JLabel component = (JLabel)c;
+      BuildVariantItem[] items = tableRow.buildVariantsAsArray();
+      if (items == null) return this;
+      BuildVariantItem selected = tableRow.variantItem();
+      ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
 
-        Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
-        ImmutableList<Conflict> conflictFound = ((BuildVariantTable)table).findConflict(row);
-        boolean hasConflicts = !conflictFound.isEmpty();
-        if (hasConflicts) {
-          background = CONFLICT_CELL_BACKGROUND;
-        }
-        component.setBackground(background);
-        component.setFont(StartupUiUtil.getLabelFont());
-        Module module = ((BuildVariantTable)table).findModule(row);
-        String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
-                                      : variantsCellHelpTooltipText;
-        component.setToolTipText(toolTip);
-
-        // add some padding to table cells. It is hard to read text of combo box.
-        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), JBUI.Borders.empty(3, 2, 4, 2)));
+      Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
+      ImmutableList<Conflict> conflictFound = ((BuildVariantTable)table).findConflict(row);
+      boolean hasConflicts = !conflictFound.isEmpty();
+      if (hasConflicts) {
+        background = CONFLICT_CELL_BACKGROUND;
       }
+      editor.setBackground(background);
+      editor.setFont(StartupUiUtil.getLabelFont());
+      Module module = ((BuildVariantTable)table).findModule(row);
+      String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
+                                    : variantsCellHelpTooltipText;
+      editor.setToolTipText(toolTip);
 
-      return c;
+      // add some padding to table cells. It is hard to read text of combo box.
+      editor.setBorder(BorderFactory.createCompoundBorder(editor.getBorder(), JBUI.Borders.empty(3, 2, 4, 2)));
+
+      editor.setSelectedItem(selected);
+      setModel(editor.getModel());
+      return editor;
     }
   }
 
   /**
    * Determines how the cells in the ABIs column will be displayed.
    */
-  private static class AbisCellRenderer extends DefaultTableCellRenderer {
+  private static class AbisCellRenderer extends JComboBox implements TableCellRenderer {
     // Default help text that will be displayed as a tooltip on the ABI cells.
-    private static final String abisCellHelpTooltipText =
-      "For NDK modules, determines the ABI that will be used by the editor";
+    private static final String abisCellHelpTooltipText = "For NDK modules, determines the ABI that will be used by the editor";
+
+    private BuildVariantTableRow tableRow;
+
+    public void setTableRow(BuildVariantTableRow tableRow) {
+      this.tableRow = tableRow;
+    }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      if (tableRow == null) return this;
 
-      if (c instanceof JLabel) {
-        JLabel component = (JLabel)c;
-
-        // Build Variant conflicts do not change the background color of ABI cells.
-        Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
-        component.setBackground(background);
-        component.setFont(StartupUiUtil.getLabelFont());
-        // Build variant conflicts do not change the tooltip of ABI cells.
-        component.setToolTipText(abisCellHelpTooltipText);
-
-        // add some padding to table cells. It is hard to read text of combo box.
-        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), JBUI.Borders.empty(3, 2, 4, 2)));
-
-        if (component.getText().isEmpty()) {
-          component.setText("\u2014");
-        }
+      AbiItem[] items = tableRow.abisAsArray();
+      AbiItem selected = tableRow.abiItem();
+      if (items == null || selected == null) {
+        dataModel.setSelectedItem(new AbiItem("\u2014"));
+        setBackground(table.getBackground());
+        return this;
       }
+      ComboBox<AbiItem> editor = new ComboBox<>(items);
 
-      return c;
+      Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
+      editor.setBackground(background);
+      editor.setFont(StartupUiUtil.getLabelFont());
+      editor.setToolTipText(abisCellHelpTooltipText);
+
+      // add some padding to table cells. It is hard to read text of combo box.
+      editor.setBorder(BorderFactory.createCompoundBorder(editor.getBorder(), JBUI.Borders.empty(3, 2, 4, 2)));
+
+      editor.setSelectedItem(selected);
+      setModel(editor.getModel());
+      return editor;
     }
   }
 
@@ -554,15 +576,6 @@ public class BuildVariantView {
       myPanel.add(myButtonsPanel, BorderLayout.EAST);
     }
 
-    @NotNull
-    private static JButton createButton(@NotNull Icon icon) {
-      JButton button = new JButton(icon);
-      button.setBorder(null);
-      button.setBorderPainted(false);
-      button.setContentAreaFilled(false);
-      return button;
-    }
-
     @Nullable
     private static String getToolTipTextIfUnderX(@NotNull JComponent c, int x) {
       if (c.isVisible() && x >= c.getX() && x <= c.getX() + c.getWidth()) {
@@ -587,7 +600,7 @@ public class BuildVariantView {
 
       String moduleName = null;
       Icon moduleIcon = null;
-      boolean isAndriodGradleModule = false;
+      boolean isAndroidGradleModule = false;
       Module module = null;
       if (value != null) {
         module = (Module) value;
@@ -597,7 +610,7 @@ public class BuildVariantView {
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = getModuleIcon(module);
-          isAndriodGradleModule = GradleAndroidModel.get(module) != null;
+          isAndroidGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
       myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
@@ -607,7 +620,7 @@ public class BuildVariantView {
 
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
 
-      if (isAndriodGradleModule) {
+      if (isAndroidGradleModule) {
         myConflicts = ((BuildVariantTable)table).findConflict(row);
         boolean hasConflicts = !myConflicts.isEmpty();
 

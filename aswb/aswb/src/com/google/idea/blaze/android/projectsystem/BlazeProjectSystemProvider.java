@@ -21,19 +21,19 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.openapi.project.Project;
 
 /**
- * A BlazeProjectSystemProvider determines whether or not a BlazeProjectSystem would be applicable
+ * A BlazeProjectSystemProvider determines whether or not a BazelProjectSystem would be applicable
  * for a given project. If so, the provider is responsible for creating the instance of
- * BlazeProjectSystem that should be associated with the project.
+ * BazelProjectSystem that should be associated with the project.
  *
  * <p>We provide this functionality in BlazeProjectSystemProvider instead of having
- * BlazeProjectSystem implement AndroidProjectSystemProvider itself because there are times when we
+ * BazelProjectSystem implement AndroidProjectSystemProvider itself because there are times when we
  * want to instantiate the provider extension without creating a new instance of the project system.
  * In particular, the provider extension may be instantiated after the disposal of the project, in
  * which case we can't create the project system because it interacts with the project during
  * instantiation.
  */
 public class BlazeProjectSystemProvider implements AndroidProjectSystemProvider {
-  public static final String ID = "com.google.idea.blaze.BlazeProjectSystem";
+  public static final String ID = "com.google.idea.blaze.BazelProjectSystem";
 
   @Override
   public boolean isApplicable(Project project) {
@@ -47,6 +47,6 @@ public class BlazeProjectSystemProvider implements AndroidProjectSystemProvider 
 
   @Override
   public AndroidProjectSystem projectSystemFactory(Project project) {
-    return new BlazeProjectSystem(project);
+    return new BazelProjectSystem(project);
   }
 }

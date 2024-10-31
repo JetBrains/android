@@ -34,15 +34,14 @@ private const val BASE_PATH = "actions/componentRenaming/"
 
 @RunWith(JUnit4::class)
 class AndroidComponentRenamingTest {
-  @get:Rule
-  var androidProjectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule var androidProjectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  var name: TestName = TestName()
+  @get:Rule var name: TestName = TestName()
 
   private val myFixture by lazy {
     androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
+      testDataPath =
+        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
     }
   }
 
@@ -66,23 +65,32 @@ class AndroidComponentRenamingTest {
   private fun createActivity(activityName: String) {
     myFixture.addFileToProject(
       "src/p1/p2/$activityName.java",
-      //language=Java
+      // language=Java
       """
       package p1.p2;
       public class $activityName extends android.app.Activity {}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
   private fun createAndOpenManifest() {
-    val manifestFile = myFixture.copyFileToProject(BASE_PATH + name.methodName + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    val manifestFile =
+      myFixture.copyFileToProject(
+        BASE_PATH + name.methodName + ".xml",
+        SdkConstants.FN_ANDROID_MANIFEST_XML,
+      )
     myFixture.configureFromExistingVirtualFile(manifestFile)
   }
 
   private fun checkAndRenameElementAtCursor(newName: String) {
     // Ensure the rename action is available to the user
     val action = RenameElementAction()
-    val actionEvent = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(myFixture.editor.component))
+    val actionEvent =
+      TestActionEvent.createTestEvent(
+        action,
+        DataManager.getInstance().getDataContext(myFixture.editor.component),
+      )
     runReadAction { action.update(actionEvent) }
     assertThat(actionEvent.presentation.isEnabled).isTrue()
     assertThat(actionEvent.presentation.isVisible).isTrue()

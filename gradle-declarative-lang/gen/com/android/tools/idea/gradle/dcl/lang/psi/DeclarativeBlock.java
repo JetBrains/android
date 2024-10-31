@@ -27,13 +27,13 @@ public interface DeclarativeBlock extends DeclarativeEntry, DeclarativeIdentifie
   DeclarativeBlockGroup getBlockGroup();
 
   @Nullable
+  DeclarativeEmbeddedFactory getEmbeddedFactory();
+
+  @Nullable
   DeclarativeIdentifier getIdentifier();
 
   @NotNull
   List<DeclarativeEntry> getEntries();
-
-  @Nullable
-  DeclarativeFactory getFactory();
 
   @Nullable
   PsiElement getBlockEntriesStart();

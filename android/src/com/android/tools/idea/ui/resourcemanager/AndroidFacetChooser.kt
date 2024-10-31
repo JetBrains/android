@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager
 
 import com.android.tools.idea.projectsystem.getMainModule
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -50,7 +50,7 @@ internal fun findLastSelectedFacet(project: Project): AndroidFacet? =
  * Returns [AndroidFacet]s corresponding only to the main module.
  */
 internal fun findCompatibleFacets(project: Project): List<AndroidFacet> =
-  ModuleManager.getInstance(project).modules.filter { it.isMainModule() }.mapNotNull { it.androidFacet }
+  ModuleManager.getInstance(project).modules.filter { it.getModuleSystem().isProductionAndroidModule() }.map { it.androidFacet!! }
 
 /**
  * True if the given [androidFacet] is supported in the ResourceExplorer.

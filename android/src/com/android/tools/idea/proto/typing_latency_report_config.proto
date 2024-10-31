@@ -10,4 +10,7 @@ message TypingLatencyReportConfig {
   // Maximum number of UI thread snapshots that will be merged in a single crash
   // report.
   optional int32 max_number_of_snapshots_per_report = 2;
+  // The time interval between making thread snapshots for the typing events
+  // that take longer than the typing_event_report_threshold_millis.
+  optional int64 sampling_interval_millis = 3;
 }

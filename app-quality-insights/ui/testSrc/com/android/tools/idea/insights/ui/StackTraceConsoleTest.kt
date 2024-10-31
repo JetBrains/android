@@ -308,4 +308,38 @@ class StackTraceConsoleTest {
         )
     }
   }
+
+  @Test
+  fun `clearStackTrace clears the console text and refills on refresh`() =
+    executeWithErrorProcessor {
+      runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+        controllerRule.consumeInitialState(
+          fetchState,
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
+        )
+        stackTraceConsole.consoleView.waitAllRequests()
+
+        stackTraceConsole.clearStackTrace()
+
+        assertThat(stackTraceConsole.consoleView.text).isEmpty()
+
+        controllerRule.controller.refresh()
+        controllerRule.consumeFetchState(
+          fetchState,
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE3.sampleEvent), "")),
+        )
+        delayUntilCondition(200) { stackTraceConsole.consoleView.text.isNotEmpty() }
+        stackTraceConsole.consoleView.waitAllRequests()
+        assertThat(stackTraceConsole.consoleView.text.trim())
+          .isEqualTo(
+            """
+          java.lang.RuntimeException: Test Crash
+              com.example.someapp.MainActivity.onCreate${'$'}lambda${'$'}0(MainActivity.java:359)
+              com.example.someapp.MainActivity.${'$'}r8${'$'}lambda${'$'}4oWG6U3SJNFRfpZuiYxu7QrLG2Q
+              com.example.someapp.MainActivity${'$'}${'$'}ExternalSyntheticLambda0.onClick(D8${'$'}${'$'}SyntheticClass)
+        """
+              .trimIndent()
+          )
+      }
+    }
 }

@@ -53,7 +53,7 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     packages.map {
       factory.createInstaller(it, sdkManager, downloader)
     }.forEach { installer ->
-      // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
+      // Intentionally don't register any listeners on the installer, so we don't recurse on AEHD
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       progressMax += progressIncrement
       if (installer.prepare(throttledProgress.createSubProgress(progressMax))) {
@@ -85,10 +85,10 @@ class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
     val factory: InstallerFactory = BasicInstallerFactory()
 
     // This is pretty much symmetric to the installPackages() method above, so the same comments apply.
-    // Should we have registered listeners, HaxmInstallListener would have invoked another instance of HaxmWizard.
+    // Should we have registered listeners, AehdInstallListener would have invoked another instance of AehdWizard.
     // The good news is that as of writing this,
-    // this class is used in Welcome and Haxm wizards only, and plays the role of a utility class.
-    // If we have more packages which require custom pre- and post-installation steps like Haxm,
+    // this class is used in Welcome and Aehd wizards only, and plays the role of a utility class.
+    // If we have more packages which require custom pre- and post-installation steps like AEHD,
     // then we might still need a way to invoke non-recursive / listener-free uninstall operations for cleanup purposes
     // It's possible that a change in packaging API would make sense to support that later -
     // there is already some cleanup() support in operation chain implementation, but its limitation is that cleanup()

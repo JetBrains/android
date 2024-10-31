@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
@@ -40,6 +38,8 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -48,9 +48,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LegacyInspectorMetricsTest {
@@ -64,7 +65,7 @@ class LegacyInspectorMetricsTest {
   private val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    whenever(loader.getAllWindowIds(Mockito.any())).thenAnswer {
+    whenever(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
       windowIdsRetrievedLock.countDown()
       windowIds
     }

@@ -15,18 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.google.common.base.Strings;
-import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods related to Gradle-specific Android settings.
@@ -40,55 +31,6 @@ public final class AndroidGradleSettings {
   @NonNls public static final String ANDROID_HOME_JVM_ARG = "android.home";
 
   private AndroidGradleSettings() {
-  }
-
-  /**
-   * Indicates whether the path of the Android SDK home directory is specified in a local.properties file.
-   *
-   * @param projectDir the project directory.
-   * @return {@code true} if the Android SDK home directory is specified in the project's local.properties.
-   */
-  public static boolean isAndroidSdkDirInLocalPropertiesFile(@NotNull File projectDir) {
-    String androidHome = getAndroidHomeFromLocalPropertiesFile(projectDir);
-    if (!Strings.isNullOrEmpty(androidHome)) {
-      String msg = String.format("Found Android SDK home at '%1$s' (from local.properties file)", androidHome);
-      LOG.info(msg);
-      return true;
-    }
-    return false;
-  }
-
-  @Nullable
-  public static String getAndroidHomeFromLocalPropertiesFile(@NotNull File projectDir) {
-    File filePath = new File(projectDir, SdkConstants.FN_LOCAL_PROPERTIES);
-    if (!filePath.isFile()) {
-      return null;
-    }
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(filePath);
-      properties.load(fileInputStream);
-    } catch (FileNotFoundException e) {
-      return null;
-    } catch (IOException e) {
-      String msg = String.format("Failed to read file '%1$s'", filePath.getPath());
-      LOG.error(msg, e);
-      return null;
-    } finally {
-      try {
-        Closeables.close(fileInputStream, true);
-      } catch (IOException e) {
-        LOG.debug(e);
-      }
-    }
-    return properties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
-  }
-
-  @NotNull
-  public static String createAndroidHomeJvmArg(@NotNull String androidHome) {
-    return createJvmArg(ANDROID_HOME_JVM_ARG, androidHome);
   }
 
   @NotNull

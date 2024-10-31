@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 
@@ -68,23 +70,19 @@ public class QuerySummaryTestBuilder {
             .collect(toCollection(HashSet::new));
     includes.keySet().stream().map(Label::of).forEach(sourceFiles::add);
 
-    Query.Summary.Builder builder = QuerySummary.EMPTY.proto().toBuilder();
-    for (Label l : packages) {
-      if (!buildFilesWithErrors.contains(l.siblingWithName("BUILD"))) {
-        builder.putRules(
-            l.toString(), Query.Rule.newBuilder().setRuleClass("java_library").build());
-      }
-    }
-    for (Label src : sourceFiles) {
-      builder.putSourceFiles(
-          src.toString(),
-          SourceFile.newBuilder()
-              .setLocation(src + ":1:1")
-              .addAllSubinclude(includes.get(src.toString()))
-              .build());
-    }
-    buildFilesWithErrors.stream().map(Label::toString).forEach(builder::addPackagesWithErrors);
+    QuerySummary.Builder builder = QuerySummary.newBuilder();
+    builder.putAllRules(
+      packages.stream().filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
+        .collect(toImmutableMap(l -> Label.of(l.toString()), l -> Query.Rule.newBuilder().setRuleClass("java_library").build())));
+    builder.putAllSourceFiles(
+      sourceFiles.stream().collect(toImmutableMap(src -> src, src -> SourceFile.newBuilder()
+        .setLocation(src + ":1:1")
+        .addAllSubinclude(includes.get(src.toString()))
+        .build()))
+    );
 
-    return builder.build();
+    builder.putAllPackagesWithErrors(buildFilesWithErrors.stream().map(Label::getPackage).collect(toImmutableSet()));
+
+    return builder.build().protoForSerializationOnly();
   }
 }

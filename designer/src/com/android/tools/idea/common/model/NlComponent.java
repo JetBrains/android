@@ -495,14 +495,21 @@ public class NlComponent implements NlAttributesHolder {
     return getAttribute(namespace, attribute);
   }
 
+  public String getLiveAttributeWithoutStyleResolution(@Nullable String namespace, @NotNull String attribute) {
+    if (myCurrentTransaction != null) {
+      return myCurrentTransaction.getAttribute(namespace, attribute);
+    }
+    return getAttributeImpl(namespace, attribute, /* styleResolution */ false);
+  }
+
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-    return getAttributeImpl(namespace, attribute);
+    return getAttributeImpl(namespace, attribute, /* styleResolution */ true);
   }
 
   @Nullable
-  private String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
+  private String getAttributeImpl(@Nullable String namespace, @NotNull String attribute, boolean styleResolution) {
     TagSnapshot snapshot = mySnapshot;
     if (snapshot != null) {
       String value = snapshot.getAttribute(attribute, namespace);
@@ -517,32 +524,34 @@ public class NlComponent implements NlAttributesHolder {
         return value;
       }
 
-      // Check if the component has an associated style that contains this attribute
-      String style = snapshot.getAttribute(ATTR_STYLE, "");
-      if (style == null) {
-        return null;
-      }
-      ResourceUrl url = ResourceUrl.parse(style);
-      if (url == null) {
-        return null;
-      }
-      ResourceReference styleRef = url.resolve(ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER);
-      if (styleRef == null) {
-        return null;
-      }
+      if (styleResolution) {
+        // Check if the component has an associated style that contains this attribute
+        String style = snapshot.getAttribute(ATTR_STYLE, "");
+        if (style == null) {
+          return null;
+        }
+        ResourceUrl url = ResourceUrl.parse(style);
+        if (url == null) {
+          return null;
+        }
+        ResourceReference styleRef = url.resolve(ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER);
+        if (styleRef == null) {
+          return null;
+        }
 
-      ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
-      if (resNamespace == null) {
-        return null;
-      }
+        ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
+        if (resNamespace == null) {
+          return null;
+        }
 
-      ResourceResolver resolver = myModel.getThemeUpdater().getCachedResourceResolver();
-      StyleResourceValue styleResValue = resolver.getStyle(styleRef);
-      if (styleResValue == null) {
-        return null;
+        ResourceResolver resolver = myModel.getThemeUpdater().getCachedResourceResolver();
+        StyleResourceValue styleResValue = resolver.getStyle(styleRef);
+        if (styleResValue == null) {
+          return null;
+        }
+        StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
+        return item != null ? item.getValue() : null;
       }
-      StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
-      return item != null ? item.getValue() : null;
     }
 
     return myBackend.getAttribute(attribute, namespace);

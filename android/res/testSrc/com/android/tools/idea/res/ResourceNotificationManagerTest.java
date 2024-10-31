@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForResourceRepositoryUpdates;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -25,9 +30,15 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.android.tools.idea.util.ReformatUtil;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -35,21 +46,43 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameDialog;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link ResourceNotificationManager}.
  */
-public class ResourceNotificationManagerTest extends AndroidTestCase {
+@RunsInEdt
+public class ResourceNotificationManagerTest {
+  @Rule
+  public EdtAndroidProjectRule projectRule = new EdtAndroidProjectRule(AndroidProjectRule.onDisk().initAndroid(true));
+  private CodeInsightTestFixture myFixture;
+  private Module myModule;
+  private Project myProject;
+  private AndroidFacet myFacet;
 
+  @Before
+  public void setUp() {
+    myFixture = projectRule.getFixture();
+    myModule = myFixture.getModule();
+    myProject = projectRule.getProject();
+    myFacet = AndroidFacet.getInstance(myModule);
+  }
+
+  @Test
   public void testEditNotifications() throws Exception {
     @Language("XML") String xml;
 
@@ -65,7 +98,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "        android:layout_height=\"match_parent\"\n" +
           "        android:text=\"@string/hello\" />\n" +
           "</FrameLayout>";
-    XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
+    XmlFile layout1 = (XmlFile)projectRule.getFixture().addFileToProject("res/layout/my_layout1.xml", xml);
     @SuppressWarnings("ConstantConditions")
     VirtualFile resourceDir = layout1.getParent().getParent().getVirtualFile();
     assertNotNull(resourceDir);
@@ -95,7 +128,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     myFixture.addFileToProject("res/values/colors.xml", xml);
 
     Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
 
     // Listener 1: Listens for changes in layout 1.
     Ref<Boolean> called1 = new Ref<>(false);
@@ -130,14 +163,14 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
                  configuration1.getResourceResolver()
                    .getStyle(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "AppTheme"))
                    .getItem(ResourceNamespace.ANDROID, "colorBackground").getValue());
-    IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
+    IdeResourcesUtil.createValueResource(myProject, resourceDir, "color2", ResourceType.COLOR, "colors.xml",
                                          Collections.singletonList("values"), "#fa2395");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
     clear(called1, calledValue1, called2, calledValue2);
     @SuppressWarnings("ConstantConditions")
     XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
     assertEquals("item", tag.getName());
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> tag.getValue().setEscapedText("@color/color2"));
+    WriteCommandAction.runWriteCommandAction(myProject, () -> tag.getValue().setEscapedText("@color/color2"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT); ///
 
     // First check: Modify the layout by changing @string/hello to @string/hello_world
@@ -189,7 +222,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager.
     clear(called1, calledValue1, called2, calledValue2);
     StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
-    IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
+    IdeResourcesUtil.createValueResource(myProject, resourceDir, "color4", ResourceType.COLOR, "colors.xml",
                                          Collections.singletonList("values"), "#ff2300");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
@@ -229,6 +262,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // TODO: Test that remove and replace editing also works as expected.
   }
 
+  @Test
   public void testNotifiedOnRename() throws Exception {
     // Setup sample project: a strings file, and a couple of layout file
     @Language("XML") String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -247,7 +281,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
 
 
     Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
 
     // Listener 1: Listens for changes in layout 1.
     Ref<Boolean> called1 = new Ref<>(false);
@@ -266,10 +300,11 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     };
     manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
-    ApplicationManager.getApplication().invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout"));
+    ApplicationManager.getApplication().invokeAndWait(() -> new RenameDialog(myProject, layout1, null, null).performRename("newLayout"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
   }
 
+  @Test
   public void testNotNotifiedOnRenameNonResourceFile() throws Exception {
     // Setup sample project: a strings file, and a couple of layout file.
     @Language("JAVA") String java = "class Hello {}";
@@ -278,7 +313,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     assertNotNull(resourceDir);
 
     Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(javaFile.getVirtualFile());
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
 
     // Listener 1: Listens for changes in layout 1.
     Ref<Boolean> called1 = new Ref<>(false);
@@ -298,14 +333,75 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     manager.addListener(listener1, myFacet, javaFile.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
     ApplicationManager.getApplication()
-        .invokeAndWait(() -> new RenameDialog(getProject(), javaFile, null, null).performRename("newFile.java"));
+      .invokeAndWait(() -> new RenameDialog(myProject, javaFile, null, null).performRename("newFile.java"));
     ensureNotCalled(called1, called2);
+  }
+
+  @Test
+  // Regression test for b/362961808
+  public void testResourceImageChangedNotNotifiedWhenOtherFileIsReformatted() throws Exception {
+    @Language("XML") String xml;
+
+    // Setup sample project: a layout file and an animated vector file
+
+    String layoutContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+          "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+          "    android:layout_width=\"match_parent\"\n" +
+          "    android:layout_height=\"match_parent\">\n" +
+          "    <!-- My comment -->\n" +
+          "    <TextView\n" +
+          "        android:layout_width=\"match_parent\"\n" +
+          "        android:layout_height=\"match_parent\"\n" +
+          "        android:text=\"@string/hello\" />\n" +
+          "</FrameLayout>";
+    XmlFile layout = (XmlFile)projectRule.getFixture().addFileToProject("res/layout/my_layout1.xml", layoutContents);
+
+    String vectorXml = """
+        <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:aapt="http://schemas.android.com/aapt" >
+            <aapt:attr name="android:drawable">
+                <vector
+                    android:height="64dp"
+                    android:width="64dp"
+                    android:viewportHeight="600"
+                    android:viewportWidth="600" >
+                    <group
+                        android:name="rotationGroup"
+                        android:pivotX="300.0"
+                        android:pivotY="300.0"
+                        android:rotation="45.0" >
+                        <path
+                            android:name="v"
+                            android:fillColor="#000000"
+                            android:pathData="M300,70 l 0,-70 70,70 0,0 -70,70z" />
+                    </group>
+                </vector>
+            </aapt:attr>
+        </animated-vector>
+    """;
+
+    XmlFile animatedVector = (XmlFile)projectRule.getFixture().addFileToProject("res/drawable/my_animated_vector.xml", vectorXml);
+    WriteCommandAction.runWriteCommandAction(myProject, () -> {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector);
+    });
+
+    AtomicBoolean resourcesHaveChanged = new AtomicBoolean(false);
+    Configuration layoutConfiguration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
+    UIUtil.dispatchAllInvocationEvents(); // Dispatch any pending notifications
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(projectRule.getProject());
+    manager.addListener(reasons -> resourcesHaveChanged.set(true), myFacet, layout.getVirtualFile(), layoutConfiguration);
+    WriteCommandAction.runWriteCommandAction(myProject, () -> {
+      ReformatUtil.reformatAndRearrange(myProject, animatedVector);
+    });
+    waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
+    UIUtil.dispatchAllInvocationEvents(); // Dispatch notifications
+    assertFalse("Reformat of the vector should not have triggered a change", resourcesHaveChanged.get());
   }
 
   private void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
                             @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
                             @NotNull Reason reason) throws InterruptedException, TimeoutException {
-    waitForResourceRepositoryUpdates(4, TimeUnit.SECONDS);
+    waitForResourceRepositoryUpdates(myModule, 4, TimeUnit.SECONDS);
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(called1.get());
     assertEquals(EnumSet.of(reason), calledValue1.get());
@@ -322,7 +418,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
   }
 
   private void ensureNotCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Boolean> called2) throws InterruptedException, TimeoutException {
-    waitForResourceRepositoryUpdates();
+    waitForResourceRepositoryUpdates(myModule);
     UIUtil.dispatchAllInvocationEvents();
     assertFalse(called1.get());
     assertFalse(called2.get());
@@ -341,7 +437,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
   }
 
   private void editText(@NotNull PsiFile file, @NotNull String location, int length, @NotNull String text) {
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(myProject);
     Document document = documentManager.getDocument(file);
     assertNotNull(document);
 

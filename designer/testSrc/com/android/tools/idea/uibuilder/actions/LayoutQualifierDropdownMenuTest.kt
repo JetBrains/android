@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class LayoutQualifierDropdownMenuTest {
 

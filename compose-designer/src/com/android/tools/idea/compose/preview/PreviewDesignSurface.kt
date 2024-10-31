@@ -23,6 +23,9 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -57,13 +60,15 @@ private fun createPreviewDesignSurfaceBuilder(
   NlSurfaceBuilder.builder(project, parentDisposable) { surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
-      LayoutlibSceneManager(model, surface, sceneComponentProvider).also {
-        it.setListenResourceChange(false) // don't re-render on resource changes
-        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+      LayoutlibSceneManager(model, surface, sceneComponentProvider = sceneComponentProvider).also {
+        it.sceneRenderConfiguration.layoutScannerConfig.isLayoutScannerEnabled = false
+        it.listenResourceChange = false // don't re-render on resource changes
+        it.updateAndRenderWhenActivated = false // don't re-render on activation
         it.sceneRenderConfiguration.renderingTopic =
           RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
       }
     }
+    .shouldZoomOnFirstComponentResize(false)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
@@ -78,9 +83,11 @@ private fun createPreviewDesignSurfaceBuilder(
     }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
-    .setMaxZoomToFitLevel(2.0) // Set fit into limit to 200%
-    .setMinScale(0.01) // Allow down to 1% zoom level
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
+    .setShouldShowLayoutDeprecationBanner {
+      listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
+        .contains(it)
+    }
 
 /**
  * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]

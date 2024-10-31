@@ -18,7 +18,6 @@ package com.android.tools.property.panel.impl.ui
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -40,14 +39,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import javax.swing.JComponent
+import javax.swing.JLabel
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import javax.swing.JComponent
-import javax.swing.JLabel
+import org.mockito.kotlin.whenever
 
 class PropertiesPageTest {
   companion object {

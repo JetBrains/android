@@ -17,7 +17,6 @@ package com.android.tools.idea.common.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.TOOLS_URI
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -30,6 +29,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class NlComponentBackendXmlTest : AndroidTestCase() {
 

@@ -25,8 +25,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.run.configuration.execution.applicationIdOrAndroidExecutionException
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
-import com.android.tools.idea.run.configuration.execution.getApplicationIdAndDevices
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -82,7 +83,8 @@ class AndroidBaselineProfileConfigurationExecutor(
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Generate Baseline Profile(s)")
 
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationIdProvider.applicationIdOrAndroidExecutionException
+    val devices = getDevices(env, deviceFutures, indicator)
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 

@@ -42,9 +42,9 @@ java_library(
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/shared:vcs",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
         "@maven//:com.google.protobuf.protobuf-java",  # unuseddeps: keep for consistent protobuf-java version
     ],
 )
@@ -55,6 +55,7 @@ intellij_plugin_library(
     visibility = PLUGIN_PACKAGES_VISIBILITY,
     deps = [
         ":base",
+        "//tools/adt/idea/aswb/aswb/src/com/android/tools/idea/rendering/tokens",
         "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/project/indexing",
     ],
 )
@@ -123,9 +124,9 @@ java_library(
         ":proto_wrapper",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
     ],
 )
 
@@ -251,9 +252,9 @@ java_library(
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
         "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
     ],
 )
 
@@ -326,9 +327,9 @@ java_library(
     ],
     deps = [
         ":base",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
         "@maven//:com.google.errorprone.error_prone_annotations",
     ],
 )
@@ -458,10 +459,10 @@ java_library(
         "//tools/adt/idea/aswb/shared:exception",
         "//tools/adt/idea/aswb/testing:lib",
         "//tools/adt/idea/aswb/third_party/bazel/src/main/java/com/google/devtools/build/lib/buildeventstream/proto:build_event_stream_java_proto",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],
@@ -516,10 +517,10 @@ intellij_unit_test_suite(
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
         "//tools/adt/idea/aswb/testing:lib",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],

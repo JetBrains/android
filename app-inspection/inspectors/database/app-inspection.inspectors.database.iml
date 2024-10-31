@@ -16,7 +16,6 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="sqlite-inspector-proto" level="project" />
-    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" />
     <orderEntry type="module" module-name="app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

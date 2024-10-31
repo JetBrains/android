@@ -231,7 +231,7 @@ maven_repository(
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
-        "@maven//:com.google.ai.client.generativeai.generativeai_0.2.2",
+        "@maven//:com.google.ai.client.generativeai.generativeai_0.9.0",
         "@maven//:com.google.android.gms.play-services-ads_21.5.0",
         "@maven//:com.google.android.gms.play-services-base_17.6.0",
         "@maven//:com.google.android.gms.play-services-maps_18.1.0",

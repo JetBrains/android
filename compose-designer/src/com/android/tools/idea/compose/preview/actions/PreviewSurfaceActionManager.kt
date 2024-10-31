@@ -40,6 +40,7 @@ import java.awt.MouseInfo
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
@@ -57,10 +58,15 @@ internal class PreviewSurfaceActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
+  override fun createSceneViewLabel(
+    sceneView: SceneView,
+    scope: CoroutineScope,
+    isPartOfOrganizationGroup: StateFlow<Boolean>,
+  ): LabelPanel {
     return InteractiveLabelPanel(
       sceneView.sceneManager.model.displaySettings,
       scope,
+      isPartOfOrganizationGroup,
       suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
   }
