@@ -30,6 +30,7 @@
 #include "flags.h"
 #include "jvm.h"
 #include "log.h"
+#include "socket_reader.h"
 
 namespace screensharing {
 
@@ -42,7 +43,9 @@ constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
 constexpr duration SOCKET_RECEIVE_POLL_TIMEOUT = 250ms;
+constexpr duration SOCKET_READ_TIMEOUT = 5s;
 constexpr duration DISPLAY_POLLING_DURATION = 500ms;
+
 
 constexpr int FINGER_TOUCH_SIZE = 1;
 
@@ -99,11 +102,10 @@ bool CheckVideoSize(Size video_resolution) {
 
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
-      input_stream_(socket_fd, BUFFER_SIZE),
+      input_stream_(SocketReader(socket_fd, duration_cast<milliseconds>(SOCKET_READ_TIMEOUT).count()), BUFFER_SIZE),
       output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
       clipboard_listener_(this),
       device_state_listener_(this) {
-  assert(socket_fd > 0);
   try {
     output_stream_.WriteByte('C');
     output_stream_.Flush();

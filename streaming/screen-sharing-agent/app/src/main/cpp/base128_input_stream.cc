@@ -27,8 +27,8 @@ namespace screensharing {
 
 using namespace std;
 
-Base128InputStream::Base128InputStream(int socket_fd, size_t buffer_size)
-    : fd_(socket_fd),
+Base128InputStream::Base128InputStream(SocketReader&& reader, size_t buffer_size)
+    : reader_(std::move(reader)),
       buffer_(new uint8_t[buffer_size]),
       buffer_capacity_(buffer_size),
       offset_(0),
@@ -41,22 +41,23 @@ Base128InputStream::~Base128InputStream() {
 }
 
 void Base128InputStream::Close() {
-  shutdown(fd_, SHUT_RD);
+  shutdown(reader_.socket_fd(), SHUT_RD);
 }
 
 uint8_t Base128InputStream::ReadByte() {
   if (offset_ == data_end_) {
-    auto n = TEMP_FAILURE_RETRY(read(fd_, buffer_, buffer_capacity_));
-    if (n < 0) {
-      if (errno == EAGAIN) {
-        throw IoTimeout();
-      }
-      throw IoException();
-    } else if (n == 0) {
+    auto result = reader_.Read(buffer_, buffer_capacity_);
+    if (result.status == SocketReader::Status::DISCONNECTED) {
       throw EndOfFile();
     }
+    if (result.status == SocketReader::Status::TIMEOUT) {
+      throw IoTimeout();
+    }
+    if (result.status == SocketReader::Status::IO_ERROR) {
+      throw IoException(result.error_code);
+    }
     offset_ = 0;
-    data_end_ = static_cast<size_t>(n);
+    data_end_ = result.bytes_read;
   }
   return buffer_[offset_++];
 }
