@@ -112,7 +112,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(systemUiModeAction);
 
     group.addSeparator();
-    DeviceMenuAction menuAction = new DeviceMenuAction((oldDevice, newDevice) -> mySurface.notifyRestoreZoom());
+    DeviceMenuAction menuAction = new DeviceMenuAction((oldDevice, newDevice) -> mySurface.getZoomController().zoomToFit());
     appendShortcutText(menuAction, NextDeviceAction.getInstance());
     group.add(menuAction);
 
