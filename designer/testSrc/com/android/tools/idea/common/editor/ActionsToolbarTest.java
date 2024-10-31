@@ -28,23 +28,22 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
-import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
-import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.awt.Color;
 import java.lang.reflect.Field;
 import java.util.Map;
 import javax.swing.JComponent;
-import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ActionsToolbarTest extends LayoutTestCase {
 
   public void testPresentationFactoryCacheDoesNotGrowOnUpdate() throws Exception {
     // Regression test for b/79110899
-    ActionsToolbar toolbar = createToolbar();
+    NlDesignSurface surface = createSurfaceForToolbar();
+    ActionsToolbar toolbar = new ActionsToolbar(getTestRootDisposable(), surface);
     ActionToolbarImpl centerToolBar = toolbar.getCenterToolbar();
     Map<?, ?> cache = getPresentationCache(centerToolBar);
     PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
@@ -67,27 +66,31 @@ public class ActionsToolbarTest extends LayoutTestCase {
     assertThat(cache.size()).isAtMost(initialSize);
   }
 
-  public void testNorthAndNorthEastToolbarBackgroundsMatchParentBackground() throws Exception {
-    // Regression test for b/346941702
-    ActionsToolbar toolbar = createToolbar();
+  public void testNorthAndNorthEastToolbarBackgroundsMatchSurfaceBackground() throws Exception {
+    // Regression test for b/365593307
+    Color backgroundColorOne = Color.BLUE;
+    Color backgroundColorTwo = Color.BLACK;
+    NlDesignSurface surface = createSurfaceForToolbar();
+    when(surface.getBackground()).thenReturn(backgroundColorOne);
+    ActionsToolbar toolbar = new ActionsToolbar(getTestRootDisposable(), surface);
     ActionToolbar northToolbar = toolbar.getNorthToolbar();
     ActionToolbar northEastToolbar = toolbar.getNorthToolbar();
+
     assertNotNull(northToolbar);
     assertNotNull(northEastToolbar);
-    JComponent parentComponent = toolbar.getToolbarComponent();
     JComponent northToolbarComponent = northToolbar.getComponent();
     JComponent northEastToolbarComponent = northEastToolbar.getComponent();
 
-    assertEquals(parentComponent.getBackground().getRGB(), northToolbarComponent.getBackground().getRGB());
-    assertEquals(parentComponent.getBackground().getRGB(), northEastToolbarComponent.getBackground().getRGB());
+    assertEquals(backgroundColorOne, northToolbarComponent.getBackground());
+    assertEquals(backgroundColorOne, northEastToolbarComponent.getBackground());
 
-    EdtTestUtil.runInEdtAndWait(() -> UIManager.setLookAndFeel(new DarculaLaf()));
+    when(surface.getBackground()).thenReturn(backgroundColorTwo);
 
-    assertEquals(parentComponent.getBackground().getRGB(), northToolbarComponent.getBackground().getRGB());
-    assertEquals(parentComponent.getBackground().getRGB(), northEastToolbarComponent.getBackground().getRGB());
+    assertEquals(backgroundColorTwo, northToolbarComponent.getBackground());
+    assertEquals(backgroundColorTwo, northEastToolbarComponent.getBackground());
   }
 
-  private ActionsToolbar createToolbar() {
+  private NlDesignSurface createSurfaceForToolbar() {
     SyncNlModel model = createModel().build();
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     NlActionManager actionManager = new NlActionManager(surface);
@@ -95,7 +98,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
     doReturn(actionManager).when(surface).getActionManager();
     doReturn(LayoutFileType.INSTANCE).when(surface).getLayoutType();
     when(surface.getIssueModel()).thenReturn(issueModel);
-    return new ActionsToolbar(getTestRootDisposable(), surface);
+    return surface;
   }
 
   // Lookup some private fields via reflections.

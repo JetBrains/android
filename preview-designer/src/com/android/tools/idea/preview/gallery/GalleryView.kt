@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.gallery
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -42,7 +43,7 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Shows dropdown with a option for each [Key]. [GalleryView] always track the list of currently
+ * Shows dropdown with an option for each [Key]. [GalleryView] always track the list of currently
  * available [Key]s using [keysProvider] and currently selected [Key] using [selectedProvider].
  * [selectionListener] is called only if selection is changed by interacting with [GalleryView].
  *
@@ -194,6 +195,7 @@ internal class GalleryView<Key : TitledKey>(
         GalleryActionGroup(listOf(SelectPreviewLabel(), selectPreviewDropDown)),
       )
       .component
+      .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
 
   init {
     add(selectPreviewToolbar, BorderLayout.EAST)
