@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.google.common.collect.Iterables;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.Objects;
@@ -215,21 +216,17 @@ public class ConstraintAnchorTargetTest extends SceneTest {
 
   private void testAnchorSize(AnchorTarget anchorTarget, Point[] hitPoints, Point[] nonHitPoints) {
     ScenePicker picker = new ScenePicker();
-    ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
-    picker.setSelectListener(hitListener);
 
     anchorTarget.addHit(myScene.getSceneManager().getSceneViews().get(0).getContext(), picker, 0);
 
     for (Point p : nonHitPoints) {
-      picker.find(p.x, p.y);
-      Mockito.verify(hitListener, Mockito.times(0)).over(anchorTarget, 0d);
+      assertTrue(picker.find(p.x, p.y).isEmpty());
     }
 
-    int hitCount = 0;
     for (Point p : hitPoints) {
-      hitCount++;
-      picker.find(p.x, p.y);
-      Mockito.verify(hitListener, Mockito.times(hitCount)).over(anchorTarget, 0d);
+      ScenePicker.HitResult hit = Iterables.getOnlyElement(picker.find(p.x, p.y));
+      assertEquals(anchorTarget, hit.object());
+      assertEquals(0d, hit.distance());
     }
   }
 
@@ -408,18 +405,14 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   public void testCannotBeClickedByRightClickEvent() {
     SceneComponent inner = myScene.getSceneComponent("inner");
     ScenePicker picker = new ScenePicker();
-    ScenePicker.HitElementListener listener = Mockito.mock(ScenePicker.HitElementListener.class);
-    picker.setSelectListener(listener);
 
     ConstraintAnchorTarget topEdge = new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true);
     topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
-    picker.find(inner.getCenterX(), inner.getDrawY() - 200);
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(topEdge), ArgumentMatchers.anyDouble());
+    assertTrue(picker.find(inner.getCenterX(), inner.getDrawY() - 200).isEmpty());
 
     ConstraintAnchorTarget leftEdge = new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true);
     leftEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
-    picker.find(inner.getDrawX() - 200, inner.getCenterY());
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
+    assertTrue(picker.find(inner.getDrawX() - 200, inner.getCenterY()).isEmpty());
   }
 
   public void testAttributesInStyle() {

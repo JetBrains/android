@@ -38,8 +38,6 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 public class MotionLayoutAnchorTargetTest extends SceneTest {
 
@@ -215,21 +213,18 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
 
   private void testAnchorSize(AnchorTarget anchorTarget, Point[] hitPoints, Point[] nonHitPoints) {
     ScenePicker picker = new ScenePicker();
-    ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
-    picker.setSelectListener(hitListener);
 
     anchorTarget.addHit(myScene.getSceneManager().getSceneViews().get(0).getContext(), picker, 0);
 
     for (Point p : nonHitPoints) {
-      picker.find(p.x, p.y);
-      Mockito.verify(hitListener, Mockito.times(0)).over(anchorTarget, 0d);
+      assertTrue(picker.find(p.x, p.y).isEmpty());
     }
 
     int hitCount = 0;
     for (Point p : hitPoints) {
       hitCount++;
       picker.find(p.x, p.y);
-      Mockito.verify(hitListener, Mockito.times(hitCount)).over(anchorTarget, 0d);
+      assertFalse(picker.find(p.x, p.y).isEmpty());
     }
   }
 
@@ -409,20 +404,17 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
     SceneComponent root = myScene.getSceneComponent("root");
     SceneComponent inner = myScene.getSceneComponent("inner");
     ScenePicker picker = new ScenePicker();
-    ScenePicker.HitElementListener listener = Mockito.mock(ScenePicker.HitElementListener.class);
-    picker.setSelectListener(listener);
 
     MotionLayoutAnchorTarget topEdge = new MotionLayoutAnchorTarget(AnchorTarget.Type.TOP, true);
     topEdge.setComponent(root);
     topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
-    picker.find(inner.getCenterX(), inner.getDrawY() - 200);
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(topEdge), ArgumentMatchers.anyDouble());
+    assertTrue(picker.find(inner.getCenterX(), inner.getDrawY() - 200).isEmpty());
 
     MotionLayoutAnchorTarget leftEdge = new MotionLayoutAnchorTarget(AnchorTarget.Type.LEFT, true);
     leftEdge.setComponent(root);
     leftEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
     picker.find(inner.getDrawX() - 200, inner.getCenterY());
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
+    assertTrue(picker.find(inner.getDrawX() - 200, inner.getCenterY()).isEmpty());
   }
 
   @Override

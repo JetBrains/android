@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -23,10 +24,8 @@ import java.util.HashSet;
  * This is a small selection component used in supporting components
  */
 public class SecondarySelector {
-  private static boolean DEBUG = false; // can be used to trace leaking objects
   NlComponent myComponent;
   Constraint myConstraint;
-  String myTrace;
 
   public enum Constraint {
     LEFT,
@@ -41,37 +40,21 @@ public class SecondarySelector {
     return " " + hashCode() + " " + myComponent + " : " + myConstraint;
   }
 
-  private static ArrayList<SecondarySelector> freeList = new ArrayList<>();
-  private static HashSet<SecondarySelector> freeSet = new HashSet<>();
-  private static ArrayList<SecondarySelector> unFreed;
-
-  static {
-    if (DEBUG) {
-      unFreed = new ArrayList<>();
-    }
-  }
+  private static final HashSet<SecondarySelector> freeSet = new HashSet<>();
 
   private SecondarySelector() {
   }
 
-  public static void debug() {
-    System.out.println("freelist size = " + unFreed.size() + " ");
-    for (SecondarySelector selector : unFreed) {
-      System.out.println("created at  .(" + selector.myTrace + ") but not freed");
-    }
-    System.out.println("freelist size = " + unFreed.size() + " ");
-  }
-
   public static SecondarySelector get(NlComponent component, Constraint constraint) {
-    SecondarySelector selector = freeList.isEmpty() ? new SecondarySelector() : freeList.remove(0);
-    freeSet.remove(selector);
+    SecondarySelector selector = Iterables.getFirst(freeSet, null);
+    if (selector != null) {
+      freeSet.remove(selector);
+    }
+    else {
+      selector = new SecondarySelector();
+    }
     selector.myComponent = component;
     selector.myConstraint = constraint;
-    if (DEBUG) {
-      StackTraceElement st = new Throwable().getStackTrace()[1];
-      selector.myTrace = st.getFileName() + ":" + st.getLineNumber();
-      unFreed.add(selector);
-    }
     return selector;
   }
 
@@ -86,12 +69,6 @@ public class SecondarySelector {
   public void release() {
     myComponent = null;
     myConstraint = null;
-    if (DEBUG) {
-      unFreed.remove(this);
-    }
-    if (freeSet.add(this)) {
-      freeList.add(this);
-    }
+    freeSet.add(this);
   }
-
 }

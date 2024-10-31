@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.common.scene;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class provides efficient detection of many objects
@@ -31,7 +34,6 @@ public class ScenePicker {
   private int[] mTypes = new int[INITAL_OBJECT_STORE];
   private int[] mRect = new int[INITAL_OBJECT_STORE * 4];
   private Object[] mObjects = new Object[INITAL_OBJECT_STORE];
-  HitElementListener mHitElementListener;
 
   private int mObjectCount = 0;
   private final static int OBJECT_LINE = 0;
@@ -65,8 +67,10 @@ public class ScenePicker {
    *
    * @param x location x
    * @param y location y
+   * @return the list of objects hit on x,y
    */
-  public void find(int x, int y) {
+  public ImmutableList<HitResult> find(int x, int y) {
+    ImmutableList.Builder<HitResult> builder = new ImmutableList.Builder<>();
     for (int i = 0; i < mObjectCount; i++) {
       int p = i * 4;
       int x1 = mRect[p++];
@@ -76,19 +80,11 @@ public class ScenePicker {
       if (inRect(x, y, x1, y1, x2, y2)) {
         SelectionEngine selector = myEngines[mTypes[i]];
         if (selector.inRange(i, x, y)) {
-          mHitElementListener.over(mObjects[i], selector.distance());
+          builder.add(new HitResult(mObjects[i], selector.distance()));
         }
       }
     }
-  }
-
-  /**
-   * set the listener to be notified of the objects in range
-   *
-   * @param listener
-   */
-  public void setSelectListener(HitElementListener listener) {
-    mHitElementListener = listener;
+    return builder.build();
   }
 
   private static boolean inRect(int x, int y, int x1, int y1, int x2, int y2) {
@@ -106,13 +102,6 @@ public class ScenePicker {
     if (x > x2) return false;
     if (y > y2) return false;
     return true;
-  }
-
-  /**
-   * The interface of the object to be notified
-   */
-  public interface HitElementListener {
-    void over(Object over, double dist);
   }
 
   /**
@@ -602,4 +591,6 @@ public class ScenePicker {
       return mDistance;
     }
   }
+
+  public record HitResult(@NotNull Object object, double distance) { }
 }

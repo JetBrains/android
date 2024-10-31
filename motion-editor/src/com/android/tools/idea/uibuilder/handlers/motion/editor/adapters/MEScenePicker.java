@@ -19,6 +19,4 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
  * Empty sub class to System provided ScenePicker
  */
 public class MEScenePicker  extends com.android.tools.idea.common.scene.ScenePicker {
-  public interface HitElementListener extends com.android.tools.idea.common.scene.ScenePicker.HitElementListener{
-  }
 }
