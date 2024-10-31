@@ -22,7 +22,7 @@
     ]]>
   </description>
   <version>0.1</version>
-  <vendor>Jetbrains, Google</vendor>
+  <vendor>JetBrains, Google</vendor>
 
   <dependencies>
     <plugin id="com.intellij.java" />
