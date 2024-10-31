@@ -612,8 +612,14 @@ abstract class DesignSurface<T : SceneManager>(
   private val readyToRestoreZoomMask = AtomicInteger(0)
 
   /**
-   * Notify to [DesignSurface] that we can now try to restore the zoom. Note: this function works
-   * only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
+   * Notify to [DesignSurface] that we can now try to restore the zoom or apply zoom to fit if no
+   * zoom has been stored before.
+   *
+   * This is used for when we need to wait for events external to [DesignSurface] (such as Rendering
+   * of the content) before trying to restore the zoom.
+   *
+   * Note: if [waitForRenderBeforeRestoringZoom] flag is enabled, it waits [DesignSurface] to be
+   * resized before restoring the zoom.
    */
   @UiThread
   fun notifyRestoreZoom() {
@@ -621,10 +627,14 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Resets the bitwise mask so DesignSurface can listen again onResize and trying to call
-   * restoreZoomOrZoomToFit when possible.
+   * Resets the bitwise mask responsible to check weather restoring zoom or waiting for
+   * [notifyRestoreZoom]. Resetting will allow DesignSurface to call
+   * [waitForRenderBeforeRestoringZoom] as if it happens for the first time.
    *
-   * Note: this function works only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
+   * This is useful when we switch modes or layouts.
+   *
+   * Note: if [waitForRenderBeforeRestoringZoom] is enabledit will wait [notifyRestoreZoom] to be
+   * performed at least once before trying to restore the zoom.
    */
   fun resetRestoreZoomNotifier() {
     if (readyToRestoreZoomMask.get() == RESTORE_ZOOM_DONE_INT_MASK && height > 0 && width > 0) {
@@ -647,7 +657,10 @@ abstract class DesignSurface<T : SceneManager>(
    * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
    * causing a wrong fitScale value.
    *
-   * Note: this function works only if [DesignSurface.waitForRenderBeforeRestoringZoom] is enabled.
+   * Note: if [waitForRenderBeforeRestoringZoom] is enabled it will wait
+   * DesignSurface.notifyRestoreZoom() to be performed at least once. if
+   * [waitForRenderBeforeRestoringZoom] is disabled it will directly perform
+   * restoreZoomOrZoomToFit()
    */
   @UiThread
   private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
