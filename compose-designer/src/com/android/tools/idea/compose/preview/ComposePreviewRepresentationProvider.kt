@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.flags.ifEnabled
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.actions.SystemUiOptionsAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -34,7 +33,6 @@ import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.actions.ForceCompileAndRefreshActionForNotification
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -121,11 +119,6 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           )
           .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-        StudioFlags.NELE_SYSTEM_UI_OPTIONS.ifEnabled {
-          SystemUiOptionsAction {
-            ForceCompileAndRefreshActionForNotification.getInstance().actionPerformed(it)
-          }
-        },
       )
     ) {
 

@@ -346,11 +346,6 @@ public final class StudioFlags {
     "Allows floating attached tool windows (partly broken).",
     false);
 
-  public static final Flag<Boolean> NELE_SYSTEM_UI_OPTIONS = new BooleanFlag(
-    NELE, "system.ui.options", "Enable system UI options",
-    "Enable an action to customize the system UI for previews.",
-    false);
-
   public static final Flag<Boolean> NELE_BACKGROUND_DISPLAY_LIST = new BooleanFlag(
     NELE, "background.displaylist", "Enable Display List background creation",
     "When enabled, the scene display list is created in the background.",
