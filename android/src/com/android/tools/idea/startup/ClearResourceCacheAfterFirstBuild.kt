@@ -27,6 +27,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.Disposer
@@ -40,6 +42,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
  * were accessed before source generation. If the last build of the project in the previous session was successful
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
+@Service(Service.Level.PROJECT)
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private inner class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable) : Disposable {
     override fun dispose() {
@@ -187,7 +190,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   }
 
   /**
-   * Indicates whether or not clearResourceCacheIfNecessary has been called.
+   * Indicates whether clearResourceCacheIfNecessary has been called.
    */
   @VisibleForTesting
   fun isCacheClean() = synchronized(lock) { cacheClean }
@@ -195,7 +198,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild =
-        project.getService(ClearResourceCacheAfterFirstBuild::class.java)
+        project.service()
 
     @JvmStatic
     private val INCOMPLETE_RUNTIME_DEPENDENCIES = Key.create<Boolean>("IncompleteRuntimeDependencies")
