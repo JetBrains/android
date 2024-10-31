@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.adblib.serialNumber
+import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.devicemanagerv2.DeviceManagerOverflowActionContributor
 import com.android.tools.idea.devicemanagerv2.deviceRowData
 import com.android.tools.idea.deviceprovisioner.deviceHandle
@@ -52,9 +54,10 @@ class OpenStandaloneLayoutInspectorAction :
     val deviceRowData = e.deviceRowData()
     val deviceHandle = e.deviceHandle()
 
-    // For now keep the action always disabled.
-    e.presentation.isVisible = false
-    e.presentation.isEnabled = false
+    // Embedded Layout Inspector is not supported for XR devices. So we provide this action to
+    // fallback to Standalone.
+    e.presentation.isVisible = deviceRowData?.type == DeviceType.XR
+    e.presentation.isEnabled = deviceHandle?.state is DeviceState.Connected
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -63,7 +66,9 @@ class OpenStandaloneLayoutInspectorAction :
     val serialNumber = deviceRowData?.handle?.state?.connectedDevice?.serialNumber
 
     if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      // TODO: disable embedded Layout Inspector and register the tool window.
+      // Standalone Layout Inspector is not enabled. Enable it and add the tool window.
+      LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+      registerLayoutInspectorToolWindow(project)
     }
 
     // Open the tool window.
