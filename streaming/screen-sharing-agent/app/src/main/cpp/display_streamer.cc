@@ -47,7 +47,7 @@ constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // In
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 constexpr double SQRT_2 = 1.41421356237;
 constexpr double SQRT_10 = 3.16227766017;
-constexpr int SOCKET_TIMEOUT_MICROS = 10000000;
+constexpr int SOCKET_TIMEOUT_MILLIS = 10000;
 
 // Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
 // where n is one of 1, 2 or 5 and k is integer number.
@@ -349,7 +349,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Display %d: writing video packet: %s", display_id_, packet_header->ToDebugString().c_str());
     }
-    auto res = writer_.Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MICROS);
+    auto res = writer_.Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MILLIS);
     if (res == SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       request_sync_frame = true;
     } else if (res != SocketWriter::Result::SUCCESS) {

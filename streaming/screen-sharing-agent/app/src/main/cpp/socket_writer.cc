@@ -37,7 +37,7 @@ SocketWriter::SocketWriter(int socket_fd, std::string&& socket_name)
   assert(socket_fd > 0);
 }
 
-SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const void* buf2, size_t size2, int timeout_micros) {
+SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const void* buf2, size_t size2, int timeout_millis) {
   bool was_blocked = false;
   while (true) {
     ssize_t written;
@@ -59,7 +59,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
           was_blocked = true;
           auto poll_start = steady_clock::now();
           struct pollfd fds = {socket_fd_, POLLOUT, 0};
-          int ret = poll(&fds, 1, timeout_micros);
+          int ret = poll(&fds, 1, timeout_millis);
           if (ret < 0) {
             Log::Fatal(SOCKET_IO_ERROR, "Error waiting for %s socket to start accepting data - %s", socket_name_.c_str(), strerror(errno));
           }
@@ -67,8 +67,8 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
-          timeout_micros -= duration_cast<microseconds>(steady_clock::now() - poll_start).count();
-          if (timeout_micros <= 0) {
+          timeout_millis -= duration_cast<milliseconds>(steady_clock::now() - poll_start).count();
+          if (timeout_millis <= 0) {
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
