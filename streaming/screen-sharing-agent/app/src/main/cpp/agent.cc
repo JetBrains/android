@@ -43,6 +43,7 @@ const char ATTRIBUTION_TAG[] = "studio.screen.sharing";
 namespace {
 
 constexpr int CHANNEL_HEADER_LENGTH = 20;
+constexpr int SOCKET_TIMEOUT_MILLIS = 10000;
 
 int CreateAndConnectSocket(const string& socket_name) {
   int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -106,7 +107,7 @@ void WriteVideoChannelHeader(const string& codec_name, int socket_fd) {
     buf.insert(buf.end(), ' ');
   }
   SocketWriter writer(socket_fd, "video");
-  auto res = writer.Write(buf.c_str(), buf_size, /*timeout_micros=*/ 10000000);
+  auto res = writer.Write(buf.c_str(), buf_size, SOCKET_TIMEOUT_MILLIS);
   if (res == SocketWriter::Result::TIMEOUT) {
     Log::Fatal(SOCKET_IO_ERROR, "Timed out writing video channel header");
   } else if (res == SocketWriter::Result::DISCONNECTED) {
@@ -234,7 +235,7 @@ void Agent::Run(const vector<string>& args) {
     audio_socket_fd_ = CreateAndConnectSocket(socket_name_);
     SocketWriter writer(audio_socket_fd_, "audio");
     char channel_marker = 'A';
-    writer.Write(&channel_marker, sizeof(channel_marker), /*timeout_micros=*/10000000);  // Audio channel marker.
+    writer.Write(&channel_marker, sizeof(channel_marker), SOCKET_TIMEOUT_MILLIS);  // Audio channel marker.
   }
   control_socket_fd_ = CreateAndConnectSocket(socket_name_);
   Log::D("Agent::Run: video_socket_fd_=%d audio_socket_fd_=%d control_socket_fd_=%d", video_socket_fd_, audio_socket_fd_, control_socket_fd_);
