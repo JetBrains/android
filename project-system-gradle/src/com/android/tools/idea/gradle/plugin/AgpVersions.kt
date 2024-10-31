@@ -24,9 +24,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.IdeAndroidGradlePluginSnapshotRepositoryProvider
 import com.android.tools.idea.ui.GuiTestingService
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.ui
 
 import com.android.mockito.kotlin.mockStatic
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
@@ -25,7 +25,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.Consumer
 import org.jetbrains.android.util.AndroidBundle
-import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq

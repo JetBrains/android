@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.util;
 
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.doFindAndroidStudioLocalMavenRepoPaths;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot;
+import static com.android.tools.idea.util.EmbeddedDistributionPaths.doFindAndroidStudioLocalMavenRepoPaths;
+import static com.android.tools.idea.util.EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot;
 import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.testFramework.rules.TempDirectory;
 import java.io.File;
 import java.io.IOException;

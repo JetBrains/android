@@ -7,7 +7,6 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -16,6 +15,7 @@ import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.testing.ThreadingCheckerHookTestImpl;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline;
 import com.android.tools.tests.AdtTestProjectDescriptor;
 import com.android.tools.tests.AdtTestProjectDescriptors;

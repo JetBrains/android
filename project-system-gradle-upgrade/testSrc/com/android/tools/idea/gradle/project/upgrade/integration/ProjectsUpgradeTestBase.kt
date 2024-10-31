@@ -41,7 +41,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -54,6 +53,7 @@ import com.android.tools.idea.testing.JdkUtils
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withGradle
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
