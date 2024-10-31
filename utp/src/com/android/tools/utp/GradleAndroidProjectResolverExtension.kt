@@ -39,7 +39,7 @@ class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension()
   override fun enhanceTaskProcessing(taskNames: MutableList<String>, jvmParametersSetup: String?, initScriptConsumer: Consumer<String>) {
     try {
       val addTestListenerScript = ResourceUtil.getResource(
-        GradleAndroidProjectResolverExtension::class.java, "utp", "addGradleAndroidTestListener.gradle")
+        GradleAndroidProjectResolverExtension::class.java.classLoader, "utp", "addGradleAndroidTestListener.gradle")
       // Note: initScriptConsumer doesn't support Kotlin DSL.
       initScriptConsumer.consume(Resources.toString(addTestListenerScript, Charsets.UTF_8))
     }
