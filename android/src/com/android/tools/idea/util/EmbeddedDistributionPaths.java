@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.util;
 
-import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
@@ -34,88 +29,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 
 @Service
 public final class EmbeddedDistributionPaths {
   @NotNull
   public static EmbeddedDistributionPaths getInstance() {
     return ApplicationManager.getApplication().getService(EmbeddedDistributionPaths.class);
-  }
-
-
-  @NotNull
-  public List<File> findAndroidStudioLocalMavenRepoPaths() {
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode() && StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get().isBlank()) {
-      return ImmutableList.of();
-    }
-    return doFindAndroidStudioLocalMavenRepoPaths();
-  }
-
-  @VisibleForTesting
-  @NotNull
-  static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
-    List<File> repoPaths = new ArrayList<>();
-
-    List<String> studioFlagOfflineRepos = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(StudioFlags.DEVELOPMENT_OFFLINE_REPO_LOCATION.get());
-    for (String offlineRepo : studioFlagOfflineRepos) {
-      validateAndAdd(offlineRepo, repoPaths);
-    }
-
-    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
-      return repoPaths;
-    }
-
-    String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
-    if (studioCustomRepo != null) {
-      validateAndAdd(studioCustomRepo, repoPaths);
-    }
-
-    if (StudioPathManager.isRunningFromSources()) {
-      if (studioCustomRepo == null) {
-        addIfExists("out/repo", repoPaths);
-      }
-      // Add locally published offline studio repo
-      addIfExists("out/studio/repo", repoPaths);
-      addIfExists(System.getProperty("java.io.tmpdir") + "/offline-maven-repo", repoPaths);
-      // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
-      addIfExists("../maven/repository", repoPaths);
-      // Add prebuilts repo only if any have already been added
-      if (!repoPaths.isEmpty()) {
-        addIfExists("prebuilts/tools/common/m2/repository", repoPaths);
-      }
-    }
-
-    return ImmutableList.copyOf(repoPaths);
-  }
-
-  private static void validateAndAdd(String studioCustomRepo, List<File> repoPaths) {
-    try {
-      Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
-      if (!Files.isDirectory(customRepoPath)) {
-        Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo + " is not a directory.");
-        return;
-      }
-      repoPaths.add(customRepoPath.toFile());
-    }
-    catch (IOException e) {
-      Logger.getInstance(EmbeddedDistributionPaths.class).error("Invalid maven repo path: " + studioCustomRepo, e);
-    }
-  }
-
-  /**
-   * Adds paths that correspond to directories which exist to repoPaths
-   *
-   * The path should be relative to tools/idea.
-   */
-  private static void addIfExists(String path, List<File> repoPaths) {
-    Path directory = StudioPathManager.resolvePathFromSourcesRoot(path);
-    if (!Files.isDirectory(directory)) return;
-    repoPaths.add(directory.toFile());
   }
 
   @NotNull
@@ -126,44 +47,6 @@ public final class EmbeddedDistributionPaths {
     } else {
       return new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     }
-  }
-
-  /**
-   * @return the directory in the source repository that contains the checked-in Gradle distributions. In Android Studio production builds,
-   * it returns null.
-   */
-  @Nullable
-  public File findEmbeddedGradleDistributionPath() {
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development build.
-      Path distribution = StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle");
-      if (Files.isDirectory(distribution)) {
-        return distribution.toFile();
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @param gradleVersion the version of Gradle to search for
-   * @return The archive file for the requested Gradle distribution, if exists, that is checked into the source repository. In Android
-   * Studio production builds, this method always returns null.
-   */
-  @Nullable
-  public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
-    File distributionPath = findEmbeddedGradleDistributionPath();
-    if (distributionPath != null) {
-      File allDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-all.zip");
-      if (allDistributionFile.isFile() && allDistributionFile.exists()) {
-        return allDistributionFile;
-      }
-
-      File binDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
-      if (binDistributionFile.isFile() && binDistributionFile.exists()) {
-        return binDistributionFile;
-      }
-    }
-    return null;
   }
 
   @Nullable

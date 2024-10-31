@@ -32,6 +32,7 @@ import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.bleak.StudioBleakOptions;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -43,7 +44,6 @@ import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogger;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
@@ -529,7 +529,7 @@ public class GuiTestRule implements TestRule {
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, GradleVersion.version(gradleVersion), null);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
     return wrapper != null;

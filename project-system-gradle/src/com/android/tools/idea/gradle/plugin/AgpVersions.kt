@@ -24,9 +24,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.IdeAndroidGradlePluginSnapshotRepositoryProvider
 import com.android.tools.idea.ui.GuiTestingService
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -72,7 +72,7 @@ object AgpVersions {
 
       // When running from sources allow fallback to the latest stable if AGP has not been built locally
       if (StudioPathManager.isRunningFromSources() && ApplicationManager.getApplication() != null && !GuiTestingService.isInTestingMode()) {
-        val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+        val repoPaths = GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
         for (repoPath in repoPaths) {
           if (Files.isDirectory(MavenRepositories.getArtifactDirectory(repoPath.toPath(), AGP_APP_PLUGIN_MARKER))) {
             return ANDROID_GRADLE_PLUGIN_VERSION // Found locally built AGP
@@ -189,7 +189,7 @@ object AgpVersions {
 
   @Slow
   private fun getDevelopmentLocalRepoVersions(): List<NewProjectWizardAgpVersion> {
-    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+    return GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
       .flatMap { localRepo ->
         MavenRepositories.getAllVersions(localRepo.toPath(), AGP_APP_PLUGIN_MARKER.module)
           .mapNotNullTo(mutableSetOf()) {

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase.CurrentAgp.Companion.NUMBER_OF_EXPECTATIONS
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
@@ -40,7 +41,6 @@ import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.switchVariant
 import com.android.tools.idea.testing.withoutKtsRelatedIndexing
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.google.common.truth.Expect
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
@@ -287,7 +287,7 @@ abstract class ProviderIntegrationTestCase {
   var expect = Expect.createAndEnableStackTrace()
 
   private val m2Dirs by lazy {
-    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() +
+    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths() +
      TestUtils.getPrebuiltOfflineMavenRepo().toFile())
       .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
   }

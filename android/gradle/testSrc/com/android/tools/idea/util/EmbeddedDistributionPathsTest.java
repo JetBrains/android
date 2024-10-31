@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.util;
 
-import static com.android.tools.idea.util.EmbeddedDistributionPaths.doFindAndroidStudioLocalMavenRepoPaths;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.doFindAndroidStudioLocalMavenRepoPaths;
 import static com.android.tools.idea.util.EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot;
 import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.intellij.testFramework.rules.TempDirectory;
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Tests for {@link EmbeddedDistributionPaths}.
+ * Tests for {@link EmbeddedDistributionPaths} and some parts of {@link GradleProjectSystemUtil}.
  */
 public class EmbeddedDistributionPathsTest {
 

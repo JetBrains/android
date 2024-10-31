@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -53,7 +54,6 @@ import com.android.tools.idea.testing.JdkUtils
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withGradle
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
@@ -199,7 +199,7 @@ open class ProjectsUpgradeTestBase {
       // Setting actual expected gradle path here, which does not use EmbeddedDistributionPaths.findEmbeddedGradleDistributionFile() or
       // AndroidGradleTests.createGradleWrapper() because the file does not necessarily exist (because of bazel sandboxing, for example).
       val wrapper = GradleWrapper.create(projectRoot, null)
-      EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath()
+      GradleProjectSystemUtil.findEmbeddedGradleDistributionPath()
         ?.resolve("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
         ?.let { file -> wrapper.updateDistributionUrl(file) } ?: error("failed to set expected Gradle path")
     }
