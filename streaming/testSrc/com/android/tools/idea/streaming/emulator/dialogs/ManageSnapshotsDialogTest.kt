@@ -301,7 +301,6 @@ class ManageSnapshotsDialogTest {
   }
 
   @Test
-  @Ignore("b/376552507")
   fun testDialogClosedWhileLoadingSnapshot() {
     val loadingPanelListener = LoadingPanelListener()
     val loadingPanel = StreamingLoadingPanel(testRootDisposable)

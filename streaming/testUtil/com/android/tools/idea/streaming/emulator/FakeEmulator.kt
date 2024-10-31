@@ -254,9 +254,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         }
         catch (ignore: NoSuchFileException) {
         }
+        if (grpcSemaphore.availablePermits() == 0) {
+          resumeGrpc()
+        }
         grpcServer.shutdownNow()
         try {
-          grpcServer.awaitTermination()
+          grpcServer.awaitTermination(10, TimeUnit.SECONDS)
         }
         catch (e: InterruptedException) {
           thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
@@ -272,9 +275,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   fun crash() {
     synchronized(lifeCycleLock) {
       if (startTime != 0L) {
+        if (grpcSemaphore.availablePermits() == 0) {
+          resumeGrpc()
+        }
         grpcServer.shutdownNow()
         try {
-          grpcServer.awaitTermination()
+          grpcServer.awaitTermination(10, TimeUnit.SECONDS)
         }
         catch (e: InterruptedException) {
           thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
