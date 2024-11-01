@@ -76,6 +76,7 @@ import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
@@ -131,6 +132,11 @@ class AndroidRunConfigurationExecutorTest {
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "InnocuousThread-")
 
     projectRule.project.replaceService(BackupManager::class.java, mockBackupManager, projectRule.testRootDisposable)
+  }
+
+  @After
+  fun tearDown() {
+    projectRule.fixture.tearDown()
   }
 
   @Test
