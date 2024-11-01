@@ -505,8 +505,6 @@ Android Studio Preview.app/Contents/license/layoutlib_jni.so.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dll.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.dylib.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.so.txt
-Android Studio Preview.app/Contents/license/libicuuc-host.dll.txt
-Android Studio Preview.app/Contents/license/libicuuc_stubdata.dll.txt
 Android Studio Preview.app/Contents/license/mockito-all-1.9.5-NOTICE
 Android Studio Preview.app/Contents/license/r8_license.txt
 Android Studio Preview.app/Contents/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE

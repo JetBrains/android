@@ -495,8 +495,6 @@ android-studio/license/layoutlib_jni.so.txt
 android-studio/license/libandroid_runtime.dll.txt
 android-studio/license/libandroid_runtime.dylib.txt
 android-studio/license/libandroid_runtime.so.txt
-android-studio/license/libicuuc-host.dll.txt
-android-studio/license/libicuuc_stubdata.dll.txt
 android-studio/license/mockito-all-1.9.5-NOTICE
 android-studio/license/r8_license.txt
 android-studio/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE
