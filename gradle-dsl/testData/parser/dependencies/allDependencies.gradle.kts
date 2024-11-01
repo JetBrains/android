@@ -1,5 +1,4 @@
 dependencies {
-  api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
   implementation("com.example.libs:lib1:0.+")
   api("com.android.support:appcompat-v7:+")
   compile(files("lib1.jar"))
@@ -11,4 +10,5 @@ dependencies {
   releaseImplementation(project(":lib3"))
   releaseImplementation(fileTree(mapOf("dir" to "libz", "include" to listOf("*.jar"))))
   releaseImplementation(mapOf("group" to "org.springframework", "name" to "spring-core", "version" to  "2.5"))
+  api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }

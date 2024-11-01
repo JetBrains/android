@@ -169,19 +169,24 @@ class DeclarativeDslParser(
     object : DeclarativeRecursiveVisitor() {
       override fun visitLiteral(psi: DeclarativeLiteral) {
         val literal = GradleDslLiteral(list, psi, GradleNameElement.empty(), psi, LITERAL)
-        list.addParsedExpression(literal);
+        list.addParsedExpression(literal)
       }
 
       override fun visitFactory(psi: DeclarativeFactory) {
         val methodCall = parseFactory(psi, context, GradleNameElement.empty()) ?: return
-        list.addParsedExpression(methodCall);
+        list.addParsedExpression(methodCall)
       }
     }
 
   private fun parseFactory(psi: DeclarativeFactory,
                            context: GradlePropertiesDslElement,
-                           nameElement: GradleNameElement): GradleDslMethodCall? {
+                           currentNameElement: GradleNameElement): GradleDslMethodCall? {
     val name = psi.identifier.name ?: return null
+
+    val nameElement = if (currentNameElement.isEmpty)
+      GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)
+    else
+      currentNameElement
     val methodCall = GradleDslMethodCall(context, psi, nameElement, name, false)
 
     val argumentList = psi.argumentsList ?: return null

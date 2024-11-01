@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
@@ -72,7 +73,7 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
       is GradleDslLiteral ->
         if (parentPsiElement is DeclarativeArgumentsList)
           factory.createArgument(factory.createLiteral(element.value))
-        else if (externalNameInfo.syntax == METHOD)
+        else if (parent is DependenciesDslElement || externalNameInfo.syntax == METHOD)
           factory.createOneParameterFactory(name, "\"placeholder\"")
         else // default syntax
           factory.createAssignment(name, "\"placeholder\"")
