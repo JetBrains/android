@@ -24,9 +24,11 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/375699186")
 class GradleSyncSpecialCasesIntegrationTest {
 
   @get:Rule
