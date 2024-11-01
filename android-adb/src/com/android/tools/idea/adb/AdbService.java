@@ -83,8 +83,7 @@ import org.jetbrains.annotations.TestOnly;
  */
 @Service
 public final class AdbService implements Disposable,
-                                         AdbOptionsService.AdbOptionsListener,
-                                         AndroidDebugBridge.IDeviceChangeListener {
+                                         AdbOptionsService.AdbOptionsListener {
   @TestOnly
   public static boolean disabled = false;
 
@@ -143,22 +142,7 @@ public final class AdbService implements Disposable,
 
   private final @NotNull MyDebugBridgeChangeListener myDebugBridgeChangeListener = new MyDebugBridgeChangeListener();
 
-  @Override
-  public void deviceConnected(@NotNull IDevice device) {
-    logDeviceConnectionStatus(device);
-  }
-
-  @Override
-  public void deviceDisconnected(@NotNull IDevice device) {
-    logDeviceConnectionStatus(device);
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-    if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-      logDeviceConnectionStatus(device);
-    }
-  }
+  private final @NotNull MyDeviceChangeListener myDeviceChangeListener = new MyDeviceChangeListener();
 
   private void logDeviceConnectionStatus(@NotNull IDevice device) {
     if (device.isOnline()) {
@@ -272,7 +256,7 @@ public final class AdbService implements Disposable,
   public void dispose() {
     LOG.info("Disposing AdbService");
     AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
-    AndroidDebugBridge.removeDeviceChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
     AdbOptionsService.getInstance().removeListener(this);
     try {
       mySequentialExecutor.submit(() -> {
@@ -324,7 +308,7 @@ public final class AdbService implements Disposable,
 
     AdbOptionsService.getInstance().addListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener);
-    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
@@ -618,6 +602,25 @@ public final class AdbService implements Disposable,
       catch (TimeoutException ignored) {
       }
       // Leave until next getBridge caller to reinitialize.
+    }
+  }
+
+  private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener {
+    @Override
+    public void deviceConnected(@NotNull IDevice device) {
+      logDeviceConnectionStatus(device);
+    }
+
+    @Override
+    public void deviceDisconnected(@NotNull IDevice device) {
+      logDeviceConnectionStatus(device);
+    }
+
+    @Override
+    public void deviceChanged(@NotNull IDevice device, int changeMask) {
+      if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+        logDeviceConnectionStatus(device);
+      }
     }
   }
 }
