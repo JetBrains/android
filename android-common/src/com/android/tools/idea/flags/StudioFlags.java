@@ -1196,13 +1196,6 @@ public final class StudioFlags {
     "If enabled, calls out reads of variables of type State inside @Composable functions.",
     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> SKIP_NAV_INFO_DUMB_MODE_CHECK = new BooleanFlag(
-    EDITOR, "skip.nav.info.dumb.mode.check",
-    "Skip check for dumb mode in NavInfoFetcher.kt",
-    "When true, NavInfoFetched.kt does not check for dumb mode, and instead allows a caller to handle an IndexNotReadyException.",
-    true
-  );
-
   //endregion
 
   //region Essentials Mode
