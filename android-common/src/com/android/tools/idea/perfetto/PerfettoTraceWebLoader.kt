@@ -51,36 +51,40 @@ private const val origin = "https://ui.perfetto.dev"
  */
 object PerfettoTraceWebLoader {
   const val FEATURE_REGISTRY_KEY = "profiler.trace.open.mode.web" // determines whether the feature is enabled via Registry.is(<this key>)
-  const val TRACE_HANDLED_CAPTION = "The trace has been handed over to the Perfetto Web UI (ui.perfetto.dev)"
 
   private val taskExecutor = PooledThreadExecutor.INSTANCE
-  private val requestQueue = Channel<File>(capacity = Channel.UNLIMITED)
+  private val requestQueue = Channel<LoadRequest>(capacity = Channel.UNLIMITED)
+  private data class LoadRequest(val file: File, val queryParams: String?)
 
   private val logger = Logger.getInstance(PerfettoTraceWebLoader::class.java)
 
   init {
     CoroutineScope(taskExecutor.asCoroutineDispatcher()).launch {
-      for (traceFile in requestQueue) {
+      for (request in requestQueue) {
         // A latch used for waiting until the request has been received by the server and then shutting down the server.
         val requestReceivedLatch = Job()
 
         // Transient web server to provide the trace file to ui.perfetto.dev (file://... is not supported, it must be http://...).
-        val server = HttpServer(traceFile, requestReceivedLatch).also { it.start() }
+        val server = HttpServer(request.file, requestReceivedLatch).also { it.start() }
 
         // Opening the trace file in ui.perfetto.dev in the browser (with trace file url passed as an url parameter).
-        val urlEncodedFileName = URLEncoder.encode(traceFile.name, Charsets.UTF_8)
-        BrowserLauncher.instance.browse(
-          URI.create("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop"))
+        val urlEncodedFileName = URLEncoder.encode(request.file.name, Charsets.UTF_8)
+        val uri = URI.create(buildString {
+          append("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop")
+          if (request.queryParams != null) append("&${request.queryParams}") // note: we assume queryParams are already url-encoded
+        })
+        BrowserLauncher.instance.browse(uri)
 
         // Wait until we start serving the trace file, then allow the request to finish before shutting down the server.
-        requestReceivedLatch.join()
+        requestReceivedLatch.join() // TODO(b/376667704): add timeout
         server.stop(gracePeriod = 10, SECONDS)
       }
     }
   }
 
-  fun loadTrace(traceFile: File) {
-    val result = requestQueue.trySend(traceFile)
+  /** @param queryParams url-encoded query params */
+  fun loadTrace(traceFile: File, queryParams: String? = null) {
+    val result = requestQueue.trySend(LoadRequest(traceFile, queryParams))
     if (!result.isSuccess) logger.error("Failed to load the trace file ${traceFile.name}", result.exceptionOrNull())
   }
 }
