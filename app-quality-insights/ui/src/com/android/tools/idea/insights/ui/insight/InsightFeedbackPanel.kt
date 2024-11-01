@@ -16,8 +16,6 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.insights.experiments.InsightFeedback
-import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -26,6 +24,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.components.BorderLayoutPanel
+import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.Icon
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +36,7 @@ class InsightFeedbackPanel(
 
   private val upvoteAction =
     createFeedbackAction(
-      icon = AllIcons.Ide.Like,
+      icon = StudioIcons.Common.LIKE,
       text = "Upvote this insight",
       action = { toggleCurrentFeedback(InsightFeedback.THUMBS_UP) },
       state = { feedbackState.value == InsightFeedback.THUMBS_UP },
@@ -45,7 +44,7 @@ class InsightFeedbackPanel(
 
   private val downvoteAction =
     createFeedbackAction(
-      icon = AllIcons.Ide.Dislike,
+      icon = StudioIcons.Common.DISLIKE,
       text = "Downvote this insight",
       action = { toggleCurrentFeedback(InsightFeedback.THUMBS_DOWN) },
       state = { feedbackState.value == InsightFeedback.THUMBS_DOWN },
@@ -56,7 +55,6 @@ class InsightFeedbackPanel(
     val toolbar =
       ActionManager.getInstance().createActionToolbar("InsightFeedbackPanel", actionGroup, true)
     toolbar.targetComponent = this
-    toolbar.minimumButtonSize = MINIMUM_ACTION_BUTTON_SIZE
     add(toolbar.component, BorderLayout.CENTER)
   }
 
