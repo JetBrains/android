@@ -1524,11 +1524,91 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   fun testExtensionSuppressKotlinOnR() {
+    // (We're not setting the minSdkVersion to R here, instead we just added
+    // an extra "if SDK_INT > R" surrounding the call site.)
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
       "/src/androidx/annotation/RequiresExtension.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin1Req99Java() {
+    // minSdk=1, requiredSdk=99.9 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin35Req352Java() {
+    // minSdk=35, requiredSdk=35.2 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we DO use a constant for the API level since we have one for this API level
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin36Req99Java() {
+    // minSdk=36, requiredSdk=99.9 -- here we need to
+    //  (a) only have a VERSION_CODES_FULL check, no VERSION_CODES check
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin36Req99Kotlin() {
+    // minSdk=36, requiredSdk=99.9 -- here we need to
+    //  (a) only have a VERSION_CODES_FULL check, no VERSION_CODES check
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin1Req99Kotlin() {
+    // minSdk=1, requiredSdk=99.9 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin35Req352Kotlin() {
+    // minSdk=35, requiredSdk=35.2 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we DO use a constant for the API level since we have one for this API level
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
       "kt",
     )
   }
@@ -1550,6 +1630,46 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.kt",
       "kt",
+    )
+  }
+
+  fun testRequiresApiKotlinSingleMajor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM) Annotation",
+      "/src/test/pkg/RequiresApiTest.kt",
+      "kt",
+    )
+  }
+
+  fun testRequiresApiKotlinSingleMinor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM_2) Annotation",
+      "/src/test/pkg/RequiresApiTest.kt",
+      "kt",
+    )
+  }
+
+  fun testRequiresApiJavaSingleMajor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM) Annotation",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testRequiresApiJavaSingleMinor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM_2) Annotation",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
     )
   }
 

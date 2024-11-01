@@ -61,17 +61,25 @@ class AddTargetVersionCheckQuickFix(
   project: Project,
   element: PsiElement,
   private val api: Int,
+  private val minor: Int,
   private val sdkId: Int,
   private val minSdk: ApiConstraint,
 ) : PsiBasedModCommandAction<PsiElement>(element) {
 
   private val name: String =
-    if (sdkId == ANDROID_SDK_ID)
-      "Surround with if (VERSION.SDK_INT >= ${
-        getVersionField(api, false).let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }
-      }) { ... }"
-    else
+    if (sdkId == ANDROID_SDK_ID) {
+      if (minor > 0) {
+        val versionField = getVersionField(api, minor, false)
+        "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.$versionField) { ... }"
+      } else {
+        val versionField = getVersionField(api, false)
+        "Surround with if (VERSION.SDK_INT >= ${
+          versionField.let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }
+        }) { ... }"
+      }
+    } else {
       "Surround with if (SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)})) >= $api) { ... }"
+    }
 
   override fun getFamilyName(): String = "AddTargetVersionCheckQuickFix"
 
@@ -107,13 +115,17 @@ class AddTargetVersionCheckQuickFix(
 
     val conditionText =
       if (sdkId == ANDROID_SDK_ID)
-        "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
+        if (minor > 0)
+          "${getSdkIntFullCheckPrefix()}android.os.Build.VERSION.SDK_INT_FULL >= ${getVersionField(api, minor, true)}"
+        else "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
       else {
         "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
       }
 
     val todoText =
-      if (sdkId == ANDROID_SDK_ID) "\"VERSION.SDK_INT < ${getVersionField(api, false)}\""
+      if (sdkId == ANDROID_SDK_ID)
+        if (minor > 0) "\"VERSION.SDK_INT_FULL < ${getVersionField(api, minor, false)}\""
+        else "\"VERSION.SDK_INT < ${getVersionField(api, false)}\""
       else
         "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\""
 
@@ -128,6 +140,11 @@ class AddTargetVersionCheckQuickFix(
     )
       ""
     else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
+  }
+
+  private fun getSdkIntFullCheckPrefix(): String {
+    return if (minSdk != ApiConstraint.UNKNOWN && minSdk.isAtLeast(ApiConstraint.atLeast(36))) ""
+    else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM && "
   }
 
   private fun handleJava(element: PsiElement, context: ActionContext): ModCommand {
@@ -146,7 +163,10 @@ class AddTargetVersionCheckQuickFix(
 
     val newText =
       if (sdkId == ANDROID_SDK_ID)
-        "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
+        if (minor > 0)
+          "${getSdkIntFullCheckPrefix()}android.os.Build.VERSION.SDK_INT_FULL >= " +
+            getVersionField(api, minor, true, kotlin = false)
+        else "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
       else
         "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
 
@@ -225,6 +245,14 @@ class AddTargetVersionCheckQuickFix(
   companion object {
     fun getVersionField(api: Int, fullyQualified: Boolean): String =
       ExtensionSdk.getAndroidVersionField(api, fullyQualified)
+
+    fun getVersionField(
+      api: Int,
+      minor: Int,
+      fullyQualified: Boolean,
+      requireFull: Boolean = true,
+      kotlin: Boolean = true,
+    ): String = ExtensionSdk.getAndroidVersionField(api, minor, fullyQualified, requireFull, kotlin)
 
     fun getSdkExtensionField(project: Project, sdkId: Int, fullyQualified: Boolean): String {
       val apiLookup = LintIdeClient.getApiLookup(project)

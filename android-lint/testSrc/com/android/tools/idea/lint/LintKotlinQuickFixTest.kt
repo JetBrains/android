@@ -94,7 +94,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   @Language("kt")
   private val requiresApiAnnotationStub =
     """
-      package android.support.annotation
+      package androidx.annotation
       annotation class RequiresApi(val api: Int)
       """
       .trimIndent()
@@ -242,7 +242,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
       @@ -5 +7
             companion object {
@@ -269,7 +269,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
             @@ -2 +2
               import android.graphics.drawable.VectorDrawable
             + import android.os.Build
-            + import android.support.annotation.RequiresApi
+            + import androidx.annotation.RequiresApi
 
             + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
               fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
@@ -295,7 +295,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         @@ -2 +2
           import android.graphics.drawable.VectorDrawable
         + import android.os.Build
-        + import android.support.annotation.RequiresApi
+        + import androidx.annotation.RequiresApi
 
         + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
           class MyVectorDrawable : VectorDrawable() {
@@ -324,7 +324,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -349,7 +349,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """
       @@ -1 +1
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
       +
         class Test {
       +     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -377,7 +377,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -404,7 +404,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -429,7 +429,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.app.Activity
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
         val top: Int
       +     @RequiresApi(Build.VERSION_CODES.M)
@@ -461,7 +461,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
-      + import android.support.annotation.RequiresApi
+      + import androidx.annotation.RequiresApi
 
       @@ -5 +7
             val flag = false

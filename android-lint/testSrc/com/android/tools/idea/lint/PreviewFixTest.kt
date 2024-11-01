@@ -74,6 +74,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           project,
           element,
           9,
+          0,
           ExtensionSdk.ANDROID_SDK_ID,
           ApiConstraint.ALL,
         )
@@ -128,6 +129,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           project,
           element,
           9,
+          0,
           ExtensionSdk.ANDROID_SDK_ID,
           ApiConstraint.ALL,
         )
