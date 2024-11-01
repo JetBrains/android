@@ -94,6 +94,7 @@ import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -184,6 +185,7 @@ internal class DeviceViewTest {
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }
 
+  @After
   fun tearDown() {
     BitRateManager.getInstance().clear()
   }
