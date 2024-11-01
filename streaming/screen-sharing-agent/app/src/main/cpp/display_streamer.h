@@ -58,7 +58,7 @@ public:
 
   DisplayStreamer(
       int display_id, const CodecInfo* codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate,
-      int socket_fd);
+      SocketWriter* writer);
   virtual ~DisplayStreamer();
 
   // Starts the streamer's thread.
@@ -114,7 +114,7 @@ private:
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
   const CodecInfo* codec_info_ = nullptr;  // Not owned.
-  SocketWriter writer_;
+  SocketWriter* writer_;
   int64_t presentation_timestamp_offset_ = 0;
   int32_t bit_rate_;
   bool bit_rate_reduced_ = false;

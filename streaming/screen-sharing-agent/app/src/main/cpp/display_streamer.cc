@@ -47,7 +47,6 @@ constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // In
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 constexpr double SQRT_2 = 1.41421356237;
 constexpr double SQRT_10 = 3.16227766017;
-constexpr int SOCKET_TIMEOUT_MILLIS = 10000;
 
 // Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
 // where n is one of 1, 2 or 5 and k is integer number.
@@ -148,11 +147,11 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
 }  // namespace
 
 DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info, Size max_video_resolution,
-                                 int32_t initial_video_orientation, int32_t max_bit_rate, int socket_fd)
+                                 int32_t initial_video_orientation, int32_t max_bit_rate, SocketWriter* writer)
     : display_rotation_watcher_(this),
       display_id_(display_id),
       codec_info_(codec_info),
-      writer_(socket_fd, "video"),
+      writer_(writer),
       bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
@@ -349,7 +348,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Display %d: writing video packet: %s", display_id_, packet_header->ToDebugString().c_str());
     }
-    auto res = writer_.Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MILLIS);
+    auto res = writer_->Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size());
     if (res == SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       request_sync_frame = true;
     } else if (res != SocketWriter::Result::SUCCESS) {

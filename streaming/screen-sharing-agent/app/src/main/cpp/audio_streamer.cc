@@ -48,7 +48,6 @@ constexpr int BYTES_PER_FRAME = BYTES_PER_SAMPLE * CHANNEL_COUNT;
 constexpr int BIT_RATE = 128000;
 constexpr char MIME_TYPE[] = "audio/opus";
 const char* CODEC_NAME = MIME_TYPE + sizeof("audio/") - 1;
-constexpr int SOCKET_TIMEOUT_MILLIS = 10000;
 
 AMediaFormat* CreateMediaFormat() {
   AMediaFormat* media_format = AMediaFormat_new();
@@ -117,13 +116,13 @@ struct CodecInputBuffer {
   AMediaCodec* codec;
   uint8_t* buffer;
   ssize_t index;
-  size_t size;
+  size_t size = 0;
 };
 
 }  // namespace
 
-AudioStreamer::AudioStreamer(int socket_fd)
-    : writer_(socket_fd, "audio") {
+AudioStreamer::AudioStreamer(SocketWriter* writer)
+    : writer_(writer) {
 }
 
 AudioStreamer::~AudioStreamer() {
@@ -175,7 +174,7 @@ void AudioStreamer::Run() {
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Audio: writing %s", packet_header.ToDebugString().c_str());
     }
-    auto res = writer_.Write(&packet_header, AudioPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MILLIS);
+    auto res = writer_->Write(&packet_header, AudioPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size());
     if (res != SocketWriter::Result::SUCCESS && res != SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       continue_streaming = false;
     }
