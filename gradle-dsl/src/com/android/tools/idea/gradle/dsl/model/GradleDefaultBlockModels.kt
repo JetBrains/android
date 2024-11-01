@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidDeclarativeModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
+import com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
@@ -34,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
@@ -55,7 +58,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleBuildFile>> {
     return when(kind) {
-      GradleDslNameConverter.Kind.DECLARATIVE -> DECLARATIVE_ROOT_AVAILABLE_MODELS
+      DECLARATIVE -> DECLARATIVE_ROOT_AVAILABLE_MODELS
       else -> DEFAULT_ROOT_AVAILABLE_MODELS
     }
   }
@@ -65,7 +68,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return when(kind) {
-      GradleDslNameConverter.Kind.DECLARATIVE -> DECLARATIVE_ROOT_ELEMENTS_MAP
+      DECLARATIVE -> DECLARATIVE_ROOT_ELEMENTS_MAP
       else -> DEFAULT_ROOT_ELEMENTS_MAP
     }
   }
@@ -88,19 +91,19 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "androidLibrary" to AndroidDslElement.ANDROID_LIBRARY
     )
 
-    private fun declarativeBuilder(file: GradleBuildFile): AndroidModel {
+    private fun declarativeBuilder(file: GradleBuildFile): AndroidDeclarativeModel {
       file.getPropertyElement(AndroidDslElement.ANDROID_APP)?.let { element ->
-        return AndroidModelImpl(element)
+        return AndroidDeclarativeModelImpl(element)
       }
       file.getPropertyElement(AndroidDslElement.ANDROID_LIBRARY)?.let { element ->
-        return AndroidModelImpl(element)
+        return AndroidDeclarativeModelImpl(element)
       }
       // TODO throw exception for now but need to create add element mechanism
       throw IllegalStateException("Cannot create android[App|Library] dsl element")
     }
 
     private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
-      AndroidModel::class.java from {
+      AndroidDeclarativeModel::class.java from {
         declarativeBuilder(it)
       }
     )

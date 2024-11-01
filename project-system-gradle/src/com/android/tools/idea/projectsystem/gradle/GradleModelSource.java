@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
@@ -23,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleVersionCatalogViewImpl;
 import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
@@ -123,7 +123,7 @@ public final class GradleModelSource extends GradleModelProvider {
   private static GradleBuildModel internalCreateBuildModel(@NotNull BuildModelContext context,
                                                            @NotNull VirtualFile file,
                                                            @NotNull String moduleName) {
-    return new GradleBuildModelImpl(context.getOrCreateBuildFile(file, moduleName, false));
+    return createGradleBuildModel(context.getOrCreateBuildFile(file, moduleName, false));
   }
 
   /**

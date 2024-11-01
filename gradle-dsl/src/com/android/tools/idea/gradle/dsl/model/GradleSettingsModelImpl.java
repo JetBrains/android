@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
@@ -271,7 +272,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     }
     GradleBuildFile dslFile =
       myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1), false);
-    return new GradleBuildModelImpl(dslFile);
+    return createGradleBuildModel(dslFile);
   }
 
   @Nullable
