@@ -62,6 +62,7 @@ UNI_CHARACTER_LITERAL=\\u {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT} {HEX_DIGIT}
 <IN_BLOCK_COMMENT> {
   {BLOCK_COMMENT_START} { commentLevel++; }
   {BLOCK_COMMENT_END}  { if (--commentLevel == 0) { yybegin(YYINITIAL); return BLOCK_COMMENT; } }
+  <<EOF>>              { commentLevel = 0; yybegin(YYINITIAL); return BLOCK_COMMENT; }
   [^*/]+               { }
   [^]                  { }
 }
