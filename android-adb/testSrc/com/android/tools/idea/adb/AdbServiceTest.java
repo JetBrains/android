@@ -120,4 +120,16 @@ public class AdbServiceTest extends LightPlatformTestCase {
     assertThat(DdmPreferences.isJdwpProxyEnabled()).isEqualTo(testOptionSetting);
     assertThat(bridge1).isNotSameAs(bridge0);
   }
+
+  public void testChangeListener_AddedSuccessfully() throws Exception {
+    // Prepare
+    Path adb = TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+
+    // Act
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge = getUninterruptibly(future);
+
+    // Assert
+    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1);
+  }
 }
