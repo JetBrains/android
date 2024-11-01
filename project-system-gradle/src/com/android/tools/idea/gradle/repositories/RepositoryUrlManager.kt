@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.annotations.VisibleForTesting

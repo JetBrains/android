@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
         "@intellij//:JUnit[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/gmaven:intellij.android.gmaven[module, test]",
     ],
 )
 

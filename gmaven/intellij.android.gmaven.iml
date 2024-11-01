@@ -7,12 +7,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.gmaven" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="intellij.android.core" />
   </component>
 </module>

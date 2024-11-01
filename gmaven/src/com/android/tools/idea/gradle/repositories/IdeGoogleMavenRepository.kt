@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture
 object IdeGoogleMavenRepository : IdeGoogleMavenRepositoryBase(getCacheDir())
 
 /** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
-open abstract class IdeGoogleMavenRepositoryBase(cacheDir: Path?) : GoogleMavenRepository(cacheDir) {
+abstract class IdeGoogleMavenRepositoryBase(cacheDir: Path?) : GoogleMavenRepository(cacheDir) {
   @Slow
   override fun readUrlData(url: String, timeout: Int, lastModified: Long) =
     IdeNetworkCacheUtils.readHttpUrlData(url, timeout, lastModified)
@@ -65,7 +65,7 @@ open abstract class IdeGoogleMavenRepositoryBase(cacheDir: Path?) : GoogleMavenR
     return packageMap!!
   }
 
-  protected inner class PackageInfoAsync(val pkg: String) : GoogleMavenRepository.PackageInfo(pkg) {
+  protected inner class PackageInfoAsync(val pkg: String) : PackageInfo(pkg) {
     val artifacts: CompletableFuture<Map<String, ArtifactInfo>> by lazy {
       initializeIndex()
     }

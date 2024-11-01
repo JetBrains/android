@@ -99,6 +99,7 @@ iml_module(
         "//tools/adt/idea/analytics[module]",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:intellij.platform.lvcs.impl",
+        "//tools/adt/idea/gmaven:intellij.android.gmaven[module]",
     ],
 )
 

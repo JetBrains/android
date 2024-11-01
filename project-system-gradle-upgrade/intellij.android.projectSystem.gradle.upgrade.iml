@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="library" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.platform.lvcs.impl" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gmaven" />
   </component>
 </module>
