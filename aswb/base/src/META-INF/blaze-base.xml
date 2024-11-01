@@ -656,7 +656,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <indexedRootsProvider implementation="com.google.idea.blaze.base.project.indexing.WarmUpTriggeringIndexableSetContributor" />
-    <findUsagesHandlerFactory order="first" implementation="com.google.idea.blaze.base.lang.ASwBFindUsagesHandlerFactory"/>
   </extensions>
 
 </idea-plugin>
