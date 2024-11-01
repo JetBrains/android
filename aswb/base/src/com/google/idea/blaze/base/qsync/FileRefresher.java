@@ -22,6 +22,8 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.PrintOutput.OutputType;
+import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,6 +45,8 @@ import java.util.concurrent.ExecutionException;
 public class FileRefresher {
 
   private static final Logger logger = Logger.getInstance(DependencyTrackerImpl.class);
+  private static final FeatureRolloutExperiment skipFindingBuildOutputsExperiment =
+    new FeatureRolloutExperiment("query.sync.skip.finding.build.output");
 
   private final Project project;
 
@@ -59,39 +63,41 @@ public class FileRefresher {
             String.format("Refreshing virtual file system... (%d files)", updatedFiles.size())));
     markExistingFilesDirty(context, updatedFiles);
     ImmutableList.Builder<VirtualFile> virtualFiles = ImmutableList.builder();
-    applicationEx.invokeAndWait(
+    if (!skipFindingBuildOutputsExperiment.isEnabled()) {
+      applicationEx.invokeAndWait(
         () -> {
           final boolean unused =
-              applicationEx.runWriteActionWithNonCancellableProgressInDispatchThread(
-                  "Finding build outputs",
-                  project,
-                  null,
-                  indicator -> {
-                    ProjectRootManagerEx.getInstanceEx(project)
-                        .mergeRootsChangesDuring(
-                            () -> {
-                              // Finding a virtual file that is not yet in the VFS runs a refresh
-                              // session and triggers virtual file system changed events. Having
-                              // multiple changed events in the same project root, like currently
-                              // .dependencies dependency is, causes inefficient O(n^2) project
-                              // structure refreshing.
-                              //
-                              // Bring new files to the VFS by refreshing their parents only. Do
-                              // refreshing in two stages: (1) find parents and (2) rescan and
-                              // refresh them from a background thread (involves files changed
-                              // events being fired in the EDT).
-                              //
-                              // Considering the current artifact directories are almost flat it is
-                              // not more expensive than refreshing specific files only. This action
-                              // needs to run in a write action as in rare cases (initialization or
-                              // after some directories where manually deleted) some parents may
-                              // need to be refreshed first and it might actually be expensive in
-                              // the later case.
-                              virtualFiles.addAll(
-                                  getFileParentsAsVirtualFilesMarkedDirty(context, updatedFiles));
-                            });
-                  });
+            applicationEx.runWriteActionWithNonCancellableProgressInDispatchThread(
+              "Finding build outputs",
+              project,
+              null,
+              indicator -> {
+                ProjectRootManagerEx.getInstanceEx(project)
+                  .mergeRootsChangesDuring(
+                    () -> {
+                      // Finding a virtual file that is not yet in the VFS runs a refresh
+                      // session and triggers virtual file system changed events. Having
+                      // multiple changed events in the same project root, like currently
+                      // .dependencies dependency is, causes inefficient O(n^2) project
+                      // structure refreshing.
+                      //
+                      // Bring new files to the VFS by refreshing their parents only. Do
+                      // refreshing in two stages: (1) find parents and (2) rescan and
+                      // refresh them from a background thread (involves files changed
+                      // events being fired in the EDT).
+                      //
+                      // Considering the current artifact directories are almost flat it is
+                      // not more expensive than refreshing specific files only. This action
+                      // needs to run in a write action as in rare cases (initialization or
+                      // after some directories where manually deleted) some parents may
+                      // need to be refreshed first and it might actually be expensive in
+                      // the later case.
+                      virtualFiles.addAll(
+                        getFileParentsAsVirtualFilesMarkedDirty(context, updatedFiles));
+                    });
+              });
         });
+    }
     refreshFilesRecursively(virtualFiles.build());
     context.output(
         new PrintOutput(
