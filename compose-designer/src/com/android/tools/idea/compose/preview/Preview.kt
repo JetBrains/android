@@ -790,11 +790,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      val isZoomToFitInMode = !surface.zoomController.canZoomToFit()
       surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
-      if (isZoomToFitInMode) {
-        surface.zoomController.zoomToFit()
-      }
     }
   }
 
@@ -1468,14 +1464,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
         invalidateAndRefresh()
-        withContext(uiThread) {
-          surface.repaint()
-          // In this stage on the first opening of Preview we are still loading the items meaning we
-          // might calculate the wrong zoom-to-fit value.
-          // If we are entering from a different Preview mode such as Ui Check, we want instead
-          // clear up the previous stored zoom and apply zoom-to-fit
-          surface.zoomToFitIfStorageNotEmpty()
-        }
+        withContext(uiThread) { surface.repaint() }
       }
       is PreviewMode.Interactive -> {
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)
@@ -1551,9 +1540,9 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Gallery -> {
         withContext(uiThread) { composeWorkBench.galleryMode = null }
-        resetFirstRendering()
       }
     }
+    resetFirstRendering()
   }
 
   private fun createAnimationPreviewPanel(

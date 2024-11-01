@@ -394,7 +394,8 @@ class ComposePreviewRepresentationTest {
     )
 
     // Change the scale of the surface
-    mainSurface.zoomController.setScale(originalScale + 0.5)
+    val scaleUpdate = originalScale + 0.5
+    mainSurface.zoomController.setScale(scaleUpdate)
 
     // Check that the UI Check tab has been created
     assertEquals(2, contentManager.contents.size)
@@ -410,8 +411,8 @@ class ComposePreviewRepresentationTest {
       DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
-    // Check that the surface zooms to fit when exiting UI check mode.
-    assertEquals(1.0, mainSurface.zoomController.scale, 0.001)
+    // Check that the surface zoom stays unchanged when exiting UI check mode.
+    assertEquals(scaleUpdate, mainSurface.zoomController.scale, 0.001)
 
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",
