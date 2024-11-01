@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -39,6 +41,7 @@ import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +54,33 @@ import org.mockito.kotlin.whenever
 class StorageGroupTest {
   private var device = pixel6()
   @get:Rule val rule = createStudioComposeTestRule()
+
+  @Test
+  fun internalStorageIsValid() {
+    // Arrange
+    setContent {
+      StorageGroup(
+        device,
+        StorageGroupState(device),
+        hasPlayStore = false,
+        isExistingImageValid = true,
+        onDeviceChange = { device = it },
+      )
+    }
+
+    // Act
+    rule.onInternalStorageTextField().performTextReplacement("3")
+
+    @OptIn(ExperimentalTestApi::class)
+    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+
+    // Assert there are no tooltips
+    rule.onNode(isPopup()).onChildren().assertCountEquals(0)
+
+    assertEquals(device.copy(internalStorage = StorageCapacity(3, StorageCapacity.Unit.GB)), device)
+  }
 
   @Test
   fun internalStorageIsEmpty() {
@@ -100,6 +130,30 @@ class StorageGroupTest {
       .onNodeWithText("Internal storage for Play Store devices must be at least 2G")
       .assertIsDisplayed()
 
+    assertNull(device.internalStorage)
+  }
+
+  @Test
+  fun internalStorageIsLessThanMin() {
+    // Arrange
+    setContent {
+      StorageGroup(
+        device,
+        StorageGroupState(device),
+        hasPlayStore = false,
+        isExistingImageValid = true,
+        onDeviceChange = { device = it },
+      )
+    }
+
+    // Act
+    rule.onInternalStorageTextField().performTextReplacement("1")
+
+    @OptIn(ExperimentalTestApi::class)
+    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    rule.onNodeWithText("Internal storage must be at least 2G").assertIsDisplayed()
     assertNull(device.internalStorage)
   }
 
