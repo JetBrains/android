@@ -62,11 +62,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -76,7 +74,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.border.Border;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -139,7 +136,17 @@ public class BuildVariantView {
   }
 
   private void updateContents() {
-    getVariantsTable().setBuildVariantTableModel(BuildVariantTableModel.create(myProject));
+    BuildVariantTableModel model = BuildVariantTableModel.create(myProject);
+
+    boolean allDefault = true;
+    for (BuildVariantTableRow row : model.getRows()) {
+      if (!row.variantItem().isDefault()) {
+        allDefault = false;
+        break;
+      }
+    }
+    myImportDefaultsButton.setEnabled(!allDefault);
+    getVariantsTable().setBuildVariantTableModel(model);
   }
 
   private void projectImportStarted() {
