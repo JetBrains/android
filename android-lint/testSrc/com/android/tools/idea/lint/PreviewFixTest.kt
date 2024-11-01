@@ -205,6 +205,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
   }
 
   fun testIntentionPreviewConvertToDp() {
+    if (true) return // TODO(b/376924928): this test is flaky with IntelliJ 2024.3.
     // Test that the intention preview for ConvertToDpQuickFix works as expected
     myFixture.configureByText(
       "layout.xml", /*language=XML */
