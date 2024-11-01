@@ -17,7 +17,6 @@ package com.android.tools.idea.editing.documentation
 
 import com.android.SdkConstants
 import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.filterTo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator
 import com.intellij.codeInsight.navigation.SingleTargetElementInfo
@@ -64,7 +63,6 @@ class AndroidSdkDocumentationTargetProvider : PsiDocumentationTargetProvider {
     element: PsiElement,
     originalElement: PsiElement?,
   ): DocumentationTarget? {
-    if (!StudioFlags.ENABLE_SDK_DOCUMENTATION_TARGET_PROVIDER.get()) return null
     if (!element.project.getProjectSystem().isAndroidProject()) return null
 
     // This handler only deals with external documentation for framework classes.
