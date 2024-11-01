@@ -144,25 +144,27 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.collection.collection_1.4.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
-        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
-        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.foundation.foundation_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.core.core-ktx_1.10.0",
-        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by ComposeRenderTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.core.core-ktx_1.13.1",  # Compose BOM 2024.09.00
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-common_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-common_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",  #Required by ComposeRenderTest after updating to Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-service_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",  # Required by ComposeRenderTest after updating to Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.3",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
