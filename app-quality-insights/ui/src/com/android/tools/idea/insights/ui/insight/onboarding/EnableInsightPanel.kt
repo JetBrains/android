@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.ai.InsightsOnboardingProvider
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -41,7 +42,7 @@ class EnableInsightPanel(
       .apply {
         appendText("Insights require Gemini", EMPTY_STATE_TITLE_FORMAT)
         appendLine(
-          "You can setup Gemini and enable insights via button below",
+          "You can set up Gemini and enable insights via the button below.",
           EMPTY_STATE_TEXT_FORMAT,
           null,
         )
@@ -72,6 +73,7 @@ class EnableInsightPanel(
     add(enableInsightEmptyText.component, gbc)
 
     gbc.apply { gridy = 1 }
+    enableInsightEmptyText.secondaryComponent.border = JBUI.Borders.emptyBottom(10)
     add(enableInsightEmptyText.secondaryComponent, gbc)
 
     gbc.apply { gridy = 3 }

@@ -244,7 +244,7 @@ class InsightContentPanelTest {
     assertThat(statusTexts.size).isEqualTo(2)
     assertThat(statusTexts[0]).isEqualTo("Insights require Gemini")
     assertThat(statusTexts[1])
-      .isEqualTo("You can setup Gemini and enable insights via button below")
+      .isEqualTo("You can set up Gemini and enable insights via the button below.")
 
     val button = fakeUi.findComponent<JButton>() ?: fail("Button not found")
     assertThat(button.text).isEqualTo("Enable Insights")
