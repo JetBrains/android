@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.preview.gallery
 
+import com.android.tools.idea.common.editor.ActionsToolbar
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -53,6 +55,8 @@ class GalleryModeProperty(private val content: JPanel, private val mainSurface: 
     if (value == null) {
       content.add(mainSurface, BorderLayout.CENTER)
     } else {
+      value.component.border =  ActionsToolbar.BORDER
+      value.component.background = Colors.DEFAULT_BACKGROUND_COLOR
       add(value.component, BorderLayout.NORTH)
       add(mainSurface, BorderLayout.CENTER)
       content.add(this)

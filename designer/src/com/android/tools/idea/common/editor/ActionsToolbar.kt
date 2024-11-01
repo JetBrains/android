@@ -17,7 +17,6 @@ package com.android.tools.idea.common.editor
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
@@ -39,6 +38,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
@@ -148,14 +148,15 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     val northEastToolbarComponent = northEastToolbar!!.component
 
     if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
-      AdtPrimaryPanel(BorderLayout()).apply {
+      object : AdtPrimaryPanel(BorderLayout()){
+        override fun getBackground() = surface.background
+      }.apply {
         // set background to null to use the parent's background
         northToolbarComponent.background = null
         northEastToolbarComponent.background = null
         this.add(northToolbarComponent, BorderLayout.CENTER)
         this.add(northEastToolbarComponent, BorderLayout.EAST)
-        this.border =
-          BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
+        this.border = BORDER
         toolbarComponent.add(this, BorderLayout.NORTH)
       }
     }
@@ -234,7 +235,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateBottomActionBarBorder() {
     val hasBottomActionBar = eastToolbar!!.component.isVisible || dynamicGroup.childrenCount > 0
     val bottom = if (hasBottomActionBar) 1 else 0
-    toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, border)
+    toolbarComponent.border = BORDER
   }
 
   // ---- Implements ModelListener ----
@@ -268,12 +269,15 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   companion object {
+
+    val BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
+
     private const val CONFIGURATION_UPDATE_FLAGS =
       ConfigurationListener.CFG_TARGET or ConfigurationListener.CFG_DEVICE
 
     private fun createToolbarComponent(): JComponent {
       val panel: JComponent = AdtPrimaryPanel(BorderLayout())
-      panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, border)
+      panel.border = BORDER
       return panel
     }
 

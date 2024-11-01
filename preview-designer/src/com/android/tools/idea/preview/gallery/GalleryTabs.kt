@@ -264,6 +264,7 @@ internal class GalleryTabs<Key : TitledKey>(
             GalleryActionGroup(labelActions.values.toList()),
           )
           .component
+          .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
 
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
