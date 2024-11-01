@@ -14,6 +14,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/gmaven:intellij.android.gmaven[module]",
     ],
 )
 

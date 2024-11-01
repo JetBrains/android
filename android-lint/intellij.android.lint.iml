@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="intellij.android.gmaven" />
   </component>
 </module>
