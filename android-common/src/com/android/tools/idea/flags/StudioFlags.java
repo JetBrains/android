@@ -1220,13 +1220,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> ENABLE_SDK_DOCUMENTATION_TARGET_PROVIDER = new BooleanFlag(
-    EDITOR, "enable.sdk.documentation.target.provider",
-    "Enable SDK Documentation Target Provider",
-    "When true, javadocs for Android Framework SDK classes will be served using a new supported extension point.",
-    true
-  );
-
   //endregion
 
   //region Essentials Mode

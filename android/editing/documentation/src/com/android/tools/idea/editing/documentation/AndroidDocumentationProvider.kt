@@ -2,36 +2,15 @@
 // license that can be found in the LICENSE file.
 package com.android.tools.idea.editing.documentation
 
-import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.ExternalDocumentationProvider
-import com.intellij.lang.java.JavaDocumentationProvider
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.JarFileSystem
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
-
-private fun isMyContext(element: PsiElement, project: Project): Boolean {
-  if (element !is PsiClass) return false
-  return runReadAction {
-    val vFile = element.containingFile?.virtualFile ?: return@runReadAction false
-    val path = FileUtil.toSystemIndependentName(vFile.path)
-    return@runReadAction path.lowercase().contains("/${SdkConstants.FN_FRAMEWORK_LIBRARY}!/") &&
-      CommonAndroidUtil.getInstance().isAndroidProject(project) &&
-      JarFileSystem.getInstance().getVirtualFileForJar(vFile)?.name ==
-        SdkConstants.FN_FRAMEWORK_LIBRARY
-  }
-}
 
 /**
  * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin
@@ -56,24 +35,6 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
         )
       }
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.resourceUrl)
-  }
-
-  override fun fetchExternalDocumentation(
-    project: Project,
-    element: PsiElement,
-    docUrls: List<String>,
-    onHover: Boolean,
-  ): String? {
-    if (
-      StudioFlags.ENABLE_SDK_DOCUMENTATION_TARGET_PROVIDER.get() || !isMyContext(element, project)
-    )
-      return null
-
-    return JavaDocumentationProvider.fetchExternalJavadoc(
-      element,
-      docUrls,
-      AndroidJavaDocExternalFilter(project),
-    )
   }
 
   override fun hasDocumentationFor(element: PsiElement, originalElement: PsiElement) = false

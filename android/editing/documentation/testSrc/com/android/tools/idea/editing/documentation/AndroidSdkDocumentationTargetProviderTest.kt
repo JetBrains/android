@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.editing.documentation
 
-import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.google.common.truth.Truth.assertThat
@@ -58,7 +56,6 @@ private const val ACTIVITY_DOC_URL =
 class AndroidSdkDocumentationTargetProviderTest(private val language: Language) {
 
   @get:Rule val projectRule = AndroidProjectRule.withSdk(AndroidVersion(34))
-  @get:Rule val flagsRule = FlagRule(StudioFlags.ENABLE_SDK_DOCUMENTATION_TARGET_PROVIDER, true)
 
   private val fixture by lazy { projectRule.fixture }
   private val project by lazy { projectRule.project }
