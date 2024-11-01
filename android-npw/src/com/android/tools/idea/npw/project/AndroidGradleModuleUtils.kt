@@ -22,7 +22,7 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.module.Module
@@ -35,30 +35,28 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Convenience method to convert a [NamedModuleTemplate] into a [SourceProvider].
- * Note that this target source provider has many fields stubbed out and should be used carefully.
+ * Convenience method to convert a [NamedModuleTemplate] into a [SourceProvider]. Note that this
+ * target source provider has many fields stubbed out and should be used carefully.
  *
- * TODO: Investigate getting rid of dependencies on [SourceProvider] in
- * [Parameter.validate] as this may allow us to delete this code
+ * TODO: Investigate getting rid of dependencies on [SourceProvider] in [Parameter.validate] as this
+ *   may allow us to delete this code
  */
 fun NamedModuleTemplate.getSourceProvider() = SourceProviderAdapter(name, paths)
 
 /**
- * Given a file and a project, return the Module corresponding to the containing Gradle project for the file.
- * If the file is not contained by any project then return null
+ * Given a file and a project, return the Module corresponding to the containing Gradle project for
+ * the file. If the file is not contained by any project then return null
  */
 fun getContainingModule(file: File?, project: Project): Module? {
   if (project.isDisposed) return null
   val vFile = VfsUtil.findFileByIoFile(file!!, false)
-  return if (vFile == null || vFile.isDirectory)
-    null
-  else
-    ProjectFileIndex.getInstance(project).getModuleForFile(vFile, false)
+  return if (vFile == null || vFile.isDirectory) null
+  else ProjectFileIndex.getInstance(project).getModuleForFile(vFile, false)
 }
 
 /**
- * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux.
- * On Windows, we use a separate gradlew.bat file which does not need an executable bit.
+ * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux. On Windows, we use a
+ * separate gradlew.bat file which does not need an executable bit.
  */
 @Throws(IOException::class)
 fun setGradleWrapperExecutable(projectRoot: File) {
@@ -77,11 +75,17 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
   if (isNewProject) return DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 
-  val versionInUse = project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) }
-  return versionInUse ?: DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+  val versionInUse =
+    project.basePath
+      ?.let { KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, it) }
+      ?.firstOrNull()
+  return versionInUse?.toString() ?: DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 }
 
-/** Call detector to check whether Version Catalogs are in use.  Is (very occasionally) slow if cached value has been invalidated. */
+/**
+ * Call detector to check whether Version Catalogs are in use. Is (very occasionally) slow if cached
+ * value has been invalidated.
+ */
 @Slow
 fun determineVersionCatalogUse(project: Project): Boolean {
   return GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject

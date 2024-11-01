@@ -19,7 +19,7 @@ package com.android.tools.idea.npw.module
 import com.android.ide.common.gradle.Version
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.adb.wireless.UIColors
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.npw.importing.SourceToGradleModuleModel
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -77,7 +77,10 @@ class ChooseModuleTypeWizard(
     sortModuleEntries(
       moduleGalleryEntries,
       moduleParent,
-      project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) },
+      project.basePath
+        ?.let { KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, it) }
+        ?.firstOrNull()
+        ?.toString(),
     ) + importModuleGalleryEntry
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
