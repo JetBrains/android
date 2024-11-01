@@ -233,8 +233,8 @@ private fun SystemImageTable(
   val sortedImages = images.sortedWith(SystemImageComparator)
   val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isSupported() })
   val starColumn = remember {
-    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) {
-      if (it == starredImage) {
+    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) { image, _ ->
+      if (image == starredImage) {
         @OptIn(ExperimentalFoundationApi::class)
         Tooltip(
           tooltip = {
@@ -251,7 +251,7 @@ private fun SystemImageTable(
           )
         }
       } else {
-        val warnings = it.imageWarnings()
+        val warnings = image.imageWarnings()
         if (warnings.isNotEmpty()) {
           SystemImageWarningIcon(warnings)
         }
@@ -265,10 +265,10 @@ private fun SystemImageTable(
         "",
         TableColumnWidth.Fixed(16.dp),
         Comparator.comparing { it is RemoteSystemImage },
-      ) {
-        if (it is RemoteSystemImage) {
+      ) { image, _ ->
+        if (image is RemoteSystemImage) {
           DownloadButton(
-            onClick = { onDownloadButtonClick(it.`package`.path) },
+            onClick = { onDownloadButtonClick(image.`package`.path) },
             Modifier.size(16.dp),
           )
         }
