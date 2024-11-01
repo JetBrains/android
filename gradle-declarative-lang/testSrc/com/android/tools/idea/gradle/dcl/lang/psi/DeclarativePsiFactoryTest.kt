@@ -197,6 +197,13 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(assignment.text).isEqualTo("key = \"value\"")
   }
 
+  fun testEscapeAssignment() {
+    val assignment = DeclarativePsiFactory(project).createAssignment("key.key", "\"value\"")
+    assertThat(assignment).isNotNull()
+    assertThat(assignment).isInstanceOf(DeclarativeAssignment::class.java)
+    assertThat(assignment.text).isEqualTo("`key.key` = \"value\"")
+  }
+
   fun testBlock() {
     val block = DeclarativePsiFactory(project).createBlock("block")
     assertThat(block).isNotNull()
@@ -204,11 +211,25 @@ class DeclarativePsiFactoryTest : LightPlatformTestCase() {
     assertThat(block.text).isEqualTo("block {\n}")
   }
 
+  fun testEscapeBlock() {
+    val block = DeclarativePsiFactory(project).createBlock("block.my")
+    assertThat(block).isNotNull()
+    assertThat(block).isInstanceOf(DeclarativeBlock::class.java)
+    assertThat(block.text).isEqualTo("`block.my` {\n}")
+  }
+
   fun testFactory() {
     val factory = DeclarativePsiFactory(project).createFactory("factory")
     assertThat(factory).isNotNull()
     assertThat(factory).isInstanceOf(DeclarativeFactory::class.java)
     assertThat(factory.text).isEqualTo("factory()")
+  }
+
+  fun testEscapeFactory() {
+    val factory = DeclarativePsiFactory(project).createFactory("fact%ory")
+    assertThat(factory).isNotNull()
+    assertThat(factory).isInstanceOf(DeclarativeFactory::class.java)
+    assertThat(factory.text).isEqualTo("`fact%ory`()")
   }
 
   fun testOneParameterFactoryBlock() {
