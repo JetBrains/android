@@ -29,6 +29,7 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -43,7 +44,6 @@ import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.net.NetUtils
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.io.path.Path
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +51,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -93,7 +94,7 @@ class WearPairingManager(
   private var virtualDevicesProvider: () -> List<AvdInfo> = {
     getDefaultAvdManagerConnection().getAvds(false)
   }
-  private var connectedDevicesProvider: () -> List<IDevice> = {
+  private var connectedDevicesProvider: suspend () -> List<IDevice> = suspend {
     findAdb()?.devices?.toList() ?: emptyList()
   }
 
@@ -114,7 +115,10 @@ class WearPairingManager(
   private val pairedDevicesList = mutableListOf<PhoneWearPair>()
 
   @TestOnly
-  fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
+  fun setDataProviders(
+    virtualDevices: () -> List<AvdInfo>,
+    connectedDevices: suspend () -> List<IDevice>,
+  ) {
     virtualDevicesProvider = virtualDevices
     connectedDevicesProvider = connectedDevices
     pairedDevicesList.clear()
@@ -373,38 +377,34 @@ class WearPairingManager(
     updateDevicesChannel.trySend(Unit)
   }
 
-  @Slow
-  @WorkerThread
-  internal fun findDevice(deviceID: String): PairingDevice? = getAvailableDevices().second[deviceID]
+  internal suspend fun findDevice(deviceID: String): PairingDevice? =
+    withContext(workerThread) { getAvailableDevices().second[deviceID] }
 
-  @Slow
-  @WorkerThread
-  private fun getAvailableDevices(): Pair<Map<String, IDevice>, HashMap<String, PairingDevice>> {
-    ThreadingAssertions.assertBackgroundThread()
+  private suspend fun getAvailableDevices() =
+    withContext(workerThread) {
+      val deviceTable = hashMapOf<String, PairingDevice>()
 
-    val deviceTable = hashMapOf<String, PairingDevice>()
+      // Collect list of all available AVDs
+      virtualDevicesProvider()
+        .filter { it.isWearOrPhone() }
+        .forEach { avdInfo ->
+          val deviceID = avdInfo.id
+          deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID)
+        }
 
-    // Collect list of all available AVDs
-    virtualDevicesProvider()
-      .filter { it.isWearOrPhone() }
-      .forEach { avdInfo ->
-        val deviceID = avdInfo.id
-        deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID)
+      // Collect list of all connected devices. Enrich data with previous collected AVDs.
+      val connectedDevices = getConnectedDevices()
+      connectedDevices.forEach { (deviceID, iDevice) ->
+        val avdDevice = deviceTable[deviceID]
+        // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR,
+        // etc.), so we only check for physical devices
+        if (iDevice.isPhysicalPhone() || avdDevice != null) {
+          deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, avdDevice = avdDevice)
+        }
       }
 
-    // Collect list of all connected devices. Enrich data with previous collected AVDs.
-    val connectedDevices = getConnectedDevices()
-    connectedDevices.forEach { (deviceID, iDevice) ->
-      val avdDevice = deviceTable[deviceID]
-      // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR, etc.),
-      // so we only check for physical devices
-      if (iDevice.isPhysicalPhone() || avdDevice != null) {
-        deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, avdDevice = avdDevice)
-      }
+      Pair(connectedDevices, deviceTable)
     }
-
-    return Pair(connectedDevices, deviceTable)
-  }
 
   @Slow
   @WorkerThread
@@ -450,22 +450,26 @@ class WearPairingManager(
       .startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
   }
 
-  private fun findAdb(): AndroidDebugBridge? {
+  private suspend fun findAdb(): AndroidDebugBridge? {
     AndroidDebugBridge.getBridge()?.also {
       return it // Instance found, just return it
     }
-    AndroidSdkUtils.findAdb(null).adbPath?.apply {
-      AdbService.getInstance().getDebugBridge(this).get(1, TimeUnit.SECONDS) // Create new instance
+    return withContext(workerThread) {
+      AndroidSdkUtils.findAdb(null).adbPath?.let {
+        try {
+          AdbService.getInstance().getDebugBridge(it).await()
+        } catch (e: Exception) {
+          LOG.warn(e)
+          null
+        }
+      }
     }
-    return AndroidDebugBridge.getBridge() // Return current instance
   }
 
-  @WorkerThread
-  private fun getConnectedDevices(): Map<String, IDevice> {
-    ThreadingAssertions.assertBackgroundThread()
-
-    return connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
-  }
+  private suspend fun getConnectedDevices() =
+    withContext(workerThread) {
+      connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
+    }
 
   private suspend fun updateForwardState(
     phoneWearPair: PhoneWearPair,
