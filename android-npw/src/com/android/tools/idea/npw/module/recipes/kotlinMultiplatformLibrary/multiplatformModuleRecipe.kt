@@ -106,13 +106,9 @@ fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {
 }
 
 fun RecipeExecutor.addInstrumentedTestDependencies() {
-  addDependency("androidx.test:runner:+", "implementation", sourceSetName = "androidTestOnDevice")
-  addDependency("androidx.test:core:+", "implementation", sourceSetName = "androidTestOnDevice")
-  addDependency(
-    "androidx.test.ext:junit:+",
-    "implementation",
-    sourceSetName = "androidTestOnDevice",
-  )
+  addDependency("androidx.test:runner:+", "implementation", sourceSetName = "androidDeviceTest")
+  addDependency("androidx.test:core:+", "implementation", sourceSetName = "androidDeviceTest")
+  addDependency("androidx.test.ext:junit:+", "implementation", sourceSetName = "androidDeviceTest")
 }
 
 fun RecipeExecutor.addAndroidMain(packageName: String, outFolder: File, language: Language) {

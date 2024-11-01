@@ -71,11 +71,11 @@ class KotlinMultiplatformModuleTest {
     assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
     val androidTestOnJvmContent =
-      rootDir.resolve("androidTestOnJvm").resolve("ExampleUnitTest.kt").readText()
+      rootDir.resolve("androidHostTest").resolve("ExampleUnitTest.kt").readText()
     assertThat(androidTestOnJvmContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
     val androidTestOnDeviceContent =
-      rootDir.resolve("androidTestOnDevice").resolve("ExampleInstrumentedTest.kt").readText()
+      rootDir.resolve("androidDeviceTest").resolve("ExampleInstrumentedTest.kt").readText()
     assertThat(androidTestOnDeviceContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
     val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
@@ -170,8 +170,8 @@ class KotlinMultiplatformModuleTest {
         srcDir = androidMainDir,
         resDir = rootDir.resolve("res").also { it.mkdir() },
         manifestDir = rootDir,
-        testDir = rootDir.resolve("androidTestOnDevice").also { it.mkdir() },
-        unitTestDir = rootDir.resolve("androidTestOnJvm").also { it.mkdir() },
+        testDir = rootDir.resolve("androidDeviceTest").also { it.mkdir() },
+        unitTestDir = rootDir.resolve("androidHostTest").also { it.mkdir() },
         aidlDir = null,
         commonSrcDir = commonMainDir,
         iosSrcDir = iosMainDir,
@@ -278,7 +278,7 @@ sourceSets {
     }
   }
 
-  getByName("androidTestOnDevice") {
+  getByName("androidDeviceTest") {
     dependencies {
     }
   }
@@ -376,8 +376,8 @@ package com.kmplib.packagename
       arrayOf(
         "AndroidManifest.xml",
         "commonMain/Platform.kt",
-        "androidTestOnJvm/ExampleUnitTest.kt",
-        "androidTestOnDevice/ExampleInstrumentedTest.kt",
+        "androidHostTest/ExampleUnitTest.kt",
+        "androidDeviceTest/ExampleInstrumentedTest.kt",
         "build.gradle.kts",
         ".gitignore",
         "androidMain/Platform.android.kt",

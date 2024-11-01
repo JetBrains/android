@@ -51,14 +51,14 @@ class AddKotlinMultiplatformLibraryModuleTest {
         Assert.assertTrue("androidMain didn't compile correctly", isBuildSuccessful)
       }
 
-      projectRule.invokeTasks("testAndroidTestOnJvm").run {
+      projectRule.invokeTasks("testAndroidHostTest").run {
         buildError?.printStackTrace()
-        Assert.assertTrue("androidTestOnJvm didn't compile or run correctly", isBuildSuccessful)
+        Assert.assertTrue("androidHostTest didn't compile or run correctly", isBuildSuccessful)
       }
 
-      projectRule.invokeTasks("packageAndroidTestOnDevice").run {
+      projectRule.invokeTasks("packageAndroidDeviceTest").run {
         buildError?.printStackTrace()
-        Assert.assertTrue("androidTestOnDevice didn't package correctly", isBuildSuccessful)
+        Assert.assertTrue("androidDeviceTest didn't package correctly", isBuildSuccessful)
       }
     }
 
