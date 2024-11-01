@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import org.jetbrains.kotlin.psi.KtFile
 
 interface ApkClassProvider {
-  fun getClass(ktFile: KtFile, className: String): IrClass?
+  fun getClass(applicationServices: ApplicationLiveEditServices, ktFile: KtFile, className: String): IrClass?
 }
 
 class DefaultApkClassProvider : ApkClassProvider {
-  override fun getClass(ktFile: KtFile, className: String): IrClass? {
-    val classContent = ktFile.getModuleSystem()?.getClassFileFinderForSourceFile(ktFile.originalFile.virtualFile)?.findClassFile(className)
+  override fun getClass(
+    applicationServices: ApplicationLiveEditServices,
+    ktFile: KtFile,
+    className: String
+  ): IrClass? {
+    val classContent = applicationServices.getClassContent(ktFile.originalFile.virtualFile, className)
     return classContent?.let { IrClass(it.content) }
   }
 }

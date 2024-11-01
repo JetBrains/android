@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.common.constants.strings
 
+import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
@@ -33,6 +34,8 @@ object TaskBasedUxStrings {
   const val STOPPING_IN_PROGRESS = "Stopping..."
   const val STOP_RECORDING = "Stop recording and show results"
   const val STOPPING_TIME_WARNING = "It might take up to a minute for the recording to stop."
+  const val ACTION_BAR_RECORDING = "Recording:"
+  const val ACTION_BAR_STOP_RECORDING = "Stop Recording"
 
   // Icon description strings
   const val TASK_CONFIG_DIALOG_DESC = "Task Configurations"
@@ -89,6 +92,30 @@ object TaskBasedUxStrings {
   // Do not show again option text
   const val DONT_SHOW_AGAIN_TITLE = "Don't show again"
 
+  // For LeakCanary task
+  // LeakList Strings
+  const val LEAKCANARY_LEAK_HEADER_TEXT = "Leak"
+  const val LEAKCANARY_OCCURRENCES_HEADER_TEXT = "Occurrences"
+  const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
+  const val LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE = "Try to reproduce leaks by triggering potentially " +
+                                                         "leaking actions within your app while the recording is ongoing."
+  const val LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE =
+    "This task requires LeakCanary to be installed into your app for any leaks to be visible in Android Studio."
+  const val LEAKCANARY_NO_LEAK_FOUND_MESSAGE = "No leaks found."
+
+  // LeakDetails Strings
+  const val LEAKCANARY_BULLET_UNICODE = "\u2022"
+  const val LEAKCANARY_LEAKING = "Leaking"
+  const val LEAKCANARY_WHY = "Why"
+  const val LEAKCANARY_NOT_LEAKING = "Not Leaking"
+  const val LEAKCANARY_REFERENCING_FIELD = "Referencing Field: "
+  const val LEAKCANARY_RETAINED_BYTES = "Retained Bytes: "
+  const val LEAKCANARY_REFERENCING_OBJECTS = "Referencing Objects: "
+  const val LEAKCANARY_MORE_INFO = "More info"
+  const val LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE = "Once the current ongoing recording has captured memory leaks their details" +
+                                                           " will appear here"
+  const val LEAKCANARY_GO_TO_DECLARATION = "Go to declaration"
+
   fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
     ProfilerTaskType.HEAP_DUMP -> "Dumps the heap showing which objects in your app are using memory at the time of capture"
@@ -97,7 +124,7 @@ object TaskBasedUxStrings {
     ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Captures the call stacks during your app’s Java/Kotlin code execution"
     ProfilerTaskType.NATIVE_ALLOCATIONS -> "Captures native memory allocations"
     ProfilerTaskType.LIVE_VIEW -> "Displays and records a streaming timeline of CPU usage and memory footprint"
-    ProfilerTaskType.LEAKCANARY -> "Displays leaks detected by LeakCanary" //TODO(b/361643517): Need display string confirmation
+    ProfilerTaskType.LEAKCANARY -> "Pulls memory leaks detected by LeakCanary from an Android device"
     else -> ""
   }
 
@@ -153,4 +180,12 @@ object TaskBasedUxStrings {
       StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS -> "Task is not supported by the selected device or process"
       StartTaskSelectionError.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
+
+  fun getLeakStatusText(leakingStatus: LeakingStatus): String {
+    return when (leakingStatus) {
+      LeakingStatus.YES -> "Yes"
+      LeakingStatus.NO -> "No"
+      LeakingStatus.UNKNOWN -> "Unknown"
+    }
+  }
 }

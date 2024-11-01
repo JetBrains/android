@@ -28,7 +28,6 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
@@ -50,6 +49,7 @@ import javax.swing.TransferHandler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class FavoritesInspectorBuilderTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()

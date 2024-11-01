@@ -64,6 +64,7 @@ public class HeadlessTableUI extends BasicTableUI {
   private final class HeadlessMouseListener extends MouseAdapter {
     private int pressedRow;
     private int pressedCol;
+    private MouseEvent pressedEvent;
     private Component dispatchComponent;
 
     @Override
@@ -81,6 +82,7 @@ public class HeadlessTableUI extends BasicTableUI {
       }
 
       Point p = e.getPoint();
+      pressedEvent = e;
       pressedRow = table.rowAtPoint(p);
       pressedCol = table.columnAtPoint(p);
 
@@ -94,8 +96,23 @@ public class HeadlessTableUI extends BasicTableUI {
       if (UIUtilities.shouldIgnore(e, table)) {
         return;
       }
+      if (table.getDragEnabled()) {
+        mouseReleasedDND(e);
+      }
+      pressedEvent = null;
       repostEvent(e);
       setValueIsAdjusting(false);
+    }
+
+    private void mouseReleasedDND(MouseEvent e) {
+      Point p = e.getPoint();
+      if (pressedEvent != null &&
+          table.rowAtPoint(p) == pressedRow &&
+          table.columnAtPoint(p) == pressedCol &&
+          table.editCellAt(pressedRow, pressedCol, pressedEvent)) {
+        setDispatchComponent(pressedEvent);
+        repostEvent(pressedEvent);
+      }
     }
 
     private void setValueIsAdjusting(boolean flag) {

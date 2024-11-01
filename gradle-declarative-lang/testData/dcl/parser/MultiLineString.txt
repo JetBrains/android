@@ -1,0 +1,7 @@
+FILE
+  PsiElement(ASSIGNMENT)
+    PsiElement(IDENTIFIER)
+      PsiElement(DeclarativeTokenType.token)('foo')
+    PsiElement(DeclarativeTokenType.=)('=')
+    PsiElement(LITERAL)
+      PsiElement(DeclarativeTokenType.multiline_string_literal)('"""some string$quotes"""')

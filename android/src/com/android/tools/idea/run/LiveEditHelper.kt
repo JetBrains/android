@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -27,7 +28,7 @@ class LiveEditHelper {
   fun invokeLiveEdit(
     liveEditService: LiveEditService,
     env: ExecutionEnvironment,
-    applicationId: String,
+    applicationProjectContext: ApplicationProjectContext,
     apkInfos: Collection<ApkInfo>,
     device: IDevice
   ) {
@@ -38,7 +39,7 @@ class LiveEditHelper {
       }
     }
     val liveEditApp = LiveEditApp(getApkPaths(apkInfos, device), device.getVersion().getApiLevel(), buildSystemMinSdkLevels)
-    liveEditService.notifyAppDeploy(env.runProfile, env.executor, applicationId, device, liveEditApp)
+    liveEditService.notifyAppDeploy(env.runProfile, env.executor, applicationProjectContext, device, liveEditApp)
 
   }
 

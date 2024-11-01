@@ -31,10 +31,9 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.backup.BackupManager
-import com.android.tools.idea.backup.BackupManager.Source.RUN_MENU
+import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
-import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -54,7 +53,7 @@ import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -107,8 +106,8 @@ class AndroidRunConfigurationExecutorTest {
   val closeables = CloseablesRule()
 
   val fakeAdb = FakeAdbTestRule().apply {
-      withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
-    }
+    withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
+  }
 
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
@@ -167,7 +166,6 @@ class AndroidRunConfigurationExecutorTest {
       .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -193,7 +191,7 @@ class AndroidRunConfigurationExecutorTest {
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_CONFIG, null, false)
     }
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
@@ -208,7 +206,7 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun debugSucceeded() { //TODO: write handler in fakeAdb for "am capabilities --protobuf"
-    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
 
     val deviceState = fakeAdb.connectAndWaitForDevice()
     var startInvocation = 0
@@ -233,7 +231,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.RESTORE_FILE = "foo.backup"
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -252,7 +249,7 @@ class AndroidRunConfigurationExecutorTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
     assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
     runBlocking {
-      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_MENU, null, false)
+      verify(mockBackupManager).restore("test_device_001", Path.of("foo.backup"), RUN_CONFIG, null, false)
     }
 
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
@@ -275,7 +272,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -286,7 +283,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -326,7 +322,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -337,7 +333,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -347,7 +342,8 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val runContentDescriptor =
-      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) },
+                                               EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
     assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
@@ -377,7 +373,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -385,13 +381,12 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") },
       liveEditService
-      )
+    )
 
     val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
@@ -399,39 +394,6 @@ class AndroidRunConfigurationExecutorTest {
     }
     assertThat(thrown).hasMessageThat().contains("ApkProvisionException")
     assertThat(liveEditServiceNotified).isEqualTo(false)
-  }
-
-  @Test
-  fun runGetApplicationIdException() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
-    val env = getExecutionEnvironment(listOf(device))
-    val configuration = env.runProfile as AndroidRunConfiguration
-    configuration.executeMakeBeforeRunStepInTest(device)
-
-    val runner = AndroidRunConfigurationExecutor(
-      applicationIdProvider = object : ApplicationIdProvider{
-        override fun getPackageName(): String {
-          throw ApkProvisionException("AndroidExecutionException packageName")
-        }
-
-        override fun getTestPackageName(): String? {
-          throw ApkProvisionException("AndroidExecutionException testPackageName")
-        }
-      },
-      applicationContext = object: ApplicationProjectContext {
-        override val applicationId: String
-          get() = error("Not supposed to be invoked")
-      },
-      env,
-      deviceFutures,
-      apkProvider = { throw ApkProvisionException("ApkProvisionException") })
-
-    val thrown = assertThrows(AndroidExecutionException::class.java) {
-      ProgressManager.getInstance()
-        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
-    }
-    assertThat(thrown).hasMessageThat().contains("AndroidExecutionException packageName")
   }
 
   @Test
@@ -467,7 +429,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -475,7 +437,6 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -520,7 +481,7 @@ class AndroidRunConfigurationExecutorTest {
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
     val liveEditService = object : LiveEditService by liveEditServiceImpl {
       override fun notifyAppDeploy(
-        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+        runProfile: RunProfile, executor: Executor, applicationProjectContext: ApplicationProjectContext, device: IDevice, app: LiveEditApp
       ): Boolean {
         liveEditServiceNotified = true
         return true
@@ -531,7 +492,6 @@ class AndroidRunConfigurationExecutorTest {
     configuration.executeMakeBeforeRunStepInTest(device)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -585,7 +545,6 @@ class AndroidRunConfigurationExecutorTest {
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env, deviceFutures, { throw ApkProvisionException("Exception") })
 
@@ -626,7 +585,6 @@ class AndroidRunConfigurationExecutorTest {
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name, result)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -635,7 +593,8 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val newProcessHandler = ProgressManager.getInstance()
-      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
+      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) },
+                  EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")
@@ -650,7 +609,7 @@ class AndroidRunConfigurationExecutorTest {
   fun applyCodeChangesNeedsRestartForDebug() {
 
     //TODO: write handler in fakeAdb for "am capabilities --protobuf"
-    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
 
     val deviceState = fakeAdb.connectAndWaitForDevice()
     val restartHappened = CountDownLatch(1)
@@ -677,7 +636,6 @@ class AndroidRunConfigurationExecutorTest {
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyCodeChangesDeploy.name, result)
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
@@ -687,7 +645,8 @@ class AndroidRunConfigurationExecutorTest {
 
     val newProcessHandler =
       ProgressManager.getInstance()
-        .runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
+        .runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) },
+                    EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")
@@ -825,7 +784,6 @@ class AndroidRunConfigurationExecutorTest {
       .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
 
     val runner = AndroidRunConfigurationExecutor(
-      configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,

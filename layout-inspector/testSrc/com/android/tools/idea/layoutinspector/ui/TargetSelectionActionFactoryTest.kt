@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -37,6 +35,8 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class TargetSelectionActionFactoryTest {
 

@@ -23,13 +23,13 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.actionDestination
@@ -90,7 +90,7 @@ private val ACTION_WIDTH = ACTION_ARROW_PARALLEL + ACTION_LINE_LENGTH
 private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 
 /** [SceneManager] for the navigation editor. */
-open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
+class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
   SceneManager(model, surface, NavSceneComponentHierarchyProvider()) {
 
   private val layoutAlgorithms =
@@ -106,10 +106,10 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     get() = designSurface.currentNavigation.children.none { it.isDestination }
 
   init {
-    createSceneView()
-    updateHierarchy(getModel(), null)
-    getModel().addListener(ModelChangeListener())
-    designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
+    updateSceneViews()
+    updateHierarchy(model, null)
+    model.addListener(ModelChangeListener())
+    designSurface.selectionModel.addListener { _, _ -> scene.needsRebuildList() }
     designSurface.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(event: ComponentEvent?) {
@@ -119,9 +119,12 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     )
   }
 
-  override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface
+  override val designSurface: NavDesignSurface
+    get() = super.designSurface as NavDesignSurface
 
-  override fun doCreateSceneView(): NavView = NavView(designSurface, this)
+  override fun updateSceneViews() {
+    this.sceneView = NavView(designSurface, this)
+  }
 
   override fun update() {
     val rootBounds: Rectangle? = scene.root?.fillDrawRect(0, null)
@@ -170,9 +173,10 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     }
   }
 
-  override fun getRoot() = designSurface.currentNavigation
+  override val root: NlComponent
+    get() = designSurface.currentNavigation
 
-  override fun getSceneScalingFactor() = 1f
+  override val sceneScalingFactor: Float = 1f
 
   private fun findAndCreateExitActionComponents(component: NlComponent): List<SceneComponent> {
     return component
@@ -253,7 +257,7 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
       val exitActions = mutableListOf<SceneComponent?>()
 
       for (child in component.children) {
-        when (child.nlComponent.getActionType(getRoot())) {
+        when (child.nlComponent.getActionType(this.root)) {
           ActionType.GLOBAL -> globalActions.add(child)
           ActionType.EXIT -> exitActions.add(child)
           else -> {}
@@ -282,14 +286,14 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
   }
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
-    var bounds: Rectangle? = scene.root?.fillDrawRect(0, null)
+    val bounds: Rectangle? = scene.root?.fillDrawRect(0, null)
 
     updateRootBounds(bounds)
 
     return CompletableFuture.completedFuture(null)
   }
 
-  override fun getSceneDecoratorFactory() = NavSceneDecoratorFactory
+  override val sceneDecoratorFactory: SceneDecoratorFactory = NavSceneDecoratorFactory
 
   private inner class ModelChangeListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {}
@@ -311,7 +315,7 @@ open class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     }
   }
 
-  public override fun getHitProvider(component: NlComponent): HitProvider {
+  override fun getHitProvider(component: NlComponent): HitProvider {
     return when {
       component.supportsActions -> NavActionSourceHitProvider
       component.isAction -> getActionHitProvider(component)

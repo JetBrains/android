@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package com.google.android.studio.gemini;
+option java_package = "com.google.android.studio.gemini";
+option java_outer_classname = "GeminiInsightsRequestProto";
+option java_multiple_files = true;
+
+// Temporary proto to get information needed to prompt Gemini for issue insights.
+message GeminiInsightsRequest {
+  // Device name on which the event occurred
+  string device_name = 1;
+
+  // API level on which the event occurred
+  string api_level = 2;
+
+  // Stack trace of the event
+  string stack_trace = 3;
+
+  // Relevant code context.
+  repeated CodeSnippet code_snippets = 4;
+}
+
+message CodeSnippet {
+  // The code snippet
+  string code_snippet = 1;
+  // The fully qualified path to the file name from which the code snippet was
+  // extracted
+  string file_path = 2;
+}

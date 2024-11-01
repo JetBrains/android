@@ -20,6 +20,7 @@ import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -51,13 +52,13 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    Registry.is("android.gradle.ide.gradle.declarative.ide.support", true);
+    DeclarativeIdeSupport.INSTANCE.override(true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    Registry.is("android.gradle.ide.gradle.declarative.ide.support", false);
+    DeclarativeIdeSupport.INSTANCE.clearOverride();
   }
 
   @Test

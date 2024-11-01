@@ -45,7 +45,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceS
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionBundle;
-import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -154,7 +153,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public BuildStatus invokeProjectMake(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Make Project"));
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Assemble Project"));
   }
 
   @NotNull
@@ -169,8 +168,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  /**
+   * We are invoking the build action here as the "Rebuild Project" action is no longer on the menu.
+   */
   public BuildStatus invokeRebuildProject(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Rebuild Project"));
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Assemble Project"));
   }
 
   @NotNull
@@ -179,7 +181,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       throw new ExternalSystemException(failure);
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
-    waitAndInvokeMenuPath("Build", "Make Project");
+    waitAndInvokeMenuPath("Build", "Assemble Project");
     return this;
   }
 
@@ -325,7 +327,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Invokes an action by menu path
    *
    * @param path the series of menu names, e.g.
-   *             {@link invokeActionByMenuPath("Build", "Make Project")}
+   *             {@link invokeActionByMenuPath("Build", "Assemble Project")}
    */
   public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
     getMenuFixture().invokeMenuPath(10, path);
@@ -347,7 +349,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * that might be disabled or not available at first
    *
    * @param path the series of menu names, e.g.
-   *             {@link invokeActionByMenuPath("Build", "Make Project")}
+   *             {@link invokeActionByMenuPath("Build", "Assemble Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
     waitAndInvokeMenuPath(20, path);
@@ -767,20 +769,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void selectApp(@NotNull String appName) {
-    ActionButtonFixture runButton = findRunApplicationButton();
-    Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
-
-    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByClientPropertyAndText(
-      robot(),
-      actionToolbarContainer,
-      "styleCombo",
-      RunConfigurationsComboBoxAction.class,
-      appName);
-
-    comboBoxActionFixture.selectItem(appName);
+    ActionButtonFixture.locateByActionId("RedesignedRunConfigurationSelector", robot(), target(), 30).click();
+    ListPopupFixture.selectItemByText(this, appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    Wait.seconds(1).expecting("ComboBox to be selected")
-      .until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
   }
 
   /**

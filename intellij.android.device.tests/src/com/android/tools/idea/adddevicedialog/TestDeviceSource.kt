@@ -17,40 +17,31 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.google.common.collect.Range
 import icons.StudioIconsCompose
-import java.util.NavigableSet
-import java.util.TreeSet
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.component.Icon
 
-open class TestDeviceSource : DeviceSource {
+open class TestDeviceSource : DeviceSource<TestDevice> {
   override val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
 
-  val selectedProfile = MutableStateFlow<DeviceProfile?>(null)
+  val selectedProfile = MutableStateFlow<TestDevice?>(null)
 
   fun add(device: TestDevice) {
-    profiles.update {
-      LoadingState.Ready(
-        it.value + device.toBuilder().apply { source = this@TestDeviceSource.javaClass }.build()
-      )
-    }
+    profiles.update { LoadingState.Ready(it.value + device) }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+  override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
     selectedProfile.value = profile
   }
 }
 
-fun androidVersionRange(from: Int, to: Int): NavigableSet<AndroidVersion> =
-  (from..to).mapTo(TreeSet()) { AndroidVersion(it) }
-
 data class TestDevice(
-  override val apiLevels: NavigableSet<AndroidVersion> = androidVersionRange(24, 34),
+  override val apiRange: Range<Int> = Range.closed(24, 34),
   override val manufacturer: String = "Google",
   override val name: String,
   override val resolution: Resolution = Resolution(2000, 1200),
@@ -63,7 +54,6 @@ data class TestDevice(
   override val formFactor: String = FormFactors.PHONE,
   override val isAlreadyPresent: Boolean = false,
   override val availabilityEstimate: Duration = Duration.ZERO,
-  override val source: Class<out DeviceSource> = TestDeviceSource::class.java,
 ) : DeviceProfile {
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
@@ -82,16 +72,13 @@ data class TestDevice(
   }
 
   class Builder : DeviceProfile.Builder() {
-    lateinit var source: Class<out DeviceSource>
-
     fun copyFrom(profile: TestDevice) {
       super.copyFrom(profile)
-      source = profile.source
     }
 
     override fun build(): TestDevice =
       TestDevice(
-        apiLevels = apiLevels,
+        apiRange = apiRange,
         manufacturer = manufacturer,
         name = name,
         resolution = resolution,
@@ -104,7 +91,6 @@ data class TestDevice(
         formFactor = formFactor,
         isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
-        source = source,
       )
   }
 }

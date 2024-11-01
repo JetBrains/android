@@ -18,9 +18,11 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.NO_COMPOSE_SOURCE_INFO_APP_KEY
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
@@ -46,6 +48,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -132,6 +135,91 @@ class GotoDeclarationActionTest {
   }
 
   @Test
+  fun testNavigateToSelectedViewWithoutViewId() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[0], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+
+    // Make sure an earlier missing compose source information warning is cleared
+    notificationModel.addNotification(
+      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
+      "Source information for composable not found",
+    )
+
+    val capabilities = setOf(InspectorClient.Capability.SUPPORTS_COMPOSE)
+    val inspector = createLayoutInspector(model, stats, capabilities, notificationModel)
+    GotoDeclarationAction.navigateToSelectedView(
+      inspector.coroutineScope,
+      model,
+      inspector.currentClient,
+      notificationModel,
+    )
+    waitForCondition(10.seconds) { notificationModel.hasNotification(VIEW_NOT_FOUND_KEY) }
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo(
+        "Cannot navigate to source because AndroidComposeView in the layout defaultLayout.xml doesn't have an id."
+      )
+  }
+
+  @Test
+  fun testNavigateToSelectedComposeViewWithoutSourceCodeInformation() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-4], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+
+    // Make sure an earlier missing view id warning is cleared
+    notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
+
+    val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
+    GotoDeclarationAction.navigateToSelectedView(
+      inspector.coroutineScope,
+      model,
+      inspector.currentClient,
+      notificationModel,
+    )
+    waitForCondition(10.seconds) {
+      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_KEY)
+    }
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo(
+        "No source information found for Greeting Composable. Perhaps the code is from an obfuscated 3rd party library ?"
+      )
+  }
+
+  @Test
+  fun testNavigateToSelectedComposeViewWithoutSourceCodeInformationInApplication() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-4], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+
+    // Make sure an earlier missing view id or missing compose source information warning is cleared
+    notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
+    notificationModel.addNotification(
+      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
+      "Source information for composable not found",
+    )
+
+    val capabilities = setOf(InspectorClient.Capability.SUPPORTS_COMPOSE)
+    val inspector = createLayoutInspector(model, stats, capabilities, notificationModel)
+    GotoDeclarationAction.navigateToSelectedView(
+      inspector.coroutineScope,
+      model,
+      inspector.currentClient,
+      notificationModel,
+    )
+    waitForCondition(10.seconds) {
+      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_APP_KEY)
+    }
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo(
+        "No compose source information found. For full inspector functionality: Make sure that sourceInformation is turned on for the Kotlin compiler plugin and the app code is not obfuscated."
+      )
+  }
+
+  @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = runInEdtAndGet { createModel() }
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
@@ -188,13 +276,8 @@ class GotoDeclarationActionTest {
     notificationModel: NotificationModel = mock(),
     fromShortcut: Boolean = false,
   ): AnActionEvent {
-    val client: InspectorClient = mock()
-    whenever(client.stats).thenReturn(stats)
-    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector =
-      LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, mock())
     val dataContext: DataContext = mock()
+    val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()
     val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<MouseEvent>()
@@ -206,6 +289,20 @@ class GotoDeclarationActionTest {
       actionManager,
       0,
     )
+  }
+
+  private fun createLayoutInspector(
+    model: InspectorModel,
+    stats: SessionStatistics,
+    capabilities: Set<InspectorClient.Capability> = emptySet(),
+    notificationModel: NotificationModel = mock(),
+  ): LayoutInspector {
+    val client: InspectorClient = mock()
+    whenever(client.stats).thenReturn(stats)
+    whenever(client.capabilities).thenReturn(capabilities)
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    return LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, mock())
   }
 
   private fun checkStats(stats: SessionStatistics, clickCount: Int = 0, keyStrokeCount: Int = 0) {

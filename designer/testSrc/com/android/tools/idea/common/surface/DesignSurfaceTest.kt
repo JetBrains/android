@@ -34,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Dimension
 import java.awt.Point
@@ -240,7 +241,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     val surface = TestDesignSurface(project, testRootDisposable)
 
     // Test min
-    surface.zoomController.setScale(0.104)
+    surface.zoomController.setScale(0.0104)
     assertFalse(surface.zoomController.canZoomOut())
     surface.zoomController.setScale(0.11)
     assertTrue(surface.zoomController.canZoomOut())
@@ -272,8 +273,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.zoomController.setScale(1.0)
 
     // Setting scale is restricted between min and max
-    surface.zoomController.setScale(0.01)
-    assertEquals(0.1, surface.zoomController.scale)
+    surface.zoomController.setScale(0.001)
+    assertEquals(0.01, surface.zoomController.scale)
     surface.zoomController.setScale(20.0)
     assertEquals(10.0, surface.zoomController.scale)
   }
@@ -290,17 +291,20 @@ class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase
     null
 }
 
-class TestLayoutManager(private val surface: DesignSurface<*>) :
-  PositionableContentLayoutManager() {
+class TestLayoutManager : PositionableContentLayoutManager() {
   override fun layoutContainer(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
   ) {}
 
+  lateinit var surface: DesignSurface<*>
+
   override fun preferredLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
-  ): Dimension = surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+  ): Dimension {
+    return surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+  }
 
   override fun getMeasuredPositionableContentPosition(
     content: Collection<PositionableContent>,
@@ -338,16 +342,21 @@ class TestDesignSurface(
     { model, surface ->
       TestSceneManager(model, surface)
     },
+  testLayoutManager: TestLayoutManager = TestLayoutManager(),
 ) :
   DesignSurface<SceneManager>(
     project = project,
-    parentDisposable = disposable,
     actionManagerProvider = { ModelBuilder.TestActionManager(it) },
     interactionProviderCreator = { TestInteractionHandler(it) },
-    positionableLayoutManagerProvider = { TestLayoutManager(it) },
+    positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
   ) {
+
+  init {
+    testLayoutManager.surface = this
+    Disposer.register(disposable, this)
+  }
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = null
@@ -356,7 +365,7 @@ class TestDesignSurface(
     get() = ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
 
   override fun createSceneManager(model: NlModel) = runBlocking {
-    createSceneManager(model, this@TestDesignSurface).apply { updateSceneView() }
+    createSceneManager(model, this@TestDesignSurface).apply { updateSceneViews() }
   }
 
   override fun scrollToCenter(list: List<NlComponent>) {}
@@ -374,8 +383,6 @@ class TestDesignSurface(
     createDesignSurfaceZoomControllerFake(
       project = project,
       disposable = disposable,
-      minScale = 0.1,
-      maxScale = 10.0,
       trackZoom = null,
     )
   override val zoomController: ZoomController

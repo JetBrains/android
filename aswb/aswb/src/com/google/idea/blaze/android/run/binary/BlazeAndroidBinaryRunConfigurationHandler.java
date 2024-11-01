@@ -28,7 +28,7 @@ import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationHandler;
 import com.google.idea.blaze.android.run.BlazeAndroidRunConfigurationValidationUtil;
 import com.google.idea.blaze.android.run.LaunchMetrics;
 import com.google.idea.blaze.android.run.binary.AndroidBinaryLaunchMethodsUtils.AndroidBinaryLaunchMethod;
-import com.google.idea.blaze.android.run.binary.mobileinstall.BlazeAndroidBinaryMobileInstallRunContextCompat;
+import com.google.idea.blaze.android.run.binary.mobileinstall.BlazeAndroidBinaryMobileInstallRunContext;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunConfigurationRunner;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidRunContext;
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * android_binary targets.
  */
 public class BlazeAndroidBinaryRunConfigurationHandler
-    extends BlazeAndroidBinaryRunConfigurationHandlerCompat
+  extends BlazeAndroidBinaryRunConfigurationHandlerTestHelper
     implements BlazeAndroidRunConfigurationHandler {
 
   @VisibleForTesting
@@ -147,7 +147,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
     switch (configState.getLaunchMethod()) {
       case NON_BLAZE:
         runContext =
-            new BlazeAndroidBinaryNormalBuildRunContextCompat(
+            new BlazeAndroidBinaryNormalBuildRunContext(
                 project, facet, configuration, env, configState, buildStep, launchId);
         break;
       case MOBILE_INSTALL_V2:
@@ -156,7 +156,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler
         // fall through
       case MOBILE_INSTALL:
         runContext =
-            new BlazeAndroidBinaryMobileInstallRunContextCompat(
+            new BlazeAndroidBinaryMobileInstallRunContext(
                 project, facet, configuration, env, configState, buildStep, launchId);
         break;
       default:

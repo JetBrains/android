@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.insights.LoadingState.Failure
 import com.android.tools.idea.insights.LoadingState.Loading
 import com.android.tools.idea.insights.LoadingState.Ready
@@ -110,9 +111,25 @@ sealed class LoadingState<out T> {
     }
   }
 
+  data object TosNotAccepted : Failure() {
+    override val message = null
+
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
+  data class UnsupportedOperation(
+    override val message: String?,
+    override val cause: Throwable? = null,
+  ) : Failure() {
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
   /** Generic(catch all) failure. */
-  data class UnknownFailure(override val message: String?, override val cause: Throwable? = null) :
-    Failure() {
+  data class UnknownFailure(
+    override val message: String?,
+    override val cause: Throwable? = null,
+    val status: Status? = null,
+  ) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): UnknownFailure {
       return this
     }

@@ -349,7 +349,7 @@ fun getInflateMetric(task: RenderTask,
   val renderMetric = PerfgateRenderMetric()
   renderMetric.beforeTest()
   val result = Futures.getUnchecked(
-    task.inflate())
+    task.inflate())!!
   renderMetric.afterTest()
   resultVerifier(result)
   return renderMetric
@@ -359,7 +359,7 @@ fun getRenderMetric(task: RenderTask,
                     inflateVerifier: (RenderResult) -> Unit,
                     renderVerifier: (RenderResult) -> Unit): PerfgateRenderMetric {
   inflateVerifier(
-    Futures.getUnchecked(task.inflate()))
+    Futures.getUnchecked(task.inflate())!!)
   val renderMetric = PerfgateRenderMetric()
   renderMetric.beforeTest()
   val result = Futures.getUnchecked(

@@ -35,24 +35,24 @@ import org.junit.Test
 class ComposePostFormatProcessorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
-  private val project: Project by lazy { myFixture.project }
+  private val project: Project by lazy { fixture.project }
 
   @Before
   fun setUp() {
-    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
-    myFixture.addFileToProject(
+    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    fixture.stubComposableAnnotation()
+    fixture.addFileToProject(
       "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin
       """
     package $COMPOSE_UI_PACKAGE
 
     interface Modifier {
-      fun adjust():Modifier
+      fun adjust(): Modifier
       companion object : Modifier {
-        fun adjust():Modifier {}
+        fun adjust(): Modifier {}
       }
     }
     """
@@ -65,9 +65,10 @@ class ComposePostFormatProcessorTest {
   }
 
   @Test
-  fun testWrapModifierChain() {
-    myFixture.loadNewFile(
+  fun modifierChainIsWrapped() {
+    fixture.loadNewFile(
       "src/com/example/Test.kt",
+      // language=kotlin
       """
       package com.example
 
@@ -84,10 +85,11 @@ class ComposePostFormatProcessorTest {
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
       CodeStyleManager.getInstance(project)
-        .reformatText(myFixture.file, listOf(myFixture.file.textRange))
+        .reformatText(fixture.file, listOf(fixture.file.textRange))
     }
 
-    myFixture.checkResult(
+    fixture.checkResult(
+      // language=kotlin
       """
       package com.example
 
@@ -106,9 +108,86 @@ class ComposePostFormatProcessorTest {
   }
 
   @Test
-  fun testDontWrapShortModifierChain() {
-    myFixture.loadNewFile(
+  fun nestedChainInModifierIsNotWrapped() {
+    // Regression test for b/364549431
+    fixture.loadNewFile(
       "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun BugRepro(modifier: Modifier) {
+          SomeComposable(modifier = Modifier.onClick { "foo".someFunction().someFunction() }.secondCall())
+
+          SomeComposable(modifier = Modifier.onClick {
+            "foo".someFunction().someFunction()
+          }.secondCall())
+      }
+
+      @Composable
+      fun SomeComposable(modifier: Modifier) {
+          TODO()
+      }
+
+      fun Modifier.onClick(onClick: @Composable () -> Unit): Modifier = this
+
+      fun Modifier.secondCall(): Modifier = this
+
+      fun Any.someFunction() = this
+      """
+        .trimIndent(),
+    )
+
+    WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
+      CodeStyleManager.getInstance(project)
+        .reformatText(fixture.file, listOf(fixture.file.textRange))
+    }
+
+    fixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun BugRepro(modifier: Modifier) {
+          SomeComposable(modifier = Modifier
+              .onClick { "foo".someFunction().someFunction() }
+              .secondCall())
+
+          SomeComposable(modifier = Modifier
+              .onClick {
+                  "foo".someFunction().someFunction()
+              }
+              .secondCall())
+      }
+
+      @Composable
+      fun SomeComposable(modifier: Modifier) {
+          TODO()
+      }
+
+      fun Modifier.onClick(onClick: @Composable () -> Unit): Modifier = this
+
+      fun Modifier.secondCall(): Modifier = this
+
+      fun Any.someFunction() = this
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun shortModifierChainIsNotWrapped() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
       """
       package com.example
 
@@ -125,10 +204,11 @@ class ComposePostFormatProcessorTest {
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
       CodeStyleManager.getInstance(project)
-        .reformatText(myFixture.file, listOf(myFixture.file.textRange))
+        .reformatText(fixture.file, listOf(fixture.file.textRange))
     }
 
-    myFixture.checkResult(
+    fixture.checkResult(
+      // language=kotlin
       """
       package com.example
 

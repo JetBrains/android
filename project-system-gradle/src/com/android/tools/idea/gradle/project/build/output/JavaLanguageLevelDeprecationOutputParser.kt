@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.extractTaskNameFromId
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenBuildJdkInfoLinkQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
@@ -29,12 +29,10 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
-import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.annotations.VisibleForTesting
@@ -200,19 +198,6 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       else -> return null
     }
     return ParsingResult(kind, title, suggestedToolchainVersion, suggestedLanguageLevel, modulePath)
-  }
-
-  private fun extractTaskNameFromId(parentEventId: Any): String? {
-    if (parentEventId !is String) {
-      return null
-    }
-    //[-447475743:244193606] > [Task :app:compileDebugJavaWithJavac]
-    val taskNamePattern = Pattern.compile("> \\[Task (?<gradleFullTaskName>(?::[^:]+)*)]")
-    val matcher = taskNamePattern.matcher(parentEventId as String)
-    if (matcher.find()) {
-      return matcher.group("gradleFullTaskName")
-    }
-    return null
   }
 }
 

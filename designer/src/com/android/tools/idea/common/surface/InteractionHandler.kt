@@ -257,7 +257,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
       cursorWhenNoInteraction = null
     }
 
-    surface.sceneManagers.map { it.sceneView }.forEach { it.onHover(mouseX, mouseY) }
+    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
@@ -379,7 +379,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun mouseExited() {
     // Call onHover on each SceneView, with coordinates that are sure to be outside.
     surface.sceneManagers
-      .map { it.sceneView }
+      .flatMap { it.sceneViews }
       .forEach {
         it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
         it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)

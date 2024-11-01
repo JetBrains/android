@@ -52,42 +52,8 @@ public abstract class CcCompilationInfo {
 
   public abstract String toolchainId();
 
-  static CcCompilationInfo.Builder builder() {
+  public static CcCompilationInfo.Builder builder() {
     return new AutoValue_CcCompilationInfo.Builder();
-  }
-
-  /**
-   * There is an inconsistency in bazel between the output paths we get given via the BES (which the
-   * digest map is derived from), and the paths given to us by the CC compilation API:
-   *
-   * <ul>
-   *   <li>The BES paths do not contain the {@code bazel-out} component
-   *   <li>The cc compilation API does contain {@code bazel-out}, both in the include path flags and
-   *       in the list of generated headers.
-   * </ul>
-   *
-   * To workaround this, we strip the {@code bazel-out} prefix when looking up generated headers in
-   * the digest map to ensure we can find them.
-   */
-  static DigestMap stripBazelOutPrefix(DigestMap digestMap) {
-    return new DigestMap() {
-      @Override
-      public Optional<String> digestForArtifactPath(Path path, Label fromTarget) {
-        return digestMap.digestForArtifactPath(stripBazelOutPrefix(path), fromTarget);
-      }
-
-      @Override
-      public Iterator<Path> directoryContents(Path directory) {
-        return digestMap.directoryContents(stripBazelOutPrefix(directory));
-      }
-    };
-  }
-
-  static Path stripBazelOutPrefix(Path path) {
-    if (path.startsWith("bazel-out") || path.startsWith("blaze-out")) {
-      return Interners.PATH.intern(path.getName(0).relativize(path));
-    }
-    return path;
   }
 
   public static CcCompilationInfo create(CcTargetInfo targetInfo, DigestMap digestMap) {
@@ -113,7 +79,7 @@ public abstract class CcCompilationInfo {
                 .collect(toImmutableList()))
         .genHeaders(
             BuildArtifact.fromProtos(
-                targetInfo.getGenHdrsList(), stripBazelOutPrefix(digestMap), target))
+                targetInfo.getGenHdrsList(), digestMap, target))
         .toolchainId(targetInfo.getToolchainId())
         .build();
   }
@@ -126,15 +92,27 @@ public abstract class CcCompilationInfo {
 
     public abstract Builder defines(List<String> value);
 
+    public abstract Builder defines(String... value);
+
     public abstract Builder includeDirectories(List<ProjectPath> value);
+
+    public abstract Builder includeDirectories(ProjectPath... value);
 
     public abstract Builder quoteIncludeDirectories(List<ProjectPath> value);
 
+    public abstract Builder quoteIncludeDirectories(ProjectPath... value);
+
     public abstract Builder systemIncludeDirectories(List<ProjectPath> value);
+
+    public abstract Builder systemIncludeDirectories(ProjectPath... value);
 
     public abstract Builder frameworkIncludeDirectories(List<ProjectPath> value);
 
+    public abstract Builder frameworkIncludeDirectories(ProjectPath... value);
+
     public abstract Builder genHeaders(List<BuildArtifact> value);
+
+    public abstract Builder genHeaders(BuildArtifact... value);
 
     public abstract Builder toolchainId(String value);
 

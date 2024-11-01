@@ -80,7 +80,8 @@ public class AddSupportLibraryTest {
     nlEditor.dragComponentToSurface("Google", "AdView");
 
     AddProjectDependencyDialogFixture.find(ideFrame)
-      .clickOk();
+      .clickOk()
+      .waitForGradleSyncToFinish(Wait.seconds(300));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -148,7 +149,8 @@ public class AddSupportLibraryTest {
         .waitForRenderToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     AddProjectDependencyDialogFixture.find(ideFrame)
-      .clickOk();
+      .clickOk()
+      .waitForGradleSyncToFinish(Wait.seconds(300));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     String gradleContents = editor.open("app/build.gradle")

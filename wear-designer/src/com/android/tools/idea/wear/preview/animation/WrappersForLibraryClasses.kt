@@ -70,20 +70,20 @@ class ProtoAnimation(private val animator: Any) {
     get() = delegateMethodCall("getCurrentValue")
 
   /** The start value of the animation */
-  val startValueInt: Int
-    get() = delegateMethodCall("getStartValue") as Int
+  val startValueInt: Int?
+    get() = delegateMethodCall("getStartValue") as? Int
 
   /** The end value of the animation */
-  val endValueInt: Int
-    get() = delegateMethodCall("getEndValue") as Int
+  val endValueInt: Int?
+    get() = delegateMethodCall("getEndValue") as? Int
 
   /** The start value of the animation */
-  val startValueFloat: Float
-    get() = delegateMethodCall("getStartValue") as Float
+  val startValueFloat: Float?
+    get() = delegateMethodCall("getStartValue") as? Float
 
   /** The end value of the animation */
-  val endValueFloat: Float
-    get() = delegateMethodCall("getEndValue") as Float
+  val endValueFloat: Float?
+    get() = delegateMethodCall("getEndValue") as? Float
 
   /** The duration of the animation in milliseconds. */
   val durationMs: Long
@@ -91,6 +91,9 @@ class ProtoAnimation(private val animator: Any) {
 
   val startDelayMs: Long
     get() = delegateMethodCall("getStartDelayMs") as Long
+
+  val isTerminal: Boolean
+    get() = delegateMethodCall("isTerminal") as Boolean
 
   private fun delegateMethodCall(methodName: String, vararg args: Any?): Any? {
     val method: Method =

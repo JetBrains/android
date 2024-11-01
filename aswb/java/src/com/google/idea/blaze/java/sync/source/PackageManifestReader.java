@@ -162,7 +162,7 @@ public class PackageManifestReader {
                 e -> {
                   OutputArtifactWithoutDigest outputArtifactWithoutDigest = e.getKey();
                   return diff.getNewState()
-                      .containsKey(outputArtifactWithoutDigest.getRelativePath());
+                      .containsKey(outputArtifactWithoutDigest.getBazelOutRelativePath());
                 })
             .collect(toImmutableMap(e -> e.getKey().toArtifactState(), Map.Entry::getValue));
 

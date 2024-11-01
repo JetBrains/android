@@ -80,7 +80,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       }
 
       if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(LinuxHaxmInfoStep())
+        addStep(LinuxKvmInfoStep())
       }
 
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {

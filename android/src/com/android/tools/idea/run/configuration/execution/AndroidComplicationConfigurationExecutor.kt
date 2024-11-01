@@ -30,7 +30,6 @@ import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration.ChosenSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
@@ -56,7 +55,6 @@ class AndroidComplicationConfigurationExecutor(
   environment: ExecutionEnvironment,
   deviceFutures: DeviceFutures,
   appRunSettings: AppRunSettings,
-  applicationIdProvider: ApplicationIdProvider,
   apkProvider: ApkProvider,
   applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
@@ -64,7 +62,6 @@ class AndroidComplicationConfigurationExecutor(
   environment,
   deviceFutures,
   appRunSettings,
-  applicationIdProvider,
   apkProvider,
   applicationContext,
   deployer

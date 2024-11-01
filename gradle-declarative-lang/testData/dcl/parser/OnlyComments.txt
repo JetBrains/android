@@ -1,0 +1,4 @@
+FILE
+  PsiComment(DeclarativeTokenType.line_comment)('// comment')
+  PsiWhiteSpace('\n')
+  PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')

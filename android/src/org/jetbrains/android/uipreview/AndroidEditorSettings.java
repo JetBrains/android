@@ -97,6 +97,21 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
    */
   public static final double DEFAULT_MAGNIFY_SENSITIVITY = (MIN_MAGNIFY_SENSITIVITY + MAX_MAGNIFY_SENSITIVITY) / 2;
 
+  /**
+   * The default {@link EditorMode} of when a resource file is opened.
+   */
+  public final static EditorMode DEFAULT_PREFERRED_RESOURCE_EDITOR_MODE = AndroidEditorSettings.EditorMode.DESIGN;
+
+  /**
+   * The default {@link EditorMode} of when a code file is opened.
+   */
+  public final static EditorMode DEFAULT_PREFERRED_CODE_EDITOR_MODE = AndroidEditorSettings.EditorMode.CODE;
+
+  /**
+   * The default {@link LayoutType} of when a code file containing preview annotation is opened.
+   */
+  public final static LayoutType DEFAULT_PREFERRED_PREVIEW_LAYOUT_TYPE = AndroidEditorSettings.LayoutType.GRID;
+
   private GlobalState myGlobalState = new GlobalState();
 
   public static AndroidEditorSettings getInstance() {
@@ -133,10 +148,9 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
   }
 
   public static class GlobalState {
-    private EditorMode myPreferredEditorMode;
-    private EditorMode myPreferredResourcesEditorMode;
-    private EditorMode myPreferredKotlinEditorMode;
-    private LayoutType myPreferredLayoutType;
+    private @NotNull EditorMode myPreferredEditorMode = DEFAULT_PREFERRED_CODE_EDITOR_MODE;
+    private @NotNull EditorMode myPreferredResourcesEditorMode = DEFAULT_PREFERRED_RESOURCE_EDITOR_MODE;
+    private @NotNull LayoutType myPreferredLayoutType = DEFAULT_PREFERRED_PREVIEW_LAYOUT_TYPE;
     private double myMagnifySensitivity = DEFAULT_MAGNIFY_SENSITIVITY;
     private boolean myPreviewEssentialsModeEnabled = false;
 
@@ -167,14 +181,6 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setShowSplitViewForPreviewFiles(boolean showSplitViewForPreviewFiles) {
       myShowSplitViewForPreviewFiles = showSplitViewForPreviewFiles;
-    }
-
-    public EditorMode getPreferredKotlinEditorMode() {
-      return myPreferredKotlinEditorMode;
-    }
-
-    public void setPreferredKotlinEditorMode(EditorMode preferredKotlinEditorMode) {
-      myPreferredKotlinEditorMode = preferredKotlinEditorMode;
     }
 
     public void setPreferredPreviewLayoutMode(LayoutType preferredLayoutType) {

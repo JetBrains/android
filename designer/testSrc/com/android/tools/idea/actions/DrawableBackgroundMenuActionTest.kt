@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
@@ -44,6 +43,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class DrawableBackgroundMenuActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

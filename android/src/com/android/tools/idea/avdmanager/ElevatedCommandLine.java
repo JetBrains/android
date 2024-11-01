@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.diagnostic.Logger;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
@@ -69,20 +70,6 @@ public class ElevatedCommandLine extends GeneralCommandLine {
    * This allows us to specify elevated privileges with the "runas" parameter.
    */
   private Process executeAsShellCommand() throws IOException {
-    // First create a wrapper that sets the current work directory, such that batch files
-    // may call other batch/executable files in the same directory without specifying the
-    // directory.
-    // Note: This was needed for the Haxm silent_install.bat.
-    String exeName = new File(getExePath()).getName();
-    File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
-    String exePath = new File(getExePath()).getParent();
-    FileUtil.writeToFile(wrapper, String.format(
-      "@echo off\n" +
-      "setlocal enableextensions\n\n" +
-      "cd /d \"%1$s\"\n\n" +
-      "%2$s %%*", exePath, exeName));
-    setExePath(wrapper.getPath());
-
     // Setup capturing of stdout and stderr in files.
     // ShellExecuteEx does not allow for the capture from code.
     File outFile = FileUtil.createTempFile(myTempFilePrefix + "_out", ".txt", true);
@@ -99,6 +86,10 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     info.fMask = SEE_MASK_NO_CLOSE_PROCESS;
     boolean returnValue = Shell32.INSTANCE.ShellExecuteEx(info);
     int errorCode = returnValue ? 0 : Kernel32.INSTANCE.GetLastError();
+
+    Logger.getInstance(ElevatedCommandLine.class).info("ShellExecuteEx: \"" +
+            getExePath() +  getParametersList().getParametersString() +
+            "\" returned " + errorCode);
 
     // Return a fake Process which will wait for the created process to finish
     // and wrap stdout and stderr into their respective {@link InputStream}.

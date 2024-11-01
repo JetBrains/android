@@ -26,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 /** A blaze output artifact which exists on the local file system. */
@@ -33,13 +34,13 @@ public class LocalFileOutputArtifactWithoutDigest
     implements OutputArtifactWithoutDigest, LocalFileArtifact {
 
   private final File file;
-  private final String blazeOutRelativePath;
+  private final Path artifactPath;
   private final String configurationMnemonic;
 
   public LocalFileOutputArtifactWithoutDigest(
-      File file, String blazeOutRelativePath, String configurationMnemonic) {
+    File file, Path artifactPath, String configurationMnemonic) {
     this.file = file;
-    this.blazeOutRelativePath = blazeOutRelativePath;
+    this.artifactPath = artifactPath;
     this.configurationMnemonic = configurationMnemonic;
   }
 
@@ -51,7 +52,7 @@ public class LocalFileOutputArtifactWithoutDigest
   @Nullable
   public ArtifactState toArtifactState() {
     long lastModifiedTime = getLastModifiedTime();
-    return lastModifiedTime == 0 ? null : new LocalFileState(getRelativePath(), lastModifiedTime);
+    return lastModifiedTime == 0 ? null : new LocalFileState(getBazelOutRelativePath(), lastModifiedTime);
   }
 
   @Override
@@ -60,8 +61,8 @@ public class LocalFileOutputArtifactWithoutDigest
   }
 
   @Override
-  public String getRelativePath() {
-    return blazeOutRelativePath;
+  public Path getArtifactPath() {
+    return artifactPath;
   }
 
   @Override
@@ -85,19 +86,19 @@ public class LocalFileOutputArtifactWithoutDigest
     }
     LocalFileOutputArtifactWithoutDigest that = (LocalFileOutputArtifactWithoutDigest) obj;
     return Objects.equal(this.file.getPath(), that.file.getPath())
-        && Objects.equal(this.blazeOutRelativePath, that.blazeOutRelativePath);
+        && Objects.equal(this.artifactPath, that.artifactPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(file.getPath(), blazeOutRelativePath);
+    return Objects.hashCode(file.getPath(), artifactPath);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("file", file.getPath())
-        .add("blazeOutRelativePath", blazeOutRelativePath)
+        .add("artifactPath", artifactPath)
         .add("configurationMnemonic", configurationMnemonic)
         .toString();
   }

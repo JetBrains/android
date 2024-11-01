@@ -120,12 +120,21 @@ class CommonTextFieldTest {
   @Test
   fun testRetainEditingValueIfUpdateIsReceivedDuringEditing() {
     acquireFocus()
-    field.text = "Editing the val..."
 
     // Simulate an update from the model:
     model.value = "Hello World!"
 
-    // Verify that this doesn't effect the text value in the field or model:
+    // Verify the model update will change the text in the editor and model:
+    assertThat(field.text).isEqualTo("Hello World!")
+    assertThat(model.text).isEqualTo("Hello World!")
+
+    // Simulate the user editing:
+    field.text = "Editing the val..."
+
+    // Simulate an update from the model:
+    model.value = "Hello New Great World!"
+
+    // Verify that this doesn't have an effect the text value in the field or model:
     assertThat(field.text).isEqualTo("Editing the val...")
     assertThat(model.text).isEqualTo("Editing the val...")
   }

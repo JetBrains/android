@@ -29,10 +29,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +40,7 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
     new PropertiesElementDescription<>(null,
                                        ProductFlavorDslElement.class,
                                        ProductFlavorDslElement::new,
-                                       ProductFlavorDslElementSchema::new);
+                                       "productFlavor");
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"initWith", exactly(1), INIT_WITH, OTHER},
@@ -90,25 +88,5 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
   @Override
   public String getMethodName() {
     return methodName;
-  }
-
-
-  public static final class ProductFlavorDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.ProductFlavor";
-    }
   }
 }

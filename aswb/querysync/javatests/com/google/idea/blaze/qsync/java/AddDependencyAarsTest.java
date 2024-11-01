@@ -16,24 +16,23 @@
 package com.google.idea.blaze.qsync.java;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteSource;
-import com.google.common.util.concurrent.Futures;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.common.artifact.MockArtifact;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.QuerySyncTestUtils;
 import com.google.idea.blaze.qsync.TestDataSyncRunner;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
+import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.deps.TargetBuildInfo.MetadataKey;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ExternalAndroidLibrary;
@@ -42,14 +41,12 @@ import com.google.protobuf.TextFormat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -58,10 +55,10 @@ public class AddDependencyAarsTest {
 
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
-  @Mock public BuildArtifactCache cache;
-
   private final TestDataSyncRunner syncer =
       new TestDataSyncRunner(new NoopContext(), QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER);
+
+  private final AarPackageNameMetaData aarPackageMetadata = new AarPackageNameMetaData(null);
 
   private static ByteSource emptyAarFile() throws IOException {
     ByteArrayOutputStream aarContents = new ByteArrayOutputStream();
@@ -77,16 +74,13 @@ public class AddDependencyAarsTest {
   public void no_deps_built() throws Exception {
     QuerySyncProjectSnapshot original = syncer.sync(TestData.ANDROID_LIB_QUERY);
 
-    AndroidManifestParser manifestParser = in -> "com.google.idea.blaze.qsync.testdata.android";
-
     AddDependencyAars addAars =
-        new AddDependencyAars(
-            () -> State.EMPTY, cache, original.queryData().projectDefinition(), manifestParser);
+        new AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(update, State.EMPTY);
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -99,29 +93,27 @@ public class AddDependencyAarsTest {
     QuerySyncProjectSnapshot original = syncer.sync(TestData.ANDROID_LIB_QUERY);
 
     AddDependencyAars addAars =
-        new AddDependencyAars(
-            () ->
-                State.forJavaArtifacts(
-                    ImmutableList.of(
-                        JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-                            .setIdeAars(
-                                ImmutableList.of(
-                                    BuildArtifact.create(
-                                        "aardigest",
-                                        Path.of("path/to/dep.aar"),
-                                        Label.of("//path/to:dep"))))
-                            .build())),
-            cache,
-            original.queryData().projectDefinition(),
-            in -> "com.google.idea.blaze.qsync.testdata.android");
-
-    when(cache.get("aardigest"))
-        .thenReturn(Optional.of(Futures.immediateFuture(new MockArtifact(emptyAarFile()))));
+        new AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(
+        update,
+        State.forTargets(
+            TargetBuildInfo.forJavaTarget(
+                    JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                        .setIdeAars(
+                            ImmutableList.of(
+                                BuildArtifact.create(
+                                    "aardigest",
+                                    Path.of("path/to/dep.aar"),
+                                    Label.of("//path/to:dep"))))
+                        .build(),
+                    DependencyBuildContext.NONE)
+                .withArtifactMetadata(
+                    new MetadataKey(aarPackageMetadata.key(), Path.of("path/to/dep.aar")),
+                    "com.google.idea.blaze.qsync.testdata.android")));
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());
@@ -180,32 +172,24 @@ public class AddDependencyAarsTest {
   public void dep_aar_no_package_name_added() throws Exception {
     QuerySyncProjectSnapshot original = syncer.sync(TestData.ANDROID_LIB_QUERY);
 
-    AndroidManifestParser noPackageNameParser = in -> null;
-
     AddDependencyAars addAars =
-        new AddDependencyAars(
-            () ->
-                State.forJavaArtifacts(
-                    ImmutableList.of(
-                        JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
-                            .setIdeAars(
-                                ImmutableList.of(
-                                    BuildArtifact.create(
-                                        "aardigest",
-                                        Path.of("path/to/dep.aar"),
-                                        Label.of("//path/to:dep"))))
-                            .build())),
-            cache,
-            original.queryData().projectDefinition(),
-            noPackageNameParser);
-
-    when(cache.get("aardigest"))
-        .thenReturn(Optional.of(Futures.immediateFuture(new MockArtifact(emptyAarFile()))));
+        new AddDependencyAars(original.queryData().projectDefinition(), aarPackageMetadata);
 
     ProjectProtoUpdate update =
         new ProjectProtoUpdate(original.project(), original.graph(), new NoopContext());
 
-    addAars.update(update);
+    addAars.update(
+        update,
+        State.forJavaArtifacts(
+            ImmutableList.of(
+                JavaArtifactInfo.empty(Label.of("//path/to:dep")).toBuilder()
+                    .setIdeAars(
+                        ImmutableList.of(
+                            BuildArtifact.create(
+                                "aardigest",
+                                Path.of("path/to/dep.aar"),
+                                Label.of("//path/to:dep"))))
+                    .build())));
     ProjectProto.Project newProject = update.build();
 
     assertThat(newProject.getLibraryList()).isEqualTo(original.project().getLibraryList());

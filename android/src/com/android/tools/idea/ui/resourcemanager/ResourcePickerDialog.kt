@@ -41,6 +41,7 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 
 /**
  * A [ResourceExplorer] used in a dialog for resource picking.
@@ -102,6 +103,8 @@ class ResourcePickerDialog(
   override fun createCenterPanel() = resourceExplorerPanel.apply {
     border = BorderFactory.createMatteBorder(0, 0, JBUI.scale(1), 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
   }
+
+  override fun getPreferredFocusedComponent(): JComponent = resourceExplorerPanel.getPreferredFocusedComponent()
 
   override fun dispose() {
     onWindowIfNotNull { it.removeWindowFocusListener(explorerUpdater) }

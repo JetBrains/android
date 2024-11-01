@@ -1,45 +1,15 @@
-<idea-plugin package="com.android.tools.idea.gradle.dcl" >
+<idea-plugin package="com.android.tools.idea.gradle.dcl.lang" >
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="Gradle Declarative Configuration Language"
-              implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeFileType"
+              implementationClass="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType"
               fieldName="INSTANCE"
               language="Declarative"
               extensions="dcl"/>
     <lang.parserDefinition language="Declarative"
-                           implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeParserDefinition"/>
+                           implementationClass="com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition"/>
     <lang.ast.factory language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory"/>
-    <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeHighlighter"/>
-    <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeQuoteHandler"/>
-    <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativePairedBraceMatcher"/>
-    <todoIndexer filetype="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeTodoIndexer"/>
-    <indexPatternBuilder implementation="com.android.tools.idea.gradle.dcl.ide.DeclarativeTodoIndexPatternBuilder"/>
-
-    <lang.formatter
-        language="Declarative"
-        implementationClass="com.android.tools.idea.gradle.dcl.ide.formatting.DeclarativeFormattingModelBuilder"/>
-    <langCodeStyleSettingsProvider
-        implementation="com.android.tools.idea.gradle.dcl.ide.formatting.settings.DeclarativeLanguageCodeStyleSettingsProvider"/>
-    <completion.contributor language="Declarative"
-                            implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeCompletionContributor" />
-    <completion.confidence language="Declarative"
-                           id="EnableAutoPopupInDeclarativeCompletion"
-                           implementationClass="com.android.tools.idea.gradle.dcl.ide.EnableAutoPopupInDeclarativeCompletion" />
-    <annotator language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeAnnotator"/>
-
-    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.dcl.ide.DeclarativeVersionCatalogReferenceContributor"/>
-    <lang.commenter language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeCommenter"/>
-    <lang.foldingBuilder language="Declarative" implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeFoldingBuilder"/>
-    <colorSettingsPage implementation="com.android.tools.idea.gradle.dcl.ide.color.DeclarativeColorSettingsPage"/>
-
-    <localInspection language="Declarative"
-                     bundle="messages.DeclarativeBundle"
-                     groupKey="inspection.group.dcl"
-                     key="inspection.declarative.unresolved.reference.display.name"
-                     enabledByDefault="true" level="WARNING"
-                     implementationClass="com.android.tools.idea.gradle.dcl.ide.DeclarativeUnresolvedReferenceInspection"/>
-
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.uast">
-    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.dcl.ide.DeclarativeUastLanguagePlugin"/>
+    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.dcl.lang.DeclarativeUastLanguagePlugin"/>
   </extensions>
 </idea-plugin>

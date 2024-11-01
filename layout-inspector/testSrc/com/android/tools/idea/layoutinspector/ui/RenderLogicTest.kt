@@ -26,7 +26,6 @@ import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.mock
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -74,6 +73,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
+import org.mockito.kotlin.mock
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2

@@ -96,6 +96,8 @@ class KotlinModelConverter {
     const val kotlinMultiplatformAndroidVariantName = "androidMain"
 
     internal fun KotlinSourceSet.getJavaSourceDirectories() = sourceDirs.map { File(it.parentFile, "java") }
+    internal fun KotlinSourceSet.getResSourceDirectories() = sourceDirs.map { File(it.parentFile, "res") }
+    internal fun KotlinSourceSet.getAssetsSourceDirectories() = sourceDirs.map { File(it.parentFile, "assets") }
   }
 
   private val interner = WeakInterner(lock = null) // No need for a lock since the resolution happens sequentially.
@@ -160,8 +162,8 @@ class KotlinModelConverter {
       } else emptyList(),
       myAidlDirectories = emptyList(),
       myRenderscriptDirectories = emptyList(),
-      myResDirectories = emptyList(),
-      myAssetsDirectories = emptyList(),
+      myResDirectories = sourceSet.getResSourceDirectories().makeRelativeAndDeduplicate(),
+      myAssetsDirectories = sourceSet.getAssetsSourceDirectories().makeRelativeAndDeduplicate(),
       myJniLibsDirectories = emptyList(),
       myShadersDirectories = emptyList(),
       myMlModelsDirectories = emptyList(),

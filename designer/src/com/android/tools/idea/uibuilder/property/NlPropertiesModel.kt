@@ -223,7 +223,9 @@ open class NlPropertiesModel(
   private fun readPropertyValue(property: NlPropertyItem): String? {
     var prev: String? = null
     for (component in property.components) {
-      val value = component.getLiveAttribute(property.namespace, property.name) ?: return null
+      val value =
+        component.getLiveAttributeWithoutStyleResolution(property.namespace, property.name)
+          ?: return null
       prev = prev ?: value
       if (value != prev) return null
     }

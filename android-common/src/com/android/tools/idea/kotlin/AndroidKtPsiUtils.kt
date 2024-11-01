@@ -26,12 +26,12 @@ import org.jetbrains.kotlin.analysis.api.KaConstantInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
-import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.singleVariableAccessCall
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -78,19 +78,17 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
-fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
+fun KtClass.insideBody(offset: Int): Boolean =
+  (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
-// TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
+// TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this
+// function.
 @OptIn(KaAllowAnalysisOnEdt::class)
 inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.() -> T): T =
   if (this != null) {
     block()
   } else {
-    allowAnalysisOnEdt {
-      analyze(element) {
-        block()
-      }
-    }
+    allowAnalysisOnEdt { analyze(element) { block() } }
   }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
@@ -102,13 +100,14 @@ fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
     }
   } else {
     val propertyDescriptor = descriptor as? PropertyDescriptor ?: return false
-    return analyzeFe10(BodyResolveMode.PARTIAL)[BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
+    return analyzeFe10(BodyResolveMode.PARTIAL)[
+      BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
   }
 }
 
 /**
- * Computes the qualified name of this [KtAnnotationEntry].
- * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
+ * Computes the qualified name of this [KtAnnotationEntry]. Prefer to use [fqNameMatches], which
+ * checks the short name first and thus has better performance.
  */
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
@@ -121,14 +120,15 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): Stri
 }
 
 /**
- * This function is like the function [KtAnnotationEntry.getQualifiedName] above, but for K2. It can run
- * on write-action. Please be aware that this function must be used only when we cannot avoid calling this function
- * on write-action. Otherwise, the above [KtAnnotationEntry.getQualifiedName] function must be used. The analysis
- * API use on a write-action can cause IDE freeze. However, we have some cases like code-format or
- * reference-shortener in the middle of template execution. In that case, we cannot run analysis in advance on a
- * background thread, because the PSI will vary depending on the last updates from users (imagine a type given from
- * a template execution, and it needs the reference shortening), which means we have to run the analysis APIs for
- * code-format and reference-shortener on a write-action.
+ * This function is like the function [KtAnnotationEntry.getQualifiedName] above, but for K2. It can
+ * run on write-action. Please be aware that this function must be used only when we cannot avoid
+ * calling this function on write-action. Otherwise, the above [KtAnnotationEntry.getQualifiedName]
+ * function must be used. The analysis API use on a write-action can cause IDE freeze. However, we
+ * have some cases like code-format or reference-shortener in the middle of template execution. In
+ * that case, we cannot run analysis in advance on a background thread, because the PSI will vary
+ * depending on the last updates from users (imagine a type given from a template execution, and it
+ * needs the reference shortening), which means we have to run the analysis APIs for code-format and
+ * reference-shortener on a write-action.
  */
 @OptIn(KaAllowAnalysisFromWriteAction::class, KaAllowAnalysisOnEdt::class)
 fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
@@ -141,62 +141,80 @@ fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(): String? =
   }
 
 /**
- * Determines whether this [KtAnnotationEntry] has the specified qualified name.
- * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
- *   Fortunately, type aliases are extremely uncommon for simple annotation types.
+ * Determines whether this [KtAnnotationEntry] has the specified qualified name. Careful: this does
+ * *not* currently take into account Kotlin type aliases
+ * (https://kotlinlang.org/docs/reference/type-aliases.html). Fortunately, type aliases are
+ * extremely uncommon for simple annotation types.
  */
 fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KaSession? = null): Boolean {
-  // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in the Kotlin plugin.
+  // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in
+  // the Kotlin plugin.
   val shortName = shortName?.asString() ?: return false
   return fqName.endsWith(shortName) && fqName == getQualifiedName(analysisSession)
 }
 
-/**
- * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
- */
-fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KaSession? = null): Boolean {
+/** Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names. */
+fun KtAnnotationEntry.fqNameMatches(
+  fqNames: Set<String>,
+  analysisSession: KaSession? = null,
+): Boolean {
   val shortName = shortName?.asString() ?: return false
   val fqNamesFiltered = fqNames.filter { it.endsWith(shortName) }
   if (fqNamesFiltered.isEmpty()) return false
 
-  // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
-  // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
-  // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
+  // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it
+  // has a performance intensive workload
+  // (analysis). It is important check early returns before calling `getQualifiedName(..)`.
+  // Previously, we used `lazy { .. }`, but
+  // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint
+  // error.
   val qualifiedName = getQualifiedName(analysisSession)
   return fqNamesFiltered.any { it == qualifiedName }
 }
 
 /**
- * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a
- * set of fully qualified names [fqName].
+ * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a set of fully
+ * qualified names [fqName].
  */
 fun KaSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
   val shortName = ktAnnotationEntry.shortName?.asString() ?: return false
   if (!fqName.endsWith(shortName)) return false
 
-  // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
-  // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
-  // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
+  // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it
+  // has a performance intensive workload
+  // (analysis). It is important check early returns before calling `getQualifiedName(..)`.
+  // Previously, we used `lazy { .. }`, but
+  // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint
+  // error.
   val qualifiedName = ktAnnotationEntry.getQualifiedName(this)
   return fqName == qualifiedName
 }
 
-/** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
+/**
+ * Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in.
+ */
 fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = classSymbol
       val classId = symbol?.classId ?: return null
 
-      if (symbol.classKind != KaClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
+      if (
+        symbol.classKind != KaClassKind.CLASS ||
+          classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)
+      ) {
         null
       } else {
         classId.asFqNameString()
       }
     }
   } else {
-    val classDescriptor = analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
-    if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) || classDescriptor.kind != ClassKind.CLASS) {
+    val classDescriptor =
+      analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
+    if (
+      KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) ||
+        classDescriptor.kind != ClassKind.CLASS
+    ) {
       null
     } else {
       classDescriptor.fqNameSafe.asString()
@@ -207,9 +225,8 @@ fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
 /**
  * Computes the qualified name of the class containing this [KtNamedFunction].
  *
- * For functions defined within a Kotlin class, returns the qualified name of that class. For top-level functions, returns the JVM name of
- * the Java facade class generated instead.
- *
+ * For functions defined within a Kotlin class, returns the qualified name of that class. For
+ * top-level functions, returns the JVM name of the Java facade class generated instead.
  */
 fun KtNamedFunction.getClassName(analysisSession: KaSession? = null): String? =
   if (isTopLevel) {
@@ -226,17 +243,20 @@ fun KtNamedFunction.getClassName(analysisSession: KaSession? = null): String? =
 fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): KtExpression? =
   findValueArgument(annotationAttributeName)?.getArgumentExpression()
 
-/** Finds the [KtValueArgument] assigned to [annotationAttributeName] in this [KtAnnotationEntry]. */
+/**
+ * Finds the [KtValueArgument] assigned to [annotationAttributeName] in this [KtAnnotationEntry].
+ */
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
-  valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
+  valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName }
+    as? KtValueArgument
 
 /**
  * Evaluate a property expression with a constant initializer.
  *
  * The Analysis API's constant evaluator will only evaluate constants that are legal for use in a
  * `const val` context - in particular, the expressions can only make references to other `const`
- * variables, and any reference to a non-`const` variable will prevent constant evaluation, even
- * if that variable has an initializer that would otherwise allow it to be `const`. This behavior
+ * variables, and any reference to a non-`const` variable will prevent constant evaluation, even if
+ * that variable has an initializer that would otherwise allow it to be `const`. This behavior
  * diverges from FE1.0's constant evaluator, which will allow any "effectively final" constant
  * references to be evaluated.
  *
@@ -249,21 +269,19 @@ fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValu
  * evaluation" mode that was previously available in prerelease API versions.
  */
 @OptIn(KaExperimentalApi::class)
-tailrec fun KaSession.evaluatePossiblePropertyExpression(expression: KtExpression): KaConstantValue? {
+tailrec fun KaSession.evaluatePossiblePropertyExpression(
+  expression: KtExpression
+): KaConstantValue? {
   if (expression is KtSimpleNameExpression) {
     val variableSymbol =
-      expression.resolveToCall()
-        ?.singleVariableAccessCall()
-        ?.symbol
-        ?.takeIf { it.isVal }
+      expression.resolveToCall()?.singleVariableAccessCall()?.symbol?.takeIf { it.isVal }
 
     val initializerPsi =
       when (val initializer = (variableSymbol as? KaPropertySymbol)?.initializer) {
         is KaConstantInitializerValue -> return initializer.constant
         is KaInitializerValue -> initializer.initializerPsi
         else -> null
-      }
-      ?: variableSymbol?.psiSafe<KtVariableDeclaration>()?.initializer
+      } ?: variableSymbol?.psiSafe<KtVariableDeclaration>()?.initializer
 
     if (initializerPsi != null) {
       return evaluatePossiblePropertyExpression(initializerPsi)
@@ -297,14 +315,15 @@ fun KtExpression.tryEvaluateConstant(analysisSession: KaSession? = null): String
 /**
  * Tries to evaluate this [KtExpression] and return its value coerced as a string.
  *
- * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
+ * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be
+ * converted to string.
  */
 fun KtExpression.tryEvaluateConstantAsText(analysisSession: KaSession? = null): String? =
   evaluateConstant<Any>(analysisSession)?.toString()
 
 /**
- * When given an element in a qualified chain expression (e.g. `activity` in `R.layout.activity`), this finds the previous element in the
- * chain (in this case `layout`).
+ * When given an element in a qualified chain expression (e.g. `activity` in `R.layout.activity`),
+ * this finds the previous element in the chain (in this case `layout`).
  */
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
   val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
@@ -312,20 +331,21 @@ fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
 }
 
 /**
- * When given an element in a qualified chain expression (eg. `R` in `R.layout.activity`), this finds the next element in the chain (in this
- * case `layout`).
+ * When given an element in a qualified chain expression (eg. `R` in `R.layout.activity`), this
+ * finds the next element in the chain (in this case `layout`).
  */
 fun KtExpression.getNextInQualifiedChain(): KtExpression? {
   return getQualifiedExpressionForReceiver()?.selectorExpression
-         ?: getQualifiedExpressionForSelector()?.getQualifiedExpressionForReceiver()?.selectorExpression
+    ?: getQualifiedExpressionForSelector()?.getQualifiedExpressionForReceiver()?.selectorExpression
 }
 
 fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe
 
 fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean {
-  return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
-    it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
-  }
+  return (!strict && getQualifiedName()?.asString() == className) ||
+    constructor.supertypes.any {
+      it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
+    }
 }
 
 val KtProperty.psiType: PsiType?
@@ -333,14 +353,20 @@ val KtProperty.psiType: PsiType?
     val accessors = getAccessorLightMethods()
     return accessors.backingField?.type ?: accessors.getter?.returnType
   }
-val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
-val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
+val KtParameter.psiType
+  get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
+val KtFunction.psiType
+  get() = LightClassUtil.getLightClassMethod(this)?.returnType
+
 fun KtClassOrObject.toPsiType() =
-  toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
+  toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let {
+    AndroidPsiUtils.toPsiType(it)
+  }
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
-    mapOnDeclarationSymbol { classId in it.annotations } ?: (findAnnotationEntryByClassId(classId) != null)
+    mapOnDeclarationSymbol { classId in it.annotations } == true ||
+      (findAnnotationEntryByClassId(classId) != null)
   } else {
     findAnnotationK1(classId) != null
   }
@@ -352,26 +378,36 @@ fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
     findAnnotationK1(classId)
   }
 
-private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? = mapOnDeclarationSymbol {
-  it.annotations[classId].singleOrNull()?.psi as? KtAnnotationEntry
-} ?: findAnnotationEntryByClassId(classId)
+private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
+  mapOnDeclarationSymbol { it.annotations[classId].singleOrNull()?.psi as? KtAnnotationEntry }
+    ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDeclarationSymbol) -> T?): T? =
-  allowAnalysisOnEdt {
-    @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-    allowAnalysisFromWriteAction {
-      analyze(this) {
-        val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
-        declaration?.symbol?.let { block(it) }
+private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(
+  block: KaSession.(KaDeclarationSymbol) -> T?
+): T? =
+  when {
+    this !is KtDeclaration -> null
+    // b/367493550: Function type parameters cannot have a KaSymbol created for them.
+    // [Example: foo in `fun f(block: (foo: Any) -> Unit))`.]
+    // Skip these elements and let the fallback handling take care of them.
+    this is KtParameter && isFunctionTypeParameter -> null
+    else -> {
+      allowAnalysisOnEdt {
+        @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        allowAnalysisFromWriteAction {
+          analyze(this) {
+            block(symbol)
+          }
+        }
       }
     }
   }
 
 /**
- * Fallback of [mapOnDeclarationSymbol] in the case the given [KtAnnotated] is not [KtDeclaration]. One example is [KtTypeReference].
- * This function resolves [annotationEntries] and finds a symbol (a constructor symbol in the [KtTypeReference] case) whose class symbol
- * is [classId].
+ * Fallback of [mapOnDeclarationSymbol] in the case the given [KtAnnotated] is not [KtDeclaration].
+ * One example is [KtTypeReference]. This function resolves [annotationEntries] and finds a symbol
+ * (a constructor symbol in the [KtTypeReference] case) whose class symbol is [classId].
  */
 @OptIn(KaAllowAnalysisOnEdt::class)
 private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): KtAnnotationEntry? =
@@ -380,7 +416,8 @@ private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): K
     allowAnalysisFromWriteAction {
       analyze(this) {
         annotationEntries.find { annotationEntry ->
-          val annotationConstructorCall = annotationEntry.resolveToCall()?.singleConstructorCallOrNull() ?: return null
+          val annotationConstructorCall =
+            annotationEntry.resolveToCall()?.singleConstructorCallOrNull() ?: return null
           annotationConstructorCall.symbol.containingClassId == classId
         }
       }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.concurrency.asCollection
@@ -63,7 +64,9 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     private fun updateMode(dataContext: DataContext) {
-      PreviewCanvasTracker.getInstance().logSwitchLayout(option.layoutManager)
+      dataContext.getData(DESIGN_SURFACE)?.let {
+        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutManager)
+      }
       val manager = dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return
 
       if (option == GALLERY_LAYOUT_OPTION) {

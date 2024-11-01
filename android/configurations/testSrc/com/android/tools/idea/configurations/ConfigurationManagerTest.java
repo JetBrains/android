@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import com.android.ide.common.resources.Locale;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
@@ -26,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Assert;
 
 public class ConfigurationManagerTest extends AndroidTestCase {
   public void testGetLocales() {
@@ -100,7 +103,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
 
   /**
    * Check that {@link ConfigurationManager#getConfiguration(VirtualFile)} does not need the read lock and will acquire it if needed.
-   *
+   * <p>
    * Regression test for b/162537840
    */
   public void testNoReadAction() throws ExecutionException, InterruptedException {
@@ -123,7 +126,8 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     AppExecutorUtil.getAppExecutorService().submit(() -> {
       try {
         assertNotNull(manager.getConfiguration(file1));
-      } catch (Throwable t) {
+      }
+      catch (Throwable t) {
         fail("No exception expected calling ConfiguraitonManager#getConfiguration");
       }
     }).get();
@@ -142,7 +146,8 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     Configuration config = AppExecutorUtil.getAppExecutorService().submit(() -> {
       try {
         return ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
-      } catch (Throwable t) {
+      }
+      catch (Throwable t) {
         fail("No exception expected calling ConfigurationManager#getConfiguration");
         throw new IllegalStateException();
       }
@@ -225,6 +230,29 @@ public class ConfigurationManagerTest extends AndroidTestCase {
       assertNotNull(state);
       assertEquals("Landscape", state.getName());
     }
+  }
+
+  /**
+   * The parent directory is used by the {@link ConfigurationManager} to determine the folder configuration.
+   * In some cases, like rendering a temporary drawable in memory, there might not be a parent directory so the configuration
+   * should be determined as the default one.
+   * Regression test for b/364904755.
+   */
+  public void testDefaultFolderConfigurationOnNoParent() {
+    @Language("xml")
+    String drawable = """
+      <?xml version="1.0" encoding="utf-8"?>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+          android:shape="rectangle"
+          android:tint="#FF0000">
+         </shape>
+      """;
+    VirtualFile file1 = new LightVirtualFile("drawable.xml", drawable);
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+
+    Configuration configuration = manager.getConfiguration(file1);
+    Assert.assertNotNull(configuration);
+    assertEquals(configuration.getEditedConfig(), new FolderConfiguration());
   }
 
   @Language("xml")

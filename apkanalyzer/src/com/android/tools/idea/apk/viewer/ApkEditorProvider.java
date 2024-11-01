@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -29,11 +28,6 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) {
-      // b/182906226
-      return false;
-    }
-
     return ApkFileSystem.EXTENSIONS.contains(file.getExtension()) &&
            ApkFileSystem.getInstance().getRootByLocal(file) != null;
   }

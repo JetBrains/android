@@ -84,12 +84,12 @@ class BlazeIntellijPluginDeployer {
             .map(a -> a.artifact)
             .collect(toImmutableList());
     buildArtifactsMap.clear();
-    buildArtifacts.forEach(a -> buildArtifactsMap.put(a.getRelativePath(), a));
+    buildArtifacts.forEach(a -> buildArtifactsMap.put(a.getBazelOutRelativePath(), a));
 
     deployInfoArtifacts.clear();
     deployInfoArtifacts.addAll(
         buildArtifacts.stream()
-            .filter(a -> a.getRelativePath().endsWith(".intellij-plugin-debug-target-deploy-info"))
+            .filter(a -> a.getBazelOutRelativePath().endsWith(".intellij-plugin-debug-target-deploy-info"))
             .collect(toImmutableList()));
   }
 

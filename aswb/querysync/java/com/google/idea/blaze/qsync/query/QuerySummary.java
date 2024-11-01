@@ -44,6 +44,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,7 +79,7 @@ public abstract class QuerySummary {
    * <p>Whenever changing the logic in this class such that the Query.Summary proto contents will be
    * different for the same input, this version should be incremented.
    */
-  @VisibleForTesting public static final int PROTO_VERSION = 10;
+  @VisibleForTesting public static final int PROTO_VERSION = 11;
 
   public static final QuerySummary EMPTY =
       create(Query.Summary.newBuilder().setVersion(PROTO_VERSION).build());
@@ -121,7 +124,7 @@ public abstract class QuerySummary {
       ImmutableSet.of(
           "srcs", "java_srcs", "kotlin_srcs", "java_test_srcs", "kotlin_test_srcs", "common_srcs");
 
-  public abstract Query.Summary proto();
+  protected abstract Query.Summary proto();
 
   public boolean isCompatibleWithCurrentPluginVersion() {
     return proto().getVersion() == PROTO_VERSION;
@@ -133,6 +136,104 @@ public abstract class QuerySummary {
     return super.toString();
   }
 
+  /**
+   * An opaque proto buffer to be serialized with the project state and re-create the {@link QuerySummary} using
+   * {@link QuerySummary#create(Query.Summary)}.
+   */
+  public Query.Summary protoForSerializationOnly() {
+    return proto();
+  }
+
+  private static class StringIndexer {
+    private final Map<String, Integer> strings = new HashMap<>();
+    private final List<String> list = new ArrayList<>();
+
+    public StringIndexer() {
+      strings.put("", 0);
+      list.add("");
+    }
+
+    private Map<Integer, Query.StoredRule> rulesToStoredRules(Map<String, Query.Rule> rulesMap) {
+      ImmutableMap.Builder<Integer, Query.StoredRule> r = ImmutableMap.builder();
+      for (Map.Entry<String, Query.Rule> rule : rulesMap.entrySet()) {
+        final var key = index(rule.getKey());
+        final var value = ruleToStoredRule(rule.getValue());
+        r.put(key, value);
+      }
+      return r.build();
+    }
+
+    private Query.StoredRule ruleToStoredRule(Query.Rule r) {
+      final var value = Query.StoredRule.newBuilder()
+        .setRuleClass(index(r.getRuleClass()))
+        .addAllSources(index(r.getSourcesList()))
+        .addAllDeps(index(r.getDepsList()))
+        .addAllIdlSources(index(r.getIdlSourcesList()))
+        .addAllRuntimeDeps(index(r.getRuntimeDepsList()))
+        .addAllResourceFiles(index(r.getResourceFilesList()))
+        .setManifest(index(r.getManifest()))
+        .setTestApp(index(r.getTestApp()))
+        .setInstruments(index(r.getInstruments()))
+        .setCustomPackage(index(r.getCustomPackage()))
+        .addAllHdrs(index(r.getHdrsList()))
+        .addAllCopts(index(r.getCoptsList()))
+        .addAllTags(index(r.getTagsList()))
+        .setMainClass(index(r.getMainClass()))
+        .build();
+      return value;
+    }
+
+    private Integer addStringAndGetIndex(String s) {
+      list.add(intern(s));
+      return list.size() - 1;
+    }
+
+    public int index(String s) {
+      return strings.computeIfAbsent(s, this::addStringAndGetIndex);
+    }
+
+    public List<Integer> index(Collection<String> ss) {
+      return ss.stream().map(s -> strings.computeIfAbsent(s, this::addStringAndGetIndex)).collect(toImmutableList());
+    }
+
+    public List<String> list() {
+      return ImmutableList.copyOf(list);
+    }
+  }
+
+  private static class StringLookup {
+    private final List<String> list;
+
+    public StringLookup(List<String> list) { this.list = list; }
+
+    private Query.Rule storedRuleToRule(Query.StoredRule r) {
+      return Query.Rule.newBuilder()
+        .setRuleClass(lookup(r.getRuleClass()))
+        .addAllSources(lookup(r.getSourcesList()))
+        .addAllDeps(lookup(r.getDepsList()))
+        .addAllIdlSources(lookup(r.getIdlSourcesList()))
+        .addAllRuntimeDeps(lookup(r.getRuntimeDepsList()))
+        .addAllResourceFiles(lookup(r.getResourceFilesList()))
+        .setManifest(lookup(r.getManifest()))
+        .setTestApp(lookup(r.getTestApp()))
+        .setInstruments(lookup(r.getInstruments()))
+        .setCustomPackage(lookup(r.getCustomPackage()))
+        .addAllHdrs(lookup(r.getHdrsList()))
+        .addAllCopts(lookup(r.getCoptsList()))
+        .addAllTags(lookup(r.getTagsList()))
+        .setMainClass(lookup(r.getMainClass()))
+        .build();
+    }
+
+    public String lookup(Integer s) {
+      return list.get(s);
+    }
+
+    public List<String> lookup(Collection<Integer> ss) {
+      return ss.stream().map(list::get).collect(toImmutableList());
+    }
+  }
+
   public static QuerySummary create(Query.Summary proto) {
     return new AutoValue_QuerySummary(proto);
   }
@@ -141,8 +242,9 @@ public abstract class QuerySummary {
     // IMPORTANT: when changing the logic herein, you should also update PROTO_VERSION above.
     // Failure to do so is likely to result in problems during a partial sync.
     Map<String, Query.SourceFile> sourceFileMap = Maps.newHashMap();
-    Map<String, Query.Rule> ruleMap = Maps.newHashMap();
+    Map<Integer, Query.StoredRule> ruleMap = Maps.newHashMap();
     Set<String> packagesWithErrors = Sets.newHashSet();
+    StringIndexer indexer = new StringIndexer();
     Build.Target target;
     while ((target = Target.parseDelimitedFrom(protoInputStream)) != null) {
       switch (target.getType()) {
@@ -159,52 +261,52 @@ public abstract class QuerySummary {
           }
           break;
         case RULE:
-          // TODO We don't need all rules types in the proto since many are not user later on.
+          // TODO We don't need all rules types in the proto since many are not used later on.
           //   We could filter the rules here, or even create rule-specific proto messages to
           //   reduce the size of the output proto.
-          Query.Rule.Builder rule =
-              Query.Rule.newBuilder().setRuleClass(intern(target.getRule().getRuleClass()));
+          Query.StoredRule.Builder rule =
+              Query.StoredRule.newBuilder().setRuleClass(indexer.index(target.getRule().getRuleClass()));
           for (Build.Attribute a : target.getRule().getAttributeList()) {
             String attributeName = intern(a.getName());
             if (SRCS_ATTRIBUTES.contains(attributeName)) {
-              rule.addAllSources(intern(a.getStringListValueList()));
+              rule.addAllSources(indexer.index(a.getStringListValueList()));
             } else if (attributeName.equals("hdrs")) {
-              rule.addAllHdrs(intern(a.getStringListValueList()));
+              rule.addAllHdrs(indexer.index(a.getStringListValueList()));
             } else if (attributeIsTrackedDependency(attributeName, target)) {
               if (a.hasStringValue()) {
-                rule.addDeps(intern(a.getStringValue()));
+                rule.addDeps(indexer.index(a.getStringValue()));
               } else {
-                rule.addAllDeps(intern(a.getStringListValueList()));
+                rule.addAllDeps(indexer.index(a.getStringListValueList()));
               }
             } else if (RUNTIME_DEP_ATTRIBUTES.contains(attributeName)) {
               if (a.hasStringValue()) {
-                rule.addRuntimeDeps(intern(a.getStringValue()));
+                rule.addRuntimeDeps(indexer.index(a.getStringValue()));
               } else {
-                rule.addAllRuntimeDeps(intern(a.getStringListValueList()));
+                rule.addAllRuntimeDeps(indexer.index(a.getStringListValueList()));
               }
             } else if (attributeName.equals("idl_srcs")) {
-              rule.addAllIdlSources(intern(a.getStringListValueList()));
+              rule.addAllIdlSources(indexer.index(a.getStringListValueList()));
             } else if (attributeName.equals("resource_files")) {
-              rule.addAllResourceFiles(intern(a.getStringListValueList()));
+              rule.addAllResourceFiles(indexer.index(a.getStringListValueList()));
             } else if (attributeName.equals("manifest")) {
-              rule.setManifest(intern(a.getStringValue()));
+              rule.setManifest(indexer.index(a.getStringValue()));
             } else if (attributeName.equals("custom_package")) {
-              rule.setCustomPackage(intern((a.getStringValue())));
+              rule.setCustomPackage(indexer.index((a.getStringValue())));
             } else if (attributeName.equals("copts")) {
-              rule.addAllCopts(intern(a.getStringListValueList()));
+              rule.addAllCopts(indexer.index(a.getStringListValueList()));
             } else if (attributeName.equals("tags")) {
-              rule.addAllTags(intern(a.getStringListValueList()));
+              rule.addAllTags(indexer.index(a.getStringListValueList()));
             } else if (attributeName.equals("main_class")) {
-              rule.setMainClass(intern(a.getStringValue()));
+              rule.setMainClass(indexer.index(a.getStringValue()));
             }
 
             if (attributeName.equals("test_app")) {
-              rule.setTestApp(intern(a.getStringValue()));
+              rule.setTestApp(indexer.index(a.getStringValue()));
             } else if (attributeName.equals("instruments")) {
-              rule.setInstruments(intern(a.getStringValue()));
+              rule.setInstruments(indexer.index(a.getStringValue()));
             }
           }
-          ruleMap.put(intern(Label.of(target.getRule().getName()).toString()), rule.build());
+          ruleMap.put(indexer.index(Label.of(target.getRule().getName()).toString()), rule.build());
           break;
         default:
           break;
@@ -214,7 +316,8 @@ public abstract class QuerySummary {
         Query.Summary.newBuilder()
             .setVersion(PROTO_VERSION)
             .putAllSourceFiles(sourceFileMap)
-            .putAllRules(ruleMap)
+            .putAllStoredRules(ruleMap)
+            .setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()))
             .addAllPackagesWithErrors(packagesWithErrors)
             .build());
   }
@@ -256,8 +359,9 @@ public abstract class QuerySummary {
    */
   @Memoized
   public ImmutableMap<Label, Query.Rule> getRulesMap() {
-    return proto().getRulesMap().entrySet().stream()
-        .collect(toImmutableMap(e -> Label.of(e.getKey()), Map.Entry::getValue));
+    StringLookup lookup = new StringLookup(proto().getStringStorage().getIndexedStringsList());
+    return proto().getStoredRulesMap().entrySet().stream()
+      .collect(toImmutableMap(e -> Label.of(lookup.lookup(e.getKey())), t -> lookup.storedRuleToRule(t.getValue())));
   }
 
   @Memoized
@@ -312,12 +416,21 @@ public abstract class QuerySummary {
     return getPackages().getParentPackage(buildPackage);
   }
 
+  public int getPackagesWithErrorsCount() {
+    return proto().getPackagesWithErrorsCount();
+  }
+
+  public int getRulesCount() {
+    return proto().getStoredRulesCount();
+  }
+
   /**
    * Builder for {@link QuerySummary}. This should be used when constructing a summary from a map of
    * source files and rules. To construct one from a serialized proto, you should use {@link
    * QuerySummary#create(InputStream)} instead.
    */
   public static class Builder {
+    StringIndexer indexer = new StringIndexer();
     private final Query.Summary.Builder builder =
         Query.Summary.newBuilder().setVersion(PROTO_VERSION);
 
@@ -330,10 +443,21 @@ public abstract class QuerySummary {
       return this;
     }
 
+    public Builder putSourceFiles(Label label, Query.SourceFile sourceFile) {
+      builder.putSourceFiles(intern(label.toString()), sourceFile);
+      return this;
+    }
+
     public Builder putAllRules(Map<Label, Query.Rule> rulesMap) {
-      builder.putAllRules(
-          rulesMap.entrySet().stream()
-              .collect(toImmutableMap(e -> intern(e.getKey().toString()), Map.Entry::getValue)));
+      builder.putAllStoredRules(
+          indexer.rulesToStoredRules(
+            rulesMap.entrySet().stream()
+              .collect(toImmutableMap(e -> e.getKey().toString(), Map.Entry::getValue))));
+      return this;
+    }
+
+    public Builder putRules(Label label, Query.Rule rule) {
+      builder.putStoredRules(indexer.index(label.toString()), indexer.ruleToStoredRule(rule));
       return this;
     }
 
@@ -347,7 +471,13 @@ public abstract class QuerySummary {
       return this;
     }
 
+    public Builder putPackagesWithErrors(Path packageWithErrors) {
+      builder.addPackagesWithErrors(intern(Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD").toString()));
+      return this;
+    }
+
     public QuerySummary build() {
+      builder.setStringStorage(Query.StringStorage.newBuilder().addAllIndexedStrings(indexer.list()));
       return QuerySummary.create(builder.build());
     }
   }

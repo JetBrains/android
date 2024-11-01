@@ -1,2 +1,2 @@
-{"id":"reference.settingsdialog.IDE.editor.colors.Compose","name":"Compose","entries":[{"hit":"Compose"},{"hit":"Calls to @Compose functions"}]}
+{"id":"reference.settingsdialog.IDE.editor.colors.Compose","name":"Compose","entries":[{"hit":"Compose"},{"hit":"Calls to @Compose functions"},{"hit":"Highlighted @Composable scopes"},{"hit":"State Reads in @Composable scopes"}]}
 {"id":"debugger.stepping","name":"Stepping","entries":[{"hit":"Compose"},{"hit":"Do not step into Compose internal classes"}]}

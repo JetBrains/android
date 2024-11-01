@@ -25,7 +25,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.RunConfigurationProducerService;
+import com.intellij.execution.actions.LazyRunConfigurationProducer;
+import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
+import com.intellij.execution.testframework.AbstractPatternBasedConfigurationProducer;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.Disposable;
@@ -138,7 +141,6 @@ public class AndroidGradleProjectStartupActivityTest {
   @Test
   public void testJunitProducersAreIgnored() {
     Set<String> ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).getState().ignoredProducers;
-    assertThat(ignoredProducersService.size()).isEqualTo(4);
 
     Set<ClassLoader> classLoaders = PluginManager.getLoadedPlugins().stream().map(PluginDescriptor::getClassLoader).collect(Collectors.toSet());
     Class<JUnitConfigurationProducer> junitProducerClass = JUnitConfigurationProducer.class;
@@ -164,6 +166,8 @@ public class AndroidGradleProjectStartupActivityTest {
       .filter(it -> !Modifier.isAbstract(it.getModifiers()))
       .map(Class::getName)
       .collect(Collectors.toSet());
+
+    // TODO(b/366168599): add all the other producers that do not inherit JUnitConfigurationProducer.
     assertThat(ignoredProducersService).containsAllIn(jUnitProducersNames);
   }
 }

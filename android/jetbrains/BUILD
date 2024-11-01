@@ -61,5 +61,6 @@ iml_module(
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation[module, test]",
     ],
 )

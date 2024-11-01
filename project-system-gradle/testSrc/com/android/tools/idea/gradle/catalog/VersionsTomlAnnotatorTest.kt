@@ -17,13 +17,16 @@ package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
-import com.intellij.codeInsight.daemon.impl.analysis.AnnotationSessionImpl.computeWithSession
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -81,6 +84,43 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
+  fun checkPluginLiteral() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+      bb = "plugin:version"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkLibraryDeclaration() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [libraries]
+      aa = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR}
+      bb = "group:name" # assuming BOM is there
+      cc = "group:name:version"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkLibraryDeclaration2() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [libraries]
+      aa = { module = ${"\"wrong\"" highlightedAs HighlightSeverity.ERROR} }
+      bb = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkManualIterationThroughTree() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml", """
       [plugins]
@@ -91,15 +131,13 @@ class VersionsTomlAnnotatorTest {
     val psiFile = file.originalFile
     val annotator = VersionsTomlAnnotator()
     runReadAction {
-      computeWithSession(psiFile, false) { holder ->
-        val visitor = object : TomlRecursiveVisitor() {
-          override fun visitElement(element: TomlElement) {
-            holder.runAnnotatorWithContext(element, annotator)
-            super.visitElement(element as PsiElement)
-          }
+      val visitor = object : TomlRecursiveVisitor() {
+        override fun visitElement(element: TomlElement) {
+          CodeInsightTestUtil.testAnnotator(annotator, element)
+          super.visitElement(element as PsiElement)
         }
-        visitor.visitElement(psiFile)
       }
+      visitor.visitElement(psiFile)
     }
   }
 
@@ -118,10 +156,7 @@ class VersionsTomlAnnotatorTest {
     WriteCommandAction.runWriteCommandAction(fixture.project) { psiFile.add(libs) }
 
     runReadAction {
-      computeWithSession(psiFile, false) { holder ->
-        holder.runAnnotatorWithContext(libs, annotator)
-        holder.runAnnotatorWithContext(libs.header.key?.segments?.get(0)?.firstChild!!, annotator) // check leaf
-      }
+      CodeInsightTestUtil.testAnnotator(annotator, libs.header.key?.segments?.get(0)?.firstChild!!) // check leaf
     }
   }
 
@@ -148,7 +183,7 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
-  fun checkNormalAliasQuted() {
+  fun checkNormalAliasQuoted() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
       "some_Normal-PluginAlias" = "some:plugin"
@@ -207,6 +242,11 @@ class VersionsTomlAnnotatorTest {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
       alias = "some:plugin"
+      [metadata]
+      version = "1.0"
+      [versions]
+      [bundles]
+      [libraries]
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -220,6 +260,19 @@ class VersionsTomlAnnotatorTest {
       [plugins]
       ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
       ${"alias" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkKeyWordsInAlias() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"class_name" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"extensions" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
+      ${"convention" highlightedAs HighlightSeverity.ERROR} = "some:plugin"
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -574,9 +627,9 @@ class VersionsTomlAnnotatorTest {
       bundles = "some:plugin"
 
       [libraries]
-      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library"
-      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library"
-      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library"
+      ${"plugins_some" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+      ${"bundles" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
+      ${"versions-alias" highlightedAs HighlightSeverity.ERROR } = "some:library:version"
 
       [versions]
       plugins = "some:plugin"
@@ -587,6 +640,30 @@ class VersionsTomlAnnotatorTest {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkBundleRefDuplication() {
+    // for some reason checkHighlighting interpret warning as error so need to use another verification approach
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [bundles]
+      bundle = [
+       "alias_one",
+       "alias-one"
+      ]
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.WARNING)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { highlightInfo ->
+          ReadAction.compute<String, Throwable> {
+          "${StringUtil.offsetToLineNumber(highlightInfo.highlighter!!.document.text, highlightInfo.startOffset)}: ${highlightInfo.description}"
+        } }
+
+    assertEquals("3: Duplicate reference to dependency", inspections)
   }
 
 }

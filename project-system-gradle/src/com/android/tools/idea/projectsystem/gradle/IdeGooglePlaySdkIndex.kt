@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_CACHING_ERROR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_DEFAULT_DATA_ERROR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_NON_COMPLIANT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
@@ -86,6 +87,13 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
         generateOutdatedMessage(groupId, artifactId, versionString)
     logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
+  }
+
+  override fun logVulnerability(groupId: String, artifactId: String, versionString: String, file: File?) {
+    super.logVulnerability(groupId, artifactId, versionString, file)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
+    generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { logger.warn(it.description)}
+    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES)
   }
 
   override fun logIndexLoadedCorrectly(dataSourceType: DataSourceType) {

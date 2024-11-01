@@ -43,6 +43,8 @@ import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
+import com.android.tools.adtui.device.SkinDefinition
+import com.android.tools.adtui.device.SkinDefinitionCache
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.io.grpc.CallCredentials
@@ -99,32 +101,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
       EmulatorControllerGrpc.getStreamScreenshotMethod().requestMarshaller, imageResponseMarshaller).build()
-  private var channel: ManagedChannel? = null
-  @Volatile private var emulatorControllerStubInternal: EmulatorControllerGrpc.EmulatorControllerStub? = null
-  @Volatile private var snapshotServiceStubInternal: SnapshotServiceGrpc.SnapshotServiceStub? = null
-  @Volatile private var uiControllerStubInternal: UiControllerGrpc.UiControllerStub? = null
+  private var connectionReference = AtomicReference<Connection>()
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile private var defaultSkin: SkinDefinition? = null
   @Volatile private var postureSkins = emptyMap<PostureValue, SkinDefinition>()
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
-  private var connectionStateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
+  private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
-  private val connectivityStateWatcher = object : Runnable {
-    override fun run() {
-      if (connectionState == ConnectionState.DISCONNECTED) {
-        return // DISCONNECTED state is final.
-      }
-      val ch = channel ?: return
-      val state = ch.getState(false)
-      when (state) {
-        ConnectivityState.CONNECTING -> connectionState = ConnectionState.CONNECTING
-        ConnectivityState.SHUTDOWN -> connectionState = ConnectionState.DISCONNECTED
-        else -> {}
-      }
-      ch.notifyWhenStateChanged(state, this)
-    }
-  }
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
@@ -136,26 +120,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       emulatorConfigInternal = value
     }
 
-  var connectionState: ConnectionState
-    get() {
-      return connectionStateInternal.get()
-    }
-    private set(value) {
-      val oldValue = connectionStateInternal.getAndSet(value)
-      if (oldValue != value) {
-        if (value == ConnectionState.DISCONNECTED) {
-          if (oldValue == ConnectionState.CONNECTED) {
-            LOG.info("Disconnected from ${emulatorConfig.avdName} (${emulatorId.serialPort})")
-          }
-          else {
-            LOG.warn("Unable to connect ${emulatorConfig.avdName} (${emulatorId.serialPort})")
-          }
-        }
-        for (listener in connectionStateListeners) {
-          listener.connectionStateChanged(this, value)
-        }
-      }
-    }
+  val connectionState: ConnectionState
+    get() = connectionStateReference.get()
 
   /**
    * Returns true if [shutdown] has been called.
@@ -163,29 +129,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   val isShuttingDown
     get() = emulatorState.get() != EmulatorState.RUNNING
 
-  var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
-    get() {
-      return emulatorControllerStubInternal ?: throwNotYetConnected()
-    }
-    private inline set(stub) {
-      emulatorControllerStubInternal = stub
-    }
-
-  var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub
-    get() {
-      return snapshotServiceStubInternal ?: throwNotYetConnected()
-    }
-    private inline set(stub) {
-      snapshotServiceStubInternal = stub
-    }
-
-  var uiControllerStub: UiControllerGrpc.UiControllerStub
-    get() {
-      return uiControllerStubInternal ?: throwNotYetConnected()
-    }
-    private inline set(stub) {
-      uiControllerStubInternal = stub
-    }
+  val emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
+    get() = connectionReference.get()?.emulatorControllerStub ?: throwNotYetConnected()
+  val snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub
+    get() = connectionReference.get()?.snapshotServiceStub ?: throwNotYetConnected()
+  val uiControllerStub: UiControllerGrpc.UiControllerStub
+    get() = connectionReference.get()?.uiControllerStub ?: throwNotYetConnected()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -201,29 +150,50 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     connectionStateListeners.remove(listener)
   }
 
+  /** Returns true if the connection state has been changed. */
+  private fun updateConnectionState(oldState: ConnectionState, newState: ConnectionState): Boolean {
+    if (connectionStateReference.compareAndSet(oldState, newState)) {
+      if (newState == ConnectionState.DISCONNECTED) {
+        if (oldState == ConnectionState.CONNECTED) {
+          LOG.info("Disconnected from ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+        }
+        else {
+          LOG.warn("Unable to connect ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+        }
+      }
+      for (listener in connectionStateListeners) {
+        listener.connectionStateChanged(this, connectionState)
+      }
+      return true
+    }
+    return false
+  }
+
   /**
    * Establishes a connection to the Emulator. The process of establishing a connection is partially
    * asynchronous, but the synchronous part of this method also takes considerable time.
    */
   @Slow
   fun connect() {
-    val maxInboundMessageSize: Int
     val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
     if (config == null) {
       // The error has already been logged.
-      connectionState = ConnectionState.DISCONNECTED
+      updateConnectionState(ConnectionState.NOT_INITIALIZED, ConnectionState.DISCONNECTED)
       return
     }
     emulatorConfig = config
-    loadSkins(config)
+    try {
+      loadSkins(config)
+    }
+    catch (e: Throwable) {
+      LOG.warn("Unable to load skins", e)
+    }
 
-    val maxPixels =
+    val maxDisplayPixels =
         config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height } ?:
         max(config.displayWidth * config.displayHeight, config.additionalDisplays.values.maxOfOrNull { it.width * it.height } ?: 0)
-    maxInboundMessageSize = maxPixels * 3 + 100 // Three bytes per pixel.
-
-    connectGrpc(maxInboundMessageSize)
-    sendKeepAlive()
+    val maxInboundMessageSize = maxDisplayPixels * 3 + 100 // Three bytes per pixel plus some overhead.
+    connectGrpcOrIncreaseMaxInboundMessageSize(maxInboundMessageSize)
   }
 
   private fun loadSkins(config: EmulatorConfiguration) {
@@ -251,13 +221,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Establishes a gRPC connection to the Emulator.
-   *
-   * @param maxInboundMessageSize: size of maximum inbound gRPC message, default to 4 MiB.
+   * Establishes a gRPC connection to the Emulator, or recreates the connection if the [maxInboundMessageSize]
+   * parameter exceeds the value supported by the current connection.
    */
   @Slow
-  fun connectGrpc(maxInboundMessageSize: Int = 4 * 1024 * 1024) {
-    connectionState = ConnectionState.CONNECTING
+  fun connectGrpcOrIncreaseMaxInboundMessageSize(maxInboundMessageSize: Int = 4 * 1024 * 1024) {
+    val oldConnection = connectionReference.get()
+    if (oldConnection != null && oldConnection.maxInboundMessageSize >= maxInboundMessageSize) {
+      return
+    }
+
+    updateConnectionState(ConnectionState.NOT_INITIALIZED, ConnectionState.CONNECTING)
     val channel = service<GrpcChannelBuilderFactory>()
       .newGrpcChannelBuilder("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO: Add support for TLS encryption.
@@ -265,8 +239,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression.
       .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
-    this.channel = channel
 
+    val emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
+    val snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub
+    val uiControllerStub: UiControllerGrpc.UiControllerStub
     val token = emulatorId.grpcToken
     if (token == null) {
       emulatorControllerStub = EmulatorControllerGrpc.newStub(channel)
@@ -280,11 +256,45 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       uiControllerStub = UiControllerGrpc.newStub(channel).withCallCredentials(credentials)
     }
 
-    channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
+    val connection = Connection(channel, maxInboundMessageSize, emulatorControllerStub, snapshotServiceStub, uiControllerStub)
+
+    val connectivityStateWatcher = object : Runnable {
+      override fun run() {
+        if (connection != connectionReference.get()) {
+          return
+        }
+        val state = channel.getState(false)
+        if (state == ConnectivityState.SHUTDOWN) {
+          if (!updateConnectionState(ConnectionState.CONNECTING, ConnectionState.DISCONNECTED)) {
+            updateConnectionState(ConnectionState.CONNECTED, ConnectionState.DISCONNECTED)
+          }
+        }
+        else {
+          if (state == ConnectivityState.READY) {
+            connectionReference.compareAndSet(oldConnection, connection)
+            updateConnectionState(ConnectionState.CONNECTING, ConnectionState.CONNECTED)
+          }
+          channel.notifyWhenStateChanged(state, this)
+        }
+      }
+    }
+
+    if (connectionReference.compareAndSet(oldConnection, connection)) {
+      inputEventSender = null
+      connectivityStateWatcher.run()
+      sendKeepAlive()
+      oldConnection?.channel?.shutdown()
+    }
+    else {
+      connection.channel.shutdown()
+    }
   }
 
   internal fun getSkin(posture: PostureValue? = null): SkinDefinition? =
       posture?.let { postureSkins[posture]} ?: defaultSkin
+
+  private val channel
+    get() = connectionReference.get()?.channel
 
   /**
    * Sends a shutdown command to the emulator. Subsequent [shutdown] calls are ignored.
@@ -649,19 +659,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private fun sendKeepAlive() {
     val responseObserver = object : EmptyStreamObserver<VmRunState>() {
+
       override fun onNext(message: VmRunState) {
-        connectionState = ConnectionState.CONNECTED
         if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
           sendShutdown()
         }
         else {
+          alarm.cancelAllRequests()
           alarm.addRequest(::sendKeepAlive, KEEP_ALIVE_INTERVAL_MILLIS)
-        }
-      }
-
-      override fun onError(t: Throwable) {
-        if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE || connectionState != ConnectionState.CONNECTED) {
-          connectionState = ConnectionState.DISCONNECTED
         }
       }
     }
@@ -697,6 +702,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     return emulatorId.hashCode()
   }
 
+  private inner class Connection(
+    val channel: ManagedChannel,
+    val maxInboundMessageSize: Int,
+    val emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub,
+    val snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub,
+    val uiControllerStub: UiControllerGrpc.UiControllerStub,
+  )
+
   /**
    * The state of the [EmulatorController].
    */
@@ -725,6 +738,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val method: MethodDescriptor<in RequestT, in ResponseT>
   ) : StreamObserver<ResponseT> {
 
+    private val connection = connectionReference.get()
+
     override fun onNext(response: ResponseT) {
       delegate?.onNext(response)
     }
@@ -737,10 +752,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         LOG.warn("${method.fullMethodName} call failed - ${t.message}")
       }
 
-      delegate?.onError(t)
+      val error = if (connection == connectionReference.get()) t else RetryException()
+      delegate?.onError(error)
 
-      if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE) {
-        connectionState = ConnectionState.DISCONNECTED
+      if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE && connection == connectionReference.get()) {
+        updateConnectionState(ConnectionState.CONNECTED, ConnectionState.DISCONNECTED)
       }
     }
 
@@ -758,6 +774,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       delegate?.beforeStart(requestStream)
     }
   }
+
+  /** The exception that indicates that the gRPC call should be retried. */
+  class RetryException : RuntimeException()
 
   /**
    * Defines interface for an object that receives notifications when the state of the Emulator

@@ -17,7 +17,6 @@ package com.android.tools.idea.dagger
 
 import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.ERROR_PREFIX
 import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.FQCN_WITH_METHOD
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.filters.ConsoleFilterProvider
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.HyperlinkInfo
@@ -56,8 +55,6 @@ class DaggerConsoleFilter : Filter {
   }
 
   override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
-    if (StudioFlags.DAGGER_SUPPORT_ENABLED.get().not()) return null
-
     if (line.contains(ERROR_PREFIX)) {
       isDaggerMessage = true
     }

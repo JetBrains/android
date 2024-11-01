@@ -25,8 +25,8 @@ import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -35,7 +35,7 @@ import com.android.tools.idea.run.LiveEditHelper
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
-import com.android.tools.idea.run.configuration.execution.getApplicationIdAndDevices
+import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.util.LaunchUtils
 import com.intellij.execution.ExecutionException
@@ -64,7 +64,7 @@ import java.util.Locale
  */
 class BlazeAndroidConfigurationExecutor(
   private val consoleProvider: ConsoleProvider,
-  private val applicationIdProvider: ApplicationIdProvider,
+  private val applicationContext: ApplicationProjectContext,
   private val env: ExecutionEnvironment,
   private val deviceFutures: DeviceFutures,
   private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
@@ -78,7 +78,8 @@ class BlazeAndroidConfigurationExecutor(
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 
@@ -87,7 +88,7 @@ class BlazeAndroidConfigurationExecutor(
     val processHandler = AndroidProcessHandler(applicationId, { it.forceStop(applicationId) })
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, false, indicator, console, applicationId)
+    doRun(devices, processHandler, false, indicator, console, applicationContext)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -110,8 +111,9 @@ class BlazeAndroidConfigurationExecutor(
     isDebug: Boolean,
     indicator: ProgressIndicator,
     console: ConsoleView,
-    applicationId: String
+    applicationProjectContext: ApplicationProjectContext
   ) = coroutineScope {
+    val applicationId = applicationProjectContext.applicationId
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     indicator.text = "Launching on devices"
@@ -133,7 +135,7 @@ class BlazeAndroidConfigurationExecutor(
           LiveEditHelper().invokeLiveEdit(
             liveEditService,
             env,
-            applicationId,
+            applicationProjectContext,
             apkProvider.getApks(device),
             device
           ) // Notify listeners of the deployment.
@@ -156,7 +158,8 @@ class BlazeAndroidConfigurationExecutor(
   }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(env, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(env, deviceFutures, indicator)
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
@@ -168,7 +171,7 @@ class BlazeAndroidConfigurationExecutor(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, true, indicator, console, applicationId)
+    doRun(devices, processHandler, true, indicator, console, applicationContext)
 
     val device = devices.single()
     indicator.text = "Connecting debugger"

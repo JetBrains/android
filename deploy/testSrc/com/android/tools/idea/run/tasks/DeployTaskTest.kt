@@ -93,14 +93,14 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
   fun testDeployTaskRunUsesDynamicUIServiceWhichThrowsExceptionOnInit() {
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     project.registerService(UIService::class.java, ThrowingUIService::class.java)
     project.registerService(AdbLibService::class.java, mock<AdbLibService>())
 
@@ -116,7 +116,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -127,7 +127,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -138,7 +138,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -149,7 +149,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -160,9 +160,10 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
+    verify(device, never()).forceStop(any())
   }
 
   @Test
@@ -172,7 +173,7 @@ class DeployTaskTest {
     val expectedOptions =
       InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -183,7 +184,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallOnUser(InstallOptions.CURRENT_USER).setInstallFullApk().setDontKill().build()
 
-    val deployTask = DeployTask(project, listOf(), null, false, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, false, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -193,7 +194,7 @@ class DeployTaskTest {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(device, never()).forceStop(any())
   }
@@ -203,7 +204,7 @@ class DeployTaskTest {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(device, times(1)).forceStop(any())
   }
@@ -221,6 +222,7 @@ class DeployTaskTest {
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.R)
 
     verify(deployer).install(any(), eq(expectedOptions), any())
+    verify(device, times(1)).forceStop(any())
   }
 
   @Test
@@ -246,6 +248,7 @@ class DeployTaskTest {
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.LOLLIPOP_MR1)
 
     verify(deployer).install(any(), eq(expectedOptions), any())
+    verify(device, never()).forceStop(any())
   }
 
   private fun deployApkWithRequiredInstallOptions(deviceApiLevel: Int) {
@@ -255,7 +258,7 @@ class DeployTaskTest {
     whenever(mockApkInfo.requiredInstallOptions).thenReturn(
       setOf(ApkInfo.AppInstallOption.FORCE_QUERYABLE, ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS))
 
-    val deployTask = DeployTask(project, listOf(mockApkInfo), null, true, false, installPathProvider)
+    val deployTask = DeployTask(project, listOf(mockApkInfo), null, true, false, false, installPathProvider)
     deployTask.perform(device, deployer, mockApkInfo, canceller)
   }
 }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class DesignerCommonIssueNodeComparatorTest {
 

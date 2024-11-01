@@ -112,7 +112,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import java.awt.Dimension
 import java.awt.Polygon
-import java.awt.Shape
+import java.awt.Rectangle
 
 // TODO(b/275714274) Remove these constants when android U / 34 is merged into prebuilts, and use
 // the constants from the android jar.
@@ -143,9 +143,8 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
       displayType == LayoutInspectorViewProtocol.DisplayType.UNDEFINED
   return AppContext(
     theme.convert(),
-    if (mainDisplayWidth > 0 && mainDisplayHeight > 0)
-      Dimension(mainDisplayWidth, mainDisplayHeight)
-    else null,
+    Dimension(mainDisplayWidth, mainDisplayHeight).takeIf { it.width > 0 && it.height > 0 },
+    windowBounds.toRectangle().takeIf { it.width > 0 && it.height > 0 },
     mainDisplayOrientation,
     isRunningInMainDisplay,
   )
@@ -203,7 +202,9 @@ fun LayoutInspectorViewProtocol.ErrorCode.toAttachErrorCode() =
     else -> AttachErrorCode.UNKNOWN_VIEW_AGENT_ERROR
   }
 
-fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
+fun LayoutInspectorViewProtocol.Rect.toRectangle() = Rectangle(x, y, w, h)
+
+fun LayoutInspectorViewProtocol.Quad.toPolygon(): Polygon {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }
 

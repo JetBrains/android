@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
@@ -57,6 +58,7 @@ import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.isAndroidTestFile
@@ -124,17 +126,17 @@ class GradleModuleSystem(
 ) : AndroidModuleSystem,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
-  override val type: AndroidModuleSystem.Type
+  override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
-      IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidModuleSystem.Type.TYPE_APP
-      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidModuleSystem.Type.TYPE_ATOM
-      IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
-      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidModuleSystem.Type.TYPE_FEATURE
-      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidModuleSystem.Type.TYPE_INSTANTAPP
-      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidModuleSystem.Type.TYPE_LIBRARY
-      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidModuleSystem.Type.TYPE_LIBRARY
-      IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidModuleSystem.Type.TYPE_TEST
-      null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
+      IdeAndroidProjectType.PROJECT_TYPE_APP -> Type.TYPE_APP
+      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> Type.TYPE_ATOM
+      IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> Type.TYPE_DYNAMIC_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Type.TYPE_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Type.TYPE_INSTANTAPP
+      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      null -> Type.TYPE_NON_ANDROID
     }
 
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.createWithoutTests(module)
@@ -378,8 +380,8 @@ class GradleModuleSystem(
    */
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-    //TODO: Change the API to return a ListenableFuture instead of calling get with a timeout here...
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(30, TimeUnit.SECONDS)
+    //TODO(b/369433182): Change the API to return a ListenableFuture instead of calling get with a timeout here...
+    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(60, TimeUnit.SECONDS)
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
@@ -464,7 +466,7 @@ class GradleModuleSystem(
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
     val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule() ||
-      androidFacet.module.isScreenshotTestModule()
+      androidFacet.module.isScreenshotTestModule() || type == AndroidModuleSystem.Type.TYPE_TEST
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
@@ -472,8 +474,8 @@ class GradleModuleSystem(
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
     val type = type
-    val mainModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) null else module.getMainModule()
-    val androidTestModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
+    val mainModule = if (type == Type.TYPE_TEST) null else module.getMainModule()
+    val androidTestModule = if (type == Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
     val unitTestModule = module.getUnitTestModule()
     val fixturesModule = module.getTestFixturesModule()
     val screenshotTestModule = module.getScreenshotTestModule()
@@ -638,6 +640,25 @@ class GradleModuleSystem(
       return if (isRootModule || shortName == null) shortName else StringUtil.getShortName(shortName, ':')
     }
     return getNameFromGradlePath(module) ?: super.getDisplayNameForModule()
+  }
+
+  /**
+   * Returns the name of the holder module of this group, thereby hiding the implementation detail that each sourceSet
+   * has its own module.
+   */
+  override fun getDisplayNameForModuleGroup(): String = module.getHolderModule().name
+
+  override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
+
+  override fun isValidForAndroidRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isHolderModule()
+    else -> super.isValidForAndroidRunConfiguration()
+  }
+
+  override fun isValidForAndroidTestRunConfiguration() = when(type) {
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> module.isHolderModule() && module.getAndroidTestModule() != null
+    Type.TYPE_TEST -> module.isHolderModule()
+    else -> super.isValidForAndroidTestRunConfiguration()
   }
 
   companion object {

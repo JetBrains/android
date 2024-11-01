@@ -34,7 +34,6 @@ import java.awt.*;
  * Support Progress Bar
  */
 public class TextViewDecorator extends SceneDecorator {
-  private static final String DEFAULT_DIM = "14sp";
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     @AndroidDpCoordinate Rectangle rect = new Rectangle();
@@ -46,7 +45,7 @@ public class TextViewDecorator extends SceneDecorator {
     String text = component.getNlComponent().getTagName();
     NlComponent nlc = component.getNlComponent();
 
-    int size = SlowOperations.allowSlowOperations(() -> DrawTextRegion.getFont(nlc, DEFAULT_DIM));
+    int size = SlowOperations.allowSlowOperations(() -> DrawTextRegion.getFont(nlc));
 
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);

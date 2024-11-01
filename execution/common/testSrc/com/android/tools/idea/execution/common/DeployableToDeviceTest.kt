@@ -43,7 +43,10 @@ class DeployableToDeviceTest {
     whenever((configurationWithKeyUnset as UserDataHolder).getUserData(DeployableToDevice.KEY)).thenReturn(null)
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configurationWithoutKey)).isFalse()
+    assertThat(DeployableToDevice.isLocalDeviceAware(configurationWithoutKey)).isFalse()
     assertThat(DeployableToDevice.deploysToLocalDevice(configurationWithKeySetToFalse)).isFalse()
+    assertThat(DeployableToDevice.isLocalDeviceAware(configurationWithKeySetToFalse)).isTrue()
     assertThat(DeployableToDevice.deploysToLocalDevice(configurationWithKeyUnset)).isFalse()
+    assertThat(DeployableToDevice.isLocalDeviceAware(configurationWithKeyUnset)).isFalse()
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.base.projectStructure.scope.KotlinSourceFilterScope
@@ -49,8 +48,6 @@ class ComposeKDocLinkResolutionService : KDocLinkResolutionService {
     val descriptors =
       IdeKDocLinkResolutionService(project)
         .resolveKDocLink(context, fromDescriptor, resolutionFacade, qualifiedName)
-
-    if (!StudioFlags.SAMPLES_SUPPORT_ENABLED.get()) return descriptors
 
     val scope =
       KotlinSourceFilterScope.librarySources(GlobalSearchScope.everythingScope(project), project)

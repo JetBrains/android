@@ -26,7 +26,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -42,13 +41,14 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Rectangle
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Rectangle
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class ResourceLookupResolverTest {

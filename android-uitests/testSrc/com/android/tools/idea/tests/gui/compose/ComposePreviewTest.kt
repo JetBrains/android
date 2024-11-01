@@ -19,7 +19,6 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -44,7 +43,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,7 +54,6 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
 
-private const val KOTLIN_VERSION = "1.9.0"
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
@@ -74,9 +71,10 @@ class ComposePreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+    fixture.invokeProjectMake(null)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
+    editor.waitUntilErrorAnalysisFinishes()
 
     GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
     return editor.getSplitEditorFixture().apply {
@@ -86,14 +84,7 @@ class ComposePreviewTest {
   }
 
   private fun getSyncedProjectFixture() =
-    guiTest.importProjectAndWaitForProjectSyncToFinish(
-      "SimpleComposeApplication",
-      null,
-      null,
-      KOTLIN_VERSION,
-      null,
-      DEFAULT_IMPORT_AND_SYNC_WAIT
-    )
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
 
   @Test
   @Throws(Exception::class)

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.android.tools.idea.adddevicedialog.DeviceProfile
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.adddevicedialog.WizardAction
@@ -29,10 +28,11 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
+import com.android.tools.idea.avdmanager.ui.NameComparator
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
-import java.util.TreeSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
@@ -42,9 +42,10 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
-  systemImages: ImmutableCollection<ISystemImage>,
   private val skins: ImmutableCollection<Skin>,
-) : DeviceSource {
+  val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+) : DeviceSource<VirtualDeviceProfile> {
 
   companion object {
     internal fun create(): LocalVirtualDeviceSource {
@@ -52,21 +53,30 @@ internal class LocalVirtualDeviceSource(
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
 
-      return LocalVirtualDeviceSource(ISystemImages.get(), skins)
+      return LocalVirtualDeviceSource(skins)
     }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+  override fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
     nextAction = WizardAction {
       pushPage {
-        ConfigurationPage((profile as VirtualDeviceProfile).toVirtualDevice(), null, skins, ::add)
+        val deviceNameValidator = DeviceNameValidatorImpl(avdManager)
+        ConfigurationPage(
+          VirtualDevice.withDefaults(profile.device)
+            .copy(name = deviceNameValidator.uniquify(profile.name)),
+          null,
+          skins,
+          deviceNameValidator,
+          sdkHandler,
+          ::add,
+        )
       }
     }
     finishAction = WizardAction.Disabled
   }
 
   private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
-    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices().add(device, image) }
+    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(avdManager).add(device, image) }
     return true
   }
 
@@ -74,22 +84,14 @@ internal class LocalVirtualDeviceSource(
     callbackFlow {
         send(LoadingState.Loading)
 
-        val deviceManager =
-          DeviceManagers.getDeviceManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
+        val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
+
         fun sendDevices() {
           val profiles =
-            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapNotNull { device ->
-              // Note that we don't care about systemImages being updated after downloading an
-              // image; we don't care if an image is local or remote here.
-              val androidVersions =
-                systemImages
-                  .filter { DeviceSystemImageMatcher.matches(device, it) }
-                  .mapTo(TreeSet()) { it.androidVersion }
-
-              // If there are no system images for a device, we can't create it.
-              if (androidVersions.isEmpty()) null
-              else device.toVirtualDeviceProfile(androidVersions)
+            deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) {
+              it.toVirtualDeviceProfile()
             }
+          profiles.sortWith(compareBy(NameComparator()) { it.device })
 
           // Cannot fail due to conflate() below
           trySend(LoadingState.Ready(profiles))
@@ -105,12 +107,5 @@ internal class LocalVirtualDeviceSource(
       .conflate()
 }
 
-internal fun Device.toVirtualDeviceProfile(
-  androidVersions: Set<AndroidVersion>
-): VirtualDeviceProfile =
-  VirtualDeviceProfile.Builder()
-    .apply { initializeFromDevice(this@toVirtualDeviceProfile, androidVersions) }
-    .build()
-
-internal fun VirtualDeviceProfile.toVirtualDevice() =
-  VirtualDevice.withDefaults(device).copy(androidVersion = apiLevels.last())
+private fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
+  VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()

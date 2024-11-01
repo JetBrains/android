@@ -77,12 +77,13 @@ class ViewBindingCompletionKotlinTest {
 
     fixture.addFileToProject(
       "app/src/main/res/layout/activity_main.xml",
+      // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
-            <TextView android:id="@+id/testId"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    """
+      <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <TextView android:id="@+id/testId"/>
+      </androidx.constraintlayout.widget.ConstraintLayout>
+      """
         .trimIndent(),
     )
   }
@@ -95,14 +96,14 @@ class ViewBindingCompletionKotlinTest {
         "app/src/main/java/google/simpleapplication/TestUtil.kt",
         // language=kotlin
         """
-          package google.simpleapplication
+        package google.simpleapplication
 
-          import google.simpleapplication.databinding.ActivityMainBinding
+        import google.simpleapplication.databinding.ActivityMainBinding
 
-          fun sample() {
-            lateinit var binding: ActivityMainBinding
-            binding.test${caret}
-          }
+        fun sample() {
+          lateinit var binding: ActivityMainBinding
+          binding.test${caret}
+        }
         """
           .trimIndent(),
       )
@@ -114,24 +115,21 @@ class ViewBindingCompletionKotlinTest {
     fixture.checkResult(
       // language=kotlin
       """
-              package google.simpleapplication
+      package google.simpleapplication
 
-              import google.simpleapplication.databinding.ActivityMainBinding
+      import google.simpleapplication.databinding.ActivityMainBinding
 
-              fun sample() {
-                lateinit var binding: ActivityMainBinding
-                binding.testId
-              }
-          """
+      fun sample() {
+        lateinit var binding: ActivityMainBinding
+        binding.testId
+      }
+      """
         .trimIndent()
     )
   }
 
   @Test
   fun completeViewBindingClass_KotlinContext() {
-    // TODO(b/347649759): Enable test in K2.
-    if (KotlinPluginModeProvider.isK2Mode()) return
-
     val testUtilFile =
       fixture.addFileToProject(
         "app/src/main/java/google/simpleapplication/TestUtil.kt",
@@ -149,6 +147,26 @@ class ViewBindingCompletionKotlinTest {
     fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
 
     fixture.completeBasic()
-    assertThat(fixture.lookupElementStrings).containsExactly("ActivityMainBinding")
+
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      // In K1 (and Java), the item is not immediately inserted because there's no matching import
+      // for it yet. In K2, however, there is no such check; the item is automatically inserted and
+      // an import is added. This is tracked with https://youtrack.jetbrains.com/issue/KT-71313.
+      fixture.checkResult(
+        // language=kotlin
+        """
+        package google.simpleapplication
+
+        import google.simpleapplication.databinding.ActivityMainBinding
+
+        fun sample() {
+          val binding: ActivityMainBinding
+        }
+          """
+          .trimIndent()
+      )
+    } else {
+      assertThat(fixture.lookupElementStrings).containsExactly("ActivityMainBinding")
+    }
   }
 }

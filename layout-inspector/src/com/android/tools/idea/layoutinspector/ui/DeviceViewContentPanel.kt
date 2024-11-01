@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
+import com.android.tools.idea.layoutinspector.model.toDimension
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -74,7 +75,7 @@ class DeviceViewContentPanel(
   val treeSettings: TreeSettings,
   val renderModel: RenderModel,
   val renderLogic: RenderLogic,
-  val currentClient: () -> InspectorClient?,
+  val currentClient: () -> InspectorClient,
   val pannable: Pannable,
   @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
   disposableParent: Disposable,
@@ -120,13 +121,22 @@ class DeviceViewContentPanel(
   private val deviceViewContentPanelTransform: AffineTransform
     get() {
       return AffineTransform().apply {
-        val screen = renderModel.model.screenDimension
+        // The container of the app ui, either the app window or the screen
+        val maxBounds =
+          renderModel.model.windowBounds?.toDimension() ?: renderModel.model.screenDimension
+        // The bounds of the app, either the app window or the bounds of the root view
+        val appBounds = renderModel.model.windowBounds ?: renderModel.model.root.layoutBounds
 
         // translate to center of the panel
         translate(size.width / 2.0, size.height / 2.0)
         scale(renderSettings.scaleFraction, renderSettings.scaleFraction)
-        // center the rendering
-        translate(-screen.width / 2.0, -screen.height / 2.0)
+
+        // center the container of the app's ui
+        translate(-maxBounds.width / 2.0, -maxBounds.height / 2.0)
+
+        // offset the app's ui (for example if the app is in bottom half of the screen we still want
+        // to show it centered in the rendering)
+        translate(-appBounds.x.toDouble(), -appBounds.y.toDouble())
       }
     }
 
@@ -260,6 +270,7 @@ class DeviceViewContentPanel(
             GotoDeclarationAction.navigateToSelectedView(
               coroutineScope,
               renderModel.model,
+              currentClient(),
               renderModel.notificationModel,
             )
             currentClient()?.stats?.gotoSourceFromRenderDoubleClick()

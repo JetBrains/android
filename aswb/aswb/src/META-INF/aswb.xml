@@ -20,6 +20,7 @@
   <depends>org.jetbrains.android</depends>
   <depends>com.google.gct.test.recorder</depends>
   <depends>com.intellij.modules.java</depends>
+  <depends>com.android.tools.design</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <programRunner implementation="com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryProgramRunner" order="first"/>
@@ -45,7 +46,7 @@
     <applicationService serviceInterface="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService"
         serviceImplementation="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService$DefaultImpl"/>
     <dom.fileMetaData implementation="com.google.idea.blaze.android.resources.BlazeResourcesDomFileDescription" rootTagName="resources"/>
-    <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeModuleSystem"/>
+    <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BazelModuleSystem"/>
     <runConfigurationProducer
         implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
         order="first"/>
@@ -111,12 +112,16 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">
-    <renderErrorContributor implementation="com.android.tools.rendering.RenderResultCompat$BlazeProvider"/>
+    <renderErrorContributor implementation="com.google.idea.blaze.android.rendering.BlazeRenderErrorContributor$Provider"/>
     <renderSecurityManagerOverrides implementation="com.google.idea.blaze.android.rendering.BlazeRenderSecurityManagerOverrides"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.google.gct.testrecorder.run">
     <testRecorderRunConfigurationProxyProvider implementation="com.google.idea.blaze.android.run.testrecorder.TestRecorderBlazeCommandRunConfigurationProxyProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <rendering.tokens.buildSystemFilePreviewServices implementation="com.android.tools.idea.rendering.tokens.BazelBuildSystemFilePreviewServices"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
@@ -125,6 +130,11 @@
 
   <extensions defaultExtensionNs="com.google.idea.blaze.base.qsync">
     <ProjectProtoTransformProvider implementation="com.google.idea.blaze.android.qsync.AndroidProjectProtoTransform$Provider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <projectsystem.ApplicationProjectContextProvider
+            implementation="com.google.idea.blaze.android.run.BazelApplicationProjectContextProvider"/>
   </extensions>
 
 </idea-plugin>

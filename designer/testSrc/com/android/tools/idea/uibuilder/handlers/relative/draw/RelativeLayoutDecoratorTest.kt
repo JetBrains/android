@@ -132,7 +132,7 @@ DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
 DrawNlComponentFrame,225,225,50,50,1,100,100
 DrawComponentBackground,225,245,50,10,1
-DrawButton,225,245,50,10,0,8,1.0,28,"Button"
+DrawButton,225,245,50,10,0,8,1.0,22,"Button"
 DrawNlComponentFrame,225,245,50,10,1,20,20
 HorizontalZigZagLineCommand - (0, 225, 250)
 HorizontalZigZagLineCommand - (275, 500, 250)
@@ -187,7 +187,7 @@ DrawComponentBackground,225,265,30,10,1
 DrawImageView,225,265,30,10
 DrawNlComponentFrame,225,265,30,10,1,20,20
 DrawComponentBackground,460,480,30,10,1
-DrawTextRegion,460,480,30,10,0,8,false,false,4,5,28,1.0,"TextView"
+DrawTextRegion,460,480,30,10,0,8,false,false,4,5,22,1.0,"TextView"
 DrawNlComponentFrame,460,480,30,10,1,20,20
 DrawVerticalArrowCommand - (240, 265, 0)
 DrawHorizontalArrowCommand - (225, 270, 270)
@@ -259,7 +259,7 @@ DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
 DrawNlComponentFrame,225,225,50,50,1,100,100
 DrawComponentBackground,225,265,30,10,1
-DrawCheckbox,225,265,30,10,0,8,0.0,""
+DrawCheckbox,225,265,30,10,0,8,0.0,22,""
 DrawNlComponentFrame,225,265,30,10,1,20,20
 DrawComponentBackground,245,225,30,10,1
 DrawSeekBar,245,225,30,10
@@ -268,7 +268,7 @@ DrawComponentBackground,275,215,30,10,1
 DrawSwitch,275,215,30,10,0,8,false,false,2,2,14,1.0,"switch"
 DrawNlComponentFrame,275,215,30,10,1,20,20
 DrawComponentBackground,195,275,30,10,1
-DrawUnknownDecorator,195,275,30,10,28,1.0,"h"
+DrawUnknownDecorator,195,275,30,10,22,1.0,"h"
 DrawNlComponentFrame,195,275,30,10,1,20,20
 HorizontalZigZagLineCommand - (0, 225, 250)
 HorizontalZigZagLineCommand - (275, 500, 250)

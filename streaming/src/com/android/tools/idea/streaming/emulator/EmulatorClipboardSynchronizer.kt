@@ -20,75 +20,61 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.protobuf.Empty
-import com.intellij.ide.ClipboardSynchronizer
+import com.android.tools.idea.streaming.core.AbstractClipboardSynchronizer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.openapi.util.Disposer
-import java.awt.EventQueue
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 
 /**
  * Synchronizes the AVD and the host clipboards.
  */
-internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, parentDisposable: Disposable) : Disposable {
+internal class EmulatorClipboardSynchronizer(
+  disposableParent: Disposable,
+  val emulator: EmulatorController,
+) : AbstractClipboardSynchronizer(disposableParent) {
 
-  private val copyPasteManager = CopyPasteManager.getInstance()
   @GuardedBy("lock")
   private var clipboardFeed: Cancelable? = null
   @GuardedBy("lock")
   private var clipboardReceiver: ClipboardReceiver? = null
-  @GuardedBy("lock")
-  private var active = false
   private val lock = Any()
-
-  private val connected
-    get() = emulator.connectionState == EmulatorController.ConnectionState.CONNECTED
-
-  private var lastClipboardText = ""
 
   private val logger
     get() = thisLogger()
 
   init {
-    Disposer.register(parentDisposable, this)
+    setDeviceClipboard()
   }
 
   override fun dispose() {
-    cancelClipboardFeed()
+    synchronized(lock) {
+      cancelClipboardFeed()
+    }
+    super.dispose()
   }
 
   @UiThread
-  fun setDeviceClipboardAndKeepHostClipboardInSync() {
-    synchronized(lock) {
-      active = true
+  override fun setDeviceClipboard(text: String, forceSend: Boolean) {
+    if (isDisposed) {
+      return
     }
-    val text = getClipboardText()
-    if (text.isEmpty() || text == lastClipboardText) {
-      requestClipboardFeed()
-    }
-    else {
+    if (text.isNotEmpty() && text != lastClipboardText) {
       lastClipboardText = text
-      logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboardAndKeepHostClipboardInSync: \"$text\"" }
+      logger.debug { "EmulatorClipboardSynchronizer.setDeviceClipboard: \"$text\"" }
       emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
         override fun onCompleted() {
-          requestClipboardFeed()
+          if (!isDisposed) {
+            requestClipboardFeed()
+          }
         }
       })
     }
-  }
-
-  @UiThread
-  fun stopKeepingHostClipboardInSync() {
-    synchronized(lock) {
-      active = false
-      cancelClipboardFeed()
-      lastClipboardText = ""
+    else if (clipboardFeed == null) {
+      requestClipboardFeed()
     }
   }
 
+  @GuardedBy("lock")
   private fun cancelClipboardFeed() {
     clipboardReceiver = null
     clipboardFeed?.cancel()
@@ -97,24 +83,12 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
 
   private fun requestClipboardFeed() {
     synchronized(lock) {
-      if (active) {
-        cancelClipboardFeed()
-        if (connected) {
-          val receiver = ClipboardReceiver()
-          clipboardReceiver = receiver
-          clipboardFeed = emulator.streamClipboard(receiver)
-        }
+      cancelClipboardFeed()
+      if (emulator.connectionState == EmulatorController.ConnectionState.CONNECTED) {
+        val receiver = ClipboardReceiver()
+        clipboardReceiver = receiver
+        clipboardFeed = emulator.streamClipboard(receiver)
       }
-    }
-  }
-
-  @UiThread
-  private fun getClipboardText(): String {
-    return if (copyPasteManager.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      copyPasteManager.getContents(DataFlavor.stringFlavor) ?: ""
-    }
-    else {
-      ""
     }
   }
 
@@ -122,18 +96,19 @@ internal class EmulatorClipboardSynchronizer(val emulator: EmulatorController, p
 
     override fun onNext(message: ClipData) {
       logger.debug { "ClipboardReceiver.onNext: \"${message.text}\"" }
-      if (clipboardReceiver != this) {
-        return // This clipboard feed has already been cancelled.
-      }
-
-      if (message.text.isNotEmpty()) {
-        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          if (message.text != lastClipboardText) {
-            lastClipboardText = message.text
-            val content = StringSelection(message.text)
-            ClipboardSynchronizer.getInstance().setContent(content, content)
-          }
+      synchronized(lock) {
+        if (clipboardReceiver != this) {
+          return // This clipboard feed has already been cancelled.
         }
+      }
+      if (message.text.isNotEmpty()) {
+        onDeviceClipboardChanged(message.text)
+      }
+    }
+
+    override fun onError(t: Throwable) {
+      if (t is EmulatorController.RetryException) {
+        requestClipboardFeed()
       }
     }
   }

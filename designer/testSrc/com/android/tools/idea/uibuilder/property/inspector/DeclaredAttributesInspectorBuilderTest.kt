@@ -34,8 +34,6 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
@@ -65,6 +63,8 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class DeclaredAttributesInspectorBuilderTest {

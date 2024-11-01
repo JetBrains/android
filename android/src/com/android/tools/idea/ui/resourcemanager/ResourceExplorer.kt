@@ -34,6 +34,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
@@ -79,6 +80,8 @@ class ResourceExplorer private constructor(
     Disposer.register(this, resourceExplorerViewModel)
     Disposer.register(this, resourceExplorerView)
   }
+
+  fun getPreferredFocusedComponent(): JComponent = toolbar.getPreferredFocusedComponent()
 
   companion object {
     private val DIALOG_PREFERRED_SIZE get() = JBUI.size(850, 620)

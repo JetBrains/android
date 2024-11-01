@@ -219,6 +219,26 @@ class PropertyComboBoxTest {
     assertThat(isPopupVisible(comboBox)).isFalse()
   }
 
+  @RunsInEdt
+  @Test
+  fun testActionEnumValuesAreNotEnteredAsText() {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
+    val action = FakeAction("testAction")
+    val enumSupport = FakeEnumSupport("visible", "invisible", action = action)
+    val comboBox = createComboBox(property, enumSupport)
+    val wrapped = getWrappedComboBox(comboBox)
+    // Imitate selecting values from the enum selector.
+    // When selecting the action enum value the text in the editor should not change.
+    wrapped.editor.item = enumSupport.values[0]
+    assertThat(comboBox.editor.text).isEqualTo("visible")
+    wrapped.editor.item = enumSupport.values[2]
+    assertThat(comboBox.editor.text).isEqualTo("visible")
+    wrapped.editor.item = enumSupport.values[1]
+    assertThat(comboBox.editor.text).isEqualTo("invisible")
+    wrapped.editor.item = enumSupport.values[2]
+    assertThat(comboBox.editor.text).isEqualTo("invisible")
+  }
+
   private fun createFakeUiForComboBoxEditor(
     comboBox: PropertyComboBox,
     size: Dimension = Dimension(200, 20),

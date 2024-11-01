@@ -17,15 +17,22 @@ package com.android.tools.idea.common.surface.organization
 
 import com.android.tools.idea.common.surface.SceneView
 import javax.swing.JComponent
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.toImmutableSet
 
-/** Create a [SceneViewHeader] for each group with size > 1. */
-fun Collection<SceneView>.createOrganizationHeaders(
-  parent: JComponent,
-  createHeader: (OrganizationGroup) -> JComponent = ::createOrganizationHeader,
-) =
+/**
+ * Find [OrganizationGroup]s for target list of [SceneViewHeader], each group should have size > 1.
+ */
+fun Collection<SceneView>.findGroups(): ImmutableSet<OrganizationGroup> =
   this.mapNotNull { it.sceneManager.model.organizationGroup }
     .groupingBy { it }
     .eachCount()
     .filterValues { count -> count > 1 }
-    .mapValues { SceneViewHeader(parent, it.key, createHeader) }
-    .toMutableMap()
+    .map { it.key }
+    .toImmutableSet()
+
+/** Create a [SceneViewHeader] for each [OrganizationGroup]. */
+fun Collection<OrganizationGroup>.createOrganizationHeaders(
+  parent: JComponent,
+  createHeader: (OrganizationGroup) -> JComponent = ::createOrganizationHeader,
+) = this.associateWith { SceneViewHeader(parent, it, createHeader) }.toMutableMap()

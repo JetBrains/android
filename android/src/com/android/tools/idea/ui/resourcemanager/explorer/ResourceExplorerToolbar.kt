@@ -110,6 +110,8 @@ class ResourceExplorerToolbar private constructor(
     update() // Update current module right away.
   }
 
+  fun getPreferredFocusedComponent(): JComponent = searchAction
+
   override fun uiDataSnapshot(sink: DataSink) {
     DataSink.uiDataSnapshot(sink, toolbarViewModel)
   }

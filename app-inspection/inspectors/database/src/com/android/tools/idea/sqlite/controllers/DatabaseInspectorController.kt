@@ -32,6 +32,7 @@ import com.android.tools.idea.sqlite.FileDatabaseManager
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.Companion.DEFAULT_ROW_BATCH_SIZE
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
@@ -261,7 +262,7 @@ class DatabaseInspectorControllerImpl(
           resultSetControllers.toMap()
         } else {
           // only close tabs associated with this database
-          resultSetControllers.filterKeys { it is TabId.TableTab && it.databaseId == databaseId }
+          resultSetControllers.filter { it.getDatabaseId() == databaseId }
         }
 
       tabsToClose.forEach { closeTab(it.key) }
@@ -453,11 +454,26 @@ class DatabaseInspectorControllerImpl(
           }
         }
         .mapNotNull {
+          val tabController = it.value
+          val isLiveUpdateEnabled = tabController.isLiveUpdateEnabled()
+          val rowBatchSize = tabController.getRowBatchSize()
           when (val tabId = it.key) {
-            is TabId.TableTab -> TabDescription.Table(tabId.databaseId.path, tabId.tableName)
+            is TabId.TableTab -> {
+              TabDescription.Table(
+                tabId.databaseId.path,
+                tabId.tableName,
+                isLiveUpdateEnabled,
+                rowBatchSize,
+              )
+            }
             is TabId.AdHocQueryTab -> {
-              val params = (it.value as SqliteEvaluatorController).saveEvaluationParams()
-              TabDescription.AdHocQuery(params.databaseId?.path, params.statementText)
+              val params = (tabController as SqliteEvaluatorController).saveEvaluationParams()
+              TabDescription.AdHocQuery(
+                params.databaseId?.path,
+                params.statementText,
+                isLiveUpdateEnabled,
+                rowBatchSize,
+              )
             }
           }
         }
@@ -475,9 +491,20 @@ class DatabaseInspectorControllerImpl(
           is TabDescription.Table ->
             schema.tables
               .find { tabDescription.tableName == it.name }
-              ?.let { openTableTab(databaseId, it) }
+              ?.let {
+                openTableTab(
+                  databaseId,
+                  it,
+                  tabDescription.liveUpdatesEnabled,
+                  tabDescription.rowBatchSize,
+                )
+              }
           is TabDescription.AdHocQuery -> {
-            openNewEvaluatorTab(EvaluationParams(databaseId, tabDescription.query))
+            openNewEvaluatorTab(
+              EvaluationParams(databaseId, tabDescription.query),
+              tabDescription.liveUpdatesEnabled,
+              tabDescription.rowBatchSize,
+            )
           }
         }
       }
@@ -488,7 +515,11 @@ class DatabaseInspectorControllerImpl(
       .also { tabsToRestore.removeAll(it) }
       .forEach { tabDescription ->
         val adHocTabDescription = tabDescription as TabDescription.AdHocQuery
-        openNewEvaluatorTab(EvaluationParams(null, adHocTabDescription.query))
+        openNewEvaluatorTab(
+          EvaluationParams(null, adHocTabDescription.query),
+          tabDescription.liveUpdatesEnabled,
+          tabDescription.rowBatchSize,
+        )
       }
   }
 
@@ -574,7 +605,9 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun openNewEvaluatorTab(
-    evaluationParams: EvaluationParams? = null
+    evaluationParams: EvaluationParams? = null,
+    liveUpdatesEnabled: Boolean = false,
+    rowBatchSize: Int = DEFAULT_ROW_BATCH_SIZE,
   ): SqliteEvaluatorController {
     evaluatorTabCount += 1
 
@@ -607,6 +640,8 @@ class DatabaseInspectorControllerImpl(
         ::showExportDialog,
         edtExecutor,
         taskExecutor,
+        liveUpdatesEnabled,
+        rowBatchSize,
       )
     Disposer.register(this, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp(evaluationParams)
@@ -619,7 +654,12 @@ class DatabaseInspectorControllerImpl(
   }
 
   @UiThread
-  private fun openTableTab(databaseId: SqliteDatabaseId, table: SqliteTable) {
+  private fun openTableTab(
+    databaseId: SqliteDatabaseId,
+    table: SqliteTable,
+    liveUpdatesEnabled: Boolean,
+    rowBatchSize: Int,
+  ) {
     val tabId = TabId.TableTab(databaseId, table.name)
     if (tabId in resultSetControllers) {
       view.focusTab(tabId)
@@ -633,18 +673,20 @@ class DatabaseInspectorControllerImpl(
 
     val tableController =
       TableController(
-        closeTabInvoked = { closeTab(tabId) },
         project = project,
+        rowBatchSize = rowBatchSize,
         view = tableView,
+        databaseId = databaseId,
         tableSupplier = {
           model.getDatabaseSchema(databaseId)?.tables?.firstOrNull { it.name == table.name }
         },
-        databaseId = databaseId,
         databaseRepository = databaseRepository,
         sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
+        closeTabInvoked = { closeTab(tabId) },
         showExportDialog = ::showExportDialog,
         edtExecutor = edtExecutor,
         taskExecutor = taskExecutor,
+        liveUpdatesEnabled = liveUpdatesEnabled,
       )
     Disposer.register(this, tableController)
     resultSetControllers[tabId] = tableController
@@ -761,7 +803,7 @@ class DatabaseInspectorControllerImpl(
         connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT,
       )
-      openTableTab(databaseId, table)
+      openTableTab(databaseId, table, false, DEFAULT_ROW_BATCH_SIZE)
     }
 
     override fun openSqliteEvaluatorTabActionInvoked() {
@@ -801,12 +843,24 @@ class DatabaseInspectorControllerImpl(
   @UiThread
   private sealed class TabDescription {
     abstract val databasePath: String?
+    abstract val liveUpdatesEnabled: Boolean
+    abstract val rowBatchSize: Int
 
-    class Table(@get:UiThread override val databasePath: String, val tableName: String) :
-      TabDescription()
+    @UiThread
+    class Table(
+      override val databasePath: String,
+      val tableName: String,
+      override val liveUpdatesEnabled: Boolean,
+      override val rowBatchSize: Int,
+    ) : TabDescription()
 
-    class AdHocQuery(@get:UiThread override val databasePath: String?, val query: String) :
-      TabDescription()
+    @UiThread
+    class AdHocQuery(
+      override val databasePath: String?,
+      val query: String,
+      override val liveUpdatesEnabled: Boolean,
+      override val rowBatchSize: Int,
+    ) : TabDescription()
   }
 }
 
@@ -860,6 +914,14 @@ interface DatabaseInspectorController : Disposable {
 
     /** Notify this tab that its data might be stale. */
     fun notifyDataMightBeStale()
+
+    fun isLiveUpdateEnabled(): Boolean
+
+    fun getRowBatchSize(): Int
+  }
+
+  companion object {
+    val DEFAULT_ROW_BATCH_SIZE = 50
   }
 }
 
@@ -867,4 +929,13 @@ sealed class TabId {
   data class TableTab(val databaseId: SqliteDatabaseId, val tableName: String) : TabId()
 
   data class AdHocQueryTab(val tabId: Int) : TabId()
+}
+
+private fun Map.Entry<TabId, DatabaseInspectorController.TabController>.getDatabaseId():
+  SqliteDatabaseId? {
+  return when (val tabId = key) {
+    is TabId.TableTab -> tabId.databaseId
+    is TabId.AdHocQueryTab ->
+      (value as? SqliteEvaluatorController)?.saveEvaluationParams()?.databaseId
+  }
 }

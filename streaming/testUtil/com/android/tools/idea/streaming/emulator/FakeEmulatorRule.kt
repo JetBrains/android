@@ -25,10 +25,6 @@ import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.TemporaryDirectoryRule
-import com.google.common.util.concurrent.Futures.immediateFailedFuture
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -83,19 +79,23 @@ class FakeEmulatorRule : TestRule {
     }
 
     override fun after() {
+      val emulatorCatalog = RunningEmulatorCatalog.getInstance()
+      val emulatorControllers = emulatorCatalog.emulators
       try {
+        for (emulator in emulatorControllers) {
+          emulator.shutdown()
+        }
         for (emulator in emulators) {
           emulator.stop()
         }
       }
       finally {
         disposable?.let { Disposer.dispose(it) }
-        System.setProperty("user.home", savedUserHome)
-        registrationDirectory = null
-        val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-        for (emulator in emulatorCatalog.emulators) {
+        for (emulator in emulatorControllers) {
           emulator.awaitTermination(1.seconds)
         }
+        System.setProperty("user.home", savedUserHome)
+        registrationDirectory = null
         emulatorCatalog.overrideRegistrationDirectory(null)
         AvdManagerConnection.resetConnectionFactory()
       }

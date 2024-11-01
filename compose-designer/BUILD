@@ -1,6 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -272,16 +271,13 @@ maven_repository(
     ],
 )
 
-iml_studio_test(
+iml_test(
     name = "ComposePreviewKotlinTest",
     timeout = "long",
     data = compose_preview_data,
     module = ":intellij.android.compose-designer.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "noci:studio-win",  # TODO(b/355511927): flaky timeouts on Windows with IntelliJ 2024.2.
-    ],
+    tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.compose.ComposePreviewKotlin",
 )

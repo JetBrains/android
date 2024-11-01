@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
@@ -32,8 +33,15 @@ fun transitionEventForKey(key: InsightsProviderKey, event: Event) =
     LoadingState.Loading
   }
 
-fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
+fun actionsForSelectedIssue(
+  key: InsightsProviderKey,
+  id: IssueId,
+  fatality: FailureType,
+  event: Event,
+  forceFetch: Boolean,
+) =
   Action.FetchDetails(id) and
+    Action.FetchInsight(id, fatality, event, forceFetch = forceFetch) and
     if (key == VITALS_KEY) {
       Action.NONE
     } else {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions
 
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
-import com.android.testutils.MockitoKt
 import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -39,6 +38,7 @@ import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class DrawableBackgroundLayerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -62,7 +62,7 @@ class DrawableBackgroundLayerTest {
               .getConfiguration(virtualFile),
           )
           .build()
-      MockitoKt.whenever(mockLayoutlibSceneManager.model).thenReturn(nlModel)
+      whenever(mockLayoutlibSceneManager.model).thenReturn(nlModel)
       Disposer.register(projectRule.testRootDisposable, mockLayoutlibSceneManager)
 
       val screenView =

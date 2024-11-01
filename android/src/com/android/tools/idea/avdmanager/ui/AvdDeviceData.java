@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.google.common.collect.Comparators.min;
-import static java.util.Comparator.comparing;
-
 import com.android.SdkConstants;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
@@ -33,10 +30,9 @@ import com.android.sdklib.devices.Sensor;
 import com.android.sdklib.devices.Software;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.repository.IdDisplay;
+import com.android.tools.adtui.device.SkinLayoutDefinition;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.SkinLayoutDefinition;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -72,7 +68,6 @@ public final class AvdDeviceData {
   private final StringProperty myName = new StringValueProperty();
   private final OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
   private final StringProperty myManufacturer = new StringValueProperty();
-  private final StringProperty myTagId = new StringValueProperty();
   private final StringProperty myDeviceId = new StringValueProperty();
 
   private final DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
@@ -435,6 +430,10 @@ public final class AvdDeviceData {
    */
   private void initDefaultValues() {
     myName.set(getUniqueId(null));
+    // The default screen is 440 dpi, which is closest to xxhdpi.
+    // Set density before screen width/height so that it actually gets set; if we set it to the value that it should
+    // have based on width/height/diagonal, then AbstractProperty will think it is unchanged, and not actually set it.
+    myDensity.set(Density.XXHIGH);
     myDiagonalScreenSize.set(5.0);
     myScreenResolutionWidth.set(1080);
     myScreenResolutionHeight.set(1920);
@@ -455,7 +454,6 @@ public final class AvdDeviceData {
 
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
-    myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
     myHasBackCamera.set(true);
@@ -499,15 +497,20 @@ public final class AvdDeviceData {
   public void updateValuesFromDevice(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     myName.set(device.getDisplayName());
     String tagId = device.getTagId();
-    if (myTagId.get().isEmpty()) {
-      myTagId.set(SystemImageTags.DEFAULT_TAG.getId());
+    if (tagId == null) {
       myDeviceType.setValue(SystemImageTags.DEFAULT_TAG);
-    }
-    else {
-      for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
-        if (tag.getId().equals(tagId)) {
-          myDeviceType.setValue(tag);
-          break;
+    } else {
+      // The "android-automotive-playstore" tag shouldn't exist; we indicate Play support explicitly in Device.
+      // ("android-automotive-distantdisplay" shouldn't either, but until we have distant display support in the
+      // device schema, it's necessary.)
+      if (tagId.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG.getId())) {
+        myDeviceType.setValue(SystemImageTags.AUTOMOTIVE_TAG);
+      } else {
+        for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
+          if (tag.getId().equals(tagId)) {
+            myDeviceType.setValue(tag);
+            break;
+          }
         }
       }
     }
@@ -515,6 +518,7 @@ public final class AvdDeviceData {
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 
+    myDensity.set(screen.getPixelDensity());
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
@@ -532,11 +536,10 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
     myScreenFoldedWidth3.set(screen.getFoldedWidth3());
     myScreenFoldedHeight3.set(screen.getFoldedHeight3());
-    myRamStorage.set(EmulatedProperties.defaultRamSize(device));
+    myRamStorage.set(defaultHardware.getRam());
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
-    myDensity.set(defaultHardware.getScreen().getPixelDensity());
     myHasSdCard.set(defaultHardware.hasSdCard());
 
     List<State> states = device.getAllStates();

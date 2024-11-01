@@ -44,7 +44,7 @@ class LayoutHandler : FrameLayoutHandler() {
 class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override val region: Region = run {
-    val sceneView = host.scene.sceneManager.sceneView
+    val sceneView = host.scene.sceneManager.sceneViews.first()
     val size = sceneView.scaledContentSize
     val width = Coordinates.getAndroidDimensionDip(sceneView, size.width)
     val height = Coordinates.getAndroidDimensionDip(sceneView, size.height)

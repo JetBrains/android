@@ -19,7 +19,6 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.LambdaParameterItem
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlType
@@ -36,6 +35,7 @@ import com.intellij.testFramework.DisposableRule
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ResolutionStackEditorProviderTest {
   companion object {

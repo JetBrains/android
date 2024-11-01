@@ -110,12 +110,14 @@ public class GradleAndroidModuleTemplate {
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File androidMainDir = new File(baseSrcDir, "androidMain");
     File commonMainDir = new File(baseSrcDir, "commonMain");
+    File iosMainDir = new File(baseSrcDir, "iosMain");
 
     return new NamedModuleTemplate("main", new KotlinMultiplatformModulePathsImpl(
       moduleRoot,
       androidMainDir,
       new File(androidMainDir, FD_KOTLIN),
       new File(commonMainDir, FD_KOTLIN),
+      new File(iosMainDir, FD_KOTLIN),
       new File(baseSrcDir.getPath(), "androidUnitTest" + File.separatorChar + FD_KOTLIN),
       new File(baseSrcDir.getPath(), "androidInstrumentedTest" + File.separatorChar + FD_KOTLIN),
       null,

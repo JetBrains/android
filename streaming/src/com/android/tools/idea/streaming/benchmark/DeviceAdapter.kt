@@ -16,18 +16,20 @@
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.bottom
 import com.android.tools.idea.streaming.core.right
-import com.android.tools.idea.streaming.core.rotatedByQuadrants
-import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -46,8 +48,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 private val MAX_BECOME_READY_DURATION = 2.seconds
 private val LOG = Logger.getInstance(DeviceAdapter::class.java)

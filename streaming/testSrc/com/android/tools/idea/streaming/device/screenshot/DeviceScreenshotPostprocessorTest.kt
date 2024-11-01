@@ -21,6 +21,8 @@ import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.idea.ui.screenshot.DeviceFramingOption
+import com.android.tools.idea.ui.screenshot.DeviceScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import org.junit.Before
 import org.junit.Test

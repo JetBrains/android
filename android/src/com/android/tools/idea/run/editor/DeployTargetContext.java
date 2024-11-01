@@ -22,6 +22,7 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 public class DeployTargetContext implements JDOMExternalizable {
-  public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
+  public String TARGET_SELECTION_MODE = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name();
 
   private final Collection<DeployTargetProvider> myDeployTargetProviders;
   private final Map<String, DeployTargetState> myDeployTargetStates;
@@ -94,20 +95,7 @@ public class DeployTargetContext implements JDOMExternalizable {
   @NotNull
   public TargetSelectionMode getTargetSelectionMode() {
     try {
-      TargetSelectionMode mode = TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
-
-      switch (mode) {
-        case DEVICE_AND_SNAPSHOT_COMBO_BOX:
-        case FIREBASE_DEVICE_MATRIX:
-        case FIREBASE_DEVICE_DEBUGGING:
-          return mode;
-        case SHOW_DIALOG:
-        case EMULATOR:
-        case USB_DEVICE:
-          return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX;
-        default:
-          throw new AssertionError(mode);
-      }
+      return TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
     }
     catch (IllegalArgumentException exception) {
       return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX;
@@ -120,6 +108,12 @@ public class DeployTargetContext implements JDOMExternalizable {
 
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
+    }
+
+    // Convert no-longer-valid externalised TargetSelectionMode values to the existing default.  (This isn't strictly
+    // necessary given the error handling in #getTargetSelectionMode(), but it's polite.)
+    if (Arrays.stream(TargetSelectionMode.values()).noneMatch((it) -> it.name().equals(TARGET_SELECTION_MODE))) {
+      TARGET_SELECTION_MODE = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name();
     }
   }
 

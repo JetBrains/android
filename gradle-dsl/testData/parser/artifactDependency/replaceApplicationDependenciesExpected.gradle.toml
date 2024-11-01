@@ -1,5 +1,0 @@
-[dependencies]
-testCompile = [
-  { notation = "org.hibernate:hibernate:3.1" },
-  { notation = "com.google.guava:guava:+" }
-]

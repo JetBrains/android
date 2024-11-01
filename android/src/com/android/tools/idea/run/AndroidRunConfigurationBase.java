@@ -12,6 +12,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectS
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
@@ -33,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
@@ -357,6 +359,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return null;
   }
 
+  @Override
+  public boolean canRunOn(@NotNull ExecutionTarget target) {
+    return target instanceof AndroidExecutionTarget;
+  }
+
   @Nullable
   protected DeployTarget getDeployTarget() {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
@@ -376,7 +383,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return getProjectSystem(getProject()).getApkProvider(this);
   }
 
-  public boolean isTestConfiguration() {
+  public final boolean isTestConfiguration() {
     return myIsTestConfiguration;
   }
 

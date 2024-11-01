@@ -20,7 +20,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
@@ -71,14 +71,14 @@ class InjectedFieldDaggerConceptTest {
 
       import javax.inject.Inject
 
-      class CoffeeMaker() {
+      class CoffeeMaker {
         @Inject lateinit var heater: Heater
       }
       """
           .trimIndent(),
       ) as KtFile
 
-    val element: KtProperty = myFixture.findParentElement("hea|ter")
+    val element: KtProperty = myFixture.getEnclosing<KtProperty>("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -94,14 +94,14 @@ class InjectedFieldDaggerConceptTest {
         """
       package com.example
 
-      class CoffeeMaker() {
+      class CoffeeMaker {
         lateinit var heater: Heater
       }
       """
           .trimIndent(),
       ) as KtFile
 
-    val element: KtProperty = myFixture.findParentElement("hea|ter")
+    val element: KtProperty = myFixture.getEnclosing<KtProperty>("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -118,14 +118,14 @@ class InjectedFieldDaggerConceptTest {
 
       import com.other.Inject
 
-      class CoffeeMaker() {
+      class CoffeeMaker {
         @Inject lateinit var heater: Heater
       }
       """
           .trimIndent(),
       ) as KtFile
 
-    val element: KtProperty = myFixture.findParentElement("hea|ter")
+    val element: KtProperty = myFixture.getEnclosing<KtProperty>("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -149,9 +149,9 @@ class InjectedFieldDaggerConceptTest {
 
       import javax.inject.Inject
 
-      interface Heater {}
+      interface Heater
 
-      class CoffeeMaker() {
+      class CoffeeMaker {
         @Inject lateinit var heater: Heater
         lateinit var notInjectedHeater: Heater
       }
@@ -162,7 +162,7 @@ class InjectedFieldDaggerConceptTest {
     val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
     val indexValue2 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "notInjectedHeater")
 
-    val heaterField: KtProperty = myFixture.findParentElement("var hea|ter")
+    val heaterField: KtProperty = myFixture.getEnclosing<KtProperty>("var hea|ter")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
@@ -198,7 +198,7 @@ class InjectedFieldDaggerConceptTest {
     val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
     val indexValue2 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "notInjectedHeater")
 
-    val heaterField: PsiField = myFixture.findParentElement("Heater hea|ter")
+    val heaterField: PsiField = myFixture.getEnclosing<PsiField>("Heater hea|ter")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))

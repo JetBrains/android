@@ -21,7 +21,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -37,7 +36,6 @@ import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -94,18 +92,7 @@ class DeviceUiSettingsActionTest {
   }
 
   @Test
-  fun testUpdateWhenUnused() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(false, testRootDisposable)
-    val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView()
-    val event = createTestKeyEvent(view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
-  }
-
-  @Test
   fun testActionOnApi32Device() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView(32)
     val event = createTestKeyEvent(view)
@@ -115,7 +102,6 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testActiveAction() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
     val event = createTestMouseEvent(action, view)
@@ -133,7 +119,6 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testWearControls() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView(isWear = true)
     val event = createTestMouseEvent(action, view)
@@ -154,7 +139,6 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testActiveActionFromActionButtonInPopup() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
     val event = createTestMouseEvent(action, view)
@@ -174,7 +158,6 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testActiveActionViaKeyboard() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
     val event = createTestKeyEvent(view)
@@ -192,7 +175,6 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testPickerClosesWhenWindowCloses() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
     val event = createTestKeyEvent(view)
@@ -220,7 +202,6 @@ class DeviceUiSettingsActionTest {
     val parentDisposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, parentDisposable)
 
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
     val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView(parentDisposable = parentDisposable)
     val event = createTestMouseEvent(action, view)
@@ -274,7 +255,7 @@ class DeviceUiSettingsActionTest {
   private fun createDeviceView(device: FakeDevice, parentDisposable: Disposable): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(parentDisposable, deviceClient)
-    return DeviceView(parentDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
+    return DeviceView(parentDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
   }
 
   private fun waitForFrame(view: DeviceView) {

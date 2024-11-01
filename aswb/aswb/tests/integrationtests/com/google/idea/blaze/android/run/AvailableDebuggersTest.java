@@ -19,11 +19,12 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.google.idea.blaze.android.BlazeAndroidIntegrationTestCase;
 import com.google.idea.blaze.android.MockSdkUtil;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeAutoAndroidDebugger;
 import com.google.idea.blaze.android.cppimpl.debug.BlazeNativeAndroidDebugger;
-import com.google.idea.blaze.android.tools.idea.run.editor.AndroidDebuggerCompat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,11 +39,11 @@ public class AvailableDebuggersTest extends BlazeAndroidIntegrationTestCase {
     runFullBlazeSyncWithNoIssues();
 
     assertThat(
-            AndroidDebuggerCompat.getAvailableDebuggerExtensionList().stream()
+        AndroidDebugger.EP_NAME.getExtensionList().stream()
                 .filter((debugger) -> debugger.supportsProject(getProject()))
                 .map(Object::getClass))
         .containsExactly(
-            AndroidDebuggerCompat.getAndroidJavaDebugger().getClass(),
+          AndroidJavaDebugger.class,
             BlazeAutoAndroidDebugger.class);
   }
 
@@ -58,12 +59,12 @@ public class AvailableDebuggersTest extends BlazeAndroidIntegrationTestCase {
     runFullBlazeSyncWithNoIssues();
 
     assertThat(
-            AndroidDebuggerCompat.getAvailableDebuggerExtensionList().stream()
+            AndroidDebugger.EP_NAME.getExtensionList().stream()
                 .filter((debugger) -> debugger.supportsProject(getProject()))
                 .map(Object::getClass)
                 .collect(toImmutableList()))
         .containsExactly(
-            AndroidDebuggerCompat.getAndroidJavaDebugger().getClass(),
+            AndroidJavaDebugger.class,
             BlazeAutoAndroidDebugger.class,
             BlazeNativeAndroidDebugger.class);
   }

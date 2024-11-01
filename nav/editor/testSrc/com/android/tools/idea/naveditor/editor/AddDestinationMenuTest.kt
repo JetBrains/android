@@ -49,6 +49,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.C
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
@@ -122,7 +123,10 @@ class AddDestinationMenuTest {
       }
     _model = modelBuilder.build()
 
-    _surface = NavDesignSurface(projectRule.project, disposableRule.disposable)
+    _surface =
+      NavDesignSurface(projectRule.project).also {
+        Disposer.register(disposableRule.disposable, it)
+      }
     surface.setSize(1000, 1000)
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     _menu = AddDestinationMenu(surface)
@@ -748,7 +752,8 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     val model =
       NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
 
-    val surface = NavDesignSurface(project, testRootDisposable)
+    val surface =
+      NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
 
     val blankFragment =

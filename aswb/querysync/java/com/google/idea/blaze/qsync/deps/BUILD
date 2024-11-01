@@ -16,7 +16,7 @@ java_library(
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/shared:proto",
         "//tools/adt/idea/aswb/shared:vcs",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
         "@maven//:io.grpc.grpc-protobuf",
     ],

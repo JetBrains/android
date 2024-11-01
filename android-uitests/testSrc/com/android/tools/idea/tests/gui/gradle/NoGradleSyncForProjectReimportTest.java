@@ -52,8 +52,9 @@ public class NoGradleSyncForProjectReimportTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void noGradleSyncForProjectReimport() throws Exception {
-    assertThat(guiTest.importSimpleApplication()
-      .closeProject()
+    guiTest.importSimpleApplication();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(guiTest.ideFrame().closeProject()
       .openTheMostRecentProject(guiTest)
       .isGradleSyncNotNeeded()
     ).isTrue();

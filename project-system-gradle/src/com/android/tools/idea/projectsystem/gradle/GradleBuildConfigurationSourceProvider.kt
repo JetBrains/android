@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -25,7 +26,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
@@ -148,7 +148,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
 
-      if (Registry.`is`("android.gradle.ide.gradle.declarative.ide.support")) {
+      if (DeclarativeStudioSupport.isEnabled()) {
         yieldIfNotNull(
           projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE)
             ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
@@ -206,7 +206,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   }
 
   private fun VirtualFile.isGradleDeclarativeBuildFile() =
-    Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") && name.endsWith(SdkConstants.EXT_GRADLE_DECLARATIVE)
+    DeclarativeStudioSupport.isEnabled() && name.endsWith(SdkConstants.EXT_GRADLE_DECLARATIVE)
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }

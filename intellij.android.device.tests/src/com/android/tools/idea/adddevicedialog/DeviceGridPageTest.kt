@@ -39,7 +39,7 @@ class DeviceGridPageTest {
   fun tableSelectionStateIsPreserved() {
     val source =
       object : TestDeviceSource() {
-        override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+        override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
           nextAction = WizardAction { pushPage { Text("Configuring ${profile.name}") } }
         }
       }
@@ -69,7 +69,7 @@ class DeviceGridPageTest {
   fun canAdvanceOnlyWhenDeviceSelected() {
     val source =
       object : TestDeviceSource() {
-        override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+        override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
           nextAction = WizardAction { pushPage { Text("Config page") } }
         }
       }
@@ -112,9 +112,13 @@ class DeviceGridPageTest {
 @Composable
 private fun WizardPageScope.TestDeviceGridPage(source: TestDeviceSource) {
   val filterState = TestDeviceFilterState()
-  DeviceGridPage(
-    source,
-    filterContent = { profiles -> TestDeviceFilters(profiles, filterState) },
-    filterState = filterState,
-  )
+  DeviceLoadingPage(source) { profiles ->
+    DefaultDeviceGridPage(
+      profiles,
+      testDeviceTableColumns,
+      filterContent = { TestDeviceFilters(profiles, filterState) },
+      filterState = filterState,
+      onSelectionUpdated = { with(source) { selectionUpdated(it) } },
+    )
+  }
 }

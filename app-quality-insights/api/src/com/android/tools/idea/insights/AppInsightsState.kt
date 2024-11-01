@@ -1,5 +1,6 @@
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.QueryFilters

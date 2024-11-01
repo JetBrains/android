@@ -6,6 +6,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "combine_visibilities",
     "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
@@ -18,10 +19,6 @@ load(
 )
 load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-load(
-    "//tools/vendor/google/aswb/third_party/java/jetbrains:build_defs.bzl",
-    "combine_visibilities",
-)
 
 licenses(["notice"])
 
@@ -130,11 +127,11 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:kotlin_for_tests",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
         "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],

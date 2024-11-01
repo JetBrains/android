@@ -16,13 +16,12 @@
 package com.google.idea.blaze.qsync.testdata.transitivedep;
 
 import com.google.idea.blaze.qsync.testdata.externaldep.TestClassExternalDep;
-import java.util.List;
 
 public class TestClassTransitiveDep {
 
   private TestClassTransitiveDep() {}
 
-  public static List<String> getStringList() {
-    return TestClassExternalDep.getImmutableList();
+  public static void printDepsClass() {
+    TestClassExternalDep.printDepsClass();
   }
 }

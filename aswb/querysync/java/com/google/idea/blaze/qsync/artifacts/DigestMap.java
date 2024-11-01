@@ -42,9 +42,9 @@ public interface DigestMap {
    * Returns a {@link BuildArtifact} corresponding to a built artifact path. Returns empty if the
    * target that built the artifact failed to build (so the artifact itself was not built).
    */
-  default Optional<BuildArtifact> createBuildArtifact(Path path, Label fromTarget) {
-    return digestForArtifactPath(path, fromTarget)
-        .map(d -> BuildArtifact.create(d, path, fromTarget));
+  default Optional<BuildArtifact> createBuildArtifact(Path artifactPath, Label fromTarget) {
+    return digestForArtifactPath(artifactPath, fromTarget)
+        .map(d -> BuildArtifact.create(d, artifactPath, fromTarget));
   }
 
   @VisibleForTesting

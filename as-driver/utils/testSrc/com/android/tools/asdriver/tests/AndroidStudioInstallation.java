@@ -54,6 +54,7 @@ public class AndroidStudioInstallation {
   private final Path vmOptionsPath;
   private final Path configDir;
   private final Path logsDir;
+  private final Path studioEventsDir;
   private final Path telemetryJsonFile;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
@@ -85,6 +86,9 @@ public class AndroidStudioInstallation {
       case ASWB:
         zipPath = String.format("tools/vendor/google/aswb/aswb.%s.zip", platform);
         break;
+      case ASFP:
+        zipPath = String.format("tools/vendor/google/asfp/studio/asfp.%s.zip", platform);
+        break;
       default:
         throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + androidStudioFlavor);
     }
@@ -105,6 +109,7 @@ public class AndroidStudioInstallation {
     this.studioDir = studioDir;
 
     logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
+    studioEventsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "studio_events");
     ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
     memoryReportFile = new LogFile(logsDir.resolve("memory_usage_report.log"));
@@ -195,6 +200,7 @@ public class AndroidStudioInstallation {
     vmOptions.append(
       String.format("-Dfind.usages.command.found.usages.list.file=%s%n", TestUtils.getTestOutputDir().resolve("find.usages.list.txt")));
     vmOptions.append(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
+    vmOptions.append(String.format("-Dstudio.event.dump.dir=%s%n", studioEventsDir));
 
     Files.writeString(vmOptionsPath, vmOptions.toString());
 
@@ -562,6 +568,9 @@ public class AndroidStudioInstallation {
 
     // Android Studio with Blaze.
     ASWB,
+
+    // Android Studio for Platform.
+    ASFP,
 
     // This indicates that some operation will need to be performed to determine which flavor is
     // being used.

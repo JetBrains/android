@@ -51,7 +51,6 @@ import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.RenderQualityPolicy
 import com.android.tools.idea.preview.SimpleRenderQualityManager
-import com.android.tools.idea.preview.ZoomConstants
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.animation.AnimationPreview
@@ -69,6 +68,9 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -238,8 +240,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
                 config.useShrinkRendering = true
                 config.renderingTopic = renderingTopic
               }
-              setListenResourceChange(false) // don't re-render on resource changes
-              setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+              listenResourceChange = false // don't re-render on resource changes
+              updateAndRenderWhenActivated = false // don't re-render on activation
             }
           }
           .setInteractionHandlerProvider {
@@ -247,6 +249,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               delegate = NavigatingInteractionHandler(it, navigationHandler)
             }
           }
+          .shouldZoomOnFirstComponentResize(false)
           .setDelegateDataProvider {
             when (it) {
               PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
@@ -258,12 +261,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               else -> null
             }
           }
-          .apply {
-            setMaxZoomToFitLevel(ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL)
-            setMinScale(ZoomConstants.MIN_SCALE)
-            setMaxScale(ZoomConstants.MAX_SCALE)
-            configureDesignSurface(navigationHandler)
-          },
+          .setShouldShowLayoutDeprecationBanner {
+            listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
+              .contains(it)
+          }
+          .apply { configureDesignSurface(navigationHandler) },
         this,
       )
       .also {

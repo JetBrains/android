@@ -8,6 +8,8 @@ import com.android.tools.idea.testing.replaceText
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -21,11 +23,17 @@ import org.junit.Rule
 import org.junit.Test
 
 class PsiCodeFileChangeDetectorServiceTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory()
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
+  private val projectRule2 = ProjectRule()
+
+  @get:Rule
+  val ruleChain = RuleChain(projectRule, projectRule2)
+
   private lateinit var myPsiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter
+  private lateinit var myPsiCodeFileOutOfDateStatusReporter2: PsiCodeFileOutOfDateStatusReporter
   private lateinit var myPsiCodeFileUpToDateStatusRecorder: PsiCodeFileUpToDateStatusRecorder
   private lateinit var kotlinFile: PsiFile
   private lateinit var secondKotlinFile: PsiFile
@@ -37,20 +45,22 @@ class PsiCodeFileChangeDetectorServiceTest {
     myPsiCodeFileOutOfDateStatusReporter =
       PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule.project)
 
+    myPsiCodeFileOutOfDateStatusReporter2 =
+      PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule2.project)
+
     myPsiCodeFileUpToDateStatusRecorder =
       PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
 
-    kotlinFile =
-      fixture.addFileToProject(
-        "src/a/declarations.kt",
-        // language=kotlin
-        """
+    fixture.addFileToProject(
+      "src/a/declarations.kt",
+      // language=kotlin
+      """
         package a
 
         annotation class Annotation(value: String)
       """
-          .trimIndent()
-      )
+        .trimIndent()
+    )
 
     kotlinFile =
       fixture.addFileToProject(
@@ -124,6 +134,21 @@ class PsiCodeFileChangeDetectorServiceTest {
     // to mark them as out of date until the user modifies them.
 
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
+  }
+
+  @Test
+  fun `files should only be marked as out-of-date in the project they belong`() {
+    // Assert there are no out-of-date-files in second project.
+    assertThat(myPsiCodeFileOutOfDateStatusReporter2.outOfDateFiles).isEmpty()
+
+    // Change a file in first project
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      fixture.openFileInEditor(kotlinFile.virtualFile)
+      fixture.editor.executeAndSave { replaceText("primary = 1", "primary = 2") }
+    }
+
+    // The file should not be marked as out-of-date in second project
+    assertThat(myPsiCodeFileOutOfDateStatusReporter2.outOfDateFiles).isEmpty()
   }
 
   @Test

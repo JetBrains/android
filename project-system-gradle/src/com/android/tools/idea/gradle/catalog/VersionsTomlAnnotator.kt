@@ -21,10 +21,16 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.findParentOfType
+import org.gradle.internal.impldep.com.google.common.collect.ImmutableSet
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
+import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
 
@@ -33,8 +39,9 @@ class VersionsTomlAnnotator : Annotator {
     private val FILE_IS_GOOD_FOR_LONG_CHECKS = Key.create<Boolean>("FILE_IS_GOOD_FOR_LONG_CHECKS")
   }
 
-  val dependencyTables = listOf("plugins", "libraries", "bundles")
-  val tables = dependencyTables + "versions"
+  private val dependencyTables = listOf("plugins", "libraries", "bundles")
+  private val tables = dependencyTables + "versions" + "metadata"
+  private val reservedNames = listOf("extensions", "convention")
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!element.containingFile.name.endsWith("versions.toml"))
@@ -62,34 +69,109 @@ class VersionsTomlAnnotator : Annotator {
         && greatGrandParent is TomlFile) {
       checkTableAliases(element, grandParent, holder)
     }
+
+    // alias with literal
+    if(element is TomlLiteral
+       && element.parent is TomlKeyValue
+       && grandParent is TomlTable
+       && greatGrandParent is TomlFile) {
+
+      // exit if corner case syntax
+      // plugin_alias.id = ""
+      // plugin_alias.version = ""
+      if ((element.parent as TomlKeyValue).key.segments.size > 1) return
+
+      checkDependencyLiteral(element, holder)
+    }
+
+    // lib dependency with module attribute
+    if(element is TomlLiteral
+       && element.parent is TomlKeyValue
+       && (element.parent as TomlKeyValue).key.text == "module"
+       && grandParent is TomlInlineTable) {
+      checkModuleLiteral(element, holder)
+    }
+
+    // library reference in bundle
+    if(element is TomlLiteral
+      && element.parent is TomlArray
+      && grandParent is TomlKeyValue
+      && greatGrandParent is TomlTable
+      && greatGrandParent.header.key?.text == "bundles") {
+      checkBundleDuplications(element, element.parent as TomlArray, holder)
+    }
+  }
+
+  private fun checkBundleDuplications(element: TomlLiteral, array: TomlArray,  holder: AnnotationHolder){
+    array.elements.forEach { ref ->
+      if(ref == element) return
+      if(sameAliases(ref.text, element.text)){
+        holder.newAnnotation(HighlightSeverity.WARNING,
+                             "Duplicate reference to dependency").create()
+      }
+    }
+  }
+
+  private fun checkModuleLiteral(element: TomlLiteral, holder: AnnotationHolder) {
+    val table = element.findParentOfType<TomlTable>() ?: return
+    val name = table.header.key?.segments?.firstOrNull()?.name ?: return
+    if (name == "libraries" && element.text.split(":").size != 2)
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Make sure that the module coordinates consist of 2 parts separated by colons, eg: my.group:artifact").create()
+  }
+
+  private fun checkDependencyLiteral(element: TomlLiteral, holder: AnnotationHolder) {
+    val table = element.findParentOfType<TomlTable>() ?: return
+    val name = table.header.key?.segments?.firstOrNull()?.name ?: return
+    when (name) {
+      "plugins" -> if (element.text.split(":").size != 2)
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Make sure that the coordinates consist of 2 parts separated by colons, eg: my_plugin:1.2").create()
+
+      "libraries" -> if (element.text.split(":").size < 2)
+        holder.newAnnotation(HighlightSeverity.ERROR,
+                             "Make sure that the coordinates consist of 2 parts with BOM and 3 without BOM that are separated by colons.").create()
+
+      else -> return
+    }
   }
 
   private fun checkDependencyAliases(element: TomlKey, table:TomlTable, holder: AnnotationHolder){
-      val text = element.firstSegmentNormalizedText() ?: return
+    val text = element.firstSegmentNormalizedText() ?: return
 
-      if (!"[a-z]([a-zA-Z0-9_\\-])+".toRegex().matches(text)) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                             "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
-                             "and be made up of letters, digits and the symbols '-' or '_' only").create()
-      }
-      else if (".+[_\\-][0-9]".toRegex().find(text) != null) {
-        holder.newAnnotation(if (table.header.key?.text in dependencyTables) HighlightSeverity.ERROR else HighlightSeverity.WARNING,
-                             "Invalid alias `${text}`. There must be letter after '-' or '_ delimiter.").create()
-      }
-      else if ((text.endsWith("_") || text.endsWith("-"))) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                             "Invalid alias `${text}`. It cannot end with '-' or '_'").create()
-      } else if ("[_\\-]{2,}".toRegex().find(text) != null) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                             "Invalid alias `${text}`. Cannot have more than one consecutive '-' or '_'").create()
-      } else if (isInLibrariesTable(table) && "^((plugins)|(bundles)|(versions))[_\\-]?".toRegex().find(text) != null) {
-        holder.newAnnotation(HighlightSeverity.ERROR,
-                             "Invalid alias `${text}`. It cannot start with 'plugins', 'bundles' or 'versions' as will interfere " +
-                             "with gradle naming").create()
-      }
-      else {
-        checkAliasDuplication(element, holder)
-      }
+    if (!"[a-z]([a-zA-Z0-9_\\-])+".toRegex().matches(text)) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. It must start with a lower-case letter, contain at least 2 characters "+
+                           "and be made up of letters, digits and the symbols '-' or '_' only").create()
+    }
+    else if (".+[_\\-][0-9]".toRegex().find(text) != null) {
+      holder.newAnnotation(if (table.header.key?.text in dependencyTables) HighlightSeverity.ERROR else HighlightSeverity.WARNING,
+                           "Invalid alias `${text}`. There must be letter after '-' or '_ delimiter.").create()
+    }
+    else if ((text.endsWith("_") || text.endsWith("-"))) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. It cannot end with '-' or '_'").create()
+    } else if ("[_\\-]{2,}".toRegex().find(text) != null) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. Cannot have more than one consecutive '-' or '_'").create()
+    } else if (isInLibrariesTable(table) && "^((plugins)|(bundles)|(versions))[_\\-]?".toRegex().find(text) != null) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. It cannot start with 'plugins', 'bundles' or 'versions' as will interfere " +
+                           "with gradle naming").create()
+    }
+    else if (reservedNames.contains(text)) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. Aliases '${
+                             reservedNames.joinToString(",")
+                           }' are reserved names in Gradle which prevents generation of accessors.").create()
+    }
+    else if (text.split('_').contains("class")) {
+      holder.newAnnotation(HighlightSeverity.ERROR,
+                           "Invalid alias `${text}`. Alias 'class' is a reserved name in Gradle which prevents generation of accessors.").create()
+    }
+    else {
+      checkAliasDuplication(element, holder)
+    }
   }
 
   private fun isInLibrariesTable(element: TomlTable):Boolean =

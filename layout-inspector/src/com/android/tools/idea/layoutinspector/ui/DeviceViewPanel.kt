@@ -26,6 +26,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.model.toDimension
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
@@ -386,7 +387,10 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   }
 
   private fun getFitZoom(): Int {
-    val size = layoutInspector.inspectorModel.screenDimension
+    // If the window bounds are available, prefer that as size, to avoid empty space.
+    val size =
+      layoutInspector.inspectorModel.windowBounds?.toDimension()
+        ?: layoutInspector.inspectorModel.screenDimension
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
     val desiredWidth = (size.width).toDouble()

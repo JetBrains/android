@@ -26,13 +26,13 @@ import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -90,25 +90,25 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   public void testIsGradleFileWithDeclarativeGradleFile() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true);
+    DeclarativeStudioSupport.override(true);
     try {
       PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
       assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
     }
     finally {
-      Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 
   public void testIsGradleFileWithDeclarativeSettingsFile() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true);
+    DeclarativeStudioSupport.override(true);
     try {
       PsiFile psiFile = PsiFileFactory.getInstance(getProject())
         .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
       assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
     }
     finally {
-      Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 

@@ -19,23 +19,32 @@ import com.intellij.util.ui.JBUI
 import javax.swing.border.Border
 
 /** Common length for spacing between axis tick markers */
-val MARKER_LENGTH = JBUI.scale(5)
+val MARKER_LENGTH
+  get() = JBUI.scale(5)
 
-val TIME_AXIS_HEIGHT = JBUI.scale(15)
+val TIME_AXIS_HEIGHT
+  get() = JBUI.scale(15)
 
 /** Common space left on top of a vertical axis to make sure label text can fit there */
-val Y_AXIS_TOP_MARGIN = JBUI.scale(30)
+val Y_AXIS_TOP_MARGIN
+  get() = JBUI.scale(30)
 
-val MONITOR_LABEL_PADDING: Border = JBUI.Borders.empty(5, 10)
+val MONITOR_LABEL_PADDING: Border
+  get() = JBUI.Borders.empty(5, 10)
 
-val MONITOR_BORDER: Border = JBUI.Borders.customLineBottom(MONITOR_BORDER_COLOR)
+val MONITOR_BORDER: Border
+  get() = JBUI.Borders.customLineBottom(MONITOR_BORDER_COLOR)
 
-val LEGEND_RIGHT_PADDING = JBUI.scale(9)
+val LEGEND_RIGHT_PADDING
+  get() = JBUI.scale(9)
 
-val ROW_HEIGHT_PADDING = JBUI.scale(4)
+val ROW_HEIGHT_PADDING
+  get() = JBUI.scale(4)
 
-val TOOLTIP_BORDER: Border = JBUI.Borders.empty(8, 10)
+val TOOLTIP_BORDER: Border
+  get() = JBUI.Borders.empty(8, 10)
 
 // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the
 // toolbar.
-val TOOLBAR_HEIGHT = JBUI.scale(31)
+val TOOLBAR_HEIGHT
+  get() = JBUI.scale(31)

@@ -32,8 +32,6 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private val TEXT_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(13f)
-
 class UrlData(val text: String, val url: String)
 class ActionData(val text: String, val callback: () -> Unit)
 
@@ -88,7 +86,7 @@ private fun createInstructionsPanel(
   textColor: Color
 ): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
-  val textMetrics = UIUtilities.getFontMetrics(parent, TEXT_FONT)
+  val textMetrics = UIUtilities.getFontMetrics(parent, AdtUiUtils.EMPTY_TOOL_WINDOW_FONT)
   reason.chunks.forEach {
     when (it) {
       is IconChunk -> instructions.add(IconInstruction(it.icon, 5, null))

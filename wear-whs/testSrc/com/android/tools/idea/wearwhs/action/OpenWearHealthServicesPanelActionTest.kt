@@ -89,7 +89,15 @@ class OpenWearHealthServicesPanelActionTest {
         whenever(it.emulatorConfig).thenReturn(emulatorConfig)
         Disposer.register(projectRule.testRootDisposable, it)
       }
-    emulatorView = EmulatorView(projectRule.testRootDisposable, emulatorController, 0, null, false)
+    emulatorView =
+      EmulatorView(
+        projectRule.testRootDisposable,
+        emulatorController,
+        projectRule.project,
+        0,
+        null,
+        false,
+      )
 
     val dataContext =
       SimpleDataContext.builder()

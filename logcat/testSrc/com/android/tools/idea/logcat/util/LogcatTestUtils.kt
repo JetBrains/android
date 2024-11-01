@@ -17,11 +17,18 @@ package com.android.tools.idea.logcat.util
 
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.MessageProcessor
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import java.time.Instant
@@ -61,7 +68,7 @@ internal fun MessageProcessor.onIdle(run: () -> Unit) {
 }
 
 /** Convenience creation of a [LogcatMessage] for testing */
-internal fun logcatMessage(
+fun logcatMessage(
   logLevel: LogLevel = INFO,
   pid: Int = 1,
   tid: Int = 2,
@@ -89,3 +96,12 @@ internal fun logcatMessage(
 
 internal fun waitForCondition(condition: () -> Boolean) =
   waitForCondition(TIMEOUT_SEC, TimeUnit.SECONDS, condition)
+
+fun logcatTestActionEvent(editor: EditorEx, project: Project): AnActionEvent {
+  return TestActionEvent.createTestEvent(
+    SimpleDataContext.builder()
+      .add(LogcatPresenter.EDITOR, editor)
+      .add(CommonDataKeys.PROJECT, project)
+      .build()
+  )
+}

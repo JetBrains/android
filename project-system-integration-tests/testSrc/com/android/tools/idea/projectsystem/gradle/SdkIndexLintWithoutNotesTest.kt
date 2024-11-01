@@ -55,6 +55,10 @@ class SdkIndexLintWithoutNotesTest : SdkIndexTestBase() {
           "The library author recommends using versions:", "  - From 4.10.0 to 4.10.8", "  - 4.10.11 or higher",
           "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
         ),
+        // Error
+        listOf(
+          "com.startapp:inapp-sdk version 3.9.1 contains unsafe unzipping patterns.",
+        ),
         // Warning
         listOf(
           "androidx.annotation:annotation version 1.0.0 has been reported as outdated by its author.",

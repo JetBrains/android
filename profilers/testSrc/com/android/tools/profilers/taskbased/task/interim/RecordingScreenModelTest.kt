@@ -70,7 +70,7 @@ class RecordingScreenModelTest {
   fun `test formatElapsedTime with time greater than 1 min`() {
     // 90 seconds == 1 min and 30 sec
     val elapsedNs = FakeTimer.ONE_SECOND_IN_NS * 90
-    val formattedTime = cpuRecordingScreenModel.formatElapsedTime(elapsedNs)
+    val formattedTime = RecordingScreenModel.formatElapsedTime(elapsedNs)
     assertThat(formattedTime).isEqualTo("1 min, 30 sec")
   }
 
@@ -78,7 +78,7 @@ class RecordingScreenModelTest {
   fun `test formatElapsedTime with time less than 1 min`() {
     // 30 seconds == 0 min and 30 sec
     val elapsedNs = FakeTimer.ONE_SECOND_IN_NS * 30
-    val formattedTime = cpuRecordingScreenModel.formatElapsedTime(elapsedNs)
+    val formattedTime = RecordingScreenModel.formatElapsedTime(elapsedNs)
     assertThat(formattedTime).isEqualTo("0 min, 30 sec")
   }
 

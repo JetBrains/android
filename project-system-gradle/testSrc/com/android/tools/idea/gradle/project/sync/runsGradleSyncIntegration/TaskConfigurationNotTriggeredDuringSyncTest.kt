@@ -58,7 +58,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val taskRegisteredMessage = "shouldNotBeConfigured task is registered"
     val projectsConfigured = "projects configured"
     val failureMessage = "task should not be configured"
-    val taskRegistrationFailure = "lint task should not be registered"
+    val lintAnalysisTaskRegistration = "lint analysis task registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.appendText("""
       
@@ -68,7 +68,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
           println("$taskRegisteredMessage")
           project.gradle.projectsEvaluated {
               println("$projectsConfigured")
-              if (tasks.names.contains("lintDebug")) println("$taskRegistrationFailure")
+              if (tasks.names.contains("lintAnalyzeDebug")) println("$lintAnalysisTaskRegistration")
 
           }
         """.trimIndent())
@@ -77,7 +77,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     assertThat(outputLog.toString()).contains(projectsConfigured)
     assertThat(outputLog.toString()).contains(taskRegisteredMessage)
     assertThat(outputLog.toString()).doesNotContain(failureMessage)
-    assertThat(outputLog.toString()).doesNotContain(taskRegistrationFailure)
+    assertThat(outputLog.toString()).doesNotContain(lintAnalysisTaskRegistration)
   }
 
   @Test
@@ -89,7 +89,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val taskRegisteredMessage = "shouldNotBeConfigured task is registered"
     val projectsConfigured = "projects configured"
     val failureMessage = "task should not be configured"
-    val taskRegistrationFailure = "lint task should not be registered"
+    val lintAnalysisTaskRegistration = "lint analysis task registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.appendText("""
       
@@ -99,7 +99,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
           println("$taskRegisteredMessage")
           project.gradle.projectsEvaluated {
               println("$projectsConfigured")
-              if (tasks.names.contains("lintDebug")) println("$taskRegistrationFailure")
+              if (tasks.names.contains("lintAnalyzeDebug")) println("$lintAnalysisTaskRegistration")
 
           }
         """.trimIndent())
@@ -108,7 +108,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     assertThat(outputLog.toString()).contains(projectsConfigured)
     assertThat(outputLog.toString()).contains(taskRegisteredMessage)
     assertThat(outputLog.toString()).contains(failureMessage)
-    assertThat(outputLog.toString()).contains(taskRegistrationFailure)
+    assertThat(outputLog.toString()).contains(lintAnalysisTaskRegistration)
   }
 
 }

@@ -39,6 +39,7 @@ public class CheckBoxDecorator extends SceneDecorator {
     private float mScale;
     int[] xp = new int[3];
     int[] yp = new int[3];
+    private int myFontSize;
 
     @Override
     public int getLevel() {
@@ -52,9 +53,11 @@ public class CheckBoxDecorator extends SceneDecorator {
                  int mode,
                  int baselineOffset,
                  float scale,
+                 int fontSize,
                  String text) {
       super(x, y, width, height, mode, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
-            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32,scale);
+            DrawTextRegion.TEXT_ALIGNMENT_CENTER, fontSize, scale);
+      myFontSize = fontSize;
     }
 
     @NotNull
@@ -68,9 +71,10 @@ public class CheckBoxDecorator extends SceneDecorator {
       int mode = Integer.parseInt(sp[c++]);
       int baseLineOffset = Integer.parseInt(sp[c++]);
       float scale = java.lang.Float.parseFloat(sp[c++]);
+      int fontSize = Integer.parseInt(sp[c++]);
       String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
 
-      return new DrawCheckbox(x, y, width, height, mode, baseLineOffset, scale, text);
+      return new DrawCheckbox(x, y, width, height, mode, baseLineOffset, scale, fontSize, text);
     }
 
     @Override
@@ -90,6 +94,8 @@ public class CheckBoxDecorator extends SceneDecorator {
              myBaseLineOffset +
              "," +
              mScale +
+             "," +
+             myFontSize +
              ",\"" +
              mText +
              "\"";
@@ -140,6 +146,7 @@ public class CheckBoxDecorator extends SceneDecorator {
     int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     float scale = (float)sceneContext.getScale();
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
-    list.add(new DrawCheckbox(l, t, w, h, mode, baseLineOffset, scale, text));
+    int fontSize = DrawTextRegion.getFont(component.getNlComponent());
+    list.add(new DrawCheckbox(l, t, w, h, mode, baseLineOffset, scale, fontSize, text));
   }
 }

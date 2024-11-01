@@ -515,7 +515,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @NonNull
     @Override
     public String getName() {
-      return ModuleSystemUtil.getHolderModule(myFacet.getModule()).getName();
+      return ProjectSystemUtil.getModuleSystem(myFacet.getModule()).getDisplayNameForModuleGroup();
     }
 
     @NonNull

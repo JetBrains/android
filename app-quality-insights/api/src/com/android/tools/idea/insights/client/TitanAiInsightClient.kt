@@ -16,7 +16,8 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AiInsight
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.protobuf.Any
@@ -30,6 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.guava.await
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val INSTANCE_FORMAT = "projects/%s/locations/global/instances/default"
@@ -42,16 +44,21 @@ internal val DEFAULT_TASK_COMPLETION_INPUT =
 
 @VisibleForTesting
 internal val CRASHLYTICS_EXPERIENCE_CONTEXT =
-  ExperienceContext.newBuilder().setExperience("/appeco/crashlytics/insights").build()
+  ExperienceContext.newBuilder()
+    .setExperience("/appeco/crashlytics/ai-insights/studio/free-tier")
+    .build()
 
 class TitanAiInsightClient
 @VisibleForTesting
 internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : AiInsightClient {
 
   private val taskCompletionService =
-    TaskCompletionServiceGrpc.newBlockingStub(channel).withInterceptors(interceptor)
+    TaskCompletionServiceGrpc.newFutureStub(channel).withInterceptors(interceptor)
 
-  override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message): AiInsight {
+  override suspend fun fetchCrashInsight(
+    projectId: String,
+    additionalContextMsg: Message,
+  ): AiInsight {
     val request =
       TaskCompletionRequest.newBuilder()
         .apply {
@@ -59,27 +66,41 @@ internal constructor(channel: ManagedChannel, interceptor: ClientInterceptor) : 
           experienceContext = CRASHLYTICS_EXPERIENCE_CONTEXT
           instance = String.format(INSTANCE_FORMAT, projectId)
           inputDataContext =
-            inputDataContextBuilder.apply { additionalContext = Any.pack(additionalContextMsg) }.build()
+            inputDataContextBuilder
+              .apply { additionalContext = Any.pack(additionalContextMsg) }
+              .build()
         }
         .build()
-    val response = taskCompletionService.completeTask(request)
-    return AiInsight(response.output.messagesList.first().content)
+    val response = taskCompletionService.completeTask(request).await()
+    return AiInsight(
+      response.output.messagesList.first().content,
+      insightSource = InsightSource.CRASHLYTICS_TITAN,
+    )
   }
 
   companion object {
     fun create(disposable: Disposable, interceptor: ClientInterceptor): TitanAiInsightClient {
       val address = StudioFlags.APP_INSIGHTS_AI_INSIGHT_ENDPOINT.get()
       val channel =
-        channelBuilderForAddress(address).build().also {
-          try {
-            Disposer.register(disposable) {
-              it.shutdown()
-              it.awaitTermination(1, TimeUnit.SECONDS)
+        channelBuilderForAddress(address)
+          .apply {
+            if (address.startsWith("localhost")) {
+              usePlaintext()
+            } else {
+              useTransportSecurity()
             }
-          } catch (e: IncorrectOperationException) {
-            it.shutdownNow()
           }
-        }
+          .build()
+          .also {
+            try {
+              Disposer.register(disposable) {
+                it.shutdown()
+                it.awaitTermination(1, TimeUnit.SECONDS)
+              }
+            } catch (e: IncorrectOperationException) {
+              it.shutdownNow()
+            }
+          }
       return TitanAiInsightClient(channel, interceptor)
     }
   }

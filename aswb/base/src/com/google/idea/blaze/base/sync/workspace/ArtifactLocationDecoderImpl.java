@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.model.RemoteOutputArtifacts;
 import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -107,8 +108,7 @@ public final class ArtifactLocationDecoderImpl implements ArtifactLocationDecode
     if (ix2 == -1) {
       return new SourceArtifact(decode(location));
     }
-    String blazeOutPath = execRootPath.substring(ix1 + 1);
     String configMnemonic = execRootPath.substring(ix1 + 1, ix2);
-    return new LocalFileOutputArtifactWithoutDigest(decode(location), blazeOutPath, configMnemonic);
+    return new LocalFileOutputArtifactWithoutDigest(decode(location), Path.of(execRootPath), configMnemonic);
   }
 }

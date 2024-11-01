@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -38,7 +37,6 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.testDataPath = getComposePluginTestDataPath()
-    StudioFlags.SAMPLES_SUPPORT_ENABLED.override(true)
   }
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String =

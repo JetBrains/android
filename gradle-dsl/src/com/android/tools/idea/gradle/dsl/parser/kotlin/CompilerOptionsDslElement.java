@@ -24,19 +24,16 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CompilerOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<CompilerOptionsDslElement> COMPILER_OPTIONS =
     new PropertiesElementDescription<>("compilerOptions",
                                        CompilerOptionsDslElement.class,
-                                       CompilerOptionsDslElement::new,
-                                       CompilerOptionsDslElement.CompilerOptionsDslElementSchema::new);
+                                       CompilerOptionsDslElement::new);
 
   public static final ExternalToModelMap modelNameMap = Stream.of(new Object[][]{
     {"jvmTarget", property, JVM_TARGET, VAR},
@@ -49,19 +46,5 @@ public class CompilerOptionsDslElement extends GradleDslBlockElement {
 
   public CompilerOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class CompilerOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, modelNameMap, modelNameMap, modelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions";
-    }
   }
 }

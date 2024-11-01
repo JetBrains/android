@@ -35,8 +35,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AndroidManifestRefactoringTest {
-  @get:Rule
-  var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  @get:Rule var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 
   private val myFixture by lazy { androidProjectRule.fixture }
   private val myProject by lazy { androidProjectRule.project }
@@ -44,17 +43,20 @@ class AndroidManifestRefactoringTest {
   @Test
   fun moveApplicationClass() {
     // Arrange: add manifest and custom Application class.
-    val applicationPsiFile = myFixture.addFileToProject(
-      "src/p1/p2/MyApplication.java",
-      //language=Java
-      """
+    val applicationPsiFile =
+      myFixture.addFileToProject(
+        "src/p1/p2/MyApplication.java",
+        // language=Java
+        """
       package p1.p2;
       public class MyApplication extends android.app.Application {}
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
 
     myFixture.addFileToProject(
       "AndroidManifest.xml",
-      //language=xml
+      // language=xml
       """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -62,13 +64,17 @@ class AndroidManifestRefactoringTest {
           <application android:name=".MyApplication">
           </application>
       </manifest>
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     // Act: Move (rename) the Application class.
     val javaPsiFacade = JavaPsiFacade.getInstance(myProject)
     val applicationPsiClass = runReadAction {
-      javaPsiFacade.findClass("p1.p2.MyApplication", GlobalSearchScope.fileScope(applicationPsiFile))
+      javaPsiFacade.findClass(
+        "p1.p2.MyApplication",
+        GlobalSearchScope.fileScope(applicationPsiFile),
+      )
     }
     assertThat(applicationPsiClass).isNotNull()
 
@@ -79,8 +85,16 @@ class AndroidManifestRefactoringTest {
     assertThat(packageDirs).hasLength(1)
 
     val processor = runReadAction {
-      val destination = SingleSourceRootMoveDestination(PackageWrapper.create(p1PsiPackage), packageDirs.single())
-      MoveClassesOrPackagesProcessor(myProject, arrayOf(applicationPsiClass), destination, true, true, null)
+      val destination =
+        SingleSourceRootMoveDestination(PackageWrapper.create(p1PsiPackage), packageDirs.single())
+      MoveClassesOrPackagesProcessor(
+        myProject,
+        arrayOf(applicationPsiClass),
+        destination,
+        true,
+        true,
+        null,
+      )
     }
 
     ApplicationManager.getApplication().invokeAndWait { processor.run() }
@@ -95,8 +109,9 @@ class AndroidManifestRefactoringTest {
           <application android:name="p1.MyApplication">
           </application>
       </manifest>
-      """.trimIndent(),
-      false
+      """
+        .trimIndent(),
+      false,
     )
   }
 
@@ -122,17 +137,20 @@ class AndroidManifestRefactoringTest {
   }
 
   private fun createCustomApplication(className: String, classNameInManifest: String) {
-    val myClassPsiFile = myFixture.addFileToProject(
-      "src/p1/p2/$className.java",
-      //language=Java
-      """
+    val myClassPsiFile =
+      myFixture.addFileToProject(
+        "src/p1/p2/$className.java",
+        // language=Java
+        """
         package p1.p2;
         public class $className extends android.app.Application {}
-        """.trimIndent())
+        """
+          .trimIndent(),
+      )
 
     myFixture.addFileToProject(
       "AndroidManifest.xml",
-      //language=xml
+      // language=xml
       """
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -140,7 +158,9 @@ class AndroidManifestRefactoringTest {
           <application android:name="$classNameInManifest">
           </application>
         </manifest>
-        """.trimIndent())
+        """
+        .trimIndent(),
+    )
 
     ApplicationManager.getApplication().invokeAndWait {
       myFixture.openFileInEditor(myClassPsiFile.virtualFile)
@@ -151,7 +171,11 @@ class AndroidManifestRefactoringTest {
   private fun renameClass(newName: String) {
     // Ensure the rename action is available to the user
     val action = RenameElementAction()
-    val actionEvent = TestActionEvent.createTestEvent(action, DataManager.getInstance().getDataContext(myFixture.editor.component))
+    val actionEvent =
+      TestActionEvent.createTestEvent(
+        action,
+        DataManager.getInstance().getDataContext(myFixture.editor.component),
+      )
     runReadAction { action.update(actionEvent) }
     assertThat(actionEvent.presentation.isEnabled).isTrue()
     assertThat(actionEvent.presentation.isVisible).isTrue()
@@ -163,17 +187,18 @@ class AndroidManifestRefactoringTest {
   private fun verifyRenamedApplication(newClassName: String, classNameInManifest: String) {
     myFixture.checkResult(
       "src/p1/p2/$newClassName.java",
-      //language=Java
+      // language=Java
       """
       package p1.p2;
       public class $newClassName extends android.app.Application {}
-      """.trimIndent(),
-      false
+      """
+        .trimIndent(),
+      false,
     )
 
     myFixture.checkResult(
       "AndroidManifest.xml",
-      //language=xml
+      // language=xml
       """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -181,7 +206,9 @@ class AndroidManifestRefactoringTest {
         <application android:name="$classNameInManifest">
         </application>
       </manifest>
-      """.trimIndent(),
-      false)
+      """
+        .trimIndent(),
+      false,
+    )
   }
 }

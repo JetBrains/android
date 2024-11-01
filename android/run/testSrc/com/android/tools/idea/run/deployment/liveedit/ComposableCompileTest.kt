@@ -20,6 +20,7 @@ import com.android.tools.deploy.proto.Deploy.LiveEditRequest.InvalidateMode
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.diff
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
@@ -227,10 +228,8 @@ class ComposableCompileTest {
     """)
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
     val output = compile(listOf(LiveEditCompilerInput(file, fileState)), compiler)
     val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
     Assert.assertNotNull(singleton)
@@ -258,10 +257,8 @@ class ComposableCompileTest {
       }""")
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String) = apk[className]
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
@@ -339,12 +336,8 @@ class ComposableCompileTest {
         Modifier.background(Color.Red).size(100.dp).padding(20.dp)
       }""".trimIndent())
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache()).withClasses(apk)
     projectRule.modifyKtFile(file, """
       $modifierCode
       fun foo() {
@@ -368,12 +361,8 @@ class ComposableCompileTest {
       $modifierCode
       fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)""")
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache()).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       $modifierCode
@@ -427,12 +416,8 @@ class ComposableCompileTest {
         return 42
       }""")
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache()).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
       $modifierCode
@@ -509,12 +494,8 @@ class ComposableCompileTest {
       }
     """.trimIndent())
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache()).withClasses(apk)
     projectRule.modifyKtFile(file,  """
       import androidx.compose.runtime.Composable
       @Composable
@@ -542,12 +523,8 @@ class ComposableCompileTest {
         fun C() { }
       """)
     val fileState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val apk = projectRule.directApiCompileIr(file)
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
+    val apk = projectRule.directApiCompileByteArray(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache()).withClasses(apk)
 
     projectRule.modifyKtFile(file, """
         import androidx.compose.runtime.Composable

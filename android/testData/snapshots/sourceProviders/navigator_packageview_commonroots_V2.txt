@@ -380,6 +380,187 @@ MODULE: project
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AssetsDirectoryUrls:
+                    file://./src/main/assets
+                JavaDirectoryUrls:
+                    file://./src
+                JavaDirectories:
+                    file://./src
+                KotlinDirectoryUrls:
+                    file://./src/main/java
+                    file://./src/main/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./res
+                ResDirectories:
+                    file://./res
+                ResourcesDirectoryUrls:
+                    file://./src
+                    file://./resources
+                ResourcesDirectories:
+                    file://./src
+                    file://./resources
+                ShadersDirectoryUrls:
+                    file://./src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/androidTest
+                AssetsDirectoryUrls:
+                    file://./src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./src/androidTest/java
+                    file://./src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./src/androidTestDebug/java
+                    file://./src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/debug
+                AssetsDirectoryUrls:
+                    file://./src/debug/assets
+                JavaDirectoryUrls:
+                    file://./src/debug/java
+                KotlinDirectoryUrls:
+                    file://./src/debug/java
+                    file://./src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/release
+                AssetsDirectoryUrls:
+                    file://./src/release/assets
+                JavaDirectoryUrls:
+                    file://./src/release/java
+                KotlinDirectoryUrls:
+                    file://./src/release/java
+                    file://./src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./src/release/res
+                ResourcesDirectoryUrls:
+                    file://./src/release/resources
+                ShadersDirectoryUrls:
+                    file://./src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/test
+                AssetsDirectoryUrls:
+                    file://./src/test/assets
+                JavaDirectoryUrls:
+                    file://./src/test/java
+                KotlinDirectoryUrls:
+                    file://./src/test/java
+                    file://./src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./src/test/res
+                ResourcesDirectoryUrls:
+                    file://./src/test/resources
+                ShadersDirectoryUrls:
+                    file://./src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/testDebug
+                AssetsDirectoryUrls:
+                    file://./src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./src/testDebug/java
+                    file://./src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./src/testRelease
+                AssetsDirectoryUrls:
+                    file://./src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./src/testRelease/java
+                    file://./src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

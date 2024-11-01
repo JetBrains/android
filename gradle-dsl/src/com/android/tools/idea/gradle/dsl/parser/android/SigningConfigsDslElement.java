@@ -22,19 +22,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
     new PropertiesElementDescription<>("signingConfigs",
                                        SigningConfigsDslElement.class,
-                                       SigningConfigsDslElement::new,
-                                       SigningConfigsDslElementSchema::new);
+                                       SigningConfigsDslElement::new);
 
   public static final List<String> implicitSigningConfigs = List.of("debug");
 
@@ -68,13 +65,5 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
       result.add(new SigningConfigModelImpl(dslElement));
     }
     return result;
-  }
-
-  public static final class SigningConfigsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @Nullable
-    public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
-      return SigningConfigDslElement.SIGNING_CONFIG;
-    }
   }
 }

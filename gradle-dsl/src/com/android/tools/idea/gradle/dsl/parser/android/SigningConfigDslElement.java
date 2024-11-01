@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -42,8 +41,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public static final PropertiesElementDescription<SigningConfigDslElement> SIGNING_CONFIG =
     new PropertiesElementDescription<>(null,
                                        SigningConfigDslElement.class,
-                                       SigningConfigDslElement::new,
-                                       SigningConfigDslElementSchema::new);
+                                       SigningConfigDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
@@ -106,19 +104,5 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public boolean isInsignificantIfEmpty() {
     // the debug signingConfig is automatically created
     return getName().equals("debug");
-  }
-
-  public static final class SigningConfigDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.com.android.build.api.dsl";
-    }
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.project.Project
 import java.awt.Dimension
 
 /**
@@ -30,6 +31,7 @@ import java.awt.Dimension
 class EmulatorDisplayPanel(
   disposableParent: Disposable,
   emulator: EmulatorController,
+  project: Project,
   displayId: Int,
   displaySize: Dimension?,
   zoomToolbarVisible: Boolean,
@@ -37,7 +39,7 @@ class EmulatorDisplayPanel(
 ) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), UiDataProvider {
 
   init {
-    displayView = EmulatorView(this, emulator, displayId, displaySize, deviceFrameVisible)
+    displayView = EmulatorView(this, emulator, project, displayId, displaySize, deviceFrameVisible)
 
     if (displayId == PRIMARY_DISPLAY_ID) {
       loadingPanel.setLoadingText("Connecting to the Emulator")

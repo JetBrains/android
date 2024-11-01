@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -24,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.registry.Registry
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Before
@@ -37,14 +38,16 @@ import java.io.File
 class AndroidModelTest : GradleFileModelTestCase() {
 
   @Before
-  override fun before() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
+  override fun before(){
+    DeclarativeIdeSupport.override(true)
+    DeclarativeStudioSupport.override(true)
     super.before()
   }
 
   @After
-  fun onAfter() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
+  fun onAfter(){
+    DeclarativeIdeSupport.clearOverride()
+    DeclarativeStudioSupport.clearOverride()
   }
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
@@ -83,31 +86,45 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithApplicationStatements() {
+    isIrrelevantForDeclarative("only assignment available for properties in declarative")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS)
   }
 
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
     isIrrelevantForKotlinScript("no distinction between method calls and application statements")
+    isIrrelevantForDeclarative("no distinction between method calls and application statements")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
-  @Test
-  fun testAndroidBlockWithAssignmentStatements() {
-    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  private fun runAssignmentTest(buildFile: TestFileName){
+    writeToBuildFile(buildFile)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
-    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+    if(!isGradleDeclarative) assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
+  fun testAndroidBlockWithAssignmentStatements() {
+    runAssignmentTest(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  }
+
+  @Test
+  fun testAndroidLibraryBlockWithAssignmentStatements() {
+    isIrrelevantForKotlinScript("android library element is only in Declarative")
+    isIrrelevantForGroovy("android library element is only in Declarative")
+    runAssignmentTest(TestFile.ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  }
+
+  @Test
   fun testAndroidApplicationStatements() {
+    isIrrelevantForDeclarative("no such syntax in declarative")
     writeToBuildFile(TestFile.ANDROID_APPLICATION_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -125,6 +142,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidAssignmentStatements() {
+    isIrrelevantForDeclarative("no such syntax in declarative")
     writeToBuildFile(TestFile.ANDROID_ASSIGNMENT_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -138,6 +156,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithOverrideStatements() {
+    isIrrelevantForDeclarative("no such syntax in declarative")
+
     // it's not a requirement for declarative, but we want to be sure we are not failing here
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS)
     val android = gradleBuildModel.android()
@@ -181,6 +201,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithNoDimensions() {
+    // TODO fix for declarative as soon as got collection properties
+    isIrrelevantForDeclarative("no flavorDimensions in declarative do far")
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -199,6 +221,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithNoDimensions400() {
+    // TODO fix for declarative as soon as got collection properties
+    isIrrelevantForDeclarative("no flavorDimensions in declarative do far")
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS)
     val buildModel = gradleBuildModel
     buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
@@ -218,6 +242,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockDeleteAndRecreateDimensions() {
+    // TODO fix for declarative as soon as got collection properties
+    isIrrelevantForDeclarative("no flavorDimensions in declarative do far")
     writeToBuildFile(TestFile.ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS)
     val buildModel = gradleBuildModel
     val flavorDimensionsModel = buildModel.android().flavorDimensions()
@@ -274,8 +300,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
-    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
-    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    if(!isGradleDeclarative()) {
+      assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+      assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    }
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
@@ -284,8 +312,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
-    android.dynamicFeatures().delete()
-    android.flavorDimensions().delete()
+    if(!isGradleDeclarative()) {
+      android.dynamicFeatures().delete()
+      android.flavorDimensions().delete()
+    }
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
     android.resourcePrefix().delete()
@@ -294,8 +324,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
-    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
-    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    if(!isGradleDeclarative()) {
+      assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
+      assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    }
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
@@ -306,8 +338,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
-    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
-    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    if(!isGradleDeclarative()) {
+      assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+      assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    }
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
@@ -424,6 +458,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndResetListElements() {
+    isIrrelevantForDeclarative("No list elements so far")
     writeToBuildFile(TestFile.REPLACE_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -452,6 +487,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetListElements() {
+    isIrrelevantForDeclarative("No list elements so far")
     writeToBuildFile(TestFile.ADD_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -480,6 +516,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndResetListElementsWithArgument() {
+    isIrrelevantForDeclarative("No list elements so far")
+
     writeToBuildFile(TestFile.ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -496,6 +534,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndResetListElementsWithMultipleArguments() {
+    isIrrelevantForDeclarative("No list elements so far")
+
     writeToBuildFile(TestFile.ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -517,6 +557,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndResetListElements() {
+    isIrrelevantForDeclarative("No list elements so far")
+
     writeToBuildFile(TestFile.REMOVE_FROM_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -852,6 +894,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDottedBuildTypeBlock() {
+    isIrrelevantForDeclarative("No dotted notation for blocks in Declarative")
     doTestAddAndApplyOneBuildTypeBlock("dotted.buildtype", TestFile.ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
@@ -862,6 +905,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDerefBuildTypeBlock() {
+    isIrrelevantForDeclarative("No deref in Declarative")
     doTestAddAndApplyOneBuildTypeBlock("debug[0]", TestFile.ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
@@ -882,7 +926,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyLanguageKeywordBuildTypeBlock() {
-      doTestAddAndApplyOneBuildTypeBlock("class", TestFile.ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
+    doTestAddAndApplyOneBuildTypeBlock("class", TestFile.ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
   @Test
@@ -1655,6 +1699,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetCompileSdkVersionToReference() {
+    isIrrelevantForDeclarative("No deref in Declarative")
+
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -1684,6 +1730,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndApplyListElements() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.REPLACE_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1722,6 +1770,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyListElements400() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
@@ -1764,6 +1814,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyListElements() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1805,6 +1857,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndApplyListElementsWithOneArgument() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1828,6 +1882,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndApplyListElementsWithMultipleArguments() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1857,6 +1913,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndApplyListElements() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.REMOVE_FROM_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1886,6 +1944,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseNoResConfigsProperty() {
+    isIrrelevantForDeclarative("This case is not possible in Declarative")
+
     writeToBuildFile(TestFile.PARSE_NO_RESCONFIGS_PROPERTY)
 
     val buildModel = gradleBuildModel
@@ -1915,6 +1975,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigBlockAndStatement() {
+    isIrrelevantForDeclarative("This case is not possible in Declarative")
+
     writeToBuildFile(TestFile.DEFAULT_CONFIG_BLOCK_AND_STATEMENT)
 
     val buildModel = gradleBuildModel
@@ -1924,6 +1986,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigStatementAndBlock() {
+    isIrrelevantForDeclarative("This case is not possible in Declarative")
+
     writeToBuildFile(TestFile.DEFAULT_CONFIG_STATEMENT_AND_BLOCK)
 
     val buildModel = gradleBuildModel
@@ -1933,6 +1997,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetProguardFilesToReference() {
+    isIrrelevantForDeclarative("No references in Declarative")
+
     writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_REFERENCE)
     val buildModel = gradleBuildModel
     assertEquals("consumerProguardFiles", listOf("quux", "baz"), buildModel.android().defaultConfig().consumerProguardFiles())
@@ -1956,6 +2022,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetProguardFilesToList() {
+    isIrrelevantForDeclarative("No list element support in Declarative so far")
+
     writeToBuildFile(TestFile.SET_PROGUARD_FILES_TO_LIST)
     val buildModel = gradleBuildModel
     assertEquals("consumerProguardFiles", listOf("baz", "quux"), buildModel.android().defaultConfig().consumerProguardFiles())
@@ -1990,6 +2058,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddBuildTypeWithInitWith() {
+    isIrrelevantForDeclarative("No set element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_BUILD_TYPE_SET_INIT_WITH)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -2012,6 +2082,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddProductFlavorWithInitWith() {
+    isIrrelevantForDeclarative("No set element support in Declarative so far")
+
     writeToBuildFile(TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -2036,6 +2108,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
+    ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),
     ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS("androidBlockWithOverrideStatements"),

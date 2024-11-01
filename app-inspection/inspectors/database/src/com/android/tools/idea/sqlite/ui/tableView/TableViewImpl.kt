@@ -47,7 +47,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -76,6 +75,7 @@ import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_CELL_TEXT = 200
 
@@ -427,6 +427,14 @@ class TableViewImpl : TableView {
   override fun setRefreshButtonState(state: Boolean) {
     refreshEnabled = state
   }
+
+  override fun setLiveUpdatesEnabled(value: Boolean) {
+    liveUpdatesCheckBox.isSelected = value
+  }
+
+  override fun isLiveUpdatesEnabled() = liveUpdatesCheckBox.isSelected
+
+  override fun getPageSize() = pageSizeComboBox.item
 
   override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)

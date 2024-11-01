@@ -101,6 +101,18 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
+    if (myComponent.myNeedsRestart) {
+      if (Messages.showYesNoDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
+                                   IdeBundle.message("title.restart.needed"),
+                                   Messages.getQuestionIcon()) == Messages.YES) {
+
+        // workaround for b/182536388
+        // ApplicationImpl hides all frames, that cause deadlock in AWT
+        Registry.get("ide.instant.shutdown").setValue(false);
+
+        ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
+      }
+    }
     myComponent = null;
   }
 
@@ -123,6 +135,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private int myCurrentIdeXmx;
     private final int myRecommendedIdeXmx;
     private int mySelectedIdeXmx;
+
+    private boolean myNeedsRestart;
 
     MyComponent() {
       // Set the memory settings panel
@@ -265,7 +279,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private boolean isModified() {
-      return isIdeXmxModified() || (myBuildSystemComponent == null ? false : myBuildSystemComponent.isModified());
+      return isIdeXmxModified() || (myBuildSystemComponent != null && myBuildSystemComponent.isModified());
     }
 
     private boolean isIdeXmxModified() {
@@ -300,16 +314,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       if (isIdeXmxModified()) {
         MemorySettingsUtil.saveXmx(mySelectedIdeXmx);
         myCurrentIdeXmx = mySelectedIdeXmx;
-        if (Messages.showYesNoDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
-                                     IdeBundle.message("title.restart.needed"),
-                                     Messages.getQuestionIcon()) == Messages.YES) {
-
-          // workaround for b/182536388
-          // ApplicationImpl hides all frames, that cause deadlock in AWT
-          Registry.get("ide.instant.shutdown").setValue(false);
-
-          ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
-        }
+        myNeedsRestart = true;
       }
       if (needsUpdate) {
         // repaint

@@ -237,8 +237,8 @@ class ParametrizedComposePreviewElementInstance<T>(
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
       getDisplayName(parameterName),
-      basePreviewElement.displaySettings.name,
-      getParameterName(parameterName),
+      basePreviewElement.displaySettings.baseName,
+      basePreviewElement.displaySettings.parameterName?.let { "$it - ${getParameterName(parameterName)}" } ?: getParameterName(parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
@@ -371,8 +371,8 @@ open class ParametrizedComposePreviewElementTemplate<T>(
     return sequenceOf(
       SingleComposePreviewElementInstance(
         fakeElementFqn,
-        PreviewDisplaySettings(basePreviewElement.displaySettings.name, basePreviewElement.displaySettings.name,
-                               null, null, false, false, null),
+        PreviewDisplaySettings(basePreviewElement.displaySettings.name, basePreviewElement.displaySettings.baseName,
+                               basePreviewElement.displaySettings.parameterName, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),

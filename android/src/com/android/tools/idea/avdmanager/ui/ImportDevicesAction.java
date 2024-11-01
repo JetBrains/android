@@ -23,6 +23,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
@@ -44,7 +45,8 @@ public class ImportDevicesAction extends DeviceUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, true);
+    FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, true)
+      .withFileFilter(file -> file.getName().toLowerCase(Locale.ROOT).endsWith(".xml"));
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);

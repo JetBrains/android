@@ -10,19 +10,24 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Ladybug RC 1.
+    This release contains updates from Android Studio Ladybug Feature Drop Canary 5.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2024/09/android-studio-ladybug-202421-rc-1-now.html">Android Studio Ladybug RC 1</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2024/10/android-studio-ladybug-feature-drop.html">Android Studio Ladybug Feature Drop Canary 5</a>.]]>
   </change-notes>
 
   <dependencies>
-    <plugin id="com.intellij.java"/>
     <plugin id="com.intellij.platform.images"/>
-    <module name="intellij.jvm.analysis.impl"/>
+    <plugin id="com.intellij.java"/>
+    <module name="intellij.platform.lvcs.impl"/>
+    <module name="intellij.platform.vcs.impl"/>
+    <module name="intellij.platform.vcs.dvcs.impl"/>
+    <module name="intellij.platform.vcs.log.impl"/>
   </dependencies>
 
+  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 
@@ -32,6 +37,8 @@
   <xi:include href="/META-INF/android-adb-ui.xml"/>
   <xi:include href="/META-INF/adt-ui.xml"/>
   <xi:include href="/META-INF/database-inspector.xml"/>
+  <xi:include href="/META-INF/android-editing-documentation.xml"/>
+  <xi:include href="/META-INF/android-editing-metrics.xml"/>
   <xi:include href="/META-INF/android-lang.xml"/>
   <xi:include href="/META-INF/android-lang-databinding.xml"/>
   <xi:include href="/META-INF/android-navigator.xml"/>
@@ -39,11 +46,12 @@
   <xi:include href="/META-INF/android-dagger.xml"/>
   <!--<xi:include href="/META-INF/app-insights-api.xml"/>-->
   <!--<xi:include href="/META-INF/app-insights.xml"/> -->
-  <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/databinding.xml"/>
+  <xi:include href="/META-INF/databinding-gradle.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>
   <xi:include href="/META-INF/sdk-updates.xml"/>
   <xi:include href="/META-INF/streaming.xml"/>
+  <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/safeargs.xml"/>
   <xi:include href="/META-INF/pipeline.xml"/>
   <!-- <xi:include href="/META-INF/play-vitals.xml"/> -->
@@ -80,7 +88,6 @@
   <xi:include href="/META-INF/wizard-template-impl.xml"/>
   <xi:include href="/META-INF/android-templates.xml"/>
   <xi:include href="/META-INF/android-lint-plugin.xml"/>
-  <xi:include href="/META-INF/device-manager.xml"/>
   <xi:include href="/META-INF/threading-checker.xml"/>
   <xi:include href="/META-INF/device-manager-v2.xml"/>
   <xi:include href="/META-INF/wear-pairing.xml"/>

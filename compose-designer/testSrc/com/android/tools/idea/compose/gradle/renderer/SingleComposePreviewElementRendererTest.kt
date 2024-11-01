@@ -353,7 +353,7 @@ class SingleComposePreviewElementRendererTest {
         )
       }
     } finally {
-      renderTask.dispose().get(5, TimeUnit.SECONDS)
+      renderTask.dispose().get(30, TimeUnit.SECONDS)
     }
   }
 

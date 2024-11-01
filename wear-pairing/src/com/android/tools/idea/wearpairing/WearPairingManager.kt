@@ -664,21 +664,6 @@ private fun updateSelectedDevice(
       ?: currentDevice.disconnectedCopy()
 }
 
-/**
- * Asynchronous version of [WearPairingManager.removePairedDevices] aimed to be used in asynchronous
- * contexts from Java. Prefer the use of the coroutine version when possible.
- */
-fun WearPairingManager.removePairedDevicesAsync(
-  phoneWearPair: WearPairingManager.PhoneWearPair,
-  restartWearGmsCore: Boolean = true,
-) {
-  @Suppress(
-    "OPT_IN_USAGE"
-  ) // We want the action to be launched in the background and survive the scope of the
-  // WearPairingManager.
-  GlobalScope.launch(Dispatchers.IO) { removePairedDevices(phoneWearPair, restartWearGmsCore) }
-}
-
 interface ObservablePairedDevicesList {
   fun addDevicePairingStatusChangedListener(
     listener: WearPairingManager.PairingStatusChangedListener

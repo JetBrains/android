@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
@@ -22,14 +23,16 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()) : LiveEditCompilerOutput {
+internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val ktFile = file as KtFile
   val psiState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(ktFile) }
   return compile(listOf(LiveEditCompilerInput(ktFile, psiState)), irClassCache)
 }
 
 internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
-  val compiler = LiveEditCompiler(inputs.first().file.project, irClassCache)
+  val project = inputs.first().file.project
+  val compiler =
+    LiveEditCompiler(project, irClassCache).also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.Legacy(project)) }
   return compile(inputs, compiler)
 }
 

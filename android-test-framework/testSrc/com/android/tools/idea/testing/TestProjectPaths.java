@@ -114,6 +114,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APP_WITH_SCREENSHOT_TEST = "projects/simpleApplicationWithScreenshot";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
+  public static final String TEST_ARTIFACTS_APP_LINKS = "projects/testArtifacts/appLinkTests";
   public static final String TEST_ARTIFACTS_ILLEGAL_IDENTIFIERS = "projects/testArtifacts/illegalIdentifiers";
   public static final String TEST_ARTIFACTS_KOTLIN = "projects/testArtifacts/kotlin";
   public static final String TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM = "projects/testArtifacts/kotlinMultiplatform";

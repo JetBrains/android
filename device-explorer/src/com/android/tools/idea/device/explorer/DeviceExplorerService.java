@@ -36,29 +36,6 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceExplorerService {
   private DeviceExplorerService() {}
 
-  /** Shows Device Explorer and selects the given AVD. */
-  public static void openAndShowDevice(Project project, @NotNull AvdInfo avdInfo) {
-    if (!showToolWindow(project)) {
-      return;
-    }
-
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
-    assert controller != null;
-    assert AndroidDebugBridge.getBridge() != null;
-
-    String avdName = avdInfo.getName();
-    Optional<IDevice> optionalIDevice =
-        Arrays.stream(AndroidDebugBridge.getBridge().getDevices())
-            .filter(device -> avdName.equals(device.getAvdName()))
-            .findAny();
-    if (!optionalIDevice.isPresent()) {
-      controller.reportErrorFindingDevice("Unable to find AVD " + avdName + " by name. Please retry.");
-      return;
-    }
-
-    controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
-  }
-
   /** Shows Device Explorer and selects the device with the given serial number. */
   public static void openAndShowDevice(Project project, @NotNull String serialNumber) {
     if (!showToolWindow(project)) {

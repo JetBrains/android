@@ -16,7 +16,7 @@
 package com.google.idea.blaze.android;
 
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeSdksCompat;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.idea.blaze.base.WorkspaceFileSystem;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.openapi.application.ApplicationManager;
@@ -167,7 +167,7 @@ public class MockSdkUtil {
             ApplicationManager.getApplication()
                 .runWriteAction(
                     () -> {
-                      IdeSdksCompat.setAndroidSdkPath(new File(sdkHomeDir), sdk, null);
+                      IdeSdks.getInstance().setAndroidSdkPath(new File(sdkHomeDir));
                     }));
     return AndroidSdks.getInstance().findSuitableAndroidSdk(targetHash);
   }

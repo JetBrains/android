@@ -69,10 +69,8 @@ abstract class NavToolbarMenu(
         .setHideOnAction(false)
         .setBlockClicksThroughBalloon(true)
         .setAnimationCycle(200)
-        .setRequestFocus(
-          true
-        ) // Note that this seems non-functional, since it requests focus before the balloon is
-          // shown
+        // Note that this seems non-functional, since it requests focus before the balloon is shown
+        .setRequestFocus(true)
         .setBorderColor(secondaryPanelBackground)
         .setFillColor(BACKGROUND_COLOR)
         .createBalloon()

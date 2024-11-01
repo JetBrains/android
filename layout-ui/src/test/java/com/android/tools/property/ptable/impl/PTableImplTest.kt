@@ -15,8 +15,6 @@
  */
 package com.android.tools.property.ptable.impl
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -59,14 +57,6 @@ import com.intellij.ui.util.width
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.junit.After
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Color
@@ -94,6 +84,16 @@ import javax.swing.TransferHandler
 import javax.swing.UIManager
 import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
+import org.junit.After
+import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 private const val TEXT_CELL_EDITOR = "TextCellEditor"
 private const val ICON_CELL_EDITOR = "IconCellEditor"
@@ -722,6 +722,16 @@ class PTableImplTest {
     assertThat(table1!!.editingRow).isEqualTo(3)
     assertThat(table1!!.editingColumn).isEqualTo(1)
     assertThat(focusManager.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
+  }
+
+  @Test
+  fun testAvoidAcceptingFocusDuringDestruction() {
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
+    focusManager.focusOwner = table1!!
+    panel.remove(table1)
+    assertThat(focusManager.focusOwner!!.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
   @Test

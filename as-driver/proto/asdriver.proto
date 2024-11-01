@@ -32,6 +32,8 @@ service AndroidStudio {
   rpc TakeBleakSnapshot(TakeBleakSnapshotRequest) returns (TakeBleakSnapshotResponse) {}
 
   rpc StartCapturingScreenshots(StartCapturingScreenshotsRequest) returns (StartCapturingScreenshotsResponse) {}
+
+  rpc OpenProject(OpenProjectRequest) returns (OpenProjectResponse) {}
 }
 
 message GetVersionRequest {}
@@ -259,5 +261,19 @@ message StartCapturingScreenshotsResponse {
     ERROR = 1;
   }
   StartCapturingScreenshotsResponse.Result result = 1;
+  string error_message = 2;
+}
+
+message OpenProjectRequest {
+  string project_path = 1;
+  bool new_window = 2;
+}
+
+message OpenProjectResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  OpenProjectResponse.Result result = 1;
   string error_message = 2;
 }

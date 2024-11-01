@@ -45,11 +45,11 @@ import java.io.File;
 import org.mockito.Mock;
 
 /**
- * Tests for {@link BuildApkAction}.
+ * Tests for {@link GenerateApkAction}.
  */
 public class BuildApkActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
-  private BuildApkAction myAction;
+  private GenerateApkAction myAction;
 
   @Override
   protected void setUp() throws Exception {
@@ -67,7 +67,7 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
               )
             ),
             BuildMode.ASSEMBLE)));
-    myAction = new BuildApkAction();
+    myAction = new GenerateApkAction();
   }
 
   public void testActionPerformed() {

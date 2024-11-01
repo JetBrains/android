@@ -24,7 +24,7 @@ import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.gradle.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.gradle.actions.AssembleIdeaModuleAction;
 import com.android.utils.Pair;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
@@ -61,7 +61,7 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
 
     // 'Build' > 'Make Modules' action
     // We cannot simply hide this action, because of a NPE.
-    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new MakeIdeaModuleAction());
+    Actions.replaceAction(actionManager, ACTION_MAKE_MODULE, new AssembleIdeaModuleAction());
 
     // 'Build' > 'Rebuild' action
     Actions.hideAction(actionManager, ACTION_COMPILE_PROJECT);
@@ -73,6 +73,8 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
     Actions.hideAction(actionManager, "Build");
     Actions.hideAction(actionManager, "Groovy.CheckResources.Rebuild");
     Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
+    Actions.hideAction(actionManager, "Groovy.CheckResources");
+    Actions.hideAction(actionManager, "CompileFile");
   }
 
   private static void setUpGradleViewToolbarActions(ActionManager actionManager) {

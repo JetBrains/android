@@ -68,11 +68,11 @@ PROJECT                       : project
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugScreenshotTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugScreenshotTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugScreenshotTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
+                CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources, :app:generateDebugTestFixturesSources
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugScreenshotTest, :app:assembleDebugTestFixtures, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugScreenshotTest, :app:assembleDebugTestFixtures, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugScreenshotTestSources, :app:compileDebugSources, :app:compileDebugTestFixturesSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources, :app:generateDebugTestFixturesSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
@@ -624,7 +624,11 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugTestFixtures/compileDebugTestFixturesJavaWithJavac/classes
         BUILD_TASKS
-                REBUILD                       : :app:clean
+                CLEAN                         : :app:generateDebugTestFixturesSources
+                ASSEMBLE                      : :app:assembleDebugTestFixtures
+                REBUILD                       : :app:assembleDebugTestFixtures, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugTestFixturesSources
+                SOURCE_GEN                    : :app:generateDebugTestFixturesSources
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : project.app.unitTest
@@ -785,8 +789,8 @@ PROJECT                       : project
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : project.app.main
-        Module                        : project.app.main
+        ModuleName                    : project.app
+        Module                        : project.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
@@ -929,11 +933,11 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugScreenshotTest, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugScreenshotTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugScreenshotTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:generateDebugTestFixturesSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugScreenshotTest, <PROJECT>::app:assembleDebugTestFixtures, <PROJECT>::app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugScreenshotTest, <PROJECT>::app:assembleDebugTestFixtures, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugScreenshotTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugTestFixturesSources, <PROJECT>::app:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::app:generateDebugTestFixturesSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile

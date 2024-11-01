@@ -40,6 +40,7 @@ public class StartUpTest {
   public void startUpTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
     AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
+    install.addVmOption("-Didea.is.internal=true"); // Allows executing internal actions in the test.
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display)) {
       // Check that AndroidStudioApplicationInfo.xml was patched properly, and that it is not overridden by
@@ -55,6 +56,8 @@ public class StartUpTest {
       for (int i = 0; i < plugins.length; i++) {
         plugins[i] = plugins[i].replaceAll(" (.*) \\(.*\\)", "$1").strip();
       }
+
+      studio.executeAction("Android.ValidatePluginConfiguration");
 
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",
@@ -87,6 +90,7 @@ public class StartUpTest {
         "GitLab",
         "Google Cloud Tools For Android Studio",
         "Gradle",
+        "Gradle Declarative Support",
         "Gradle-Java",
         "Groovy",
         "HTML Tools",

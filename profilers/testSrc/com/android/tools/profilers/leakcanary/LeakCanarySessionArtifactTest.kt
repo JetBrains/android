@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
 import com.android.tools.profiler.proto.LeakCanary
+import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -45,11 +46,11 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: LeakCanaryModel
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
-  private val timeStamp1 = System.nanoTime().minus(3000000)
-  private val timeStamp2 = System.nanoTime().minus(2000000)
-  private val timeStamp3 = System.nanoTime().minus(1000000)
-  private val timeStamp4 = System.nanoTime().minus(900000)
-  private val timeStamp5 = System.nanoTime().minus(800000)
+  private val timeStamp1 = System.currentTimeMillis()
+  private val timeStamp2 = System.currentTimeMillis().plus(100000000)
+  private val timeStamp3 = System.currentTimeMillis().plus(200000000)
+  private val timeStamp4 = System.currentTimeMillis().plus(300000000)
+  private val timeStamp5 = System.currentTimeMillis().plus(400000000)
   private lateinit var leakCanarySessionArtifact: LeakCanarySessionArtifact
 
   @Before
@@ -60,7 +61,13 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     profilers.stage = stage
     val mockSession = Common.Session.newBuilder().setStartTimestamp(timeStamp1).build()
     val mockSessionMetadata = SessionMetaData.newBuilder().build()
-    leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata)
+
+    leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata,
+                                                          LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                            .setStartTimestamp(timeStamp1)
+                                                            .setEndTimestamp(timeStamp5)
+                                                            .setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                            .build())
   }
 
   @Test
@@ -75,11 +82,25 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
 
   @Test
   fun `timestampNs - match session start timestamp`() {
-    assertEquals(timeStamp1, leakCanarySessionArtifact.timestampNs)
+    assertEquals(timeStamp5, leakCanarySessionArtifact.timestampNs)
   }
 
   @Test
+  fun `isOngoing - session is ended`() {
+    assertFalse(leakCanarySessionArtifact.isOngoing)
+  }
+
+
+  @Test
   fun `isOngoing - session is not ended`() {
+    val mockSession = Common.Session.newBuilder().setStartTimestamp(timeStamp1).build()
+    val mockSessionMetadata = SessionMetaData.newBuilder().build()
+    leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata,
+                                                          LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                            .setStartTimestamp(timeStamp1)
+                                                            .setEndTimestamp(Long.MAX_VALUE)
+                                                            .setStatus(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                            .build())
     assertTrue(leakCanarySessionArtifact.isOngoing)
   }
 
@@ -105,21 +126,24 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     profilers.sessionsManager.currentTaskType = ProfilerTaskType.LEAKCANARY
     profilers.sessionsManager.mySessionItems[mockSession.sessionId] = sessionItem
     profilers.sessionsManager.mySessionMetaDatas[mockSession.sessionId] = mockSessionMetadata
-    val leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata)
-    leakCanarySessionArtifact.doSelect()
-    assertEquals(3, (profilers.stage as LeakCanaryModel).leakEvents.size)
-    assertEquals(3, (profilers.stage as LeakCanaryModel).leaksDetectedCount.value)
+    val leakCanarySessionArtifact =
+      LeakCanarySessionArtifact.getSessionArtifacts(profilers, profilers.session, SessionMetaData.getDefaultInstance())
+    assertEquals(1, leakCanarySessionArtifact.size)
+    leakCanarySessionArtifact[0].doSelect()
+    assertTrue { profilers.stage is LeakCanaryModel }
+    assertEquals(3, (profilers.stage as LeakCanaryModel).leaks.value.size)
   }
 
   @Test
   fun `doSelect - no LeakEvents from past`() {
-    addEventsForLeakCanaryLogCat()
+    addLeakCanaryInfoStartEvent()
+    addLeakCanaryInfoEndEvent()
     val mockSession = Common.Session.newBuilder()
-      .setStartTimestamp(timeStamp5)
+      .setStartTimestamp(timeStamp1)
       .setPid(FakeTransportService.FAKE_PROCESS.pid)
       .setSessionId(FakeTransportService.FAKE_PROCESS.pid.toLong())
       .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-      .setEndTimestamp(timeStamp3)
+      .setEndTimestamp(timeStamp5)
       .build()
     val mockSessionMetadata = SessionMetaData.newBuilder().setType(SessionMetaData.SessionType.FULL).build()
     val sessionItem = SessionItem(profilers, mockSession, mockSessionMetadata)
@@ -128,15 +152,18 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     profilers.sessionsManager.currentTaskType = ProfilerTaskType.LEAKCANARY
     profilers.sessionsManager.mySessionItems[mockSession.sessionId] = sessionItem
     profilers.sessionsManager.mySessionMetaDatas[mockSession.sessionId] = mockSessionMetadata
-    val leakCanarySessionArtifact = LeakCanarySessionArtifact(profilers, mockSession, mockSessionMetadata)
-    leakCanarySessionArtifact.doSelect()
-    assertEquals(0, (profilers.stage as LeakCanaryModel).leakEvents.size)
-    assertEquals(0, (profilers.stage as LeakCanaryModel).leaksDetectedCount.value)
+    val leakCanarySessionArtifact =
+      LeakCanarySessionArtifact.getSessionArtifacts(profilers, profilers.session, SessionMetaData.getDefaultInstance())
+    assertEquals(1, leakCanarySessionArtifact.size)
+    leakCanarySessionArtifact[0].doSelect()
+    assertTrue { profilers.stage is LeakCanaryModel }
+    assertEquals(0, (profilers.stage as LeakCanaryModel).leaks.value.size)
   }
 
   @Test
   fun `getSessionArtifacts - LeakEvents present for session range`() {
-    addEventsForLeakCanaryLogCat()
+    addLeakCanaryInfoStartEvent()
+    addLeakCanaryInfoEndEvent()
     val mockSession = Common.Session.newBuilder()
       .setStartTimestamp(timeStamp1)
       .setPid(FakeTransportService.FAKE_PROCESS.pid)
@@ -144,8 +171,9 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
       .setEndTimestamp(timeStamp3)
       .build()
     val mockSessionMetadata = SessionMetaData.newBuilder().build()
-    val result = LeakCanarySessionArtifact.getSessionArtifacts(profilers, mockSession, mockSessionMetadata)
-    assertEquals(1, result.size)
+    val leakCanarySessionArtifact =
+      LeakCanarySessionArtifact.getSessionArtifacts(profilers, mockSession, mockSessionMetadata)
+    assertEquals(1, leakCanarySessionArtifact.size)
   }
 
   @Test
@@ -157,16 +185,54 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
       .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
       .setEndTimestamp(timeStamp5)
       .build()
-    val mockSessionMetadata = SessionMetaData.newBuilder().build()
-    val result = LeakCanarySessionArtifact.getSessionArtifacts(profilers, mockSession, mockSessionMetadata)
-    assertEquals(0, result.size)
+    val leakCanarySessionArtifact =
+      LeakCanarySessionArtifact.getSessionArtifacts(profilers, mockSession, SessionMetaData.getDefaultInstance())
+    assertEquals(0, leakCanarySessionArtifact.size)
   }
+
+  private fun addLeakCanaryInfoStartEvent() {
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                      Common.Event.newBuilder()
+                                        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
+                                        .setIsEnded(false)
+                                        .setTimestamp(timeStamp1)
+                                        .setLeakCanaryLogcatInfo(
+                                          LeakCanaryLogcatInfo.newBuilder()
+                                            .setLogcatStarted(LeakCanary.LeakCanaryLogcatStarted.newBuilder()
+                                                                .setTimestamp(timeStamp1)
+                                                                .build())
+                                            .build()
+                                        )
+                                        .build())
+  }
+
+  private fun addLeakCanaryInfoEndEvent() {
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                      Common.Event.newBuilder()
+                                        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
+                                        .setIsEnded(true)
+                                        .setTimestamp(timeStamp3)
+                                        .setLeakCanaryLogcatInfo(LeakCanaryLogcatInfo
+                                                                   .newBuilder()
+                                                                   .setLogcatEnded(LeakCanary.LeakCanaryLogcatEnded.newBuilder()
+                                                                                     .setStartTimestamp(timeStamp1)
+                                                                                     .setEndTimestamp(timeStamp3)
+                                                                                     .setStatus(
+                                                                                       LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS)
+                                                                                     .build())
+                                                                   .build())
+                                        .build())
+  }
+
 
   private fun addEventsForLeakCanaryLogCat() {
 
     val file = TestUtils.resolveWorkspacePath("${FakeLeakCanaryCommandHandler.TEST_DATA_PATH}/SingleApplicationLeak.txt").toFile()
     val fileContent = file.readText()
 
+    addLeakCanaryInfoStartEvent()
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
@@ -199,5 +265,7 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
                                                                .newBuilder()
                                                                .setLogcatMessage(fileContent).build())
                                         .build())
+
+    addLeakCanaryInfoEndEvent()
   }
 }

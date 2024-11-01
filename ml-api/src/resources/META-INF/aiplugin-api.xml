@@ -14,11 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <!--
-  TODO IDEA-359574 Remove declaration once the AOSP commit 'I6aeeb657a72b495f9f75ec04d4c19e445f718a16' gets merged.
-  -->
-  <depends optional="true" config-file="aiplugin-api-idea.xml">com.intellij.modules.idea</depends>
-
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.ml.mimetypeAugmenter"
                     interface="com.android.tools.idea.studiobot.mimetype.MimeTypeAugmenter" />
@@ -26,11 +21,17 @@
                     interface="com.android.tools.idea.studiobot.StudioBotExternalFlags" />
   </extensionPoints>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- The StudioBot service has a stub implementation by default, but is overridden by the Gemini plugin. -->
+    <applicationService serviceInterface="com.android.tools.idea.studiobot.StudioBot"
+                        serviceImplementation="com.android.tools.idea.studiobot.StudioBot$StubStudioBot"/>
+  </extensions>
+
   <actions resource-bundle="messages.StudioBotBundle">
     <group id="sml.studiobot.gemini.editor.group"
            class="com.android.tools.idea.studiobot.action.GeminiEditorActionGroup"
            popup="true"
-           icon="com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons.Logo">
+           icon="com.android.tools.idea.studiobot.icons.AndroidAIPluginIcons.GeminiLogo">
       <add-to-group anchor="before" group-id="EditorPopupMenu" relative-to-action="$SearchWeb"/>
       <add-to-group group-id="Floating.CodeToolbar" anchor="before" relative-to-action="Floating.CodeToolbar.Extract"/>
     </group>

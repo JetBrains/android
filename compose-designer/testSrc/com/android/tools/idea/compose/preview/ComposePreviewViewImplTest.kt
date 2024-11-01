@@ -23,6 +23,7 @@ import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPanel
@@ -187,11 +188,26 @@ class ComposePreviewViewImplTest {
         NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build(),
       )
 
+      fixture.addFileToProject(
+        "src/main/androidx/compose/runtime/Composable.kt",
+        // language=kotlin
+        """
+      package androidx.compose.runtime
+
+      annotation class Composable
+      """
+          .trimIndent(),
+      )
+
       val psiMainFile =
         fixture.addFileToProject(
           "src/main/Test.kt",
           """
-      fun main() {}
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
+
+        @Composable
+        fun Preview1() {
+        }
     """
             .trimIndent(),
         )

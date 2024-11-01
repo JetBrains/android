@@ -171,7 +171,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.11",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.12",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",

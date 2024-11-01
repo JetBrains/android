@@ -16,6 +16,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/backup:studio.android.sdktools.backup[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
@@ -26,6 +27,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
     ],
 )
 
@@ -48,6 +50,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup[module, test]",
         "//tools/adt/idea/backup:intellij.android.backup.api[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",

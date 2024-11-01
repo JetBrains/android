@@ -41,6 +41,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     && isSettingsPickerEnabled
     && it.deviceProperties.resolution != null
     && it.deviceProperties.density != null
+    && it.deviceType != DeviceType.AUTOMOTIVE
   }
 ) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

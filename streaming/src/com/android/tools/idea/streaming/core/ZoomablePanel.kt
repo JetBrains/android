@@ -17,8 +17,11 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.util.scaled
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -30,15 +33,11 @@ private val SQRT2 = sqrt(2.0)
 /**
  * A [BorderLayoutPanel] with zoom support.
  */
-abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
+abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeListener {
 
-  protected var screenScale = 0.0 // Scale factor of the host screen.
-    get() {
-      if (field == 0.0) {
-        field = graphicsConfiguration?.defaultTransform?.scaleX ?: 1.0
-      }
-      return field
-    }
+  /** Scale factor of the host screen. */
+  protected val screenScale: Double
+    get() = if (cachedScreenScale > 0.0) cachedScreenScale else getCurrentScreenScaleOr(1.0)
 
   /** Width in physical pixels. */
   protected val physicalWidth
@@ -61,6 +60,8 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
 
+  private var cachedScreenScale = 0.0
+
   /**
    * An integer number represented as Double. If zero, indicates that fractional scale above 1
    * is not allowed. Otherwise, indicates that fractional scale is allowed between
@@ -70,14 +71,20 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   protected abstract fun computeActualSize(): Dimension
 
+  protected abstract fun canZoom(): Boolean
+
+  protected open fun onScreenScaleChanged() {}
+
+  init {
+    addPropertyChangeListener(this)
+  }
+
   protected fun roundDownIfNecessary(scale: Double): Double {
     val roundedScale = roundDownIfGreaterThanOne(scale)
     return if (roundedScale == fractionalScaleRange) scale else roundedScale
   }
 
-  protected abstract fun canZoom(): Boolean
-
-  override fun zoom(type: ZoomType): Boolean {
+  final override fun zoom(type: ZoomType): Boolean {
     val oldFractionalScaleRange = fractionalScaleRange
     if (type == ZoomType.FIT) {
       if (fractionalScaleRange == 0.0) {
@@ -133,6 +140,22 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
       fractionalScaleRange = 0.0
     }
   }
+
+  override fun propertyChange(event: PropertyChangeEvent) {
+    if (event.propertyName == "graphicsConfiguration") {
+      val newScreenScale = getCurrentScreenScaleOr(0.0)
+      if (newScreenScale != 0.0 && newScreenScale != cachedScreenScale) {
+        cachedScreenScale = newScreenScale
+        onScreenScaleChanged()
+      }
+    }
+  }
+
+  final override fun addPropertyChangeListener(listener: PropertyChangeListener) {
+    super.addPropertyChangeListener(listener)
+  }
+
+  private fun getCurrentScreenScaleOr(defaultValue: Double) = graphicsConfiguration?.defaultTransform?.scaleX ?: defaultValue
 
   /**
    * Computes the maximum allowed size of the device display image in physical pixels.

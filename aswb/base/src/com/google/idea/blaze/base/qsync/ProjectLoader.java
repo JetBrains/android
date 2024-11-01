@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection
 import com.google.idea.blaze.base.qsync.artifacts.GeneratedSourcesStripper;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
+import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -47,6 +48,8 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
+import com.google.idea.blaze.qsync.ProjectProtoTransform;
+import com.google.idea.blaze.qsync.ProjectProtoTransform.Registry;
 import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.SnapshotHolder;
@@ -57,8 +60,6 @@ import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform.Registry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
@@ -154,14 +155,17 @@ public class ProjectLoader {
     AppInspectorArtifactTracker appInspectorArtifactTracker;
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
-            BlazeDataStorage.getProjectDataDir(importSettings).toPath(), artifactCache);
+            BlazeDataStorage.getProjectDataDir(importSettings).toPath(),
+            artifactCache,
+            // don't pass the composed transform directly as it's not fully constructed yet:
+            t -> projectTransformRegistry.getComposedTransform().getRequiredArtifactMetadata(t),
+            executor);
     projectTransformRegistry.add(
         new DependenciesProjectProtoUpdater(
-            tracker,
             latestProjectDef,
-            artifactCache,
             projectPathResolver,
             QuerySync.ATTACH_DEP_SRCJARS::getValue));
+    projectTransformRegistry.add(new CcProjectProtoTransform());
 
     artifactTracker = tracker;
     renderJarArtifactTracker = new RenderJarArtifactTrackerImpl();
@@ -229,7 +233,7 @@ public class ProjectLoader {
             buildSystem,
             projectTransformRegistry);
     QuerySyncProjectListenerProvider.registerListenersFor(querySyncProject);
-    projectTransformRegistry.addAll(ProjectProtoTransformProvider.getAll(querySyncProject));
+    projectTransformRegistry.addAll(ProjectProtoTransformProvider.getAll(latestProjectDef));
 
     return querySyncProject;
   }

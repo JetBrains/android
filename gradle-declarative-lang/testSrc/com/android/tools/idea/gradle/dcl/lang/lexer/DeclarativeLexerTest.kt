@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.lexer
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeParserDefinition
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.intellij.testFramework.LexerTestCase
 
 class DeclarativeLexerTest : LexerTestCase() {
@@ -196,6 +196,32 @@ class DeclarativeLexerTest : LexerTestCase() {
     )
   }
 
+  fun testFloatNumbers() {
+    doTest(
+      """
+        0.1
+        .1
+        0_1.0
+        0.1e+1
+        0_0.1e+1
+        0_0.1E+2
+      """.trimIndent(),
+      """
+      DeclarativeTokenType.double_literal ('0.1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('.1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_1.0')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0.1e+1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_0.1e+1')
+      WHITE_SPACE ('\n')
+      DeclarativeTokenType.double_literal ('0_0.1E+2')
+      """.trimIndent()
+    )
+  }
+
   fun testBoolean() {
     doTest(
       """
@@ -232,7 +258,7 @@ class DeclarativeLexerTest : LexerTestCase() {
   fun testToken2() {
     doTest(
       """
-        name age _count student1 calculateArea `_name_` `$%&^%&^`
+        name age _count student1 calculateArea `_name_` `$%&^%&^` __hello_ `___` _12_3_
       """.trimIndent(),
       """
       DeclarativeTokenType.token ('name')
@@ -248,13 +274,19 @@ class DeclarativeLexerTest : LexerTestCase() {
       DeclarativeTokenType.token ('`_name_`')
       WHITE_SPACE (' ')
       DeclarativeTokenType.token ('`$%&^%&^`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('__hello_')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('`___`')
+      WHITE_SPACE (' ')
+      DeclarativeTokenType.token ('_12_3_')
       """.trimIndent())
   }
 
   fun testWrongIdentifier() {
     doTest(
       """
-        1name ``
+        1name `` _ __ _____
       """.trimIndent(),
       """
       DeclarativeTokenType.integer_literal ('1')
@@ -262,6 +294,17 @@ class DeclarativeLexerTest : LexerTestCase() {
       WHITE_SPACE (' ')
       BAD_CHARACTER ('`')
       BAD_CHARACTER ('`')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      WHITE_SPACE (' ')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
+      BAD_CHARACTER ('_')
       """.trimIndent())
   }
 

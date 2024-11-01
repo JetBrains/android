@@ -22,18 +22,23 @@ import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 
 fun buildKmpGradle(
   agpVersion: AgpVersion,
+  name: String,
   packageName: String,
   compileApiString: String,
   minApi: String,
 ): String {
-  val androidTargetBlock = androidTargetConfig(
-    agpVersion = agpVersion,
-    compileApiString = compileApiString,
-    minApi = minApi,
-    packageName = packageName,
-  )
+  val androidTargetBlock =
+    androidTargetConfig(
+      agpVersion = agpVersion,
+      compileApiString = compileApiString,
+      minApi = minApi,
+      packageName = packageName,
+    )
 
-  val sourceSetConfigurationsBlock = """
+  val iosTargetBlock = iosTargetConfig(name)
+
+  val sourceSetConfigurationsBlock =
+    """
     // Source set declarations.
     // Declaring a target automatically creates a source set with the same name. By default, the
     // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
@@ -42,13 +47,12 @@ fun buildKmpGradle(
     sourceSets {
       commonMain {
         dependencies {
-          // Add common multiplatform dependencies here
+          // Add KMP dependencies here
         }
       }
 
       commonTest {
         dependencies {
-          // Add common multiplatform test dependencies here
         }
       }
 
@@ -64,15 +68,28 @@ fun buildKmpGradle(
         dependencies {
         }
       }
-    }
-  """.trimIndent()
 
-  val kotlinBlock = """
+      iosMain {
+        dependencies {
+          // Add iOS-specific dependencies here. This a source set created by Kotlin Gradle
+          // Plugin (KGP) that each specific iOS target (e.g., iosX64) depends on as
+          // part of KMP’s default source set hierarchy. Note that this source set depends
+          // on common by default and will correctly pull the iOS artifacts of any
+          // KMP dependencies declared in commonMain.
+        }
+      }
+    }
+  """
+
+  val kotlinBlock =
+    """
     kotlin {
       $androidTargetBlock
+      $iosTargetBlock
       $sourceSetConfigurationsBlock
     }
-  """.trimIndent()
+  """
+      .trimIndent()
 
   val allBlocks =
     """
@@ -107,7 +124,40 @@ private fun androidTargetConfig(
           compilationName = "instrumentedTest"
           defaultSourceSetName = "androidInstrumentedTest"
           sourceSetTreeName = "test"
+      }.configure {
+        instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
       }
     }
-    """.trimIndent()
+"""
+}
+
+private fun iosTargetConfig(name: String): String {
+  return """
+    // For iOS targets, this is also where you should
+    // configure native binary output. For more information, see:
+    // https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+
+    // A step-by-step guide on how to include this library in an XCode
+    // project can be found here:
+    // https://developer.android.com/kotlin/multiplatform/migrate
+    val xcfName = "$name"
+
+    iosX64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+
+    iosArm64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+
+    iosSimulatorArm64 {
+      binaries.framework {
+        baseName = xcfName
+      }
+    }
+  """
 }

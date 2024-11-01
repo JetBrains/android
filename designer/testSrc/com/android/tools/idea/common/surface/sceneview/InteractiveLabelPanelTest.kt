@@ -17,18 +17,20 @@ package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.model.DisplaySettings
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,25 +50,25 @@ class InteractiveLabelPanelTest {
   }
 
   @Test
-  @Ignore("b/301927653")
-  fun `click label`() {
-    runBlocking {
-      var clickCount = 0
-      fun labelClicked(): Boolean {
-        clickCount++
-        return false
+  fun clickLabel() = runBlocking {
+    val clickCount = CompletableDeferred<Unit>()
+    fun labelClicked(): Boolean {
+      clickCount.complete(Unit)
+      return false
+    }
+
+    val settings =
+      DisplaySettings().apply {
+        setDisplayName("Name")
+        setTooltip("Tooltip")
       }
 
-      val settings =
-        DisplaySettings().apply {
-          setDisplayName("Name")
-          setTooltip("Tooltip")
-        }
-
-      val label =
-        InteractiveLabelPanel(settings, scope, ::labelClicked).apply { size = Dimension(250, 50) }
-      FakeUi(label).also { it.clickOn(label) }
-      withTimeout(TimeUnit.SECONDS.toMillis(5)) { assertEquals(1, clickCount) }
-    }
+    val label =
+      InteractiveLabelPanel(settings, scope, MutableStateFlow(false), ::labelClicked).apply {
+        size = Dimension(250, 50)
+      }
+    val ui = FakeUi(label)
+    withContext(uiThread) { ui.clickOn(label) }
+    withTimeout(TimeUnit.SECONDS.toMillis(1)) { clickCount.await() }
   }
 }

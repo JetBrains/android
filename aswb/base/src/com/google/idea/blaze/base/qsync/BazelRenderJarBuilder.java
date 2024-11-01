@@ -35,8 +35,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.LocalFileOutputArtifact;
-import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -50,7 +48,6 @@ import com.google.idea.blaze.exception.BuildException;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -181,35 +178,13 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
 
   private RenderJarInfo createRenderJarInfo(BlazeBuildOutputs blazeBuildOutputs) {
     ImmutableList<OutputArtifact> renderJars =
-        translateOutputArtifacts(
-            blazeBuildOutputs.getOutputGroupArtifacts(s -> s.contains("render_jars")));
+      blazeBuildOutputs.getOutputGroupArtifacts(s -> s.contains("render_jars"));
     // TODO(b/283283123): Update the aspect to only return the render jar of the required target.
     // TODO(b/283280194): To setup fqcn -> target and target -> render jar mappings that would
     // increase the count of render jars but help with the performance by reducing the size of the
     // render jar loaded by the class loader.
     // TODO(b/336633197): Investigate performance impact of large number of render jars
     return RenderJarInfo.create(renderJars, blazeBuildOutputs.buildResult.exitCode);
-  }
-
-  private ImmutableList<OutputArtifact> translateOutputArtifacts(
-      ImmutableList<OutputArtifact> artifacts) {
-    return artifacts.stream()
-        .map(BazelRenderJarBuilder::translateOutputArtifact)
-        .collect(ImmutableList.toImmutableList());
-  }
-
-  private static OutputArtifact translateOutputArtifact(OutputArtifact it) {
-    if (!(it instanceof RemoteOutputArtifact)) {
-      return it;
-    }
-    RemoteOutputArtifact remoteOutputArtifact = (RemoteOutputArtifact) it;
-    String hashId = remoteOutputArtifact.getHashId();
-    if (!(hashId.startsWith("/google_src") || hashId.startsWith("/google/src"))) {
-      return it;
-    }
-    File srcfsArtifact = new File(hashId.replaceFirst("/google_src", "/google/src"));
-    return new LocalFileOutputArtifact(
-        srcfsArtifact, it.getRelativePath(), it.getConfigurationMnemonic(), it.getDigest());
   }
 }
 

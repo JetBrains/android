@@ -164,7 +164,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     } else {
       "-t"
     }
-    return DeployTask(project, packages, pmInstallOptions, false, false, installPathProvider)
+    return DeployTask(project, packages, pmInstallOptions, false, false, false, installPathProvider)
   }
 
 

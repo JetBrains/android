@@ -16,16 +16,16 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
-import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.runBlocking
+import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicLong
 
 /** A CompilerDaemonClient that blocks until [completeOneRequest] is called. */
 class BlockingDaemonClient : CompilerDaemonClient {
@@ -38,6 +38,7 @@ class BlockingDaemonClient : CompilerDaemonClient {
     get() = _requestReceived.get()
 
   override suspend fun compileRequest(
+    applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,

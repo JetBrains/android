@@ -22,7 +22,6 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FQCN_BUTTON
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
@@ -31,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class SelectedViewModelTest {
 

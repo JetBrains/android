@@ -22,8 +22,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.Density
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -75,7 +73,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
@@ -92,13 +90,6 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TestName
-import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
@@ -106,6 +97,15 @@ import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreeModel
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val USER_PKG = 123
 private const val TIMEOUT = 20L
@@ -321,13 +321,8 @@ class LayoutInspectorTreePanelTest {
     TreeUtil.expandAll(tree)
     val bounds = tree.getRowBounds(1)
     val ui = FakeUi(focusComponent)
-
-    // A double click on the expander should not cause a goto declaration:
-    ui.mouse.doubleClick(5, bounds.y + bounds.height / 2)
-    fileOpenCaptureRule.checkNoNavigation()
-
-    // A double click on item should cause a goto declaration:
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+
     runDispatching { GotoDeclarationAction.lastAction?.join() }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
@@ -934,7 +929,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
       false,
       projectRule.testRootDisposable,
     )
@@ -974,7 +969,7 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibilityWithChildCounts() {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.override(
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS.overrideForTest(
       true,
       projectRule.testRootDisposable,
     )

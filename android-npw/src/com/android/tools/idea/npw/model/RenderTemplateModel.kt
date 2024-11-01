@@ -198,6 +198,16 @@ class RenderTemplateModel private constructor(
       }
     }
 
+    override fun logUsage() {
+      val templateModel = this@RenderTemplateModel
+      val params = templateModel.newTemplate.parameters.joinToString("\n") { parameter ->
+        val value = if (parameter.loggable) parameter.value else "[suppressed]"
+        "${parameter.name}: $value"
+      }
+      log.info("Rendering template \"${templateModel.newTemplate.name}\" with commandName " +
+               "\"${templateModel.commandName}\" and parameters:\n$params")
+    }
+
     private fun renderTemplate(
       dryRun: Boolean, project: Project, paths: AndroidModulePaths
     ): Boolean {

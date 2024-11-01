@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -36,8 +35,7 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<UnitTestsDslElement> UNIT_TESTS =
     new PropertiesElementDescription<>("unitTests",
                                        UnitTestsDslElement.class,
-                                       UnitTestsDslElement::new,
-                                       UnitTestsDslElementSchema::new);
+                                       UnitTestsDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isReturnDefaultValues", property, RETURN_DEFAULT_VALUES, VAR}
@@ -59,19 +57,5 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
 
   public UnitTestsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class UnitTestsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.UnitTestOptions";
-    }
   }
 }

@@ -204,7 +204,10 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     psiManager.addPsiTreeChangeListener(
       // Listen to all code changes but ignore changes for files that are already out of date or for code that is not part of the file system.
       // We ignore fake files since we do not care a bout in-memory modifications.
-      CodePsiTreeChangeAdapter({ !fileUpdatesFlow.value.contains(it) && !it.isFakeFile() }, ::onCodeChange),
+      CodePsiTreeChangeAdapter(
+        { !fileUpdatesFlow.value.contains(it) && !it.isFakeFile() && psiManager.isInProject(it) },
+        ::onCodeChange
+      ),
       this
     )
   }

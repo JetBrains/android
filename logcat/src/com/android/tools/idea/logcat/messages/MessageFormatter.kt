@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
-import com.android.tools.idea.logcat.hyperlinks.StudioBotFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.studiobot.StudioBot
+import java.nio.file.Path
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
@@ -28,6 +28,17 @@ internal class MessageFormatter(
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId,
 ) {
+  private var proguardMessageRewriter = ProguardMessageRewriter()
+  private var softWrapEnabled = false
+
+  fun setProguardMap(path: Path) {
+    proguardMessageRewriter.loadProguardMap(path)
+  }
+
+  fun setSoftWrapEnabled(value: Boolean) {
+    softWrapEnabled = value
+  }
+
   // Keeps track of the previous tag, so we can omit on consecutive lines
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for
   // app?
@@ -41,7 +52,7 @@ internal class MessageFormatter(
   ) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val headerWidth = formattingOptions.getHeaderWidth()
-    val newline = "\n".padEnd(headerWidth + 1)
+    val newline = if (softWrapEnabled) "\n" else "\n".padEnd(headerWidth + 1)
     for (message in messages) {
       val start = textAccumulator.getTextLength()
       val header = message.header
@@ -73,11 +84,22 @@ internal class MessageFormatter(
 
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
+        // Allow extensions to rewrite exception traces
+        // e.g. Gemini plugin can add a link to invoke Gemini
+        val exceptionFormatters = ExceptionMessageRewriter.EP_NAME.extensionList
         val msg =
           when {
-            !StudioBot.getInstance().isAvailable() -> message.message
-            exceptionLinePattern.containsMatchIn(message.message) ->
-              insertStudioBotText(message.message)
+            exceptionFormatters.isEmpty() -> message.message
+            exceptionLinePattern.containsMatchIn(message.message) -> {
+              var result = message.message
+              for (formatter in exceptionFormatters) {
+                result = formatter.rewrite(result)
+              }
+              if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+                result = proguardMessageRewriter.rewrite(result)
+              }
+              result
+            }
             else -> message.message
           }
 
@@ -97,11 +119,5 @@ internal class MessageFormatter(
   fun reset() {
     previousTag = null
     previousPid = null
-  }
-
-  private fun insertStudioBotText(message: String): String {
-    val split = message.split("\n", ignoreCase = false, limit = 2)
-    assert(split.size > 1)
-    return "${split[0]} ${StudioBotFilter.linkText}\n${split[1]}"
   }
 }

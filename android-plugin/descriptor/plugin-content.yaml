@@ -15,20 +15,21 @@
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1/animation-core-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1/ui-geometry-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1/foundation-layout-desktop-1.jar
-      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1/runtime-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1/ui-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2/lifecycle-common-jvm-2.jar
       - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2/lifecycle-runtime-desktop-2.jar
       - name: $MAVEN_REPOSITORY$/androidx/arch/core/core-common/2/core-common-2.jar
-      - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation/1/annotation-1.jar
       - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2/lifecycle-viewmodel-desktop-2.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2/lifecycle-runtime-compose-desktop-2.jar
+      - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation/1/annotation-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1/runtime-saveable-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1/ui-graphics-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1/ui-unit-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1/ui-text-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1/ui-util-desktop-1.jar
       - name: $MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0/skiko-awt-0.jar
+      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/components/components-resources-desktop/1/components-resources-desktop-1.jar
+      - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1/runtime-desktop-1.jar
   - name: intellij.android.adt.ui.model
   - name: intellij.android.adt.ui
 - name: lib/android-common.jar
@@ -142,7 +143,7 @@
     reason: withProjectLibrary
   - name: layoutlib
     files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/14/layoutlib-14.jar
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
     reason: <- intellij.android.rendering
   - name: studio-platform
     files:
@@ -174,9 +175,12 @@
   - name: intellij.android.compose-common
   - name: intellij.android.device
   - name: intellij.android.core
+  - name: intellij.android.core.editing.documentation
+  - name: intellij.android.core.editing.metrics
   - name: intellij.android.navigator
   - name: intellij.android.dagger
   - name: intellij.android.databinding
+  - name: intellij.android.databinding.gradle
   - name: intellij.android.app-inspection.inspectors.database
   - name: intellij.android.debuggers
   - name: intellij.android.deploy
@@ -184,7 +188,6 @@
   - name: intellij.android.device-explorer-files
   - name: intellij.android.device-explorer-monitor
   - name: intellij.android.device-explorer-common
-  - name: intellij.android.device-manager
   - name: intellij.android.device-manager-v2
   - name: intellij.android.ml-api
   - name: intellij.android.lang-databinding

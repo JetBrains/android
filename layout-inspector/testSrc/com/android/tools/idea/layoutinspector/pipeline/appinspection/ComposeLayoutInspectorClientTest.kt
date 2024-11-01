@@ -18,9 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
@@ -62,17 +59,20 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.runBlocking
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import java.io.File
 import java.net.UnknownHostException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.EnumSet
+import kotlinx.coroutines.runBlocking
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
+import org.jetbrains.kotlin.konan.file.File
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ComposeLayoutInspectorClientTest {
   private val processDescriptor =

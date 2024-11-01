@@ -359,17 +359,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
     if (androidModel != null) {
       val variant = androidModel.selectedVariantCore
-      val prodModule = createAndSetupGradleSourceSetDataNode(
-        moduleNode, gradleModule, variant.mainArtifact.name,
-        null
-      )
+      val prodModule = createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.mainArtifact.name, null)
+      val buildConfigClassPath = variant.mainArtifact.generatedClassPaths["buildConfigGeneratedClasses"]
       val unitTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
       if (unitTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule)
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest.name, prodModule, setOf(buildConfigClassPath))
       }
       val androidTest: IdeBaseArtifactCore? = variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
       if (androidTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest.name, prodModule)
+        val androidTestBuildConfigClassPath = androidTest.generatedClassPaths["buildConfigGeneratedClasses"]
+        createAndSetupGradleSourceSetDataNode(
+          moduleNode, gradleModule, androidTest.name, prodModule, setOf(buildConfigClassPath, androidTestBuildConfigClassPath))
       }
       val testFixtures: IdeBaseArtifactCore? = variant.testFixturesArtifact
       if (testFixtures != null) {
@@ -377,7 +377,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
       val screenshotTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
       if (screenshotTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule)
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule, setOf(buildConfigClassPath))
       }
 
       // Setup testData nodes for testing sources used by Gradle test runners.
@@ -429,7 +429,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     parentDataNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
     artifactName: IdeArtifactName,
-    productionModule: GradleSourceSetData?
+    productionModule: GradleSourceSetData?,
+    buildConfigClassPaths: Set<File?>? = null
   ): GradleSourceSetData {
     val moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, artifactName)
     val readableArtifactName = getModuleName(artifactName)
@@ -442,7 +443,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (productionModule != null) {
       sourceSetData.productionModuleId = productionModule.internalName
     }
-    parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData)
+    val dataNode = parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData)
+    if (buildConfigClassPaths != null) {
+      val nonNullClassPaths = buildConfigClassPaths.filterNotNull().toSet()
+      if (nonNullClassPaths.isNotEmpty()) {
+        addToNewOrExistingLibraryData(dataNode, "buildConfigGeneratedClasses", nonNullClassPaths, true)
+      }
+    }
     return sourceSetData
   }
 

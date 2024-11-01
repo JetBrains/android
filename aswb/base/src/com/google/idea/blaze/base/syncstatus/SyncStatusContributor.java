@@ -22,9 +22,12 @@ import com.google.idea.blaze.base.sync.autosync.ProjectTargetManager;
 import com.google.idea.blaze.base.sync.autosync.ProjectTargetManager.SyncStatus;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.io.File;
@@ -72,7 +75,10 @@ public interface SyncStatusContributor {
     if (!handledType) {
       return null;
     }
-    if (ProjectFileIndex.SERVICE.getInstance(project).getModuleForFile(vf) == null) {
+    Module module = ApplicationManager.getApplication().runReadAction((Computable<Module>)() -> {
+      return ProjectFileIndex.SERVICE.getInstance(project).getModuleForFile(vf);
+    });
+    if (module == null) {
       return null;
     }
     return ProjectTargetManager.getInstance(project).getSyncStatus(new File(vf.getPath()));

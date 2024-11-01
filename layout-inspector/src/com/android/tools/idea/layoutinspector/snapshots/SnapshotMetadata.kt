@@ -17,8 +17,9 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSnapshotInfo
 import com.intellij.openapi.application.ApplicationInfo
-import layoutinspector.snapshots.Metadata
 import java.awt.Dimension
+import java.awt.Rectangle
+import layoutinspector.snapshots.Metadata
 
 /**
  * Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used
@@ -37,6 +38,7 @@ class SnapshotMetadata(
   var dpi: Int? = null,
   var fontScale: Float? = null,
   var screenDimension: Dimension? = null,
+  var windowBounds: Rectangle? = null,
   var folderConfig: String? = null,
   var theme: String? = null,
 ) {
@@ -76,13 +78,24 @@ class SnapshotMetadata(
         }
         this@SnapshotMetadata.folderConfig?.let { folderConfig = it }
         this@SnapshotMetadata.theme?.let { theme = it }
+        this@SnapshotMetadata.windowBounds?.let {
+          windowBoundsBuilder.apply {
+            x = it.x
+            y = it.y
+            w = it.width
+            h = it.height
+          }
+        }
       }
       .build()
 }
 
 /** Convert from the proto saved in a snapshot to a normal object. */
-fun Metadata.convert(version: ProtocolVersion) =
-  SnapshotMetadata(
+fun Metadata.convert(version: ProtocolVersion): SnapshotMetadata {
+  val screenDimension =
+    Dimension(screenWidth, screenHeight).takeIf { screenWidth > 0 && screenHeight > 0 }
+  val bounds = windowBounds.run { Rectangle(x, y, w, h).takeIf { it.width > 0 && it.height > 0 } }
+  return SnapshotMetadata(
     version,
     apiLevel,
     processName,
@@ -92,11 +105,12 @@ fun Metadata.convert(version: ProtocolVersion) =
     sourceVersion,
     dpi = dpi,
     fontScale = fontScale,
-    screenDimension =
-      if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
+    screenDimension = screenDimension,
+    windowBounds = bounds ?: screenDimension?.let { Rectangle(it) },
     folderConfig = folderConfig,
     theme = theme,
   )
+}
 
 fun ProtocolVersion.toInt() =
   when (this) {

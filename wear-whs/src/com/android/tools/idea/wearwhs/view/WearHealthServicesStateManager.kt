@@ -64,6 +64,12 @@ internal interface WearHealthServicesStateManager {
    */
   val ongoingExercise: StateFlow<Boolean>
 
+  /**
+   * State flow for any pending user changes that can be applied, emits a single boolean, true if
+   * there are pending user changes that can be applied, false otherwise.
+   */
+  val hasUserChanges: StateFlow<Boolean>
+
   /** Triggers given event on the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger): Result<Unit>
 
@@ -124,5 +130,37 @@ internal sealed class WhsStateManagerStatus(val idle: Boolean) {
   object Idle : WhsStateManagerStatus(idle = true)
 }
 
-/** Data class representing current state of a WHS capability. */
-internal data class CapabilityUIState(val synced: Boolean, val capabilityState: CapabilityState)
+/**
+ * Class representing the current state of a WHS capability for the UI and to track user changes.
+ */
+internal sealed class CapabilityUIState {
+  abstract val upToDateState: CapabilityState
+}
+
+/**
+ * Class representing a [CapabilityUIState] with the latest known [CapabilityState] without any user
+ * change.
+ */
+internal data class UpToDateCapabilityUIState(override val upToDateState: CapabilityState) :
+  CapabilityUIState()
+
+/** Class representing a [CapabilityUIState] containing pending user changes within [userState]. */
+internal data class PendingUserChangesCapabilityUIState(
+  val userState: CapabilityState,
+  override val upToDateState: CapabilityState,
+) : CapabilityUIState()
+
+internal val CapabilityUIState.currentState
+  get() = (this as? PendingUserChangesCapabilityUIState)?.userState ?: upToDateState
+
+/**
+ * Checks if a [CapabilityUIState] has any user changes that can be applied. When [ongoingExercise]
+ * is `true`, only a capability's overrideable value can be changed. In this case the function will
+ * return true only if there is a pending user override value change. When [ongoingExercise] is
+ * `false` only the capability availability will be considered changed by the user.
+ */
+internal fun CapabilityUIState.hasUserChanges(ongoingExercise: Boolean): Boolean {
+  val pendingUserChanges = (this as? PendingUserChangesCapabilityUIState)?.userState ?: return false
+  return if (ongoingExercise) pendingUserChanges.overrideValue != upToDateState.overrideValue
+  else pendingUserChanges.enabled != upToDateState.enabled
+}

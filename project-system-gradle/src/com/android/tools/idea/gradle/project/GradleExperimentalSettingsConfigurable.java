@@ -32,6 +32,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   private JCheckBox myEnableParallelSync;
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
+  private JCheckBox myShowAgpVersionChooserInNewProjectWizard;
   private JPanel myPanel;
 
   @NotNull private final GradleExperimentalSettings mySettings;
@@ -47,6 +48,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
     myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
+    myShowAgpVersionChooserInNewProjectWizard.setVisible(StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get());
     reset();
   }
 
@@ -62,7 +64,8 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.SKIP_GRADLE_TASKS_LIST == isConfigureAllGradleTasksEnabled() ||
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
-           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
+           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
+           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard();
   }
 
   @Override
@@ -72,6 +75,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_PARALLEL_SYNC = isParallelSyncEnabled();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
+    mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
   }
 
   @Override
@@ -81,6 +85,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
+    myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
   }
 
   @VisibleForTesting
@@ -129,4 +134,12 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myDeriveRuntimeClasspathsForLibraries.setSelected(value);
   }
 
+  public boolean isShowAgpVersionChooserInNewProjectWizard() {
+    return myShowAgpVersionChooserInNewProjectWizard.isSelected();
+  }
+
+  @TestOnly
+  public void enableShowAndroidGradlePluginVersionChooserInNewProjectWizard(boolean value) {
+    myShowAgpVersionChooserInNewProjectWizard.setSelected(value);
+  }
 }

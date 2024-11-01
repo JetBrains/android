@@ -22,7 +22,6 @@ import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
-import com.intellij.vcs.log.impl.HashImpl
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -84,8 +83,8 @@ class VcsCommitLabel : JPanel() {
     when (vcsInfo) {
       is AppVcsInfo.ValidInfo -> {
         cardPanelLayout.show(cardPanel, DATA_PRESENT_CARD)
-        val hash = HashImpl.build(vcsInfo.repoInfo.first().revision)
-        commitLabel.setHyperlinkText(hash.toShortString())
+        val hash = vcsInfo.repoInfo.first().revision
+        commitLabel.setHyperlinkText(hash.take(8))
 
         listener = HyperlinkListener { jumpToRevision(project, hash) }
         commitLabel.addHyperlinkListener(listener)

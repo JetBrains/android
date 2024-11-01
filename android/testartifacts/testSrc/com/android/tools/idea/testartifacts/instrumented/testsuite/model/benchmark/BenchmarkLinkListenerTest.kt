@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.browsers.BrowserLauncher
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TemporaryDirectory
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
@@ -32,22 +32,30 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.anyBoolean
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
+import java.net.URI
 
 class BenchmarkLinkListenerTest {
-
   private val projectRule = AndroidProjectRule.inMemory()
   private val temporaryDirectoryRule = TemporaryDirectory()
 
   @get:Rule
-  val rules = RuleChain.outerRule(projectRule).around(temporaryDirectoryRule)
+  val rules = checkNotNull(RuleChain.outerRule(projectRule).around(temporaryDirectoryRule))
   private val mockEditorService = mock<FileEditorManager>()
+  private val mockBrowserService = mock<BrowserLauncher>()
   private val fileCapture = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
-  private lateinit var componentStack: ComponentStack;
+  private lateinit var componentStack: ComponentStack
+
   @Before
   fun setup() {
     componentStack = ComponentStack(projectRule.project)
     componentStack.registerServiceInstance(FileEditorManager::class.java, mockEditorService)
+    ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, mockBrowserService, projectRule.testRootDisposable)
     whenever(mockEditorService.openEditor(any(), anyBoolean())).thenCallRealMethod()
     whenever(mockEditorService.openFileEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
   }
@@ -58,11 +66,40 @@ class BenchmarkLinkListenerTest {
   }
 
   @Test
-  fun listenerOpensProvider() {
+  fun listenerOpensFileLink() {
     val listener = BenchmarkLinkListener(projectRule.project)
-    val traceFile = FileUtil.createTempFile("traceFile",".trace")
+    val traceFile = FileUtil.createTempFile("traceFile", ".trace")
     traceFile.deleteOnExit()
-    listener.hyperlinkClicked("file://${traceFile.name}")
+    ApplicationManager.getApplication().invokeAndWait {
+      listener.hyperlinkClicked("file://${traceFile.name}")
+    }
     assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
+  }
+
+  @Test
+  fun listenerOpensHttpUrl() {
+    listenerOpensWebLink("http://foo.bar.baz")
+  }
+
+  @Test
+  fun listenerOpensHttpsUrl() {
+    listenerOpensWebLink("https://foo.bar.baz")
+  }
+
+  private fun listenerOpensWebLink(url: String) {
+    val listener = BenchmarkLinkListener(projectRule.project)
+    listener.hyperlinkClicked(url)
+    verify(mockBrowserService).browse(URI.create(url))
+  }
+
+  @Test
+  fun listenerIgnoresUnrecognizedLinks() {
+    val listener = BenchmarkLinkListener(projectRule.project)
+    listener.hyperlinkClicked("qwerty")
+    listener.hyperlinkClicked("asdf")
+    listener.hyperlinkClicked("ftp://abc.def")
+    listener.hyperlinkClicked("vnc://192.168.1.100")
+    verifyNoInteractions(mockBrowserService)
+    verifyNoInteractions(mockEditorService)
   }
 }

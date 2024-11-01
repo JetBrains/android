@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.bazel;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEvent;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /** Utilities to create build event proto components and stream. */
@@ -85,28 +87,41 @@ public final class BepUtils {
         .build();
   }
 
-  public static BuildEvent setOfFiles(List<String> filePaths, String id) {
-    return setOfFiles(filePaths, id, ImmutableList.of());
+  public static final class FileArtifact {
+    public final List<String> prefixes;
+    public final String name;
+    public final File file;
+
+    public FileArtifact(List<String> prefixes, String name, File file) {
+      this.prefixes = prefixes;
+      this.name = name;
+      this.file = file;
+    }
+
+    public BuildEventStreamProtos.File toFileEvent() {
+        return BuildEventStreamProtos.File.newBuilder()
+          .setUri(file.toURI().toString())
+          .setName(name)
+          .addAllPathPrefix(prefixes)
+          .build();
+      }
+
+      public String getArtifactPath() {
+        return Joiner.on("/").join(prefixes) + "/" + name;
+      }
   }
 
-  public static BuildEvent setOfFiles(List<String> filePaths, String id, List<String> fileSetDeps) {
+  public static BuildEvent setOfFiles(List<FileArtifact> filePaths, String id, List<String> fileSetDeps) {
     return BuildEvent.newBuilder()
         .setId(BuildEventId.newBuilder().setNamedSet(NamedSetOfFilesId.newBuilder().setId(id)))
         .setNamedSetOfFiles(
             NamedSetOfFiles.newBuilder()
                 .addAllFiles(
-                    filePaths.stream().map(BepUtils::toFileEvent).collect(toImmutableList()))
+                    filePaths.stream().map(FileArtifact::toFileEvent).collect(toImmutableList()))
                 .addAllFileSets(
                     fileSetDeps.stream()
                         .map(dep -> NamedSetOfFilesId.newBuilder().setId(dep).build())
                         .collect(toImmutableList())))
-        .build();
-  }
-
-  private static BuildEventStreamProtos.File toFileEvent(String filePath) {
-    return BuildEventStreamProtos.File.newBuilder()
-        .setUri(new File(filePath).toURI().toString())
-        .setName(filePath)
         .build();
   }
 

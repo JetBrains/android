@@ -43,6 +43,7 @@ object EnterOfflineMode : ChangeEvent {
         currentEvents = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
+        currentInsight = LoadingState.Ready(null),
         mode = ConnectionMode.OFFLINE,
       ),
       Action.Fetch(

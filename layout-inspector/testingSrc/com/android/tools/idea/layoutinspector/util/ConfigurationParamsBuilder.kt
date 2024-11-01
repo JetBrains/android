@@ -20,13 +20,14 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
+import java.awt.Dimension
+import java.awt.Rectangle
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.Dimension
 
 private const val defaultPackageName = "com.example"
 
@@ -42,7 +43,8 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
         )!!,
       screenSize = Dimension(1080, 1920),
       mainDisplayOrientation = 90,
-      true,
+      windowBounds = Rectangle(0, 0, 1080, 1920),
+      isRunningInMainDisplay = true,
     )
   }
 

@@ -39,5 +39,6 @@ data class DeployOptions(
   val disabledDynamicFeatures: List<String>,
   var pmInstallFlags: String,
   val installOnAllUsers: Boolean,
-  val alwaysInstallWithPm: Boolean
+  val alwaysInstallWithPm: Boolean,
+  val allowAssumeVerified: Boolean
 )

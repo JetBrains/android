@@ -19,11 +19,7 @@ import com.intellij.lang.Language
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.light.LightMethodBuilder
 
-/**
- * A [LightMethodBuilder] that supports deprecation.
- *
- * TODO(b/119872892): Investigate upstreaming fixes to LightMethodBuilder so we don't need this class.
- */
+/** A [LightMethodBuilder] that supports deprecation. */
 class DeprecatableLightMethodBuilder(
   manager: PsiManager,
   language: Language,

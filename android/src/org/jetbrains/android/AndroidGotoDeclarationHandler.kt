@@ -8,8 +8,6 @@ import com.android.ide.common.rendering.api.StyleableResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.projectsystem.getMainModule
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
@@ -36,7 +34,6 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.utils.KotlinExceptionWithAttachments
 import java.util.ArrayList
 
@@ -87,23 +84,12 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
           is AndroidRClassBase -> {
             val referencePsiElement = ResourceReferencePsiElement.create(targetElement) ?: return PsiElement.EMPTY_ARRAY
 
-            val sourceElementModule = sourceElement.module
+            // The goto context element is used to find an appropriate ResourceRepository. We generally want the
+            // containing R class as context, but in the case of AAR dependencies there's no module or repository
+            // for that class. Instead, we can fall back to the source element in cases like that.
             val gotoContext =
-              if (sourceElementModule != null &&
-                  sourceElementModule.isAndroidTestModule() &&
-                  sourceElementModule.getMainModule() == containingClass.module) {
-                // The context PsiElement passed to `getGotoDeclarationTargets` is used to get a `StudioResourceRepositoryManager`. In most
-                // cases that makes sense. However, androidTest modules differ. The test context does not contain the correpsonding main
-                // module's resources, and therefore those resources are not accessible from the `StudioResourceRepositoryManager` for the
-                // androidTest module. Despite that, the test module can access the main module's R class (and can get its resources at
-                // runtime using the app context). For that situation (main module R class referenced in an androidTest context), we want
-                // to use the main module's repository instead of the androidTest module's repository to resolve the resource reference.
-                containingClass
-              }
-              else {
-                sourceElement
-              }
-
+              if (StudioResourceRepositoryManager.getInstance(containingClass) != null) containingClass
+              else sourceElement
             AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(referencePsiElement.resourceReference, gotoContext)
           }
           is ManifestClass -> {
@@ -188,7 +174,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
       val nameAttribute = domElement.name
       val unqualifiedName = StringUtil.getShortName(StringUtil.notNullize(nameAttribute.value))
 
-      if (AndroidUtils.equal(unqualifiedName, fieldName, false)) {
+      if (AndroidUtils.equalIgnoringDelimiters(unqualifiedName, fieldName)) {
         val psiElement = nameAttribute.xmlAttributeValue
 
         if (psiElement != null) {

@@ -23,8 +23,6 @@ import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -55,6 +53,8 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 

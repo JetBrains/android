@@ -35,11 +35,16 @@ private val LOG = Logger.getInstance(RenderResult::class.java)
 private fun createErrorResult(file: PsiFile, errorResult: Result, logger: RenderLogger?): RenderResult {
   val module = ReadAction.compute<Module, Throwable> { ModuleUtilCore.findModuleForPsiElement(file) }
   assert(module != null)
+  val errorLogger = logger ?: RenderLogger(module.project).apply {
+    if (errorResult.errorMessage.isNotEmpty() || errorResult.exception != null) {
+      error(null, errorResult.errorMessage, errorResult.exception, null, null)
+    }
+  }
   val result = RenderResult(
     { StudioEnvironmentContext(module).getOriginalFile(file) },
     module.project,
     { module },
-    logger ?: RenderLogger(module.project),
+    errorLogger,
     null,
     false,
     errorResult,

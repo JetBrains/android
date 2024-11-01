@@ -39,9 +39,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
@@ -137,20 +134,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
           return;
         }
 
-        DexCodeViewer component = new DexCodeViewer(project, byteCode);
-
-        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(component, null)
-          .setProject(project)
-          .setDimensionServiceKey(project, ShowDisassemblyAction.class.getName(), false)
-          .setResizable(true)
-          .setMovable(true)
-          .setTitle("DEX Byte Code for " + node.getName())
-          .setFocusable(true)
-          .setRequestFocus(true)
-          .createPopup();
-        Disposer.register(popup, component);
-
-        popup.showInBestPositionFor(e.getDataContext());
+        new DexCodeViewer(project, node.getName(), byteCode).show();
       }
 
       @Override

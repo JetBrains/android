@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -40,8 +39,7 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<VectorDrawablesOptionsDslElement> VECTOR_DRAWABLES_OPTIONS =
     new PropertiesElementDescription<>("vectorDrawables",
                                        VectorDrawablesOptionsDslElement.class,
-                                       VectorDrawablesOptionsDslElement::new,
-                                       VectorDrawablesOptionsDslElementSchema::new);
+                                       VectorDrawablesOptionsDslElement::new);
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"generatedDensities", property, GENERATED_DENSITIES, VAL},
@@ -69,19 +67,5 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
 
   public VectorDrawablesOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class VectorDrawablesOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.VectorDrawables";
-    }
   }
 }

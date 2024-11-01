@@ -4,6 +4,6 @@
   </extensions>
 
   <dependencies>
-    <module name="intellij.android.gradle.declarative.lang" />
+    <plugin id="com.android.tools.gradle.dcl" />
   </dependencies>
 </idea-plugin>

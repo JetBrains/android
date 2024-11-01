@@ -19,11 +19,6 @@
 </extensions>
 
 <extensions defaultExtensionNs="com.intellij">
-  <registryKey key="android.gradle.ide.gradle.declarative.ide.support"
-               description="Enable support for build.gradle.dcl"
-               defaultValue="false"
-               restartRequired="false"/>
-
   <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings"/>
   <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap"/>
   <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"

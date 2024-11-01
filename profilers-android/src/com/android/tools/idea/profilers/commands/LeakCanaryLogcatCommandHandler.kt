@@ -181,23 +181,27 @@ class LeakCanaryLogcatCommandHandler(
           logcatMessages.forEach { logcatMessage ->
             if (LEAKCANARY_TAG != logcatMessage.header.tag) return@forEach
 
-            if (startPatternSuccess in logcatMessage.message || startPatternFailure in logcatMessage.message) {
-              capturing = true
-              capturedLogs.clear()
-              // Add === since it's skipped before the startPattern check
-              capturedLogs.appendLine(separatingLine)
-            }
-            if (capturing) {
-              capturedLogs.appendLine(logcatMessage.message)
-            }
-            if (capturing && metaSectionPattern in logcatMessage.message) {
-              isInMetaSection = true
-            }
-            if (isInMetaSection && separatingLine == logcatMessage.message) {
-              capturing = false
-              isInMetaSection = false
-              sendLeakCanaryLogcatEvent(capturedLogs.toString())
-              capturedLogs.clear()
+            // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
+            // (with one header). Therefore, we need to break the message into lines before processing.
+            logcatMessage.message.split("\n").forEach { line ->
+              if (startPatternSuccess in line || startPatternFailure in line) {
+                capturing = true
+                capturedLogs.clear()
+                // Add === since it's skipped before the startPattern check
+                capturedLogs.appendLine(separatingLine)
+              }
+              if (capturing) {
+                capturedLogs.appendLine(line)
+              }
+              if (capturing && metaSectionPattern in line) {
+                isInMetaSection = true
+              }
+              if (isInMetaSection && separatingLine == line) {
+                capturing = false
+                isInMetaSection = false
+                sendLeakCanaryLogcatEvent(capturedLogs.toString())
+                capturedLogs.clear()
+              }
             }
           }
         }

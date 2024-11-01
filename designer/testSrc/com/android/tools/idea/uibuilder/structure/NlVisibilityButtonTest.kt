@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentModificationDelegate
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
@@ -26,6 +25,7 @@ import javax.swing.Icon
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class NlVisibilityButtonTest {
 

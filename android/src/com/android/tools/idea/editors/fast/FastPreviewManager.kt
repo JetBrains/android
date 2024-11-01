@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
@@ -387,7 +388,7 @@ class FastPreviewManager private constructor(
       }
       indicator.text = "Compiling"
       try {
-        daemon.compileRequest(files, module, outputDir, indicator)
+        daemon.compileRequest(ApplicationLiveEditServices.Legacy(project), files, module, outputDir, indicator)
       }
       catch (t: CancellationException) {
         CompilationResult.CompilationAborted(t)

@@ -37,7 +37,6 @@ import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -47,7 +46,6 @@ import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
 import java.io.File
 import java.util.EnumSet
-import com.android.ide.common.gradle.Module as ExternalModule
 
 /**
  * Extension point for the general lint support to look up services it does not directly depend
@@ -96,8 +94,7 @@ abstract class LintIdeSupport {
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
         fileType === TomlFileType ||
-        (Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") &&
-         file.name.endsWith(EXT_GRADLE_DECLARATIVE))
+      file.name.endsWith(EXT_GRADLE_DECLARATIVE)
     ) {
       return true
     }

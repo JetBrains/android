@@ -338,7 +338,7 @@ data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftw
   override fun runTest(root: File, project: Project) {
     assertThat(DumbService.isDumb(project)).isFalse()
     // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
-    val files = FilenameIndex.getVirtualFilesByName("KotlinJvmCompilerArgumentsProvider.class", GlobalSearchScope.everythingScope(project))
+    val files = FilenameIndex.getVirtualFilesByName("KotlinBasePlugin.class", GlobalSearchScope.everythingScope(project))
     assertThat(files.isEmpty()).isTrue()
   }
 

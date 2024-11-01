@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -39,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 class AbstractInspectorClientTest {
   @get:Rule val disposableRule = DisposableRule()

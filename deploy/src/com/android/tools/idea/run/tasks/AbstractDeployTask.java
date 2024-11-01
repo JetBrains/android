@@ -43,6 +43,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
@@ -52,6 +53,7 @@ import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -59,6 +61,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -80,6 +83,7 @@ public abstract class AbstractDeployTask {
                     EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY, ChangeType.RESOURCE));
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
+  protected final boolean myAllowAssumeVerified;
   private final Computable<String> myInstallPathProvider;
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
@@ -89,12 +93,13 @@ public abstract class AbstractDeployTask {
                             @NotNull Collection<ApkInfo> packages,
                             boolean rerunOnSwapFailure,
                             boolean alwaysInstallWithPm,
-                            Computable<String> installPathProvider
-  ) {
+                            boolean allowAssumeVerified,
+                            Computable<String> installPathProvider) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
+    myAllowAssumeVerified = allowAssumeVerified;
     myInstallPathProvider = installPathProvider;
     mySubTaskDetails = new ArrayList<>();
   }
@@ -143,6 +148,7 @@ public abstract class AbstractDeployTask {
     DeployerOption option = new DeployerOption.Builder().setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
       .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
       .setOptimisticInstallSupport(optimisticInstallSupport)
+      .setAllowAssumeVerified(myAllowAssumeVerified)
       .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
       .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()).build();
@@ -183,6 +189,18 @@ public abstract class AbstractDeployTask {
 
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;
+
+  private String getLocalInstaller() {
+    Path path;
+    if (StudioPathManager.isRunningFromSources()) {
+      // Development mode
+      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
+    }
+    else {
+      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
+    }
+    return path.toString();
+  }
 
   @NotNull
   protected Project getProject() {

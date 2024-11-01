@@ -17,7 +17,6 @@ package com.android.tools.adtui.device;
 
 import static com.android.tools.adtui.device.DeviceArtPainter.DeviceData;
 import static com.android.tools.adtui.device.DeviceArtPainter.FrameData;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -26,21 +25,22 @@ import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
+import com.android.testutils.ImageDiffUtil;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.util.SystemInfo;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -75,54 +75,14 @@ public class DeviceArtPainterTest {
     generateCropData();
   }
 
-  // This test is disabled but code is preserved here; this is handy for quickly checking rendering results when tweaking the code to
-  // assemble composite images. (Make sure you also turn off the thumbnail cache first! Return null from DeviceArtPainter#getCachedImage.)
   @Test
-  @Ignore("b/303116235")
   public void testRendering() throws Exception {
-    DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
-    for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
-      if ("wear_round".equals(spec.getId())) {
-        FrameData frameData = new DeviceData(null, spec).getFrameData(ScreenOrientation.LANDSCAPE, 320);
-        BufferedImage image = frameData.getImage(true);
-        @SuppressWarnings("SSBasedInspection")
-        File file = File.createTempFile("test-rendering", "png");
-        if (file.exists()) {
-          boolean deleted = file.delete();
-          assertTrue(deleted);
-        }
-        ImageIO.write(image, "PNG", file);
-        if (file.exists() && SystemInfo.isMac) {
-          Runtime.getRuntime().exec("/usr/bin/open " + file.getPath());
-        }
-      }
-    }
-  }
-
-  @SuppressWarnings("UseJBColor")
-  @Test
-  public void testCroppedRendering() {
     File deviceArtPath = DeviceArtDescriptor.getBundledDescriptorsFolder();
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
 
-    DeviceArtDescriptor watch_square = findDescriptor(descriptors, "watch_square");
-    DeviceArtDescriptor watch_round = findDescriptor(descriptors, "watch_round");
-
-    assertNotNull(watch_square);
-    assertNotNull(watch_round);
-
-    Dimension size = watch_round.getScreenSize(ScreenOrientation.LANDSCAPE);
-    BufferedImage sample = createSampleImage(size, Color.RED);
-
-    BufferedImage framed = DeviceArtPainter.createFrame(sample, watch_round);
-
-    // make sure that a location outside the round frame is empty
-    // (if the mask was not applied, this would be the same color as the source image)
-    Point loc = watch_round.getScreenPos(ScreenOrientation.LANDSCAPE);
-    assertEquals(0, framed.getRGB(loc.x, loc.y));
-
-    // a point at the center should be the same as the source
-    assertEquals(Color.RED.getRGB(), framed.getRGB(loc.x + size.width / 2, loc.y + size.height / 2));
+    for (DeviceArtDescriptor descriptor : descriptors) {
+      assertAppearance(descriptor);
+    }
   }
 
   @NotNull
@@ -134,17 +94,6 @@ public class DeviceArtPainterTest {
     g2d.fillRect(0, 0, size.width, size.height);
     g2d.dispose();
     return img;
-  }
-
-  @Nullable
-  private static DeviceArtDescriptor findDescriptor(@NotNull List<DeviceArtDescriptor> descriptors, @NotNull String id) {
-    for (DeviceArtDescriptor desc : descriptors) {
-      if (desc.getId().equals(id)) {
-        return desc;
-      }
-    }
-
-    return null;
   }
 
   private static void generateCropData() throws Exception {
@@ -484,5 +433,15 @@ public class DeviceArtPainterTest {
     g.dispose();
 
     return cropped;
+  }
+
+  private void assertAppearance(DeviceArtDescriptor descriptor) throws IOException {
+    BufferedImage sample = createSampleImage(new Dimension(400, 800), Color.RED);
+    BufferedImage image = DeviceArtPainter.createFrame(sample, descriptor);
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(descriptor.getId()), image, 0.0);
+  }
+
+  private Path getGoldenFile(String name) {
+    return TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/adt-ui/testData/DeviceArtPaiterTest/golden/" + name + ".png");
   }
 }

@@ -87,23 +87,23 @@ class ComposePreviewRepresentationProviderTest {
     assertTrue(previewProvider.accept(project, file))
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.CODE
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = false
     assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.DESIGN
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = false
     assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.CODE
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = true
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.SPLIT
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.SPLIT
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = true
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.DESIGN
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = true
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
   }
@@ -134,13 +134,13 @@ class ComposePreviewRepresentationProviderTest {
     assertTrue(previewProvider.accept(project, file))
     assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.CODE
     assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.SPLIT
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.SPLIT
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.DESIGN
     assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
   }
 
@@ -163,21 +163,21 @@ class ComposePreviewRepresentationProviderTest {
 
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = false
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.CODE
     assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.SPLIT
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.SPLIT
     assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.DESIGN
     assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
 
     androidEditorSettings.globalState.showSplitViewForPreviewFiles = true
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.CODE
     assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
 
-    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    androidEditorSettings.globalState.preferredEditorMode = EditorMode.DESIGN
     assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
   }
 

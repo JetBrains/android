@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.client
 
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
@@ -37,12 +36,17 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.client.GeminiAiInsightClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.client.createGeminiInsightRequest
 import com.android.tools.idea.insights.client.runGrpcCatching
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
@@ -54,9 +58,10 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -68,11 +73,13 @@ private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 private const val MAX_CONCURRENT_CALLS = 10
 
 class VitalsClient(
+  project: Project,
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
   private val interceptor: ClientInterceptor,
   private val grpcClient: VitalsGrpcClient =
     VitalsGrpcClientImpl.create(parentDisposable, interceptor),
+  private val aiInsightClient: AiInsightClient = GeminiAiInsightClient.create(project),
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 
@@ -84,7 +91,7 @@ class VitalsClient(
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
-    fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource?,
+    fetchSource: FetchSource?,
     mode: ConnectionMode,
     permission: Permission,
   ): LoadingState.Done<IssueResponse> = supervisorScope {
@@ -130,13 +137,7 @@ class VitalsClient(
           MetricType.ERROR_REPORT_COUNT,
         )
       }
-      val issues = async {
-        fetchIssues(
-          request,
-          fetchSource ==
-            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH,
-        )
-      }
+      val issues = async { fetchIssues(request, fetchSource == FetchSource.REFRESH) }
 
       LoadingState.Ready(
         IssueResponse(
@@ -223,11 +224,26 @@ class VitalsClient(
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
-    eventId: String,
-    variantId: String?,
+    failureType: FailureType,
+    event: Event,
     timeInterval: TimeIntervalFilter,
+    codeContextData: CodeContextData,
+    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
-    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
+    if (failureType != FailureType.FATAL) {
+      return LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+    }
+    val cachedInsight = cache.getAiInsight(connection, issueId)
+    return if (cachedInsight == null || forceFetch) {
+      val insight =
+        aiInsightClient
+          .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
+          .copy(experiment = codeContextData.experimentType)
+      cache.putAiInsight(connection, issueId, insight)
+      LoadingState.Ready(insight)
+    } else {
+      LoadingState.Ready(cachedInsight)
+    }
   }
 
   private suspend fun fetchIssues(

@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -37,13 +38,13 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true);
+    DeclarativeIdeSupport.INSTANCE.override(true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault();
+    DeclarativeIdeSupport.INSTANCE.clearOverride();
   }
 
   @Test

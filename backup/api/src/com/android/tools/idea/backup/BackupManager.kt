@@ -28,8 +28,12 @@ interface BackupManager {
   /** Where in the UI was the action invoked from */
   enum class Source {
     DEVICE_EXPLORER,
-    RUN_MENU,
     PROJECT_VIEW,
+    RUN_CONFIG,
+    /** Correlate with `BackupAppAction.place` */
+    BACKUP_APP_ACTION,
+    /** Correlate with `BackupForegroundAppAction.place` */
+    BACKUP_FOREGROUND_APP_ACTION,
   }
 
   /**
@@ -37,17 +41,15 @@ interface BackupManager {
    *
    * @param serialNumber Serial number of a connected device
    * @param applicationId Application ID (package name) of the app
-   * @param backupFile A path to write the backup data to
    * @param notify If true, will post a notification on completion
    */
   @UiThread
-  fun backupModal(
+  fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
-    backupFile: Path,
     source: Source,
     notify: Boolean = true,
-  ): BackupResult
+  )
 
   /**
    * Restore an app from a local file and show a progress dialog
@@ -80,9 +82,6 @@ interface BackupManager {
     notify: Boolean = true,
   ): BackupResult
 
-  /** Display a file chooser dialog for saving a backup file */
-  suspend fun chooseBackupFile(nameHint: String): Path?
-
   /** Display a file chooser dialog for loading a backup file */
   fun chooseRestoreFile(): Path?
 
@@ -95,10 +94,18 @@ interface BackupManager {
    */
   suspend fun getApplicationId(backupFile: Path): String?
 
+  /** Gets the application id of the foreground on the device with the serial number provided. */
+  suspend fun getForegroundApplicationId(serialNumber: String): String
+
+  /** Returns true is the application is installed on the device . */
+  suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean
+
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 
   companion object {
+    const val NOTIFICATION_GROUP = "Backup"
+
     @JvmStatic
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
@@ -34,6 +33,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 
 class VisualizationFormVisualLintHandlerTest {
 
@@ -48,8 +48,8 @@ class VisualizationFormVisualLintHandlerTest {
     assertEquals(0, issueModel.issues.size)
 
     val handlerIssueProvider = handler.lintIssueProvider
-    val fakeNlModel = MockitoKt.mock<NlModel>()
-    val fakeNlComponent = MockitoKt.mock<NlComponent>()
+    val fakeNlModel = mock<NlModel>()
+    val fakeNlComponent = mock<NlComponent>()
     Mockito.`when`(fakeNlComponent.model).thenReturn(fakeNlModel)
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)

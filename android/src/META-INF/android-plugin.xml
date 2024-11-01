@@ -85,6 +85,11 @@
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
 
+    <action internal="true"
+            text="Validate Plugin Configuration"
+            id="Android.ValidatePluginConfiguration"
+            class="com.android.tools.idea.actions.ValidatePluginConfigurationAction"/>
+
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
@@ -327,8 +332,6 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer"
                               order="first"/>
-    <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"
-                              />
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
@@ -382,6 +385,16 @@
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.completion.AndroidNonTransitiveRClassJavaCompletionContributor"
                             order="last, before javaLegacy"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="org.jetbrains.android.completion.AndroidJavaRequiresPermissionCompletionContributor"
+                            order="first" />
+    <completion.contributor language="kotlin"
+                            implementationClass="org.jetbrains.android.completion.AndroidKotlinRequiresPermissionCompletionContributor"
+                            order="first" />
+    <weigher key="completion"
+             implementationClass="org.jetbrains.android.completion.AndroidRequiresPermissionCompletionWeigher"
+             id="AndroidRequiresPermissionCompletionWeigher"
+             order="first"/>
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
@@ -490,10 +503,6 @@
 
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
     <spellchecker.dictionary.runtimeDictionaryProvider implementation="com.android.tools.idea.AndroidDictionaryProvider"/>
-
-    <lang.documentationProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidDocumentationProvider" order="first"/>
-    <implementationViewSessionFactory implementation="org.jetbrains.android.quickDefinitions.AndroidImplementationViewSessionFactory"
-                                      order="first"/>
 
     <sdkType implementation="org.jetbrains.android.sdk.AndroidSdkType"/>
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
@@ -613,7 +622,6 @@
     <notificationGroup id="Gradle Initializer" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Emulator" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.emulator"/>
     <notificationGroup id="Android Autogeneration" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.autogeneration.notification.group"/>
-    <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <!-- Default settings should match with the values specified in ProjectUpgradeNotification.kt -->
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON" isLogByDefault="true" />
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
@@ -648,7 +656,6 @@
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -657,9 +664,6 @@
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
-    <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
-  </extensions>
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.actions.exportProjectZipExcludesContributor"
@@ -718,6 +722,8 @@
                     interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
     <extensionPoint qualifiedName="com.android.tools.idea.rendering.tokens.buildSystemFilePreviewServices"
                     interface="com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.liveedit.tokens.buildSystemLiveEditServices"
+                    interface="com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.testRunParametersToken"
                     interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
@@ -726,6 +732,10 @@
                     interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken"
                     interface="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.androidRunConfigurationToken"
+                    interface="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.res.resourceClassToken"
+                    interface="com.android.tools.idea.res.ResourceClassToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">

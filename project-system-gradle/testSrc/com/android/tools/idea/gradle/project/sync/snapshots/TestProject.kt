@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -30,7 +31,6 @@ import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
@@ -436,10 +436,10 @@ enum class TestProject(
   GRADLE_DECLARATIVE(
     TestProjectToSnapshotPaths.GRADLE_DECLARATIVE,
     setup = fun(): () -> Unit {
-      Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true)
+      DeclarativeStudioSupport.override(true)
 
       return fun() {
-        Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault()
+        DeclarativeStudioSupport.clearOverride()
       }
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },

@@ -57,6 +57,14 @@ class NewLibraryModuleModel(
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = RenderLoggingEvent.JAVA_LIBRARY
 
+  override fun getParamsToLog(): String {
+    return super.getParamsToLog() + """
+      |
+      |[Java or Kotlin Library params]
+      |Class name: ${className.get()}
+    """.trimMargin()
+  }
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generatePureLibrary(moduleData = td as ModuleTemplateData, className = className.get(), useGradleKts = useGradleKts.get(),

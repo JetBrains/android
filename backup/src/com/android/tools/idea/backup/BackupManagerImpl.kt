@@ -23,6 +23,7 @@ import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
+import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
@@ -30,25 +31,20 @@ import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
-import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
+import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
-import com.intellij.ide.actions.RevealFileAction
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.messages.MessagesService
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
@@ -60,10 +56,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
-import java.io.File
-
-private const val BACKUP_PATH_KEY = "Backup.Path"
-private const val NOTIFICATION_GROUP = "Backup"
 
 private val logger: Logger = Logger.getInstance(BackupManager::class.java)
 
@@ -85,33 +77,16 @@ internal constructor(private val project: Project, private val backupService: Ba
   )
 
   @UiThread
-  override fun backupModal(
+  override fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
-    backupFile: Path,
     source: Source,
     notify: Boolean,
-  ): BackupResult {
-    logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
-    // TODO(348406593): Find a way to make the modal dialog be switched to background task
-    return runWithModalProgressBlocking(
-      ModalTaskOwner.project(project),
-      message("backup"),
-      cancellable(),
-    ) {
-      reportSequentialProgress { reporter ->
-        val listener = BackupProgressListener(reporter::onStep)
-        val result = backupService.backup(serialNumber, applicationId, backupFile, listener)
-        val operation = message("backup")
-        if (notify) {
-          result.notify(operation, backupFile, serialNumber)
-        }
-        if (result is Error) {
-          logger.warn(message("notification.error", operation), result.throwable)
-        }
-        BackupUsageTracker.logBackup(D2D, source, result)
-        result
-      }
+  ) {
+    val dialog = BackupDialog(project, applicationId)
+    val ok = dialog.showAndGet()
+    if (ok) {
+      doBackup(serialNumber, applicationId, dialog.backupPath, source, notify)
     }
   }
 
@@ -160,19 +135,6 @@ internal constructor(private val project: Project, private val backupService: Ba
     return result
   }
 
-  override suspend fun chooseBackupFile(nameHint: String): Path? {
-    val path =
-      FileChooserFactory.getInstance()
-        .createSaveFileDialog(FILE_SAVER_DESCRIPTOR, project)
-        .save(getBackupPath(), nameHint)
-        ?.file
-        ?.toPath()
-    if (path != null) {
-      setBackupPath(path)
-    }
-    return path
-  }
-
   override fun chooseRestoreFile(): Path? {
     return FileChooserFactory.getInstance()
       .createFileChooser(FILE_CHOOSER_DESCRIPTOR, project, null)
@@ -193,6 +155,50 @@ internal constructor(private val project: Project, private val backupService: Ba
 
   override fun getRestoreRunConfigSection(project: Project) = RestoreRunConfigSection(project)
 
+  override suspend fun getForegroundApplicationId(serialNumber: String): String {
+    return backupService.getForegroundApplicationId(serialNumber)
+  }
+
+  override suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean {
+    return backupService.isInstalled(serialNumber, applicationId)
+  }
+
+  @UiThread
+  @VisibleForTesting
+  internal fun doBackup(
+    serialNumber: String,
+    applicationId: String,
+    backupFile: Path,
+    source: Source,
+    notify: Boolean,
+  ): BackupResult {
+    logger.debug("Backing up '$applicationId' from $backupFile on '${serialNumber}'")
+    // TODO(348406593): Find a way to make the modal dialog be switched to background task
+    return runWithModalProgressBlocking(
+      ModalTaskOwner.project(project),
+      message("backup"),
+      cancellable(),
+    ) {
+      reportSequentialProgress { reporter ->
+        val listener = BackupProgressListener(reporter::onStep)
+        // TODO: Support different backup types. Probably change this method name to
+        // `showBackupDialog()` and make it handle
+        //  the type, file and any other parameters it might need.
+        val result =
+          backupService.backup(serialNumber, applicationId, DEVICE_TO_DEVICE, backupFile, listener)
+        val operation = message("backup")
+        if (notify) {
+          result.notify(operation, backupFile, serialNumber)
+        }
+        if (result is Error) {
+          logger.warn(message("notification.error", operation), result.throwable)
+        }
+        BackupUsageTracker.logBackup(DEVICE_TO_DEVICE, source, result)
+        result
+      }
+    }
+  }
+
   private fun BackupResult.notify(
     operation: String,
     backupFile: Path? = null,
@@ -207,7 +213,7 @@ internal constructor(private val project: Project, private val backupService: Ba
   private fun notifySuccess(message: String, backupFile: Path?) {
     val notification = Notification(NOTIFICATION_GROUP, message, INFORMATION)
     if (backupFile != null) {
-      notification.addAction(RevealBackupFileAction(backupFile))
+      notification.addAction(ShowPostBackupDialogAction(project, backupFile))
     }
     Notifications.Bus.notify(notification, project)
   }
@@ -226,23 +232,10 @@ internal constructor(private val project: Project, private val backupService: Ba
     Notifications.Bus.notify(notification, project)
   }
 
-  private suspend fun getBackupPath(): Path? {
-    val properties = PropertiesComponent.getInstance(project)
-    return withContext(AndroidDispatchers.diskIoThread) {
-      when (val lastPath = properties.getValue(BACKUP_PATH_KEY)) {
-        null -> project.guessProjectDir()?.toNioPath()
-        else -> LocalFileSystem.getInstance().findFileByPath(lastPath)?.toNioPath()
-      }
-    }
-  }
-
-  private fun setBackupPath(path: Path) {
-    PropertiesComponent.getInstance(project).setValue(BACKUP_PATH_KEY, path.pathString)
-  }
-
-  private class RevealBackupFileAction(private val backupPath: Path) : RevealFileAction() {
+  private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
+    AnAction("Add to Run Configuration") {
     override fun actionPerformed(e: AnActionEvent) {
-      openFile(backupPath)
+      PostBackupDialog(project, backupPath).show()
     }
   }
 

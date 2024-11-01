@@ -32,8 +32,6 @@ fun createDesignerAnalyticsManagerFake(trackZoom: (ZoomType) -> Unit): DesignerA
 fun createDesignSurfaceZoomControllerFake(
   project: Project,
   disposable: Disposable,
-  minScale: Double = 0.0,
-  maxScale: Double = 10.0,
   trackZoom: ((ZoomType) -> Unit)? = null,
 ): DesignSurfaceZoomController {
   val designerAnalyticsManager =
@@ -50,12 +48,6 @@ fun createDesignSurfaceZoomControllerFake(
       selectionModel = null,
       scenesOwner = null,
     ) {
-    override val minScale: Double
-      get() = minScale
-
-    override val maxScale: Double
-      get() = maxScale
-
     override fun getFitScale() = 1.0
   }
 }

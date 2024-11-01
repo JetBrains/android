@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
+
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
@@ -51,6 +53,6 @@ public class AndroidTestClassBrowser<T extends JComponent> extends AndroidClassB
   @Override
   protected @Nullable Module getModuleForScope() {
     Module module = super.getModuleForScope();
-    return module == null ? null : ModuleSystemUtil.getAndroidTestModule(module);
+    return module == null ? null : getModuleForAndroidTestRunConfiguration(module);
   }
 }

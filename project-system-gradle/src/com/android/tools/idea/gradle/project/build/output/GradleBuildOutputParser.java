@@ -90,7 +90,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
     // consume the build failed message if there were some errors parsed before, this makes sure that GradleBuildScriptErrorParser will not
     // re-parse and duplicate the errors
     if (currentLine.startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) && buildIdsWithAGPErrors.contains(reader.getParentEventId())) {
-      BuildOutputParserUtils.consumeRestOfOutput(reader);
+      BuildOutputParserUtils.INSTANCE.consumeRestOfOutput(reader);
       return true;
     }
 

@@ -58,6 +58,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
@@ -76,7 +77,6 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.IntFunction
 import kotlin.math.min
-
 
 // Predefined agent's exit codes. Other exit codes are possible.
 internal const val AGENT_GENERIC_FAILURE = 1
@@ -207,7 +207,9 @@ internal class DeviceClient(
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
       async {
-        pushAgent(deviceSelector, adbSession, project)
+        pushSerializer.executeSeriallyFor(deviceSerialNumber) { // Don't allow concurrent pushes to the same device.
+          pushAgent(deviceSelector, adbSession, project)
+        }
       }
     }
 
@@ -751,5 +753,35 @@ internal class DeviceClient(
 }
 
 private val logger = Logger.getInstance(DeviceClient::class.java)
+
+private class ExecutionSerializer {
+
+  private val semaphores = mutableListOf<Entry>()
+
+  suspend fun executeSeriallyFor(key: Any, block: suspend () -> Unit) {
+    val entry = synchronized(semaphores) {
+      semaphores.find { it.key == key }?.also { it.refCount++ } ?: Entry(key).also { semaphores.add(it) }
+    }
+    entry.semaphore.acquire()
+    try {
+      block()
+    }
+    finally {
+      synchronized(semaphores) {
+        if (--entry.refCount == 0) {
+          semaphores.removeIf { it.key == key }
+        }
+      }
+      entry.semaphore.release()
+    }
+  }
+
+  class Entry(val key: Any) {
+    val semaphore = Semaphore(1)
+    var refCount = 1
+  }
+}
+
+private val pushSerializer = ExecutionSerializer()
 
 internal class AgentTerminatedException(val exitCode: Int) : RuntimeException("Exit code $exitCode")

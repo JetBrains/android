@@ -16,9 +16,8 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isAndroidTestModule;
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -33,7 +32,6 @@ import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
-import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.google.common.collect.ImmutableList;
@@ -73,6 +71,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import kotlin.sequences.SequencesKt;
+import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -85,6 +84,24 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration for "Android Instrumented Tests"
  */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
+
+  /**
+   * This tracks changes to AndroidTestRunConfiguration which affect deserializing existing run configurations, for
+   * use in {@link #readExternal}. Previous states had differences such that:
+   * <ul>
+   * <li>0 (unset): the RunConfiguration would be given (under Gradle projects) a sourceSet module, rather than a holder module.</li>
+   * </ul>
+   * When incrementing this value, please also add to the implementation of {@link #readExternal}, and the list of previous states (above).
+   */
+  public static final int CURRENT_SCHEMA_VERSION = 1;
+
+  /**
+   * For internal use: {@link #readExternal} should test whether this is less than specific values in order to take
+   * whatever steps are necessary to convert run configurations serialized under older schema versions to the
+   * current version.  See {@link #CURRENT_SCHEMA_VERSION}.
+   */
+  public int ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
+
   public static final int TEST_ALL_IN_MODULE = 0;
   public static final int TEST_ALL_IN_PACKAGE = 1;
   public static final int TEST_CLASS = 2;
@@ -244,16 +261,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
-  @Override
-  public boolean isTestConfiguration() {
-    return true;
-  }
-
   private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
+    Module moduleForAndroidTest;
     try {
       testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
+      Module module = configurationModule.getModule();
+      if (module == null) throw new IllegalStateException("Test module not specified and not caught in checkModuleAndClassName");
+      Module androidTestModule = getModuleForAndroidTestRunConfiguration(module);
+      if (androidTestModule == null) {
+        String name = module.getName();
+        throw new RuntimeConfigurationException("Cannot find android tests for module '" + name + "'");
+      }
+      moduleForAndroidTest = androidTestModule;
     }
     catch (RuntimeConfigurationException e) {
       // We can't proceed without a test class.
@@ -279,7 +300,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
-        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(getConfigurationModule().getAndroidTestModule());
+        final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(moduleForAndroidTest);
         if (!testClass.isInheritor(testCaseClass, true)) {
           errors.add(ValidationError.fatal(JUnitBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
@@ -291,6 +312,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return errors;
   }
 
+  @Override
+  public Module @NotNull [] getModules() {
+    Module module = getConfigurationModule().getAndroidTestModule();
+    return new Module[] { module };
+  }
+
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
@@ -298,30 +325,35 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       getProject(),
       module -> {
         if (module == null) return false;
-        final var facet = AndroidFacet.getInstance(module);
-        if (facet == null) return false;
-        final var moduleSystem = getModuleSystem(facet);
-        final var moduleType = moduleSystem.getType();
-        switch (moduleType) {
-          case TYPE_APP:
-          case TYPE_DYNAMIC_FEATURE:
-          case TYPE_LIBRARY:
-            return isAndroidTestModule(module);
-          case TYPE_TEST:
-            return isMainModule(module);
-          case TYPE_ATOM:
-          case TYPE_FEATURE:
-          case TYPE_INSTANTAPP:
-            return false; // Legacy not-supported module types.
-          case TYPE_NON_ANDROID:
-            return false;
-        }
-        return false;
+        final var moduleSystem = getModuleSystem(module);
+        return moduleSystem.isValidForAndroidTestRunConfiguration();
       },
       this,
       false,
       true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
+  }
+
+  @Override
+  public void readExternal(@NotNull Element element) {
+    super.readExternal(element);
+
+    boolean schemaVersionAbsent = element.getChildren("option").stream()
+      .noneMatch(it -> "ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION".equals(it.getAttributeValue("name")));
+    if (schemaVersionAbsent) {
+      // Treat the absence of serialized schema version as version 0
+      ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION = 0;
+    }
+    if (ANDROID_TEST_RUN_CONFIGURATION_SCHEMA_VERSION < 1) {
+      // Migrate old-style sourceSet modules to the holder module
+      String moduleName = getConfigurationModule().getModuleName();
+      if (moduleName.endsWith(".main")) {
+        setModuleName(moduleName.substring(0, moduleName.length() - ".main".length()));
+      }
+      else if (moduleName.endsWith(".androidTest")) {
+        setModuleName(moduleName.substring(0, moduleName.length() - ".androidTest".length()));
+      }
+    }
   }
 
   /**

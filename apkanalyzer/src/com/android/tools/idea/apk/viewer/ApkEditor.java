@@ -160,7 +160,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
           myApkViewPanel = withChecksDisabledForSupplier(() ->
-              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault())));
+              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()), apkVirtualFile.getName()));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
@@ -309,7 +309,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // Check if multiple dex files are selected and return a multiple dex viewer.
     boolean allDex = true;
     for (ArchiveTreeNode path : nodes) {
-       if (!path.getData().getPath().getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
+      if (path == null) {
+        continue;
+      }
+      Path fileName = path.getData().getPath().getFileName();
+      if (fileName != null && !fileName.toString().endsWith(SdkConstants.EXT_DEX)){
         allDex = false;
         break;
       }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
@@ -48,6 +47,8 @@ class DeclarativePsiFactory(private val project: Project) {
       is String -> if (value.contains('\n')) createMultiStringLiteral(value) else createStringLiteral(value)
       is Int -> createIntLiteral(value)
       is Long -> createLongLiteral(value)
+      is Float -> createFloatLiteral(value)
+      is Double -> createDoubleLiteral(value)
       is ULong -> createULongLiteral(value)
       is UInt -> createUIntLiteral(value)
       is Boolean -> createBooleanLiteral(value)
@@ -62,6 +63,12 @@ class DeclarativePsiFactory(private val project: Project) {
 
   fun createIntLiteral(value: Int): DeclarativeLiteral =
     createFromText("placeholder = $value") ?: error("Failed to create Declarative Int from $value")
+
+  fun createDoubleLiteral(value: Double): DeclarativeLiteral =
+    createFromText("placeholder = $value") ?: error("Failed to create Declarative Double from $value")
+
+  fun createFloatLiteral(value: Float): DeclarativeLiteral =
+    createFromText("placeholder = $value") ?: error("Failed to create Declarative Double from $value")
 
   fun createLongLiteral(value: Long): DeclarativeLiteral {
     val text = when (value) {
@@ -101,6 +108,19 @@ class DeclarativePsiFactory(private val project: Project) {
   fun createAssignment(key: String, value: Any): DeclarativeAssignment =
     createFromText("$key = $value") ?: error("Failed to create DeclarativeAssignment `$key = $value`")
 
+  fun createArgumentList(): DeclarativeArgumentsList {
+    val list: DeclarativeArgumentsList = createFromText("function(placeholder)") ?: error("Failed to create DeclarativeArgumentsList")
+    list.argumentList.clear()
+    return list
+  }
+
+  fun createArgument(value: DeclarativeValue, identifier: String? = null): DeclarativeArgument =
+    (if (identifier == null)
+      createFromText("function(${value.text})")
+    else
+      createFromText("function($identifier = ${value.text})"))
+    ?: error("Failed to create DeclarativeArgument `$identifier = ${value.text}`")
+
   fun createProperty(value: String): DeclarativeProperty =
     createFromText("placeholder = $value") ?: error("Failed to create DeclarativeProperty `$value`")
 
@@ -109,8 +129,15 @@ class DeclarativePsiFactory(private val project: Project) {
     return factory ?: error("Failed to create createFactory `$identifier( )`")
   }
 
-  fun createOneParameterFactory(identifier: String, parameter: Any?): DeclarativeFactory {
-    val factory = createFromText<DeclarativeFactory>("$identifier($parameter)")
-    return factory ?: error("Failed to create createFactory `$identifier($parameter)`")
+  fun createOneParameterFactory(identifier: String,
+                                plainParameter: Any,
+                                parameterIdentifier: String? = null): DeclarativeFactory {
+    val factory =
+      if (parameterIdentifier == null)
+        createFromText<DeclarativeFactory>("$identifier($plainParameter)")
+      else
+        createFromText<DeclarativeFactory>("$identifier($parameterIdentifier = $plainParameter)")
+
+    return factory ?: error("Failed to create createFactory `$identifier($plainParameter)`")
   }
 }

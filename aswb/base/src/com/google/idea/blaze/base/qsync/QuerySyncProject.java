@@ -49,6 +49,7 @@ import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.SnapshotHolder;
@@ -56,10 +57,10 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
-import com.google.idea.blaze.qsync.project.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer;
 import com.google.idea.blaze.qsync.project.SnapshotSerializer;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
+import com.google.protobuf.CodedOutputStream;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -559,7 +560,10 @@ public class QuerySyncProject {
   private void writeToDisk(QuerySyncProjectSnapshot snapshot) throws IOException {
     try (AtomicFileWriter writer = AtomicFileWriter.create(snapshotFilePath)) {
       try (OutputStream zip = new GZIPOutputStream(writer.getOutputStream())) {
-        new SnapshotSerializer().visit(snapshot.queryData()).toProto().writeTo(zip);
+        final var message = new SnapshotSerializer().visit(snapshot.queryData()).toProto();
+        CodedOutputStream codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024);
+        message.writeTo(codedOutput);
+        codedOutput.flush();
       }
       writer.onWriteComplete();
     }

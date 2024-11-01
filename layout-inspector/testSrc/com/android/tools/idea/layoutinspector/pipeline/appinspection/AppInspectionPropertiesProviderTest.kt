@@ -20,9 +20,6 @@ import com.android.SdkConstants.URI_PREFIX
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -54,7 +51,6 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable.PTable
-import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableGroupModification
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -71,6 +67,9 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Timeout used in this test. While debugging, you may want to extend the timeout */
 private const val TIMEOUT = 3L
@@ -571,7 +570,7 @@ class AppInspectionPropertiesProviderTest {
         moreListElements1.countDown()
       }
       .whenever(table1)
-      .updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+      .updateGroupItems(any(), any())
     doAnswer { table1.component }
       .whenever(event1)
       .getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))
@@ -603,7 +602,7 @@ class AppInspectionPropertiesProviderTest {
         moreListElements2.countDown()
       }
       .whenever(table2)
-      .updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+      .updateGroupItems(any(), any())
     doAnswer { table2.component }
       .whenever(event2)
       .getData(Mockito.eq(PlatformCoreDataKeys.CONTEXT_COMPONENT))

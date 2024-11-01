@@ -29,10 +29,6 @@ class SantaTrackerKotlinK2Benchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
-    init {
-      System.setProperty("idea.kotlin.plugin.use.k2", "true")
-    }
-
     @JvmField
     @ClassRule
     val staticRule = AndroidGradleProjectRule()

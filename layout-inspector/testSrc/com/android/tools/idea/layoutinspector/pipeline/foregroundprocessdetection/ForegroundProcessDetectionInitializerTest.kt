@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -37,6 +36,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.SameThreadExecutor
+import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import layout_inspector.LayoutInspector
@@ -44,7 +44,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
+import org.mockito.kotlin.mock
 
 class ForegroundProcessDetectionInitializerTest {
   private val timer = FakeTimer()

@@ -43,6 +43,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.MirroringManager
@@ -50,7 +51,6 @@ import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createTestEvent
-import com.android.tools.idea.streaming.device.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel

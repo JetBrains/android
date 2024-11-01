@@ -21,19 +21,14 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.common.artifact.BuildArtifactCache;
-import com.google.idea.blaze.common.artifact.CachedArtifact;
-import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.java.artifacts.AspectProto.OutputArtifact;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 /**
  * An artifact produced by a build.
@@ -46,27 +41,16 @@ public abstract class BuildArtifact {
 
   public abstract String digest();
 
-  public abstract Path path();
+  public abstract Path artifactPath();
 
   public abstract Label target();
 
-  public static BuildArtifact create(String digest, Path path, Label target) {
-    return new AutoValue_BuildArtifact(digest, path, target);
-  }
-
-  public CachedArtifact blockingGetFrom(BuildArtifactCache cache) throws BuildException {
-    try {
-      return Uninterruptibles.getUninterruptibly(
-          cache
-              .get(digest())
-              .orElseThrow(() -> new BuildException("Artifact missing from the cache: " + this)));
-    } catch (ExecutionException e) {
-      throw new BuildException("Failed to get artifact " + this, e);
-    }
+  public static BuildArtifact create(String digest, Path artifactPath, Label target) {
+    return new AutoValue_BuildArtifact(digest, artifactPath, target);
   }
 
   public String getExtension() {
-    String fileName = path().getFileName().toString();
+    String fileName = artifactPath().getFileName().toString();
     int lastDot = fileName.lastIndexOf('.');
     if (lastDot == -1) {
       return "";

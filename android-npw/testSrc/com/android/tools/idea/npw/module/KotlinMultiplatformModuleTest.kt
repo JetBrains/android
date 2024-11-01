@@ -35,133 +35,159 @@ import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import java.io.File
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class KotlinMultiplatformModuleTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  var tmpFolderRule = TemporaryFolder()
+  @get:Rule var tmpFolderRule = TemporaryFolder()
 
   @Test
   fun generateMultiplatformTemplateWithGradleKts() {
 
-    val rootDir = runTemplateGeneration(
-      useKts = true,
-      projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-    )
+    val rootDir =
+      runTemplateGeneration(
+        useKts = true,
+        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+      )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
     assertThat(buildGradleContent).isEqualTo(EXPECTED_BUILD_GRADLE_FILE)
 
-    val androidPlatformContent = rootDir.resolve("androidMain").resolve("AndroidPlatform.kt").readText()
+    val androidPlatformContent =
+      rootDir.resolve("androidMain").resolve("Platform.android.kt").readText()
     assertThat(androidPlatformContent).isEqualTo(EXPECTED_ANDROID_MAIN_CONTENT)
 
     val commonPlatformContent = rootDir.resolve("commonMain").resolve("Platform.kt").readText()
     assertThat(commonPlatformContent).isEqualTo(EXPECTED_COMMON_MAIN_CONTENT)
 
-    val androidUnitTestContent = rootDir.resolve("androidUnitTest").resolve("ExampleUnitTest.kt").readText()
+    val iosPlatformContent = rootDir.resolve("iosMain").resolve("Platform.ios.kt").readText()
+    assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
+
+    val androidUnitTestContent =
+      rootDir.resolve("androidUnitTest").resolve("ExampleUnitTest.kt").readText()
     assertThat(androidUnitTestContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
-    val androidInstrumentedTestContent = rootDir.resolve("androidInstrumentedTest").resolve("ExampleInstrumentedTest.kt").readText()
+    val androidInstrumentedTestContent =
+      rootDir.resolve("androidInstrumentedTest").resolve("ExampleInstrumentedTest.kt").readText()
     assertThat(androidInstrumentedTestContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
 
-    val moduleFiles = rootDir
-      .walk()
-      .filter { !it.isDirectory }
-      .map { FileUtils.toSystemIndependentPath(it.relativeTo(rootDir).path) }
-      .toList()
+    val moduleFiles =
+      rootDir
+        .walk()
+        .filter { !it.isDirectory }
+        .map { FileUtils.toSystemIndependentPath(it.relativeTo(rootDir).path) }
+        .toList()
     assertThat(moduleFiles).containsExactlyInAnyOrder(*EXPECTED_MODULE_FILES)
   }
 
   private fun runTemplateGeneration(
     useKts: Boolean,
-    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor
+    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
   ): File {
-    val name = "kmplibrary"
-    val buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
-    val targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
-    val minApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+    val name = "shared"
+    val buildApi =
+      ApiVersion(
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      )
+    val targetApi =
+      ApiVersion(
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      )
+    val minApi =
+      ApiVersion(
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      )
     val kotlinVersion = "1.9.20"
     val agpVersion = AgpVersion(8, 3, 0)
     val packageName = "com.kmplib.packagename"
     val androidMainDir = tmpFolderRule.root.resolve("androidMain").also { it.mkdir() }
     val commonMainDir = tmpFolderRule.root.resolve("commonMain").also { it.mkdir() }
+    val iosMainDir = tmpFolderRule.root.resolve("iosMain").also { it.mkdir() }
     val rootDir = tmpFolderRule.root
 
-    projectRule.loadProject(projectPath = TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM, agpVersion = projectRuleAgpVersion)
+    projectRule.loadProject(
+      projectPath = TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM,
+      agpVersion = projectRuleAgpVersion,
+    )
 
     val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
     MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
     val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
+    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData)
+      .thenReturn(mockProjectTemplateData)
 
-    val renderingContext = RenderingContext(
-      project = projectRule.project,
-      module = projectRule.getModule(MODULE_NAME_APP),
-      commandName = "New Kotlin Multiplatform Module",
-      templateData = mockModuleTemplateData,
-      outputRoot = rootDir,
-      moduleRoot = rootDir,
-      dryRun = false,
-      showErrors = true
-    )
+    val renderingContext =
+      RenderingContext(
+        project = projectRule.project,
+        module = projectRule.getModule(MODULE_NAME_APP),
+        commandName = "New Kotlin Multiplatform Module",
+        templateData = mockModuleTemplateData,
+        outputRoot = rootDir,
+        moduleRoot = rootDir,
+        dryRun = false,
+        showErrors = true,
+      )
 
-    val newModuleTemplateData = ModuleTemplateData(
-      projectTemplateData = ProjectTemplateData(
-        androidXSupport = true,
-        agpVersion = agpVersion,
-        sdkDir = null,
-        language = Language.Kotlin,
-        kotlinVersion = kotlinVersion,
+    val newModuleTemplateData =
+      ModuleTemplateData(
+        projectTemplateData =
+          ProjectTemplateData(
+            androidXSupport = true,
+            agpVersion = agpVersion,
+            sdkDir = null,
+            language = Language.Kotlin,
+            kotlinVersion = kotlinVersion,
+            rootDir = rootDir,
+            applicationPackage = packageName,
+            includedFormFactorNames = mapOf(),
+            debugKeystoreSha1 = null,
+            overridePathCheck = null,
+            isNewProject = false,
+            additionalMavenRepos = listOf(),
+          ),
+        themesData = ThemesData("appname"),
+        apis =
+          ApiTemplateData(
+            buildApi = buildApi,
+            targetApi = targetApi,
+            minApi = minApi,
+            appCompatVersion = 0,
+          ),
+        srcDir = androidMainDir,
+        resDir = rootDir.resolve("res").also { it.mkdir() },
+        manifestDir = rootDir,
+        testDir = rootDir.resolve("androidInstrumentedTest").also { it.mkdir() },
+        unitTestDir = rootDir.resolve("androidUnitTest").also { it.mkdir() },
+        aidlDir = null,
+        commonSrcDir = commonMainDir,
+        iosSrcDir = iosMainDir,
         rootDir = rootDir,
-        applicationPackage = packageName,
-        includedFormFactorNames = mapOf(),
-        debugKeystoreSha1 = null,
-        overridePathCheck = null,
-        isNewProject = false,
-        additionalMavenRepos = listOf(),
-      ),
-      themesData = ThemesData("appname"),
-      apis = ApiTemplateData(
-        buildApi = buildApi,
-        targetApi = targetApi,
-        minApi = minApi,
-        appCompatVersion = 0
-      ),
-      srcDir = androidMainDir,
-      resDir = rootDir.resolve("res").also { it.mkdir() },
-      manifestDir = rootDir,
-      testDir = rootDir.resolve("androidInstrumentedTest").also { it.mkdir() },
-      unitTestDir = rootDir.resolve("androidUnitTest").also { it.mkdir() },
-      aidlDir = null,
-      commonSrcDir = commonMainDir,
-      rootDir = rootDir,
-      isNewModule = true,
-      name = name,
-      isLibrary = false,
-      packageName = packageName,
-      formFactor = FormFactor.Generic,
-      baseFeature = null,
-      viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
-      category = Category.Application,
-      isMaterial3 = true,
-      useGenericLocalTests = true,
-      useGenericInstrumentedTests = true,
-      isCompose = false
-    )
+        isNewModule = true,
+        name = name,
+        isLibrary = false,
+        packageName = packageName,
+        formFactor = FormFactor.Generic,
+        baseFeature = null,
+        viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
+        category = Category.Application,
+        isMaterial3 = true,
+        useGenericLocalTests = true,
+        useGenericInstrumentedTests = true,
+        isCompose = false,
+      )
 
     runWriteCommandAction(projectRule.project) {
-      DefaultRecipeExecutor(renderingContext).generateMultiplatformModule(
-        data = newModuleTemplateData,
-        useKts = useKts,
-      )
+      DefaultRecipeExecutor(renderingContext)
+        .generateMultiplatformModule(data = newModuleTemplateData, useKts = useKts)
     }
 
     return rootDir
@@ -170,12 +196,14 @@ class KotlinMultiplatformModuleTest {
   companion object {
     private const val MODULE_NAME_APP = "app"
 
-    val EXPECTED_BUILD_GRADLE_FILE = """
+    val EXPECTED_BUILD_GRADLE_FILE =
+      """
 plugins {
 }
 
-        kotlin {
-      // Target declarations - add or remove as needed below. These define
+    kotlin {
+
+// Target declarations - add or remove as needed below. These define
 // which platforms this KMP module supports.
 // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
@@ -192,9 +220,39 @@ androidLibrary {
       compilationName = "instrumentedTest"
       defaultSourceSetName = "androidInstrumentedTest"
       sourceSetTreeName = "test"
+  }.configure {
+    instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 }
-      // Source set declarations.
+
+// For iOS targets, this is also where you should
+// configure native binary output. For more information, see:
+// https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+
+// A step-by-step guide on how to include this library in an XCode
+// project can be found here:
+// https://developer.android.com/kotlin/multiplatform/migrate
+val xcfName = "shared"
+
+iosX64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+iosArm64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+iosSimulatorArm64 {
+  binaries.framework {
+    baseName = xcfName
+  }
+}
+
+// Source set declarations.
 // Declaring a target automatically creates a source set with the same name. By default, the
 // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
 // common to share sources between related targets.
@@ -202,13 +260,12 @@ androidLibrary {
 sourceSets {
   commonMain {
     dependencies {
-      // Add common multiplatform dependencies here
+      // Add KMP dependencies here
     }
   }
 
   commonTest {
     dependencies {
-      // Add common multiplatform test dependencies here
     }
   }
 
@@ -224,31 +281,48 @@ sourceSets {
     dependencies {
     }
   }
-}
+
+  iosMain {
+    dependencies {
+      // Add iOS-specific dependencies here. This a source set created by Kotlin Gradle
+      // Plugin (KGP) that each specific iOS target (e.g., iosX64) depends on as
+      // part of KMP’s default source set hierarchy. Note that this source set depends
+      // on common by default and will correctly pull the iOS artifacts of any
+      // KMP dependencies declared in commonMain.
     }
-""".trimIndent()
+  }
+}
 
-    val EXPECTED_ANDROID_MAIN_CONTENT = """
+}
+"""
+        .trimIndent()
+
+    val EXPECTED_ANDROID_MAIN_CONTENT =
+      """
 package com.kmplib.packagename
 
-  class AndroidPlatform : Platform {
-    override val name: String = "Android ${'$'}{android.os.Build.VERSION.SDK_INT}"
-  }
+  actual fun platform() = "Android"
+    """
+        .trimIndent()
 
-  actual fun getPlatform(): Platform = AndroidPlatform()
-    """.trimIndent()
-
-    val EXPECTED_COMMON_MAIN_CONTENT = """
+    val EXPECTED_COMMON_MAIN_CONTENT =
+      """
 package com.kmplib.packagename
 
-  interface Platform {
-    val name: String
-  }
+  expect fun platform(): String
+    """
+        .trimIndent()
 
-  expect fun getPlatform(): Platform
-    """.trimIndent()
+    val EXPECTED_IOS_MAIN_CONTENT =
+      """
+package com.kmplib.packagename
 
-    val EXPECTED_ANDROID_UNIT_TEST_CONTENT = """
+  actual fun platform() = "iOS"
+    """
+        .trimIndent()
+
+    val EXPECTED_ANDROID_UNIT_TEST_CONTENT =
+      """
 package com.kmplib.packagename
 
 import kotlin.test.Test
@@ -265,9 +339,11 @@ class ExampleUnitTest {
         assertEquals(4, 2 + 2)
     }
 }
-    """.trimIndent()
+    """
+        .trimIndent()
 
-    val EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT = """
+    val EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT =
+      """
 package com.kmplib.packagename
 
   import androidx.test.platform.app.InstrumentationRegistry
@@ -289,15 +365,22 @@ package com.kmplib.packagename
     fun useAppContext() {
       // Context of the app under test.
       val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-      assertEquals("com.kmplib.packagename", appContext.packageName)
+      assertEquals("com.kmplib.packagename.test", appContext.packageName)
     }
   }
-    """.trimIndent()
+    """
+        .trimIndent()
 
-    val EXPECTED_MODULE_FILES = arrayOf(
-      "AndroidManifest.xml", "commonMain/Platform.kt", "androidUnitTest/ExampleUnitTest.kt",
-      "androidInstrumentedTest/ExampleInstrumentedTest.kt", "build.gradle.kts", ".gitignore",
-      "androidMain/AndroidPlatform.kt"
-    )
+    val EXPECTED_MODULE_FILES =
+      arrayOf(
+        "AndroidManifest.xml",
+        "commonMain/Platform.kt",
+        "androidUnitTest/ExampleUnitTest.kt",
+        "androidInstrumentedTest/ExampleInstrumentedTest.kt",
+        "build.gradle.kts",
+        ".gitignore",
+        "androidMain/Platform.android.kt",
+        "iosMain/Platform.ios.kt",
+      )
   }
 }

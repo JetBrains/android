@@ -21,7 +21,9 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.application.options.editor.WebEditorOptions
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter
 
 /**
@@ -41,7 +43,7 @@ class AndroidManifestPlaceholderDomTest: AndroidGradleTestCase() {
     prepareProjectForImport(TestProjectPaths.BASIC)
 
     oldInsertQuotesForAttributeValue = WebEditorOptions.getInstance().isInsertQuotesForAttributeValue
-    WebEditorOptions.getInstance().isInsertQuotesForAttributeValue= false // Android Studio has `false`, IJ has `true`. Use AS defaults.
+    WebEditorOptions.getInstance().isInsertQuotesForAttributeValue = false // Android Studio has `false`, IJ has `true`. Use AS defaults.
 
     modifyGradleFiles("[hostName:\"www.example.com\"]")
     importProject()
@@ -80,18 +82,22 @@ class AndroidManifestPlaceholderDomTest: AndroidGradleTestCase() {
     myFixture.checkHighlighting()
   }
 
-  private fun addDataToManifest(manifestPlaceholderText: String) {
+  private fun addDataToManifest(data: String) {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("src/main/AndroidManifest.xml")
     myFixture.configureFromExistingVirtualFile(virtualFile!!)
     myFixture.moveCaret("<intent-filter>|")
     myFixture.type("\n" +
-                   "<data\n android:host=\"\${${manifestPlaceholderText}}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
+                   "<data\n android:host=\"\${${data}}\"\n android:pathPrefix=\"/transfer\"\n android:scheme=\"myapp\" />")
   }
 
   private fun modifyGradleFiles(manifestPlaceholderText: String) {
-    val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("build.gradle")
-    myFixture.configureFromExistingVirtualFile(virtualFile!!)
-    myFixture.moveCaret("defaultConfig {|")
-    myFixture.type("\n        manifestPlaceholders = $manifestPlaceholderText")
+    val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("build.gradle")!!
+    val text = VfsUtil.loadText(virtualFile)
+    val position = Regex("defaultConfig \\{").find(text)!!.range.endExclusive
+    val newText = text.substring(0, position) + "\n        manifestPlaceholders = $manifestPlaceholderText" + text.substring(position)
+    runWriteAction {
+      VfsUtil.saveText(virtualFile, newText)
+    }
+    refreshProjectFiles()
   }
 }

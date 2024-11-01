@@ -23,32 +23,52 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 
-/** This label displays the [SceneView] model label. */
+/**
+ * This label displays the [SceneView] model label.
+ *
+ * If [partOfOrganizationGroup] then label will display [DisplaySettings.parameterName] (or
+ * modelDisplayName if [DisplaySettings.parameterName] is null). If [partOfOrganizationGroup] is not
+ * enabled then [DisplaySettings.modelDisplayName] is displayed.
+ */
 open class LabelPanel(
   private val displaySettings: DisplaySettings,
   protected val scope: CoroutineScope,
+  private val partOfOrganizationGroup: StateFlow<Boolean>,
 ) : JBLabel() {
 
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = AdtUiUtils.HEADER_COLOR
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    text = displaySettings.modelDisplayName.value
-    toolTipText = displaySettings.tooltip.value ?: displaySettings.modelDisplayName.value ?: ""
-    scope.launch(uiThread) {
-      displaySettings.modelDisplayName.collect {
-        text = it ?: ""
-        isVisible = text.isNotBlank()
-        invalidate()
-      }
+
+    fun updateUi() {
+      val parameter = displaySettings.parameterName.value
+      val display = displaySettings.modelDisplayName.value
+      val name = parameter?.takeIf { partOfOrganizationGroup.value } ?: display ?: ""
+      text = name
+      toolTipText = displaySettings.tooltip.value ?: name
+      isVisible = text.isNotBlank()
     }
+
+    updateUi()
+
     scope.launch(uiThread) {
-      displaySettings.tooltip.collect {
-        toolTipText = it ?: text ?: ""
-        invalidate()
-      }
+      merge(
+          displaySettings.modelDisplayName,
+          displaySettings.parameterName,
+          partOfOrganizationGroup,
+          displaySettings.tooltip,
+        )
+        .conflate()
+        .collect {
+          updateUi()
+          invalidate()
+        }
     }
   }
 

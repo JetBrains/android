@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.IJLogger
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.PathManager
@@ -134,6 +135,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
   }
 
   override suspend fun compileRequest(
+    applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,

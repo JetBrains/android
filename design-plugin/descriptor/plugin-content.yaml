@@ -8,7 +8,7 @@
     reason: <- intellij.android.layoutlib
   - name: layoutlib
     files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/14/layoutlib-14.jar
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
     reason: withProjectLibrary
   modules:
   - name: intellij.android.compose-designer

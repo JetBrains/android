@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.BackedTestFile
+import com.intellij.openapi.application.runWriteAction
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 
@@ -157,6 +158,71 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
     assertEquals(0.5, surfaceState.loadFileScale(myFixture.project, backedFile1, zoomController))
   }
 
+  fun testSaveOrganizationState() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+    val file = myFixture.addFileToProject("path/to/file", "").virtualFile
+    surfaceState.saveOrganizationGroupState(file, "method", true)
+    val savedState = surfaceState.getOrganizationGroupState(file)
+    assertEquals(mapOf("method" to true), savedState)
+  }
+
+  fun testUpdateOrganizationState() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+    val file = myFixture.addFileToProject("path/to/file", "").virtualFile
+    surfaceState.saveOrganizationGroupState(file, "method", true)
+    val savedState = surfaceState.getOrganizationGroupState(file)
+    assertEquals(mapOf("method" to true), savedState)
+    surfaceState.saveOrganizationGroupState(file, "method", false)
+    val updatedState = surfaceState.getOrganizationGroupState(file)
+    assertEquals(mapOf("method" to false), updatedState)
+  }
+
+  fun testOrganizationStateForNewFile() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+    val file = myFixture.addFileToProject("path/to/file", "").virtualFile
+    val savedState = surfaceState.getOrganizationGroupState(file)
+    assertEquals(emptyMap<String, Boolean>(), savedState)
+  }
+
+  fun testRevalidateOrganizationGroups() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+    val file = myFixture.addFileToProject("path/to/file", "").virtualFile
+    surfaceState.saveOrganizationGroupState(file, "method1", true)
+    surfaceState.saveOrganizationGroupState(file, "method2", true)
+    surfaceState.saveOrganizationGroupState(file, "method3", false)
+    surfaceState.saveOrganizationGroupState(file, "method4", false)
+    surfaceState.saveOrganizationGroupState(file, "method5", false)
+    surfaceState.revalidateOrganizationGroups(
+      file,
+      setOf("method1", "method2", "method3", "method4", "method5"),
+    )
+    assertEquals(
+      mapOf(
+        "method1" to true,
+        "method2" to true,
+        "method3" to false,
+        "method4" to false,
+        "method5" to false,
+      ),
+      surfaceState.getOrganizationGroupState(file),
+    )
+    surfaceState.revalidateOrganizationGroups(file, setOf("method4", "method5"))
+    assertEquals(
+      mapOf("method4" to false, "method5" to false),
+      surfaceState.getOrganizationGroupState(file),
+    )
+  }
+
+  fun testRemoveFileFromProject() {
+    val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
+    val file = myFixture.addFileToProject("path/to/file", "").virtualFile
+    surfaceState.saveOrganizationGroupState(file, "method", true)
+    assertTrue(surfaceState.organizationGroups.isNotEmpty())
+    runWriteAction { file.delete(this) }
+    surfaceState.revalidateOrganizationGroups()
+    assertTrue(surfaceState.organizationGroups.isEmpty())
+  }
+
   companion object {
     private fun createZoomController() =
       object : ZoomController {
@@ -174,9 +240,6 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
 
         override val maxScale: Double
           get() = 10.0
-
-        override val maxZoomToFitLevel: Double
-          get() = 1.0
 
         override fun setScale(scale: Double, x: Int, y: Int): Boolean {
           currentScale = scale

@@ -28,6 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 
@@ -135,7 +136,8 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
           fragment("fragment2")
         }
       }
-    var surface = NavDesignSurface(project, myRootDisposable)
+    var surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     var component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)
@@ -160,7 +162,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         }
       }
 
-    surface = NavDesignSurface(project, myRootDisposable)
+    surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     component = surface.scene!!.getSceneComponent("fragment1")!!
     algorithm = createAlgorithm(model)
@@ -178,7 +180,8 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         }
       }
     var algorithm = createAlgorithm(model)
-    var surface = NavDesignSurface(project, testRootDisposable)
+    var surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val nullIdComponent = surface.scene!!.getSceneComponent("fragment1")!!
     WriteCommandAction.runWriteCommandAction(project) {
@@ -200,7 +203,8 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
           fragment("fragment2")
         }
       }
-    surface = NavDesignSurface(project, testRootDisposable)
+    surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     component = surface.scene!!.getSceneComponent("fragment2")!!
     algorithm = createAlgorithm(model)
@@ -261,7 +265,8 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         override fun getDocuments() =
           arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile)!!)
       }
-    val surface = NavDesignSurface(project, myRootDisposable)
+    val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
+
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     val component = surface.scene!!.getSceneComponent("fragment1")!!
     component.setPosition(100, 200)

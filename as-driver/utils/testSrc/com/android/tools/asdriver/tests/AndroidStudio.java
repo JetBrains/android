@@ -456,8 +456,17 @@ public class AndroidStudio implements AutoCloseable {
    * The implementation of the command can be found here: com.jetbrains.performancePlugin.commands.OpenProjectCommand
    * @param projectPath path to the project to be opened
    */
-  public void openProject(@NotNull final String projectPath) {
-    executeCommand("%openProject " + projectPath + " false", null);
+  public void openProject(@NotNull final String projectPath, boolean newWindow) {
+    System.out.println("Opening project: " + projectPath);
+    ASDriver.OpenProjectRequest.Builder rqBuilder =
+      ASDriver.OpenProjectRequest.newBuilder().setProjectPath(projectPath).setNewWindow(newWindow);
+    ASDriver.OpenProjectResponse response = androidStudio.openProject(rqBuilder.build());
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not open project \"%s\": %s", projectPath, response.getErrorMessage()));
+    }
   }
 
   /**

@@ -52,7 +52,6 @@ iml_module(
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
         "//tools/adt/idea/android-lint:intellij.android.lint",
-        "//tools/adt/idea/device-manager:intellij.android.device-manager",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
         "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
@@ -74,6 +73,9 @@ iml_module(
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/studio/google/cloud/testing/test-recorder/gradle:test-recorder.gradle",
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
+        "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
+        "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation",
+        "//tools/adt/idea/android/editing/metrics:intellij.android.core.editing.metrics",
     ],
     # do not sort: must match IML order
     deps = [

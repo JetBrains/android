@@ -119,9 +119,9 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                                 })
                             .comment(
                                 enabledByExperimentFile
-                                    ? "query sync is forcefully enabled by the old flag from"
+                                    ? "Query sync is forcefully enabled by the old flag from"
                                         + " the .intellij-experiments file. "
-                                    : "",
+                                    : "You must re-create your project for changes to take effect.",
                                 UtilsKt.DEFAULT_COMMENT_WIDTH,
                                 HyperlinkEventAction.HTML_HYPERLINK_INSTANCE);
                     return Unit.INSTANCE;

@@ -18,25 +18,25 @@ package com.android.tools.profilers.leakcanary
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatData
+import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
 
 class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                 override val session: Common.Session,
-                                override val sessionMetaData: SessionMetaData) : SessionArtifact<LeakCanaryLogcatData> {
+                                override val sessionMetaData: SessionMetaData,
+                                leakCanaryLogcatEnded: LeakCanary.LeakCanaryLogcatEnded): SessionArtifact<LeakCanary.LeakCanaryLogcatEnded> {
 
-  // No Artifact proto for LeakCanaryLogcatData, since we will fetch based on Session start and end.
-  override val artifactProto: LeakCanaryLogcatData = LeakCanaryLogcatData.newBuilder().build()
+  override val artifactProto: LeakCanary.LeakCanaryLogcatEnded = leakCanaryLogcatEnded
 
-  // When export/import is supported(Milestone 2) we need to fetch from the Info.
+  // When export/import is supported (Milestone 2) we need to fetch from the Info.
   override val name = "LeakCanary"
 
-  override val timestampNs = session.startTimestamp
+  override val timestampNs = leakCanaryLogcatEnded.endTimestamp
 
-  override val isOngoing = (session.endTimestamp == 0L)
+  override val isOngoing = (leakCanaryLogcatEnded.endTimestamp == Long.MAX_VALUE)
 
-  // Export/Import is currently not supported. Will support in future(Milestone 2).
+  // Export/Import is currently not supported. Will support in future (Milestone 2).
   override val canExport = false
 
   override fun doSelect() {
@@ -51,14 +51,7 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
     if (needsToOpenLeakCanary) {
       profilers.stage = LeakCanaryModel(profilers)
     }
-
-    val startTimestamp = session.startTimestamp
-    // Using current time as end assuming session is in progress
-    var endTimestamp = System.nanoTime()
-    if (!isOngoing) {
-      endTimestamp = session.endTimestamp
-    }
-    (profilers.stage as LeakCanaryModel).loadFromPastSession(startTimestamp, endTimestamp, session)
+    (profilers.stage as LeakCanaryModel).loadFromPastSession(artifactProto.startTimestamp, artifactProto.endTimestamp, session)
     profilers.ideServices.featureTracker.trackSessionArtifactSelected(this, profilers.sessionsManager.isSessionAlive)
   }
 
@@ -68,11 +61,13 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                             session: Common.Session,
                             sessionMetadata: SessionMetaData): List<SessionArtifact<*>> {
       val artifacts: MutableList<SessionArtifact<*>> = mutableListOf()
-      val leakEvents = LeakCanaryModel.getLeaksFromRange(profilers.client, session,
-                                                         Range(session.startTimestamp.toDouble(), session.endTimestamp.toDouble()))
-      if (leakEvents.isNotEmpty()) {
-        // Single session artifact will be having multiple leaks, so adding only one artifact for the sessionMetadata
-        artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata))
+      val leakInfoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, session,
+                                                                   Range(session.startTimestamp.toDouble(),
+                                                                         session.endTimestamp.toDouble()))
+      leakInfoEvents.forEach { leakEvent ->
+        run {
+          artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryLogcatInfo.logcatEnded))
+        }
       }
       return artifacts
     }

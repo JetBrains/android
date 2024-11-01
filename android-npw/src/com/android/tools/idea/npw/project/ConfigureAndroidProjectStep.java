@@ -37,6 +37,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.module.ConfigureModuleStepKt;
@@ -198,7 +199,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myBuildConfigurationLanguageCombo.setVisible(false);
     }
 
-    if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get()) {
+    if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() || (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
+         GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD)) {
       AgpVersions.NewProjectWizardAgpVersion
         placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(myProjectModel.getAgpVersion().get(), ImmutableList.of(), "");
       myAndroidGradlePluginCombo.addItem(placeholderCurrentVersion);

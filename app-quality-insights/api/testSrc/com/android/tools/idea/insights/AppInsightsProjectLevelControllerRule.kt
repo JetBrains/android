@@ -18,6 +18,9 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.FakeGeminiToolkit
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -45,8 +48,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
@@ -80,14 +83,16 @@ class AppInsightsProjectLevelControllerRule(
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
+  private val geminiToolkit = FakeGeminiToolkit(true)
+
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl()
-    client = Mockito.spy(TestAppInsightsClient(cache))
+    client = spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
-    tracker = mock(AppInsightsTracker::class.java)
+    tracker = mock<AppInsightsTracker>()
     controller =
       AppInsightsProjectLevelControllerImpl(
         key,
@@ -102,9 +107,9 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
-        cache = cache,
+        geminiToolkit = geminiToolkit,
       )
-    internalState = Channel(capacity = 3)
+    internalState = Channel(capacity = 5)
     scope.launch { controller.state.collect { internalState.send(it) } }
   }
 
@@ -139,6 +144,7 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
+        client.completeFetchInsightCallWith(insightState)
         if (key != VITALS_KEY) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
@@ -148,9 +154,8 @@ class AppInsightsProjectLevelControllerRule(
         consumeNext()
         consumeNext()
         consumeNext()
-        client.completeListNotesCallWith(notesState)
         consumeNext()
-        client.completeFetchInsightCallWith(insightState)
+        client.completeListNotesCallWith(notesState)
       }
       resultState = consumeNext()
     }
@@ -369,10 +374,12 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   override suspend fun fetchInsight(
     connection: Connection,
-    insightIssueId: IssueId,
-    eventId: String,
-    variantId: String?,
+    issueId: IssueId,
+    failureType: FailureType,
+    event: Event,
     timeInterval: TimeIntervalFilter,
+    codeContextData: CodeContextData,
+    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

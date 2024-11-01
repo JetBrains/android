@@ -63,7 +63,8 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
   private fun getPatchFileName(from: BuildNumber, to: BuildNumber): String {
     val suffix = getPatchSuffix(isMac = SystemInfo.isMac, isWindows = SystemInfo.isWindows, isUnix = SystemInfo.isUnix,
                                 isAarch64 = SystemInfo.isAarch64)
-    return "${from.asString()}-${to.asStringWithoutProductCode()}-patch-$suffix"
+    // Explicitly add AI prefix to fix chain updates (b/369642379)
+    return "AI-${from.asStringWithoutProductCode()}-${to.asStringWithoutProductCode()}-patch-$suffix"
   }
 
   //  mac_arm, mac_x86, win_x86 and unix_x86 are the only supported OS architectures at this time.

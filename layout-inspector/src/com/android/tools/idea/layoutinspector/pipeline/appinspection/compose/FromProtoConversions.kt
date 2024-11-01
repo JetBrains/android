@@ -16,15 +16,17 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import java.awt.Polygon
+import java.awt.Rectangle
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
-import java.awt.Polygon
-import java.awt.Shape
 
-fun LayoutInspectorComposeProtocol.Quad.toShape(): Shape {
+fun LayoutInspectorComposeProtocol.Quad.toPolygon(): Polygon {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }
+
+fun LayoutInspectorComposeProtocol.Rect.toRectangle() = Rectangle(x, y, w, h)
 
 fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
   return when (this) {

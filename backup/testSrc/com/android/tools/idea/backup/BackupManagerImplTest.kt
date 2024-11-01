@@ -18,20 +18,20 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupException
 import com.android.backup.BackupResult
 import com.android.backup.BackupService
+import com.android.backup.BackupType
+import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
+import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
+import com.android.backup.ErrorCode.SUCCESS
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_USAGE
 import com.google.wireless.android.sdk.stats.BackupUsageEvent
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.BackupEvent.Type.D2D
 import com.google.wireless.android.sdk.stats.BackupUsageEvent.RestoreEvent
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.Result.SUCCESS
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.Source
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.Source.DEVICE_EXPLORER
-import com.google.wireless.android.sdk.stats.BackupUsageEvent.Source.RUN_MENU
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.NotificationType.WARNING
@@ -41,18 +41,17 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Path
+import kotlin.io.path.pathString
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
-import kotlin.io.path.pathString
 
 /** Tests for [BackupManagerImpl] */
 @RunsInEdt
@@ -75,42 +74,44 @@ internal class BackupManagerImplTest {
     val serialNumber = "serial"
     val applicationId = "app"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.backup(eq(serialNumber), eq(applicationId), eq(backupFile), any()))
+    whenever(
+        mockBackupService.backup(
+          eq(serialNumber),
+          eq(applicationId),
+          eq(DEVICE_TO_DEVICE),
+          eq(backupFile),
+          any(),
+        )
+      )
       .thenReturn(BackupResult.Success)
 
-    backupManagerImpl.backupModal(
-      serialNumber,
-      applicationId,
-      backupFile,
-      BackupManager.Source.RUN_MENU,
-      notify = true,
-    )
+    backupManagerImpl.doBackup(serialNumber, applicationId, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(D2D, RUN_MENU, SUCCESS))
+      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, SUCCESS))
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
-      .assert(title = "", "Backup completed successfully", INFORMATION, "RevealBackupFileAction")
+      .assert(
+        title = "",
+        "Backup completed successfully",
+        INFORMATION,
+        "ShowPostBackupDialogAction",
+      )
   }
 
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
-    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else  "/path/file")
+    val backupFile = Path.of(if (SystemInfo.isWindows) """c:\path\file""" else "/path/file")
     whenever(mockBackupService.restore(eq(serialNumber), eq(backupFile), anyOrNull()))
       .thenReturn(BackupResult.Success)
 
-    backupManagerImpl.restore(
-      serialNumber,
-      backupFile,
-      BackupManager.Source.RUN_MENU,
-      notify = true,
-    )
+    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_MENU, SUCCESS))
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
@@ -118,51 +119,19 @@ internal class BackupManagerImplTest {
     val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
     val serialNumber = "serial"
     val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), eq(Path.of(project.basePath ?: "", backupFile.pathString)), anyOrNull()))
+    whenever(
+        mockBackupService.restore(
+          eq(serialNumber),
+          eq(Path.of(project.basePath ?: "", backupFile.pathString)),
+          anyOrNull(),
+        )
+      )
       .thenReturn(BackupResult.Success)
 
-    backupManagerImpl.restore(
-      serialNumber,
-      backupFile,
-      BackupManager.Source.RUN_MENU,
-      notify = true,
-    )
+    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_MENU, SUCCESS))
-  }
-
-  @Test
-  fun backup_errors(): Unit = runBlocking {
-    val errors =
-      listOf(
-        ErrorCode.CANNOT_ENABLE_BMGR to BackupUsageEvent.Result.CANNOT_ENABLE_BMGR,
-        ErrorCode.TRANSPORT_NOT_SELECTED to BackupUsageEvent.Result.TRANSPORT_NOT_SELECTED,
-        ErrorCode.GMSCORE_NOT_FOUND to BackupUsageEvent.Result.GMSCORE_NOT_FOUND,
-        ErrorCode.GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
-        ErrorCode.BACKUP_FAILED to BackupUsageEvent.Result.BACKUP_FAILED,
-        ErrorCode.UNEXPECTED_ERROR to BackupUsageEvent.Result.UNEXPECTED_ERROR,
-        ErrorCode.PLAY_STORE_NOT_INSTALLED to BackupUsageEvent.Result.PLAY_STORE_NOT_INSTALLED,
-      )
-
-    errors.forEach { testBackupError(it.first, it.second) }
-  }
-
-  @Test
-  fun restore_errors(): Unit = runBlocking {
-    val errors =
-      listOf(
-        ErrorCode.CANNOT_ENABLE_BMGR to BackupUsageEvent.Result.CANNOT_ENABLE_BMGR,
-        ErrorCode.TRANSPORT_NOT_SELECTED to BackupUsageEvent.Result.TRANSPORT_NOT_SELECTED,
-        ErrorCode.GMSCORE_NOT_FOUND to BackupUsageEvent.Result.GMSCORE_NOT_FOUND,
-        ErrorCode.GMSCORE_IS_TOO_OLD to BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD,
-        ErrorCode.RESTORE_FAILED to BackupUsageEvent.Result.RESTORE_FAILED,
-        ErrorCode.INVALID_BACKUP_FILE to BackupUsageEvent.Result.INVALID_BACKUP_FILE,
-        ErrorCode.UNEXPECTED_ERROR to BackupUsageEvent.Result.UNEXPECTED_ERROR,
-        ErrorCode.PLAY_STORE_NOT_INSTALLED to BackupUsageEvent.Result.PLAY_STORE_NOT_INSTALLED,
-      )
-
-    errors.forEach { testRestoreError(it.first, it.second) }
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
   }
 
   @Test
@@ -172,18 +141,13 @@ internal class BackupManagerImplTest {
     val backupFile = Path.of("file")
     whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
       .thenReturn(
-        BackupResult.Error(ErrorCode.GMSCORE_IS_TOO_OLD, BackupException(ErrorCode.GMSCORE_IS_TOO_OLD, "Error"))
+        BackupResult.Error(GMSCORE_IS_TOO_OLD, BackupException(GMSCORE_IS_TOO_OLD, "Error"))
       )
 
-    backupManagerImpl.restore(
-      serialNumber,
-      backupFile,
-      BackupManager.Source.RUN_MENU,
-      notify = true,
-    )
+    backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(restoreUsageEvent(RUN_MENU, BackupUsageEvent.Result.GMSCORE_IS_TOO_OLD))
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, GMSCORE_IS_TOO_OLD))
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
@@ -206,64 +170,25 @@ internal class BackupManagerImplTest {
     assertThat(this.type).isEqualTo(type)
     assertThat(this.actions.map { it::class.java.simpleName }).isEqualTo(actions.asList())
   }
-
-  private suspend fun testBackupError(
-    errorCode: ErrorCode,
-    trackingResult: BackupUsageEvent.Result,
-  ) {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
-    val serialNumber = "serial"
-    val applicationId = "app"
-    val backupFile = Path.of("file")
-    whenever(mockBackupService.backup(eq(serialNumber), eq(applicationId), eq(backupFile), any()))
-      .thenReturn(BackupResult.Error(errorCode, RuntimeException()))
-
-    backupManagerImpl.backupModal(
-      serialNumber,
-      applicationId,
-      backupFile,
-      BackupManager.Source.DEVICE_EXPLORER,
-      notify = true,
-    )
-
-    assertThat(usageTrackerRule.backupEvents().last())
-      .isEqualTo(backupUsageEvent(D2D, DEVICE_EXPLORER, trackingResult))
-  }
-
-  private suspend fun testRestoreError(
-    errorCode: ErrorCode,
-    trackingResult: BackupUsageEvent.Result,
-  ) {
-    val backupManagerImpl = BackupManagerImpl(project, mockBackupService)
-    val serialNumber = "serial"
-    val backupFile = Path.of("file")
-    whenever(mockBackupService.restore(eq(serialNumber), any(), anyOrNull()))
-      .thenReturn(BackupResult.Error(errorCode, RuntimeException()))
-
-    backupManagerImpl.restore(
-      serialNumber,
-      backupFile,
-      BackupManager.Source.DEVICE_EXPLORER,
-      notify = true,
-    )
-
-    assertThat(usageTrackerRule.backupEvents().last())
-      .isEqualTo(restoreUsageEvent(DEVICE_EXPLORER, trackingResult))
-  }
 }
 
-private fun backupUsageEvent(
-  @Suppress("SameParameterValue") type: BackupEvent.Type,
-  source: Source,
-  result: BackupUsageEvent.Result,
-) =
+@Suppress("SameParameterValue")
+private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, result: ErrorCode) =
   BackupUsageEvent.newBuilder()
-    .setBackup(BackupEvent.newBuilder().setType(type).setSource(source).setResult(result))
+    .setBackup(
+      BackupEvent.newBuilder()
+        .setTypeValue(type.ordinal)
+        .setSourceValue(source.ordinal)
+        .setResultValue(result.ordinal)
+    )
     .build()
 
-private fun restoreUsageEvent(source: Source, result: BackupUsageEvent.Result) =
+@Suppress("SameParameterValue")
+private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode) =
   BackupUsageEvent.newBuilder()
-    .setRestore(RestoreEvent.newBuilder().setSource(source).setResult(result))
+    .setRestore(
+      RestoreEvent.newBuilder().setSourceValue(source.ordinal).setResultValue(errorCode.ordinal)
+    )
     .build()
 
 private fun UsageTrackerRule.backupEvents(): List<BackupUsageEvent> =

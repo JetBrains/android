@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -40,8 +39,7 @@ public class LanguageDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<LanguageDslElement> LANGUAGE =
     new PropertiesElementDescription<>("language",
                                        LanguageDslElement.class,
-                                       LanguageDslElement::new,
-                                       LanguageDslElementSchema::new);
+                                       LanguageDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isEnable", property, ENABLE, VAR},
@@ -81,19 +79,4 @@ public class LanguageDslElement extends GradleDslBlockElement {
 
     super.addParsedElement(element);
   }
-
-  public static final class LanguageDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @NotNull
-    @Override
-    public  String getAgpDocClass(){
-      return "com.android.build.gradle.internal.dsl.LanguageSplitOptions";
-    }
-  }
-
 }

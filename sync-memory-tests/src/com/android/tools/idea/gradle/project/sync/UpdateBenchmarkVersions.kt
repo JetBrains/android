@@ -108,7 +108,7 @@ fun main(args: Array<String>) {
     println("Creating tools/adt/idea change")
     runGitCommit(repoDir, "tools/adt/idea", commitMessage, listOf(AGP_INTEGRATION_TESTS_PATH))
     println("Creating prebuilts/tools change")
-    runGitCommit(repoDir, "prebuilts/tools", commitMessage)
+    runGitCommit(repoDir, "prebuilts/tools", commitMessage, listOf("prebuilts/tools/*$kotlinVersion*", "prebuilts/tools/*$oldKotlinVersion*"))
     println("Creating tools/base change")
     runGitCommit(repoDir, "tools/base", commitMessage, listOf(
       "tools/base/bazel/maven/artifacts.bzl",

@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface
 import android.view.View
 import com.android.ide.common.rendering.api.Result
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlComponent
@@ -34,6 +33,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 /**
  * Helper class for testing [NlLayoutScanner]. It generates/mocks appropriate data needed for

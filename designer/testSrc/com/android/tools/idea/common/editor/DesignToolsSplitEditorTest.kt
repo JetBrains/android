@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -46,6 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class DesignToolsSplitEditorTest {

@@ -26,5 +26,10 @@ object DeployableToDevice {
   }
 
   @JvmStatic
+  fun isLocalDeviceAware(profile: RunProfile): Boolean {
+    return (profile as? UserDataHolder)?.getUserData(KEY) != null
+  }
+
+  @JvmStatic
   val KEY: Key<Boolean> = Key.create("android.execution.deploysToLocalDevice")
 }

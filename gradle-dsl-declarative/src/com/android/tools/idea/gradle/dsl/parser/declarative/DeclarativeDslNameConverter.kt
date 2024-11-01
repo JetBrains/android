@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.intellij.psi.PsiElement
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription
+import com.intellij.psi.PsiElement
+import java.util.Arrays
 
 interface DeclarativeDslNameConverter : GradleDslNameConverter {
 
@@ -41,14 +44,16 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
 
   override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
-    val result = ExternalNameInfo(modelName, ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
+    val result = ExternalNameInfo(modelName, ExternalNameSyntax.UNKNOWN)
     for (e in map.entrySet) {
       if (e.modelEffectDescription.property.name == modelName) {
 
         if (e.versionConstraint?.isOkWith(this.context.agpVersion) == false) continue
         when (e.modelEffectDescription.semantics) {
+          MethodSemanticsDescription.SET -> return ExternalNameInfo(e.surfaceSyntaxDescription.name,
+                                                                    ExternalNameSyntax.METHOD)
           PropertySemanticsDescription.VAR -> return ExternalNameInfo(e.surfaceSyntaxDescription.name,
-                                                                      ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT)
+                                                                      ExternalNameSyntax.ASSIGNMENT)
 
           else -> Unit
         }

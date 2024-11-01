@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
+import com.android.tools.idea.databinding.BindingLayoutToken
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingModeTrackingService
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
@@ -32,12 +33,9 @@ import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
@@ -80,13 +78,12 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   val lightBindingClassSearchScope: GlobalSearchScope
     get() {
       val localSearchScope = LightBindingClassSearchScope(moduleBindingClassMarker)
-      if (!module.isAndroidTestModule()) return localSearchScope
-
-      val mainModuleSearchScope =
-        module.getMainModule().androidFacet?.let { getInstance(it).lightBindingClassSearchScope }
-          ?: return localSearchScope
-
-      return GlobalSearchScope.union(listOf(localSearchScope, mainModuleSearchScope))
+      val additionalScopes =
+        BindingLayoutToken.additionalModulesForLightBindingScope(module)
+          .mapNotNull { it.androidFacet }
+          .map { getInstance(it).lightBindingClassSearchScope }
+      return if (additionalScopes.isEmpty()) localSearchScope
+      else localSearchScope.union(GlobalSearchScope.union(additionalScopes))
     }
 
   private val _dataBindingMode = AtomicReference(DataBindingMode.NONE)
@@ -265,15 +262,12 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
       }
     }
 
-    // If we are evaluating config when it's constructed, wrap the above config objects in an
-    // implementation that will eagerly evaluate their data now.
-    val wrappedConfigs =
-      if (StudioFlags.EVALUATE_BINDING_CONFIG_AT_CONSTRUCTION.get())
-        configs.map(::EagerLightBindingClassConfig)
-      else configs
-
     val psiManager = PsiManager.getInstance(facet.module.project)
-    return wrappedConfigs.map { LightBindingClass(psiManager, it).withMarkedBackingFile() }
+    return configs.map {
+      // Wrap the config object in an implementation that will eagerly evaluate its data now.
+      val wrappedConfig = EagerLightBindingClassConfig(it)
+      LightBindingClass(psiManager, wrappedConfig).withMarkedBackingFile()
+    }
   }
 
   override fun dispose() {}

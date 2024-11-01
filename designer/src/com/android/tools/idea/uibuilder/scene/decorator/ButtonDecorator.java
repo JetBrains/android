@@ -127,7 +127,7 @@ public class ButtonDecorator extends SceneDecorator {
     @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
     @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
     String text = getContentText(component.getNlComponent());
-    int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
+    int fontSize = DrawTextRegion.getFont(component.getNlComponent());
     float scale = (float)sceneContext.getScale();
     int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;

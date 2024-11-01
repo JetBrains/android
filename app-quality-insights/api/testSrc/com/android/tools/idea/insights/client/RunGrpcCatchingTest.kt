@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
@@ -28,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class RunGrpcCatchingTest {
   @Test

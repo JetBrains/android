@@ -141,7 +141,6 @@ public class ModelBuilder {
                                                                                                        model);
       model.setDesignSurface(surface);
     }));
-    if (activate) model.flushPendingUpdates();
     return model;
   }
 

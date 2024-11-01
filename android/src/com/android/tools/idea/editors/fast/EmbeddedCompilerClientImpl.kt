@@ -20,10 +20,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
+import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -102,16 +104,11 @@ class EmbeddedCompilerClientImpl private constructor(
    * Compiles the given list of inputs. All inputs must belong to the same module.
    * The output will be generated in the given [outputDirectory] and progress will be updated in the given [ProgressIndicator].
    */
-  private suspend fun compileModuleKtFiles(inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
+  private suspend fun compileModuleKtFiles(applicationLiveEditServices: ApplicationLiveEditServices, moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileModuleKtFiles($inputs, $outputDirectory)")
 
-    val moduleForAllInputs = readAction {
-      val modules = inputs.map { it.module }.toSet()
-      modules.singleOrNull() ?: throw LiveEditUpdateException.internalErrorMultiModule(modules)
-    }
-
     if (KotlinPluginModeProvider.isK2Mode()) {
-      compileKtFilesForK2(inputs, outputDirectory)
+      compileKtFilesForK2(moduleForAllInputs, inputs, outputDirectory)
       return@withContext
     }
 
@@ -131,7 +128,7 @@ class EmbeddedCompilerClientImpl private constructor(
           ProgressManager.checkCanceled()
           log.debug("backCodeGen")
           try {
-            backendCodeGen(project, analysisResult, inputs, moduleForAllInputs, inlineCandidates)
+            backendCodeGen(applicationLiveEditServices, project, analysisResult, inputs, moduleForAllInputs, inlineCandidates)
           }
           catch (e: LiveEditUpdateException) {
             if (e.isCompilationError() || e.cause.isCompilationError()) {
@@ -157,7 +154,7 @@ class EmbeddedCompilerClientImpl private constructor(
 
             // We will need to start using the new analysis for code gen.
             log.debug("backCodeGen retry")
-            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, moduleForAllInputs, inlineCandidates)
+            backendCodeGen(applicationLiveEditServices, project, newAnalysisResult, inputFilesWithInlines, moduleForAllInputs, inlineCandidates)
           }
         }
       }
@@ -167,14 +164,16 @@ class EmbeddedCompilerClientImpl private constructor(
   }
 
   @OptIn(KaExperimentalApi::class)
-  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, outputDirectory: Path) {
+  private suspend fun compileKtFilesForK2(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
       runWithCompileLock {
         beforeCompilationStarts()
         log.debug("backCodeGen")
         inputs.forEach { inputFile ->
+          val configuration = getCompilerConfiguration(moduleForAllInputs, inputFile)
+
           @OptIn(KaExperimentalApi::class)
-          val result = backendCodeGenForK2(inputFile, inputFile.module)
+          val result = backendCodeGenForK2(inputFile, moduleForAllInputs, configuration)
           log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
           @OptIn(KaExperimentalApi::class)
           result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
@@ -193,6 +192,7 @@ class EmbeddedCompilerClientImpl private constructor(
   }
 
   override suspend fun compileRequest(
+    applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
     module: Module,
     outputDirectory: Path,
@@ -221,7 +221,10 @@ class EmbeddedCompilerClientImpl private constructor(
         allKtInputs
           .groupBy { readAction { it.module } }
           .forEach { (module, inputs) ->
-            compileModuleKtFiles(inputs, outputDirectory = outputDirectory)
+            if (module == null) {
+              throw LiveEditUpdateException.internalErrorMultiModule(emptySet())
+            }
+            compileModuleKtFiles(applicationLiveEditServices, module, inputs, outputDirectory = outputDirectory)
           }
         result.complete(CompilationResult.Success)
       }

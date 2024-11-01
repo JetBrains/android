@@ -29,6 +29,15 @@ message Metadata {
    // Folder Config and theme for legacy inspector
    string folder_config = 11;
    string theme = 12;
+
+   Rect window_bounds = 13;
+}
+
+message Rect {
+    int32 x = 1;
+    int32 y = 2;
+    int32 w = 3;
+    int32 h = 4;
 }
 
 message Snapshot {

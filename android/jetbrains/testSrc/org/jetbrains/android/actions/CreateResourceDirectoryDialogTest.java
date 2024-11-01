@@ -105,6 +105,15 @@ public final class CreateResourceDirectoryDialogTest {
   }
 
   @Test
+  public void testDoValidateWhenInvalidDirectoryName() throws Throwable {
+    initDialog(false);
+
+    myDialog.getDirectoryNameTextField().setText("Xml");
+
+    assertEquals("'Xml' is not a valid resource directory name", ReadAction.compute((ThrowableComputable<String, Throwable>)() -> myDialog.doValidate().message));
+  }
+
+  @Test
   public void testCanIgnoreSubdirectoryCreation() throws Throwable {
     initDialog(true);
 

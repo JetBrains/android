@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.getPackageName
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.Language

@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.diagnostics.freeze.ThreadCallTreeSorter;
 import com.android.tools.idea.diagnostics.util.FrameInfo;
 import com.android.tools.idea.diagnostics.util.ThreadCallTree;
 import com.intellij.openapi.diagnostic.Logger;
@@ -171,17 +172,9 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
     myAwtStack = createHotPathStackTrace(awtThread, totalFreezeDurationMs);
 
-    if (awtThread != null) {
-      // Put time-annotated tree for AWT thread before all other threads.
-      sb.append(awtThread.getReportString(myConfiguration.getFrameTimeIgnoreThresholdMs()));
-      sb.append("\n");
-    }
+    final List<ThreadCallTree> sortedCallTrees = new ThreadCallTreeSorter(threadMap.values()).sort();
 
-    for (ThreadCallTree callTree : threadMap.values()) {
-      if (callTree == awtThread) {
-        // AWT thread has already been reported, skip it.
-        continue;
-      }
+    for (ThreadCallTree callTree : sortedCallTrees) {
       sb.append(callTree.getReportString(myConfiguration.getFrameTimeIgnoreThresholdMs()));
       sb.append("\n"); // empty line between threads
     }
@@ -258,6 +251,6 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   @Nullable
   private static ThreadCallTree getAwtThread(@NotNull Collection<ThreadCallTree> threadMap) {
-    return threadMap.stream().filter(t -> t.getThreadName().startsWith("AWT-EventQueue-")).findFirst().orElse(null);
+    return threadMap.stream().filter(ThreadCallTree::isAwtThread).findFirst().orElse(null);
   }
 }

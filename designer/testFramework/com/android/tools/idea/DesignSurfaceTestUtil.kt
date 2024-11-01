@@ -139,7 +139,7 @@ object DesignSurfaceTestUtil {
     Mockito.`when`(surface.getSceneManager(any())).thenReturn(sceneManager)
     Mockito.`when`(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     Mockito.`when`(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod()
-    Mockito.`when`(surface.focusedSceneView).thenReturn(sceneManager.sceneView)
+    Mockito.`when`(surface.focusedSceneView).thenReturn(sceneManager.sceneViews.firstOrNull())
     val scene = sceneManager.scene
     sceneManager.update()
     Mockito.`when`(surface.scene).thenReturn(scene)
@@ -170,9 +170,6 @@ object DesignSurfaceTestUtil {
 
       override val maxScale: Double
         get() = 10.0
-
-      override val maxZoomToFitLevel: Double
-        get() = 1.0
 
       override fun setScale(scale: Double, x: Int, y: Int) = true
 

@@ -81,6 +81,16 @@
     <notificationGroup id="Logcat" displayType="BALLOON"/>
   </extensions>
 
+  <extensionPoints>
+    <extensionPoint
+        qualifiedName="com.android.tools.idea.logcat.consoleFilterProvider"
+        interface="com.android.tools.idea.logcat.LogcatConsoleFilterProvider" />
+
+    <extensionPoint
+        qualifiedName="com.android.tools.idea.logcat.messages.exceptionMessageRewriter"
+        interface="com.android.tools.idea.logcat.messages.ExceptionMessageRewriter" />
+  </extensionPoints>
+
   <actions>
     <group id="Logcat.LogcatActions" text="Logcat">
       <action id="Logcat.ToggleViewFormat"

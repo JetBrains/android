@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editing.actions
 
-
 import com.android.SdkConstants
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -38,15 +37,14 @@ private const val BASE_PATH = "actions/moveActivity/"
 
 @RunWith(JUnit4::class)
 class AndroidMoveActivityTest {
-  @get:Rule
-  var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  @get:Rule var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 
-  @get:Rule
-  var name: TestName = TestName()
+  @get:Rule var name: TestName = TestName()
 
   private val myFixture by lazy {
     androidProjectRule.fixture.apply {
-      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
+      testDataPath =
+        TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
     } as JavaCodeInsightTestFixture
   }
 
@@ -57,14 +55,16 @@ class AndroidMoveActivityTest {
     createActivity()
     myFixture.addFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      getManifestText(activityName = "p1.p2.MyActivity", manifestPackage = "p3"))
+      getManifestText(activityName = "p1.p2.MyActivity", manifestPackage = "p3"),
+    )
 
     moveClassToPackage("p1.p2.MyActivity", "p3")
 
     myFixture.checkResult(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
       getManifestText(activityName = ".MyActivity", manifestPackage = "p3"),
-      true)
+      true,
+    )
   }
 
   @Test
@@ -72,14 +72,16 @@ class AndroidMoveActivityTest {
     createActivity()
     myFixture.addFileToProject(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
-      getManifestText(activityName = ".MyActivity", manifestPackage = "p1.p2"))
+      getManifestText(activityName = ".MyActivity", manifestPackage = "p1.p2"),
+    )
 
     moveClassToPackage("p1.p2.MyActivity", "p1.p3")
 
     myFixture.checkResult(
       SdkConstants.FN_ANDROID_MANIFEST_XML,
       getManifestText(activityName = "p1.p3.MyActivity", manifestPackage = "p1.p2"),
-      true)
+      true,
+    )
   }
 
   private fun doMoveActivityByRenamingPackageTest(packageName: String, newPackageName: String) {
@@ -87,7 +89,11 @@ class AndroidMoveActivityTest {
     createActivity()
 
     // Copy and open manifest file
-    val manifestFile = myFixture.copyFileToProject(BASE_PATH + name.methodName + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    val manifestFile =
+      myFixture.copyFileToProject(
+        BASE_PATH + name.methodName + ".xml",
+        SdkConstants.FN_ANDROID_MANIFEST_XML,
+      )
     myFixture.configureFromExistingVirtualFile(manifestFile)
 
     // Find the package to rename
@@ -131,30 +137,38 @@ class AndroidMoveActivityTest {
   private fun createActivity() {
     myFixture.addFileToProject(
       "src/p1/p2/MyActivity.java",
-      //language=Java
+      // language=Java
       """
       package p1.p2;
       public class MyActivity extends android.app.Activity {}
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
   }
 
-  private fun getManifestText(activityName: String, manifestPackage: String) = """
+  private fun getManifestText(activityName: String, manifestPackage: String) =
+    """
     <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$manifestPackage">
         <application>
             <activity android:name="$activityName"/>
         </application>
     </manifest>
-  """.trimIndent()
+  """
+      .trimIndent()
 
   private fun moveClassToPackage(className: String, newParentPackageName: String) {
     // Create any class in the new package so we can get a PsiPackage below.
-    myFixture.addClass("""
+    myFixture.addClass(
+      """
       package $newParentPackageName;
       class Foo {}
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val psiClass = runReadAction { myFixture.javaFacade.findClass(className, GlobalSearchScope.projectScope(myProject)) }
+    val psiClass = runReadAction {
+      myFixture.javaFacade.findClass(className, GlobalSearchScope.projectScope(myProject))
+    }
 
     val newParentPackage = runReadAction { myFixture.javaFacade.findPackage(newParentPackageName) }
     assertThat(newParentPackage).isNotNull()
@@ -163,12 +177,14 @@ class AndroidMoveActivityTest {
     assertThat(dirs).hasLength(1)
 
     val processor = runReadAction {
-      MoveClassesOrPackagesProcessor(myProject,
-                                     arrayOf(psiClass),
-                                     SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs.single()),
-                                     true,
-                                     false,
-                                     null)
+      MoveClassesOrPackagesProcessor(
+        myProject,
+        arrayOf(psiClass),
+        SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs.single()),
+        true,
+        false,
+        null,
+      )
     }
 
     ApplicationManager.getApplication().invokeAndWait { processor.run() }

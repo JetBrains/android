@@ -26,6 +26,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.concurrency.AndroidIoManager;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -52,7 +53,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -126,6 +126,15 @@ public class GradleFiles implements Disposable.Default {
 
     GradleFileChangeListener fileChangeListener = new GradleFileChangeListener(this);
     myFileEditorListener = new FileEditorManagerListener() {
+      @Override
+      public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if (hasHashForFile(file)) {
+          if (!areHashesEqual(file)) {
+            addChangedFile(file, isExternalBuildFile(file));
+          }
+        }
+      }
+
       @Override
       public void selectionChanged(@NotNull FileEditorManagerEvent event) {
         maybeAddOrRemovePsiTreeListener(event.getNewFile(), fileChangeListener);
@@ -401,7 +410,7 @@ public class GradleFiles implements Disposable.Default {
     storeExternalBuildFiles(externalBuildFiles);
 
     String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
-    if (Registry.is("android.gradle.ide.gradle.declarative.ide.support")) {
+    if (DeclarativeStudioSupport.isEnabled()) {
       fileNames = ArrayUtils.add(fileNames, FN_SETTINGS_GRADLE_DECLARATIVE);
     }
     File rootFolderPath = getBaseDirPath(myProject);
@@ -506,6 +515,12 @@ public class GradleFiles implements Disposable.Default {
   public boolean isExternalBuildFile(@NotNull PsiFile psiFile) {
     synchronized (myLock) {
       return myExternalBuildFiles.contains(psiFile.getVirtualFile());
+    }
+  }
+
+  public boolean isExternalBuildFile(@NotNull VirtualFile virtualFile) {
+    synchronized (myLock) {
+      return myExternalBuildFiles.contains(virtualFile);
     }
   }
 

@@ -35,7 +35,7 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
   public List<BuildOutputParser> getBuildOutputParsers(@NotNull ExternalSystemTaskId taskId) {
     Project project = taskId.findProject();
     if (project != null) {
-      return project.getService(BuildOutputParserManager.class).getBuildOutputParsers();
+      return project.getService(BuildOutputParserManager.class).getBuildOutputParsers(taskId);
     }
     return Collections.emptyList();
   }

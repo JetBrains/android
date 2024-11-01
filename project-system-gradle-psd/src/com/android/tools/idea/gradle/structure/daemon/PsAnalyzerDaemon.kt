@@ -35,10 +35,12 @@ import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
+import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFixNoLog
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.detector.api.TextFormat
@@ -263,6 +265,7 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
   val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
   val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
+  val isVulnerability = sdkIndex.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, parentModuleRootDir)
 
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
   if (isBlocking) {
@@ -275,6 +278,11 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
       val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
       foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
     }
+    if (isVulnerability) {
+      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, createVulnerabilityQuickFix(message)))
+      }
+    }
     if (isOutdated) {
       val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
       foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
@@ -284,6 +292,11 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
     if (isNonCompliant) {
       sdkIndex.generatePolicyMessages(groupId, artifactId, versionString).forEach { message->
         foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
+      }
+    }
+    if (isVulnerability) {
+      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex, createVulnerabilityQuickFix(message)))
       }
     }
     if (isOutdated) {
@@ -298,6 +311,15 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   return foundIssues
 }
 
+fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
+  return if (vulnerability.link.isNullOrBlank()) {
+    null
+  }
+  else {
+    SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
+  }
+}
+
 private fun createIndexIssue(
   message: String,
   groupId: String,
@@ -305,14 +327,16 @@ private fun createIndexIssue(
   versionString: String,
   mainPath: PsPath,
   severity: PsIssue.Severity,
-  sdkIndex: GooglePlaySdkIndex
+  sdkIndex: GooglePlaySdkIndex,
+  additionalFix: PsQuickFix? = null
 ): PsGeneralIssue {
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
-  val fixes = if (url != null) {
-    listOf(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
+  val fixes = mutableListOf<PsQuickFix>()
+  if (url != null) {
+    fixes.add(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
   }
-  else {
-    listOf()
+  if (additionalFix != null) {
+    fixes.add(additionalFix)
   }
   val formattedMessage = formatToPSD(message)
   return PsGeneralIssue(

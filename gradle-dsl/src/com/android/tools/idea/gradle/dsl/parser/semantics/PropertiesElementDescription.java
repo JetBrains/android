@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement.EmptyGradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementConstructor;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchemaConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +24,7 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
   @Nullable public final String name;
   @NotNull public final Class<T> clazz;
   @NotNull public final GradlePropertiesDslElementConstructor<T> constructor;
-  @NotNull public final GradlePropertiesDslElementSchemaConstructor schemaConstructor;
-
+  @Nullable public final String namedObjectAssociatedName;
 
   /**
    * Creates PropertiesElementDescription instance with empty property schema constructor
@@ -37,22 +34,23 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
     @NotNull Class<T> clazz,
     @NotNull GradlePropertiesDslElementConstructor<T> constructor
   ) {
-    this(name, clazz, constructor, EmptyGradlePropertiesDslElementSchema::new);
+    this(name, clazz, constructor, null);
   }
+
 
   public PropertiesElementDescription(
     @Nullable String name,
     @NotNull Class<T> clazz,
     @NotNull GradlePropertiesDslElementConstructor<T> constructor,
-    @NotNull GradlePropertiesDslElementSchemaConstructor schemaConstructor
+    @Nullable String namedObjectAssociatedName
   ) {
     this.name = name;
     this.clazz = clazz;
     this.constructor = constructor;
-    this.schemaConstructor = schemaConstructor;
+    this.namedObjectAssociatedName = namedObjectAssociatedName;
   }
 
   public PropertiesElementDescription<T> copyWithName(@NotNull String name) {
-    return new PropertiesElementDescription<>(name, clazz, constructor, schemaConstructor);
+    return new PropertiesElementDescription<>(name, clazz, constructor);
   }
 }

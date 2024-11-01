@@ -23,6 +23,7 @@ import com.intellij.util.io.URLUtil;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -61,27 +62,17 @@ public interface OutputArtifactParser {
       try {
         File f = new File(new URI(uri));
         return new LocalFileOutputArtifact(
-            f,
-            getBlazeOutRelativePath(file, configurationMnemonic),
-            configurationMnemonic,
-            file.getDigest());
+          f,
+          bazelFileToArtifactPath(file),
+          configurationMnemonic,
+          file.getDigest());
       } catch (URISyntaxException | IllegalArgumentException e) {
         return null;
       }
     }
   }
 
-  default String getBlazeOutRelativePath(
-      BuildEventStreamProtos.File file, String configurationMnemonic) {
-    List<String> pathPrefixList = file.getPathPrefixList();
-    if (pathPrefixList.size() <= 1) {
-      // fall back to using the configuration mnemonic
-      // TODO(brendandouglas): remove this backwards compatibility code after September 2019
-      return configurationMnemonic + "/" + file.getName();
-    }
-
-    // remove the initial 'bazel-out' path component
-    String prefix = Joiner.on('/').join(pathPrefixList.subList(1, pathPrefixList.size()));
-    return prefix + "/" + file.getName();
+  static Path bazelFileToArtifactPath(BuildEventStreamProtos.File file) {
+    return Path.of(Joiner.on('/').join(file.getPathPrefixList()), file.getName());
   }
 }

@@ -16,9 +16,6 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
@@ -71,12 +68,16 @@ import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2

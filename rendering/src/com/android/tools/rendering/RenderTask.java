@@ -923,7 +923,7 @@ public class RenderTask {
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
   @NotNull
-  public CompletableFuture<RenderResult> inflate() {
+  public CompletableFuture<@Nullable RenderResult> inflate() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
@@ -958,7 +958,7 @@ public class RenderTask {
           }
           RenderModelModule module = myContext.getModule();
           RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
-          myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
+          myLogger.addMessage(RenderProblem.createHtml(ERROR, message, myLogger.getLinkManager(), ex, fixFactory));
         }
 
         if (result != null) {
@@ -1174,7 +1174,7 @@ public class RenderTask {
         }
         RenderModelModule module = myContext.getModule();
         RenderProblem.ActionFixFactory fixFactory = module.getEnvironment().getActionFixFactory();
-        myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
+        myLogger.addMessage(RenderProblem.createHtml(ERROR, message, myLogger.getLinkManager(), e, fixFactory));
         return CompletableFuture.completedFuture(
           RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, module, xmlFile, e, myLogger));
       }

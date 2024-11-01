@@ -62,7 +62,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -81,6 +80,10 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import java.awt.BorderLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -144,7 +147,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 
-    TreeSpeedSearch.installOn(myTree, true, path -> {
+    TreeSpeedSearch speedSearch = TreeSpeedSearch.installOn(myTree, true, path -> {
       Object o = path.getLastPathComponent();
       if (!(o instanceof DexElementNode)) {
         return "";
@@ -152,6 +155,23 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
 
       DexElementNode node = (DexElementNode)o;
       return node.getName();
+    });
+
+    myTree.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() >= 2) {
+          showDisassembly(true);
+        }
+      }
+    });
+    myTree.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        if (!speedSearch.isPopupActive() && e.getKeyChar() == ' ') {
+          showDisassembly(false);
+        }
+      }
     });
 
     myDexTreeRenderer = new DexTreeNodeRenderer();
@@ -216,7 +236,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     actionGroup.add(new ShowRemovedNodesAction(myTree, myDexFilters));
     actionGroup.add(new DeobfuscateNodesAction());
     actionGroup.add(new LoadProguardAction());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DexFileViewer", actionGroup, true);
+    toolbar.setTargetComponent(myTopPanel);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     ActionGroup group = createPopupActionGroup(myTree);
@@ -236,17 +257,36 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   @NotNull
   private ActionGroup createPopupActionGroup(@NotNull Tree tree) {
     final DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new ShowDisassemblyAction(tree, () -> {
+    group.add(createShowDisassemblyAction(tree));
+    group.add(new ShowReferencesAction(tree, this));
+    group.add(new GenerateProguardKeepRuleAction(tree));
+    group.add(new NavigateToSourceAction(tree));
+    return group;
+  }
+
+  @NotNull
+  private AnAction createShowDisassemblyAction(@NotNull Tree tree) {
+    return new ShowDisassemblyAction(tree, () -> {
       if (myDeobfuscateNames && myProguardMappings != null) {
         return myProguardMappings.map;
       }
       else {
         return null;
       }
-    }));
-    group.add(new ShowReferencesAction(tree, this));
-    group.add(new GenerateProguardKeepRuleAction(tree));
-    return group;
+    });
+  }
+
+  private void showDisassembly(boolean requireLeaf) {
+    TreePath path = myTree.getSelectionPath();
+    if (path == null) {
+      return;
+    }
+
+    Object component = path.getLastPathComponent();
+    if ((component instanceof DexElementNode) &&
+        (!requireLeaf || ((DexElementNode)component).isLeaf())) {
+      ActionManager.getInstance().tryToExecute(createShowDisassemblyAction(myTree), null, null, ActionPlaces.UNKNOWN, true);
+    }
   }
 
   public void selectProguardMapping() {

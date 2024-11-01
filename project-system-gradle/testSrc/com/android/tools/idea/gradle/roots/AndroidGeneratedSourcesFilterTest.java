@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.gradle.roots;
 
-import static com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter.isGeneratedSource;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -32,26 +26,25 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
+
+import java.io.IOException;
+
+import static com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter.isGeneratedSource;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
 public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
-  @Mock private Info myInfo;
-  private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
-
-    new IdeComponents(getProject()).replaceProjectService(Info.class, myInfo);
-    myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 
   public void testIsGeneratedSourceWithAndroidModelAndFileInsideBuildFolder() throws IOException {
@@ -60,7 +53,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
     VirtualFile target = createFile(buildFolder, "foo.txt");
     GradleAndroidModel androidModel = createAndroidModel(buildFolder);
 
-    assertTrue(isGeneratedSource(target, getProject(), myInfo, androidModel));
+    assertTrue(isGeneratedSource(target, getProject(), androidModel));
   }
 
   public void testIsGeneratedSourceWithAndroidModelAndFileOutsideBuildFolder() throws IOException {
@@ -69,7 +62,7 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
     VirtualFile target = createFile(rootFolder, "foo.txt");
     GradleAndroidModel androidModel = createAndroidModel(buildFolder);
 
-    assertFalse(isGeneratedSource(target, getProject(), myInfo, androidModel));
+    assertFalse(isGeneratedSource(target, getProject(), androidModel));
   }
 
   @NotNull
@@ -83,18 +76,17 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
-    when(myInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
-
-    assertTrue(isGeneratedSource(target, getProject(), myInfo, null));
+    ProjectSystemService.getInstance(myProject).replaceProjectSystemForTests(new GradleProjectSystem(myProject));
+    // Project has no AndroidModel and is a Gradle project
+    assertTrue(isGeneratedSource(target, getProject(), null));
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInNonGradleProject() throws IOException {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
-    when(myInfo.isBuildWithGradle()).thenReturn(false); // Project is not Gradle project
-
-    assertFalse(isGeneratedSource(target, getProject(), myInfo, null));
+    // Project has no AndroidModel and is not a Gradle project
+    assertFalse(isGeneratedSource(target, getProject(), null));
   }
 
   @NotNull
@@ -110,9 +102,9 @@ public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileOutsideBuildFolderInGradleProject() throws IOException {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile target = createFile(rootFolder, "foo.txt");
-    when(myInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
-
-    assertFalse(isGeneratedSource(target, getProject(), myInfo, null));
+    ProjectSystemService.getInstance(myProject).replaceProjectSystemForTests(new GradleProjectSystem(myProject));
+    // Project is a Gradle project bu the file is outside the build folders
+    assertFalse(isGeneratedSource(target, getProject(), null));
   }
 
   @NotNull

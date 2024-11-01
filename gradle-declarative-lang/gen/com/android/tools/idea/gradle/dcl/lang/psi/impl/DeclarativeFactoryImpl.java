@@ -24,11 +24,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeFactoryImpl extends CompositePsiElement implements DeclarativeFactory {
+public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
 
   public DeclarativeFactoryImpl(@NotNull IElementType type) {
     super(type);

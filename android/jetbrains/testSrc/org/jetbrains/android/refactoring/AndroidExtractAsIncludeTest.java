@@ -52,7 +52,7 @@ public class AndroidExtractAsIncludeTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + testName + ".xml", "res/layout/test.xml");
     myFixture.configureFromExistingVirtualFile(f);
     final String extractedFileName = "extracted.xml";
-    myFixture.testAction(new AndroidExtractAsIncludeAction(new AndroidExtractAsIncludeAction.MyTestConfig(extractedFileName)));
+    myFixture.testAction(new AndroidExtractAsIncludeAction(new AndroidExtractAsIncludeAction.TestConfig(extractedFileName)));
     myFixture.checkResultByFile(BASE_PATH + testName + "_after.xml", true);
     myFixture.checkResultByFile("res/layout/" + extractedFileName, BASE_PATH + testName + "_extracted.xml", true);
   }
@@ -62,7 +62,7 @@ public class AndroidExtractAsIncludeTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + testName + ".xml", "res/layout/test.xml");
     myFixture.configureFromExistingVirtualFile(f);
     final Presentation p =
-      myFixture.testAction(new AndroidExtractAsIncludeAction(new AndroidExtractAsIncludeAction.MyTestConfig("extracted.xml")));
+      myFixture.testAction(new AndroidExtractAsIncludeAction(new AndroidExtractAsIncludeAction.TestConfig("extracted.xml")));
     assertTrue(p.isVisible());
     assertFalse(p.isEnabled());
   }

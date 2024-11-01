@@ -29,11 +29,11 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
 public class DeployTask extends AbstractDeployTask {
@@ -55,8 +55,9 @@ public class DeployTask extends AbstractDeployTask {
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm,
+                    boolean allowAssumeVerified,
                     Computable<String> installPathProvider) {
-    super(project, packages, false, alwaysInstallWithPm, installPathProvider);
+    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified, installPathProvider);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");
@@ -134,6 +135,9 @@ public class DeployTask extends AbstractDeployTask {
       options.setDontKill();
     }
 
+    boolean useAssumeVerified = myAllowAssumeVerified && device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM);
+    options.setAssumeVerified(useAssumeVerified);
+
     // We can just append this, since all these options get string-joined in the end anyways.
     if (userInstallOptions != null) {
       options.setUserInstallOptions(userInstallOptions);
@@ -154,7 +158,7 @@ public class DeployTask extends AbstractDeployTask {
     Deployer.Result result = deployer.install(app, options.build(), installMode);
 
     // Manually force-stop the application if we set --dont-kill above.
-    if (!result.skippedInstall && isDontKillSupported) {
+    if (!result.skippedInstall && isDontKillSupported && isDontKillNeed) {
       device.forceStop(app.getAppId());
     }
     return result;

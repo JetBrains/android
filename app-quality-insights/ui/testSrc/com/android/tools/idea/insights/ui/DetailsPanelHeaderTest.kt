@@ -42,7 +42,9 @@ class DetailsPanelHeaderTest {
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
+    assertThat(detailsPanelHeader.eventsCountLabel.toolTipText).isEqualTo("Number of Events")
     assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
+    assertThat(detailsPanelHeader.usersCountLabel.toolTipText).isEqualTo("Number of Users")
 
     detailsPanelHeader.clear()
 
@@ -62,7 +64,9 @@ class DetailsPanelHeaderTest {
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("1")
+    assertThat(detailsPanelHeader.eventsCountLabel.toolTipText).isEqualTo("Number of Events")
     assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("1")
+    assertThat(detailsPanelHeader.usersCountLabel.toolTipText).isEqualTo("Number of Users")
 
     detailsPanelHeader.clear()
 

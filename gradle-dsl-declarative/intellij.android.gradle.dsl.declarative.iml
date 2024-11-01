@@ -22,6 +22,7 @@
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="RUNTIME" />
     <orderEntry type="library" name="commons-lang3" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
   </component>

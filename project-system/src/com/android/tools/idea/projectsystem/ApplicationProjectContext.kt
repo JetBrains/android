@@ -65,7 +65,7 @@ interface ApplicationProjectContextProvider<P : AndroidProjectSystem>: Token {
     companion object {
       fun Client.asRunningApplicationIdentity(): RunningApplicationIdentity {
         return RunningApplicationIdentity(
-          processName = clientData.clientDescription,
+          processName = clientData.processName,
           applicationId = clientData.packageName.takeIf { device.supportsFeature(IDevice.Feature.REAL_PKG_NAME) },
         )
       }

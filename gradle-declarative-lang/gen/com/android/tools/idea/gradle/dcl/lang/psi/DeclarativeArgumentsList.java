@@ -24,6 +24,9 @@ import com.intellij.psi.PsiElement;
 public interface DeclarativeArgumentsList extends DeclarativeElement {
 
   @NotNull
+  List<DeclarativeArgument> getArgumentList();
+
+  @NotNull
   List<DeclarativeValue> getArguments();
 
 }

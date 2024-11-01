@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.insights.AiInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueId
@@ -34,7 +34,9 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 
 data class IssueRequest(val connection: Connection, val filters: QueryFilters)
 
@@ -51,7 +53,7 @@ interface AppInsightsClient {
 
   suspend fun listTopOpenIssues(
     request: IssueRequest,
-    fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource? = null,
+    fetchSource: FetchSource? = null,
     mode: ConnectionMode = ConnectionMode.ONLINE,
     permission: Permission = Permission.NONE,
   ): LoadingState.Done<IssueResponse>
@@ -98,8 +100,10 @@ interface AppInsightsClient {
   suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
-    eventId: String,
-    variantId: String?,
+    failureType: FailureType,
+    event: Event,
     timeInterval: TimeIntervalFilter,
+    codeContextData: CodeContextData,
+    forceFetch: Boolean = false,
   ): LoadingState.Done<AiInsight>
 }

@@ -1,6 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
-load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -29,7 +28,7 @@ profilers_test_common_data = [
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_studio_test(
+iml_test(
     name = "ProfileWithCompleteDataTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -49,7 +48,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithCompleteDataTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "ProfileWithLowOverheadTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -69,7 +68,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.ProfileWithLowOverheadTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SystemTraceTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -89,7 +88,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.SystemTraceTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "CallstackSampleTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -109,7 +108,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.CallstackSampleTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "HeapDumpTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -129,7 +128,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.HeapDumpTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "NativeAllocationsTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -149,7 +148,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.NativeAllocationsTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -165,7 +164,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.SystemTraceTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -185,7 +184,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.HeapDumpTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "CallstackSampleTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -201,7 +200,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.CallstackSampleTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "NativeAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -217,7 +216,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.NativeAllocationsTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "JavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -233,7 +232,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinMethodRecordingTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -249,7 +248,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.LiveViewTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "JavaKotlinAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -269,7 +268,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinAllocationsTaskTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "SessionBasedProfilingWithApkTest",
     timeout = "long",
     data = profilers_test_common_data + [
@@ -291,7 +290,7 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.sessionbased.SessionBasedProfilingWithApkTest",
 )
 
-iml_studio_test(
+iml_test(
     name = "TaskBasedProfilingWithApkTest",
     timeout = "long",
     data = profilers_test_common_data + [

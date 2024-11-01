@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,6 +119,10 @@ public class StringResourceTableModel extends AbstractTableModel {
 
           myKeys = myData.getKeys();
           myLocales = myData.getLocaleList();
+
+          // This change will cause a rescan of string resources which may cause a change in the number of locales in the table.
+          // Change the header row just in case see b/364592051 for an example.
+          fireTableChanged(new TableModelEvent(this, TableModelEvent.HEADER_ROW));
 
           fireTableRowsUpdated(0, myKeys.size() - 1);
         });

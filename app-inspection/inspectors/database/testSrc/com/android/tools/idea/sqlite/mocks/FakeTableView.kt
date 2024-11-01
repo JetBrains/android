@@ -23,6 +23,8 @@ import javax.swing.JComponent
 import org.mockito.Mockito.mock
 
 open class FakeTableView : TableView {
+  private var pageSize = 50
+  private var isLiveUpdateEnabled = false
 
   val errorReported = mutableListOf<Pair<String, Throwable?>>()
 
@@ -70,7 +72,21 @@ open class FakeTableView : TableView {
 
   override fun setRefreshButtonState(state: Boolean) {}
 
-  override fun showPageSizeValue(maxRowCount: Int) {}
+  override fun showPageSizeValue(maxRowCount: Int) {
+    pageSize = maxRowCount
+    listeners.forEach { it.rowCountChanged(maxRowCount.toString()) }
+  }
 
   override fun updateIsForcedBanner(show: Boolean) {}
+
+  override fun setLiveUpdatesEnabled(value: Boolean) {
+    if (isLiveUpdateEnabled != value) {
+      listeners.forEach { it.toggleLiveUpdatesInvoked() }
+    }
+    isLiveUpdateEnabled = value
+  }
+
+  override fun isLiveUpdatesEnabled() = isLiveUpdateEnabled
+
+  override fun getPageSize() = pageSize
 }

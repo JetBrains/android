@@ -75,8 +75,7 @@ def read_version(lib_dir: Path, prefix: str) -> (str, str):
 def read_platform_jars(ide_home: Path, product_info):
   # Extract the runtime classpath from product-info.json.
   bootClassPath = product_info["launch"][0]["bootClassPathJarNames"]
-  modules = ide_home.glob("lib/modules/*.jar")
-  jars = ["/lib/" + jar for jar in bootClassPath] + ["/lib/modules/" + jar.name for jar in modules]
+  jars = ["/lib/" + jar for jar in bootClassPath]
   return set(jars)
 
 
@@ -122,10 +121,17 @@ def _read_plugin_jars(idea_home: Path):
     if not plugin_path.is_dir():
       continue
     plugin_id = _read_plugin_id(plugin_path)
-    jars = [*plugin_path.glob("lib/*.jar"), *plugin_path.glob("lib/modules/*.jar")]
-    jars = [f"/{jar.relative_to(idea_home)}" for jar in jars]
-    plugins[plugin_id] = set(jars)
-
+    jars = plugin_path.glob("lib/*.jar")
+    jar_paths = ["/" + str(jar.relative_to(idea_home)) for jar in jars]
+    assert plugin_id not in plugins, f"Duplicated plugin ID: {plugin_id}"
+    plugins[plugin_id] = set(jar_paths)
+  # We also model V2 modules as plugins---at least for now, until the V2 design solidifies upstream.
+  # See b/349849955 and go/studio-v2-modules for details.
+  for jar in [*idea_home.glob("lib/modules/*.jar"), *idea_home.glob("plugins/*/lib/modules/*.jar")]:
+    module_id = jar.stem
+    jar_path = "/" + str(jar.relative_to(idea_home))
+    assert module_id not in plugins, f"Duplicated plugin ID: {module_id}"
+    plugins[module_id] = set([jar_path])
   return plugins
 
 
@@ -159,9 +165,7 @@ def _load_include(include, xpath, external_xmls, cwd, index):
     print("Cannot find file to include %s" % href)
     sys.exit(1)
 
-  with zipfile.ZipFile(index[rel]) as jar:
-    res = jar.read(rel)
-
+  res = index[rel].read(rel)
   e = ET.fromstring(res)
 
   ret = []
@@ -229,20 +233,19 @@ def _resolve_includes(elem, external_xmls, cwd, index):
     i = i + 1
 
 
-def load_plugin_xml(files: list[Path], external_xmls):
+def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugin.xml"):
   xmls = {}
   index = {}
-  for file in files:
-    if file.suffix == ".jar":
-      with zipfile.ZipFile(file) as jar:
-        for jar_entry in jar.namelist():
-          if jar_entry == "META-INF/plugin.xml":
-            xmls[f"{file}!{jar_entry}"] = jar.read(jar_entry)
-          if not jar_entry.endswith("/"):
-            # TODO: Investigate if we can have a strict mode where we fail on duplicate
-            # files across jars in the same plugin. Currently even IJ plugins fail with
-            # such a check as they have even .class files duplicated in the same plugin.
-            index[jar_entry] = str(file)
+  jars = [zipfile.ZipFile(f) for f in files if f.suffix == ".jar"]
+  for jar in jars:
+    for jar_entry in jar.namelist():
+      if jar_entry == xml_name:
+        xmls[f"{jar.filename}!{jar_entry}"] = jar.read(jar_entry)
+      if not jar_entry.endswith("/"):
+        # TODO: Investigate if we can have a strict mode where we fail on duplicate
+        # files across jars in the same plugin. Currently even IJ plugins fail with
+        # such a check as they have even .class files duplicated in the same plugin.
+        index[jar_entry] = jar
 
   if len(xmls) != 1:
     msg = "\n".join(xmls.keys())
@@ -257,4 +260,8 @@ def load_plugin_xml(files: list[Path], external_xmls):
 
   # We cannot use ElementInclude because it does not support xpointer
   _resolve_includes(element, external_xmls, "META-INF", index)
+
+  for jar in jars:
+    jar.close()
+
   return element

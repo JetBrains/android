@@ -242,7 +242,12 @@ class LeakCanaryLogcatCommandHandlerTest {
   }
 
   @Test
-  fun testLogcatWithMultipleLeaks() = runTest {
+  fun testLogcatWithMultipleLeaksOneLinePerLogEntry() = testLogcatWithMultipleLeaks(true)
+
+  @Test
+  fun testLogcatWithMultipleLeaksMultiLinePerLogEntry() = testLogcatWithMultipleLeaks(false)
+
+  private fun testLogcatWithMultipleLeaks(oneLinePerLogEntry: Boolean) = runTest {
     handler = LeakCanaryLogcatCommandHandler(mockDevice, transportServiceGrpc, mockEventQueue)
     handler.execute(Commands.Command.newBuilder().setType(Commands.Command.CommandType.START_LOGCAT_TRACKING).setPid(123).build())
 
@@ -254,7 +259,7 @@ class LeakCanaryLogcatCommandHandlerTest {
       "MultiApplicationLeak.txt",
       "NoLeak.txt"
     )
-    val fakedMessages = pushLogcatMessages(listOfFiles, mockLogcatService)
+    val fakedMessages = pushLogcatMessages(listOfFiles, mockLogcatService, oneLinePerLogEntry)
 
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
@@ -293,7 +298,7 @@ class LeakCanaryLogcatCommandHandlerTest {
       )
 
     mockLogcatService.logMessages(messageStart, messageRandomStrings)
-    val fakedMessages = pushLogcatMessages(listOfFiles, mockLogcatService)
+    val fakedMessages = pushLogcatMessages(listOfFiles, mockLogcatService, true)
 
     // Simulate some delay to allow coroutines to process
     waitForEvent(this)
@@ -372,13 +377,15 @@ class LeakCanaryLogcatCommandHandlerTest {
     `when`(projectManagerMock.defaultProject).thenReturn(projectMock)
   }
 
-  private suspend fun pushLogcatMessages(listOfFiles: ImmutableList<String>, mockLogcatService: FakeLogcatService): MutableList<String> {
+  private suspend fun pushLogcatMessages(listOfFiles: ImmutableList<String>,
+                                         mockLogcatService: FakeLogcatService,
+                                         oneLinePerLogEntry: Boolean): MutableList<String> {
     val resultList = mutableListOf<String>()
     listOfFiles.forEach { fileName ->
       run {
         val file = TestUtils.resolveWorkspacePath("${TEST_DATA_PATH}/$fileName").toFile()
         val fileContent = file.readText()
-        val fileContentEachLine = fileContent.split("\n")
+        val fileContentEachLine = if (oneLinePerLogEntry) fileContent.split("\n") else listOf(fileContent)
         for (leakLine in fileContentEachLine) {
           val message =
             LogcatMessage(

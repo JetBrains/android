@@ -16,25 +16,29 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
+import java.time.Instant
 import org.junit.Test
 
 class EventsChangedTest {
 
   @Test
   fun `loading events for the first time`() {
-    LoadingState.Ready(EventPage(listOf(Event("event1")), ""))
+    val eventList = listOf(Event("event1"))
     val currentState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
-        LoadingState.Loading,
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+        currentEvents = LoadingState.Loading,
+        currentInsight = LoadingState.Loading,
       )
-    val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event1")), "")))
+    val event = EventsChanged(LoadingState.Ready(EventPage(eventList, "")))
     val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
     assertThat(transition.newState.currentEvents)
-      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, "")))
+      .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
   }
 
@@ -47,6 +51,7 @@ class EventsChangedTest {
         TEST_FILTERS,
         LoadingState.Loading,
         currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, "")),
+        currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event2")), "")))
     val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)

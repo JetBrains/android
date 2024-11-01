@@ -79,6 +79,6 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase implemen
   @NotNull
   @Override
   public String getSnapshotDirectoryWorkspaceRelativePath() {
-    return "tools/adt/idea/android/testData/javadoc/snapshots";
+    return "tools/adt/idea/android/editing/documentation/testData/javadoc/snapshots";
   }
 }

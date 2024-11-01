@@ -254,7 +254,7 @@ kotlin_library(
 # usage (meant to be used with a clean repo):
 # for Gradle update
 # bazel run //tools/adt/idea/sync-memory-tests:update_benchmark_versions -- gradle 8.10-20240621020500+0000
-# available versions: https://services.gradle.org/distributions-snapshots
+# for latest nightly version: https://gradle.org/nightly/
 # This will generate commits at
 # tools/adt/idea
 # tools/external/gradle

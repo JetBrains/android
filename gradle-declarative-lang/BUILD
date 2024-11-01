@@ -9,14 +9,11 @@ iml_module(
         "src",
     ],
     iml_files = ["intellij.android.gradle.declarative.lang.iml"],
-    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:org.jetbrains.kotlin",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
@@ -30,19 +27,18 @@ iml_module(
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide"],
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito",
-        "//tools/adt/idea/lint:intellij.lint[module, test]",
-        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
 )
