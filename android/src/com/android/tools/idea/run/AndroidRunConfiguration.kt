@@ -117,7 +117,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   var ALWAYS_INSTALL_WITH_PM = false
 
   @JvmField
-  var ALLOW_ASSUME_VERIFIED = StudioFlags.INSTALL_WITH_ASSUME_VERIFIED_ON_DEFAULT.get()
+  var ALLOW_ASSUME_VERIFIED = if (StudioFlags.INSTALL_WITH_ASSUME_VERIFIED_ON_DEFAULT.get())  true else false
 
   @JvmField
   var CLEAR_APP_STORAGE = false
