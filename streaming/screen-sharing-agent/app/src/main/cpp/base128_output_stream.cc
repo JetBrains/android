@@ -52,7 +52,7 @@ void Base128OutputStream::Close() {
 
 void Base128OutputStream::Flush() {
   if (offset_ > 0) {
-    auto res = writer_.Write(buffer_, offset_, /*timeout_micros=*/10000000);
+    auto res = writer_.Write(buffer_, offset_, /*timeout_millis=*/10000);
     if (res == SocketWriter::Result::DISCONNECTED) {
       throw EndOfFile();
     }
