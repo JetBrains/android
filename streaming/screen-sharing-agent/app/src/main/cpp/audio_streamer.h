@@ -34,7 +34,7 @@ namespace screensharing {
 // Processes control socket commands.
 class AudioStreamer {
 public:
-  explicit AudioStreamer(int socket_fd);
+  explicit AudioStreamer(SocketWriter* writer);
   ~AudioStreamer();
 
   // Starts the streamer's thread.
@@ -54,7 +54,7 @@ private:
   static aaudio_data_callback_result_t AudioDataCallback(AAudioStream* stream, void* user_data, void* audio_data, int32_t num_frames);
 
   std::thread thread_;
-  SocketWriter writer_;
+  SocketWriter* writer_;
   std::atomic_bool streamer_stopped_ = true;
   AAudioStreamBuilder* stream_builder_ = nullptr;
   AAudioStream* stream_ = nullptr;

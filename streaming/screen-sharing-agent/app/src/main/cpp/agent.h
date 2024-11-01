@@ -24,6 +24,7 @@
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
+#include "socket_writer.h"
 
 namespace screensharing {
 
@@ -97,8 +98,8 @@ private:
   static std::string codec_name_;
   static CodecInfo* codec_info_;
   static int32_t flags_;
-  static int video_socket_fd_;
-  static int audio_socket_fd_;
+  static SocketWriter* video_socket_writer_;
+  static SocketWriter* audio_socket_writer_;
   static int control_socket_fd_;
   static std::map<int32_t, DisplayStreamer> display_streamers_;
   static DisplayStreamer* primary_display_streamer_;

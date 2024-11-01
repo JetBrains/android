@@ -44,6 +44,7 @@ constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
 constexpr duration SOCKET_RECEIVE_POLL_TIMEOUT = 250ms;
 constexpr duration SOCKET_READ_TIMEOUT = 5s;
+constexpr duration SOCKET_WRITE_TIMEOUT = 10s;
 constexpr duration DISPLAY_POLLING_DURATION = 500ms;
 
 
@@ -103,7 +104,7 @@ bool CheckVideoSize(Size video_resolution) {
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(SocketReader(socket_fd, duration_cast<milliseconds>(SOCKET_READ_TIMEOUT).count()), BUFFER_SIZE),
-      output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
+      output_stream_(SocketWriter(socket_fd, "control", duration_cast<milliseconds>(SOCKET_WRITE_TIMEOUT).count()), BUFFER_SIZE),
       clipboard_listener_(this),
       device_state_listener_(this) {
   try {

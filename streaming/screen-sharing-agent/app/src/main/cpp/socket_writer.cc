@@ -31,13 +31,23 @@ namespace screensharing {
 using namespace std;
 using namespace std::chrono;
 
-SocketWriter::SocketWriter(int socket_fd, std::string&& socket_name)
+SocketWriter::SocketWriter(int socket_fd, std::string&& socket_name, int32_t timeout_millis)
     : socket_fd_(socket_fd),
-      socket_name_(socket_name) {
+      socket_name_(socket_name),
+      timeout_millis_(timeout_millis) {
   assert(socket_fd > 0);
 }
 
-SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const void* buf2, size_t size2, int timeout_millis) {
+SocketWriter::SocketWriter(SocketWriter&& other)
+    : socket_fd_(other.socket_fd_),
+      socket_name_(other.socket_name_),
+      timeout_millis_(other.timeout_millis_) {
+  other.socket_fd_ = -1;
+}
+
+SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const void* buf2, size_t size2) {
+  unique_lock lock(mutex_);
+  auto remaining_time_millis = timeout_millis_;
   bool was_blocked = false;
   while (true) {
     ssize_t written;
@@ -59,16 +69,17 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
           was_blocked = true;
           auto poll_start = steady_clock::now();
           struct pollfd fds = {socket_fd_, POLLOUT, 0};
-          int ret = poll(&fds, 1, timeout_millis);
+          int ret = poll(&fds, 1, remaining_time_millis);
           if (ret < 0) {
+            lock.unlock();
             Log::Fatal(SOCKET_IO_ERROR, "Error waiting for %s socket to start accepting data - %s", socket_name_.c_str(), strerror(errno));
           }
           if (ret == 0) {
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
-          timeout_millis -= duration_cast<milliseconds>(steady_clock::now() - poll_start).count();
-          if (timeout_millis <= 0) {
+          remaining_time_millis -= duration_cast<milliseconds>(steady_clock::now() - poll_start).count();
+          if (remaining_time_millis <= 0) {
             Log::W("Writing to %s socket timed out", socket_name_.c_str());
             return Result::TIMEOUT;
           }
@@ -77,6 +88,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
         }
 
         default:
+          lock.unlock();
           Log::Fatal(SOCKET_IO_ERROR, "Error writing to %s socket - %s", socket_name_.c_str(), strerror(errno));
       }
     }
@@ -88,6 +100,7 @@ SocketWriter::Result SocketWriter::Write(const void* buf1, size_t size1, const v
     }
     if (written < size1) {
       if (written == 0) {
+        lock.unlock();
         Log::Fatal(SOCKET_IO_ERROR, "No progress writing to %s socket - %s", socket_name_.c_str(), strerror(errno));
       }
       size1 -= written;
