@@ -221,7 +221,7 @@ class VitalsIssueDetailsPanel(
       .apply {
         appendText(NOTHING_SELECTED_LABEL, EMPTY_STATE_TITLE_FORMAT)
         appendSecondaryText(
-          "Select an issue to view the stacktrace.",
+          "Select an issue to view the stack trace.",
           EMPTY_STATE_TEXT_FORMAT,
           null,
         )
