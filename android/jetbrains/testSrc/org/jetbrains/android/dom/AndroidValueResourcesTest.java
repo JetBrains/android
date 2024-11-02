@@ -37,6 +37,7 @@ import com.intellij.openapi.editor.impl.ImaginaryEditor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -60,6 +61,7 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import io.vavr.collection.Array;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +70,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import io.vavr.collection.Array;
 import kotlin.Unit;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
@@ -687,9 +688,12 @@ public class AndroidValueResourcesTest {
   @Test
   public void translatableAttributeCompletionDumbMode() {
     DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+      if (!Registry.is("ide.dumb.mode.check.awareness")) {
+        toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+        return;
+      }
       toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
     });
-    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
   @Test
