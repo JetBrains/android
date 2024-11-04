@@ -45,6 +45,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.DeclarativeStudioSupport;
@@ -65,7 +66,6 @@ import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -98,6 +98,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -106,6 +107,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData;
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -193,34 +195,6 @@ public class GradleProjectSystemUtil {
       return gradleProjectPath + taskName;
     }
     return gradleProjectPath + GRADLE_PATH_SEPARATOR + taskName;
-  }
-
-  /**
-   * Determines the version of the Kotlin plugin in use in the external (Gradle) project with root at projectPath.  The result can
-   * be absent if: there are no Kotlin modules in the project; or there are multiple Kotlin modules using different versions of the
-   * Kotlin compiler; or if sync has never succeeded in this session.
-   */
-  public static @Nullable String getKotlinVersionInUse(@NotNull Project project, @NotNull String gradleProjectPath) {
-    DataNode<ProjectData> projectData = ExternalSystemApiUtil.findProjectNode(project, GRADLE_SYSTEM_ID, gradleProjectPath);
-    if (projectData == null) return null;
-    final String[] kotlinVersion = {null};
-    final boolean[] foundVersion = {false};
-    projectData.visit((node) -> {
-      if (node.getKey().equals( KotlinGradleSourceSetData.Companion.getKEY())) {
-        KotlinGradleSourceSetData data = (KotlinGradleSourceSetData)node.getData();
-        String kotlinPluginVersion = data.getKotlinPluginVersion();
-        if (kotlinPluginVersion != null) {
-          if (!foundVersion[0]) {
-            kotlinVersion[0] = data.getKotlinPluginVersion();
-            foundVersion[0] = true;
-          }
-          else if (!kotlinPluginVersion.equals(kotlinVersion[0])) {
-            kotlinVersion[0] = null;
-          }
-        }
-      }
-    });
-    return kotlinVersion[0];
   }
 
   /**

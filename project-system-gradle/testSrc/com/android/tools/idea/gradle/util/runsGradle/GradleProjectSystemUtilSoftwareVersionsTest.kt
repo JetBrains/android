@@ -19,7 +19,7 @@ import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -35,7 +35,7 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     preparedProject
       .open { project ->
-        val kotlinVersionInUse = GradleProjectSystemUtil.getKotlinVersionInUse(project, project.basePath!!)
+        val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
         assertThat(kotlinVersionInUse).isNotNull()
         assertThat(kotlinVersionInUse).isEqualTo(KOTLIN_VERSION_FOR_TESTS)
       }
@@ -50,7 +50,7 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
     }
     preparedProject
       .open { project ->
-        val kotlinVersionInUse = GradleProjectSystemUtil.getKotlinVersionInUse(project, project.basePath!!)
+        val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
         assertThat(kotlinVersionInUse).isNotNull()
         assertThat(kotlinVersionInUse).isEqualTo("1.6.21")
       }

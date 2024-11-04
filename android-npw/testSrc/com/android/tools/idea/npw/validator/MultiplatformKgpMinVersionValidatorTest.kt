@@ -30,11 +30,11 @@ class MultiplatformKgpMinVersionValidatorTest {
 
   @Test
   fun testValidKgpVersion() {
-    assertValidVersion("1.9.20-Beta")
-    assertValidVersion("1.9.20-Beta2")
-    assertValidVersion("1.9.20-RC")
     assertValidVersion("1.9.20")
     assertValidVersion("2.0.0")
+    assertValidVersion("2.0.0-Beta")
+    assertValidVersion("2.0.0-Beta2")
+    assertValidVersion("2.0.0-RC")
   }
 
   @Test
