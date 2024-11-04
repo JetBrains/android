@@ -240,12 +240,6 @@ class ComposableFunctionExtractableAnalyserTest {
 
   @Test
   fun testComposableContext() {
-    // TODO(353683851): The upstream IntelliJ has an issue related to
-    //  annotation rendering for the container function. Enable K2 after
-    //  landing https://kotlin.jetbrains.space/p/kotlin/reviews/1095/files
-    //  to studio-main.
-    if (KotlinPluginModeProvider.isK2Mode()) return
-
     myFixture.loadNewFile(
       "src/com/example/MyViews.kt",
       // language=kotlin
