@@ -260,12 +260,6 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
         """
       )
     } else {
-      // TODO(https://youtrack.jetbrains.com/issue/KTIJ-30601): This test is
-      //  flaky. Highlighting in the test infra seems to have some delay that
-      //  causes a timing issue. When we tested it on the upstream IntelliJ,
-      //  K2 correctly handles this case. We will move it to the upstream IJ.
-      return
-
       doTest(
         """
       import androidx.compose.runtime.Composable
@@ -278,36 +272,38 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
       }
 
       object FakeFoo : Foo {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+          override <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
       fun composableFunction(param: Boolean): Boolean
-      @Composable() fun composableFunction(param: Boolean): Boolean">override fun composableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
-      @Composable() fun nonComposableFunction(param: Boolean): Boolean
-      fun nonComposableFunction(param: Boolean): Boolean">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
-      @Composable() get(): Boolean
-      get(): Boolean">@Composable get()</error> = true
+      fun composableFunction(param: Boolean): Boolean">fun composableFunction(param: Boolean)</error> = true
+          @Composable override <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      fun nonComposableFunction(param: Boolean): Boolean
+      fun nonComposableFunction(param: Boolean): Boolean">fun nonComposableFunction(param: Boolean)</error> = true
+          override val nonComposableProperty: Boolean @Composable <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      get(): Boolean
+      get(): Boolean">get()</error> = true
       }
 
       interface Bar {
           @Composable
           fun composableFunction(param: Boolean): Boolean
-          val composableProperty: Boolean @Composable get()<EOLError descr="Expecting function body"></EOLError>
+          @get:Composable val composableProperty: Boolean
           fun nonComposableFunction(param: Boolean): Boolean
           val nonComposableProperty: Boolean
       }
 
       object FakeBar : Bar {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+          override <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
       fun composableFunction(param: Boolean): Boolean
-      @Composable() fun composableFunction(param: Boolean): Boolean">override fun composableFunction(param: Boolean)</error> = true
-          override val composableProperty: Boolean = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
-      @Composable() fun nonComposableFunction(param: Boolean): Boolean
-      fun nonComposableFunction(param: Boolean): Boolean">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          override val nonComposableProperty: Boolean <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
-      @Composable() get(): Boolean
-      get(): Boolean">@Composable get()</error> = true
+      fun composableFunction(param: Boolean): Boolean">fun composableFunction(param: Boolean)</error> = true
+          override <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      get(): Boolean
+      get(): Boolean">val composableProperty: Boolean</error> = true
+          @Composable override <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      fun nonComposableFunction(param: Boolean): Boolean
+      fun nonComposableFunction(param: Boolean): Boolean">fun nonComposableFunction(param: Boolean)</error> = true
+          override val nonComposableProperty: Boolean @Composable <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads:
+      get(): Boolean
+      get(): Boolean">get()</error> = true
       }
 
         """
