@@ -26,17 +26,13 @@ import icons.StudioIcons
 internal object BackupFileType : FileType {
   private const val EXT = "backup"
 
-  val FILE_CHOOSER_DESCRIPTOR: FileChooserDescriptor =
-    FileChooserDescriptor(true, false, true, true, false, false)
+  val FILE_CHOOSER_DESCRIPTOR: FileChooserDescriptor
+    get() = FileChooserDescriptor(true, false, true, true, false, false)
       .withTitle(message("backup.choose.restore.file.dialog.title"))
       .withFileFilter { it.name.endsWith(".$EXT") }
 
-  val FILE_SAVER_DESCRIPTOR: FileSaverDescriptor =
-    FileSaverDescriptor(
-      message("backup.choose.backup.file.dialog.title"),
-      "",
-      BackupFileType.defaultExtension,
-    )
+  val FILE_SAVER_DESCRIPTOR: FileSaverDescriptor
+    get() = FileSaverDescriptor(message("backup.choose.backup.file.dialog.title"), "", BackupFileType.defaultExtension)
 
   override fun getName() = "Android Backup File"
 

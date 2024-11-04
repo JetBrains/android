@@ -114,9 +114,8 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   private fun Row.backupFileChooser(width: Int): Cell<TextFieldWithBrowseButton> {
     val cell =
       textFieldWithBrowseButton(
-        message("backup.choose.restore.file.dialog.title"),
-        project,
-        FILE_CHOOSER_DESCRIPTOR,
+        FILE_CHOOSER_DESCRIPTOR.withTitle(message("backup.choose.restore.file.dialog.title")),
+        project
       ) {
         val file = it.path
         val basePath = project.basePath
