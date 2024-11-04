@@ -33,6 +33,7 @@ import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorSettings
 import com.intellij.openapi.editor.impl.ImaginaryEditor
@@ -40,9 +41,9 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import java.io.File
 import org.jetbrains.android.intentions.AndroidExtractColorAction
 import org.jetbrains.android.intentions.AndroidExtractDimensionAction
+import java.io.File
 
 class PreviewFixTest : AbstractAndroidLintTest() {
 
@@ -205,7 +206,6 @@ class PreviewFixTest : AbstractAndroidLintTest() {
   }
 
   fun testIntentionPreviewConvertToDp() {
-    if (true) return // TODO(b/376924928): this test is flaky with IntelliJ 2024.3.
     // Test that the intention preview for ConvertToDpQuickFix works as expected
     myFixture.configureByText(
       "layout.xml", /*language=XML */
@@ -219,7 +219,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     val element = myFixture.findElementByText("textSize", PsiElement::class.java)
     val fix = ModCommandLintQuickFix(ConvertToDpQuickFix(element)).rawIntention()
+
     myFixture.launchAction(fix)
+    NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
+
     myFixture.checkResult(
       """
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">

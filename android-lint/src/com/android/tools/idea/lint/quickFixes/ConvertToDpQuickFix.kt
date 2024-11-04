@@ -65,7 +65,6 @@ class ConvertToDpQuickFix(element: PsiElement) : PsiBasedModCommandAction<PsiEle
     override fun getPresentation(context: ActionContext) =
       Presentation.of(getLabelForDensity(density))
 
-    @Suppress("UnstableApiUsage")
     override fun perform(context: ActionContext) =
       ModCommand.psiUpdate(parentTag) { tag, _ ->
         val dpi = density.dpiValue
