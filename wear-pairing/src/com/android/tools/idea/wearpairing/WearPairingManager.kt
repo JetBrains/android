@@ -264,7 +264,6 @@ class WearPairingManager(
     }
 
     if (connect) {
-      @Suppress("BlockingMethodInNonBlockingContext")
       try {
         LOG.warn("Creating adb bridge")
         phoneDevice.createForward(hostPort, 5601)
