@@ -41,12 +41,6 @@
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
                         overrides="true"/>
 
-    <!-- Suppress tip-of-the-day because it does not work correctly in Android Studio (b/302571384). -->
-    <actionConfigurationCustomizer implementation="com.android.tools.idea.startup.SuppressTipOfTheDay$ActionSuppressor"/>
-    <applicationService serviceInterface="com.intellij.ide.util.TipAndTrickManager"
-                        serviceImplementation="com.android.tools.idea.startup.SuppressTipOfTheDay$OverridingTipAndTrickManager"
-                        overrides="true"/>
-
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
