@@ -1079,6 +1079,23 @@ MODULE                        : MultiFlavor
                             qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
+                testFirstAbcSecondXyzDebugUnitTest      : testFirstAbcSecondXyzDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondXyzDebugUnitTest
+                testFirstAbcSecondXyzReleaseUnitTest    : testFirstAbcSecondXyzReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondXyzReleaseUnitTest
+                testFirstXyzSecondAbcDebugUnitTest      : testFirstXyzSecondAbcDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstXyzSecondAbcDebugUnitTest
+                testFirstXyzSecondAbcReleaseUnitTest    : testFirstXyzSecondAbcReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstXyzSecondAbcReleaseUnitTest
+                testFirstXyzSecondXyzDebugUnitTest      : testFirstXyzSecondXyzDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstXyzSecondXyzDebugUnitTest
+                testFirstXyzSecondXyzReleaseUnitTest    : testFirstXyzSecondXyzReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstXyzSecondXyzReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 7.2.0

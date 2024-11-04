@@ -1053,6 +1053,31 @@ MODULE                        : Kotlin_Multiplatform
                             qName                         : :kmpSecondLib:jvmTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :kmpJvmOnly:jvmTest
+                testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
+                    qName                         : :kmpFirstLib:testAndroidUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
+                testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
+                testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
+                testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
+                testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
+                testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
+                testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
+                testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
+                testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : 8.2.0

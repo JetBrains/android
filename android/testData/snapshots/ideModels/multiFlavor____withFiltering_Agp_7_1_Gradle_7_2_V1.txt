@@ -300,6 +300,11 @@ MODULE                        : MultiFlavor
                             qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 7.1.0

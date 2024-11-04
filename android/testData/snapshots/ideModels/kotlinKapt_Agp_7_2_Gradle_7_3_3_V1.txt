@@ -1680,6 +1680,21 @@ MODULE                        : MainActivity
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :javaLib:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testDebugUnitTest
+                testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalDebugUnitTest
+                testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testReleaseUnitTest
+                testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteDebugUnitTest
+                testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteReleaseUnitTest
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -2390,6 +2405,11 @@ MODULE                        : MainActivity.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             localDebug                    : KotlinTaskPropertiesImpl
@@ -2406,31 +2426,31 @@ MODULE                        : MainActivity.app
                 pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugUnitTest/kotlin [-]
     kaptGradleModel               : <PROXY>
-        buildDirectory                : <ROOT>/app/build [-]
         isEnabled                     : true
+        buildDirectory                : <ROOT>/app/build [-]
         - sourceSets                  : localDebug (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
         - sourceSets                  : localDebugAndroidTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+            isTest                        : true
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
-            isTest                        : true
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
         - sourceSets                  : localDebugUnitTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
             isTest                        : true
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MainActivity.app.androidTest
 MODULE                        : MainActivity.app.main
@@ -2485,6 +2505,11 @@ MODULE                        : MainActivity.javaLib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -3099,6 +3124,11 @@ MODULE                        : MainActivity.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

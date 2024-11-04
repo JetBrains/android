@@ -843,6 +843,11 @@ MODULE                        : project
                             qName                         : :app:testExampleReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testExampleDebugUnitTest      : testExampleDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testExampleDebugUnitTest
+                testExampleReleaseUnitTest    : testExampleReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testExampleReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>

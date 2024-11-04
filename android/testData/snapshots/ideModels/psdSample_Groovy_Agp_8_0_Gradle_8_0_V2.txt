@@ -2100,6 +2100,11 @@ MODULE                        : project
                                             qName                         : :nested2:trans:deep2:testReleaseUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
                         taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2320,12 +2325,55 @@ MODULE                        : project
                             qName                         : :nested2:testBasicDebugUnitTest
                         testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testBasicReleaseUnitTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testDebugUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidDebugUnitTest
                         testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidReleaseUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :jav:test
+                testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarDebugUnitTest
+                testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarReleaseUnitTest
+                testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarSpecialReleaseUnitTest
+                testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicDebugUnitTest
+                testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarDebugUnitTest
+                testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarReleaseUnitTest
+                testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
+                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicReleaseUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testDebugUnitTest
+                testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarDebugUnitTest
+                testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarReleaseUnitTest
+                testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarSpecialReleaseUnitTest
+                testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidDebugUnitTest
+                testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarDebugUnitTest
+                testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarReleaseUnitTest
+                testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
+                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.2
