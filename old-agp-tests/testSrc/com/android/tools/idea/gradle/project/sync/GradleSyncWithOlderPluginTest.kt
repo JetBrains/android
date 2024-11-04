@@ -28,7 +28,8 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
+import org.jetbrains.plugins.gradle.internal.daemon.getDaemonsStatus
+import org.jetbrains.plugins.gradle.internal.daemon.stopDaemons
 import org.junit.Rule
 import org.junit.Test
 
@@ -53,17 +54,17 @@ class GradleSyncWithOlderPluginTest {
   }
 
   fun verifyDaemonStops(project: Project) {
-    GradleDaemonServices.stopDaemons()
+    stopDaemons()
     Truth.assertThat(areGradleDaemonsRunning()).isFalse()
     project.requestSyncAndWait()
     Truth.assertThat(areGradleDaemonsRunning()).isTrue()
-    GradleDaemonServices.stopDaemons()
+    stopDaemons()
     Truth.assertThat(areGradleDaemonsRunning()).isFalse()
   }
 }
 
 private fun areGradleDaemonsRunning(): Boolean {
-  val daemonStatus = GradleDaemonServices.getDaemonsStatus()
+  val daemonStatus = getDaemonsStatus()
   for (status in daemonStatus) {
     if (!StringUtil.equalsIgnoreCase(status.status, "stopped")) {
       return true
