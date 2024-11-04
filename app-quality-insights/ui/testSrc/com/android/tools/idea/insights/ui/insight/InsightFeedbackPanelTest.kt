@@ -19,12 +19,12 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.google.common.truth.Truth.assertThat
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
+import icons.StudioIcons
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -52,11 +52,11 @@ class InsightFeedbackPanelTest {
   @Test
   fun `test upvote and downvote actions`() = runBlocking {
     val (upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
-    assertThat(upvote.icon).isEqualTo(AllIcons.Ide.Like)
+    assertThat(upvote.icon).isEqualTo(StudioIcons.Common.LIKE)
     assertThat(upvote.presentation.text).isEqualTo("Upvote this insight")
     assertThat(upvote.isSelected).isFalse()
 
-    assertThat(downvote.icon).isEqualTo(AllIcons.Ide.Dislike)
+    assertThat(downvote.icon).isEqualTo(StudioIcons.Common.DISLIKE)
     assertThat(downvote.presentation.text).isEqualTo("Downvote this insight")
     assertThat(upvote.isSelected).isFalse()
 
