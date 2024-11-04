@@ -53,6 +53,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -247,13 +248,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     return o;
   }
 
-  @Nullable
   @Override
-  protected Object getSlowDataFromSelection(
-      @Nullable Object[] selectedUserObjects,
-      @Nullable Object[] singleSelectedPathUserObjects,
-      @NotNull String dataId) {
-    if (DELETE_ELEMENT_PROVIDER.is(dataId)) {
+  protected void uiDataSnapshotForSelection(@NotNull DataSink sink,
+                                            Object @NotNull [] selectedUserObjects,
+                                            @Nullable Object[] singleSelectedPathUserObjects) {
+    super.uiDataSnapshotForSelection(sink, selectedUserObjects, singleSelectedPathUserObjects);
+
+    sink.lazy(DELETE_ELEMENT_PROVIDER, () -> {
       Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PsiDirectory) {
         VirtualFile directory = ((PsiDirectory)o).getVirtualFile();
@@ -263,39 +264,35 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
           return new NoOpDeleteProvider();
         }
       }
-    }
+      return null;
+    });
 
-    if (PlatformCoreDataKeys.MODULE.is(dataId)) {
-      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
-      if (o instanceof PackageElement) {
-        PackageElement packageElement = (PackageElement)o;
-        return packageElement.getModule();
-      }
-      else if (o instanceof AndroidFacet) {
-        return ((AndroidFacet)o).getModule();
-      }
-    }
+    sink.lazy(PlatformCoreDataKeys.MODULE, () -> {
+      Object value = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
+      return value instanceof PackageElement o ? o.getModule() :
+             value instanceof AndroidFacet o ? o.getModule() :
+             null;
+    });
 
-    if (VIRTUAL_FILE.is(dataId)) {
-      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
-      if (o instanceof PackageElement) {
-        PackageElement packageElement = (PackageElement)o;
-        Module m = packageElement.getModule();
-        if (m != null) {
-          PsiDirectory[] folders = packageElement.getPackage().getDirectories(GlobalSearchScope.moduleScope(m));
-          if (folders.length > 0) {
-            return folders[0].getVirtualFile();
-          }
-          else {
-            return null;
-          }
-        }
+    sink.lazy(VIRTUAL_FILE, () -> {
+      Object value = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
+      if (!(value instanceof PackageElement packageElement)) {
+        return null;
       }
-    }
+      Module m = packageElement.getModule();
+      if (m == null) return null;
+      PsiDirectory[] folders = packageElement.getPackage().getDirectories(GlobalSearchScope.moduleScope(m));
+      if (folders.length > 0) {
+        return folders[0].getVirtualFile();
+      }
+      else {
+        return null;
+      }
+    });
 
-    if (VIRTUAL_FILE_ARRAY.is(dataId)) {
+    sink.lazy(VIRTUAL_FILE_ARRAY, () -> {
       NodeDescriptor selectedDescriptor =
-          (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
+        (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
       if (selectedDescriptor instanceof FileGroupNode) {
         List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
         if (!files.isEmpty()) {
@@ -321,38 +318,37 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
           return virtualFiles.toArray(VirtualFile.EMPTY_ARRAY);
         }
       }
-    }
+      return null;
+    });
 
-    if (PSI_ELEMENT.is(dataId)) {
-      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
-      if (o instanceof PsiElement) {
+    sink.lazy(PSI_ELEMENT, () -> {
+      Object value = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
+      if (value instanceof PsiElement o) {
         return o;
       }
-      else if (o instanceof List<?>) {
-        List<?> l = (List<?>)o;
-        if (!l.isEmpty() && l.get(0) instanceof PsiElement) {
-          return l.get(0);
+      else if (value instanceof List<?> l) {
+        if (!l.isEmpty() && l.get(0) instanceof PsiElement o) {
+          return o;
         }
       }
 
-      NodeDescriptor selectedDescriptor =
-          (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
-      if (selectedDescriptor instanceof FileGroupNode) {
-        List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
+      NodeDescriptor<?> selectedDescriptor =
+        (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
+      if (selectedDescriptor instanceof FileGroupNode o) {
+        List<PsiFile> files = o.getFiles();
         if (!files.isEmpty()) {
           return files.get(0);
         }
       }
 
-      if (selectedDescriptor instanceof FolderGroupNode) {
-        List<PsiDirectory> directories = ((FolderGroupNode)selectedDescriptor).getFolders();
+      if (selectedDescriptor instanceof FolderGroupNode o) {
+        List<PsiDirectory> directories = o.getFolders();
         if (!directories.isEmpty()) {
           return directories.get(0);
         }
       }
-    }
-
-    return super.getSlowDataFromSelection(selectedUserObjects, singleSelectedPathUserObjects, dataId);
+      return null;
+    });
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
