@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" filepath="$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/descriptor/aiplugin.android-plugin.descriptor.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/descriptor/aiplugin.android-plugin.descriptor.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/cloudcode-core/aiplugin.cloudcode-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/cloudcode-core/aiplugin.cloudcode-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-test-utils.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-test-utils.iml" />
