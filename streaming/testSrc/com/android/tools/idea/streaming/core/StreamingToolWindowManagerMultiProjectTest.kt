@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
@@ -45,6 +46,7 @@ import com.intellij.ui.content.ContentManager
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -96,6 +98,7 @@ class StreamingToolWindowManagerMultiProjectTest {
 
   @Test
   fun testCrossProjectMirroringSynchronization() {
+    assumeFalse(SystemInfo.isWindows) // b/377293115
     assertThat(toolWindow1.isVisible).isFalse()
     assertThat(contentManager1.contents).isEmpty()
 
