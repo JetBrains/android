@@ -63,7 +63,7 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
     if (sourceFunction is KtAnnotated) {
       sourceFunction.findAnnotation(ComposeClassIds.Composable)?.let {
         return descriptor.copy(
-          annotationClassIds = descriptor.annotationClassIds + ComposeClassIds.Composable
+          renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n"
         )
       }
     }
@@ -72,7 +72,7 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
         ?: return descriptor
     return if (outsideLambda.isComposable()) {
       descriptor.copy(
-        annotationClassIds = descriptor.annotationClassIds + ComposeClassIds.Composable
+        renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n"
       )
     } else {
       descriptor
