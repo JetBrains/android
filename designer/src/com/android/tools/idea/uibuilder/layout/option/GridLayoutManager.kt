@@ -71,17 +71,13 @@ class GridLayoutManager(
     availableWidth: Int,
     dimension: Dimension?,
   ): Dimension {
-    return calculateSize(
-      content = content,
-      scaleFunc = scaleFunc,
-      availableWidth = availableWidth
-    )
+    return calculateSize(content = content, scaleFunc = scaleFunc, availableWidth = availableWidth)
   }
 
   private fun calculateSize(
     content: Collection<PositionableContent>,
     scaleFunc: PositionableContent.() -> Double,
-    availableWidth: Int
+    availableWidth: Int,
   ): Dimension {
     // Special case for single content
     content.singleContentOrNull()?.let {
@@ -245,12 +241,7 @@ class GridLayoutManager(
     }
     val scale = (min + max) / 2
     // We get the sizes of the content with the new scale applied.
-    val dim =
-      calculateSize(
-        content = content,
-        scaleFunc = { scale },
-        availableWidth = width,
-      )
+    val dim = calculateSize(content = content, scaleFunc = { scale }, availableWidth = width)
     return if (dim.height <= height && dim.width <= width) {
       // We want the resulting content fitting into the height we try to lower the scale
       getMaxZoomToFitScale(content, scale, max, width, height, depth + 1)
