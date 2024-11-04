@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -1112,14 +1111,6 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
-    // TODO(b/376276611): Remove this version check after 2024.3 merge.
-    val expectedCompletion =
-      if (
-        KotlinPluginModeProvider.isK2Mode() &&
-          ApplicationInfo.getInstance().build.baselineVersion < 243
-      )
-        "FoobarOne {  }"
-      else "FoobarOne()"
     myFixture.checkResult(
       // language=kotlin
       """
@@ -1129,7 +1120,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        $expectedCompletion
+        FoobarOne()
       }
       """
         .trimIndent(),

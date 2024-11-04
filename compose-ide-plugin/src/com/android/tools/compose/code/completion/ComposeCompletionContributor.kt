@@ -31,7 +31,6 @@ import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
@@ -171,13 +170,8 @@ class ComposeCompletionContributor : CompletionContributor() {
    * insertion more easily.
    */
   private fun LookupElement.isVariantWithTrailingLambda(functionInfo: FunctionInfo): Boolean {
-    // This variant is only returned in K2 starting in 2024.3.
-    // TODO(b/376276611): Remove version check after 2024.3 merge.
-    if (
-      !KotlinPluginModeProvider.isK2Mode() ||
-        ApplicationInfo.getInstance().build.baselineVersion < 243
-    )
-      return false
+    // This variant is only returned in K2.
+    if (!KotlinPluginModeProvider.isK2Mode()) return false
 
     // If there's no required or varargs lambda at the end, don't worry about this case.
     if (!functionInfo.endsInRequiredLambda && !functionInfo.endsInVarargLambda) return false
@@ -291,21 +285,6 @@ private class ComposableFunctionLookupElement(
     // Write the modified signature.
     parts.parameters?.let { appendTailText(it, /* grayed= */ false) }
     parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
-
-    // TODO(b/376276611): Remove this check after 2024.3 merge.
-    if (
-      KotlinPluginModeProvider.isK2Mode() &&
-        ApplicationInfo.getInstance().build.baselineVersion < 243
-    ) {
-      // K2 prior to 2024.3 does not split tail into multiple fragments. For example, K1 has
-      // {"(a: Int)", " ", "(com.example)"} as the tail fragments, while K2 has
-      // {"(a: Int) (com.example)"} as one single tail fragment. We manually remove parameters
-      // from the tail to match their behaviors.
-      existingTailFragments.firstOrNull()?.let {
-        appendTailText(it.removeParameters(), it.isGrayed)
-        return
-      }
-    }
 
     // We need to drop one or two fragments from the existing tail.
     // The first fragment from the Kotlin plugin contains the parameters, which we've already
