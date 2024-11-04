@@ -154,6 +154,10 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
+  fun testMultifunctionExpression(){
+    doTest(true, true)
+  }
+
   fun testEscapedAndSingleQuote() {
     doTest(true, true)
 

@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
+public abstract class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements DeclarativeFactory {
 
   public DeclarativeFactoryImpl(@NotNull IElementType type) {
     super(type);
@@ -46,14 +46,8 @@ public class DeclarativeFactoryImpl extends DeclarativeFactoryMixin implements D
 
   @Override
   @Nullable
-  public DeclarativeArgumentsList getArgumentsList() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+  public DeclarativeFactory getReceiver() {
+    return PsiImplUtil.getReceiver(this);
   }
 
 }

@@ -92,6 +92,13 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getReceiver(factory: DeclarativeFactory): DeclarativeFactory? = when (factory) {
+      is DeclarativeSimpleFactory -> null
+      is DeclarativeReceiverPrefixedFactory -> factory.factory
+      else -> throw IllegalStateException("Unexpected DeclarativeFactory class of type ${factory.javaClass.name} in getReceiver()")
+    }
+
+    @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()

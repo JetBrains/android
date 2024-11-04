@@ -24,19 +24,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierMixin;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeIdentifierImpl extends DeclarativeIdentifierMixin implements DeclarativeIdentifier {
+public class DeclarativeReceiverPrefixedFactoryImpl extends DeclarativeFactoryImpl implements DeclarativeReceiverPrefixedFactory {
 
-  public DeclarativeIdentifierImpl(@NotNull IElementType type) {
+  public DeclarativeReceiverPrefixedFactoryImpl(@NotNull IElementType type) {
     super(type);
   }
 
+  @Override
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitIdentifier(this);
+    visitor.visitReceiverPrefixedFactory(this);
   }
 
   @Override
@@ -46,15 +45,21 @@ public class DeclarativeIdentifierImpl extends DeclarativeIdentifierMixin implem
   }
 
   @Override
-  @NotNull
-  public PsiElement getToken() {
-    return findPsiChildByType(TOKEN);
+  @Nullable
+  public DeclarativeArgumentsList getArgumentsList() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeArgumentsList.class);
   }
 
   @Override
   @NotNull
-  public String getName() {
-    return PsiImplUtil.getName(this);
+  public DeclarativeFactory getFactory() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
+  }
+
+  @Override
+  @NotNull
+  public DeclarativeIdentifier getIdentifier() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

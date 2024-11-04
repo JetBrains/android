@@ -8,7 +8,7 @@ FILE
     PsiElement(LITERAL)
       PsiElement(DeclarativeTokenType.null)('null')
   PsiWhiteSpace('\n')
-  PsiElement(FACTORY)
+  PsiElement(SIMPLE_FACTORY)
     PsiElement(IDENTIFIER)
       PsiElement(DeclarativeTokenType.token)('function')
     PsiElement(DeclarativeTokenType.()('(')

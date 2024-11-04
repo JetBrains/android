@@ -5,7 +5,7 @@ FILE
     PsiElement(BLOCK_GROUP)
       PsiElement(DeclarativeTokenType.{)('{')
       PsiWhiteSpace('\n  ')
-      PsiElement(FACTORY)
+      PsiElement(SIMPLE_FACTORY)
         PsiElement(IDENTIFIER)
           PsiElement(DeclarativeTokenType.token)('`function`')
         PsiElement(DeclarativeTokenType.()('(')

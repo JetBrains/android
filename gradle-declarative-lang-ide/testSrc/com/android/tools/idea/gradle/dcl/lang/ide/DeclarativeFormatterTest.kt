@@ -129,6 +129,20 @@ false    )
     doTest(before, after)
   }
 
+  @Test
+  fun testPlugins() {
+    doTest("""
+      plugins{id("some").version("1")
+       id("other").version("2")
+      }
+      """, """
+      plugins {
+          id("some").version("1")
+          id("other").version("2")
+      }
+      """.trimIndent())
+  }
+
   private fun doTest(before: String, after: String) {
     myFixture.loadNewFile(
       "build.gradle.dcl",

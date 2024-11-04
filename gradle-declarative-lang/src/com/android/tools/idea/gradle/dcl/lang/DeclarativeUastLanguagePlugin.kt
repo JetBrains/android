@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.dcl.lang
 
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
@@ -124,14 +124,16 @@ class DeclarativeUFile(override val sourcePsi: DeclarativeFile, override val lan
 
 interface DeclarativeUEntry : UExpression
 
-class DeclarativeUFactory(override val sourcePsi: DeclarativeFactory,
-                          parentProvider: () -> UElement?) : DeclarativeUEntry, UCallExpression {
+class DeclarativeUFactory(
+  override val sourcePsi: DeclarativeFactory,
+  parentProvider: () -> UElement?,
+) : DeclarativeUEntry, UCallExpression {
   override val classReference: UReferenceExpression? = null
   override val kind: UastCallKind = UastCallKind.METHOD_CALL
-  override val methodIdentifier: UIdentifier? = UIdentifier(sourcePsi.identifier, this)
+  override val methodIdentifier: UIdentifier = UIdentifier(sourcePsi.identifier, this)
   override val methodName: String? = sourcePsi.identifier.name
-  override val psi: PsiElement? = sourcePsi
-  override val receiver: UExpression? = null
+  override val psi: PsiElement = sourcePsi
+  override val receiver: UExpression? = sourcePsi.receiver?.let { DeclarativeUFactory(it) { this } }
   override val receiverType: PsiType? = null
   override val returnType: PsiType? = null
   override val typeArgumentCount: Int = 0
@@ -220,7 +222,7 @@ fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpressio
   }
 
 class DeclarativeULiteral(override val sourcePsi: DeclarativeLiteral, override val uastParent: UElement?) : ULiteralExpression {
-  override val psi: PsiElement? = sourcePsi
+  override val psi: PsiElement = sourcePsi
   override val uAnnotations: List<UAnnotation> = listOf()
   override val value: Any? = sourcePsi.value
   override fun evaluate(): Any? = value
@@ -230,7 +232,7 @@ class DeclarativeUQualifiedProperty(override val sourcePsi: DeclarativeProperty,
                                     override val uastParent: UElement?,
                                     receiver: DeclarativeProperty) : UQualifiedReferenceExpression {
   override val accessType: UastQualifiedExpressionAccessType = UastQualifiedExpressionAccessType.SIMPLE
-  override val psi: PsiElement? = sourcePsi
+  override val psi: PsiElement = sourcePsi
   override val receiver: UExpression = receiver.toDeclarativeUExpression(this)
   override val resolvedName: String? = null
   override val selector: UExpression = DeclarativeUSimpleProperty(sourcePsi.field, this)
