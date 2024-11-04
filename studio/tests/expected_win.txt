@@ -413,6 +413,7 @@ android-studio/jbr/legal/jdk.xml.dom/LICENSE
 android-studio/jbr/legal/jdk.zipfs/ADDITIONAL_LICENSE_INFO
 android-studio/jbr/legal/jdk.zipfs/ASSEMBLY_EXCEPTION
 android-studio/jbr/legal/jdk.zipfs/LICENSE
+android-studio/jbr/legal/nvda/LICENSE
 android-studio/jbr/lib/classlist
 android-studio/jbr/lib/ct.sym
 android-studio/jbr/lib/fontconfig.bfc
