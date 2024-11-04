@@ -276,6 +276,7 @@ PROJECT                       : application
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONENT_ENTRY                  : file://<EXTERNAL_MANIFEST>
         CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/assets [-]
         CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/baselineProfiles [-]
         CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/java
