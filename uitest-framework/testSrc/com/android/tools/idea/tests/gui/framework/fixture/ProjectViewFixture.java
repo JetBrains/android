@@ -50,8 +50,10 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.JMenuItem;
 import javax.swing.tree.TreeModel;
 import org.apache.commons.lang3.StringUtils;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.MouseClickInfo;
 import org.fest.swing.core.Robot;
@@ -95,7 +97,14 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     myToolWindow.getComponent().requestFocusInWindow();
-    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byType(ContentLabel.class).andIsShowing().andIsEnabled().andIsVisible());
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byType(ContentLabel.class).andIsShowing().andIsEnabled().andIsVisible().and(
+      new GenericTypeMatcher<>(ContentLabel.class) {
+        @Override
+        protected boolean isMatching(@NotNull ContentLabel component) {
+            return component.getHeight() > 0;
+
+        }
+      }));
     myRobot.click(projectDropDown.getParent());
 
     String paneFullName = "Content name=" + paneName + "; tab name='"+ paneName +"'; toolwindow='"+ paneName +"'";
