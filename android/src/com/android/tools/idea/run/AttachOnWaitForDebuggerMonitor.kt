@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -62,8 +63,9 @@ class AttachOnWaitForDebuggerMonitor(val host: DebuggerHost) : Disposable {
     }
 
     open fun canDebugRun(project: Project, config: AndroidRunConfigurationBase): Boolean {
-      val runner = ProgramRunner.getRunner(DefaultDebugExecutor.EXECUTOR_ID, config)
-      return runner != null && !ExecutionManager.getInstance(project).isStarting(DefaultDebugExecutor.EXECUTOR_ID, runner.runnerId)
+      val runner = ProgramRunner.getRunner(DefaultDebugExecutor.EXECUTOR_ID, config) ?: return false
+      val configId = RunnerAndConfigurationSettingsImpl.getUniqueIdFor(config)
+      return !ExecutionManager.getInstance(project).isStarting(configId, DefaultDebugExecutor.EXECUTOR_ID, runner.runnerId)
     }
 
     open fun anyActiveDebugSessions(project: Project, device: IDevice, applicationId: String): Boolean {
