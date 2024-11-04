@@ -40,6 +40,7 @@ import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.progress.ProgressIndicatorProvider
@@ -71,6 +72,7 @@ import com.intellij.util.SequentialModalProgressTask
 import com.intellij.util.SequentialTask
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.psi.KtFile
+import java.util.concurrent.CancellationException
 import javax.swing.JComponent
 
 /** Analyze support annotations */
@@ -144,7 +146,9 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
         }
 
         override fun onFailure(t: Throwable) {
-          throw RuntimeException(t)
+          if (t !is CancellationException) {
+            thisLogger().warn(t)
+          }
         }
       },
       MoreExecutors.directExecutor()
