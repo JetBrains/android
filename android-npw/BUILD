@@ -55,7 +55,8 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
             # b/192102820 flaky on windows, taking longer than 15 minutes
-            "tags": ["noci:studio-win"],
+            # b/376923937 flaky on linux, taking longer than 15 minutes
+            "tags": ["noci:studio-win", "noci:studio-linux"],
         },
         "BenchmarkModuleTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
