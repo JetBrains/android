@@ -273,9 +273,8 @@ class BuildAnalyzerViewController(
   }
 
   private fun blinkPropertyTextInEditor(editor: Editor, property: IProperty) {
-    val blinkingAttributes = EditorColorsManager.getInstance().globalScheme
-      .getAttributes(CodeInsightColors.BLINKING_HIGHLIGHTS_ATTRIBUTES)
-    val rangeBlinker = RangeBlinker(editor, blinkingAttributes, 6)
+    val blinkingAttributes = EditorColorsManager.getInstance().globalScheme.getAttributes(CodeInsightColors.BLINKING_HIGHLIGHTS_ATTRIBUTES)
+    val rangeBlinker = RangeBlinker(editor = editor, attributes = blinkingAttributes, timeToLive = 6, parentDisposable = null)
     rangeBlinker.resetMarkers(listOf(property.psiElement.textRange))
     rangeBlinker.startBlinking()
   }
