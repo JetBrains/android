@@ -356,12 +356,9 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
               val line = original.substring(begin, end)
               val trimmed = line.trim()
               if (
-                trimmed.startsWith(
-                  "<globalInspection hasStaticDescription=\"true\" shortName=\"$LINT_INSPECTION_PREFIX"
-                ) && trimmed.compareTo(insert, ignoreCase = true) > 0 ||
-                  trimmed.startsWith(
-                    "<globalInspection hasStaticDescription=\"true\" shortName=\"PermissionUsageInspection\""
-                  ) ||
+                trimmed.startsWith("<globalInspection ") &&
+                  trimmed.contains("shortName=\"$LINT_INSPECTION_PREFIX") &&
+                  trimmed.compareTo(insert, ignoreCase = true) > 0 ||
                   trimmed.startsWith("</extensions>") ||
                   !original.contains("<globalInspection")
               ) {
