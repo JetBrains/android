@@ -111,7 +111,7 @@ public class AdbServiceTest extends LightPlatformTestCase {
     // Change options and notify AdbService.
     testOptionSetting = !testOptionSetting;
     StudioFlags.ENABLE_JDWP_PROXY_SERVICE.override(testOptionSetting);
-    AdbService.getInstance().optionsChanged();
+    AdbOptionsService.getInstance().getOptionsUpdater().commit();
 
     // Ensure new bridge is recreated with new settings.
     future = AdbService.getInstance().getDebugBridge(adb.toFile());
