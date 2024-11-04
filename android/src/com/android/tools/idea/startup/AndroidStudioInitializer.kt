@@ -41,15 +41,15 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
  * **Note:** Do not add any additional tasks unless it is proven that the tasks are common to all IDEs. Use
  * GradleSpecificInitializer instead.
  */
-class AndroidStudioInitializer : ApplicationInitializedListener {
+class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : ApplicationInitializedListener {
 
   // Note: this code runs quite early during IDE startup and directly impacts startup time. If possible,
   // prefer to initialize later (e.g. during first project open) or lazily (upon first access to your service).
-  override suspend fun execute(asyncScope: CoroutineScope) {
+  override suspend fun execute() {
     setupAnalytics()
 
     // Initialize System Health Monitor after Analytics.
-    asyncScope.launch {
+    coroutineScope.launch {
       AndroidStudioSystemHealthMonitor.getInstance().start()
     }
 

@@ -18,12 +18,11 @@ package com.android.tools.idea.projectsystem.gradle
 import com.intellij.codeInsight.AttachSourcesProvider
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.extensions.ExtensionPointName
-import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.plugins.gradle.action.GradleAttachSourcesProvider
 
 class DisableGradleAttachSourcesProvider : ApplicationInitializedListener {
   // Unregister the extension to make "Download Source" button disappear
-  override suspend fun execute(asyncScope: CoroutineScope) {
+  override suspend fun execute() {
     ExtensionPointName<AttachSourcesProvider>("com.intellij.attachSourcesProvider")
       .point.unregisterExtension(GradleAttachSourcesProvider::class.java)
   }
