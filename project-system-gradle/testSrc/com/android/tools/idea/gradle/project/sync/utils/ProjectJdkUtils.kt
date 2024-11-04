@@ -28,7 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
-import org.jetbrains.jps.model.serialization.JpsLoaderBase
+import org.jetbrains.jps.model.serialization.JpsComponentLoader
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
 import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
@@ -73,7 +73,7 @@ object ProjectJdkUtils {
 
   fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootName: String): String? {
     val gradleXml = projectRoot.resolve(PROJECT_IDEA_GRADLE_XML_PATH)
-    val gradleXmlRootElement = JpsLoaderBase.tryLoadRootElement(gradleXml.toPath())
+    val gradleXmlRootElement = JpsComponentLoader.tryLoadRootElement(gradleXml.toPath())
     val gradleSettings = JDomSerializationUtil.findComponent(gradleXmlRootElement, "GradleSettings")
     val linkedExternalProjectsSettings = gradleSettings?.getOptionElement("linkedExternalProjectsSettings")
     return linkedExternalProjectsSettings?.content?.firstOrNull { gradleProjectSettings ->
@@ -88,7 +88,7 @@ object ProjectJdkUtils {
 
   fun getProjectJdkNameInIdeaXmlFile(projectRoot: File): String? {
     val projectConfigFile = projectRoot.resolve(PROJECT_IDEA_MISC_XML_PATH).toPath()
-    val rootElement = JpsLoaderBase.tryLoadRootElement(projectConfigFile)
+    val rootElement = JpsComponentLoader.tryLoadRootElement(projectConfigFile)
     val projectRootManagerComponent = JDomSerializationUtil.findComponent(rootElement, "ProjectRootManager")
     return projectRootManagerComponent?.getAttributeValue("project-jdk-name")
   }
