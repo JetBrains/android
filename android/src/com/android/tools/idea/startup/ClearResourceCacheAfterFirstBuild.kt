@@ -17,14 +17,13 @@ package com.android.tools.idea.startup
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.utils.function.RunOnce
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -44,41 +43,47 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
  */
 @Service(Service.Level.PROJECT)
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
-  private inner class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable) : Disposable {
-    override fun dispose() {
-      callbacks.remove(this)
+  private data class CacheClearedCallbacks(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
+  private val lock = Any()
+  @GuardedBy("lock")
+  private var state = State.INITIAL
+  @GuardedBy("lock")
+  private val waitingCallbacks = mutableSetOf<CacheClearedCallbacks>()
+
+  // We initialize this connection here to ensure it only happens once.
+  private var messageBusConnection: MessageBusConnection? = project.messageBus.connect().apply {
+    subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener {
+      if (it.isSuccessful) syncSucceeded() else syncFailed()
+    })
+  }
+
+  /**
+   * Runs at most once when sync succeeds the first time, or when it is clear sync is not required.
+   *
+   * * Disconnects and clears the [MessageBusConnection]
+   * * Clears the resource cache, if necessary
+   * * Sets the state to [State.CACHE_CLEARED]
+   * * Pulls all waiting callbacks out of the set of waiting callbacks and executes them
+   */
+  private val onSyncSucceeded = RunOnce {
+    checkNotNull(messageBusConnection).disconnect()
+    messageBusConnection = null
+    clearResourceCacheIfNecessary()
+    val cacheClearedCallbacks = synchronized(lock) {
+      // runWhenResourceCacheClean should now execute onCacheCleared immediately when called
+      state = State.CACHE_CLEARED
+      waitingCallbacks.mapTo(mutableSetOf(), CacheClearedCallbacks::onCacheCleared)
+        .also { waitingCallbacks.clear() }
+    }
+    for (cacheClearedCallback in cacheClearedCallbacks) {
+      cacheClearedCallback.run()
     }
   }
 
-  private val lock = Any()
-  @GuardedBy("lock")
-  private var cacheClean = false
-  @GuardedBy("lock")
-  private var errorOccurred = false
-  private val callbacks = Sets.newConcurrentHashSet<CacheClearedCallback>()
-  private var messageBusConnection: MessageBusConnection? = null
-
   class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
-      // Listen for sync results until the first successful project sync.
-      val serviceInstance = getInstance(project)
-      serviceInstance.messageBusConnection = project.messageBus.connect().apply {
-        subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-          override fun syncEnded(result: SyncResult) {
-            if (result.isSuccessful) {
-              if (serviceInstance.messageBusConnection != null) {
-                serviceInstance.messageBusConnection = null
-                disconnect()
-              }
-
-              serviceInstance.syncSucceeded()
-            }
-            else {
-              serviceInstance.syncFailed()
-            }
-          }
-        })
-      }
+      // Ensure this is instantiated which will subscribe it to updates until the first successful project sync.
+      getInstance(project)
     }
   }
 
@@ -97,40 +102,32 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
    * removed when parentDisposable is disposed.
    */
   fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable, parentDisposable: Disposable) {
-    // There's no need to wait for the first successful project sync this session if the project's sync state
-    // is already clean. In this case, we can go ahead and clear the cache and notify callbacks of a success.
-    messageBusConnection?.apply {
-      if (syncStateClean()) {
-        messageBusConnection = null
-        disconnect()
+    // There's no need to wait for the first successful project sync this session if the project's sync
+    // state is already clean. In this case, we can go ahead and clear the cache and then treat things
+    // as if sync succeeded.
+    if (!isCacheClean() && isSyncStateClean()) onSyncSucceeded()
 
-        syncSucceeded()
-        onCacheClean.run()
-        return
+    val localState = synchronized(lock) {
+      if (state != State.CACHE_CLEARED) {
+        val callbacks = CacheClearedCallbacks(onCacheClean, onSourceGenerationError)
+        if (waitingCallbacks.add(callbacks)) {
+          Disposer.register(parentDisposable) {
+            synchronized(lock) { waitingCallbacks.remove(callbacks) }
+          }
+        }
       }
+      state
     }
 
-    val (cacheClean, errorOccurred) = synchronized(lock) {
-      if (!cacheClean) {
-        val callback = CacheClearedCallback(onCacheClean, onSourceGenerationError)
-        Disposer.register(parentDisposable, callback)
-        callbacks.add(callback)
-      }
-
-      Pair(cacheClean, errorOccurred)
-    }
-
-    if (cacheClean) {
-      onCacheClean.run()
-    }
-    else if (errorOccurred) {
-      onSourceGenerationError.run()
+    when (localState) {
+      State.INITIAL -> return
+      State.SYNC_ERROR -> onSourceGenerationError.run()
+      State.CACHE_CLEARED -> onCacheClean.run()
     }
   }
 
-  private fun syncStateClean(): Boolean {
-    val syncManager = project.getSyncManager()
-    return !syncManager.isSyncInProgress() && !syncManager.isSyncNeeded() && syncManager.getLastSyncResult().isSuccessful
+  private fun isSyncStateClean() = with(project.getSyncManager()) {
+    !isSyncInProgress() && !isSyncNeeded() && getLastSyncResult().isSuccessful
   }
 
   /**
@@ -145,55 +142,59 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
    * Dump the cached resources if we have accessed the resources before the build was ready.
    * Clear the file based resources and attributes that may have been created based on those resources.
    */
-  @VisibleForTesting
-  fun clearResourceCacheIfNecessary() {
-    if (project.getUserData(INCOMPLETE_RUNTIME_DEPENDENCIES) === java.lang.Boolean.TRUE) {
-      project.putUserData(INCOMPLETE_RUNTIME_DEPENDENCIES, null)
+  private fun clearResourceCacheIfNecessary() {
+    if (project.getUserData(INCOMPLETE_RUNTIME_DEPENDENCIES) !== java.lang.Boolean.TRUE) return
+    project.putUserData(INCOMPLETE_RUNTIME_DEPENDENCIES, null)
+    ResourceClassRegistry.get(project).clearCache()
+
+    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).forEach { facet ->
+      StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
+      StudioResourceIdManager.get(facet.module).resetDynamicIds()
       ResourceClassRegistry.get(project).clearCache()
-
-      ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).forEach { facet ->
-        StudioResourceRepositoryManager.getInstance(facet).resetAllCaches()
-        StudioResourceIdManager.get(facet.module).resetDynamicIds()
-        ResourceClassRegistry.get(project).clearCache()
-        ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
-      }
+      ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
     }
-
-    // runWhenResourceCacheClean should now execute onCacheCleared immediately when called
-    synchronized(lock) {
-      cacheClean = true
-    }
-  }
-
-  @VisibleForTesting
-  fun syncSucceeded() {
-    clearResourceCacheIfNecessary()
-
-    callbacks.forEach { it.onCacheCleared.run() }
-    callbacks.forEach { it.dispose() }
-    callbacks.clear()
-  }
-
-  @VisibleForTesting
-  fun syncFailed() {
-    val toExecute = mutableListOf<CacheClearedCallback>()
-
-    synchronized(lock) {
-      // runWhenResourceCacheClean should now execute onSourceGeneration immediately when called
-      if (!errorOccurred) {
-        errorOccurred = true
-        toExecute.addAll(callbacks)
-      }
-    }
-
-    toExecute.forEach { it.onSourceGenerationError.run() }
   }
 
   /**
-   * Indicates whether clearResourceCacheIfNecessary has been called.
+   * Will be called when the sync succeeds. May happen more than once, although we do unsubscribe
+   * when this is called.
    */
   @VisibleForTesting
-  fun isCacheClean() = synchronized(lock) { cacheClean }
+  fun syncSucceeded() {
+    onSyncSucceeded()
+  }
+
+  @VisibleForTesting
+  /** Will be called every time a sync fails. */
+  fun syncFailed() {
+    val errorCallbacks =
+      synchronized(lock) {
+        // We will already run the failure callback immediately or not at all if we're in one of the
+        // other states.
+        if (state != State.INITIAL) return
+        state = State.SYNC_ERROR
+        // Return a copy
+        waitingCallbacks.mapTo(mutableSetOf(), CacheClearedCallbacks::onSourceGenerationError)
+      }
+    for (errorCallback in errorCallbacks) {
+      errorCallback.run()
+    }
+  }
+
+  /** Indicates whether the cache has been cleared.*/
+  @VisibleForTesting
+  internal fun isCacheClean() = synchronized(lock) { state == State.CACHE_CLEARED }
+
+  /**
+   * The state diagram for this class:
+   *
+   * * Starts in INITIAL
+   * * Can move from INITIAL to SYNC_ERROR or CACHE_CLEARED
+   * * Can move from SYNC_ERROR to CACHE_CLEARED
+   */
+  private enum class State {
+    INITIAL, SYNC_ERROR, CACHE_CLEARED
+  }
 
   companion object {
     @JvmStatic
