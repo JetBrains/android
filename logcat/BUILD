@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/logcat:logcat-proto",
         "//prebuilts/r8",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -58,6 +59,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.modules.json[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",

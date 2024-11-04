@@ -23,5 +23,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/codenavigation[module]",
+        "@intellij//:com.intellij.modules.json[test]",
     ],
 )

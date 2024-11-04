@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
         "//tools/adt/idea/completion:intellij.android.completion[module]",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -79,5 +80,6 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "@intellij//:com.intellij.modules.json[test]",
     ],
 )

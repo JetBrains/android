@@ -409,6 +409,7 @@ studio_plugin(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
         "@intellij//:intellij.platform.lvcs.impl",
@@ -507,6 +508,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )

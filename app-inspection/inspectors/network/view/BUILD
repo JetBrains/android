@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/codenavigation[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -63,5 +64,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+        "@intellij//:com.intellij.modules.json[test]",
     ],
 )
