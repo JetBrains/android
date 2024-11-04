@@ -2,6 +2,7 @@
 <idea-plugin package="com.android.tools.idea.gradle.dsl.parser.groovy">
   <dependencies>
     <plugin id="org.intellij.groovy"/>
+    <module name="intellij.android.gradle.dsl.flags"/>
   </dependencies>
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
