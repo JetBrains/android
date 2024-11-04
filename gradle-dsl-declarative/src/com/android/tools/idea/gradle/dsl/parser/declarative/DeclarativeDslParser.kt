@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
@@ -29,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
@@ -100,13 +103,31 @@ class DeclarativeDslParser(
           }
         }
 
+
         override fun visitAssignment(psi: DeclarativeAssignment) {
           psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)))
         }
 
-        override fun visitFactory(psi: DeclarativeFactory) {
+        override fun visitSimpleFactory(psi: DeclarativeSimpleFactory) {
           val methodCall = parseFactory(psi, context, nameElement) ?: return
           context.addParsedElement(methodCall)
+        }
+
+        override fun visitReceiverPrefixedFactory(factory: DeclarativeReceiverPrefixedFactory) {
+          val expression = GradleDslInfixExpression(context, factory)
+          //parse factory if expression consists only one element
+          if (factory.receiver != null && factory.receiver!!.receiver == null) {
+            val list = listOf(factory, factory.receiver!!)
+            if (list.any { it.argumentsList?.arguments?.size == 1 }) {
+              list.forEach {
+                val name = it.identifier.name
+                val arg = it.argumentsList?.arguments?.first()
+                if (name != null && arg != null && arg is DeclarativeLiteral)
+                  arg.value?.let { expression.setNewLiteral(name, it) }
+              }
+            }
+            context.addParsedElement(expression)
+          }
         }
 
         override fun visitLiteral(psi: DeclarativeLiteral) {

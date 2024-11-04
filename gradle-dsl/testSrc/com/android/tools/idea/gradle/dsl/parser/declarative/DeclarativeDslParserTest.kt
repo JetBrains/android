@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
@@ -167,6 +169,31 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     doTest(file, expected)
   }
 
+  fun testExpressionFunction(){
+    val file = """
+      plugins {
+        id("org.example").version("1")
+        id("org.other").version("2")
+      }
+    """.trimIndent()
+    val expected = mapOf("plugins" to listOf(
+      mapOf("version" to "1", "id" to "org.example"),
+      mapOf("version" to "2", "id" to "org.other"))
+    )
+    doSettingsTest(file, expected)
+  }
+
+  private fun doSettingsTest(text: String, expected: Map<String, Any>) {
+    val declarativeFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "settings.gradle.dcl",
+      text
+    )
+    val dslFile = object : GradleSettingsFile(declarativeFile, project, ":", BuildModelContext.create(project, mock())) {}
+    dslFile.parse()
+    assertEquals(expected, propertiesToMap(dslFile))
+  }
+
   private fun doTest(text: String, expected: Map<String, Any>) {
     val declarativeFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -179,11 +206,17 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
   }
 
   private fun propertiesToMap(file: GradleDslFile): Map<String, Any> {
-    fun populate(key: String, element: GradleDslElement?, setter: (String, Any) -> Unit) {
-      val value = when (element) {
-        is GradleDslBlockElement -> {
+    fun populate(element: GradleDslElement?): Any {
+       return when (element) {
+        is GradleDslElementList -> {
+          val list = LinkedList<Any>()
+          element.currentElements.forEach { list.add(populate(it)) }
+          list
+        }
+
+        is GradlePropertiesDslElement -> {
           val newMap = LinkedHashMap<String, Any>()
-          element.currentElements.forEach { populate(it.name, element.getElement(it.name)) { k, v -> newMap[k] = v } }
+          element.currentElements.forEach { newMap[it.name] = populate(element.getElement(it.name)) }
           newMap
         }
 
@@ -191,10 +224,9 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
           val newList = LinkedList<Any>()
           element.arguments.forEach {
             if (it is GradleDslMethodCall) {
-              populate(it.methodName, it) { k, v -> newList.add(mapOf(k to v)) }
+              newList.add(mapOf(it.methodName to populate(it)))
             }
-            else populate("", it) { _, v -> newList.add(v) }
-
+            else newList.add(populate(it))
           }
           newList
         }
@@ -205,11 +237,12 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
           "Unknown element: $element"
         }
       }
-      setter(key, value)
     }
 
     val map = LinkedHashMap<String, Any>()
-    file.properties.forEach { populate(it, file.getElement(it)) { key, value -> map[key] = value } }
+    file.properties.forEach {
+      map[it] = populate(file.getElement(it))
+    }
     return map
   }
 }
