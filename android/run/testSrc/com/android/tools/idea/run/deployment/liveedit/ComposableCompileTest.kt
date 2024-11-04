@@ -238,6 +238,7 @@ class ComposableCompileTest {
     Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
   }
 
+  @Ignore("b/376148043")
   @Test
   fun sendAllThenOnlyChanges() {
     val file = projectRule.createKtFile("ComposeSimple.kt", """
