@@ -172,44 +172,12 @@ class GridLayoutManager(
       return 1.0
     }
 
-    // Calculate the sum of the area of the original content sizes. This considers the margins and
-    // paddings of every content.
-    val rawSizes =
-      content.map {
-        val viewSize = it.sizeForScale(1.0)
-        Dimension(
-          viewSize.width + padding.previewRightPadding(1.0, it),
-          viewSize.height + padding.previewBottomPadding(1.0, it),
-        )
-      }
-
-    // Upper bound is the max possible zoom estimation to calculate the zoom-to-fit level, to
-    // calculate this number we get the max scale, and we multiply by the screen scaling factor
-    val upperBound = DEFAULT_MAX_SCALE * JBUIScale.sysScale()
-
-    // Lower bound is the min possible zoom estimation to calculate the zoom-to-fit level.
-    // This scale can fit all the content in a single row or a single column, which is the worst
-    // case.
-    val lowerBound = run {
-      // We get the total width if all the content would be on one single row
-      val totalWidth = rawSizes.sumOf { it.width.toDouble() }
-      // We get the total height if all the content would be on one single column
-      val totalHeight = rawSizes.sumOf { it.height.toDouble() }
-      // The zoom-to-fit value cannot be smaller than 1%.
-      minOf(
-          (availableWidth - padding.canvasLeftPadding) / totalWidth,
-          (availableHeight - padding.canvasVerticalPadding) / totalHeight,
-        )
-        .coerceAtLeast(DEFAULT_MIN_SCALE)
-        .coerceAtMost(DEFAULT_MAX_SCALE)
-    }
-
     // Use binary search to find the proper zoom-to-fit value, we use lowerBound and upperBound as
     // the min and max values of zoom-to-fit
     return getMaxZoomToFitScale(
       content = content,
-      min = lowerBound,
-      max = upperBound,
+      min = DEFAULT_MIN_SCALE * JBUIScale.sysScale(),
+      max = DEFAULT_MAX_SCALE * JBUIScale.sysScale(),
       width = availableWidth,
       height = availableHeight,
       depth = 0,
