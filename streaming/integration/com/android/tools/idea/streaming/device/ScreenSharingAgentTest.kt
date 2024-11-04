@@ -25,8 +25,8 @@ import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
