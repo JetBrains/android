@@ -235,7 +235,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateBottomActionBarBorder() {
     val hasBottomActionBar = eastToolbar!!.component.isVisible || dynamicGroup.childrenCount > 0
     val bottom = if (hasBottomActionBar) 1 else 0
-    toolbarComponent.border = BORDER
+    toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
   }
 
   // ---- Implements ModelListener ----
