@@ -41,7 +41,7 @@ import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.KotlinScriptEntitySourceK2;
+import org.jetbrains.kotlin.idea.core.script.KotlinScriptEntitySource;
 
 public class SupportedModuleChecker {
 
@@ -91,7 +91,7 @@ public class SupportedModuleChecker {
       return false;
     }
 
-    return resolved.getEntitySource() instanceof KotlinScriptEntitySourceK2;
+    return resolved.getEntitySource() instanceof KotlinScriptEntitySource;
   }
 
   private void displayUnsupportedModulesNotification(Project project, List<Module> unsupportedModules) {
