@@ -36,7 +36,7 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.IDE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
 import com.intellij.openapi.util.Disposer
 import com.intellij.platform.ide.progress.ModalTaskOwner
-import com.intellij.platform.ide.progress.TaskCancellation.cancellable
+import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.util.ui.JBUI
 import java.net.URL

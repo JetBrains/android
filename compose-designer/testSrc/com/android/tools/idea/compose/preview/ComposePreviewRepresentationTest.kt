@@ -87,6 +87,7 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerKeys
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
@@ -573,7 +574,7 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testRerunUiCheckAction() {
     // Use the real FileEditorManager
-    project.putUserData(FileEditorManagerImpl.ALLOW_IN_LIGHT_PROJECT, true)
+    project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
       FileEditorManager::class.java,
       FileEditorManagerImpl(project, project.coroutineScope),

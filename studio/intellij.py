@@ -77,9 +77,6 @@ def read_platform_jars(ide_home: Path, product_info):
   # Extract the runtime classpath from product-info.json.
   bootClassPath = product_info["launch"][0]["bootClassPathJarNames"]
   jars = ["/lib/" + jar for jar in bootClassPath]
-  # Hide JUnit4 in preparation for its removal in IntelliJ 2024.3 (b/373450755).
-  if "/lib/junit4.jar" in jars:
-    jars.remove("/lib/junit4.jar")
   return set(jars)
 
 

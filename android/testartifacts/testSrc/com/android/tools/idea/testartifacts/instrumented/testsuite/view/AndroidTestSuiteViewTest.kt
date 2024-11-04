@@ -696,8 +696,8 @@ class AndroidTestSuiteViewTest {
       "Previous Occurrence",
       "Next Occurrence",
       "Test History",
-      "Import Tests from File...",
-      "Export Test Results..."
+      "Import Tests from File…",
+      "Export Test Results…"
     ).inOrder()
   }
 
