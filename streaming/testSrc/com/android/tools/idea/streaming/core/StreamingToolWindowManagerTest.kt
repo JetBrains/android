@@ -426,6 +426,7 @@ class StreamingToolWindowManagerTest {
     val provisionerService: DeviceProvisionerService = mock()
     whenever(provisionerService.deviceProvisioner).thenReturn(provisionerRule.deviceProvisioner)
     project.replaceService(DeviceProvisionerService::class.java, provisionerService, agentRule.disposable)
+    waitForCondition(2.seconds) { provisionerService.deviceProvisioner.devices.value.isNotEmpty() }
 
     toolWindow.show()
     waitForCondition(2.seconds) { toolWindow.tabActions.isNotEmpty() }
