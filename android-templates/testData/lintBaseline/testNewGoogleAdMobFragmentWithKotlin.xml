@@ -9,7 +9,7 @@
         errorLine2="                                 ~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/AdMobFragment.kt"
-            line="126"
+            line="127"
             column="34"/>
     </issue>
 

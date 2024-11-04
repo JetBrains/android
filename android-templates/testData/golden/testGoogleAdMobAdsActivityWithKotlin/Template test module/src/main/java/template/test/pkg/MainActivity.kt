@@ -75,7 +75,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadInterstitialAd() {
         val adRequest = AdRequest.Builder().build()
-        InterstitialAd.load(this, getString(R.string.interstitial_ad_unit_id), adRequest,
+        InterstitialAd.load(
+            this, getString(R.string.interstitial_ad_unit_id), adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
                     // The interstitialAd reference will be null until
