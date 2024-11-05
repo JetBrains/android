@@ -39,6 +39,7 @@ import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -51,6 +52,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.concurrent.CancellationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,8 +125,10 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         }
 
         @Override
-        public void onFailure(@Nullable Throwable t) {
-          throw new RuntimeException(t);
+        public void onFailure(Throwable t) {
+          if (!(t instanceof CancellationException)) {
+            Logger.getInstance(AndroidLintExifInterfaceInspection.class).warn(t);
+          }
         }
       }, MoreExecutors.directExecutor());
     }
