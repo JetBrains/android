@@ -50,6 +50,7 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -84,7 +85,6 @@ import com.intellij.util.ui.tree.TreeUtil
 import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
-import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -505,9 +505,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
         when (e?.clickCount) {
           2 -> {
             EditSourceAction().actionPerformed(
-              AnActionEvent.createFromInputEvent(
-                e, ActionPlaces.ANDROID_TEST_SUITE_TABLE, null,
-                DataManager.getInstance().getDataContext(this@AndroidTestResultsTableViewComponent)))
+              AnActionEvent.createEvent(DataManager.getInstance().getDataContext(this@AndroidTestResultsTableViewComponent), null, ActionPlaces.ANDROID_TEST_SUITE_TABLE, ActionUiKind.NONE, e))
           }
         }
       }

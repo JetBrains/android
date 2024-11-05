@@ -58,6 +58,7 @@ import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
+import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -850,7 +851,7 @@ class AndroidTestResultsTableViewTest {
 
     // We cannot directly check whether or not the source code is opened, so we test it indirectly
     // by verifying that the navigatable array lookup is made.
-    verify(mockDataProvider).getData(eq(CommonDataKeys.NAVIGATABLE_ARRAY.name))
+    verify(mockDataProvider, atLeast(1)).getData(eq(CommonDataKeys.NAVIGATABLE_ARRAY.name))
 
     verify(mockLogger).reportClickInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
   }
