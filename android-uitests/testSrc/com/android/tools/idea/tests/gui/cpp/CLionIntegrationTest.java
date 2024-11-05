@@ -73,7 +73,7 @@ public class CLionIntegrationTest {
     guiTest.waitForBackgroundTasks();
 
     // Check unused header import and no errors.
-    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
+    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
       .clickButton("Analyze")
       .getResults();
     assertThat(inspectionResults).contains("Unused");

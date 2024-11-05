@@ -72,7 +72,7 @@ public class PrivateResourceTest {
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
-    ideFrame.invokeMenuPath("File", "Project Structure...");
+    ideFrame.invokeMenuPath("File", "Project Structure\u2026");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =

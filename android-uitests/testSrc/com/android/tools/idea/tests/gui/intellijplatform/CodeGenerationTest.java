@@ -95,19 +95,19 @@ public class CodeGenerationTest {
       editor.moveBetween(JAVA_CODE, "");
     }
 
-    ideFrame.invokeMenuPath("Code", "Surround With...");
+    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
     getList(POPUPLIST_CLASS).clickItem(".*if");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     // Waiting for error analysis to finish to add extra wait for the file to refresh.
     editor.waitUntilErrorAnalysisFinishes();
     assertThat(editor.getCurrentFileContents().contains("if () {")).isTrue();
 
-    ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
+    ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
     getList(JBLIST_CLASS).clickItem("Unwrap 'if...'");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents().contains("if () {")).isFalse();
 
-    ideFrame.invokeMenuPath("Code", "Surround With...");
+    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_4);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents().contains("while (true);")).isTrue();
@@ -115,7 +115,7 @@ public class CodeGenerationTest {
     // Generate constructor
     ideFrame.getEditor().open(PERSON_CLASS)
       .moveBetween("public class Person {", "");
-    ideFrame.invokeMenuPath("Code", "Generate...");
+    ideFrame.invokeMenuPath("Code", "Generate\u2026");
     // Selecting Getter and Setter by clicking on DOWN key and ENTER key.
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DOWN);

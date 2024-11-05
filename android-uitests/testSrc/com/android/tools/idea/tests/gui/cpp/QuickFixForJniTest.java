@@ -88,7 +88,7 @@ public class QuickFixForJniTest {
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.waitAndInvokeMenuPath("Code", "Inspect Code...");
+    ideFrame.waitAndInvokeMenuPath("Code", "Inspect Code\u2026");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);
     inspectCodeDialog.clickAnalyze();
