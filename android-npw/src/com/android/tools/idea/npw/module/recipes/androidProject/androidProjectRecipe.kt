@@ -54,12 +54,5 @@ fun RecipeExecutor.androidProjectRecipe(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))
-  copyGradleWrapper(topOut)
-}
-
-private fun RecipeExecutor.copyGradleWrapper(topOut: File) {
-  copy(resource("wrapper/gradle/wrapper/gradle-wrapper.jar"), topOut.resolve("gradle/wrapper/gradle-wrapper.jar"))
-  copy(resource("wrapper/gradle/wrapper/gradle-wrapper.properties"), topOut.resolve("gradle/wrapper/gradle-wrapper.properties"))
-  copy(resource("wrapper/gradlew"), topOut.resolve("gradlew"))
-  copy(resource("wrapper/gradlew.bat"), topOut.resolve("gradlew.bat"))
+  copy(resource("wrapper"), topOut)
 }

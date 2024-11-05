@@ -52,7 +52,6 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.android.tools.idea.wizard.template.findResource
 import com.android.tools.idea.wizard.template.withoutSkipLines
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
@@ -73,7 +72,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
+import com.intellij.util.lang.UrlClassLoader
 import java.io.File
+import java.net.URL
+import java.util.jar.JarFile
 
 private val LOG = Logger.getInstance(DefaultRecipeExecutor::class.java)
 
@@ -383,24 +385,69 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val sourceUrl = findResource(context.templateData.javaClass, from)
+    val contextClass: Class<Any> = context.templateData.javaClass
+
     val target = getTargetFile(to)
 
-    val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
-    sourceFile.refresh(false, false)
-    val destPath = if (sourceFile.isDirectory) target else target.parentFile
+    contextClass.classLoader
+      .getAndroidResources(from.toString())
+      .distinctBy { it.path }
+      .mapNotNull { fileUrl -> findFileByURL(fileUrl) }
+      .forEach { fileToCopy ->
+        val destPath = if (fileToCopy.isDirectory) target else target.parentFile
+        doCopyFile(fileToCopy, destPath, target)
+      }
+  }
+
+  /**
+   * Method that queries resource URL based on the [resourcePath]
+   */
+  fun ClassLoader.getAndroidResources(resourcePath: String): Sequence<URL> {
+    val result = getResources(resourcePath).asSequence()
+    return result + (this as? UrlClassLoader)?.getJarResources(resourcePath).orEmpty()
+  }
+
+  /**
+   * Solution to query directory resources URL from jars,
+   * where jar which have directory entries excluded.
+   */
+  fun UrlClassLoader.getJarResources(resourcePath: String): Sequence<URL> {
+    val normalizedResourcePath = resourcePath.removePrefix("/")
+
+    return this.urls.mapNotNull<URL, URL> { classLoaderItem: URL ->
+      if (classLoaderItem.protocol != "file") return@mapNotNull null
+
+      val filePath = File(classLoaderItem.path)
+      val isJarFile = filePath.isFile && filePath.extension == "jar"
+      if (!isJarFile) return@mapNotNull null
+
+      val jarEntriesSequence = JarFile(filePath).entries().asSequence()
+      if (jarEntriesSequence.any { it.name.startsWith(normalizedResourcePath) }) {
+        URL("jar:$classLoaderItem!/$normalizedResourcePath")
+      }
+      else {
+        null
+      }
+    }.asSequence()
+  }
+
+  private fun DefaultRecipeExecutor.doCopyFile(
+    fileToCopy: VirtualFile,
+    destPath: File,
+    target: File,
+  ) {
     when {
-      sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
+      fileToCopy.isDirectory -> copyDirectory(fileToCopy, destPath)
       target.exists() ->
-        if (!sourceFile.contentEquals(target)) {
+        if (!fileToCopy.contentEquals(target)) {
           addFileAlreadyExistWarning(target)
         }
       else -> {
-        val document = FileDocumentManager.getInstance().getDocument(sourceFile)
+        val document = FileDocumentManager.getInstance().getDocument(fileToCopy)
         if (document != null) {
           io.writeFile(this, document.text, target, project)
         } else {
-          io.copyFile(this, sourceFile, destPath, target.name)
+          io.copyFile(this, fileToCopy, destPath, target.name)
         }
         referencesExecutor.addTargetFile(target)
       }
@@ -631,7 +678,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
       if (
         current.valueType == ValueType.NONE ||
-          current.toLanguageLevel()?.isAtLeast(languageLevel) != true
+        current.toLanguageLevel()?.isAtLeast(languageLevel) != true
       ) {
         current.setLanguageLevel(languageLevel)
       }
@@ -790,7 +837,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
       val vf =
         LocalFileSystem.getInstance().findFileByIoFile(to)
-          ?: parentDir.createChildData(requestor, to.name)
+        ?: parentDir.createChildData(requestor, to.name)
       vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
 
       // ProjectBuildModel uses PSI, let's committed document, since it's illegal to modify PSI on
