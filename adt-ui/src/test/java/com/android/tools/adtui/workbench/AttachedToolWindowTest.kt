@@ -643,12 +643,12 @@ class AttachedToolWindowTest {
     panel!!.isFilteringActive = false
     val toolbar = ActionToolbar.findToolbarBy(button)
     if (toolbar != null) {
-      runInEdtAndWait { toolbar.updateActionsImmediately() }
+      runInEdtAndWait { toolbar.updateActionsAsync() }
     }
     assertThat(button.isEnabled).isFalse()
     panel.isFilteringActive = true
     if (toolbar != null) {
-      runInEdtAndWait { toolbar.updateActionsImmediately() }
+      runInEdtAndWait { toolbar.updateActionsAsync() }
     }
     assertThat(button.isEnabled).isTrue()
 

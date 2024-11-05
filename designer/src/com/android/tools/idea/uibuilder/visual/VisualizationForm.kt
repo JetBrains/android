@@ -268,7 +268,7 @@ class VisualizationForm(
     val lintToolbar =
       ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
     lintToolbar.setTargetComponent(surface)
-    lintToolbar.updateActionsImmediately()
+    lintToolbar.updateActionsAsync()
     ActionToolbarUtil.makeToolbarNavigable(lintToolbar)
     toolbarPanel.add(lintToolbar.component, BorderLayout.EAST)
   }
