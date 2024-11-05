@@ -262,14 +262,12 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":app", new File(myProjectBasePath.getPath(), "newAppLocation"));
+    File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
+
     File appLocation = settingsModel.moduleDirectory(":app");
     assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), appLocation);
 
@@ -282,17 +280,14 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":lib", new File(myProjectBasePath.getPath(), "libLocation"));
+    File preParseLibLocation = settingsModel.moduleDirectory(":lib");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), preParseLibLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
-    File appLocation = settingsModel.moduleDirectory(":lib");
-    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), appLocation);
 
+    File libLocation = settingsModel.moduleDirectory(":lib");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), libLocation);
     verifyFileContents(mySettingsFile, TestFile.SET_PROJECT_DIR_FROM_EXISTING_EXPECTED);
   }
 
@@ -303,13 +298,11 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":app", new File("/cool/app"));
+
+    File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File("/cool/app").getAbsoluteFile(), preParseAppLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
     File appLocation = settingsModel.moduleDirectory(":app");
     File expected = new File("/cool/app").getAbsoluteFile();
