@@ -844,8 +844,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         // properties added should go after the last apply (in case it applies a semantically-important plugin, or includes a file
         // with relevant properties.
         // TODO(xof): there should be something similar for ExtDslElement in KotlinScript
-        if (item.myElement instanceof ApplyDslElement) {
-          lastElement = item.myElement.requestAnchor(element);
+        if (currentElement instanceof ApplyDslElement) {
+          lastElement = currentElement.requestAnchor(element);
         }
         else {
           lastElement = item.myElement;
