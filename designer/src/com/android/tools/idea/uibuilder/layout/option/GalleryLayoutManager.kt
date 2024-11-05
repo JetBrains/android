@@ -16,12 +16,9 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 
 /** [SurfaceLayoutManager] for Gallery mode. */
 class GalleryLayoutManager(
-  padding: GroupPadding,
-  transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
-) : GroupedGridSurfaceLayoutManager(padding, transform)
+  transform: (Collection<PositionableContent>) -> List<PositionableGroup>
+) : GridLayoutManager(transform = transform)

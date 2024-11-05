@@ -34,7 +34,6 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
   listOf(PositionableGroup(it.toList()))
 }
 
-private val galleryPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
 private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 
@@ -42,7 +41,7 @@ private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
-    GalleryLayoutManager(galleryPadding, NO_GROUP_TRANSFORM),
+    GalleryLayoutManager(NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
   )
