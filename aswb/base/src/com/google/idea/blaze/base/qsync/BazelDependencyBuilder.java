@@ -19,10 +19,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -31,7 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
-import com.google.common.io.CharSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,15 +56,18 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.Output;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BlazeArtifact;
+import com.google.idea.blaze.common.artifact.BuildArtifactCache;
+import com.google.idea.blaze.common.artifact.CachedArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
-import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
@@ -80,7 +85,6 @@ import com.intellij.openapi.util.text.StringUtilRt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,12 +96,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder {
-
-  public static final BoolExperiment fetchArtifactInfoInParallel =
-      new BoolExperiment("qsync.parallel.artifact.info.fetch", true);
 
   public static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", true);
@@ -120,20 +122,23 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   protected final WorkspaceRoot workspaceRoot;
   protected final Optional<BlazeVcsHandler> vcsHandler;
   protected final ImmutableSet<String> handledRuleKinds;
+  protected final BuildArtifactCache buildArtifactCache;
 
   public BazelDependencyBuilder(
-      Project project,
-      BuildSystem buildSystem,
-      ProjectDefinition projectDefinition,
-      WorkspaceRoot workspaceRoot,
-      Optional<BlazeVcsHandler> vcsHandler,
-      ImmutableSet<String> handledRuleKinds) {
+    Project project,
+    BuildSystem buildSystem,
+    ProjectDefinition projectDefinition,
+    WorkspaceRoot workspaceRoot,
+    Optional<BlazeVcsHandler> vcsHandler,
+    BuildArtifactCache buildArtifactCache,
+    ImmutableSet<String> handledRuleKinds) {
     this.project = project;
     this.buildSystem = buildSystem;
     this.projectDefinition = projectDefinition;
     this.workspaceRoot = workspaceRoot;
     this.vcsHandler = vcsHandler;
     this.handledRuleKinds = handledRuleKinds;
+    this.buildArtifactCache = buildArtifactCache;
   }
 
   private static final ImmutableMultimap<QuerySyncLanguage, OutputGroup> OUTPUT_GROUPS_BY_LANGUAGE =
@@ -301,40 +306,27 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             || totalBytesToFetch > FETCH_SIZE_LOG_THRESHOLD;
     if (shouldLog) {
       context.output(
-          PrintOutput.log(
-              String.format(
-                  "Fetching %d artifact info files (%s)",
-                  totalFilesToFetch, StringUtilRt.formatFileSize(totalBytesToFetch))));
+        PrintOutput.log(
+          String.format(
+            "Fetching and parsing %d artifact info files (%s)",
+            totalFilesToFetch, StringUtilRt.formatFileSize(totalBytesToFetch))));
     }
 
     ImmutableSet.Builder<JavaArtifacts> artifactInfoFilesBuilder = ImmutableSet.builder();
     ImmutableSet.Builder<CcCompilationInfo> ccInfoBuilder = ImmutableSet.builder();
 
-    if (fetchArtifactInfoInParallel.getValue()) {
-      try {
-        ListenableFuture<List<JavaArtifacts>> artifactInfoFutures =
-            readAndTransformInfoFiles(artifactInfoFiles, this::readArtifactInfoFile);
-        ListenableFuture<List<CcCompilationInfo>> ccInfoFutures =
-            readAndTransformInfoFiles(ccArtifactInfoFiles, this::readCcInfoFile);
+    List<JavaArtifacts> artifactInfos =
+      readAndTransformInfoFiles(context, artifactInfoFiles, this::readArtifactInfoFile);
+    List<CcCompilationInfo> ccInfos =
+      readAndTransformInfoFiles(context, ccArtifactInfoFiles, this::readCcInfoFile);
 
-        artifactInfoFilesBuilder.addAll(Uninterruptibles.getUninterruptibly(artifactInfoFutures));
-        ccInfoBuilder.addAll(Uninterruptibles.getUninterruptibly(ccInfoFutures));
-      } catch (ExecutionException e) {
-        throw new BuildException(e);
-      }
-    } else {
-      for (OutputArtifact artifactInfoFile : artifactInfoFiles) {
-        artifactInfoFilesBuilder.add(readArtifactInfoFile(artifactInfoFile));
-      }
-      for (OutputArtifact artifactInfoFile : ccArtifactInfoFiles) {
-        ccInfoBuilder.add(readCcInfoFile(artifactInfoFile));
-      }
-    }
+    artifactInfoFilesBuilder.addAll(artifactInfos);
+    ccInfoBuilder.addAll(ccInfos);
 
     long elapsed = System.currentTimeMillis() - startTime;
     if (shouldLog) {
       context.output(
-          PrintOutput.log(String.format("Fetched artifact info files in %d ms", elapsed)));
+        PrintOutput.log(String.format("Fetched and parsed artifact info files in %d ms", elapsed)));
     }
     Optional<VcsState> vcsState = Optional.empty();
     if (blazeBuildOutputs.sourceUri.isPresent() && vcsHandler.isPresent()) {
@@ -366,29 +358,72 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     R apply(T t) throws BuildException;
   }
 
-  private <T> ListenableFuture<List<T>> readAndTransformInfoFiles(
-      ImmutableList<OutputArtifact> artifactInfoFiles,
-      CheckedTransform<OutputArtifact, T> transform) {
-    List<ListenableFuture<T>> futures = Lists.newArrayList();
-    for (OutputArtifact artifactInfoFile : artifactInfoFiles) {
-      futures.add(Futures.submit(() -> transform.apply(artifactInfoFile), FetchExecutor.EXECUTOR));
+
+  private <T> ImmutableList<T> readAndTransformInfoFiles(
+    Context<?> context,
+    ImmutableList<OutputArtifact> artifactInfoFiles,
+    CheckedTransform<ByteSource, T> transform) throws BuildException {
+
+    ListenableFuture<?> listenableFuture = buildArtifactCache.addAll(artifactInfoFiles, context);
+    Stopwatch sw = Stopwatch.createStarted();
+    // TODO: solodkyy - For now separate fetching and parsing. We have had some thread safety issues and it allows us reporting fetching
+    //  time correctly which happens to be much shorter than the time it takes to parse the info files.
+    try {
+      final var unused = listenableFuture.get();
     }
-    return Futures.allAsList(futures);
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new BuildException(e);
+    }
+    catch (ExecutionException e) {
+      throw new BuildException(e);
+    }
+    context.output(PrintOutput.output("Fetched %d info files in %sms", artifactInfoFiles.size(), sw.elapsed().toMillis()));
+    ImmutableList<ListenableFuture<CachedArtifact>> artifactFutures =
+      artifactInfoFiles.stream()
+        .map(OutputArtifact::getDigest)
+        .map(digest -> {
+          final var result = buildArtifactCache.get(digest);
+          if (result.isEmpty()) {
+            context.output(PrintOutput.error("Failed to get artifact future for: " + digest));
+            context.setHasError();
+          }
+          return result;
+        })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toImmutableList());
+
+    ImmutableList<ListenableFuture<T>> futures =
+      artifactFutures.stream()
+        .map(it ->
+               Futures.transformAsync(it, a -> immediateFuture(transform.apply(a.byteSource())), FetchExecutor.EXECUTOR))
+        .collect(toImmutableList());
+    try {
+      return ImmutableList.copyOf(Futures.allAsList(futures).get());
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new BuildException(e);
+    }
+    catch (ExecutionException e) {
+      throw new BuildException(e);
+    }
   }
 
-  private JavaArtifacts readArtifactInfoFile(BlazeArtifact file) throws BuildException {
+  private JavaArtifacts readArtifactInfoFile(ByteSource file) throws BuildException {
     return ProtoStringInterner.intern(
         readArtifactInfoProtoFile(JavaArtifacts.newBuilder(), file).build());
   }
 
-  private CcCompilationInfo readCcInfoFile(BlazeArtifact file) throws BuildException {
+  private CcCompilationInfo readCcInfoFile(ByteSource file) throws BuildException {
     return ProtoStringInterner.intern(
         readArtifactInfoProtoFile(CcCompilationInfo.newBuilder(), file).build());
   }
 
-  protected <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, BlazeArtifact file)
-      throws BuildException {
-    try (InputStream inputStream = file.getInputStream()) {
+  protected <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, ByteSource file)
+    throws BuildException {
+    try (InputStream inputStream = file.openStream()) {
       TextFormat.Parser parser = TextFormat.Parser.newBuilder().build();
       parser.merge(new InputStreamReader(inputStream, UTF_8), builder);
       return builder;
