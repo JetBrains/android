@@ -62,7 +62,7 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     waitUntilNotShowing();
     GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(240));
     GuiTests.waitUntilGone(myIdeFrameFixture.robot(), target(),
-                           Matchers.byText(EngravedLabel.class, "Inspecting code with profile 'Project Default'\u2026").andIsShowing(),
+                           Matchers.byText(EngravedLabel.class, "Inspecting code with profile 'Project Default'...").andIsShowing(),
                            300);
     InspectionsFixture myInspectionsFixture = InspectionsFixture.find(myIdeFrameFixture);
     myInspectionsFixture.activate();
