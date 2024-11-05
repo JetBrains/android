@@ -30,7 +30,10 @@ class MultiplatformKgpMinVersionValidator : Validator<String> {
     ) {
       return Validator.Result(
         Validator.Severity.ERROR,
-        message("android.wizard.validate.kgp.version.for.kmp.module"),
+        message(
+          "android.wizard.validate.kgp.version.for.kmp.module",
+          MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION,
+        ),
       )
     }
 
