@@ -638,6 +638,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return new AGPUpgradeAssistantToolWindowFixture(this);
   }
 
+  /**
+   * Open "Code" > "Inspect Code..." and return InspectCodeDialogFixture
+   */
+  @NotNull
+  public InspectCodeDialogFixture invokeInspectCodeDialog() {
+    waitAndInvokeMenuPath("Code", "Inspect Code\u2026");
+    return InspectCodeDialogFixture.find(this);
+  }
+
+  /**
+   * Open "Run", "Edit Configurations..." and return EditConfigurationsDialogFixture
+   */
+  @NotNull
+  public EditConfigurationsDialogFixture invokeEditConfigurationsDialog() {
+    waitAndInvokeMenuPath("Run", "Edit Configurations\u2026");
+    return EditConfigurationsDialogFixture.find(this.robot());
+  }
+
   @NotNull
   public IdeFrameFixture clearNotificationsPresentOnIdeFrame() {
     List<BalloonImpl.ActionButton> allNotificationActions = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(BalloonImpl.ActionButton.class)));

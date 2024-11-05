@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.instantapp
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
@@ -56,8 +55,7 @@ class BuildInstantAppTest {
     val ideFrame = guiTest.ideFrame()
     ideFrame.waitUntilProgressBarNotDisplayed()
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(ideFrame.robot())
+    ideFrame.invokeEditConfigurationsDialog()
       .selectDeployAsInstantApp(true)
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted()
