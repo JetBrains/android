@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
@@ -30,6 +29,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.util.concurrency.EdtExecutorService
@@ -39,7 +41,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 class AppInspectionToolWindowManagerListenerTest {
   private val timer = FakeTimer()
@@ -48,7 +49,8 @@ class AppInspectionToolWindowManagerListenerTest {
     FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
   private val appInspectionServiceRule =
     AppInspectionServiceRule(timer, transportService, grpcServerRule)
-  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   private class FakeToolWindow(
     project: Project,
@@ -99,8 +101,7 @@ class AppInspectionToolWindowManagerListenerTest {
     }
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
+  val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
 
   @Test
   fun testShowBubbleWhenInspectionIsAndIsNotRunning() = runBlocking {
@@ -121,7 +122,7 @@ class AppInspectionToolWindowManagerListenerTest {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
       }
-    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+    Disposer.register(disposableRule.disposable, inspectionView)
     lateinit var toolWindow: ToolWindow
     val toolWindowManager =
       object : ToolWindowHeadlessManagerImpl(projectRule.project) {

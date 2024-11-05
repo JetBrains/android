@@ -10,6 +10,8 @@ import com.android.tools.idea.appinspection.internal.process.TransportProcessDes
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -19,6 +21,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import org.junit.Before
@@ -32,12 +36,10 @@ import org.mockito.kotlin.whenever
 private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 
 class SelectProcessActionTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
 
-  @Before
-  fun setUp() {
-    projectRule.mockService(ActionManager::class.java)
-  }
+  @get:Rule
+  val rule = RuleChain(projectRule, ApplicationServiceRule(ActionManager::class.java, mock()))
 
   private fun createFakeStream(
     serial: String = UUID.randomUUID().toString(),

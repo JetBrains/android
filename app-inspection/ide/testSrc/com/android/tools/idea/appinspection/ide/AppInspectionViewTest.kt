@@ -47,7 +47,6 @@ import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -57,11 +56,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.util.concurrency.EdtExecutorService
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.concurrent.ArrayBlockingQueue
-import javax.swing.JPanel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +76,10 @@ import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.ArrayBlockingQueue
+import javax.swing.JPanel
 
 class TestAppInspectorTabProvider1 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
@@ -101,7 +102,9 @@ class AppInspectionViewTest {
     FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
   private val appInspectionServiceRule =
     AppInspectionServiceRule(timer, transportService, grpcServerRule)
-  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val disposable get() = disposableRule.disposable
 
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
     class NotificationData(
@@ -126,8 +129,7 @@ class AppInspectionViewTest {
   private val ideServices = TestIdeServices()
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
+  val ruleChain = RuleChain(projectRule, disposableRule, grpcServerRule, appInspectionServiceRule)
 
   @Before
   fun setup() {
@@ -154,7 +156,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
 
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
@@ -191,7 +193,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           tabsAdded.complete(Unit)
@@ -225,7 +227,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
 
         inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
           if (i == 0) {
@@ -301,7 +303,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
 
         // Test initial tabs added.
         inspectionView.tabsChangedFlow.first {
@@ -406,7 +408,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         var previousTabs = mutableListOf<AppInspectorTabShell>()
         inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
           when (i) {
@@ -491,7 +493,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
 
         // Test initial tabs added.
         inspectionView.tabsChangedFlow.first {
@@ -601,7 +603,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
 
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -675,7 +677,7 @@ class AppInspectionViewTest {
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
-      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      Disposer.register(disposable, inspectionView)
 
       inspectionView.tabsChangedFlow.first {
         assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -730,7 +732,7 @@ class AppInspectionViewTest {
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
-      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      Disposer.register(disposable, inspectionView)
       inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
         if (i == 0) {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(3)
@@ -786,7 +788,7 @@ class AppInspectionViewTest {
         ) {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
-      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      Disposer.register(disposable, inspectionView)
       inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
         if (i == 0) {
           assertThat(inspectionView.inspectorTabs).hasSize(3)
@@ -843,7 +845,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           val tab = inspectionView.inspectorTabs[0]
@@ -906,7 +908,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           val tab = inspectionView.inspectorTabs[0]
@@ -958,7 +960,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           val tab = inspectionView.inspectorTabs[0]
@@ -1024,7 +1026,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs).isEmpty()
           val statePanel = inspectionView.inspectorPanel.getComponent(0)
@@ -1064,7 +1066,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           val tab = inspectionView.inspectorTabs[0]
@@ -1123,7 +1125,7 @@ class AppInspectionViewTest {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
       }
-    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+    Disposer.register(disposable, inspectionView)
 
     val firstProcessReadyDeferred = CompletableDeferred<Unit>()
     val deadProcessAddedDeferred = CompletableDeferred<Unit>()
@@ -1213,7 +1215,7 @@ class AppInspectionViewTest {
           ) {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
-        Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+        Disposer.register(disposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(3)
           inspectionView.inspectorTabs.forEach { inspectorTab ->
@@ -1307,7 +1309,7 @@ class AppInspectionViewTest {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
       }
-    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+    Disposer.register(disposable, inspectionView)
 
     assertThat(inspectionView.autoConnects).isTrue()
 
@@ -1418,7 +1420,7 @@ class AppInspectionViewTest {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
       }
-    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+    Disposer.register(disposable, inspectionView)
 
     launch(uiDispatcher) {
       inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
@@ -1474,7 +1476,7 @@ class AppInspectionViewTest {
           it.name == FakeTransportService.FAKE_PROCESS_NAME
         }
       }
-    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+    Disposer.register(disposable, inspectionView)
 
     launch(uiDispatcher) {
       inspectionView.tabsChangedFlow.first()
