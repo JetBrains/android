@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-from typing import Iterator, NoReturn
+from typing import Iterator, NoReturn, Optional
 import argparse
 import copy
-import json
 import posixpath
 import re
-import shlex
 import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+import zipfile
 
 
 def main():
@@ -21,8 +20,8 @@ def main():
     # Parse args.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-r", "--recycle-intellij-source-map", action="store_true",
-        help="reuse previous intellij-source-map.json file to reduce iteration times")
+        "--rebuild-intellij-module-descriptors", action="store_true",
+        help="use this flag if you modified IntelliJ project structure (e.g. added a library)")
     args = parser.parse_args()
 
     # Find relevant paths.
@@ -42,13 +41,19 @@ def main():
     outdir.joinpath(".idea/modules").mkdir()
     print("Tempdir:", outdir)
 
-    # Compute IntelliJ source map (a map from distro jars to source modules/libraries).
-    source_map_file = outdir.joinpath("intellij-source-map.json")
-    if args.recycle_intellij_source_map and source_map_file.exists():
-        print(f"Reusing previous IntelliJ source map: {source_map_file.relative_to(monobuild_dir)}")
+    # Find the IntelliJ source map (a map from distro jars to source modules/libraries).
+    if args.rebuild_intellij_module_descriptors:
+        source_map_file = generate_module_descriptors_jar(intellij_root, outdir)
     else:
-        source_map_file.unlink(missing_ok=True)
-        generate_intellij_source_map(intellij_root, source_map_file)
+        # Reusing module-descriptors.jar from intellij-sdk prebuilts is a slight hack,
+        # but it makes the monobuild significantly faster to set up in the common case.
+        print(
+            "Warning: reusing module-descriptors.jar from intellij-sdk prebuilts\n"
+            "  If you make any changes to the IntelliJ project structure,\n"
+            "  such as modifying a module dependency, be sure to pass flag\n"
+            "  --rebuild-intellij-module-descriptors to build this file from scratch."
+        )
+        source_map_file = workspace/"prebuilts/studio/intellij-sdk/AI/linux/android-studio/modules/module-descriptors.jar"
 
     # Load and patch the projects.
     print("Scanning projects")
@@ -346,59 +351,57 @@ def transfer_user_files(src_project: Path, dst_project: Path):
             shutil.copytree(src, dst)
 
 
-# Runs AndroidStudioSourceMapBuildTarget from platform/tools/idea to generate a
-# JSON map from IDE distribution JARs to their corresponding source modules/libraries.
-def generate_intellij_source_map(intellij_root: Path, outfile: Path):
-    command = [
-        f"{intellij_root}/platform/jps-bootstrap/jps-bootstrap.sh",
-        f"-Dintellij.build.output.root={intellij_root}/out/studio",
-        "-Dintellij.build.dev.mode=false",
-        "-Dcompile.parallel=true",
-        "-Dintellij.build.incremental.compilation=true",
-        "-Dintellij.build.incremental.compilation.fallback.rebuild=false",
-        str(intellij_root),
-        "intellij.idea.community.build",
-        "AndroidStudioSourceMapBuildTarget",
-        str(outfile),
-    ]
+# Generates module-descriptors.jar from the current sources in platform/tools/idea.
+def generate_module_descriptors_jar(intellij_root: Path, tempdir: Path) -> Path:
+    command = [f"{intellij_root}/build_studio.sh", "--incremental"]
+    log_path = tempdir/"intellij-build-log.txt"
     # Mention where to find the logs.
-    log_path = outfile.parent.joinpath("intellij-source-map-build-log.txt")
-    cmd_quoted = ' '.join([shlex.quote(arg) for arg in command])
     print((
-        f"\nBuilding IntelliJ source map using command:\n\n\t{cmd_quoted}\n\n"
-        f"...and writing build log to:\n\n\t{log_path}\n\n"
+        f"\nBuilding IntelliJ using build_studio.sh and writing build log to:\n\n\t{log_path}\n\n"
         f"This may take a while if IntelliJ needs to download dependencies.\n"
     ))
     # Run it.
     with open(log_path, 'w') as log:
         status = subprocess.run(command, stderr=subprocess.STDOUT, stdout=log)
-    if status.returncode != 0:
+    outfile = intellij_root/"out/studio/dist.unix.x64/modules/module-descriptors.jar"
+    if status.returncode != 0 or not outfile.exists():
         sys.exit(f"ERROR: failed to build {outfile.name}. See build log at:\n\n\t{log_path}\n")
     print("Successfully built", outfile.name)
+    return outfile
 
 
-# Parses intellij-source-map.json, and returns a map from intellij-sdk library names
+# Parses module-descriptors.jar, and returns a map from intellij-sdk library names
 # to the corresponding sources in IntelliJ, in the form of <orderEntry> XML elements.
-def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str,list[ET.Element]]:
-    source_map_text = read_jps_file(source_map_file, {"PROJECT_DIR": intellij.root})
-    source_map = json.loads(source_map_text)
+# The format of module-descriptors.jar is unspecified and subject to change, so
+# this code may need to be updated after major IntelliJ updates.
+def parse_intellij_source_map(intellij: JpsProject, source_map_file: Path) -> dict[str,list[ET.Element]]:
+    # Find the mapping from jars to modules.
+    jar_to_module: list[tuple[str,str]] = []
+    with zipfile.ZipFile(source_map_file) as zip_file:
+        for entry in zip_file.infolist():
+            if not entry.filename.endswith(".xml"):
+                continue
+            with zip_file.open(entry) as module_file:
+                module_xml = ET.parse(module_file, ET.XMLParser(encoding="UTF-8"))
+            name = module_xml.getroot().get("name") or fail()
+            for resource_root in module_xml.findall("./resources/resource-root"):
+                path = resource_root.get("path") or fail()
+                jar_to_module.append((path, name))
 
-    platform_jar_pattern = re.compile(r".*/dist\.all/lib/(modules/)?[^/]*\.jar")
-    plugin_jar_pattern = re.compile(r".*/dist\.all/plugins/([^/]*)/lib/(modules/)?[^/]*\.jar")
+    platform_jar_pattern = re.compile(r"\.\./lib/[^/]*\.jar")
+    plugin_jar_pattern = re.compile(r"\.\./plugins/([^/]*)/lib/[^/]*\.jar")
+    v2_module_jar_pattern = re.compile(r"\.\.(/plugins)?/lib/modules/[^/]*\.jar")
 
     # Studio refers to plugins by their plugin ID. So, we need to find the plugin ID associated
     # with each plugin (by querying the plugin.xml file inside each plugin directory).
     plugin_dir_to_id = {}
-    for mapping in source_map:
-        path = Path(mapping["path"])
-        type = mapping["type"]
-        if not plugin_jar_pattern.fullmatch(str(path)):
+    for jar, module in jar_to_module:
+        if module.startswith("lib."):
+            continue  # Not a source module.
+        if not plugin_jar_pattern.fullmatch(jar):
             continue  # Not a plugin.
-        plugin_dir = plugin_jar_pattern.fullmatch(str(path)).group(1)
-        if type != "module-output":
-            continue  # Not a module (there will be no plugin.xml file).
-        module_name = mapping["name"]
-        jps_module = next(m for m in intellij.modules if m.name == module_name)
+        plugin_dir = plugin_jar_pattern.fullmatch(jar).group(1)
+        jps_module = next(m for m in intellij.modules if m.name == module)
         srcs = jps_module.xml.findall('./component/content/sourceFolder')
         for src in srcs:
             if src.get("isTestSource") == "true" or src.get("type") == "java-test-resource":
@@ -413,15 +416,17 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
             break
 
     res: dict[str,list[ET.Element]] = {}
-    for mapping in source_map:
+    for jar, module in jar_to_module:
         # Find the intellij-sdk lib that contains this jar.
-        path = Path(mapping["path"])
-        if path.match("**/dist.all/lib/testFramework.jar"):
+        if jar == "../lib/testFramework.jar":
             intellij_sdk_lib = "intellij-test-framework"
-        elif platform_jar_pattern.fullmatch(str(path)):
+        elif platform_jar_pattern.fullmatch(jar):
             intellij_sdk_lib = "studio-sdk"
-        elif plugin_jar_pattern.fullmatch(str(path)):
-            plugin_dir = plugin_jar_pattern.fullmatch(str(path)).group(1)
+        elif v2_module_jar_pattern.fullmatch(jar):
+            module_id = Path(jar).stem
+            intellij_sdk_lib = f"studio-plugin-{module_id}"
+        elif plugin_jar_pattern.fullmatch(jar):
+            plugin_dir = plugin_jar_pattern.fullmatch(jar).group(1)
             plugin_id = plugin_dir_to_id[plugin_dir]
             intellij_sdk_lib = f"studio-plugin-{plugin_id}"
         else:
@@ -429,20 +434,20 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
 
         # Synthesize a <orderEntry> element referring to the source module/library.
         src: ET.Element
-        type = mapping["type"]
-        if type == "module-output":
-            module: str = mapping["name"]
-            src = ET.Element("orderEntry", {"type": "module", "module-name": module})
-        elif type == "project-library":
-            lib: str = mapping["library"]
-            jar = Path(mapping["libraryFile"])
-            src = create_module_library(name=f"{lib}:{jar.stem}", jars=[jar])
-        elif type == "module-library-file":
-            module: str = mapping["module"]
-            jar = Path(mapping["libraryFile"])
-            src = create_module_library(name=f"{module}:{jar.stem}", jars=[jar])
+        if module.startswith("lib."):
+            # Project-level libraries are encoded like "lib.{lib_name}".
+            # Module-level libraries are encoded like "lib.${module_name}.${lib_name}".
+            lib = module.removeprefix("lib.")
+            module_lib = find_module_library(intellij, lib)
+            if module_lib is not None:
+                src = copy.deepcopy(module_lib)
+                src.find("library").set("name", lib)
+                src.set("scope", "PROVIDED")  # It will come via the original module.
+            else:
+                src = ET.Element("orderEntry", {"type": "library", "level": "project", "name": lib})
         else:
-            fail(f"Unknown source type found in the IntelliJ source map: {type}")
+            # Regular module.
+            src = ET.Element("orderEntry", {"type": "module", "module-name": module})
         srcs = res.setdefault(intellij_sdk_lib, [])
         srcs.append(src)
 
@@ -455,18 +460,14 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
     return res
 
 
-# Creates a new JPS module library, in the form of an <orderEntry> XML element.
-def create_module_library(name: str, jars: list[Path]) -> ET.Element:
-    lib = ''
-    lib += f'<orderEntry type="module-library">\n'
-    lib += f'  <library name="{name}">\n'
-    lib += f'    <CLASSES>\n'
-    for jar in jars:
-        lib += f'      <root url="jar://{jar}!/" />\n'
-    lib += f'    </CLASSES>\n'
-    lib += f'  </library>\n'
-    lib += f'</orderEntry>'
-    return ET.fromstring(lib, ET.XMLParser(encoding="UTF-8"))
+# Searches the JPS project for a module-level library with encoded name "${module_name}.${lib_name}".
+def find_module_library(intellij: JpsProject, encoded_name: str) -> Optional[ET.Element]:
+    for m in intellij.modules:
+        for mlib in m.xml.findall("./component/orderEntry[@type='module-library']"):
+            lib = mlib.find("./library")
+            name = lib.get("name") or "unnamed"
+            if encoded_name == f"{m.name}.{name}":
+                return mlib
 
 
 # Parses the project Kotlinc opts in kotlinc.xml and return an equivalent Kotlin module facet.
