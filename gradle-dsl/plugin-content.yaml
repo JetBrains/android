@@ -2,6 +2,7 @@
   modules:
   - name: intellij.android.gradle.dsl
   contentModules:
+  - name: intellij.android.gradle.dsl.groovy
   - name: intellij.android.gradle.dsl.kotlin
   - name: intellij.android.gradle.dsl.toml
   - name: intellij.android.gradle.dsl.declarative
