@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.xml.parsers.SAXParserFactory
 import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.android.facet.AndroidFacet
@@ -47,8 +48,8 @@ private val log: Logger
 /** A collection of utility methods for interacting with an `Recipe`. */
 object RecipeUtils {
   // TODO(qumeric): remove this cache. It is not needed anymore, everything is fast without it.
-  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> =
-    hashMapOf()
+  private val recipeMetadataCache: ConcurrentHashMap<Pair<Recipe, Project>, List<RecipeMetadata>> =
+    ConcurrentHashMap()
 
   @JvmStatic
   /**
@@ -61,24 +62,20 @@ object RecipeUtils {
   fun getRecipeMetadata(recipe: Recipe, project: Project): List<RecipeMetadata> {
     val key = Pair(recipe, project)
 
-    val cached = recipeMetadataCache[key]
-    if (cached != null) {
-      return cached
+    return recipeMetadataCache.computeIfAbsent(key) {
+      val metadataBuilder = ImmutableList.builder<RecipeMetadata>()
+      for (module in getAndroidModules(project)) {
+        metadataBuilder.add(getRecipeMetadata(recipe, module))
+      }
+
+      val metadata = metadataBuilder.build()
+
+      Disposer.register(AndroidPluginDisposable.getProjectInstance(project)) {
+        recipeMetadataCache.remove(key)
+      }
+
+      metadata
     }
-
-    val metadataBuilder = ImmutableList.builder<RecipeMetadata>()
-    for (module in getAndroidModules(project)) {
-      metadataBuilder.add(getRecipeMetadata(recipe, module))
-    }
-
-    val metadata = metadataBuilder.build()
-    recipeMetadataCache[key] = metadata
-
-    Disposer.register(AndroidPluginDisposable.getProjectInstance(project)) {
-      recipeMetadataCache.remove(key)
-    }
-
-    return metadata
   }
 
   @JvmStatic
@@ -114,13 +111,6 @@ object RecipeUtils {
   }
 
   private fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
-    val key = Pair(recipe, module.project)
-    if (recipeMetadataCache.containsKey(key)) {
-      val metadata = recipeMetadataCache[key]!!.find { it.recipe == recipe }
-      if (metadata != null) {
-        return metadata
-      }
-    }
     val metadata = RecipeMetadata(recipe, module)
 
     val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
