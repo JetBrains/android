@@ -4,7 +4,6 @@ apply {
   plugin 'rad.plug.in'
   plugin 'awesome.plug.in'
 }
-
 ext {
   newProp = true
 }

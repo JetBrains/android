@@ -1,6 +1,5 @@
 android {
   sourceSets {
-
     set4 {
       setRoot 'newRoot4'
     }

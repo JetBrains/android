@@ -41,6 +41,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssign
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
@@ -209,20 +210,20 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         addedElement = parentPsiElement.addAfter(statement, anchor);
       }
 
-      if (element.isBlockElement() && !isWhiteSpaceOrNls(addedElement.getPrevSibling())) {
+      if (!isWhiteSpaceOrNls(addedElement.getPrevSibling())) {
         parentPsiElement.addBefore(lineTerminator, addedElement);
       }
       if (addBefore) {
         parentPsiElement.addAfter(lineTerminator, addedElement);
       }
-      else {
-        parentPsiElement.addBefore(lineTerminator, addedElement);
-      }
     }
     else if (parentPsiElement instanceof GrClosableBlock) {
       addedElement = parentPsiElement.addAfter(statement, anchor);
+      PsiElement prevSibling = addedElement.getPrevSibling();
       if (anchorAfter != null) {
-        parentPsiElement.addBefore(lineTerminator, addedElement);
+        if (!(prevSibling instanceof GrParameterList)) {
+          parentPsiElement.addBefore(lineTerminator, addedElement);
+        }
       }
       else {
         parentPsiElement.addAfter(lineTerminator, addedElement);
