@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.setEditorLayout
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import java.awt.event.ComponentEvent
@@ -49,7 +53,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   textEditor: TextEditor,
   preview: P,
   editorName: String,
-) : SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
+) : SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName), AndroidCoroutinesAware {
   /**
    * SplitEditorAction that sets the [layoutSetExplicitly] when the user has clicked the action.
    * This prevents the tab from being switched automatically once the user has explicitly switch to
@@ -152,7 +156,11 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   private fun activate() {
     if (isActive) return
     isActive = true
-    preview.onActivate()
+    launch(workerThread) {
+      // onActivate is not a suspendable function so we put it in a blockingContextScope
+      // to make it cancellable.
+      blockingContextScope { preview.onActivate() }
+    }
   }
 
   override fun navigateTo(navigatable: Navigatable) {
@@ -171,7 +179,12 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   private fun deactivate() {
     if (!isActive) return
     isActive = false
-    preview.onDeactivate()
+
+    launch(workerThread) {
+      // onDeactivate is not a suspendable function so we put it in a blockingContextScope
+      // to make it cancellable.
+      blockingContextScope { preview.onDeactivate() }
+    }
   }
 
   final override fun selectNotify() {
@@ -180,7 +193,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (firstActivation) {
       // This is the first time the editor is being activated so trigger the onInit initialization.
       firstActivation = false
-      AndroidCoroutineScope(this).launch {
+      launch {
         preview.onInit()
 
         withContext(uiThread) {
