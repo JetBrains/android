@@ -500,9 +500,12 @@ constructor(
           if (item.device.isOnline) {
             logcatServiceChannel.send(StartLogcat(item.device))
           } else {
+            val sameDevice = connectedDevice.get()?.deviceId == item.device.deviceId
             logcatServiceChannel.send(StopLogcat)
             withContext(uiThread) {
-              clearDocument()
+              if (!sameDevice) {
+                clearDocument()
+              }
               noLogsBanner.isVisible = false
             }
           }
