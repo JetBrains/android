@@ -10,6 +10,7 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.groovy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
