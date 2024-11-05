@@ -211,6 +211,7 @@ internal class DeviceController(
   }
 
   private fun send(message:ControlMessage) {
+    thisLogger().info("DeviceController.send($message)")
     message.serialize(outputStream)
     outputStream.flush()
   }
