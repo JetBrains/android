@@ -36,7 +36,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
@@ -86,9 +85,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
 
   @RequiresBackgroundThread
   private fun clearCaches() {
-    ModuleManager.getInstance(project).modules.forEach {
-      StudioModuleClassLoaderManager.get().clearCache(it)
-    }
+    StudioModuleClassLoaderManager.get().clearCache(project)
   }
 
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
@@ -304,16 +301,45 @@ class StudioModuleClassLoaderManager :
     module.getUserData(HATCHERY)?.destroy()
   }
 
-  @Synchronized
-  override fun clearCache(module: Module) {
+  private fun clearCaches(filter: (Module) -> Boolean) {
     val modules = holders
       .keySet()
-      .toList()
+      .toList() // Convert to list since we will be removing elements later
       .mapNotNull { it.module?.let { m -> m to it } }
-      .filter { it.first.getModuleSystem().getHolderModule() == module.getModuleSystem().getHolderModule() }
-      .onEach { holders.remove(it.second) }
+      .filter { it.first.isDisposed || filter(it.first) }
+      .onEach {
+        holders.remove(it.second)
+      }
       .mapTo(mutableSetOf()) { it.first }
     modules.forEach(::clearModuleData)
+
+    // Clear entries for class loaders that are disposed or are pointing to disposed modules.
+    holders.entrySet().toList()
+      .onEach {
+        if (it.key.isDisposed || it.key.module == null) {
+          holders.remove(it.key)
+        }
+      }
+  }
+
+  /**
+   * Clears the cached [StudioModuleClassLoader] for the class loaders associated to this [Project].
+   */
+  @Synchronized
+  internal fun clearCache(project: Project) {
+    clearCaches {
+      it.project == project
+    }
+  }
+
+  /**
+   * Clears the cached [StudioModuleClassLoader] for the class loader associated to this [Module].
+   */
+  @Synchronized
+  override fun clearCache(module: Module) {
+    clearCaches {
+      it.getModuleSystem().getHolderModule() == module.getModuleSystem().getHolderModule()
+    }
   }
 
   @Synchronized
