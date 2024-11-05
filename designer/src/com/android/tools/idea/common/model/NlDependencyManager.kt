@@ -95,7 +95,7 @@ class NlDependencyManager private constructor() {
     val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
       facet.module.project
         .getSyncManager()
-        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+        .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
 
     if (dependenciesPresentCallback != null) {
       syncResult.addCallback(

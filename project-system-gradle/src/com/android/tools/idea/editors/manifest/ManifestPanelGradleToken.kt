@@ -139,7 +139,7 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
                                    gbm.psiFile)
         }
         // We must make sure that the files have been updated before we sync, we block above but not here.
-        val syncRunnable = Runnable { project.getSyncManager().syncProject(PROJECT_MODIFIED) }
+        val syncRunnable = Runnable { project.getSyncManager().requestSyncProject(PROJECT_MODIFIED) }
         if (ApplicationManager.getApplication().isUnitTestMode) {
           syncRunnable.run()
         }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
-import static com.android.SdkConstants.DOT_TFLITE;
 import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
 
 import com.android.ide.common.repository.GradleCoordinate;
@@ -73,7 +72,7 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
           for (GradleCoordinate dep : depsToAdd) {
             moduleSystem.registerDependency(dep);
           }
-          ProjectSystemUtil.getSyncManager(module.getProject()).syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+          ProjectSystemUtil.getSyncManager(module.getProject()).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         }
       });
       panel.createActionLabel("Hide notification", () -> {

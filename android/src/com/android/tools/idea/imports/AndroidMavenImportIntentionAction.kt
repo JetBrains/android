@@ -286,7 +286,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         project
           .getProjectSystem()
           .getSyncManager()
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+          .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
       }
 
       trackSuggestedImport(artifact)
@@ -343,10 +343,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       val syncManager = getProjectSystem().getSyncManager()
       if (syncManager.isSyncInProgress()) {
         listenUntilNextSync {
-          syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+          syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
         }
       } else {
-        syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+        syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
       }
     }
 

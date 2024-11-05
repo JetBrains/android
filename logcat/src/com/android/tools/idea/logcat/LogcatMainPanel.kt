@@ -418,7 +418,7 @@ constructor(
         ProjectSystemService.getInstance(project)
           .projectSystem
           .getSyncManager()
-          .syncProject(USER_REQUEST)
+          .requestSyncProject(USER_REQUEST)
       }
       isVisible = isMissingApplicationIds()
     }

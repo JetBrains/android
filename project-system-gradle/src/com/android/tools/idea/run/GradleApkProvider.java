@@ -682,7 +682,7 @@ public final class GradleApkProvider implements ApkProvider {
     if (gradleAndroidModel == null) {
       ConfigurationQuickFix requestProjectSync =
         (dataContext) -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
+          .requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
     }

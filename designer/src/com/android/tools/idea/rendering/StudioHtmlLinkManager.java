@@ -240,7 +240,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     else if ((url.startsWith(URL_ADD_DEPENDENCY) || url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) && module != null) {
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
-        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+        .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
       surface.handleRefreshRenderUrl();
@@ -346,7 +346,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     assert url.equals(URL_SYNC) : url;
 
     ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().requestSyncProject(reason);
   }
 
   private static void handleEditClassPathUrl(@NotNull String url, @NotNull Module module) {

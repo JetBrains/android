@@ -97,7 +97,7 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
   override fun allowsFileCreation() = false
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+    override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
       }

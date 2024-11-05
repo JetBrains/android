@@ -356,14 +356,14 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
                 OpenFileAction.openFile(file.virtualFile, project)
             }
             // Sync after changing build scripts
-            project.getProjectSystem().getSyncManager().syncProject(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED.toReason())
+            project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED.toReason())
             UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
                 override fun undo() {
-                    project.getProjectSystem().getSyncManager().syncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+                    project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
                 }
 
                 override fun redo() {
-                    project.getProjectSystem().getSyncManager().syncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+                    project.getProjectSystem().getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
                 }
             })
             Pair(collector, configuredModules)

@@ -135,7 +135,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
   private fun syncAndRestartAnalysis(project: Project, scope: AnalysisScope) {
     assert(ApplicationManager.getApplication().isDispatchThread)
     val syncResult = project.getProjectSystem()
-      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+      .getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     Futures.addCallback(
       syncResult,
       object : FutureCallback<ProjectSystemSyncManager.SyncResult> {

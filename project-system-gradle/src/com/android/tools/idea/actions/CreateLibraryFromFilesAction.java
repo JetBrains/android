@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.application.options.ModulesComboBox;
@@ -240,7 +239,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
         // Request a sync
         ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
-          .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
+          .getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
       };
 
       progress.setTitle("Adding Dependencies to Gradle build file");

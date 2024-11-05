@@ -30,7 +30,7 @@ interface ProjectSyncInvoker {
    */
   class DefaultProjectSyncInvoker : ProjectSyncInvoker {
     override fun syncProject(project: Project) {
-      project.getProjectSystem().getSyncManager().syncProject(PROJECT_MODIFIED)
+      project.getProjectSystem().getSyncManager().requestSyncProject(PROJECT_MODIFIED)
     }
   }
 }

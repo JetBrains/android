@@ -80,7 +80,7 @@ class ApkProjectSystem(override val project: Project) : AndroidProjectSystem {
     .filter { ModuleRootManager.getInstance(it).sourceRoots.isNotEmpty() || ApkFacet.getInstance(it) != null }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+    override fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       }

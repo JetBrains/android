@@ -132,7 +132,7 @@ class BasicAndroidMonitorTest {
 
     assertThat(monitor.isGradleSyncNeeded()).isFalse()
 
-    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
+    project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
 
     assertThat(monitor.isGradleSyncNeeded()).isTrue()
   }
