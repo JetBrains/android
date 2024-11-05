@@ -23,17 +23,17 @@ import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.FakeAndroidDevice
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
-import kotlin.random.Random
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import kotlin.random.Random
 
 class AppInspectionExecutionListenerTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testRecentProcess() {
