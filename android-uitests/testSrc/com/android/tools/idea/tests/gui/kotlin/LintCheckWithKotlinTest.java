@@ -35,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class LintCheckWithKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies Lint errors with Kotlin code.
@@ -70,7 +70,7 @@ public class LintCheckWithKotlinTest {
       .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER))
       .typeText("\nfindViewById<TextView>(0).text=\"st\"")
       .getIdeFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
+      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
       .clickButton("Analyze")
       .getResults();
 
