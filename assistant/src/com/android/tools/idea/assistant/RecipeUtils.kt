@@ -30,10 +30,12 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 import javax.xml.parsers.SAXParserFactory
+import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.xml.sax.Attributes
@@ -45,8 +47,7 @@ private val log: Logger
 /** A collection of utility methods for interacting with an `Recipe`. */
 object RecipeUtils {
   // TODO(qumeric): remove this cache. It is not needed anymore, everything is fast without it.
-  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> =
-    hashMapOf()
+  private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> = hashMapOf()
 
   private fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
     val key = Pair(recipe, module.project)
@@ -106,14 +107,25 @@ object RecipeUtils {
   @JvmStatic
   fun getRecipeMetadata(recipe: Recipe, project: Project): List<RecipeMetadata> {
     val key = Pair(recipe, project)
-    if (!recipeMetadataCache.containsKey(key)) {
-      val cache = ImmutableList.builder<RecipeMetadata>()
-      for (module in getAndroidModules(project)) {
-        cache.add(getRecipeMetadata(recipe, module))
-      }
-      recipeMetadataCache[key] = cache.build()
+
+    val cached = recipeMetadataCache[key]
+    if (cached != null) {
+      return cached
     }
-    return recipeMetadataCache[key]!!
+
+    val metadataBuilder = ImmutableList.builder<RecipeMetadata>()
+    for (module in getAndroidModules(project)) {
+      metadataBuilder.add(getRecipeMetadata(recipe, module))
+    }
+
+    val metadata = metadataBuilder.build()
+    recipeMetadataCache[key] = metadata
+
+    Disposer.register(AndroidPluginDisposable.getProjectInstance(project)) {
+      recipeMetadataCache.remove(key)
+    }
+
+    return metadata
   }
 
   @JvmStatic
@@ -139,6 +151,11 @@ object RecipeUtils {
     }
 
     openEditors(module.project, context.filesToOpen, true)
+  }
+
+  @VisibleForTesting
+  fun getRecipeMetadataCacheSize(): Int {
+    return recipeMetadataCache.size
   }
 
   private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) =
