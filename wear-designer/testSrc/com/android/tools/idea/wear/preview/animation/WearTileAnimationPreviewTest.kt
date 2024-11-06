@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.Result.Status
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -44,6 +45,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -51,7 +53,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 class WearTileAnimationPreviewTest {
@@ -59,14 +60,6 @@ class WearTileAnimationPreviewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var animationPreview: WearTileAnimationPreview
-
-  private val renderResultMock =
-    Mockito.mock(RenderResult::class.java).apply {
-      whenever(this.sourceFile).thenReturn(mock(PsiFile::class.java))
-      whenever(this.logger).thenReturn(RenderLogger())
-      whenever(this.renderResult).thenReturn(Status.SUCCESS.createResult())
-      whenever(this.module).doAnswer { projectRule.module }
-    }
 
   private val wearTilePreviewElement: PsiWearTilePreviewElement =
     WearTilePreviewElement(
@@ -118,14 +111,14 @@ class WearTileAnimationPreviewTest {
 
   @Before
   fun setUp() = runBlocking {
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", "").virtualFile
+    val psiFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", "")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val model =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         AndroidBuildTargetReference.gradleOnly(facet),
-        layoutFile,
+        psiFile.virtualFile,
       )
 
     model.dataContext = DataContext {
@@ -135,18 +128,22 @@ class WearTileAnimationPreviewTest {
       return@DataContext null
     }
 
+    val successfulRenderResultMock =
+      Mockito.mock(RenderResult::class.java).apply {
+        whenever(this.sourceFile).thenReturn(psiFile)
+        whenever(this.logger).thenReturn(RenderLogger())
+        whenever(this.renderResult).thenReturn(Status.SUCCESS.createResult())
+        whenever(this.module).doAnswer { projectRule.module }
+      }
+
     val surface =
       NlSurfaceBuilder(
           projectRule.project,
           projectRule.testRootDisposable,
           { s, m ->
-            val realSceneManager =
-              SyncLayoutlibSceneManager(s, model).apply {
-                Disposer.register(projectRule.testRootDisposable, this)
-              }
-            // we mock successful RenderResult
-            spy(realSceneManager).apply {
-              whenever(this.renderResult).doAnswer { renderResultMock }
+            SyncLayoutlibSceneManager(s, m).apply {
+              Disposer.register(projectRule.testRootDisposable, this)
+              renderResult = successfulRenderResultMock
             }
           },
         )
@@ -271,14 +268,28 @@ class WearTileAnimationPreviewTest {
   @Test
   fun errorInSurface_showErrorPanel() = runTest {
     // mock renderResult to return ERROR
-    whenever(renderResultMock.renderResult).thenReturn(Status.ERROR_RENDER_TASK.createResult())
+    val errorRenderResultMock =
+      Mockito.mock(RenderResult::class.java).apply {
+        whenever(this.sourceFile).thenReturn(mock(PsiFile::class.java))
+        whenever(this.logger).thenReturn(RenderLogger())
+        whenever(this.renderResult).thenReturn(Status.ERROR_RENDER_TASK.createResult())
+        whenever(this.module).thenReturn(projectRule.module)
+      }
+
+    (animationPreview.sceneManagerProvider() as SyncLayoutlibSceneManager).renderResult =
+      errorRenderResultMock
 
     // trigger collect
-    wearTilePreviewElement.tileServiceViewAdapter.value = mock()
+    wearTilePreviewElement.tileServiceViewAdapter.value =
+      object {
+        fun getAnimations() = listOf(TestDynamicTypeAnimator())
+      }
 
     delayUntilCondition(200) {
       val errorPanel =
-        FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" }
+        withContext(uiThread) {
+          FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" }
+        }
       errorPanel != null && errorPanel.isVisible
     }
   }

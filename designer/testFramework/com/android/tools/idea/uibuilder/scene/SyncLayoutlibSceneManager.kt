@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
@@ -53,6 +54,12 @@ open class SyncLayoutlibSceneManager(
     sceneRenderConfiguration.setRenderModuleWrapperForTest { TestRenderModelModule(it) }
     sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
   }
+
+  /**
+   * Allows to set desirable render result for tests, if result is not set returns default value.
+   */
+  override var renderResult: RenderResult? = null
+    get() = field ?: super.renderResult
 
   override fun requestRender() {
     if (ignoreRenderRequests) return

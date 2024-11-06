@@ -123,7 +123,7 @@ open class LayoutlibSceneManager(
     get() = layoutlibSceneRenderer.isRendering()
 
   /** The [RenderResult] of the latest render. */
-  val renderResult: RenderResult?
+  open val renderResult: RenderResult?
     get() = layoutlibSceneRenderer.renderResult
 
   /** The quality used in the latest render. */
