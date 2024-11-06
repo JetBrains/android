@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
+import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
@@ -164,6 +165,7 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
+    logger.info("$simpleId.establishAgentConnection($maxVideoSize, $initialDisplayOrientation, $startVideoStream, ${project.name})")
     streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
@@ -180,6 +182,7 @@ internal class DeviceClient(
     }
     connection.await()
 
+    logger.info("$simpleId.establishAgentConnection: connection=$connection, completion=$completion, startVideoStream=$startVideoStream")
     if (connection !== completion && startVideoStream) {
       startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
     }
@@ -256,6 +259,7 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
+    logger.info("$simpleId.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)")
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -263,6 +267,7 @@ internal class DeviceClient(
   }
 
   fun stopVideoStream(requester: Any, displayId: Int) {
+    logger.info("$simpleId.stopVideoStream(${requester.simpleId}, $displayId)")
     synchronized(videoStreams) {
       videoStreams[displayId]?.let { arbiter ->
         arbiter.stopVideoStream(requester)
@@ -683,6 +688,8 @@ internal class DeviceClient(
     }
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
+      logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
+                  " requestedVideoResolutions=$requestedVideoResolutions")
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
@@ -697,6 +704,7 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
+      logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.stopVideoStream(${requester.simpleId})")
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
