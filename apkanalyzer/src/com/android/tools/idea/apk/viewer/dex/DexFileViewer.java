@@ -151,6 +151,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myLoadingPanel.startLoading();
 
     myTree = new Tree(new DefaultTreeModel(new LoadingNode()));
+    myTree.setName("DexTree");
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 

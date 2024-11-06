@@ -98,7 +98,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
 
   public interface Listener {
-    void selectionChanged(@Nullable ArchiveTreeNode[] entry);
+    void selectionChanged(ArchiveTreeNode @Nullable[] entry);
     void selectApkAndCompare();
   }
 
@@ -218,6 +218,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                              .build()));
       return null;
     }, MoreExecutors.directExecutor());
+    myContainer.setName("ApkViewPanel");
   }
 
   private void setToZipMode(@NotNull String fileName) {
@@ -235,6 +236,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     myTreeModel = new DefaultTreeModel(new LoadingNode());
     myTree = new Tree(myTreeModel);
+    myTree.setName("nodeTree");
     myTree.setShowsRootHandles(true);
     myTree.setRootVisible(true); // show root node only when showing LoadingNode
     myTree.setPaintBusy(true);
