@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
+  public static final PropertiesElementDescription<ProjectPropertiesDslElement> PROJECT_PROPERTIES =
+    new PropertiesElementDescription<>(null, ProjectPropertiesDslElement.class, ProjectPropertiesDslElement::new);
+
   @NonNls public static final String PROJECT_DIR = "projectDir";
   @NonNls public static final String BUILD_FILE_NAME = "buildFileName";
 
@@ -51,6 +56,11 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
     }
 
     return super.requestAnchor(element);
+  }
+
+  @Override
+  public @Nullable PsiElement create() {
+    return myParent != null ? myParent.create() : null;
   }
 
   @Nullable

@@ -836,9 +836,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         GradleDslElement currentElement = item.myElement;
         // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
         // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
-        if (currentElement instanceof ProjectPropertiesDslElement &&
-            ((ProjectPropertiesDslElement)currentElement).getAllPropertyElements().isEmpty()) {
-          continue;
+        if (currentElement instanceof ProjectPropertiesDslElement projectProperties) {
+          if (projectProperties.getAllPropertyElements().stream().allMatch(it -> it.getPsiElement() == null)) {
+            continue;
+          }
         }
         // this reflects the fact that an ApplyDslElement may contain more than one block or statement, and that (for safety) all
         // properties added should go after the last apply (in case it applies a semantically-important plugin, or includes a file

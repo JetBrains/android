@@ -44,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
@@ -1133,7 +1134,7 @@ public final class GroovyDslUtil {
 
   static boolean needToCreateParent(@NotNull GradleDslElement element) {
     GradleDslElement parent = element.getParent();
-    return parent != null && parent.getPsiElement() == null;
+    return parent != null && parent.getPsiElement() == null && !(parent instanceof ProjectPropertiesDslElement);
   }
 
   static boolean closableBlockNeedsNewline(@NotNull GrClosableBlock block) {

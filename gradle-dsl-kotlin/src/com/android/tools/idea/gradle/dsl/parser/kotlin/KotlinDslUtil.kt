@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
@@ -382,7 +383,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
 internal fun needToCreateParent(element: GradleDslElement): Boolean {
   val parent = element.parent
   // If the parent is an extra block dslElement, we never create a psiElement for it because we don't use it in kotlin.
-  return parent != null && (parent.psiElement == null && parent !is ExtDslElement)
+  return parent != null && (parent.psiElement == null && parent !is ExtDslElement && parent !is ProjectPropertiesDslElement)
 }
 
 /**
