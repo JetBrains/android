@@ -157,6 +157,10 @@ class AndroidTestRunConfigurationExecutorTest {
     if (!historyLatch.await(20, TimeUnit.SECONDS)) {
       fail("History is not saved")
     }
+
+    // Give some time for the virtual machine to finish initializing.
+    // Otherwise, JDI Internal Event Handler thread viewed as leaked.
+    Thread.sleep(250)
   }
 
   @Test
