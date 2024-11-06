@@ -34,9 +34,9 @@ import kotlin.io.path.absolutePathString
 class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.State>(State()) {
 
   var androidSdkPath: Path?
-    get() = state.androidSdkPath
+    get() = state.androidSdkAbsolutePath?.let { Path.of(it) }
     set(androidSdkPath) {
-      state.androidSdkPath = androidSdkPath
+      state.androidSdkAbsolutePath = androidSdkPath?.absolutePathString()
     }
 
   val androidSdkPathIfValid: Path?
@@ -46,13 +46,7 @@ class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.S
     /**
      * Absolute path to Android SDK location.
      */
-    private var androidSdkAbsolutePath: String? by string(null)
-
-    var androidSdkPath: Path?
-      get() = androidSdkAbsolutePath?.let { Path.of(it) }
-      set(sdkPath) {
-        androidSdkAbsolutePath = sdkPath?.absolutePathString()
-      }
+    var androidSdkAbsolutePath: String? by string(null)
   }
 
   override fun noStateLoaded() {
