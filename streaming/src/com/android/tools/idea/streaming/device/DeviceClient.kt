@@ -614,7 +614,7 @@ internal class DeviceClient(
           channel.close()
         }
         catch (e: IOException) {
-          thisLogger().warn(e)
+          logger.warn(e)
         }
       }
     }

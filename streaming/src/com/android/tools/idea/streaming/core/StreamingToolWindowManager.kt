@@ -81,7 +81,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -570,7 +570,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun reportDuplicatePanel(content: Content) {
-    thisLogger().error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}")
+    logger.error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}")
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
@@ -1227,6 +1227,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
                                   val config: DeviceConfiguration)
 }
+
+private val logger = Logger.getInstance(StreamingToolWindowManager::class.java)
 
 private class ConnectedDevice(val handle: DeviceHandle, val state: DeviceState.Connected)
 
