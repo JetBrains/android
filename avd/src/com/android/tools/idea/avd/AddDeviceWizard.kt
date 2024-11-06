@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.adtui.compose.initializeComposeMainDispatcherChecker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
@@ -95,6 +96,7 @@ suspend fun showAddDeviceDialog(project: Project?): AvdInfo? {
   if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
     val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
     return withContext(uiThread) {
+      initializeComposeMainDispatcherChecker()
       var avdInfo: AvdInfo? = null
       val wizard =
         AddDeviceWizard(
