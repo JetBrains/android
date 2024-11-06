@@ -216,14 +216,7 @@ private constructor(
         }
       }
     )
-    return future.whenComplete { result, exception ->
-      queueTimeoutFuture?.cancel(true)
-      if (exception != null) {
-        future.completeExceptionally(exception)
-      } else {
-        future.complete(result)
-      }
-    }
+    return future.whenComplete { _, _ -> queueTimeoutFuture?.cancel(true) }
   }
 
   override fun cancelActionsByTopic(
