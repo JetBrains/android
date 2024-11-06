@@ -37,6 +37,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
+import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
@@ -68,12 +69,12 @@ internal fun StorageGroup(
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
 
-    Row {
+    Row(Modifier.testTag("InternalStorageRow")) {
       Text("Internal storage", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
         state.internalStorage,
-        validateInternalStorage(state.internalStorage.result(), hasPlayStore),
+        state.internalStorage.result().internalStorageErrorMessage(hasPlayStore),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
 
@@ -114,7 +115,17 @@ internal fun StorageGroup(
       )
 
       val enabled = state.selectedRadioButton == ExpandedStorageRadioButton.CUSTOM
-      val errorMessage = validateCustomExpandedStorage(state.custom.result(), hasPlayStore, enabled)
+
+      state.custom.minValue =
+        if (hasPlayStore) {
+          VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
+        } else {
+          VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
+        }
+
+      val errorMessage =
+        state.custom.result().customExpandedStorageErrorMessage(hasPlayStore, enabled)
+
       val isWarningVisible = state.isCustomChangedWarningVisible(errorMessage == null)
 
       StorageCapacityField(
@@ -167,40 +178,36 @@ internal fun StorageGroup(
   }
 }
 
-private fun validateInternalStorage(storage: Result, hasPlayStore: Boolean) =
-  when (storage) {
+private fun Result.internalStorageErrorMessage(hasPlayStore: Boolean) =
+  when (this) {
+    is Valid -> null
     is Empty -> "Specify an internal storage value"
-    is Overflow -> "Internal storage is too large"
-    is Valid ->
-      when {
-        storage.storageCapacity < VirtualDevice.MIN_INTERNAL_STORAGE && hasPlayStore ->
-          "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-        storage.storageCapacity < VirtualDevice.MIN_INTERNAL_STORAGE ->
-          "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
-        else -> null
+    is LessThanMin ->
+      if (hasPlayStore) {
+        "Internal storage for Play Store devices must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
+      } else {
+        "Internal storage must be at least ${VirtualDevice.MIN_INTERNAL_STORAGE}"
       }
+    is Overflow -> "Internal storage is too large"
   }
 
-private fun validateCustomExpandedStorage(
-  storage: Result,
+private fun Result.customExpandedStorageErrorMessage(
   hasPlayStore: Boolean,
   customRadioButtonEnabled: Boolean,
 ) =
   if (!customRadioButtonEnabled) {
     null
   } else {
-    when (storage) {
+    when (this) {
+      is Valid -> null
       is Empty -> "Specify an SD card size"
-      is Overflow -> "SD card size is too large"
-      is Valid ->
-        when {
-          storage.storageCapacity < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE &&
-            hasPlayStore ->
-            "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
-          storage.storageCapacity < VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE ->
-            "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
-          else -> null
+      is LessThanMin ->
+        if (hasPlayStore) {
+          "The SD card for Play Store devices must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE}"
+        } else {
+          "The SD card must be at least ${VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE}"
         }
+      is Overflow -> "SD card size is too large"
     }
   }
 
@@ -276,12 +283,21 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
 }
 
 internal class StorageGroupState internal constructor(private val device: VirtualDevice) {
-  internal val internalStorage = StorageCapacityFieldState(requireNotNull(device.internalStorage))
+  internal val internalStorage =
+    StorageCapacityFieldState(
+      requireNotNull(device.internalStorage),
+      VirtualDevice.MIN_INTERNAL_STORAGE,
+    )
 
   internal var selectedRadioButton by
     mutableStateOf(ExpandedStorageRadioButton.valueOf(device.expandedStorage))
 
-  internal val custom = StorageCapacityFieldState(customValue(device))
+  internal val custom =
+    StorageCapacityFieldState(
+      customValue(device),
+      VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE,
+    )
+
   internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
 
   val expandedStorageFlow = snapshotFlow {

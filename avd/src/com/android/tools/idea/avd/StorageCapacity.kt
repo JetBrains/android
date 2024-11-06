@@ -54,4 +54,8 @@ internal constructor(internal val value: Long, internal val unit: Unit) :
   override fun toString() = value.toString() + unit.toString().first()
 
   override fun compareTo(other: StorageCapacity) = valueIn(Unit.B).compareTo(other.valueIn(Unit.B))
+
+  internal companion object {
+    internal val MIN = StorageCapacity(0, StorageCapacity.Unit.B)
+  }
 }

@@ -60,10 +60,12 @@ internal fun StorageCapacityField(
 internal class StorageCapacityFieldState
 internal constructor(
   value: StorageCapacity,
+  minValue: StorageCapacity = StorageCapacity.MIN,
   internal val units: ImmutableCollection<StorageCapacity.Unit> =
     enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
 ) {
   internal val value = TextFieldState(value.value.toString())
+  internal var minValue by mutableStateOf(minValue)
   internal var selectedUnit by mutableStateOf(value.unit)
   internal val storageCapacity = snapshotFlow { result().storageCapacity }
 
@@ -74,7 +76,8 @@ internal constructor(
       Empty
     } else {
       try {
-        Valid(StorageCapacity(value.text.toString().toLong(), selectedUnit))
+        val value = StorageCapacity(value.text.toString().toLong(), selectedUnit)
+        if (value < minValue) LessThanMin else Valid(value)
       } catch (exception: NumberFormatException) {
         // value.text.toString().toLong() overflowed
         Overflow
@@ -84,19 +87,17 @@ internal constructor(
       }
     }
 
-  internal object Empty : Result() {
-    override val storageCapacity = null
-  }
-
   internal class Valid internal constructor(override val storageCapacity: StorageCapacity) :
     Result()
 
-  internal object Overflow : Result() {
-    override val storageCapacity = null
-  }
+  internal object Empty : Result()
+
+  internal object LessThanMin : Result()
+
+  internal object Overflow : Result()
 
   internal sealed class Result {
-    internal abstract val storageCapacity: StorageCapacity?
+    internal open val storageCapacity: StorageCapacity? = null
   }
 }
 

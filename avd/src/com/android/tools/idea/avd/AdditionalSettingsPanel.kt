@@ -33,6 +33,7 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
+import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
@@ -307,7 +308,7 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         state.ram,
-        validateRam(state.ram.result()),
+        state.ram.result().ramErrorMessage(),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
@@ -328,7 +329,7 @@ private fun EmulatedPerformanceGroup(
 
       StorageCapacityField(
         state.vmHeapSize,
-        validateVmHeapSize(state.vmHeapSize.result()),
+        state.vmHeapSize.result().vmHeapSizeErrorMessage(),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
         !hasGooglePlayStore,
       )
@@ -347,36 +348,36 @@ private fun EmulatedPerformanceGroup(
 }
 
 internal class EmulatedPerformanceGroupState internal constructor(device: VirtualDevice) {
-  internal val ram = StorageCapacityFieldState(requireNotNull(device.ram), UNITS)
-  internal val vmHeapSize = StorageCapacityFieldState(requireNotNull(device.vmHeapSize), UNITS)
+  internal val ram =
+    StorageCapacityFieldState(requireNotNull(device.ram), VirtualDevice.MIN_RAM, UNITS)
+
+  internal val vmHeapSize =
+    StorageCapacityFieldState(
+      requireNotNull(device.vmHeapSize),
+      VirtualDevice.MIN_VM_HEAP_SIZE,
+      UNITS,
+    )
 
   private companion object {
     private val UNITS = listOf(StorageCapacity.Unit.MB, StorageCapacity.Unit.GB).toImmutableList()
   }
 }
 
-private fun validateRam(ram: Result) =
-  when (ram) {
+private fun Result.ramErrorMessage() =
+  when (this) {
+    is Valid -> null
     is Empty -> "Specify a RAM value"
+    is LessThanMin ->
+      "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
     is Overflow -> "RAM value is too large"
-    is Valid ->
-      when {
-        ram.storageCapacity < VirtualDevice.MIN_RAM ->
-          "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
-        else -> null
-      }
   }
 
-private fun validateVmHeapSize(size: Result) =
-  when (size) {
+private fun Result.vmHeapSizeErrorMessage() =
+  when (this) {
+    is Valid -> null
     is Empty -> "Specify a VM heap size"
+    is LessThanMin -> "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
     is Overflow -> "VM heap size is too large"
-    is Valid ->
-      when {
-        size.storageCapacity < VirtualDevice.MIN_VM_HEAP_SIZE ->
-          "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
-        else -> null
-      }
   }
 
 @Composable
