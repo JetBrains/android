@@ -767,6 +767,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
       templateStateCustomizer = mapOf("API Key" to "abcd"),
     )
   }
+
+  @Test
+  fun testXRBasicHeadsetActivity() {
+    checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>
