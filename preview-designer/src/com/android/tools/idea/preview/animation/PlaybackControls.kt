@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
@@ -59,8 +60,9 @@ class PlaybackControls(
 
   private val toolbars = mutableListOf<PlaybackToolbar>()
 
-  private fun updateActionsImmediately() {
-    toolbars.forEach { it.playbackControls.updateActionsImmediately() }
+  @RequiresEdt
+  private fun updateActionsAsync() {
+    toolbars.forEach { it.playbackControls.updateActionsAsync() }
   }
 
   fun createToolbar(extraActions: List<AnAction> = emptyList()) =
@@ -179,7 +181,7 @@ class PlaybackControls(
                 handleLoopEnd()
               } else {
                 pause()
-                UIUtil.invokeLaterIfNeeded { updateActionsImmediately() }
+                UIUtil.invokeLaterIfNeeded { updateActionsAsync() }
               }
             }
           }

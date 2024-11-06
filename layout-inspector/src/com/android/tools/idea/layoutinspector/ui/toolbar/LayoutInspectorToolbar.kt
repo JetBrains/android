@@ -113,13 +113,13 @@ fun createStandaloneLayoutInspectorToolbar(
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
   actionToolbar.targetComponent = targetComponent
-  actionToolbar.updateActionsImmediately()
+  actionToolbar.updateActionsAsync()
   // Removes empty space on the right side of the toolbar.
   actionToolbar.setReservePlaceAutoPopupIcon(false)
 
   val modificationListener =
     InspectorModel.ModificationListener { _, _, _ ->
-      invokeLater { actionToolbar.updateActionsImmediately() }
+      invokeLater { actionToolbar.updateActionsAsync() }
     }
   layoutInspector.inspectorModel.addModificationListener(modificationListener)
 

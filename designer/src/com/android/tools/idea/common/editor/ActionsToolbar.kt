@@ -148,17 +148,18 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     val northEastToolbarComponent = northEastToolbar!!.component
 
     if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
-      object : AdtPrimaryPanel(BorderLayout()){
-        override fun getBackground() = surface.background
-      }.apply {
-        // set background to null to use the parent's background
-        northToolbarComponent.background = null
-        northEastToolbarComponent.background = null
-        this.add(northToolbarComponent, BorderLayout.CENTER)
-        this.add(northEastToolbarComponent, BorderLayout.EAST)
-        this.border = BORDER
-        toolbarComponent.add(this, BorderLayout.NORTH)
-      }
+      object : AdtPrimaryPanel(BorderLayout()) {
+          override fun getBackground() = surface.background
+        }
+        .apply {
+          // set background to null to use the parent's background
+          northToolbarComponent.background = null
+          northEastToolbarComponent.background = null
+          this.add(northToolbarComponent, BorderLayout.CENTER)
+          this.add(northEastToolbarComponent, BorderLayout.EAST)
+          this.border = BORDER
+          toolbarComponent.add(this, BorderLayout.NORTH)
+        }
     }
   }
 
@@ -168,10 +169,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
    */
   private fun refreshToolbarState() {
     UIUtil.invokeAndWaitIfNeeded {
-      northToolbar?.updateActionsImmediately()
-      northEastToolbar?.updateActionsImmediately()
-      eastToolbar?.updateActionsImmediately()
-      centerToolbar?.updateActionsImmediately()
+      northToolbar?.updateActionsAsync()
+      northEastToolbar?.updateActionsAsync()
+      eastToolbar?.updateActionsAsync()
+      centerToolbar?.updateActionsAsync()
     }
   }
 
@@ -220,8 +221,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     // Here it is only necessary to keep the reference to one of the models in order to set the
     // ModelListener to one of them
     this.model = models.firstOrNull()
-    northToolbar?.updateActionsImmediately()
-    northEastToolbar?.updateActionsImmediately()
+    northToolbar?.updateActionsAsync()
+    northEastToolbar?.updateActionsAsync()
     val surfaceLayoutType = surface.layoutType
     if (surfaceLayoutType !== layoutType) {
       layoutType = surfaceLayoutType
@@ -235,7 +236,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateBottomActionBarBorder() {
     val hasBottomActionBar = eastToolbar!!.component.isVisible || dynamicGroup.childrenCount > 0
     val bottom = if (hasBottomActionBar) 1 else 0
-    toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
+    toolbarComponent.border =
+      BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
   }
 
   // ---- Implements ModelListener ----
@@ -251,18 +253,18 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   override fun zoomChanged(previousScale: Double, newScale: Double) {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
+    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsAsync() }
   }
 
   override fun panningChanged() {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
+    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsAsync() }
   }
 
   override fun changed(flags: Int): Boolean {
     if ((flags and CONFIGURATION_UPDATE_FLAGS) > 0) {
       northToolbar?.let {
         // The North toolbar is the one holding the Configuration Actions
-        UIUtil.invokeLaterIfNeeded { it.updateActionsImmediately() }
+        UIUtil.invokeLaterIfNeeded { it.updateActionsAsync() }
       }
     }
     return true

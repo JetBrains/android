@@ -200,13 +200,13 @@ abstract class EditorActionsFloatingToolbarProvider(
 
   override fun zoomChanged(previousScale: Double, newScale: Double) =
     UIUtil.invokeLaterIfNeeded {
-      zoomToolbars.forEach { it.updateActionsImmediately() }
+      zoomToolbars.forEach { it.updateActionsAsync() }
       hiddenZoomLabelComponent?.isVisible = true
       hiddenZoomLabelTimer?.restart()
     }
 
   override fun panningChanged() =
-    UIUtil.invokeLaterIfNeeded { otherToolbars.values.forEach { it.updateActionsImmediately() } }
+    UIUtil.invokeLaterIfNeeded { otherToolbars.values.forEach { it.updateActionsAsync() } }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups
 
