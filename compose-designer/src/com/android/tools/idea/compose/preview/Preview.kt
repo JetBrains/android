@@ -1086,8 +1086,6 @@ class ComposePreviewRepresentation(
     // Restore
     stateManager.restoreState()
 
-    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
-
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
         !quickRefresh,
@@ -1101,7 +1099,6 @@ class ComposePreviewRepresentation(
         this::configureLayoutlibSceneManagerForPreviewElement,
         refreshEventBuilder,
       )
-    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     composePreviewFlowManager.updateRenderedPreviews(showingPreviewElements)
     if (showingPreviewElements.size < numberOfPreviewsToRender) {

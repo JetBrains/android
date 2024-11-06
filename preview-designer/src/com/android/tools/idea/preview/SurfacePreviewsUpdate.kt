@@ -145,8 +145,6 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
   refreshEventBuilder?.withPreviewsCount(sceneManagers.size)
   refreshEventBuilder?.withPreviewsToRefresh(previewElementsToSceneManagers.size)
   previewElementsToSceneManagers.forEachIndexed { index, pair ->
-    if (progressIndicator.isCanceled)
-      return@refreshExistingPreviewElements // Return early if user cancels the refresh.
     progressIndicator.text =
       message(
         "refresh.progress.indicator.rendering.preview",
@@ -248,10 +246,6 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val elementsToSceneManagers =
     elementsToReusableModels
       .map { (previewElement, model) ->
-        if (progressIndicator.isCanceled) {
-          // Return early if user cancels the refresh
-          return@updatePreviewsAndRefresh previewElementsList
-        }
         val fileContents = previewElementModelAdapter.toXml(previewElement)
         debugLogger?.logPreviewElement(
           previewElementModelAdapter.toLogString(previewElement),
@@ -371,7 +365,6 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   // Finally, render
   var previewsRendered = 0
   elementsToSceneManagers.forEachIndexed { idx, (_, sceneManager) ->
-    if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
 
