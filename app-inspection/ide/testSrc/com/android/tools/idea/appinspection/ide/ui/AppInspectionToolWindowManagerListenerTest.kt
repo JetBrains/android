@@ -25,6 +25,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
@@ -34,8 +35,8 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -109,7 +110,7 @@ class AppInspectionToolWindowManagerListenerTest {
       Commands.Command.CommandType.APP_INSPECTION,
       TestAppInspectorCommandHandler(timer),
     )
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     val inspectionView =
       withContext(uiDispatcher) {
         AppInspectionView(

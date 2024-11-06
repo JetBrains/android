@@ -23,9 +23,12 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.verify
@@ -44,7 +47,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
   private lateinit var fileDatabaseManager: FileDatabaseManager
 
-  private val edtDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+  private val edtDispatcher get() = Dispatchers.EDT as CoroutineDispatcher
 
   override fun setUp() {
     super.setUp()

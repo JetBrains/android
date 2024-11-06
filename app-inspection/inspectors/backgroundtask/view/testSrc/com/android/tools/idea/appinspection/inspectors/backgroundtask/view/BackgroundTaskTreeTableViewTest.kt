@@ -49,12 +49,13 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.STATUS_COMPARATOR
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -77,14 +78,14 @@ class BackgroundTaskTreeTableViewTest {
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var tab: BackgroundTaskInspectorTab
-  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
+  private lateinit var uiDispatcher: CoroutineDispatcher
   private lateinit var selectionModel: EntrySelectionModel
   private lateinit var entriesView: BackgroundTaskEntriesView
 
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
       val backgroundTaskInspectorMessenger =
         BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)

@@ -54,18 +54,18 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
@@ -105,6 +105,7 @@ class AppInspectionViewTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val disposable get() = disposableRule.disposable
+  private val uiDispatcher get() = Dispatchers.EDT as CoroutineDispatcher
 
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
     class NotificationData(
@@ -142,8 +143,6 @@ class AppInspectionViewTest {
   @Test
   fun selectProcessInAppInspectionView_twoTabProvidersAddTwoTabs() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
       val tabsAdded = CompletableDeferred<Unit>()
       launch(uiDispatcher) {
         val inspectionView =
@@ -178,7 +177,6 @@ class AppInspectionViewTest {
   fun selectProcessInAppInspectionView_tabNotAddedForDisabledTabProvider() =
     runBlocking {
       // Disable Inspector2 and only one tab should be added.
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       launch(uiDispatcher) {
         val inspectionView =
@@ -213,8 +211,6 @@ class AppInspectionViewTest {
   @Test
   fun disposeInspectorWhenSelectionChanges() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
       lateinit var tabs: List<AppInspectorTab>
       launch(uiDispatcher) {
         val inspectionView =
@@ -271,7 +267,6 @@ class AppInspectionViewTest {
   @Test
   fun receivesInspectorDisposedEvent() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
           .apply {
@@ -342,7 +337,6 @@ class AppInspectionViewTest {
   @Test
   fun inspectorTabsAreDisposed_whenUiIsRefreshed() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabDisposedDeferred = CompletableDeferred<Unit>()
       val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
       val tabProvider =
@@ -470,7 +464,6 @@ class AppInspectionViewTest {
   @Test
   fun inspectorCrashNotification() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
@@ -554,8 +547,6 @@ class AppInspectionViewTest {
   @Test
   fun inspectorRestartNotificationShownOnLaunchError() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
@@ -633,8 +624,6 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorRestartEmptyPanelShownOnLaunchError() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     val fakeDevice =
       FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(1)
@@ -703,8 +692,6 @@ class AppInspectionViewTest {
 
   @Test
   fun ifTabSupportsOfflineModeTabStaysOpenAfterProcessIsTerminated() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     lateinit var inspectionView: AppInspectionView
     val tabsAdded = CompletableDeferred<Unit>()
     val tabsUpdated = CompletableDeferred<Unit>()
@@ -759,8 +746,6 @@ class AppInspectionViewTest {
 
   @Test
   fun offlineTabsAreRemovedIfInspectorIsStillLoading() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     lateinit var inspectionView: AppInspectionView
     val tabsAdded = CompletableDeferred<Unit>()
     val tabsUpdated = CompletableDeferred<Unit>()
@@ -829,7 +814,6 @@ class AppInspectionViewTest {
   @Test
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
       launch(uiDispatcher) {
@@ -892,7 +876,6 @@ class AppInspectionViewTest {
   @Test
   fun launchInspectorFailsDueToAppProguarded_emptyMessageAdded() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
       launch(uiDispatcher) {
@@ -945,7 +928,6 @@ class AppInspectionViewTest {
   @Test
   fun launchInspectorFailsDueToServiceError() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       launch(uiDispatcher) {
         val inspectionView =
@@ -1001,7 +983,6 @@ class AppInspectionViewTest {
   @Test
   fun launchInspectorFailsBecauseProcessNoLongerExists() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
 
       val apiServices =
@@ -1050,7 +1031,6 @@ class AppInspectionViewTest {
   @Test
   fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
       launch(uiDispatcher) {
@@ -1111,8 +1091,6 @@ class AppInspectionViewTest {
 
   @Test
   fun stopInspectionPressed_onlyOfflineInspectorsRemain() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     val inspectionView =
       withContext(uiDispatcher) {
         AppInspectionView(
@@ -1160,7 +1138,6 @@ class AppInspectionViewTest {
   @Test
   fun launchLibraryInspectors() =
     runBlocking {
-      val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val resolvedInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
           override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, TEST_ARTIFACT)
@@ -1295,8 +1272,6 @@ class AppInspectionViewTest {
 
   @Test
   fun appInspectionView_canToggleAutoConnectedState() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     val inspectionView =
       withContext(uiDispatcher) {
         AppInspectionView(
@@ -1404,8 +1379,6 @@ class AppInspectionViewTest {
 
   @Test
   fun remembersLastActiveTab() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     val inspectionView =
       withContext(uiDispatcher) {
         AppInspectionView(
@@ -1460,8 +1433,6 @@ class AppInspectionViewTest {
 
   @Test
   fun activeTabIsSelected() = runBlocking {
-    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-
     val inspectionView =
       withContext(uiDispatcher) {
         AppInspectionView(

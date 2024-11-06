@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import studio.network.inspection.NetworkInspectorProtocol
 
@@ -41,7 +41,7 @@ class TestNetworkInspectorServices(
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)
   override val workerDispatcher = MoreExecutors.directExecutor().asCoroutineDispatcher()
-  override val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+  override val uiDispatcher = Dispatchers.Main
   override val ideServices =
     object : AppInspectionIdeServices {
       override fun showToolWindow() {
