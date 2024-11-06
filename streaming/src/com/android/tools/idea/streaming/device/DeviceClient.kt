@@ -164,8 +164,6 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    thisLogger().info(
-        "DeviceClient.establishAgentConnection($maxVideoSize, $initialDisplayOrientation, $startVideoStream, ${project.name})")
     streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
@@ -182,8 +180,6 @@ internal class DeviceClient(
     }
     connection.await()
 
-    thisLogger().info(
-        "DeviceClient.establishAgentConnection: connection=$connection, completion=$completion, startVideoStream=$startVideoStream")
     if (connection !== completion && startVideoStream) {
       startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
     }
@@ -260,7 +256,6 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    thisLogger().info("DeviceClient.startVideoStream($requester, $displayId, $maxOutputSize)")
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -268,7 +263,6 @@ internal class DeviceClient(
   }
 
   fun stopVideoStream(requester: Any, displayId: Int) {
-    thisLogger().info("DeviceClient.stopVideoStream($requester, $displayId)")
     synchronized(videoStreams) {
       videoStreams[displayId]?.let { arbiter ->
         arbiter.stopVideoStream(requester)
