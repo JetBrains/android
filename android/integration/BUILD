@@ -403,7 +403,7 @@ create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
-    "//prebuilts/studio/sdk:platforms/latest",
+    "//prebuilts/studio/sdk:platforms/android-34",
     "//tools/base/build-system:gradle-distrib-8.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
