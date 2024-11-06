@@ -20,10 +20,8 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.impl.content.ContentTabLabel
-import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.TextMatcher
-import javax.swing.JLabel
 
 /**
  * Fixture for the ProblemsPane in the IDE
@@ -40,11 +38,12 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
   fun switchToTab(tabTitle: String): Boolean {
     val tabsList = robot().finder().findAll(Matchers.byType(ContentTabLabel::class.java))
     for (tab in tabsList) {
-      if (tab.text.contains(tabTitle)) {
+      if (tabTitle == tab.getAccessibleContext().getAccessibleName()) {
         Wait.seconds(60)
           .expecting("Switching tabs in Problems Panel")
           .until {
             robot().click(tab)
+            robot().waitForIdle()
             isTabSelected(tabTitle)
           }
         return true
