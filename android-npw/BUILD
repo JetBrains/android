@@ -86,6 +86,8 @@ iml_module(
         },
         "ModuleModelTest": {
             "test_filter": "com.android.tools.idea.npw.module.ModuleModelTest",
+            # b/377654633 times out on Windows
+            "tags": ["noci:studio-win"],
         },
         "other": {
             "shard_count": 10,
