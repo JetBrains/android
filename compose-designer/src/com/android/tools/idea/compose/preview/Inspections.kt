@@ -97,7 +97,7 @@ private fun KtParameter.isAcceptableForPreview(): Boolean =
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, does
  * not have parameters.
  */
-class PreviewAnnotationInFunctionWithParametersInspection :
+open class PreviewAnnotationInFunctionWithParametersInspection :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
