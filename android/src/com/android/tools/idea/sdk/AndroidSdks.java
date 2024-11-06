@@ -45,6 +45,8 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.Annotations;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -74,10 +76,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -139,9 +139,9 @@ public class AndroidSdks {
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
       if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
-        File path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
+        Path path = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
         if (path != null) {
-          mySdkData = AndroidSdkData.getSdkData(path);
+          mySdkData = AndroidSdkData.getSdkData(path.toFile());
           if (mySdkData != null) {
             return mySdkData;
           }

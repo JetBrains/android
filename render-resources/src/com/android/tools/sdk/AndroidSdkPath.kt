@@ -17,5 +17,8 @@
 package com.android.tools.sdk
 
 import java.io.File
+import java.nio.file.Path
 
-fun isValid(path: File): Boolean = SdkPaths.validateAndroidSdk(path, false).success
+fun isValid(androidSdkPath: File): Boolean = SdkPaths.validateAndroidSdk(androidSdkPath, false).success
+
+fun isValid(androidSdkPath: Path): Boolean = SdkPaths.validateAndroidSdk(androidSdkPath, false).success

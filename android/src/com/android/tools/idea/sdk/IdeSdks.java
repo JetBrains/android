@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
@@ -24,7 +25,6 @@ import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJre;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
@@ -33,11 +33,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidSdkPath;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -81,9 +83,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -157,7 +157,23 @@ public class IdeSdks {
    */
   @Nullable
   public final File getAndroidSdkPath() {
-    return AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
+    Path sdkPath = AndroidSdkPathStore.getInstance().getAndroidSdkPathIfValid();
+    if (sdkPath != null) {
+      File candidate = sdkPath.toFile();
+      if (AndroidSdkPath.isValid(candidate)) {
+        return candidate;
+      }
+    }
+
+    String envSdkPath = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    if (envSdkPath != null) {
+      File candidate = new File(envSdkPath);
+      if (AndroidSdkPath.isValid(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
   }
 
   /**
