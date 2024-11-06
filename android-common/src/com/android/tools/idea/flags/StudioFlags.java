@@ -2154,18 +2154,18 @@ public final class StudioFlags {
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.notes", "Show notes from SDK developer",
     "Whether or not SDK Index critical issues should include notes from developer",
     // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_NOTES_FROM_DEVELOPER so the behavior of Android Studio and CLI is consistent
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
   public static final Flag<Boolean> SHOW_SDK_INDEX_RECOMMENDED_VERSIONS = new BooleanFlag(
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.recommended.versions", "Show SDK recommended versions",
     "Whether or not to display recommended versions on SDK Index issues",
     // The default should match GooglePlaySdkIndex.DEFAULT_SHOW_RECOMMENDED_VERSIONS so the behavior of Android Studio and CLI is consistent
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
   public static final Flag<Boolean> SHOW_SUMMARY_NOTIFICATION = new BooleanFlag(
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.summary.notification", "Show a notification for SDK Index issues",
     "Show a notification after initial sync when there are blocking SDK Index issues",
-    ChannelDefault.enabledUpTo(CANARY)
+    true
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
