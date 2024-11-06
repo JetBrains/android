@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.flags.junit.FlagRule
@@ -44,10 +46,14 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnal
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.ide.ui.IdeUiService
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -58,7 +64,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.BorderLayout
@@ -176,11 +181,9 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithErrors.getToolbarActions()
       // 4 actions expected: ui check, animation, interactive and deploy to device
       assertEquals(4, actions.size)
-      // The visible/invisible state before the update shouldn't affect the final result
-      for (visibleBefore in listOf(true, false)) {
-        // All actions should be invisible when there are render errors
-        assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
-      }
+
+      // All actions should be invisible when there are render errors
+      assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
     }
 
   @Test
@@ -207,11 +210,9 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithErrors.getToolbarActions()
       // 4 actions expected: ui check, animation, interactive and deploy to device
       assertEquals(4, actions.size)
-      // The visible/invisible state before the update shouldn't affect the final result
-      for (visibleBefore in listOf(true, false)) {
-        // All actions should be invisible when there are render errors
-        assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
-      }
+
+      // All actions should be invisible when there are render errors
+      assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
     }
 
   @Test
@@ -239,13 +240,11 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithoutErrors.getToolbarActions()
       // 4 actions expected: ui check mode, animation, interactive and deploy to device
       assertEquals(4, actions.size)
-      // The visible/invisible state before the update shouldn't affect the final result
-      for (visibleBefore in listOf(true, false)) {
-        // The animation preview action shouldn't be visible because the preview being used doesn't
-        // contain animations, but the interactive, ui check and deploy to device actions should be
-        // visible as there are no render errors.
-        assertEquals(3, countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors))
-      }
+
+      // The animation preview action shouldn't be visible because the preview being used doesn't
+      // contain animations, but the interactive, ui check and deploy to device actions should be
+      // visible as there are no render errors.
+      assertEquals(3, countVisibleActions(actions, sceneViewPanelWithoutErrors))
     }
 
   @Test
@@ -315,18 +314,22 @@ class RenderErrorTest {
 
   private fun countVisibleActions(
     actions: List<AnAction>,
-    visibleBefore: Boolean,
     sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
-    var visibleAfterCount = 0
-    val dataContext = DataContext { sceneViewPeerPanel.getData(it) }
-    for (action in actions) {
-      val event = createTestEvent(dataContext)
-      event.presentation.isVisible = visibleBefore
-      action.update(event)
-      if (event.presentation.isVisible) visibleAfterCount++
+    val dataContext = runInEdtAndGet {
+      IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel)
     }
-    return visibleAfterCount
+
+    val visibleActions =
+      Utils.expandActionGroup(
+        DefaultActionGroup(actions),
+        PresentationFactory(),
+        dataContext,
+        ActionPlaces.UNKNOWN,
+        ActionUiKind.NONE,
+      )
+
+    return visibleActions.size
   }
 
   private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
