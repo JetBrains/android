@@ -19,8 +19,8 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.fileChooser.FileTypeDescriptor
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -62,11 +62,11 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
 
   private fun loadOverlay(e: AnActionEvent) {
     // choose image
-    val descriptor = FileTypeDescriptor("Choose Overlay", "svg", "png", "jpg")
-    val fileChooserDialog =
-      FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val toSelect =
-      LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
+    val descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
+      .withTitle("Choose Overlay")
+      .withExtensionFilter("Image files", "svg", "png", "jpg")
+    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
+    val toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
     val files = fileChooserDialog.choose(null, toSelect!!)
     if (files.isEmpty()) {
       return
