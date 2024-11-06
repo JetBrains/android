@@ -415,6 +415,22 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: Te
     TemplatesUsage.TemplateModule.newBuilder().apply {
       moduleType = metrics.moduleType
       minSdk = metrics.minSdk
+      if (metrics.minSdk != 0 || metrics.minSdkCodename.isNotEmpty()) {
+        minSdkVersionBuilder.apply {
+          apiLevel = metrics.minSdk.toLong()
+          if (metrics.minSdkCodename != "${metrics.minSdk}") {
+            codename = metrics.minSdkCodename
+          }
+        }
+      }
+      if (metrics.targetSdk != 0 || metrics.targetSdkCodename.isNotEmpty()) {
+        targetSdkVersionBuilder.apply {
+          apiLevel = metrics.targetSdk.toLong()
+          if (metrics.targetSdkCodename != "${metrics.targetSdk}") {
+            codename = metrics.targetSdkCodename
+          }
+        }
+      }
       if (metrics.bytecodeLevel != null) {
         bytecodeLevel =
           when (metrics.bytecodeLevel) {
