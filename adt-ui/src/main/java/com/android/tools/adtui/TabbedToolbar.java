@@ -213,7 +213,7 @@ public class TabbedToolbar extends JPanel {
 
     @Override
     protected void paintComponent(final Graphics g) {
-      GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAAHintForSwingComponent());
+      GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAATextInfoForSwingComponent());
 
       // 1) Adjust our background color before painting for hover effect.
       if (myMouseOverTab == this) {
