@@ -38,6 +38,8 @@ public interface DeclarativeElementTypeHolder {
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
+  IElementType RECEIVER_PREFIXED_FACTORY = new DeclarativeElementType("RECEIVER_PREFIXED_FACTORY");
+  IElementType SIMPLE_FACTORY = new DeclarativeElementType("SIMPLE_FACTORY");
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
@@ -83,9 +85,6 @@ public interface DeclarativeElementTypeHolder {
       else if (type == EMBEDDED_FACTORY) {
         return new DeclarativeEmbeddedFactoryImpl(type);
       }
-      else if (type == FACTORY) {
-        return new DeclarativeFactoryImpl(type);
-      }
       else if (type == IDENTIFIER) {
         return new DeclarativeIdentifierImpl(type);
       }
@@ -94,6 +93,12 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);
+      }
+      else if (type == RECEIVER_PREFIXED_FACTORY) {
+        return new DeclarativeReceiverPrefixedFactoryImpl(type);
+      }
+      else if (type == SIMPLE_FACTORY) {
+        return new DeclarativeSimpleFactoryImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

@@ -22,10 +22,11 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.EMBEDDED_FACTORY
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.IDENTIFIER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignmentImpl
@@ -33,10 +34,11 @@ import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockGroupImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeEmbeddedFactoryImpl
-import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeIdentifierImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeLiteralImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeReceiverPrefixedFactoryImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleFactoryImpl
 import com.intellij.lang.ASTFactory
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
@@ -48,7 +50,8 @@ class DeclarativeASTFactory : ASTFactory() {
     BARE -> DeclarativeBareImpl(type)
     BLOCK -> DeclarativeBlockImpl(type)
     BLOCK_GROUP -> DeclarativeBlockGroupImpl(type)
-    FACTORY -> DeclarativeFactoryImpl(type)
+    RECEIVER_PREFIXED_FACTORY -> DeclarativeReceiverPrefixedFactoryImpl(type)
+    SIMPLE_FACTORY -> DeclarativeSimpleFactoryImpl(type)
     EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
     IDENTIFIER -> DeclarativeIdentifierImpl(type)
     LITERAL -> DeclarativeLiteralImpl(type)

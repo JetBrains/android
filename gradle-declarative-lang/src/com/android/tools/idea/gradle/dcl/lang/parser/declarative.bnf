@@ -135,9 +135,14 @@ private private_factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {
 embedded_factory ::= private_factory { // part of block - cannot be independent
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
 }
-factory ::= private_factory {
-   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+
+factory ::= receiver_prefixed_factory | simple_factory {
+  methods=[getReceiver]
+  mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
 }
+receiver_prefixed_factory ::= factory OP_DOT private_factory  { extends=factory }
+simple_factory ::= private_factory { extends=factory }
+
 argumentsList ::= (argument (OP_COMMA argument)*)? {
    methods=[getArguments]
 }

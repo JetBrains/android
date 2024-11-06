@@ -80,6 +80,14 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitProperty(o);
   }
 
+  public void visitReceiverPrefixedFactory(@NotNull DeclarativeReceiverPrefixedFactory o) {
+    visitFactory(o);
+  }
+
+  public void visitSimpleFactory(@NotNull DeclarativeSimpleFactory o) {
+    visitFactory(o);
+  }
+
   public void visitAbstractFactory(@NotNull DeclarativeAbstractFactory o) {
     visitElement(o);
   }

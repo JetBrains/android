@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dcl.lang.psi
 import com.intellij.testFramework.LightPlatformTestCase
 import org.assertj.core.api.Assertions.assertThat
 
-class DeclarativeDeclarativeFileTest : LightPlatformTestCase() {
+class DeclarativeFileTest : LightPlatformTestCase() {
   fun testGetEntries() {
     val file = DeclarativePsiFactory(project).createFile("""
       foo {

@@ -40,7 +40,7 @@ FILE
                 PsiElement(LITERAL)
                   PsiElement(DeclarativeTokenType.boolean)('true')
               PsiWhiteSpace('\n      ')
-              PsiElement(FACTORY)
+              PsiElement(SIMPLE_FACTORY)
                 PsiElement(IDENTIFIER)
                   PsiElement(DeclarativeTokenType.token)('function')
                 PsiElement(DeclarativeTokenType.()('(')

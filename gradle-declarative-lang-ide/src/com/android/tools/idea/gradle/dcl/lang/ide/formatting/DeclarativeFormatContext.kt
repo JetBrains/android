@@ -28,7 +28,9 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RPAREN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.intellij.formatting.SpacingBuilder
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
@@ -41,7 +43,7 @@ data class DeclarativeFormatContext(
   companion object {
     fun create(settings: CodeStyleSettings): DeclarativeFormatContext {
       val commonSettings = settings.getCommonSettings(DeclarativeLanguage.INSTANCE)
-      val elements = TokenSet.create(ASSIGNMENT, FACTORY, BLOCK)
+      val elements = TokenSet.create(ASSIGNMENT, RECEIVER_PREFIXED_FACTORY, SIMPLE_FACTORY, BLOCK)
       val builder = SpacingBuilder(commonSettings)
         // factory
         .after(OP_COMMA).spacing(1, 1, 0, false, 0)
