@@ -84,6 +84,9 @@ iml_module(
                 "//prebuilts/studio/sdk:platforms/android-33",
             ],
         },
+        "ModuleModelTest": {
+            "test_filter": "com.android.tools.idea.npw.module.ModuleModelTest",
+        },
         "other": {
             "shard_count": 10,
         },
