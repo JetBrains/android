@@ -21,8 +21,8 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.project.setAndroidNewProjectInitializationStartupActivityProjectInitializer
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -127,7 +127,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         this@NewProjectModel.project = newProject
 
-        AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
+        setAndroidNewProjectInitializationStartupActivityProjectInitializer(newProject) {
           logger.info("Rendering a new project.")
           NonProjectFileWritingAccessProvider.disableChecksDuring {
             renderer(newProject)
