@@ -56,7 +56,10 @@ iml_module(
             "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
             # b/192102820 flaky on windows, taking longer than 15 minutes
             # b/376923937 flaky on linux, taking longer than 15 minutes
-            "tags": ["noci:studio-win", "noci:studio-linux"],
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+            ],
         },
         "BenchmarkModuleTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
@@ -108,7 +111,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-34",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
