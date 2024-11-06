@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
@@ -37,7 +38,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
