@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.kotlin
+package com.android.tools.idea.gradle.dsl.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
@@ -907,7 +907,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   if (modelEntries != null) {
     for (entry in modelEntries) {
       if (entry.modelEffectDescription.property.name == nameElement.originalName) {
-        LOG.warn(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+        LOG.warn(UnsupportedOperationException("trying to updateName a property: ${nameElement.originalName}"))
         return
       }
     }

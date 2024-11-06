@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.kotlin.gradleNameFor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.kotlin.psi.KtPsiFactory

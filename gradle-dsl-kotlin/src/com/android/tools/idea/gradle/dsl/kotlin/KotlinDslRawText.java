@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.kotlin;
+package com.android.tools.idea.gradle.dsl.kotlin;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import org.jetbrains.annotations.NotNull;
