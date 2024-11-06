@@ -224,7 +224,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["plugin"] as? String?)?.let { plugin = it }
         (data["plugin_type"] as? String?)?.let { pluginType = it }
         (data["platform"] as? String?)?.let { platform = it }
-        (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
+        (data["isMPP"] as? Boolean?)?.let { isMultiplatform = it }
         (data["eventFlags"] as? Long?)?.let { eventFlags = it }
         eventType = when (eventId) {
           "Build" -> KotlinProjectConfiguration.EventType.BUILD
