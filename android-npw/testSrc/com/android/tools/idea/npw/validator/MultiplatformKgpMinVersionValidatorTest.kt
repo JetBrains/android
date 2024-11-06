@@ -52,5 +52,9 @@ class MultiplatformKgpMinVersionValidatorTest {
   private fun assertInvalidVersion(name: String) {
     val result = moduleValidator.validate(name)
     Assert.assertSame(result.message, Validator.Severity.ERROR, result.severity)
+    Assert.assertEquals(
+      "Kotlin Gradle Plugin version should be higher than or equal to 1.9.20",
+      result.message,
+    )
   }
 }
