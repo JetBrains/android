@@ -62,9 +62,7 @@ class PreviewBuildListenersManager(
   ) {
     val psiFile = runReadAction { psiFilePointer.element }
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val buildTargetReference =
-      SlowOperations.allowSlowOperations(ThrowableComputable { BuildTargetReference.from(psiFile) })
-        ?: return
+    val buildTargetReference = SlowOperations.knownIssue("IDEA-359568").use { BuildTargetReference.from(psiFile) } ?: return
     val module = buildTargetReference.module
     setupBuildListener(
       buildTargetReference,
