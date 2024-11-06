@@ -67,7 +67,7 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  */
 abstract class AnimationPreview<T : AnimationManager>(
   project: Project,
-  protected val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  @VisibleForTesting val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
   private val tracker: AnimationTracker,
 ) : Disposable {
