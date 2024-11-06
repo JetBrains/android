@@ -274,13 +274,11 @@ class InsightContentPanel(
             is LoadingState.UnknownFailure -> {
               val detailsMessage =
                 aiInsight.status?.detailsList?.firstOrNull()?.value?.toStringUtf8() ?: ""
-              val cause =
-                aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"
               val message =
                 if (detailsMessage.contains(TEMPORARY_KILL_SWITCH_MESSAGE)) {
                   "Insights feature is temporarily unavailable, check back later."
                 } else {
-                  cause
+                  aiInsight.getCauseMessageOrDefault()
                 }
               emptyStateText.apply {
                 clear()
@@ -290,12 +288,10 @@ class InsightContentPanel(
               showEmptyCard()
             }
             is LoadingState.Failure -> {
-              val cause =
-                aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"
               emptyStateText.apply {
                 clear()
                 appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
-                appendLine(cause, EMPTY_STATE_TEXT_FORMAT, null)
+                appendLine(aiInsight.getCauseMessageOrDefault(), EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()
             }
