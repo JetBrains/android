@@ -89,10 +89,9 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                            @NotNull String title) {
     super(model, title);
 
-    myModelLocation.addBrowseFolderListener("Select TensorFlow Lite Model Location",
-                                            "Select existing TensorFlow Lite model to import to ml folder",
-                                            project,
-                                            FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
+    myModelLocation.addBrowseFolderListener(project, FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor()
+      .withTitle("Select TensorFlow Lite Model Location")
+      .withDescription("Select existing TensorFlow Lite model to import to ml folder"));
     for (NamedModuleTemplate namedModuleTemplate : moduleTemplates) {
       myFlavorBox.addItem(namedModuleTemplate);
     }

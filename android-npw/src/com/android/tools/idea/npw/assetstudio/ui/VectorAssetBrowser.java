@@ -44,7 +44,7 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   public VectorAssetBrowser() {
-    addBrowseFolderListener(null, null, null, createFileDescriptor("svg", "psd"));
+    addBrowseFolderListener(null, createFileDescriptor("svg", "psd"));
 
     TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, myAsset.path().transform(file -> file.map(File::getAbsolutePath).orElse("")));

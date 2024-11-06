@@ -158,9 +158,9 @@ class SdkComponentsStep(
 
     if (!IdeInfo.getInstance().isGameTools) {
       // Game tools does not allow changing Android SDK install directory from the UI.
-      sdkPath.addBrowseFolderListener(
-        "Android SDK", "Select Android SDK install directory", null,
-        FileChooserDescriptorFactory.createSingleFolderDescriptor())
+      sdkPath.addBrowseFolderListener(null, FileChooserDescriptorFactory.createSingleFolderDescriptor()
+        .withTitle("Android SDK")
+        .withDescription("Select Android SDK install directory"))
     }
     val smallLabelFont = JBUI.Fonts.smallFont()
     neededSpace.font = smallLabelFont

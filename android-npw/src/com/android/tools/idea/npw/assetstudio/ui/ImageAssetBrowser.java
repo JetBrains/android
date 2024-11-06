@@ -45,8 +45,7 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
   @NotNull private final List<ActionListener> myListeners = new ArrayList<>(1);
 
   public ImageAssetBrowser() {
-    addBrowseFolderListener(null, null, null,
-                            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(ImageAssetBrowser::isImageFile));
+    addBrowseFolderListener(null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(ImageAssetBrowser::isImageFile));
 
     TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, myImageAsset.imagePath().transform(file -> file.map(File::getAbsolutePath).orElse("")));
