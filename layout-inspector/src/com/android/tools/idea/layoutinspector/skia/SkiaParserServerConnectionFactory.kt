@@ -72,7 +72,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
         // devbuild
         if (StudioPathManager.isRunningFromSources()) {
           Paths.get(StudioPathManager.getBinariesRoot())
-            .resolve("tools/base/dynamic-layout-inspector/skia/${serverName}")
+            .resolve("tools/vendor/google/skia/${serverName}")
         } else null
       } else {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
