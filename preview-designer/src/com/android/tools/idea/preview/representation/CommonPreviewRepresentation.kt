@@ -485,8 +485,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
     stateManager.restoreState()
 
-    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
-
     val showingPreviewElements =
       surface.updatePreviewsAndRefresh(
         tryReusingModels = true,
@@ -503,8 +501,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         this::configureLayoutlibSceneManager,
         refreshEventBuilder,
       )
-
-    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewFlowManager.updateRenderedPreviews(filePreviewElements)
