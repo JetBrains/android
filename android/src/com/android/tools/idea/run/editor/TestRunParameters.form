@@ -62,7 +62,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.configuration.all.in.module.radio"/>
         </properties>
       </component>
-      <component id="9bf46" class="com.intellij.openapi.ui.LabeledComponent" binding="myTestPackageComponent">
+      <component id="9bf46" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myTestPackageComponent">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -72,7 +72,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.configuration.package.label"/>
         </properties>
       </component>
-      <component id="71813" class="com.intellij.openapi.ui.LabeledComponent" binding="myTestClassComponent">
+      <component id="71813" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myTestClassComponent">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -82,7 +82,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.configuration.class.label"/>
         </properties>
       </component>
-      <component id="7ad47" class="com.intellij.openapi.ui.LabeledComponent" binding="myTestMethodComponent">
+      <component id="7ad47" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myTestMethodComponent">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -92,7 +92,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.run.configuration.method.label"/>
         </properties>
       </component>
-      <component id="c64f7" class="com.intellij.openapi.ui.LabeledComponent" binding="myTestRegexComponent">
+      <component id="c64f7" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myTestRegexComponent">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -102,7 +102,7 @@
           <text value="Regex"/>
         </properties>
       </component>
-      <component id="76829" class="com.intellij.openapi.ui.LabeledComponent" binding="myInstrumentationClassComponent">
+      <component id="76829" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myInstrumentationClassComponent">
         <constraints>
           <grid row="5" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -113,7 +113,7 @@
           <text resource-bundle="messages/AndroidBundle" key="android.test.run.configuration.instrumentation.label"/>
         </properties>
       </component>
-      <component id="4d1f0" class="com.intellij.openapi.ui.LabeledComponent" binding="myInstrumentationArgsComponent">
+      <component id="4d1f0" class="com.intellij.openapi.ui.LabeledComponentNoThrow" binding="myInstrumentationArgsComponent">
         <constraints>
           <grid row="6" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>

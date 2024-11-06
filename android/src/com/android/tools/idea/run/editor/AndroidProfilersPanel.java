@@ -21,7 +21,7 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.openapi.ui.LabeledComponentNoThrow;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBRadioButton;
@@ -50,7 +50,7 @@ public class AndroidProfilersPanel {
   private JEditorPane myAdvancedProfilingDescription;
   private JCheckBox myStartupProfileCheckBox;
   private ClickableLabel myStartupProfileLabel;
-  private LabeledComponent<JBTextField> myNativeMemoryProfilerSampleRate;
+  private LabeledComponentNoThrow<JBTextField> myNativeMemoryProfilerSampleRate;
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
   private JBRadioButton myCpuRecordingRadio;

@@ -47,7 +47,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
-import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.openapi.ui.LabeledComponentNoThrow;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
@@ -77,13 +77,13 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private JRadioButton myClassTestButton;
   private JRadioButton myMethodTestButton;
   private JRadioButton myAllInModuleTestButton;
-  private LabeledComponent<EditorTextFieldWithBrowseButton> myTestPackageComponent;
-  private LabeledComponent<EditorTextFieldWithBrowseButton> myTestClassComponent;
-  private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myTestMethodComponent;
+  private LabeledComponentNoThrow<EditorTextFieldWithBrowseButton> myTestPackageComponent;
+  private LabeledComponentNoThrow<EditorTextFieldWithBrowseButton> myTestClassComponent;
+  private LabeledComponentNoThrow<SimpleEditorTextFieldWithBrowseButton> myTestMethodComponent;
   private JPanel myContentPanel;
-  private LabeledComponent<EditorTextFieldWithBrowseButton> myInstrumentationClassComponent;
-  private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myInstrumentationArgsComponent;
-  private LabeledComponent myTestRegexComponent;
+  private LabeledComponentNoThrow<EditorTextFieldWithBrowseButton> myInstrumentationClassComponent;
+  private LabeledComponentNoThrow<SimpleEditorTextFieldWithBrowseButton> myInstrumentationArgsComponent;
+  private LabeledComponentNoThrow myTestRegexComponent;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
