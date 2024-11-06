@@ -28,6 +28,7 @@ import com.google.common.collect.Range
 import icons.StudioIconsCompose
 import kotlin.math.max
 
+/** A [DeviceProfile] based on a [Device], used for creating an AVD. */
 @Immutable
 internal data class VirtualDeviceProfile(
   val device: Device,

@@ -88,10 +88,16 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 import org.jetbrains.jewel.ui.theme.scrollbarStyle
 import org.jetbrains.jewel.ui.util.thenIf
 
+/** A column of a [Table]; determines its name, size, order, and content. */
 data class TableColumn<in T>(
   val name: String,
   val width: TableColumnWidth,
+  /**
+   * The comparator for the rows when sorted by this column in ascending order. If null, the column
+   * is not sortable.
+   */
   val comparator: Comparator<in T>? = null,
+  /** The comparator for the rows when sorted by this column in descending order. */
   val reverseComparator: Comparator<in T>? = comparator?.reversed(),
   val rowContent: @Composable BoxScope.(T) -> Unit,
 )
@@ -133,6 +139,7 @@ sealed interface TableColumnWidth {
   }
 }
 
+/** A table column based on an attribute function which extracts a string from the row value. */
 fun <T> TableTextColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
@@ -304,6 +311,10 @@ internal fun <T> TableRow(
   }
 }
 
+/**
+ * Displays a list of values of type [T] as a scrollable grid of rows, with columns defined by
+ * [columns]. Allows sorting by columns and selecting a single row.
+ */
 @Composable
 fun <T> Table(
   columns: List<TableColumn<T>>,
