@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
@@ -134,8 +135,8 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
   private fun GradleDslMethodCall.isDoubleFunction(): Boolean =
     methodName != name && methodName.isNotEmpty()
 
-  private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
-    var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
+  private fun getAnchor(parent: PsiElement, dslAnchor: GradleDslAnchor?): PsiElement? {
+    var anchor = (dslAnchor as? GradleDslAnchor.After)?.let { findLastPsiElementIn(it.dslElement) }
     if (anchor == null && parent is DeclarativeBlockGroup) return parent.blockEntriesStart
     if (anchor == null && parent is DeclarativeArgumentsList) return parent.firstChild
     while (anchor != null && anchor.parent != parent) {

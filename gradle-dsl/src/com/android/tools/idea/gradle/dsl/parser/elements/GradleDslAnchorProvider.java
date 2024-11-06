@@ -22,11 +22,11 @@ import org.jetbrains.annotations.Nullable;
  * Interface for GradleDslElements to provide anchors for positioning their children. These anchors are requested when creating the
  * child.
  */
-public interface AnchorProvider {
+public interface GradleDslAnchorProvider {
   /**
    * @param element the element an anchor has been requested for
    * @return the element that should be used as an anchor, the new element is created after this anchor
    */
-  @Nullable
-  GradleDslElement requestAnchor(@NotNull GradleDslElement element);
+  @NotNull
+  GradleDslAnchor requestAnchor(@NotNull GradleDslElement element);
 }

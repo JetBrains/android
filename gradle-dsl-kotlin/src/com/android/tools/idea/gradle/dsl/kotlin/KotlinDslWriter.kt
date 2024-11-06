@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -68,26 +68,21 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
+    if (anchorAfter !is GradleDslAnchor.After) return null // TODO(xof), wait, we can't move elements to the first position!?
     val parentPsiElement = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter)?.parent ?: return null
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)?.parent ?: return null
       else -> getParentPsi(element) ?: return null
     }
 
     val anchor = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter)
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)
       else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
     }
 
     // Create a placeholder element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
     val sampleString = psiFactory.createStringTemplate("toReplace")
-    // If the element has no anchor, add it to the beginning of the block.
-    val toReplace = if (parentPsiElement is KtBlockExpression && anchorAfter == null) {
-      parentPsiElement.addBefore(sampleString, anchor)
-    }
-    else {
-      parentPsiElement.addAfter(sampleString, anchor)
-    }
+    val toReplace = parentPsiElement.addAfter(sampleString, anchor)
 
     // Find the element we need to replace.
     var e = element.psiElement ?: return null
@@ -132,14 +127,15 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var isVarOrProperty = false
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
+    if (anchorAfter == null) return null // we don't have a parent?  return null.
 
     var addBefore = false
     if (needToCreateParent(element)) {
       addBefore = true
-      anchorAfter = null
+      anchorAfter = GradleDslAnchor.Start
     }
-    else if (anchorAfter == null) {
-      anchorAfter = (element.parent as? ExtDslElement)?.anchor
+    else if (anchorAfter == GradleDslAnchor.Start) {
+      anchorAfter = (element.parent as? ExtDslElement)?.anchor ?: anchorAfter
     }
 
     var parentPsiElement = getParentPsi(element) ?: return null
@@ -322,11 +318,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
       is KtBlockExpression -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
-        if (anchorAfter != null) {
-          parentPsiElement.addBefore(lineTerminator, addedElement)
-        }
-        else {
-          parentPsiElement.addAfter(lineTerminator, addedElement)
+        when (anchorAfter) {
+          is GradleDslAnchor.After -> parentPsiElement.addBefore(lineTerminator, addedElement)
+          GradleDslAnchor.Start -> parentPsiElement.addAfter(lineTerminator, addedElement)
         }
       }
       is KtValueArgumentList -> {
@@ -455,11 +449,11 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
     val methodParent = methodCall.parent ?: return null
 
-    var anchorAfter = methodCall.anchor
+    var anchorAfter = methodCall.anchor ?: return null
 
     //If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
     if (needToCreateParent(methodCall)) {
-      anchorAfter = null
+      anchorAfter = GradleDslAnchor.Start
     }
 
     var parentPsiElement = methodParent.create() ?: return null

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -157,8 +158,8 @@ class TomlDslWriter(private val context: BuildModelContext) : GradleDslWriter, T
 
   private fun TomlTable.orderIndex() = tables.indexOf(header.key?.text)
 
-  private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
-    var anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
+  private fun getAnchorPsi(parent: PsiElement, dslAnchor: GradleDslAnchor?): PsiElement? {
+    var anchor = (dslAnchor as? GradleDslAnchor.After)?.let{ findLastPsiElementIn(it.dslElement) }
     if (anchor == null && (parent is TomlInlineTable || parent is TomlArray)) return parent.firstChild
     if (anchor == null && parent is TomlTable) return parent.header
     while (anchor != null && anchor.parent != parent) {
