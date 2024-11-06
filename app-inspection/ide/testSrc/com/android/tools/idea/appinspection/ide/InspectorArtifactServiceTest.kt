@@ -41,7 +41,7 @@ class InspectorArtifactServiceTest {
 
   @Test
   fun getInspectorJar() =
-    runBlocking<Unit> {
+    runBlocking {
       val fileService = TestFileService()
       val artifactResolverFactory =
         object : ArtifactResolverFactory {

@@ -41,7 +41,7 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
   @get:Rule
   val projectRule = ProjectRule()
 
-  @get:Rule val FlagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
+  @get:Rule val flagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
 
   @Test
   fun createResolver() {

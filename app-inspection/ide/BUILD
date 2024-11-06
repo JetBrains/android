@@ -40,7 +40,7 @@ iml_module(
 iml_module(
     name = "app-inspection.ide.tests",
     iml_files = ["app-inspection.ide.tests.iml"],
-    test_class = "com.android.tools.idea.appinspection.ide.AppInspectionIdeTestSuite",
+    test_class = "com.android.tools.idea.appinspection.AppInspectionIdeTestSuite",
     # keep sorted
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],

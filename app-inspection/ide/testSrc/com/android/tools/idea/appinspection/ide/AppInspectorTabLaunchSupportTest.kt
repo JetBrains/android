@@ -99,7 +99,7 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() =
-    runBlocking<Unit> {
+    runBlocking {
       val support =
         AppInspectorTabLaunchSupport(
           {

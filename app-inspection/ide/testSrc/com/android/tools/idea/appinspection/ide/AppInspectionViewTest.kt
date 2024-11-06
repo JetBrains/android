@@ -141,7 +141,7 @@ class AppInspectionViewTest {
 
   @Test
   fun selectProcessInAppInspectionView_twoTabProvidersAddTwoTabs() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       val tabsAdded = CompletableDeferred<Unit>()
@@ -176,7 +176,7 @@ class AppInspectionViewTest {
 
   @Test
   fun selectProcessInAppInspectionView_tabNotAddedForDisabledTabProvider() =
-    runBlocking<Unit> {
+    runBlocking {
       // Disable Inspector2 and only one tab should be added.
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
@@ -212,7 +212,7 @@ class AppInspectionViewTest {
 
   @Test
   fun disposeInspectorWhenSelectionChanges() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       lateinit var tabs: List<AppInspectorTab>
@@ -270,7 +270,7 @@ class AppInspectionViewTest {
 
   @Test
   fun receivesInspectorDisposedEvent() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
@@ -341,7 +341,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorTabsAreDisposed_whenUiIsRefreshed() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabDisposedDeferred = CompletableDeferred<Unit>()
       val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
@@ -409,7 +409,7 @@ class AppInspectionViewTest {
             it.name == FakeTransportService.FAKE_PROCESS_NAME
           }
         Disposer.register(disposable, inspectionView)
-        var previousTabs = mutableListOf<AppInspectorTabShell>()
+        val previousTabs = mutableListOf<AppInspectorTabShell>()
         inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
           when (i) {
             0 -> {
@@ -469,7 +469,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorCrashNotification() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
@@ -553,7 +553,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorRestartNotificationShownOnLaunchError() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       val fakeDevice =
@@ -828,7 +828,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -891,7 +891,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToAppProguarded_emptyMessageAdded() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -944,7 +944,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToServiceError() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       launch(uiDispatcher) {
@@ -1000,7 +1000,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsBecauseProcessNoLongerExists() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
 
@@ -1049,7 +1049,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -1159,7 +1159,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchLibraryInspectors() =
-    runBlocking<Unit> {
+    runBlocking {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val resolvedInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
@@ -1335,7 +1335,7 @@ class AppInspectionViewTest {
     transportService.addProcess(fakeDevice, fakeProcesses[0])
 
     // Verify auto connected to initial process
-    withContext(Dispatchers.Default) {
+    withContext(Dispatchers.Unconfined) {
       // Note: We need to wait for process changes here (and below) on a non-test thread that's
       // *not* the UI thread, so we
       // don't block the test thread *and* we give the UI thread a chance to respond to the change
@@ -1348,7 +1348,7 @@ class AppInspectionViewTest {
     }
 
     // Verify auto connect to new process
-    withContext(Dispatchers.Default) {
+    withContext(Dispatchers.Unconfined) {
       inspectionView.stopInspectors()
       selectedProcessChangedQueue.take()
       timer.currentTimeNs += 1
@@ -1364,7 +1364,7 @@ class AppInspectionViewTest {
     // Process stop still handled, even if auto connect enabled is set to false
     withContext(uiDispatcher) { inspectionView.autoConnects = false }
 
-    withContext(Dispatchers.Default) {
+    withContext(Dispatchers.Unconfined) {
       inspectionView.stopInspectors()
       selectedProcessChangedQueue.take()
     }
@@ -1379,10 +1379,10 @@ class AppInspectionViewTest {
       assertThat(inspectionView.currentProcess!!.isRunning).isFalse()
     }
 
-    // New process is ignored (as expected) if autoconnection isn't enabled
+    // New process is ignored (as expected) if auto-connection isn't enabled
     withContext(uiDispatcher) { inspectionView.autoConnects = false }
 
-    withContext(Dispatchers.Default) {
+    withContext(Dispatchers.Unconfined) {
       timer.currentTimeNs += 1
       transportService.addProcess(fakeDevice, fakeProcesses[2])
       selectedProcessChangedQueue.take()
