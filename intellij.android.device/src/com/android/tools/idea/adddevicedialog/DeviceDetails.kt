@@ -104,7 +104,7 @@ fun DeviceDetails(
 
       if (systemImage != null) {
         Header("System Image")
-        LabeledValue("API Level", systemImage.androidVersion.apiLevel.toString())
+        LabeledValue("API Level", systemImage.androidVersion.getApiStringWithExtension())
         LabeledValue("Services", systemImage.services)
         LabeledValue("ABI", systemImage.abiTypes.joinToString(", "))
         if (systemImage.translatedAbiTypes.isNotEmpty()) {
