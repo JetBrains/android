@@ -246,7 +246,6 @@ internal class DeviceView(
   }
 
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
-    thisLogger().info("DeviceView.connectToAgent($maxOutputSize, $initialDisplayOrientation)")
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
