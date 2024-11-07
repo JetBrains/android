@@ -140,7 +140,7 @@ class WindowsDefenderWarningUITest {
 
     assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
-    assertThat(page.autoExcludeStatus.text).isEqualTo("Project paths were successfully added to the Microsoft Defender exclusion list")
+    assertThat(page.autoExcludeStatus.text).isEqualTo("The folders have been successfully excluded from Windows Defender's Real-Time Protection.")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     verify(checkerMock, times(1)).ignoreStatusCheck(any(), eq(true))
@@ -164,7 +164,7 @@ class WindowsDefenderWarningUITest {
 
     assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
-    assertThat(page.autoExcludeStatus.text).isEqualTo("Microsoft Defender configuration script failed. Please look for \"WindowsDefenderChecker\" records in the log.")
+    assertThat(page.autoExcludeStatus.text).isEqualTo("Failed to exclude folders. Check the log for \"WindowsDefenderChecker\" for more details.")
     assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     verify(checkerMock, never()).ignoreStatusCheck(any(), eq(true))

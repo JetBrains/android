@@ -116,7 +116,6 @@ public class StartUpTest {
         "Performance Testing",
         "Plugin DevKit",
         "Properties",
-        "Relational Dataflow Analysis",
         "Shell Script",
         "Smali Support",
         "Subversion",

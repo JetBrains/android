@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AndroidWindowsDefenderCheckerExt implements WindowsDefenderChecker.Extension {
   @Override
-  public @NotNull Collection<Path> getPaths(@NotNull Project project) {
+  public @NotNull Collection<Path> getPaths(@NotNull Project project, @Nullable Path projectPath) {
     List<Path> paths = new ArrayList<>();
     // Note: Do not include ".android" because
     // 1) the location cannot be customized by the user and

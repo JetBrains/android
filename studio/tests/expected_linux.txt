@@ -415,7 +415,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-243.21155.17.2431.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-243.21565.23.2431.__BUILD_NUMBER__
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
@@ -448,6 +448,7 @@ android-studio/lib/modules/intellij.platform.execution.serviceView.jar
 android-studio/lib/modules/intellij.platform.frontend.jar
 android-studio/lib/modules/intellij.platform.images.backend.svg.jar
 android-studio/lib/modules/intellij.platform.images.copyright.jar
+android-studio/lib/modules/intellij.platform.inline.completion.jar
 android-studio/lib/modules/intellij.platform.kernel.backend.jar
 android-studio/lib/modules/intellij.platform.lvcs.impl.jar
 android-studio/lib/modules/intellij.platform.navbar.backend.jar
@@ -462,6 +463,7 @@ android-studio/lib/modules/intellij.platform.smRunner.vcs.jar
 android-studio/lib/modules/intellij.platform.vcs.dvcs.impl.jar
 android-studio/lib/modules/intellij.platform.vcs.impl.jar
 android-studio/lib/modules/intellij.platform.vcs.log.impl.jar
+android-studio/lib/modules/intellij.rml.dfa.impl.jar
 android-studio/lib/modules/intellij.smart.update.jar
 android-studio/lib/native/linux-x86_64/libsqliteij.so
 android-studio/lib/nio-fs.jar
@@ -2913,7 +2915,6 @@ android-studio/plugins/platform-langInjection/lib/java-langInjection-jps.jar
 android-studio/plugins/platform-langInjection/lib/platform-langInjection.jar
 android-studio/plugins/properties/lib/properties.jar
 android-studio/plugins/repository-search/lib/repository-search.jar
-android-studio/plugins/rml-dfa-plugin/lib/rml-dfa-plugin.jar
 android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar

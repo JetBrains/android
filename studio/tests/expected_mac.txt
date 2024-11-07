@@ -458,6 +458,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.execution.serv
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.frontend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.images.backend.svg.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.images.copyright.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.inline.completion.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.kernel.backend.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.lvcs.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.navbar.backend.jar
@@ -472,6 +473,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.smRunner.vcs.j
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.dvcs.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.vcs.log.impl.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.rml.dfa.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.smart.update.jar
 Android Studio Preview.app/Contents/lib/native/mac-x86_64/libsqliteij.jnilib
 Android Studio Preview.app/Contents/lib/nio-fs.jar
@@ -2932,7 +2934,6 @@ Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/java-lang
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/platform-langInjection.jar
 Android Studio Preview.app/Contents/plugins/properties/lib/properties.jar
 Android Studio Preview.app/Contents/plugins/repository-search/lib/repository-search.jar
-Android Studio Preview.app/Contents/plugins/rml-dfa-plugin/lib/rml-dfa-plugin.jar
 Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar

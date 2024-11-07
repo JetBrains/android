@@ -26,7 +26,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.impl.EditorMarkupModelImpl
+import com.intellij.openapi.editor.ex.EditorMarkupModel
 import com.intellij.openapi.editor.markup.AnalyzerStatus
 import com.intellij.openapi.editor.markup.StatusItem
 import com.intellij.openapi.editor.markup.UIController
@@ -49,7 +49,7 @@ private val SEVERITY_TO_ICON =
 class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   TrafficLightRenderer(file.project, editor.document) {
   private val severities = severityRegistrar.allSeverities
-  private val errorCountArray = IntArray(severities.size)
+  override val errorCounts = IntArray(severities.size)
 
   init {
     val messageBusConnection = project.messageBus.connect(this)
@@ -65,31 +65,28 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     )
   }
 
-  override fun refresh(editorMarkupModel: EditorMarkupModelImpl?) {
+  override fun refresh(editorMarkupModel: EditorMarkupModel?) {
     super.refresh(editorMarkupModel)
     if (editorMarkupModel == null) {
       return
     }
-    errorCountArray.fill(0)
+    errorCounts.fill(0)
     val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {
       val index = severities.indexOf(it.severity)
       if (index > -1) {
-        errorCountArray[index]++
+        errorCounts[index]++
       }
     }
   }
 
-  override fun getErrorCounts(): IntArray {
-    return errorCountArray
-  }
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()
     val nonZeroSeverities =
-      errorCountArray.indices
+      errorCounts.indices
         .reversed()
-        .filterNot { errorCountArray[it] == 0 }
+        .filterNot { errorCounts[it] == 0 }
         .map { severityRegistrar.getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
