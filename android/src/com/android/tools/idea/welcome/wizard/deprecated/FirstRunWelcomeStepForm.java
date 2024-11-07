@@ -15,39 +15,32 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.intellij.ui.components.JBScrollPane;
+import icons.StudioIllustrations;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import org.jetbrains.annotations.NotNull;
+import javax.swing.JPanel;
 
 /**
- * Welcome page for the first run wizard
- *
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.FirstRunWelcomeStep}
+ * Ui for the welcome page wizard step
  */
-@Deprecated
-public final class FirstRunWelcomeStep extends FirstRunWizardStep {
-  private final FirstRunWelcomeStepForm myForm;
+public final class FirstRunWelcomeStepForm {
+  private JBScrollPane myRoot;
+  private JLabel myIcons;
+  private JPanel myExistingSdkMessage;
+  private JPanel myNewSdkMessage;
 
-  public FirstRunWelcomeStep(boolean sdkExists) {
-    super("Welcome", "Android Studio");
-    myForm = new FirstRunWelcomeStepForm(sdkExists);
-    setComponent(myForm.getRoot());
+  public FirstRunWelcomeStepForm(boolean sdkExists) {
+    myIcons.setIcon(StudioIllustrations.Common.DEVICES_LINEUP_LARGE);
+    myExistingSdkMessage.setVisible(sdkExists);
+    myNewSdkMessage.setVisible(!sdkExists);
   }
 
-  @Override
-  public void init() {
-    // Nothing to init
+  public JComponent getRoot() {
+    return myRoot;
   }
 
-  @NotNull
-  @Override
-  public JLabel getMessageLabel() {
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    // Doesn't matter
-    return myForm.getRoot();
+  public JLabel getIcons() {
+    return myIcons;
   }
 }
