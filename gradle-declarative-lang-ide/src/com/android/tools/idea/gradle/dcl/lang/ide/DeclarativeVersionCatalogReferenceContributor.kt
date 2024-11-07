@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
@@ -45,7 +46,7 @@ class DeclarativeVersionCatalogReferenceContributor : PsiReferenceContributor() 
 class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
     if (element !is DeclarativeProperty) return emptyArray()
-    if (element.parent is DeclarativeProperty) return emptyArray()
+    if (element.parent is DeclarativeProperty || element.parent is DeclarativeAssignment) return emptyArray()
     if (!DeclarativeIdeSupport.isEnabled()) return emptyArray()
     lateinit var fileIdentifier: DeclarativeIdentifier
     element.accept(object : DeclarativeRecursiveVisitor() {
