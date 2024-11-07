@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -829,7 +830,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     GradleDslAnchor anchor = new GradleDslAnchor.Start(this);
     for (ElementList.ElementItem item : myProperties.myElements) {
       if (item.myElement == element) {
-        return anchor;
+        if (item.myElementState == EXISTING && SharedParserUtilsKt.findLastPsiElementIn(item.myElement) != null) {
+          return new GradleDslAnchor.After(item.myElement);
+        }
+        else {
+          return anchor;
+        }
       }
 
       if (item.myElementState.isPhysicalInFile()) {

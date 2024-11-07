@@ -116,8 +116,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   internal fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
-    if (element is ExtDslElement) return element.parent?.create()
     if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
@@ -134,9 +132,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     if (needToCreateParent(dslParent)) {
       addBefore = true
       anchorAfter = GradleDslAnchor.Start(dslParent)
-    }
-    else if (anchorAfter is GradleDslAnchor.Start) {
-      anchorAfter = (dslParent as? ExtDslElement)?.anchor ?: anchorAfter
     }
 
     var parentPsiElement = getParentPsi(dslParent) ?: return null
@@ -186,7 +181,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     }
     else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       if (element.elementType == PropertyType.REGULAR) {
-        if (dslParent is ExtDslElement) {
+        if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
           // TODO(b/148769031): For now, we need to be careful about psi to dsl translation in both ways and reflect the dsl logic back to
           //  the psi elements.
