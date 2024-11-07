@@ -2169,7 +2169,7 @@ MODULE                        : TestCompositeLib1.app
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3328,7 +3328,7 @@ MODULE                        : TestCompositeLib1.lib
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4789,7 +4789,7 @@ MODULE                        : TestCompositeLib3.app
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -7773,7 +7773,7 @@ MODULE                        : project.app
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -8899,7 +8899,7 @@ MODULE                        : project.lib
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

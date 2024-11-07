@@ -3230,7 +3230,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3517,7 +3517,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -4586,7 +4586,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -5360,7 +5360,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -6407,7 +6407,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
