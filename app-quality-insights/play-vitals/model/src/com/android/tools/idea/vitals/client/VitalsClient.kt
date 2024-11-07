@@ -47,7 +47,7 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.createGeminiInsightRequest
-import com.android.tools.idea.insights.client.runGrpcCatching
+import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.io.grpc.ClientInterceptor
@@ -65,7 +65,6 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
@@ -83,19 +82,18 @@ class VitalsClient(
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 
-  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> = supervisorScope {
-    runGrpcCatching(notFoundFallbackValue = LoadingState.Ready(emptyList())) {
+  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
+    runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
     }
-  }
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
     fetchSource: FetchSource?,
     mode: ConnectionMode,
     permission: Permission,
-  ): LoadingState.Done<IssueResponse> = supervisorScope {
-    runGrpcCatching(
+  ): LoadingState.Done<IssueResponse> =
+    runGrpcCatchingWithSupervisorScope(
       notFoundFallbackValue =
         LoadingState.Ready(
           IssueResponse(
@@ -109,7 +107,7 @@ class VitalsClient(
     ) {
       if (mode.isOfflineMode()) {
         val topCachedIssues = cache.getTopIssues(request) ?: emptyList()
-        return@runGrpcCatching LoadingState.Ready(
+        return@runGrpcCatchingWithSupervisorScope LoadingState.Ready(
           IssueResponse(topCachedIssues, emptyList(), emptyList(), emptyList(), Permission.FULL)
         )
       }
@@ -149,7 +147,6 @@ class VitalsClient(
         )
       )
     }
-  }
 
   override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
     LoadingState.Ready(emptyList<IssueVariant>())
@@ -158,9 +155,10 @@ class VitalsClient(
     issueId: IssueId,
     request: IssueRequest,
     variantId: String?,
-  ): LoadingState.Done<DetailedIssueStats?> = supervisorScope {
-    val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
-    runGrpcCatching(failure) {
+  ): LoadingState.Done<DetailedIssueStats?> =
+    runGrpcCatchingWithSupervisorScope(
+      LoadingState.UnknownFailure("Unable to fetch issue details.")
+    ) {
       val devices = async {
         listDevices(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
           .summarizeDevicesFromRawDataPoints(
@@ -183,7 +181,6 @@ class VitalsClient(
       }
       LoadingState.Ready(DetailedIssueStats(devices.await(), oses.await()))
     }
-  }
 
   override suspend fun listEvents(
     issueId: IssueId,
@@ -235,7 +232,7 @@ class VitalsClient(
     }
     val cachedInsight = cache.getAiInsight(connection, issueId)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
-    return runGrpcCatching(failure) {
+    return runGrpcCatchingWithSupervisorScope(failure) {
       if (cachedInsight == null || forceFetch) {
         val insight =
           aiInsightClient
