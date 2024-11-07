@@ -8,6 +8,7 @@ load(
     "CPP_COMPILE_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
     "ZIP_TOOL_LABEL",
+    _ide_kotlin_not_validated = "IDE_KOTLIN",
 )
 
 ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import"
@@ -19,14 +20,34 @@ PROTO_RULE_KINDS = [
     "kt_proto_library_helper",
 ]
 
-SRC_ATTRS = [
-    "srcs",
-    "java_srcs",
-    "kotlin_srcs",
-    "java_test_srcs",
-    "kotlin_test_srcs",
-    "common_srcs",
-]
+def _rule_function(rule):
+    return []
+
+def _unique(values):
+    return {k: None for k in values}.keys()
+
+def _validate_ide(unvalidated, template):
+    "Basic validation that a provided implementation conforms to a given template"
+    for a in dir(template):
+        if not hasattr(unvalidated, a):
+            fail("attribute missing: ", a, unvalidated)
+        elif type(getattr(unvalidated, a)) != type(getattr(template, a)):
+            fail("attribute type mismatch: ", a, type(getattr(unvalidated, a)), type(getattr(template, a)))
+    return struct(**{a: getattr(unvalidated, a) for a in dir(template) if a not in dir(struct())})
+
+IDE_KOTLIN = _validate_ide(
+    _ide_kotlin_not_validated,
+    template = struct(
+        srcs_attributes = [],  # Additional srcs like attributes.
+        follow_attributes = [],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        follow_additional_attributes = [],  # Additional attributes for the aspect to follow without requesting DependenciesInfo provider.
+        followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+    ),
+)
+
+JAVA_SRC_ATTRS = ["srcs", "java_srcs", "java_test_srcs"]
+JVM_SRC_ATTRS = _unique(JAVA_SRC_ATTRS + IDE_KOTLIN.srcs_attributes)
 
 def _package_dependencies_impl(target, ctx):
     java_info_file = _write_java_target_info(target, ctx)
@@ -341,18 +362,33 @@ def _target_within_project_scope(label, include, exclude):
                 break
     return result
 
+def _get_dependency_attribute(rule, attr):
+    if hasattr(rule.attr, attr):
+        to_add = getattr(rule.attr, attr)
+        if type(to_add) == "list":
+            return [t for t in to_add if type(t) == "Target"]
+        elif type(to_add) == "Target":
+            return [to_add]
+    return []
+
+def _get_followed_java_proto_dependencies(rule):
+    deps = []
+    if rule.kind in ["proto_lang_toolchain", "java_rpc_toolchain"]:
+        deps.extend(_get_dependency_attribute(rule, "runtime"))
+    if rule.kind in ["_java_grpc_library", "_java_lite_grpc_library"]:
+        deps.extend(_get_dependency_attribute(rule, "_toolchain"))
+    return deps
+
 def _get_followed_java_dependency_infos(rule):
     deps = []
-    for (attr, kinds) in FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND:
-        if hasattr(rule.attr, attr) and (not kinds or rule.kind in kinds):
-            to_add = getattr(rule.attr, attr)
-            if type(to_add) == "list":
-                deps += [t for t in to_add if type(t) == "Target"]
-            elif type(to_add) == "Target":
-                deps.append(to_add)
+    for attr in FOLLOW_JAVA_ATTRIBUTES:
+        deps.extend(_get_dependency_attribute(rule, attr))
+
+    deps.extend(_get_followed_java_proto_dependencies(rule))
+    deps.extend(IDE_KOTLIN.followed_dependencies(rule))
 
     return {
-        str(dep[DependenciesInfo].label): dep[DependenciesInfo]
+        str(dep[DependenciesInfo].label): dep[DependenciesInfo]  # NOTE: This handles duplicates.
         for dep in deps
         if DependenciesInfo in dep and dep[DependenciesInfo].target_to_artifacts
     }
@@ -449,7 +485,7 @@ def _collect_own_java_artifacts(
             own_jar_files += generated_class_jars
 
         # Add generated sources for included targets
-        for src_attr in SRC_ATTRS:
+        for src_attr in JVM_SRC_ATTRS:
             if hasattr(rule.attr, src_attr):
                 for src in getattr(rule.attr, src_attr):
                     for file in src.files.to_list():
@@ -467,7 +503,7 @@ def _collect_own_java_artifacts(
                                 own_gensrc_files.append(file)
 
     if not target_is_within_project_scope:
-        for src_attr in SRC_ATTRS:
+        for src_attr in JVM_SRC_ATTRS:
             if hasattr(rule.attr, src_attr):
                 for src in getattr(rule.attr, src_attr):
                     for file in src.files.to_list():
@@ -861,21 +897,22 @@ def _package_ide_aar(ctx, aar, file_map):
 #   2. A list of rule kinds to specify which rules for which the attribute labels
 #      need to be added as dependencies. If empty, the attribute is followed for
 #      all rules.
-FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND = [
-    ("deps", []),
-    ("exports", []),
-    ("srcs", []),
-    ("_junit", []),
-    ("_aspect_proto_toolchain_for_javalite", []),
-    ("_aspect_java_proto_toolchain", []),
-    ("runtime", ["proto_lang_toolchain", "java_rpc_toolchain"]),
-    ("_toolchain", ["_java_grpc_library", "_java_lite_grpc_library", "kt_jvm_library_helper", "android_library", "kt_android_library"]),
-    ("kotlin_libs", ["kt_jvm_toolchain"]),
-]
+FOLLOW_JAVA_ATTRIBUTES = [
+    "deps",
+    "exports",
+    "srcs",
+    "_junit",
+    "_aspect_proto_toolchain_for_javalite",
+    "_aspect_java_proto_toolchain",
+] + IDE_KOTLIN.follow_attributes
 
 FOLLOW_CC_ATTRIBUTES = ["_cc_toolchain"]
 
-FOLLOW_ATTRIBUTES = [attr for (attr, _) in FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND] + FOLLOW_CC_ATTRIBUTES
+FOLLOW_ADDITIONAL_ATTRIBUTES = ["runtime", "_toolchain"] + IDE_KOTLIN.follow_additional_attributes
+
+FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLLOW_ADDITIONAL_ATTRIBUTES)
+
+TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects
 
 collect_dependencies = aspect(
     implementation = _collect_dependencies_impl,
@@ -910,6 +947,9 @@ collect_dependencies = aspect(
         ),
     },
     fragments = ["cpp"],
+    **{
+        "toolchains_aspects": TOOLCHAINS_ASPECTS,
+    } if TOOLCHAINS_ASPECTS else {}
 )
 
 collect_all_dependencies_for_tests = aspect(
