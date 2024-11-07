@@ -733,6 +733,166 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     )
   }
 
+  fun testMissingPermissionKotlinAddAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinAddAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinAddAnnotationAnyOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationSingleNamed() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAnyOfFirst() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_FINE_LOCATION)",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAnyOfSecond() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_COARSE_LOCATION)",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationAnyOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationSingleNamed() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAnyOfFirst() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_FINE_LOCATION)",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAnyOfSecond() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_COARSE_LOCATION)",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
   fun testNotificationPermission() {
     val manifest =
       myFixture.addFileToProject(
@@ -2574,6 +2734,41 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                 int lambda() default -1;
             }
             """
+        .trimIndent(),
+    )
+  }
+
+  private fun addRequiresPermission(targetDir: String = "/src/") {
+    myFixture.addFileToProject(
+      "$targetDir/androidx/annotation/RequiresPermission.java",
+      """
+      package androidx.annotation;
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.Target;
+      import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+      import static java.lang.annotation.ElementType.CONSTRUCTOR;
+      import static java.lang.annotation.ElementType.FIELD;
+      import static java.lang.annotation.ElementType.METHOD;
+      import static java.lang.annotation.ElementType.PARAMETER;
+      import static java.lang.annotation.RetentionPolicy.CLASS;
+      @Retention(CLASS)
+      @Target({ANNOTATION_TYPE, METHOD, CONSTRUCTOR, FIELD, PARAMETER})
+      public @interface RequiresPermission {
+        String value() default "";
+        String[] allOf() default {};
+        String[] anyOf() default {};
+        boolean conditional() default false;
+        String apis() default "";
+        @Target({FIELD, METHOD, PARAMETER})
+        @interface Read {
+          RequiresPermission value() default @RequiresPermission;
+        }
+        @Target({FIELD, METHOD, PARAMETER})
+        @interface Write {
+          RequiresPermission value() default @RequiresPermission;
+        }
+      }
+      """
         .trimIndent(),
     )
   }

@@ -21,6 +21,8 @@ import com.android.SdkConstants.TAG_APPLICATION
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
+import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintIdeQuickFix
@@ -36,28 +38,49 @@ import com.intellij.modcommand.ModCommandAction
 import com.intellij.modcommand.ModPsiUpdater
 import com.intellij.modcommand.Presentation
 import com.intellij.modcommand.PsiUpdateModCommandAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.JavaTokenType
+import com.intellij.psi.PsiArrayInitializerMemberValue
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiNameValuePair
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.containers.map2Array
+import kotlin.collections.plus
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.util.addAnnotation
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStatementExpression
 
@@ -78,20 +101,30 @@ class AndroidLintMissingPermissionInspection :
         quickfixData.getStringList(PermissionDetector.KEY_MISSING_PERMISSIONS)
           ?: return super.getQuickFixes(startElement, endElement, message, quickfixData)
 
-      val lastApplicableApi = quickfixData.getInt(PermissionDetector.KEY_LAST_API, -1)
-      // [missing permissions: Set<String>, maxSdkVersion: Integer] :
+      // Create quickfix(es) that can add or update the @RequiresPermission annotation.
+      val operator = parseOperator(quickfixData.getString(PermissionDetector.KEY_OPERATOR, "&"))
+      val requiresPermissionFixes =
+        AddRequiresPermissionAnnotationFix.create(startElement, names.toSet(), operator)
+          .map(::ModCommandLintQuickFix)
+
+      // [missing permissions: Set<String>, maxSdkVersion: Integer]
       // Add quickfixes for the missing permissions
+      val lastApplicableApi = quickfixData.getInt(PermissionDetector.KEY_LAST_API, -1)
       if (lastApplicableApi != -1) {
-        return names.map2Array { ModCommandLintQuickFix(AddPermissionFix(it, lastApplicableApi)) }
+        return (names.map { ModCommandLintQuickFix(AddPermissionFix(it, lastApplicableApi)) } +
+            requiresPermissionFixes)
+          .toTypedArray()
       }
 
       // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
       // Add quickfix for requesting permissions
       quickfixData
         .getString(PermissionDetector.KEY_REQUIREMENT, null)
-        ?.let { PermissionRequirement.deserialize(it) }
+        ?.let(PermissionRequirement::deserialize)
         ?.let {
-          return arrayOf(ModCommandLintQuickFix(AddCheckPermissionFix(it, startElement, names)))
+          return (listOf(ModCommandLintQuickFix(AddCheckPermissionFix(it, startElement, names))) +
+              requiresPermissionFixes)
+            .toTypedArray()
         }
     }
 
@@ -123,7 +156,6 @@ class AndroidLintMissingPermissionInspection :
       // incidentally also how the AndroidModuleBuilder#configureManifest method works.)
       val manifestTag = Manifest.getMainManifest(facet)?.xmlTag ?: return ModCommand.nop()
 
-      @Suppress("UnstableApiUsage")
       return ModCommand.psiUpdate(context) { updater ->
         addPermission(updater.getWritable(manifestTag), facet)?.let { updater.moveCaretTo(it) }
       }
@@ -326,4 +358,273 @@ class AndroidLintMissingPermissionInspection :
       }
     }
   }
+
+  @Suppress("UnstableApiUsage")
+  private class AddRequiresPermissionAnnotationFix
+  private constructor(
+    private val elementToAnnotate: PsiElement,
+    private val oldPermissionNames: Set<String>,
+    private val newPermissionNames: Set<String>,
+    private val isAnd: Boolean = true,
+    private val showAdditions: Boolean = false,
+  ) : PsiUpdateModCommandAction<PsiElement>(elementToAnnotate) {
+
+    override fun getFamilyName() = "Add @RequiresPermission annotation"
+
+    override fun invoke(context: ActionContext, element: PsiElement, updater: ModPsiUpdater) {
+      when (val writable = updater.getWritable(elementToAnnotate)) {
+        is KtAnnotated -> {
+          addOrUpdateKotlinAnnotation(writable)
+          ShortenReferencesFacility.Companion.getInstance().shorten(writable)
+        }
+        is PsiModifierListOwner -> {
+          addOrUpdateJavaAnnotation(writable)
+          JavaCodeStyleManager.getInstance(writable.project).shortenClassReferences(writable)
+        }
+        else -> return
+      }
+    }
+
+    private fun addOrUpdateKotlinAnnotation(ktAnnotated: KtAnnotated) {
+      val existing =
+        analyze(ktAnnotated) {
+          ktAnnotated.annotationEntries.firstOrNull { it.fqNameMatches(REQUIRES_PERMISSION, this) }
+        }
+      if (existing == null) {
+        ktAnnotated.addAnnotation(
+          ClassId.topLevel(FqName(REQUIRES_PERMISSION)),
+          getKotlinInnerText(),
+          false,
+        )
+        return
+      }
+      // Find the corresponding argument that has the permission(s), if any, and delete it
+      // as we will be replacing it.
+      existing.valueArguments
+        .firstOrNull {
+          it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true
+        }
+        ?.asElement()
+        ?.delete()
+
+      val combinedNames = oldPermissionNames + newPermissionNames.map { it.toCanonicalPermission() }
+
+      val internals =
+        when {
+          combinedNames.size == 1 -> combinedNames.single()
+          isAnd -> combinedNames.joinToString(prefix = "allOf = [", postfix = "]")
+          else -> combinedNames.joinToString(prefix = "anyOf = [", postfix = "]")
+        }
+
+      // Create the new first argument.
+      val newFirstArg = KtPsiFactory(ktAnnotated.project).createArgument(internals)
+      // If there are other arguments, we will need to add this one before those.
+      val existingFirstArg = existing.valueArgumentList?.arguments?.firstOrNull()
+      existing.valueArgumentList?.addArgumentBefore(newFirstArg, existingFirstArg)
+    }
+
+    private fun getKotlinInnerText(): String {
+      val combinedNames = oldPermissionNames + newPermissionNames.map { it.toCanonicalPermission() }
+      return when {
+        combinedNames.size == 1 -> combinedNames.single()
+        isAnd -> combinedNames.joinToString(prefix = "allOf = [", postfix = "]")
+        else -> combinedNames.joinToString(prefix = "anyOf = [", postfix = "]")
+      }
+    }
+
+    private fun addOrUpdateJavaAnnotation(psiModifierListOwner: PsiModifierListOwner) {
+      val annotation =
+        psiModifierListOwner.getAnnotation(REQUIRES_PERMISSION)
+          ?: psiModifierListOwner.modifierList?.addAnnotation(REQUIRES_PERMISSION)
+          ?: return
+
+      // Clear any existing stuff
+      for (argumentName in ARGUMENT_NAMES) {
+        annotation.setDeclaredAttributeValue(argumentName, null)
+      }
+      val newArgName =
+        when {
+          oldPermissionNames.size + newPermissionNames.size == 1 -> "value"
+          isAnd -> "allOf"
+          else -> "anyOf"
+        }
+      val combinedNames = oldPermissionNames + newPermissionNames.map { it.toCanonicalPermission() }
+      val innerText =
+        when {
+          combinedNames.size == 1 -> combinedNames.single()
+          else -> combinedNames.joinToString(prefix = "{", postfix = "}")
+        }
+      val newValue =
+        JavaPsiFacade.getInstance(elementToAnnotate.project)
+          .elementFactory
+          .createExpressionFromText(innerText, elementToAnnotate)
+      annotation.setDeclaredAttributeValue(newArgName, newValue)
+    }
+
+    override fun getPresentation(context: ActionContext, element: PsiElement): Presentation {
+      val namesToDisplay = newPermissionNames.map { it.toCanonicalPermissionShort() }
+      val targetName = (elementToAnnotate as? PsiNamedElement)?.name ?: "Enclosing Element"
+      val str =
+        when {
+          oldPermissionNames.isEmpty() ->
+            message("android.lint.fix.add.requires.permission", targetName)
+          showAdditions ->
+            message(
+              "android.lint.fix.update.requires.permission.with",
+              targetName,
+              namesToDisplay.joinToString(),
+            )
+          else -> message("android.lint.fix.update.requires.permission", targetName)
+        }
+      return Presentation.of(str)
+    }
+
+    private fun String.toCanonicalPermissionField(): PsiField? =
+      elementToAnnotate.module?.getManifestPermissionsMap()?.get(this)
+
+    private fun String.toCanonicalPermission(): String =
+      toCanonicalPermissionField()?.kotlinFqName?.asString() ?: "\"$this\""
+
+    private fun String.toCanonicalPermissionShort(): String =
+      toCanonicalPermissionField()?.name ?: "\"$this\""
+
+    companion object {
+      private const val REQUIRES_PERMISSION = "androidx.annotation.RequiresPermission"
+
+      private val KOTLIN_TARGETS =
+        listOf(KtFunction::class, KtPropertyAccessor::class, KtClass::class, KtConstructor::class)
+
+      private val JAVA_TARGETS = listOf(PsiMethod::class, PsiField::class, PsiClass::class)
+
+      private val ARGUMENT_NAMES = listOf("value", "anyOf", "allOf")
+
+      private fun createKotlinParams(element: PsiElement): Pair<PsiElement, Set<String>>? {
+        val elementToAnnotate =
+          element
+            .parents(withSelf = false)
+            .filterIsInstance<KtAnnotated>()
+            .filter { candidate -> KOTLIN_TARGETS.any { it.isInstance(candidate) } }
+            .firstOrNull() ?: return null
+
+        val argument =
+          analyze(elementToAnnotate) {
+              elementToAnnotate.annotationEntries.firstOrNull {
+                it.getQualifiedName(this) == REQUIRES_PERMISSION
+              }
+            }
+            ?.valueArguments
+            ?.firstOrNull {
+              it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true
+            }
+
+        val existingPermissions =
+          when (val expr = argument?.getArgumentExpression()) {
+            null -> setOf()
+            is KtCollectionLiteralExpression ->
+              expr.innerExpressions.map(PsiElement::getText).toSet()
+            else -> setOf(expr.text)
+          }
+        // We cannot add to an existing "OR" annotation.
+        if (
+          existingPermissions.size > 1 && argument?.getArgumentName()?.asName?.asString() == "anyOf"
+        )
+          return null
+        return elementToAnnotate to existingPermissions
+      }
+
+      private fun createJavaParams(element: PsiElement): Pair<PsiElement, Set<String>>? {
+        val elementToAnnotate =
+          element
+            .parents(withSelf = false)
+            .filterIsInstance<PsiModifierListOwner>()
+            .filter { candidate -> JAVA_TARGETS.any { it.isInstance(candidate) } }
+            .firstOrNull() ?: return null
+
+        val argument =
+          elementToAnnotate.modifierList
+            ?.findAnnotation(REQUIRES_PERMISSION)
+            ?.attributes
+            ?.firstOrNull { it.attributeName in ARGUMENT_NAMES } as? PsiNameValuePair
+        val existingPermissions =
+          when (val attributeValue = argument?.value) {
+            null -> setOf()
+            is PsiArrayInitializerMemberValue ->
+              attributeValue.initializers.map(PsiElement::getText).toSet()
+            else -> setOf(attributeValue.text)
+          }
+        // We cannot extend an existing "OR" annotation.
+        if (existingPermissions.size > 1 && argument?.attributeName == "anyOf") return null
+
+        return elementToAnnotate to existingPermissions
+      }
+
+      fun create(
+        element: PsiElement,
+        newPermissions: Set<String>,
+        operator: IElementType,
+      ): List<AddRequiresPermissionAnnotationFix> {
+        val (elementToAnnotate, existingPermissions) =
+          when (element.language) {
+            is KotlinLanguage -> createKotlinParams(element)
+            else -> createJavaParams(element)
+          } ?: return listOf()
+
+        // If the existing permissions are an AND and the new ones are an OR, then we can just
+        // offer to add each of them individually.
+        if (existingPermissions.isNotEmpty() && operator != JavaTokenType.ANDAND) {
+          return newPermissions.map {
+            AddRequiresPermissionAnnotationFix(
+              elementToAnnotate,
+              existingPermissions,
+              setOf(it),
+              showAdditions = true,
+            )
+          }
+        }
+
+        return listOf(
+          AddRequiresPermissionAnnotationFix(
+            elementToAnnotate,
+            existingPermissions,
+            newPermissions,
+            operator == JavaTokenType.ANDAND,
+          )
+        )
+      }
+    }
+  }
 }
+
+/** Parse a [String] representation of an operator that can join permissions. */
+private fun parseOperator(s: String?): IElementType =
+  when (s) {
+    "&" -> JavaTokenType.ANDAND
+    "|" -> JavaTokenType.OROR
+    "^" -> JavaTokenType.XOR
+    else -> throw IllegalArgumentException("Unsupported operator: $s")
+  }
+
+/**
+ * Gets a map from [String] permission values to the canonical [PsiField] that holds them for
+ * `android.Manifest` permissions.
+ *
+ * E.g. `"android.permission.CAMERA"` -> `android.Manifest.permission.CAMERA`
+ */
+private fun Module.getManifestPermissionsMap(): Map<String, PsiField> =
+  CachedValuesManager.getManager(project).getCachedValue(this) {
+    val facade = JavaPsiFacade.getInstance(project)
+    val moduleScope = GlobalSearchScope.moduleWithLibrariesScope(this)
+    val manifest = facade.findClass("android.Manifest.permission", moduleScope)
+    if (manifest == null) {
+      CachedValueProvider.Result(emptyMap())
+    } else {
+      @Suppress("UNCHECKED_CAST")
+      CachedValueProvider.Result(
+        (manifest.fields.associateBy {
+          (it.initializer as? PsiLiteralExpression)?.value as? String
+        } - null) // Remove null from the mapping
+          as Map<String, PsiField>,
+        manifest,
+      )
+    }
+  }
