@@ -30,7 +30,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.netbeanskeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.plugins.visualstudiokeymap" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.properties" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.rml.dfa" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.tasks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.turboComplete" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
@@ -63,6 +62,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.backend.svg" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.images.copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.inline.completion" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.kernel.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.lvcs.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.navbar" level="project" />
@@ -77,6 +77,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.rml.dfa.impl" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.smart.update" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.webp" level="project" />
