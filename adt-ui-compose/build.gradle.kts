@@ -57,6 +57,8 @@ dependencies {
     exclude(group = "org.jetbrains.compose.material")
     exclude(group = "org.jetbrains.kotlinx")
   }
+
+  api("androidx.lifecycle:lifecycle-runtime:2.8.5")
 }
 
 sourceSets {
