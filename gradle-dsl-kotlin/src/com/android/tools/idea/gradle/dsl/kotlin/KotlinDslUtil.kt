@@ -384,9 +384,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslAn
   }
 }
 
-internal fun needToCreateParent(element: GradleDslElement): Boolean {
-  val parent = element.parent
-  // If the parent is an extra block dslElement, we never create a psiElement for it because we don't use it in kotlin.
+internal fun needToCreateParent(parent: GradleDslElement?): Boolean {
   return parent != null && (parent.psiElement == null && parent !is ExtDslElement && parent !is ProjectPropertiesDslElement)
 }
 
