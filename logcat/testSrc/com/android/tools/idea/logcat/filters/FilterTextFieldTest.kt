@@ -55,10 +55,10 @@ import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.GroupLayout
-import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -73,8 +73,15 @@ class FilterTextFieldTest {
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 EdtRule(), usageTrackerRule, disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      EdtRule(),
+      usageTrackerRule,
+      disposableRule,
+    )
 
   private val project
     get() = projectRule.project
@@ -385,64 +392,68 @@ class FilterTextFieldTest {
 
   @RunsInEdt
   @Test
-  fun emptyText_buttonPanelInvisible() {
+  fun emptyText_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "")
 
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     assertThat(favoriteButton.isShowing).isFalse()
-    assertThat(clearButton.isShowing).isFalse()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
   }
 
   @RunsInEdt
   @Test
-  fun nonEmptyText_buttonPanelVisible() {
+  fun nonEmptyText_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "foo")
 
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     assertThat(favoriteButton.isShowing).isTrue()
-    assertThat(clearButton.isShowing).isTrue()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
   }
 
   @RunsInEdt
   @Test
-  fun textBecomesEmpty_buttonPanelInvisible() {
+  fun textBecomesEmpty_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "foo")
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     filterTextField.text = ""
 
     assertThat(favoriteButton.isShowing).isFalse()
-    assertThat(clearButton.isShowing).isFalse()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
   }
 
   @RunsInEdt
   @Test
-  fun textBecomesNotEmpty_buttonPanelVisible() {
+  fun textBecomesNotEmpty_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "")
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     filterTextField.text = "foo"
 
     assertThat(favoriteButton.isShowing).isTrue()
-    assertThat(clearButton.isShowing).isTrue()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
   }
 
   @RunsInEdt
@@ -498,8 +509,9 @@ class FilterTextFieldTest {
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
 }
 
-private fun FilterTextField.getButtonWithIcon(icon: Icon) =
-  TreeWalker(this).descendants().filterIsInstance<JLabel>().first { it.icon == icon }
+private fun FilterTextField.getNamedComponent(name: String) =
+  TreeWalker(this).descendants().find { it.name == name }
+    ?: fail("Component named '$name' not found")
 
 private fun HistoryList.renderToStrings(): List<String> {
   return model.asSequence().toList().map {
