@@ -30,6 +30,7 @@
   <xi:include href="/META-INF/android-adb.xml"/>
   <xi:include href="/META-INF/android-adb-ui.xml"/>
   <xi:include href="/META-INF/adt-ui.xml"/>
+  <xi:include href="/META-INF/adt-ui-compose.xml"/>
   <xi:include href="/META-INF/database-inspector.xml"/>
   <xi:include href="/META-INF/android-editing-documentation.xml"/>
   <xi:include href="/META-INF/android-editing-metrics.xml"/>
