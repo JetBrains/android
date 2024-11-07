@@ -100,7 +100,7 @@ public class ConvertFrom9PatchTest {
     androidPane
       .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
-      .invokeContextualMenuPath("Create 9-Patch file…");
+      .invokeContextualMenuPath("Create 9-Patch file\u2026");
 
     FileChooserDialogFixture.find(ideFrame.robot())
       .clickOk();
@@ -137,7 +137,7 @@ public class ConvertFrom9PatchTest {
       .invokeContextualMenuPath("Reload from Disk");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png")
-      .invokeContextualMenuPath("Convert to WebP..."); // Try to convert to webp and verify.
+      .invokeContextualMenuPath("Convert to WebP\u2026"); // Try to convert to webp and verify.
     WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
     JCheckBox skip9PatchCheckBox = webpConversionDialog.getCheckBox("Skip nine-patch (.9.png) images");
     assertThat(skip9PatchCheckBox.isEnabled()).isFalse();
