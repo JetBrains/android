@@ -16,8 +16,6 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,20 +62,6 @@ public class BuildScriptTreeStructureProviderTest {
     Collection<AbstractTreeNode<?>> result = provider.modify(mockParent, children, null);
     verify(mockProvider).modify(mockParent, children, null);
     assertSameElements(result, modified);
-  }
-
-  /**
-   * Test data returns the result of wrapped provider
-   */
-  @Test
-  public void getData() {
-    TreeStructureProvider mockProvider = mock(TreeStructureProvider.class);
-    BuildScriptTreeStructureProvider provider = new BuildScriptTreeStructureProvider(mockProvider);
-    Object data = "This is test data";
-    doReturn(data).when(mockProvider).getData(any(), any());
-    Object result = provider.getData(createChildren(), "");
-    verify(mockProvider).getData(any(), any());
-    assertEquals(data, result);
   }
 
   private static List<AbstractTreeNode<?>> createChildren() {
