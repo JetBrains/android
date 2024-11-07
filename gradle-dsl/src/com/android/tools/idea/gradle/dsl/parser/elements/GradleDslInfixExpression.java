@@ -63,8 +63,8 @@ public class GradleDslInfixExpression extends GradlePropertiesDslElement impleme
 
   @Override
   public @NotNull GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
-    GradleDslAnchor anchor = super.requestAnchor(element);
-    if (anchor == GradleDslAnchor.Start.INSTANCE) {
+    List<GradleDslElement> children = getCurrentElements();
+    if (!children.isEmpty() && children.get(0) == element && myParent != null) {
       // This is a special-case for creating the first literal in the infix expression,
       // in which case we want to have the same anchor that the infix expression would have
       // had in its parent.
@@ -72,6 +72,6 @@ public class GradleDslInfixExpression extends GradlePropertiesDslElement impleme
       //  (e.g. moveDslElement)?
       return myParent.requestAnchor(this);
     }
-    return anchor;
+    return super.requestAnchor(element);
   }
 }
