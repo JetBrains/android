@@ -36,6 +36,9 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.asSequence
@@ -45,11 +48,18 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.SimpleColoredComponent
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
@@ -60,12 +70,6 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
 
 /** Tests for [FilterTextField] */
 class FilterTextFieldTest {
@@ -99,6 +103,7 @@ class FilterTextFieldTest {
     filterHistory.nonFavorites.clear()
     filterHistory.named.clear()
     filterHistory.favorites.clear()
+    PropertiesComponent.getInstance().unsetValue(FilterTextField.MATCH_CASE_PROPERTY)
   }
 
   @Test
@@ -482,12 +487,58 @@ class FilterTextFieldTest {
     assertThat(favoriteButton.icon).isEqualTo(StudioIcons.Logcat.Input.FAVORITE_FILLED)
   }
 
+  @RunsInEdt
+  @Test
+  fun matchCaseTrue_selected() {
+    val filterTextField = filterTextField(matchCase = true)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseFalse_notSelected() {
+    val filterTextField = filterTextField(matchCase = false)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseUnset_notSelected() {
+    val filterTextField = filterTextField(matchCase = null)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseToggled_valuePersists() {
+    filterTextField(matchCase = null).toggleMatchCaseButton()
+
+    assertThat(filterTextField(matchCase = null).getMatchCaseButtonState()).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseToggledTwice_valuePersists() {
+    filterTextField(matchCase = null).toggleMatchCaseButton().toggleMatchCaseButton()
+
+    assertThat(filterTextField(matchCase = null).getMatchCaseButtonState()).isFalse()
+  }
+
   private fun filterTextField(
     project: Project = this.project,
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
     filterParser: LogcatFilterParser = logcatFilterParser,
     initialText: String = "",
-    matchCase: Boolean = false,
+    matchCase: Boolean? = null,
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
     FilterTextField(
@@ -534,4 +585,17 @@ private fun JPanel.renderToString(): String {
     }
     else -> throw IllegalStateException("Unexpected component")
   }
+}
+
+private fun FilterTextField.getMatchCaseButtonState(): Boolean {
+  val button = getNamedComponent("MatchCaseButton") as ActionButton
+  val action = button.action as ToggleAction
+  return action.isSelected(TestActionEvent.createTestEvent())
+}
+
+private fun FilterTextField.toggleMatchCaseButton(): FilterTextField {
+  val button = getNamedComponent("MatchCaseButton") as ActionButton
+  val action = button.action as ToggleAction
+  action.actionPerformed(TestActionEvent.createTestEvent())
+  return this
 }
