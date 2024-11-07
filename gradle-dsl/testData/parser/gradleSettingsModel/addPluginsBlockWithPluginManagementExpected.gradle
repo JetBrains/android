@@ -6,7 +6,6 @@ pluginManagement {
     jcenter()
   }
 }
-
 plugins {
   id 'com.android.settings' version '7.4.0'
 }
