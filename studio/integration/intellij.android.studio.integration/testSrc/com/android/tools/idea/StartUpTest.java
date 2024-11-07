@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.TestFileSystem;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +42,9 @@ public class StartUpTest {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
     AndroidStudioInstallation install = AndroidStudioInstallation.fromZip(fileSystem);
     install.addVmOption("-Didea.is.internal=true"); // Allows executing internal actions in the test.
+    if (SystemInfo.isMac) {
+      install.addVmOption("-Djava.awt.headless=true");
+    }
     try (Display display = Display.createDefault();
          AndroidStudio studio = install.run(display)) {
       // Check that AndroidStudioApplicationInfo.xml was patched properly, and that it is not overridden by
@@ -48,7 +52,13 @@ public class StartUpTest {
       String version = studio.version();
       assertThat(version).startsWith("Android Studio");
       assertThat(version).doesNotContain("dev");
-      assertThat(studio.getSystemProperty("java.home")).isEqualTo(install.getStudioDir().resolve("jbr").toString());
+      String javaHome = install.getStudioDir().resolve("jbr").toString();
+      // On Mac the java.home has "/Contents/Home" added to the jbr path that are not present on other installations
+      if (SystemInfo.isMac) {
+        assertThat(javaHome).doesNotContain("/Contents/Home");
+        javaHome += "/Contents/Home";
+      }
+      assertThat(studio.getSystemProperty("java.home")).isEqualTo(javaHome);
 
       // Wait for plugin manager to load all plugins
       Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);

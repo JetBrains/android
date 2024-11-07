@@ -1117,6 +1117,11 @@ iml_test(
     name = "StartUpTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
+    tags_mac = [
+        "ci:studio-mac",
+        "ci:studio-mac-arm",
+        "cpu:4",
+    ],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.StartUpTest",
 )
