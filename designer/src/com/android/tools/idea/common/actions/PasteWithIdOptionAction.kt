@@ -20,7 +20,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ide.CopyPasteManager
@@ -56,12 +56,8 @@ abstract class PasteWithIdOptionAction(private val withNewIds: Boolean) : AnActi
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val inheritedDataContext = event.dataContext
-    val dataContext = DataContext { dataId ->
-      when {
-        PASTE_WITH_NEW_IDS_KEY.`is`(dataId) -> withNewIds
-        else -> inheritedDataContext.getData(dataId)
-      }
+    val dataContext = CustomizedDataContext.withSnapshot(event.dataContext) { sink ->
+      sink[PASTE_WITH_NEW_IDS_KEY] = withNewIds
     }
     pasteAction?.actionPerformed(event.withDataContext(dataContext))
   }

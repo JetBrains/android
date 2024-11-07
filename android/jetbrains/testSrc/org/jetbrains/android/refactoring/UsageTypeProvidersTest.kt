@@ -18,6 +18,7 @@ package org.jetbrains.android.refactoring
 import com.android.SdkConstants
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -171,15 +172,23 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   private fun findUsages(): Collection<UsageInfo> {
-    val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) }
+    val dataContext = (myFixture.editor as EditorEx).dataContext
+    val editor = CommonDataKeys.EDITOR.getData(dataContext)
+    val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+    val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
+    val targets = UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement)
     assert(targets != null && targets.isNotEmpty() && targets[0] is PsiElementUsageTarget)
     return myFixture.findUsages((targets!![0] as PsiElementUsageTarget).element)
   }
 
   private fun getUsageType(element: PsiElement) : UsageType? {
+    val dataContext = (myFixture.editor as EditorEx).dataContext
+    val editor = CommonDataKeys.EDITOR.getData(dataContext)
+    val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+    val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
       return if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
+        val targets = UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray()
         provider.getUsageType(element, targets) ?: continue
       }
       else {

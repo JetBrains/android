@@ -18,6 +18,7 @@ package org.jetbrains.android.refactoring
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.psi.PsiElement
@@ -73,13 +74,14 @@ class GradleUsageTypeProviderTest: AndroidTestCase() {
   private fun getUsageType(element: PsiElement) : UsageType? {
     return executeOnPooledThread {
       runReadAction {
+        val dataContext = (myFixture.editor as EditorEx).dataContext
+        val editor = CommonDataKeys.EDITOR.getData(dataContext)
+        val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext)
+        val psiElement = CommonDataKeys.PSI_ELEMENT.getData(dataContext)
         UsageTypeProvider.EP_NAME.extensionList.firstNotNullOfOrNull {
           when (it) {
-            is UsageTypeProviderEx ->
-              it.getUsageType(
-                element,
-                UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
-              )
+            is UsageTypeProviderEx -> it.getUsageType(
+              element, UsageTargetUtil.findUsageTargets(editor, psiFile, psiElement) ?: emptyArray())
             else -> it.getUsageType(element)
           }
         }
