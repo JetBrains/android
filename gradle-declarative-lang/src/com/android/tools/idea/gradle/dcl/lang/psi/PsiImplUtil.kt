@@ -31,14 +31,14 @@ class PsiImplUtil {
     fun getReceiver(property: DeclarativeProperty): DeclarativeProperty? = when (property) {
       is DeclarativeBare -> null
       is DeclarativeQualified -> property.property
-      else -> error("foo")
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
     }
 
     @JvmStatic
     fun getField(property: DeclarativeProperty): DeclarativeIdentifier = when (property) {
       is DeclarativeBare -> property.identifier
       is DeclarativeQualified -> property.identifier!!
-      else -> error("foo")
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
     }
 
     @JvmStatic
@@ -51,7 +51,7 @@ class PsiImplUtil {
     @JvmStatic
     fun getName(property: DeclarativeIdentifier): String {
       var text = property.text
-      if(text.startsWith("`") && text.endsWith("`"))
+      if (text.startsWith("`") && text.endsWith("`"))
         text = text.drop(1).dropLast(1)
       return StringUtil.unescapeStringCharacters(text)
     }
