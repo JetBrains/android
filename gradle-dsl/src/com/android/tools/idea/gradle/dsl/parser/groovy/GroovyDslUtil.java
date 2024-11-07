@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -958,10 +959,10 @@ public final class GroovyDslUtil {
                                                @NotNull PsiElement parentPsiElement,
                                                @NotNull PsiElement newElement) {
     PsiElement added;
-    GradleDslElement anchor = parentDslElement.requestAnchor(dslElement);
-    if (shouldAddToListInternal(dslElement) && anchor != null) {
+    GradleDslAnchor anchor = parentDslElement.requestAnchor(dslElement);
+    if (shouldAddToListInternal(dslElement) && anchor instanceof GradleDslAnchor.After after) {
       // Get the anchor
-      PsiElement anchorPsi = anchor.getPsiElement();
+      PsiElement anchorPsi = after.getDslElement().getPsiElement();
       assert anchorPsi != null;
 
       emplaceElementIntoList(anchorPsi, parentPsiElement, newElement);
@@ -1098,8 +1099,17 @@ public final class GroovyDslUtil {
   }
 
   @Nullable
-  static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @Nullable GradleDslElement dslAnchor) {
-    PsiElement anchorAfter = dslAnchor == null ? null : findLastPsiElementIn(dslAnchor);
+  static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @NotNull GradleDslAnchor dslAnchor) {
+    PsiElement anchorAfter;
+    if (dslAnchor == GradleDslAnchor.Start.INSTANCE) {
+      anchorAfter = null;
+    }
+    else if (dslAnchor instanceof GradleDslAnchor.After dslAnchorAfter) {
+      anchorAfter = findLastPsiElementIn(dslAnchorAfter.getDslElement());
+    }
+    else {
+      throw new IllegalStateException("dslAnchor neither a Start nor an After anchor");
+    }
     if (anchorAfter == null && parent instanceof GrClosableBlock) {
       return adjustForCloseableBlock((GrClosableBlock)parent);
     }

@@ -294,14 +294,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  @Nullable
-  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
-    return null;
+  @NotNull
+  public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
+    return GradleDslAnchor.Start.INSTANCE;
   }
 
   @Override
   @Nullable
-  public GradleDslElement getAnchor() {
+  public GradleDslAnchor getAnchor() {
     return myParent == null ? null : myParent.requestAnchor(this);
   }
 

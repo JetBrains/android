@@ -61,7 +61,10 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
   @Override
   public PsiElement moveDslElement(@NotNull GradleDslElement element) {
     // 1. Get the anchor where we need to move the element to.
-    GradleDslElement anchorAfter = element.getAnchor();
+    GradleDslAnchor anchorAfter = element.getAnchor();
+    if (anchorAfter == null) {
+      return null;
+    }
 
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
     if (psiElement == null) {
@@ -115,7 +118,10 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       return psiElement;
     }
 
-    GradleDslElement anchorAfter = element.getAnchor();
+    GradleDslAnchor anchorAfter = element.getAnchor();
+    if (anchorAfter == null) {
+      return null;
+    }
     boolean addBefore = false;
     if (element.isNewEmptyBlockElement()) {
       return null; // Avoid creation of an empty block statement.
@@ -125,7 +131,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
     if (needToCreateParent(element)) {
       addBefore = true;
-      anchorAfter = null;
+      anchorAfter = GradleDslAnchor.Start.INSTANCE;
     }
     PsiElement parentPsiElement = getParentPsi(element);
     if (parentPsiElement == null) {
@@ -220,7 +226,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     else if (parentPsiElement instanceof GrClosableBlock) {
       addedElement = parentPsiElement.addAfter(statement, anchor);
       PsiElement prevSibling = addedElement.getPrevSibling();
-      if (anchorAfter != null) {
+      if (anchorAfter != GradleDslAnchor.Start.INSTANCE) {
         if (!(prevSibling instanceof GrParameterList)) {
           parentPsiElement.addBefore(lineTerminator, addedElement);
         }
@@ -291,12 +297,17 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       return null;
     }
 
-    GradleDslElement anchorAfter = methodCall.getAnchor();
+    GradleDslAnchor anchorAfter = methodCall.getAnchor();
+
+    if (anchorAfter == null) {
+      // If we have no Dsl parent, this isn't going to end well.
+      return null;
+    }
 
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
     if (needToCreateParent(methodCall)) {
-      anchorAfter = null;
+      anchorAfter = GradleDslAnchor.Start.INSTANCE;
     }
 
     PsiElement parentPsiElement = methodCall.getParent().create();

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -47,9 +48,9 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+  public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
     // This element should not be involved in anchoring, skip and request anchor from parent.
     if (myParent instanceof GradlePropertiesDslElement) {
       return myParent.requestAnchor(element);
