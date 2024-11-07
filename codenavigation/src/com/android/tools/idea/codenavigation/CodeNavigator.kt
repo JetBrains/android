@@ -112,7 +112,7 @@ class CodeNavigator (source: NavSource, private val executor: Executor) {
    * to wrap the action in a ReadAction. Hence, all PSI-reading code inside getNavigatable() will
    * need to wrapped in a ReadAction.
    *
-   * See [General Threading Rules](http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html)
+   * See [Threading Model](https://plugins.jetbrains.com/docs/intellij/threading-model.html)
    */
   private fun getNavigatable(location: CodeLocation): Navigatable? {
     return ReadAction.compute(ThrowableComputable<Navigatable, RuntimeException> {
