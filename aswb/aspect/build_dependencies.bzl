@@ -5,9 +5,8 @@
 load(
     ":build_dependencies_deps.bzl",
     "ANDROID_IDE_INFO",
-    "CPP_COMPILE_ACTION_NAME",
-    "C_COMPILE_ACTION_NAME",
     "ZIP_TOOL_LABEL",
+    _ide_cc_not_validated = "IDE_CC",
     _ide_kotlin_not_validated = "IDE_KOTLIN",
 )
 
@@ -43,6 +42,17 @@ IDE_KOTLIN = _validate_ide(
         follow_additional_attributes = [],  # Additional attributes for the aspect to follow without requesting DependenciesInfo provider.
         followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
         toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+    ),
+)
+
+IDE_CC = _validate_ide(
+    _ide_cc_not_validated,
+    template = struct(
+        c_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
+        cpp_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
+        follow_attributes = ["_cc_toolchain"],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+        toolchain_target = _rule_function,  # A function that takes a rule and returns a toolchain target (or a toolchain container).
     ),
 )
 
@@ -605,14 +615,14 @@ def _collect_own_and_dependency_java_artifacts(
         depset(own_files.gensrcs, transitive = own_and_transitive_gensrc_depsets),
     )
 
-def _get_followed_cc_dependency_info(rule):
-    if hasattr(rule.attr, "_cc_toolchain"):
-        cc_toolchain_target = getattr(rule.attr, "_cc_toolchain")
-        if DependenciesInfo in cc_toolchain_target:
-            return cc_toolchain_target[DependenciesInfo]
+def _get_cc_toolchain_dependency_info(rule):
+    cc_toolchain_target = IDE_CC.toolchain_target(rule)
+    if DependenciesInfo in cc_toolchain_target:
+        return cc_toolchain_target[DependenciesInfo]
     return None
 
-def _collect_own_and_dependency_cc_info(target, dependency_info, test_mode):
+def _collect_own_and_dependency_cc_info(target, rule, test_mode):
+    dependency_info = _get_cc_toolchain_dependency_info(rule)
     compilation_context = target[CcInfo].compilation_context
     cc_toolchain_info = None
     test_mode_cc_src_deps = depset()
@@ -735,9 +745,7 @@ def _collect_java_dependencies_core_impl(
     ]
 
 def _collect_cc_dependencies_core_impl(target, ctx, test_mode):
-    dependency_info = _get_followed_cc_dependency_info(ctx.rule)
-
-    cc_info = _collect_own_and_dependency_cc_info(target, dependency_info, test_mode)
+    cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule, test_mode)
 
     return create_dependencies_info(
         label = target.label,
@@ -782,12 +790,12 @@ def _collect_cc_toolchain_info(target, ctx):
     )
     c_options = cc_common.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
-        action_name = C_COMPILE_ACTION_NAME,
+        action_name = IDE_CC.c_compile_action_name,
         variables = c_variables,
     )
     cpp_options = cc_common.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
-        action_name = CPP_COMPILE_ACTION_NAME,
+        action_name = IDE_CC.cpp_compile_action_name,
         variables = cpp_variables,
     )
     toolchain_id = str(target.label) + "%" + toolchain_info.target_gnu_system_name
@@ -906,13 +914,13 @@ FOLLOW_JAVA_ATTRIBUTES = [
     "_aspect_java_proto_toolchain",
 ] + IDE_KOTLIN.follow_attributes
 
-FOLLOW_CC_ATTRIBUTES = ["_cc_toolchain"]
+FOLLOW_CC_ATTRIBUTES = IDE_CC.follow_attributes
 
 FOLLOW_ADDITIONAL_ATTRIBUTES = ["runtime", "_toolchain"] + IDE_KOTLIN.follow_additional_attributes
 
 FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLLOW_ADDITIONAL_ATTRIBUTES)
 
-TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects
+TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_CC.toolchains_aspects
 
 collect_dependencies = aspect(
     implementation = _collect_dependencies_impl,
