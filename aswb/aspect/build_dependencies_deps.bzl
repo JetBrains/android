@@ -6,10 +6,6 @@ load(
     _C_COMPILE_ACTION_NAME = "C_COMPILE_ACTION_NAME",
 )
 
-# re-export these with their original names:
-CPP_COMPILE_ACTION_NAME = _CPP_COMPILE_ACTION_NAME
-C_COMPILE_ACTION_NAME = _C_COMPILE_ACTION_NAME
-
 ZIP_TOOL_LABEL = "@bazel_tools//tools/zip:zipper"
 
 ANDROID_IDE_INFO = None
@@ -46,4 +42,19 @@ IDE_KOTLIN = struct(
     ],
     followed_dependencies = _get_followed_kotlin_dependencies,
     toolchains_aspects = [],
+)
+
+# CC
+
+def _get_cc_toolchain_target(rule):
+    if hasattr(rule.attr, "_cc_toolchain"):
+        return getattr(rule.attr, "_cc_toolchain")
+    return None
+
+IDE_CC = struct(
+    c_compile_action_name = _C_COMPILE_ACTION_NAME,
+    cpp_compile_action_name = _CPP_COMPILE_ACTION_NAME,
+    follow_attributes = ["_cc_toolchain"],
+    toolchains_aspects = [],
+    toolchain_target = _get_cc_toolchain_target,
 )
