@@ -106,20 +106,20 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
    */
   @NotNull
   public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
-    Icon icon = StudioIcons.Avd.DEVICE_MOBILE_LARGE;
+    Icon icon = StudioIcons.Avd.DEVICE_MOBILE;
     if (deviceData != null) {
       if (deviceData.isAutomotive().get()) {
-        icon = StudioIcons.Avd.DEVICE_CAR_LARGE;
+        icon = StudioIcons.Avd.DEVICE_CAR;
       }
-      // TODO(256106470): Uncomment the following 3 lines when DEVICE_DESKTOP_LARGE becomes available.
+      // TODO(256106470): Uncomment the following 3 lines when DEVICE_DESKTOP becomes available.
       //else if (deviceData.isDesktop().get()) {
-      //  icon = StudioIcons.Avd.DEVICE_DESKTOP_LARGE;
+      //  icon = StudioIcons.Avd.DEVICE_DESKTOP;
       //}
       else if (deviceData.isTv().get()) {
-        icon = StudioIcons.Avd.DEVICE_TV_LARGE;
+        icon = StudioIcons.Avd.DEVICE_TV;
       }
       else if (deviceData.isWear().get()) {
-        icon = StudioIcons.Avd.DEVICE_WEAR_LARGE;
+        icon = StudioIcons.Avd.DEVICE_WEAR;
       }
     }
     return icon;
@@ -160,12 +160,12 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
     // Paint our icon
     Icon icon = getIcon(myDeviceData);
-    icon.paintIcon(this, g, padding() / 2, padding() / 2);
+    icon.paintIcon(this, g, JBUI.scale(16), JBUI.scale(16));
 
     // Paint the device name
     g2d.setFont(TITLE_FONT);
     FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-    g2d.drawString(myDeviceData.name().get(), JBUI.scale(50), padding() + metrics.getHeight() / 2);
+    g2d.drawString(myDeviceData.name().get(), JBUI.scale(40), padding() + metrics.getHeight() / 2);
     g2d.drawLine(0, JBUI.scale(50), getWidth(), JBUI.scale(50));
 
     // Paint the device outline with dimensions labelled
