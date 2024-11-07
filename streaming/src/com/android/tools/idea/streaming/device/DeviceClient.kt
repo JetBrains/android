@@ -238,7 +238,7 @@ internal class DeviceClient(
             connection.audioDecoder =
                 channels.audioChannel?.let { AudioDecoder(connection, it, clientScope).apply { start(isAudioStreamingEnabled()) } }
           }
-          catch (e: IncorrectOperationException) {
+          catch (_: IncorrectOperationException) {
             return // Connection already disposed.
           }
 
@@ -339,7 +339,7 @@ internal class DeviceClient(
     return try {
       withTimeout(timeMillis, block)
     }
-    catch (e: TimeoutCancellationException) {
+    catch (_: TimeoutCancellationException) {
       throw TimeoutException(timeoutMessage)
     }
   }
@@ -481,7 +481,7 @@ internal class DeviceClient(
           }
         }
       }
-      catch (e: EOFException) {
+      catch (_: EOFException) {
         // Device disconnected. This is not an error.
         log.info("device disconnected")
         onDisconnection()
@@ -517,7 +517,7 @@ internal class DeviceClient(
       isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())
 
   private fun isRemoteDevice(): Boolean =
-      deviceConfig.deviceProperties.isRemote ?: false
+      deviceConfig.deviceProperties.isRemote == true
 
   private fun calculateMaxBitRate(): Int {
     if (isEmulator) {
@@ -556,7 +556,7 @@ internal class DeviceClient(
     try {
       StudioCrashReporter.getInstance().submit(report.asCrashReport())
     }
-    catch (ignore: RuntimeException) {
+    catch (_: RuntimeException) {
       // May happen due to exceeded quota.
     }
   }
