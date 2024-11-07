@@ -52,7 +52,7 @@ internal class LogcatHeaderPanel(
   val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   filter: String,
-  filterMatchCase: Boolean,
+  filterMatchCase: Boolean?,
   initialItem: DeviceComboItem?,
 ) : JPanel() {
   val deviceComboBox = DeviceComboBox(project, initialItem)

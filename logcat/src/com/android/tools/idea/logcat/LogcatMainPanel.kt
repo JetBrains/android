@@ -309,7 +309,7 @@ constructor(
       logcatPresenter = this,
       logcatFilterParser,
       state?.filter ?: getDefaultFilter(project, androidProjectDetector),
-      state?.filterMatchCase ?: false,
+      state?.filterMatchCase,
       state?.getInitialItem(),
     )
 
