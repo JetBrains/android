@@ -296,7 +296,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   @NotNull
   public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
-    return GradleDslAnchor.Start.INSTANCE;
+    return new GradleDslAnchor.Start(this);
   }
 
   @Override

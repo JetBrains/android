@@ -71,7 +71,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     if (anchorAfter !is GradleDslAnchor.After) return null // TODO(xof), wait, we can't move elements to the first position!?
     val parentPsiElement = when (element.parent) {
       is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)?.parent ?: return null
-      else -> getParentPsi(element) ?: return null
+      else -> getParentPsi(element.parent) ?: return null
     }
 
     val anchor = when (element.parent) {
@@ -117,10 +117,11 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
-    if (element is ExtDslElement) return getParentPsi(element)
+    if (element is ExtDslElement) return element.parent?.create()
     if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
+    val dslParent = element.parent ?: return null
     var anchorAfter = element.anchor
     var isRealList = false // This is to keep track if we're creating a real list (listOf()).
     var isNamedPropertyMap = false
@@ -132,13 +133,13 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var addBefore = false
     if (needToCreateParent(element)) {
       addBefore = true
-      anchorAfter = GradleDslAnchor.Start
+      anchorAfter = GradleDslAnchor.Start(dslParent)
     }
-    else if (anchorAfter == GradleDslAnchor.Start) {
-      anchorAfter = (element.parent as? ExtDslElement)?.anchor ?: anchorAfter
+    else if (anchorAfter is GradleDslAnchor.Start) {
+      anchorAfter = (dslParent as? ExtDslElement)?.anchor ?: anchorAfter
     }
 
-    var parentPsiElement = getParentPsi(element) ?: return null
+    var parentPsiElement = getParentPsi(anchorAfter.parentDslElement) ?: return null
 
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
@@ -151,23 +152,22 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     element.externalSyntax = syntax
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
-    if (element.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
+    if (dslParent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
       statementText = "\"${joinedName}\""
     }
     else if (element is GradleDslNamedDomainElement) {
-      val parent = element.parent
       statementText = when {
         // use an existing methodName if we have one
         element.methodName != null -> "${element.methodName}(\"$joinedName\")"
         // use getByName() if the element is implicitly provided, otherwise create()
-        parent is GradleDslNamedDomainContainer -> when {
-          parent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
+        dslParent is GradleDslNamedDomainContainer -> when {
+          dslParent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
           else -> "create(\"$joinedName\")"
         }
         // should never happen (named domain element added to something that isn't a named domain container)
         else -> {
           val log = logger<KotlinDslWriter>()
-          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $parent", Throwable())
+          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $dslParent", Throwable())
           "getByName(\"$joinedName\")"
         }
       }
@@ -186,7 +186,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     }
     else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT || syntax == SET_METHOD) {
       if (element.elementType == PropertyType.REGULAR) {
-        if (element.parent is ExtDslElement) {
+        if (dslParent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
           // TODO(b/148769031): For now, we need to be careful about psi to dsl translation in both ways and reflect the dsl logic back to
           //  the psi elements.
@@ -212,11 +212,10 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
     }
     else if (element is GradleDslExpressionList) {
-      val parentDsl = element.parent
-      if (parentDsl is GradleDslMethodCall && element.elementType == PropertyType.DERIVED) {
+      if (dslParent is GradleDslMethodCall && element.elementType == PropertyType.DERIVED) {
         // This is when we have not a proper list element (listOf()) but rather a methodCall arguments. In such case we need to skip
         // creating the list and use the KtValueArgumentList of the parent.
-        return (parentDsl.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
+        return (dslParent.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
       }
       else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
@@ -320,7 +319,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         addedElement = parentPsiElement.addAfter(statement, anchor)
         when (anchorAfter) {
           is GradleDslAnchor.After -> parentPsiElement.addBefore(lineTerminator, addedElement)
-          GradleDslAnchor.Start -> parentPsiElement.addAfter(lineTerminator, addedElement)
+          is GradleDslAnchor.Start -> parentPsiElement.addAfter(lineTerminator, addedElement)
         }
       }
       is KtValueArgumentList -> {
@@ -453,7 +452,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
     //If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
     if (needToCreateParent(methodCall)) {
-      anchorAfter = GradleDslAnchor.Start
+      anchorAfter = GradleDslAnchor.Start(methodParent)
     }
 
     var parentPsiElement = methodParent.create() ?: return null

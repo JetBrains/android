@@ -826,7 +826,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
     // We need to find the element before `element` in my properties. The last one that has a psiElement, has the same name scheme as
     // the given element (to ensure that they should be placed in the same block) and must have a state of EXISTING, TO_BE_ADDED or MOVED.
-    GradleDslAnchor anchor = GradleDslAnchor.Start.INSTANCE;
+    GradleDslAnchor anchor = new GradleDslAnchor.Start(this);
     for (ElementList.ElementItem item : myProperties.myElements) {
       if (item.myElement == element) {
         return anchor;
