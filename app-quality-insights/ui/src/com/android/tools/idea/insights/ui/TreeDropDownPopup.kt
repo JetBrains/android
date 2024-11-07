@@ -31,25 +31,32 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.ListLayout
+import com.intellij.ui.components.panels.ListLayout.Alignment
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.ColumnInfo
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ThreeStateCheckBox
 import com.intellij.util.ui.tree.TreeModelAdapter
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.JTree
+import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.event.TreeModelEvent
+import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
@@ -59,6 +66,7 @@ import kotlinx.coroutines.launch
 class TreeDropDownPopup<T, U : GroupAware<U>>(
   internal var selection: MultiSelection<WithCount<T>>,
   private val scope: CoroutineScope,
+  private val primaryColumnName: String,
   private val groupNameSupplier: (T) -> String,
   private val nameSupplier: (T) -> String,
   private val secondaryGroupSupplier: (T) -> Set<U>,
@@ -97,22 +105,40 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     createTree(
       arrayOf(
         object : TreeColumnInfo(null) {
-          override fun getWidth(table: JTable) =
+          override fun getAdditionalWidth() = JBUI.scale(90)
+
+          override fun getPreferredStringValue() =
             root
               .children()
               .asSequence()
-              .flatMap { it.children().asSequence().plus(it) }
-              .maxOfOrNull {
-                table.getFontMetrics(table.font).stringWidth(getNodeText(it)) +
-                  JBUI.scale(80) // for 2 levels of indent + checkbox
-              } ?: JBUI.scale(80)
+              .flatMap { it.children().asSequence().plus(it).map { node -> getNodeText(node) } }
+              .maxByOrNull { it.length } ?: ""
         },
         object : ColumnInfo<CheckedTreeNode, Long>(null) {
+          val textLabel = JLabel("", SwingConstants.RIGHT)
+
+          override fun getAdditionalWidth() = JBUI.scale(10)
+
+          override fun getPreferredStringValue() =
+            listOf(getIssueCount(root).toString(), "Events").maxBy { string -> string.length }
+
           override fun valueOf(item: CheckedTreeNode) = getIssueCount(item)
 
-          override fun getWidth(table: JTable) =
-            table.getFontMetrics(table.font).stringWidth(getIssueCount(root).toString()) +
-              JBUI.scale(20) // So there's space for the scrollbar on the right
+          override fun getRenderer(item: CheckedTreeNode) =
+            object : TableCellRenderer {
+              override fun getTableCellRendererComponent(
+                table: JTable,
+                value: Any,
+                isSelected: Boolean,
+                hasFocus: Boolean,
+                row: Int,
+                column: Int,
+              ): Component {
+                textLabel.text = value.toString()
+                textLabel.toolTipText = value.toString()
+                return textLabel
+              }
+            }
         },
       )
     )
@@ -125,7 +151,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       object : ScrollablePanel(BorderLayout()) {
         override fun getPreferredSize() =
           Dimension(
-            treeTable.preferredSize.width + JBUI.scale(4),
+            treeTable.preferredSize.width + JBUI.scale(18),
             treeTable.preferredSize.height + JBUI.scale(4),
           )
 
@@ -141,8 +167,9 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           )
       }
     scrollPanel.add(treeTable, BorderLayout.CENTER)
-    scrollPanel.border = JBUI.Borders.empty(3, 0)
+    scrollPanel.border = JBUI.Borders.empty(3, 0, 0, 12)
     scrollPanel.background = treeTable.background
+    scrollPane.border = JBUI.Borders.empty()
 
     searchTextField.addDocumentListener(
       object : DocumentAdapter() {
@@ -164,11 +191,10 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       }
     )
 
-    add(
-      if (secondaryToPrimaryGroups.isEmpty()) searchTextField
-      else
-        JPanel().apply {
-          layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
+    @Suppress("UnstableApiUsage")
+    val northPanel =
+      JPanel(ListLayout.vertical(4, Alignment.CENTER)).apply {
+        if (secondaryToPrimaryGroups.isNotEmpty()) {
           secondaryTitleSupplier()?.let { title ->
             add(
               JPanel(BorderLayout()).apply {
@@ -178,12 +204,23 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
             )
           }
           add(secondaryGrouping)
-          add(searchTextField)
-        },
-      BorderLayout.NORTH,
-    )
+        }
+        add(searchTextField)
+
+        val tableHeaderPanel =
+          transparentPanel(BorderLayout()).apply {
+            border = JBUI.Borders.emptyRight(10)
+            add(
+              JLabel(primaryColumnName).apply { font = font.deriveFont(JBFont.BOLD) },
+              BorderLayout.WEST,
+            )
+            add(JLabel("Events").apply { font = font.deriveFont(JBFont.BOLD) }, BorderLayout.EAST)
+          }
+        add(tableHeaderPanel)
+      }
+    add(northPanel, BorderLayout.NORTH)
     add(scrollPane, BorderLayout.CENTER)
-    border = JBUI.Borders.empty()
+    border = JBUI.Borders.empty(8)
 
     eventDispatcher.addListener(
       object : CheckboxTreeListener {

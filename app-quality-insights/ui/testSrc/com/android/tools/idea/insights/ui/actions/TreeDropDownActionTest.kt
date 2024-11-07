@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.ThreeStateCheckBox
 import java.awt.BorderLayout
 import java.util.Enumeration
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
@@ -103,6 +104,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -158,6 +160,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -203,6 +206,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -223,6 +227,11 @@ class TreeDropDownActionTest {
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
       dropdown.titleState.waitForValue("All values")
+
+      with(FakeUi(lastPopup)) {
+        assertThat(findComponent<JLabel> { it.text == "Column" }).isNotNull()
+        assertThat(findComponent<JLabel> { it.text == "Events" }).isNotNull()
+      }
 
       fun verifyAllShown() {
         val (group1, group2) = lastPopup.root.checkedChildren()
@@ -281,6 +290,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -330,6 +340,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -394,6 +405,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -442,6 +454,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           secondaryGroupSupplier = {

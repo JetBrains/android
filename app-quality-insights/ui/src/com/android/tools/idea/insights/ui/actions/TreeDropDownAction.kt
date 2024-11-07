@@ -55,6 +55,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   flow: Flow<MultiSelection<WithCount<ValueT>>>,
   private val scope: CoroutineScope,
   private val enabledFlow: StateFlow<Boolean>,
+  private val primaryColumnName: String,
   private val groupNameSupplier: (ValueT) -> String,
   private val nameSupplier: (ValueT) -> String,
   private val secondaryGroupSupplier: (ValueT) -> Set<ValueGroupT> = { emptySet() },
@@ -144,6 +145,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
       TreeDropDownPopup(
         selectionState.value,
         scope,
+        primaryColumnName,
         groupNameSupplier,
         nameSupplier,
         secondaryGroupSupplier,
