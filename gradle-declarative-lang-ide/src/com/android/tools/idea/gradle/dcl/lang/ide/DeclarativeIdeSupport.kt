@@ -21,11 +21,14 @@ import org.jetbrains.annotations.TestOnly
 object DeclarativeIdeSupport {
   private fun getRegistryValue() = Registry.get("gradle.declarative.ide.support")
 
+  @JvmStatic
   fun isEnabled(): Boolean = getRegistryValue().asBoolean()
 
   @TestOnly
+  @JvmStatic
   fun override(value: Boolean) { getRegistryValue().setValue(value) }
 
   @TestOnly
+  @JvmStatic
   fun clearOverride() { getRegistryValue().resetToDefault() }
 }
