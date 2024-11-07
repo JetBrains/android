@@ -579,9 +579,7 @@ internal class DeviceClient(
   private suspend fun AdbSession.throwIfCancellationOrDeviceDisconnected(throwable: Throwable) {
     when {
       throwable is CancellationException -> throw throwable
-      isDeviceConnected() == false -> {
-        throw CancellationException()
-      }
+      isDeviceConnected() == false -> throw CancellationException()
     }
   }
 
