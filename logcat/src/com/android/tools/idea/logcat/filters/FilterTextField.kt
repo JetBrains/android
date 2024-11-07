@@ -173,6 +173,7 @@ internal class FilterTextField(
   private val clearButton = ClearButton()
   private val favoriteButton = FavoriteButton()
   private val matchCaseButton = MatchCaseButton()
+  private val separator = JSeparator(VERTICAL)
   private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
 
   var matchCase = matchCase
@@ -208,14 +209,9 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    val buttonPanel =
-      InlinePanel(clearButton, matchCaseButton, JSeparator(VERTICAL), favoriteButton)
+    val buttonPanel = InlinePanel(clearButton, matchCaseButton, separator, favoriteButton)
     addToRight(buttonPanel)
-
-    if (initialText.isEmpty()) {
-      buttonPanel.isVisible = false
-    }
-
+    updateButtons()
     // Set a border around the text field and buttons.
     // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work.
     // It seems to need CompoundBorder.
@@ -241,7 +237,7 @@ internal class FilterTextField(
             isFavorite = filterHistory.favorites.contains(text)
             filterHistory.mostRecentlyUsed = textField.text
             filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
-            buttonPanel.isVisible = textField.text.isNotEmpty()
+            updateButtons()
           }
         }
       )
@@ -296,6 +292,13 @@ internal class FilterTextField(
   fun trackFilterUpdates() = filterUpdateFlow.filterNotNull()
 
   @TestOnly internal fun getEditorEx() = textField.editor as EditorEx
+
+  private fun updateButtons() {
+    val hasFilter = text.isNotEmpty()
+    clearButton.isVisible = hasFilter
+    favoriteButton.isVisible = hasFilter
+    separator.isVisible = hasFilter
+  }
 
   @UiThread
   private fun showPopup() {
@@ -857,6 +860,10 @@ internal class FilterTextField(
       LogcatBundle.message("logcat.filter.clear.tooltip"),
       AllIcons.Actions.CloseHovered,
     ) {
+    init {
+      name = "ClearButton"
+    }
+
     override fun mouseClicked() {
       this@FilterTextField.text = ""
     }
@@ -864,6 +871,10 @@ internal class FilterTextField(
 
   private inner class FavoriteButton :
     HoverButton(FAVORITE_OUTLINE, LogcatBundle.message("logcat.filter.tag.favorite.tooltip")) {
+    init {
+      name = "FavoriteButton"
+    }
+
     override fun mouseClicked() {
       isFavorite = !isFavorite
       toolTipText =
@@ -911,6 +922,7 @@ internal class FilterTextField(
     init {
       isFocusable = true
       updateIcon()
+      name = "MatchCaseButton"
     }
 
     override fun getIcon(): Icon {
