@@ -68,18 +68,7 @@ internal fun AdditionalSettingsPanel(
     CameraGroup(state.device, state::device::set)
     NetworkGroup(state.device, state::device::set)
     StartupGroup(state.device, state::device::set)
-
-    StorageGroup(
-      state.device,
-      state.storageGroupState,
-      hasPlayStore,
-      state.validity.isExpandedStorageValid,
-      state::device::set,
-    )
-
-    LaunchedEffect(Unit) {
-      state.storageGroupState.expandedStorageFlow.collect(state::setExpandedStorage)
-    }
+    StorageGroup(state.device, state.storageGroupState, hasPlayStore, state::device::set)
 
     EmulatedPerformanceGroup(
       state.device,

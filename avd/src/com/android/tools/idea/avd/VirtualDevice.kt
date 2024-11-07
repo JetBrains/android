@@ -40,8 +40,7 @@ import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 
 @Immutable
 internal data class VirtualDevice
@@ -56,7 +55,7 @@ internal constructor(
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
   internal val internalStorage: StorageCapacity?,
-  internal val expandedStorage: ExpandedStorage,
+  internal val expandedStorage: ExpandedStorage?,
   internal val existingCustomExpandedStorage: Custom? = null,
   internal val cpuCoreCount: Int?,
   internal val graphicsMode: GraphicsMode,
@@ -66,6 +65,9 @@ internal constructor(
 ) {
   internal val isFoldable = device.defaultHardware.screen.isFoldable
   internal val formFactor = device.formFactor
+
+  internal val isValid =
+    internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
 
   internal fun hasPlayStore(image: ISystemImage) =
     device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE
@@ -136,7 +138,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
 
   systemImage = image
 
-  sdCard = device.expandedStorage.toSdCard()
+  sdCard = requireNotNull(device.expandedStorage).toSdCard()
   skin = device.skin.toAvdSkin()
 
   screenOrientation = device.orientation
@@ -174,31 +176,19 @@ internal data class Custom internal constructor(internal val value: StorageCapac
   ExpandedStorage() {
   internal fun withMaxUnit() = Custom(value.withMaxUnit())
 
-  override fun isValid(hasPlayStore: Boolean) =
-    value >=
-      if (hasPlayStore) {
-        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE
-      } else {
-        VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE
-      }
-
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage internal constructor(private val path: String) :
+internal data class ExistingImage internal constructor(private val value: Path) :
   ExpandedStorage() {
-  override fun isValid(hasPlayStore: Boolean) = Files.isRegularFile(Paths.get(path))
-
-  override fun toString() = path
+  override fun toString() = value.toString()
 }
 
 internal object None : ExpandedStorage() {
   override fun toString() = ""
 }
 
-internal sealed class ExpandedStorage {
-  internal open fun isValid(hasPlayStore: Boolean) = true
-}
+internal sealed class ExpandedStorage
 
 internal fun ExpandedStorage.toSdCard(): SdCard? =
   when (this) {
@@ -210,7 +200,7 @@ internal fun ExpandedStorage.toSdCard(): SdCard? =
 internal fun SdCard?.toExpandedStorage() =
   when (this) {
     null -> None
-    is ExternalSdCard -> ExistingImage(path)
+    is ExternalSdCard -> ExistingImage(Path.of(path))
     is InternalSdCard -> Custom(StorageCapacity(size, StorageCapacity.Unit.B).withMaxUnit())
   }
 
