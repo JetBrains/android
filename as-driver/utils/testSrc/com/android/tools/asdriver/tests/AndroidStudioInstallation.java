@@ -125,7 +125,6 @@ public class AndroidStudioInstallation {
     setConsentGranted(true);
     createVmOptionsFile();
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
-    bundlePlugin(TestUtils.getBinPath("prebuilts/studio/intellij-sdk/performanceTesting.zip"));
 
     System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
   }

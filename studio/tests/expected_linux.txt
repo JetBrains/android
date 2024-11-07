@@ -2910,6 +2910,7 @@ android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/markdown/lib/modules/intellij.markdown.compose.preview.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar
+android-studio/plugins/performanceTesting/lib/performanceTesting.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-langInjection/lib/java-langInjection-jps.jar
 android-studio/plugins/platform-langInjection/lib/platform-langInjection.jar
