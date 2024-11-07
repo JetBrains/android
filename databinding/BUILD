@@ -32,7 +32,7 @@ iml_module(
     split_test_targets = {
         "gradle": {
             "tags": ["cpu:3"],
-            "shard_count": 2,
+            "shard_count": 4,
             "test_filter": ".gradle",
         },
         "non-gradle": {},
