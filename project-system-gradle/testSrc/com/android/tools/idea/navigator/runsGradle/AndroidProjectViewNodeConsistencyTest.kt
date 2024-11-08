@@ -33,7 +33,7 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
     fun testProjects(): Collection<*> = listOf(
       TestProjectDef(TestProject.PSD_SAMPLE_GROOVY),
       TestProjectDef(TestProject.COMPOSITE_BUILD),
-      // TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS), Ignored b/375693516
+      TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS),
       TestProjectDef(TestProject.LINKED)
     )
   }
