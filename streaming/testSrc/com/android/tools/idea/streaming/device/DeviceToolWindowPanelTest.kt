@@ -524,7 +524,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private val DeviceToolWindowPanel.isConnected
-    get() = (getData(DEVICE_VIEW_KEY.name) as? DeviceView)?.isConnected ?: false
+    get() = primaryDisplayView?.isConnected == true
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
     if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
