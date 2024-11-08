@@ -55,12 +55,12 @@ class PercentRenderer extends ColoredTreeCellRenderer {
 
   /**
    * Renders a percentage as a text followed by a bar.
-   *
+   * <p>
    * ColumnTree requires all renderers to be components (and in some cases requires them to specifically be
    * a {@link ColoredTreeCellRenderer}). However, {@link ColoredTreeCellRenderer}s don't support rendering
-   * anything other than an icon and some text. To workaround this, we override the {@link #doPaint(Graphics2D)}
-   * method and do our own custom rendering.
-   *
+   * anything other than an icon and some text. To work around this, we override the
+   * {@link com.intellij.ui.SimpleColoredComponent#doPaint(Graphics2D)} method and do our own custom rendering.
+   * <p>
    * The renderer first draws a percentage (say 66.6%), followed by a bar representation of that percentage.
    * The text rendering needs to be right aligned, so we first compute the max width for the text, and then
    * draw the text such that it is right aligned. Once the text is drawn, the remainder of the space (minus

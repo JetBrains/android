@@ -22,12 +22,9 @@ import com.android.tools.profgen.ArtProfileKt;
 import com.android.tools.profgen.DexDataKt;
 import com.android.tools.profgen.ObfuscationMap;
 import com.android.tools.profgen.ProfileDumperKt;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 

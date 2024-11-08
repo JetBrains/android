@@ -31,14 +31,11 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
@@ -170,7 +167,6 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
           myProguardMapping = myArchiveContext.getArchive().loadProguardMapping();
           myApkViewPanel = withChecksDisabledForSupplier(() -> new ApkViewPanel(
-            ApkEditor.this.myProject,
             new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()),
             apkVirtualFile.getName(),
             myApplicationInfoProvider));
@@ -193,7 +189,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
    * Changes the editor displayed based on the path selected in the tree.
    */
   @Override
-  public void selectionChanged(@Nullable ArchiveTreeNode[] entries) {
+  public void selectionChanged(ArchiveTreeNode @Nullable [] entries) {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
       // Null out the field immediately after disposal, in case an exception is thrown later in the method.
@@ -260,37 +256,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @Override
-  public void selectNotify() {
-  }
-
-  @Override
-  public void deselectNotify() {
-  }
-
-  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
   }
 
   @Override
@@ -327,7 +297,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
   @VisibleForTesting
   @NotNull
-  ApkFileEditorComponent getEditor(@Nullable ArchiveTreeNode[] nodes) {
+  ApkFileEditorComponent getEditor(ArchiveTreeNode @Nullable [] nodes) {
     if (nodes == null || nodes.length == 0) {
       return new EmptyPanel();
     }
@@ -382,7 +352,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     VirtualFile file = createVirtualFile(n.getData().getArchive(), p);
     Optional<FileEditorProvider> providers = getFileEditorProviders(file);
-    if (!providers.isPresent()) {
+    if (providers.isEmpty()) {
       return new EmptyPanel();
     }
     else if (file != null) {
@@ -434,6 +404,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (archive.isBaselineProfile(p, content)) {
+      @SuppressWarnings("deprecation") // Suggested replacement uses `FileSizeLimit` which is marked as `@ApiStatus.Internal`
       String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileUtilRt.LARGE_FOR_CONTENT_LOADING);
       if (text != null) {
         return ApkVirtualFile.createText(p, text);
@@ -466,19 +437,18 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       StringBuilder truncated = new StringBuilder(100000);
       int length = text.getBytes(Charsets.UTF_8).length;
       truncated.append(
-          "The contents of this baseline file is too large to show by default.\n" +
-          "You can increase the maximum buffer size by setting the property\n" +
-          "    idea.max.content.load.filesize=")
+          """
+            The contents of this baseline file is too large to show by default.
+            You can increase the maximum buffer size by setting the property
+                idea.max.content.load.filesize=""")
         .append(length)
-        .append(
-          "\n" +
-          "(or higher)\n\n");
+        .append("\n(or higher)\n\n");
 
       try {
         File file = File.createTempFile("baseline", ".txt");
         FilesKt.writeText(file, text, Charsets.UTF_8);
         truncated.append(
-            "Alternatively, the full contents have been written to the following\n" + "temp file:\n")
+            "Alternatively, the full contents have been written to the following\ntemp file:\n")
           .append(file.getPath())
           .append("\n\n");
       }

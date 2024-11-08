@@ -28,7 +28,6 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -42,7 +41,6 @@ import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -87,7 +85,6 @@ public class ApkViewPanel implements TreeSelectionListener {
   private AnimatedIcon mySizeAsyncIcon;
   private JButton myCompareWithButton;
   private Tree myTree;
-  private Project myProject;
 
   private DefaultTreeModel myTreeModel;
   private Listener myListener;
@@ -103,17 +100,15 @@ public class ApkViewPanel implements TreeSelectionListener {
   }
 
   public ApkViewPanel(
-    @NotNull Project project,
     @NotNull ApkParser apkParser,
     @NotNull String apkName,
     @NotNull  AndroidApplicationInfoProvider applicationInfoProvider) {
     myApkParser = apkParser;
-    myProject = project;
     // construct the main tree along with the uncompressed sizes
-    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
+    Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(ArchiveNode result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         setRootNode(result);
@@ -121,17 +116,18 @@ public class ApkViewPanel implements TreeSelectionListener {
     } , EdtExecutorService.getInstance());
 
     // kick off computation of the compressed archive, and once its available, refresh the tree
-    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<ArchiveNode>() {
+    Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<>() {
       @Override
       public void onSuccess(ArchiveNode result) {
-        if (myArchiveDisposed){
+        if (myArchiveDisposed) {
           return;
         }
         ArchiveTreeStructure
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         try {
           refreshTree();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           // Ignore exceptions if the archive was disposed (b/351919218)
           if (!myArchiveDisposed) {
             throw e;
@@ -255,11 +251,10 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     // Provides the percentage of the node size to the total size of the APK
     PercentRenderer.PercentProvider percentProvider = (jTree, value, row) -> {
-      if (!(value instanceof ArchiveTreeNode)) {
+      if (!(value instanceof ArchiveTreeNode entry)) {
         return 0;
       }
 
-      ArchiveTreeNode entry = (ArchiveTreeNode)value;
       ArchiveTreeNode rootEntry = (ArchiveTreeNode)jTree.getModel().getRoot();
 
       if (entry.getData().getDownloadFileSize() < 0) {
@@ -360,12 +355,13 @@ public class ApkViewPanel implements TreeSelectionListener {
       mySizeComponent.append(HumanReadableUtil.getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       mySizeComponent.append(", Download Size: ");
       mySizeComponent.setToolTipText(
-        "1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after "
-        + "installation.\n"
-        + "2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed "
-        + "version of the file).\n"
-        + "For application updates, Google Play serves patches that are typically much smaller.\n"
-        + "The installation size may be higher than the APK size depending on various other factors.");
+        """
+          1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after \
+          installation.
+          2. The <b>download size</b> is the estimated size of the file for new installations (Google Play serves a highly compressed \
+          version of the file).
+          For application updates, Google Play serves patches that are typically much smaller.
+          The installation size may be higher than the APK size depending on various other factors.""");
     } else if (myApkParser.getArchive() instanceof InstantAppBundleArchive) {
       mySizeComponent.append("Zip file size: ");
       mySizeComponent.setToolTipText("The <b>zip file size</b> reflects the actual size of the zip file on disk.\n");
@@ -500,6 +496,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
+        //noinspection UnstableApiUsage
         return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package);
       }
     }

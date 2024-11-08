@@ -20,13 +20,8 @@ import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.DiskQueryRelay;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.impl.ArchiveHandler;
@@ -35,17 +30,11 @@ import com.intellij.openapi.vfs.impl.jar.TimedZipHandler;
 import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.VfsImplUtil;
 import com.intellij.util.io.URLUtil;
+import java.io.IOException;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Set;
 
 public class ApkFileSystem extends ArchiveFileSystem {
   public static final Set<String> EXTENSIONS = ImmutableSet.of(
@@ -58,10 +47,6 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
   public static final String PROTOCOL = "apk";
   public static final String APK_SEPARATOR = URLUtil.JAR_SEPARATOR;
-
-  private static final String APKZIP_EXT = "apkzip";
-  private static final String APKZIP_SUFFIX = "." + APKZIP_EXT;
-  private static final Key<Boolean> APKZIP_KEY = Key.create("android.zip.within.apk");
 
   public static ApkFileSystem getInstance() {
     return (ApkFileSystem)VirtualFileManager.getInstance().getFileSystem(PROTOCOL);
@@ -131,9 +116,8 @@ public class ApkFileSystem extends ArchiveFileSystem {
     VfsImplUtil.refresh(this, asynchronous);
   }
 
-  @NotNull
   @Override
-  public byte[] contentsToByteArray(@NotNull VirtualFile file) throws IOException {
+  public byte @NotNull [] contentsToByteArray(@NotNull VirtualFile file) throws IOException {
     byte[] bytes = super.contentsToByteArray(file);
     if (!isBinaryXml(file, bytes)) {
       return bytes;
@@ -144,43 +128,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
   @Override
   protected boolean isCorrectFileType(@NotNull VirtualFile local) {
-    if (APKZIP_EXT.equals(local.getExtension()) && Boolean.TRUE.equals(local.getUserData(APKZIP_KEY))) {
-      // accept files that were unzipped from within an APK by us, see #extractAndGetContentRoot
-      return true;
-    }
-
     return EXTENSIONS.contains(local.getExtension());
-  }
-
-  /**
-   * Extracts a zip file within an APK file, and returns the virtual file pointing to the contents of that zip file.
-   */
-  @Nullable
-  public VirtualFile extractAndGetContentRoot(VirtualFile file) {
-    File tempFile;
-    try {
-      tempFile = FileUtil.createTempFile(file.getName(), APKZIP_SUFFIX, true);
-    }
-    catch (IOException e) {
-      Logger.getInstance(ApkFileSystem.class).warn("IOException while extracting zip file from APK", e);
-      return null;
-    }
-
-    try (InputStream is = new ByteArrayInputStream(file.contentsToByteArray())) {
-      Files.copy(is, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-    }
-    catch (IOException e) {
-      Logger.getInstance(ApkFileSystem.class).warn("IOException while copying contents of zip file to temp file", e);
-      return null;
-    }
-
-    VirtualFile vfile = VfsUtil.findFileByIoFile(tempFile, true);
-    if (vfile == null) {
-      return null;
-    }
-
-    vfile.putUserData(APKZIP_KEY, Boolean.TRUE);
-    return getInstance().getRootByLocal(vfile);
   }
 
   /**
