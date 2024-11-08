@@ -17,12 +17,16 @@ package com.android.tools.idea.streaming.core
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
+import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
@@ -44,7 +48,7 @@ internal abstract class AbstractClipboardSynchronizer(
     // when Studio gains focus.
     if (event.newValue != null && event.oldValue == null) {
       // Studio gained focus.
-      setDeviceClipboard(forceSend = false)
+      synchronizeDeviceClipboard(forceSend = false)
     }
   }
 
@@ -64,23 +68,30 @@ internal abstract class AbstractClipboardSynchronizer(
    * Sets the device clipboard to have the same content as the host clipboard unless the host
    * clipboard is empty and [forceSend] is false.
    */
-  @UiThread
-  fun setDeviceClipboard(forceSend: Boolean = false) {
-    val text = getClipboardText()
-    setDeviceClipboard(text, forceSend = forceSend)
+  @Suppress("WrongThread")
+  @AnyThread
+  fun synchronizeDeviceClipboard(forceSend: Boolean = false) {
+    val application = ApplicationManager.getApplication()
+    if (application.isDispatchThread) {
+      application.executeOnPooledThread { doSynchronizeDeviceClipboard(forceSend) }
+    }
+    else {
+      doSynchronizeDeviceClipboard(forceSend)
+    }
+  }
+
+  @WorkerThread
+  private fun doSynchronizeDeviceClipboard(forceSend: Boolean) {
+    val text = copyPasteManager.getContents(stringFlavor) ?: ""
+    if (forceSend || text.isNotEmpty()) {
+      EventQueue.invokeLater {
+        setDeviceClipboard(text, forceSend = forceSend)
+      }
+    }
   }
 
   @UiThread
   abstract fun setDeviceClipboard(text: String, forceSend: Boolean)
-
-  private fun getClipboardText(): String {
-    return if (copyPasteManager.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      copyPasteManager.getContents(DataFlavor.stringFlavor) ?: ""
-    }
-    else {
-      ""
-    }
-  }
 
   @AnyThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {

@@ -43,7 +43,7 @@ internal class EmulatorClipboardSynchronizer(
     get() = thisLogger()
 
   init {
-    setDeviceClipboard()
+    synchronizeDeviceClipboard(forceSend = true)
   }
 
   override fun dispose() {
