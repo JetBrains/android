@@ -139,7 +139,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -307,7 +307,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
@@ -416,7 +416,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -506,8 +506,8 @@ PROJECT                       : project
         ModuleName                    : project.app
         Module                        : project.app
     LIBRARY_TABLE
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
-            *CLASSES                      : jar://<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar!/
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
+            *CLASSES                      : jar://<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar!/
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.Version.ANDROID_TOOLS_BASE_VERSION
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
@@ -141,9 +140,6 @@ class ProjectDumper(
 
   fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
   else this
-
-  fun String.replaceCurrentSdkVersion(apiLevel: Int, codename: String?) = if (apiLevel == SdkVersionInfo.HIGHEST_KNOWN_API && codename == null) "<SDK_VERSION>" else this
-  fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
   fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
@@ -179,7 +175,6 @@ class ProjectDumper(
           "<ANDROID_SDK>",
           it.substringAfter("<ANDROID_SDK>", "")
             .replaceCurrentBuildToolsVersion()
-            .replaceCurrentSdkVersion()
         )
       }
       .let {

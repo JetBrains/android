@@ -6,10 +6,10 @@ MODULE                        : application.app
     MavenName                     : application:app:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/application/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbsolutePaths                 : true
         ExplainIssues                 : true
@@ -28,7 +28,7 @@ MODULE                        : application.app
             - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
-                    __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                    __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
@@ -63,7 +63,7 @@ MODULE                        : application.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
                 PackageDependencies
-                    __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                    __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
@@ -102,7 +102,7 @@ MODULE                        : application.app
         TestArtifact
             Dependencies
                 CompileDependencies
-                    __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                    __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
@@ -140,7 +140,7 @@ MODULE                        : application.app
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
-                    __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                    __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
@@ -185,7 +185,7 @@ MODULE                        : application.app
         - DesugaredMethodFiles        : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
-                __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
                 android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                 android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
@@ -233,7 +233,7 @@ MODULE                        : application.app
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
-                __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar     : null => <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+                __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar      : null => <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
                 artifacts::app                : null => :app@main
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
                 com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
@@ -251,7 +251,7 @@ MODULE                        : application.app
         - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 19
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/externalManifest/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/externalRoot/main/java
@@ -286,10 +286,10 @@ MODULE                        : application.app
             - AssetsDirectories           : <ROOT>/application/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : JavaLibrary(__non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar:)
-                - JarFiles                    : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
-                Identifier                    : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
-                ResolvedCoordinates           : __non_maven__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar:
+            LintModelLibrary              : JavaLibrary(__non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar:)
+                - JarFiles                    : <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
+                Identifier                    : <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
+                ResolvedCoordinates           : __non_maven__:<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar:
             LintModelLibrary              : LocalLibrary(:app)
                 Identifier                    : :app@main
                 ProjectPath                   : :app
