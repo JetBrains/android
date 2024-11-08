@@ -550,7 +550,7 @@ public final class GroovyDslUtil {
    * Creates a literal expression map enclosed with brackets "[]" from the given {@link GradleDslExpressionMap}.
    */
   static PsiElement createDerivedMap(@NotNull GradleDslExpressionMap expressionMap) {
-    PsiElement parentPsiElement = getParentPsi(expressionMap);
+    PsiElement parentPsiElement = getParentPsi(expressionMap.getParent());
     if (parentPsiElement == null) {
       return null;
     }
@@ -865,17 +865,9 @@ public final class GroovyDslUtil {
   }
 
   @Nullable
-  static PsiElement getParentPsi(@NotNull GradleDslElement element) {
-    GradleDslElement parent = element.getParent();
-    if (parent == null) {
-      return null;
-    }
-
-    GroovyPsiElement parentPsiElement = ensureGroovyPsi(parent.create());
-    if (parentPsiElement == null) {
-      return null;
-    }
-    return parentPsiElement;
+  static PsiElement getParentPsi(@Nullable GradleDslElement parent) {
+    if (parent == null) return null;
+    return ensureGroovyPsi(parent.create());
   }
 
   /**
@@ -1101,7 +1093,7 @@ public final class GroovyDslUtil {
   @Nullable
   static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @NotNull GradleDslAnchor dslAnchor) {
     PsiElement anchorAfter;
-    if (dslAnchor == GradleDslAnchor.Start.INSTANCE) {
+    if (dslAnchor instanceof GradleDslAnchor.Start) {
       anchorAfter = null;
     }
     else if (dslAnchor instanceof GradleDslAnchor.After dslAnchorAfter) {

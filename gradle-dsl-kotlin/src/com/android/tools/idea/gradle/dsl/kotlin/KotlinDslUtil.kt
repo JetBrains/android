@@ -343,10 +343,10 @@ internal fun KtCallExpression.name() : String? {
   }
 }
 
-internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
+internal fun getParentPsi(parentDslElement : GradleDslElement?) : PsiElement? {
   // For extra block, we don't have a psiElement for the dslElement because in Kotlin we don't use the extra block, so we need to add
   // elements straight to the ExtDslElement' parent.
-  return if (dslElement.parent is ExtDslElement) dslElement.parent?.parent?.create() else dslElement.parent?.create()
+  return if (parentDslElement is ExtDslElement) parentDslElement.parent?.create() else parentDslElement?.create()
 }
 
 internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
@@ -359,7 +359,7 @@ internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
 
 internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslAnchor) : PsiElement? {
   var anchorAfter = when(dslAnchor) {
-    GradleDslAnchor.Start -> null
+    is GradleDslAnchor.Start -> null
     is GradleDslAnchor.After -> findLastPsiElementIn(dslAnchor.dslElement)
   }
   if (anchorAfter == null && parent is KtBlockExpression) {
