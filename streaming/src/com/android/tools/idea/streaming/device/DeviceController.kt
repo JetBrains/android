@@ -95,7 +95,7 @@ internal class DeviceController(
         send(message)
       }
     }
-    catch (ignore: RejectedExecutionException) {
+    catch (_: RejectedExecutionException) {
       // Executor has been shut down by the dispose method.
     }
   }
@@ -193,7 +193,7 @@ internal class DeviceController(
               send(request)
             }
           }
-          catch (e: RejectedExecutionException) {
+          catch (_: RejectedExecutionException) {
             continuation.cancel() // Executor has been shut down by the dispose method.
           }
           catch (e: Throwable) {
@@ -202,7 +202,7 @@ internal class DeviceController(
         }
       }
     }
-    catch (e: TimeoutCancellationException) {
+    catch (_: TimeoutCancellationException) {
       throw TimeoutException()
     }
     finally {
