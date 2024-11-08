@@ -22,7 +22,7 @@ import com.intellij.openapi.application.ApplicationManager
 
 @Suppress("UnstableApiUsage")
 class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider("FUS", 1, DEFAULT_SEND_FREQUENCY_MS, DEFAULT_MAX_FILE_SIZE_BYTES) {
-  override val logger: StatisticsEventLogger by lazy { createLogger() }
+  override val logger: StatisticsEventLogger by lazy { createAndroidLogger() }
 
   override fun isRecordEnabled(): Boolean {
     // This logic is needed to ensure we initialize the usage tracker and
@@ -35,7 +35,7 @@ class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider
     return isRecordEnabled() && StatisticsUploadAssistant.isSendAllowed()
   }
 
-  private fun createLogger(): StatisticsEventLogger {
+  private fun createAndroidLogger(): StatisticsEventLogger {
     if (!isRecordEnabled()) {
       return super.logger
     }
