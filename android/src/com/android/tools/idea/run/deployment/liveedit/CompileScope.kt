@@ -32,6 +32,9 @@ import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.idea.base.facet.implementingModules
+import org.jetbrains.kotlin.idea.base.facet.platform.platform
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -132,7 +135,8 @@ private object CompileScopeImpl : CompileScope {
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, JvmPlatforms.defaultJvmPlatform)
+    val androidModule = input.first().module?.implementingModules?.firstOrNull { it.isAndroidModule() }
+    return kotlinCacheService.getResolutionFacadeWithForcedPlatform(input, androidModule?.platform ?: JvmPlatforms.defaultJvmPlatform)
   }
 
   override fun performInlineSourceDependencyAnalysis(resolution: ResolutionFacade, file: KtFile, bindingContext: BindingContext) : List<KtFile> {
