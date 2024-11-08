@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -99,6 +100,11 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
         layoutInspectorRule.inspector,
         fakeAction,
       )
+    FakeUi(
+      toolbar.component,
+      createFakeWindow = true,
+      parentDisposable = projectRule.testRootDisposable,
+    )
     return toolbar
   }
 

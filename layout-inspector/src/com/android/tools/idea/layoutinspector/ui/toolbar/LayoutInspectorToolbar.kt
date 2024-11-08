@@ -113,7 +113,6 @@ fun createStandaloneLayoutInspectorToolbar(
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
   actionToolbar.targetComponent = targetComponent
-  actionToolbar.updateActionsAsync()
   // Removes empty space on the right side of the toolbar.
   actionToolbar.setReservePlaceAutoPopupIcon(false)
 

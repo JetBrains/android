@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestActionEvent
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -430,16 +431,21 @@ class LayoutInspectorManagerTest {
     val layoutInspectorRenderer =
       tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
 
-    val toolbars =
+    val toolbar =
       tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {
         it.component.name == "LayoutInspector.MainToolbar"
       }
+    FakeUi(
+      toolbar.component,
+      createFakeWindow = true,
+      parentDisposable = displayViewRule.disposable,
+    )
 
     waitForCondition(10.seconds) {
-      toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().any()
+      toolbar.actions.filterIsInstance<ToggleDeepInspectAction>().any()
     }
     val toggleDeepInspectAction =
-      toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().first()
+      toolbar.actions.filterIsInstance<ToggleDeepInspectAction>().first()
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
       .isFalse()
     assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
