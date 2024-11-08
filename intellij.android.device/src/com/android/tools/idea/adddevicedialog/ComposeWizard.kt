@@ -30,6 +30,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.adtui.compose.catchAndShowErrors
@@ -141,7 +146,17 @@ internal fun WizardPageScope.WizardPageScaffold(
   wizardDialogScope: InternalWizardDialogScope,
   content: @Composable WizardPageScope.() -> Unit,
 ) {
-  Column {
+  Column(
+    Modifier.onKeyEvent { event ->
+      when {
+        event.type == KeyEventType.KeyUp && event.key == Key.Enter -> {
+          finishAction.action?.let { with(wizardDialogScope) { it() } }
+          true
+        }
+        else -> false
+      }
+    }
+  ) {
     Box(Modifier.weight(1f)) { content() }
     Divider(Orientation.Horizontal)
     WizardButtonBar(
