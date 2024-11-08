@@ -102,8 +102,11 @@ public class ApkViewPanel implements TreeSelectionListener {
     void selectApkAndCompare();
   }
 
-  @SuppressWarnings("CheckResult")
-  public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser, @NotNull String apkName) {
+  public ApkViewPanel(
+    @NotNull Project project,
+    @NotNull ApkParser apkParser,
+    @NotNull String apkName,
+    @NotNull  AndroidApplicationInfoProvider applicationInfoProvider) {
     myApkParser = apkParser;
     myProject = project;
     // construct the main tree along with the uncompressed sizes
@@ -163,8 +166,7 @@ public class ApkViewPanel implements TreeSelectionListener {
             return Futures.immediateFailedFuture(new Exception("Regular .zip, not valid .apk file."));
           } else {
             try {
-              Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
-              return apkParser.getApplicationInfo(pathToAapt, entry);
+              return applicationInfoProvider.getApplicationInfo(apkParser, entry);
             } catch (Exception e) {
               setToZipMode(apkName);
               Logger.getInstance(ApkViewPanel.class).warn(e);
@@ -217,7 +219,9 @@ public class ApkViewPanel implements TreeSelectionListener {
                              .setUncompressedSize(uncompressedApkSize.get())
                              .build()));
       return null;
-    }, MoreExecutors.directExecutor());
+      }, MoreExecutors.directExecutor())
+      .addListener(() -> {
+      }, MoreExecutors.directExecutor());
     myContainer.setName("ApkViewPanel");
   }
 

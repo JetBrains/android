@@ -79,6 +79,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private final Project myProject;
   private final VirtualFile myBaseFile;
   private final VirtualFile myRoot;
+  private final AndroidApplicationInfoProvider myApplicationInfoProvider;
   private ApkViewPanel myApkViewPanel;
   private ArchiveContext myArchiveContext;
 
@@ -86,10 +87,15 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private ApkFileEditorComponent myCurrentEditor;
   private ProguardMappings myProguardMapping;
 
-  public ApkEditor(@NotNull Project project, @NotNull VirtualFile baseFile, @NotNull VirtualFile root) {
+  public ApkEditor(
+    @NotNull Project project,
+    @NotNull VirtualFile baseFile,
+    @NotNull VirtualFile root,
+    @NotNull AndroidApplicationInfoProvider applicationInfoProvider) {
     myProject = project;
     myBaseFile = baseFile;
     myRoot = root;
+    myApplicationInfoProvider = applicationInfoProvider;
 
     DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true);
 
@@ -163,8 +169,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
           myProguardMapping = myArchiveContext.getArchive().loadProguardMapping();
-          myApkViewPanel = withChecksDisabledForSupplier(() ->
-              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()), apkVirtualFile.getName()));
+          myApkViewPanel = withChecksDisabledForSupplier(() -> new ApkViewPanel(
+            ApkEditor.this.myProject,
+            new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()),
+            apkVirtualFile.getName(),
+            myApplicationInfoProvider));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
