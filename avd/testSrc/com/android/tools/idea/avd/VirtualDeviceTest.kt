@@ -26,6 +26,7 @@ import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.ColdBoot
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.internal.avd.OnDiskSkin
@@ -39,6 +40,20 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class VirtualDeviceTest {
+  @Test
+  fun withDefaults() {
+    val devices = VendorDevices(NullLogger()).apply { init() }
+    val pixel8 = devices.getDevice("pixel_8", "Google")!!
+
+    with(VirtualDevice.withDefaults(pixel8)) {
+      assertThat(ram).isEqualTo(EmulatedProperties.defaultRamSize(device).toStorageCapacity())
+      assertThat(vmHeapSize)
+        .isEqualTo(EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity())
+      assertThat(internalStorage)
+        .isEqualTo(EmulatedProperties.defaultInternalStorage(device).toStorageCapacity())
+    }
+  }
+
   @Test
   fun avdBuilderToVirtualDevice() {
     val devices = VendorDevices(NullLogger()).apply { init() }

@@ -91,7 +91,7 @@ internal constructor(
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         orientation = device.defaultState.orientation,
         defaultBoot = Boot.QUICK,
-        internalStorage = MIN_INTERNAL_STORAGE,
+        internalStorage = EmulatedProperties.defaultInternalStorage(device).toStorageCapacity(),
         expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
         cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
         graphicsMode = GraphicsMode.AUTO,
