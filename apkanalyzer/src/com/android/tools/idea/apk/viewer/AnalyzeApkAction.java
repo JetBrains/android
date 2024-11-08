@@ -47,7 +47,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event");
+      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event (update)");
       return;
     }
 
@@ -64,7 +64,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event");
+      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event (actionPerformed)");
       return;
     }
 

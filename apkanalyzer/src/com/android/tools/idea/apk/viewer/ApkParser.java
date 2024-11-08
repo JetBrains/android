@@ -38,7 +38,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,13 +68,13 @@ public class ApkParser {
   }
 
   public synchronized void cancelAll(){
-    ListenableFuture[] futures = {
+    ListenableFuture<?>[] futures = {
       myTreeStructureWithDownloadSizes,
       myTreeStructure,
       myRawFullApkSize,
       myCompressedFullApkSize
     };
-    for (ListenableFuture future : futures) {
+    for (ListenableFuture<?> future : futures) {
       if (future != null) {
         future.cancel(true);
       }
@@ -125,7 +124,7 @@ public class ApkParser {
   }
 
   @NotNull
-  private ArchiveNode createTreeNode() throws IOException {
+  private ArchiveNode createTreeNode() {
     ArchiveNode node = ArchiveTreeStructure.create(myArchiveContext);
     ArchiveTreeStructure.updateFileInfo(node, myApkSizeCalculator);
     return node;
