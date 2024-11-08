@@ -45,7 +45,6 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings.capitalize
-import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
@@ -144,6 +143,7 @@ internal class DeviceClient(
     get() = connectionHolder.get()?.videoDecoder
   private val audioDecoder: AudioDecoder?
     get() = connectionHolder.get()?.audioDecoder
+  private var disposed = false
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
   /**
    * Contains entries for all active video streams. Keyed by display IDs. The values represent
@@ -164,29 +164,40 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    logger.info("$simpleId.establishAgentConnection($maxVideoSize, $initialDisplayOrientation, $startVideoStream, ${project.name})")
-    streamingSessionTracker.streamingStarted()
-    val newConnection = Connection(this)
-    val connection = connectionHolder.compareAndExchange(null, newConnection) ?: newConnection
-    if (connection === newConnection) {
-      try {
-        startAgentAndConnect(maxVideoSize, initialDisplayOrientation, startVideoStream, project)
-        connection.established.complete(Unit)
+    logger.info( // b/364541401
+        "$simpleId.establishAgentConnection($maxVideoSize, $initialDisplayOrientation, $startVideoStream, ${project.name})")
+    try {
+      streamingSessionTracker.streamingStarted()
+      val newConnection = Connection(this)
+      val connection = connectionHolder.compareAndExchange(null, newConnection) ?: newConnection
+      if (connection === newConnection) {
+        try {
+          startAgentAndConnect(connection, maxVideoSize, initialDisplayOrientation, startVideoStream, project)
+          connection.established.complete(Unit)
+        }
+        catch (e: Throwable) {
+          connectionHolder.set(null)
+          AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
+          connection.established.completeExceptionally(e)
+        }
       }
-      catch (e: Throwable) {
-        connectionHolder.set(null)
-        AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
-        connection.established.completeExceptionally(e)
+      else {
+        Disposer.dispose(newConnection)
       }
-    }
-    else {
-      Disposer.dispose(newConnection)
-    }
-    connection.established.await()
+      connection.established.await()
 
-    logger.info("$simpleId.establishAgentConnection: connection=$connection, completion=$newConnection, startVideoStream=$startVideoStream")
-    if (connection !== newConnection && startVideoStream) {
-      startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
+      logger.info( // b/364541401
+          "$simpleId.establishAgentConnection: connection=$connection, completion=$newConnection, startVideoStream=$startVideoStream")
+      if (connection !== newConnection && startVideoStream) {
+        startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
+      }
+    }
+    catch (e: Throwable) {
+      if (disposed) {
+        logger.info("$simpleId.establishAgentConnection: already disposed, throwing CancellationException") // b/364541401
+        throw CancellationException()
+      }
+      throw e
     }
   }
 
@@ -202,7 +213,7 @@ internal class DeviceClient(
    * Starts the screen sharing agent and connects to it.
    */
   private suspend fun startAgentAndConnect(
-      maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
+      connection: Connection, maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
     val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -217,36 +228,25 @@ internal class DeviceClient(
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
-    var channels: Channels? = null
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
+      var channels: Channels? = null
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
+        startAgent(connection, deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
       channels?.let { channels ->
-        val connection = connectionHolder.get()
-        if (connection != null) {
-          try {
-            connection.deviceController = DeviceController(connection, channels.controlChannel)
-            connection.videoDecoder =
-                VideoDecoder(connection, channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
-                    .apply { start(startVideoStream) }
-            connection.audioDecoder =
-                channels.audioChannel?.let { AudioDecoder(connection, it, clientScope).apply { start(isAudioStreamingEnabled()) } }
-          }
-          catch (_: IncorrectOperationException) {
-            return // Connection already disposed.
-          }
+        connection.deviceController = DeviceController(connection, channels.controlChannel)
+        connection.videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+            .apply { start(startVideoStream) }
+        connection.audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
 
-          if (isAudioStreamingSupported() && !isRemoteDevice()) {
-            val messageBusConnection = project.messageBus.connect(this)
-            messageBusConnection.subscribe(
-                DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
-          }
+        if (isAudioStreamingSupported() && !isRemoteDevice()) {
+          val messageBusConnection = project.messageBus.connect(this)
+          messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
         }
       }
     }
@@ -267,7 +267,7 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    logger.info("$simpleId.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)")
+    logger.info("$simpleId.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)") // b/364541401
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -275,7 +275,7 @@ internal class DeviceClient(
   }
 
   fun stopVideoStream(requester: Any, displayId: Int) {
-    logger.info("$simpleId.stopVideoStream(${requester.simpleId}, $displayId)")
+    logger.info("$simpleId.stopVideoStream(${requester.simpleId}, $displayId)") // b/364541401
     synchronized(videoStreams) {
       videoStreams[displayId]?.let { arbiter ->
         arbiter.stopVideoStream(requester)
@@ -324,8 +324,9 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker(): Deferred<Pair<SuspendingSocketChannel, Byte>> {
-    val channel = acceptAndEnsureClosing(this@DeviceClient)
+  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker():
+      Deferred<Pair<SuspendingSocketChannel, Byte>> {
+    val channel = acceptAndEnsureClosing()
     return coroutineScope { async { Pair(channel, readChannelMarker(channel)) } }
   }
 
@@ -352,6 +353,8 @@ internal class DeviceClient(
   }
 
   override fun dispose() {
+    logger.info("$simpleId.dispose()") // b/364541401
+    disposed = true
     streamingSessionTracker.streamingEnded()
   }
 
@@ -410,12 +413,13 @@ internal class DeviceClient(
   private val isEmulator = deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true
 
   private fun startAgent(
-      deviceSelector: DeviceSelector,
-      adbSession: AdbSession,
-      socketName: String,
-      maxVideoSize: Dimension,
-      initialDisplayOrientation: Int,
-      startVideoStream: Boolean) {
+    connection: Connection,
+    deviceSelector: DeviceSelector,
+    adbSession: AdbSession,
+    socketName: String,
+    maxVideoSize: Dimension,
+    initialDisplayOrientation: Int,
+    startVideoStream: Boolean) {
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
@@ -465,7 +469,7 @@ internal class DeviceClient(
               }
             }
             is ShellCommandOutputElement.ExitCode -> {
-              onDisconnection()
+              onDisconnection(connection)
               if (it.exitCode == 0) {
                 log.info("terminated")
               } else {
@@ -484,13 +488,13 @@ internal class DeviceClient(
       catch (_: EOFException) {
         // Device disconnected. This is not an error.
         log.info("device disconnected")
-        onDisconnection()
+        onDisconnection(connection)
         for (listener in agentTerminationListeners) {
           listener.deviceDisconnected()
         }
       }
       catch (e: Throwable) {
-        onDisconnection()
+        onDisconnection(connection)
         adbSession.throwIfCancellationOrDeviceDisconnected(e)
         throw RuntimeException("Command \"$command\" failed", e)
       }
@@ -561,8 +565,10 @@ internal class DeviceClient(
     }
   }
 
-  private fun onDisconnection() {
-    connectionHolder.getAndSet(null)?.let { Disposer.dispose(it) }
+  private fun onDisconnection(connection: Connection) {
+    if (connectionHolder.compareAndSet(connection, null)) {
+      Disposer.dispose(connection)
+    }
   }
 
   private suspend fun AdbSession.pushFile(device: DeviceSelector, file: Path, remoteFilePath: String, permissions: RemoteFileMode) {
@@ -596,8 +602,8 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
-      accept().also { Disposer.register(parentDisposable, DisposableCloser(it)) }
+  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(): SuspendingSocketChannel =
+      accept().also { Disposer.register(this@DeviceClient, DisposableCloser(it)) }
 
   private data class Channels(
     var videoChannel: SuspendingSocketChannel,
@@ -689,7 +695,7 @@ internal class DeviceClient(
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
       logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                  " requestedVideoResolutions=$requestedVideoResolutions")
+                  " requestedVideoResolutions=$requestedVideoResolutions") // b/364541401
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
@@ -704,7 +710,7 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
-      logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.stopVideoStream(${requester.simpleId})")
+      logger.info("${this@DeviceClient.simpleId}.VideoStreamArbiter.stopVideoStream(${requester.simpleId})") // b/364541401
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
@@ -764,6 +770,7 @@ internal class DeviceClient(
     }
 
     override fun dispose() {
+      logger.info("$simpleId.dispose()") // b/364541401
     }
   }
 }

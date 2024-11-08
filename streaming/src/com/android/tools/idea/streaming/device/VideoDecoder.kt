@@ -23,21 +23,17 @@ import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
-import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.getUInt
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.toHexString
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.toByteArray
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bytedeco.ffmpeg.avcodec.AVCodec
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
@@ -101,12 +97,11 @@ import java.util.function.Consumer
 import kotlin.text.Charsets.UTF_8
 
 internal class VideoDecoder(
-  disposableParent: Disposable,
   private val videoChannel: SuspendingSocketChannel,
   private val decoderScope: CoroutineScope,
   private val deviceProperties: DeviceProperties,
   private val streamingSessionTracker: DeviceStreamingSessionTracker,
-) : Disposable {
+) {
 
   private val decodingContexts = ConcurrentHashMap<Int, DecodingContext>()
   private val codec = CompletableDeferred<AVCodec>()
@@ -114,10 +109,6 @@ internal class VideoDecoder(
   private var endOfVideoStream = false
   private val logger
     get() = thisLogger()
-
-  init {
-    Disposer.register(disposableParent, this)
-  }
 
   /**
    * Enables video decoding for the given display unless it is already active.
@@ -194,12 +185,6 @@ internal class VideoDecoder(
         decodingContexts.clear()
         packetReader.close()
       }
-    }
-  }
-
-  override fun dispose() {
-    applicationCoroutineScope.launch(Dispatchers.IO) {
-      videoChannel.close()
     }
   }
 
