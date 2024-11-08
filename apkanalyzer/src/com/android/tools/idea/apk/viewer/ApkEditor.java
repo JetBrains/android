@@ -68,12 +68,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.LayoutFocusTraversalPolicy;
 import kotlin.io.FilesKt;
 import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
@@ -134,7 +134,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     });
 
     refreshApk(myBaseFile);
-    mySplitter.setSecondComponent(new JPanel());
+    mySplitter.setSecondComponent(new EmptyPanel().getComponent());
   }
 
   private static String safeReadContents(Path path) {
@@ -316,8 +316,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
   }
 
+  @VisibleForTesting
   @NotNull
-  private ApkFileEditorComponent getEditor(@Nullable ArchiveTreeNode[] nodes) {
+  ApkFileEditorComponent getEditor(@Nullable ArchiveTreeNode[] nodes) {
     if (nodes == null || nodes.length == 0) {
       return new EmptyPanel();
     }
@@ -363,10 +364,6 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return new ArscViewer(arscContent);
     }
 
-    if (p.toString().endsWith(SdkConstants.EXT_DEX)) {
-      return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent(), myProguardMapping);
-    }
-
     // Attempting to view these kinds of files is going to trigger the Kotlin metadata decompilers, which all assume the .class files
     // accompanying them can be found next to them. But in our case the class files have been dexed, so the Kotlin compiler backend is going
     // to attempt code generation, and that will fail with some rather cryptic errors.
@@ -381,18 +378,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
     else if (file != null) {
       FileEditor editor = providers.get().createEditor(myProject, file);
-      return new ApkFileEditorComponent() {
-        @NotNull
-        @Override
-        public JComponent getComponent() {
-          return editor.getComponent();
-        }
-
-        @Override
-        public void dispose() {
-          Disposer.dispose(editor);
-        }
-      };
+      return new FileEditorComponent(editor);
     } else {
       return new EmptyPanel();
     }

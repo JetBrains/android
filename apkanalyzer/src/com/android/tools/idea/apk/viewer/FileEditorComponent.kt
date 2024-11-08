@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.apk.viewer;
 
-import org.jetbrains.annotations.NotNull;
+package com.android.tools.idea.apk.viewer
 
-import javax.swing.*;
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.VisibleForTesting
 
-public class EmptyPanel implements ApkFileEditorComponent {
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    JPanel panel = new JPanel();
-    panel.setName("EmptyPanel");
-    return panel;
-  }
+/**
+ * A [ApkFileEditorComponent] that wraps a [FileEditor]
+ */
+internal class FileEditorComponent(
+  @VisibleForTesting val editor: FileEditor,
+) : ApkFileEditorComponent {
+  override fun getComponent() = editor.component
 
-  @Override
-  public void dispose() {
+  override fun dispose() {
+    Disposer.dispose(editor)
   }
 }
