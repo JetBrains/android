@@ -617,7 +617,7 @@ def _collect_own_and_dependency_java_artifacts(
 
 def _get_cc_toolchain_dependency_info(rule):
     cc_toolchain_target = IDE_CC.toolchain_target(rule)
-    if DependenciesInfo in cc_toolchain_target:
+    if cc_toolchain_target and DependenciesInfo in cc_toolchain_target:
         return cc_toolchain_target[DependenciesInfo]
     return None
 
