@@ -121,7 +121,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
-    val dslParent = element.parent ?: return null
     var anchorAfter = element.anchor
     var isRealList = false // This is to keep track if we're creating a real list (listOf()).
     var isNamedPropertyMap = false
@@ -129,9 +128,10 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
     if (anchorAfter == null) return null // we don't have a parent?  return null.
+    val dslParent = anchorAfter.parentDslElement ?: return null
 
     var addBefore = false
-    if (needToCreateParent(element)) {
+    if (needToCreateParent(dslParent)) {
       addBefore = true
       anchorAfter = GradleDslAnchor.Start(dslParent)
     }
@@ -139,7 +139,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       anchorAfter = (dslParent as? ExtDslElement)?.anchor ?: anchorAfter
     }
 
-    var parentPsiElement = getParentPsi(anchorAfter.parentDslElement) ?: return null
+    var parentPsiElement = getParentPsi(dslParent) ?: return null
 
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
@@ -446,12 +446,11 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       return psiElement
     }
 
-    val methodParent = methodCall.parent ?: return null
-
     var anchorAfter = methodCall.anchor ?: return null
+    val methodParent = anchorAfter.parentDslElement ?: return null
 
     //If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
-    if (needToCreateParent(methodCall)) {
+    if (needToCreateParent(methodParent)) {
       anchorAfter = GradleDslAnchor.Start(methodParent)
     }
 
@@ -666,10 +665,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
     expression.psiElement?.also { return it }
 
-    val parentPsi = expression.parent?.create() ?: return null
+    expression.parent?.create() ?: return null
     when (val firstElement = expression.currentElements[0]) {
       is GradleDslLiteral -> {
-        expression.psiElement = parentPsi
         val literalPsi = createDslElement(firstElement)
         expression.psiElement = literalPsi
         applyDslLiteral(firstElement)
@@ -677,7 +675,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         firstElement.commit()
       }
       is GradleDslMethodCall -> {
-        expression.psiElement = parentPsi
         val methodCallPsi = createDslMethodCall(firstElement)
         expression.psiElement = methodCallPsi
         applyDslMethodCall(firstElement)

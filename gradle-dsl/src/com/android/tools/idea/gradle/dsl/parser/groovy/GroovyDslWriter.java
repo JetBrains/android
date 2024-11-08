@@ -129,9 +129,9 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
-    GradleDslElement dslParent = element.getParent();
+    GradleDslElement dslParent = anchorAfter.getParentDslElement();
     if (dslParent == null) return null;
-    if (needToCreateParent(element)) {
+    if (needToCreateParent(dslParent)) {
       addBefore = true;
       anchorAfter = new GradleDslAnchor.Start(dslParent);
     }
@@ -293,15 +293,15 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       return psiElement;
     }
 
-    GradleDslElement methodParent = methodCall.getParent();
-    if (methodParent == null) return null;
-
     GradleDslAnchor anchorAfter = methodCall.getAnchor();
     if (anchorAfter == null) return null;
 
+    GradleDslElement methodParent = anchorAfter.getParentDslElement();
+    if (methodParent == null) return null;
+
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
-    if (needToCreateParent(methodCall)) {
+    if (needToCreateParent(methodParent)) {
       anchorAfter = new GradleDslAnchor.Start(methodParent);
     }
 
@@ -517,20 +517,16 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     }
     GradleDslElement parent = expression.getParent();
     if (parent == null) return null;
-    PsiElement parentPsi = parent.create();
+    parent.create();
     GradleDslElement firstElement = expression.getCurrentElements().get(0);
-    if (firstElement instanceof GradleDslLiteral) {
-      GradleDslLiteral firstLiteral = (GradleDslLiteral)firstElement;
-      expression.setPsiElement(parentPsi);
+    if (firstElement instanceof GradleDslLiteral firstLiteral) {
       PsiElement elementPsi = createDslElement(firstLiteral);
       expression.setPsiElement(elementPsi);
       applyDslLiteral(firstLiteral);
       firstLiteral.reset();
       firstLiteral.commit();
     }
-    else if (firstElement instanceof GradleDslMethodCall) {
-      GradleDslMethodCall firstMethodCall = (GradleDslMethodCall)firstElement;
-      expression.setPsiElement(parentPsi);
+    else if (firstElement instanceof GradleDslMethodCall firstMethodCall) {
       PsiElement elementPsi = createDslMethodCall(firstMethodCall);
       expression.setPsiElement(elementPsi);
       applyDslMethodCall(firstMethodCall);

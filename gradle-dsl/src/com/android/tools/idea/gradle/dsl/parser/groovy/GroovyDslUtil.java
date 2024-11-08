@@ -1134,8 +1134,7 @@ public final class GroovyDslUtil {
     return element == null ? null : element.getPrevSibling();
   }
 
-  static boolean needToCreateParent(@NotNull GradleDslElement element) {
-    GradleDslElement parent = element.getParent();
+  static boolean needToCreateParent(@Nullable GradleDslElement parent) {
     return parent != null && parent.getPsiElement() == null && !(parent instanceof ProjectPropertiesDslElement);
   }
 
