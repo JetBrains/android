@@ -16,14 +16,10 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.concurrency.applicationCoroutineScope
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVCodecParserContext
@@ -74,17 +70,12 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.sound.sampled.AudioFormat
 
 internal class AudioDecoder(
-  disposableParent: Disposable,
   private val audioChannel: SuspendingSocketChannel,
   private val decoderScope: CoroutineScope,
-) : Disposable {
+) {
 
   private val decodingContext = AtomicReference<DecodingContext?>()
   @Volatile private var endOfAudioStream = false
-
-  init {
-    Disposer.register(disposableParent, this)
-  }
 
   /**
    * Deactivated audio playback if it is active. Returns true if audio playback was not already active.
@@ -124,12 +115,6 @@ internal class AudioDecoder(
         decodingContext.getAndSet(null)?.close()
         packetReader.close()
       }
-    }
-  }
-
-  override fun dispose() {
-    applicationCoroutineScope.launch(Dispatchers.IO) {
-      audioChannel.close()
     }
   }
 
