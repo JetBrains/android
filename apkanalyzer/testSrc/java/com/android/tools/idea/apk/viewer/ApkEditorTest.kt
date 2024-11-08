@@ -24,6 +24,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexClassNode
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
+import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
@@ -209,7 +210,7 @@ class ApkEditorTest {
     val file = TestResources.getFile(path)
     val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
     val root = ApkFileSystem().getRootByLocal(archive) ?: fail("Invalid archive: $path")
-    val apkEditor = ApkEditor(project, archive, root)
+    val apkEditor = ApkEditor(project, archive, root, FakeAndroidApplicationInfoProvider())
     Disposer.register(disposableRule.disposable, apkEditor)
     waitForCondition { apkEditor.isLoaded() }
     return apkEditor
