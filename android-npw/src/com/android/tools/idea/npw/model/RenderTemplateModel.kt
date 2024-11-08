@@ -342,6 +342,6 @@ private constructor(
       else Language.Java
     }
 
-    fun getComposeKotlinVersion(): String = "2.0.0"
+    fun getComposeKotlinVersion(): String = "2.0.21"
   }
 }
