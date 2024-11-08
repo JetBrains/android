@@ -133,31 +133,29 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       !isMethodCalledOnImportedModifier &&
         originalPosition.parentOfType<KtDotQualifiedExpression>() == null
     // Prioritise functions that return Modifier over other extension function.
-    returnsModifier
-      .asSequence()
-      .map {
+    for (symbol in returnsModifier) {
+      resultSet.addElement(
         toLookupElement(
-          symbol = it,
+          symbol = symbol,
           importStrategyDetector = importStrategyDetector,
           weight = 2.0,
           insertModifier = isNewModifier,
         )
-      }
-      .forEach(resultSet::addElement)
+      )
+    }
 
     // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
     if (isMethodCalledOnImportedModifier) {
-      others
-        .asSequence()
-        .map {
+      for (symbol in others) {
+        resultSet.addElement(
           toLookupElement(
-            symbol = it,
+            symbol = symbol,
             importStrategyDetector = importStrategyDetector,
             weight = 0.0,
             insertModifier = false,
           )
-        }
-        .forEach(resultSet::addElement)
+        )
+      }
     }
 
     ProgressManager.checkCanceled()
