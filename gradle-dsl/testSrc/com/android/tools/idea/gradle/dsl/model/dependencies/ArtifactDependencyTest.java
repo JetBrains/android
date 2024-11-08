@@ -640,6 +640,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
+    isIrrelevantForDeclarative("No multiple dependency configuration for Declarative");
+
     writeToBuildFile(TestFile.REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -668,6 +670,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithMapNotation() throws IOException {
+    isIrrelevantForDeclarative("Declarative does not have map notation");
+
     writeToBuildFile(TestFile.REMOVE_DEPENDENCY_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -696,6 +700,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
+    isIrrelevantForDeclarative("Declarative does not have map notation");
+
     writeToBuildFile(TestFile.REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -723,6 +729,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveDependencyWhenMultiple() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
+    isIrrelevantForDeclarative("No multiple dependency configuration for Declarative");
+
     writeToBuildFile(TestFile.REMOVE_WHEN_MULTIPLE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -762,19 +770,25 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ArtifactDependencySpecImpl guavaSpec = new ArtifactDependencySpecImpl("guava", "com.google.guava", "18.0");
     ArtifactDependencySpecImpl guice1Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "1.0");
     ArtifactDependencySpecImpl guice2Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
-    ArtifactDependencySpecImpl appcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.android.support", "22.1.1");
-    ArtifactDependencySpecImpl notAppcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.example", "22.1.1");
 
     assertTrue(dependenciesModel.containsArtifact(COMPILE, guavaSpec));
     assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
     assertTrue(dependenciesModel.containsArtifact(COMPILE, guice1Spec));
     assertFalse(dependenciesModel.containsArtifact(COMPILE, guice2Spec));
-    assertTrue(dependenciesModel.containsArtifact(COMPILE, appcompat));
-    assertFalse(dependenciesModel.containsArtifact(COMPILE, notAppcompat));
+
+    if (!isGradleDeclarative()) {
+      ArtifactDependencySpecImpl appcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.android.support", "22.1.1");
+      ArtifactDependencySpecImpl notAppcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.example", "22.1.1");
+      assertTrue(dependenciesModel.containsArtifact(COMPILE, appcompat));
+      assertFalse(dependenciesModel.containsArtifact(COMPILE, notAppcompat));
+    }
+
   }
 
   @Test
   public void testParseCompactNotationWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for Declarative");
+
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -807,6 +821,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithQuotedIdentifierVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for Declarative");
+
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_QUOTED_IDENTIFIER_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -831,6 +847,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for Declarative");
+
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -863,6 +881,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationClosureWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for Declarative");
+
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -896,6 +916,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationClosureWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for Declarative");
+
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1099,6 +1121,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyUsingMapNotationDeleteFields() throws IOException {
+    isIrrelevantForDeclarative("Declarative does not have map notation");
+
     writeToBuildFile(TestFile.REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1150,6 +1174,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceMethodDependencyWithClosure() throws IOException {
+    isIrrelevantForDeclarative("Declarative does not have dependencies closure");
+
     writeToBuildFile(TestFile.REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
