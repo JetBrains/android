@@ -18,6 +18,8 @@ package com.android.tools.adtui.compose
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import com.intellij.ide.AppLifecycleListener
+import com.intellij.openapi.application.ApplicationManager
 
 /**
  * Initializes the MainDispatcherChecker in Compose; this must be called from the UI thread in
@@ -33,6 +35,14 @@ fun initializeComposeMainDispatcherChecker() {
     init {
       // Setting this triggers initialization of MainDispatcherChecker.
       lifecycle.currentState = Lifecycle.State.STARTED
+    }
+  }
+}
+
+class OnStartup : AppLifecycleListener {
+  override fun appFrameCreated(commandLineArgs: MutableList<String>) {
+    ApplicationManager.getApplication().invokeLater {
+      initializeComposeMainDispatcherChecker()
     }
   }
 }
