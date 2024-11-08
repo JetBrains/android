@@ -211,7 +211,7 @@ internal class DeviceController(
   }
 
   private fun send(message:ControlMessage) {
-    logger.info("$simpleId.send($message)")
+    logger.info("$simpleId.send($message)") // b/364541401
     message.serialize(outputStream)
     outputStream.flush()
   }

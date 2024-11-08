@@ -1204,7 +1204,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       get() = MirroringState.INACTIVE
 
     override fun toggleMirroring() {
-      logger.info("$simpleId.toggleMirroring")
+      logger.info("$simpleId.toggleMirroring") // b/364541401
       activateMirroring(device)
     }
 
@@ -1219,7 +1219,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       get() = MirroringState.ACTIVE
 
     override fun toggleMirroring() {
-      logger.info("$simpleId.toggleMirroring")
+      logger.info("$simpleId.toggleMirroring") // b/364541401
       deactivateMirroring(serialNumber)
     }
 
