@@ -21,6 +21,7 @@ import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.module.NavInfoChangeReason
+import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
 import com.android.tools.idea.nav.safeargs.module.NavStatusCache
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.android.tools.idea.projectsystem.FilenameConstants
@@ -74,7 +75,7 @@ class SafeArgsResolveExtension(private val module: Module) : KaResolveExtension(
     allClasses.map { it.getFilePackageName() }.toSet()
 
   override fun getShadowedScope(): GlobalSearchScope {
-    if (currentStatus == null) {
+    if (!NavInfoFetcher.isSafeArgsModule(module, SafeArgsMode.KOTLIN)) {
       return GlobalSearchScope.EMPTY_SCOPE
     }
 
