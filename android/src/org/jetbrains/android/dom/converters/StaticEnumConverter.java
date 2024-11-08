@@ -46,12 +46,12 @@ public class StaticEnumConverter extends ResolvingConverter<String> {
 
   @Override
   @NotNull
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     return Collections.unmodifiableCollection(myValues);
   }
 
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (myContainsAllValues) {
       return myValues.contains(s) ? s : null;
     }
@@ -75,7 +75,7 @@ public class StaticEnumConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 }

@@ -64,7 +64,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @NotNull
   @Override
-  public Collection<?> getVariants(ConvertContext context) {
+  public Collection<?> getVariants(@NotNull ConvertContext context) {
     if (myConverterDelegate instanceof ResolvingConverter) {
       return ((ResolvingConverter)myConverterDelegate).getVariants(context);
     }
@@ -73,7 +73,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
     if (context.getModule() != null && s != null && s.contains(MANIFEST_PLACEHOLDER_PREFIX)) {
       ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
       s = resolver.resolve(s);

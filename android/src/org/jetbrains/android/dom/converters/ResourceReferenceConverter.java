@@ -180,7 +180,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   @NotNull
-  public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
+  public Collection<? extends ResourceValue> getVariants(@NotNull ConvertContext context) {
     Module module = context.getModule();
     if (module == null || module.isDisposed()) return Collections.emptySet();
     AndroidFacet facet = AndroidFacet.getInstance(module);

@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResourceNameConverter extends ResolvingConverter<String> implements CustomReferenceConverter<String> {
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (getErrorMessage(s, context) != null) {
       return null;
     }
@@ -51,12 +51,12 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
     ResourceType type = null;
     XmlTag tag = context.getTag();
     if (tag != null) {
@@ -69,7 +69,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @Nullable
   @Override
-  public PsiElement resolve(String s, ConvertContext context) {
+  public PsiElement resolve(String s, @NotNull ConvertContext context) {
     XmlElement element = context.getXmlElement();
     XmlTag tag = element instanceof XmlTag ? (XmlTag)element : PsiTreeUtil.getParentOfType(element, XmlTag.class);
     if (tag == null || s == null) {
@@ -102,7 +102,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   public boolean isReferenceTo(@NotNull PsiElement element,
                                String stringValue,
                                @Nullable String resolveResult,
-                               ConvertContext context) {
+                               @NotNull ConvertContext context) {
     if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getManager().areElementsEquivalent(element, resolve(stringValue, context));
     }
@@ -111,7 +111,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @NotNull
   @Override
-  public Collection<String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(@NotNull ConvertContext context) {
     final DomElement element = context.getInvocationElement();
 
     if (!(element instanceof GenericAttributeValue)) {

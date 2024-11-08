@@ -46,12 +46,12 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
   private static final String PERMISSION_PREFIX = "android.permission.";
 
   @Override
-  public String fromString(@Nullable @NonNls String str, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String str, @NotNull ConvertContext context) {
     return str;
   }
 
   @Override
-  public String toString(@Nullable String value, ConvertContext context) {
+  public String toString(@Nullable String value, @NotNull ConvertContext context) {
     return value;
   }
 
