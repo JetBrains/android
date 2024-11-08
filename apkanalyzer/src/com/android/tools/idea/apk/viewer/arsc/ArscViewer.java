@@ -17,9 +17,8 @@ package com.android.tools.idea.apk.viewer.arsc;
 
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import org.jetbrains.annotations.TestOnly;
 
 public class ArscViewer implements ApkFileEditorComponent {
