@@ -46,7 +46,6 @@ import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import java.awt.Component
 import java.awt.Insets
 import java.awt.Rectangle
@@ -70,7 +69,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
-private val DELETE_ICON = FILTER_HISTORY_DELETE
+private val DELETE_ICON = AllIcons.General.Delete
 @Suppress("UseDPIAwareInsets") private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
 private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)
 

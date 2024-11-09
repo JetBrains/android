@@ -77,18 +77,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
 import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
-import kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Font
 import java.awt.Graphics
@@ -126,6 +114,17 @@ import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
+import kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 private val blankIcon = EmptyIcon.ICON_16
 
@@ -743,7 +742,7 @@ internal class FilterTextField(
             else -> blankIcon
           }
 
-        deleteLabel.icon = if (isSelected) FILTER_HISTORY_DELETE else blankIcon
+        deleteLabel.icon = if (isSelected) AllIcons.General.Delete else blankIcon
 
         countLabel.text =
           when (count) {
@@ -946,8 +945,7 @@ internal class FilterTextField(
   }
 
   companion object {
-    @VisibleForTesting
-    const val MATCH_CASE_PROPERTY = "LogcatFilterMatchCase"
+    @VisibleForTesting const val MATCH_CASE_PROPERTY = "LogcatFilterMatchCase"
   }
 }
 
