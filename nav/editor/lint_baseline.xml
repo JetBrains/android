@@ -1,114 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.4.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.4.0-dev">
+<issues format="6" by="lint 8.11.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.11.0-dev">
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
-        errorLine1="          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.lowercase()) }"
-        errorLine2="                                                                 ~~~~~~~~~~~">
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@SwingCoordinate private val FONT_SIZE = JBUI.scale(13)"
+        errorLine2="                                              ~~~~~">
         <location
-            file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="323"
-            column="66"/>
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
+            line="30"
+            column="47"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val FONT_SIZE = JBUI.scale(13)"
-        errorLine2="                             ~~~~~">
+        errorLine1="@SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
             line="31"
-            column="30"/>
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val VERTICAL_OFFSET = JBUI.scale(3)"
-        errorLine2="                                   ~~~~~">
+        errorLine1="@NavCoordinate private val TEXT_PADDING = JBUI.scale(4)"
+        errorLine2="                                               ~~~~~">
         <location
-            file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
-            line="33"
-            column="36"/>
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
+            line="36"
+            column="48"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val TEXT_PADDING = JBUI.scale(4)"
-        errorLine2="                                ~~~~~">
+        errorLine1="@NavCoordinate private val FONT_SIZE = JBUI.scale(14)"
+        errorLine2="                                            ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
             line="37"
-            column="33"/>
+            column="45"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val FONT_SIZE = JBUI.scale(14)"
-        errorLine2="                             ~~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
-            line="39"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val SCREEN_LONG = JBUIScale.scale(256f)"
-        errorLine2="                                    ~~~~~">
+        errorLine1="@NavCoordinate private val SCREEN_LONG = JBUIScale.scale(256f)"
+        errorLine2="                                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="77"
-            column="37"/>
+            line="76"
+            column="52"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="val SUBNAV_WIDTH = JBUIScale.scale(140)"
-        errorLine2="                             ~~~~~">
+        errorLine1="@NavCoordinate val SUBNAV_WIDTH = JBUIScale.scale(140)"
+        errorLine2="                                            ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="80"
-            column="30"/>
+            line="78"
+            column="45"/>
     </issue>
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="val SUBNAV_HEIGHT = JBUIScale.scale(38)"
-        errorLine2="                              ~~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="82"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val PAN_LIMIT = JBUIScale.scale(150)"
-        errorLine2="                                  ~~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="85"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)"
+        errorLine1="@NavCoordinate val SUBNAV_HEIGHT = JBUIScale.scale(38)"
         errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="87"
+            line="79"
             column="46"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@SwingCoordinate private val PAN_LIMIT = JBUIScale.scale(150)"
+        errorLine2="                                                   ~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="81"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@NavCoordinate private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)"
+        errorLine2="                                                            ~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="82"
+            column="61"/>
     </issue>
 
     <issue
@@ -147,11 +136,11 @@
     <issue
         id="VisibleForTests"
         message="This declaration implicitly references AddActionDialogUI, which should only be accessed from tests or within private scope"
-        errorLine1="  @VisibleForTesting"
-        errorLine2="  ^">
+        errorLine1="  @VisibleForTesting val dialog = AddActionDialogUI()"
+        errorLine2="  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="111"
+            line="116"
             column="3"/>
     </issue>
 
@@ -162,7 +151,7 @@
         errorLine2="                   ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="116"
+            line="120"
             column="20"/>
     </issue>
 
@@ -173,7 +162,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="120"
+            line="124"
             column="20"/>
     </issue>
 
@@ -184,7 +173,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="125"
+            line="129"
             column="25"/>
     </issue>
 
@@ -195,7 +184,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="131"
+            line="135"
             column="21"/>
     </issue>
 
@@ -206,7 +195,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="135"
+            line="139"
             column="21"/>
     </issue>
 
@@ -217,7 +206,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="139"
+            line="143"
             column="21"/>
     </issue>
 
@@ -228,7 +217,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="143"
+            line="147"
             column="20"/>
     </issue>
 
@@ -239,7 +228,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="147"
+            line="151"
             column="21"/>
     </issue>
 
@@ -250,7 +239,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="151"
+            line="155"
             column="21"/>
     </issue>
 
@@ -261,7 +250,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="155"
+            line="159"
             column="20"/>
     </issue>
 
@@ -272,7 +261,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="165"
+            line="171"
             column="12"/>
     </issue>
 
@@ -283,7 +272,7 @@
         errorLine2="                           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="173"
+            line="178"
             column="28"/>
     </issue>
 
@@ -294,7 +283,7 @@
         errorLine2="                 ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="188"
+            line="193"
             column="18"/>
     </issue>
 
@@ -305,7 +294,7 @@
         errorLine2="               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="190"
+            line="195"
             column="16"/>
     </issue>
 
@@ -316,7 +305,7 @@
         errorLine2="               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="192"
+            line="197"
             column="16"/>
     </issue>
 
@@ -327,7 +316,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="195"
+            line="200"
             column="12"/>
     </issue>
 
@@ -338,7 +327,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="196"
+            line="201"
             column="12"/>
     </issue>
 
@@ -349,7 +338,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="197"
+            line="202"
             column="12"/>
     </issue>
 
@@ -360,7 +349,7 @@
         errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="199"
+            line="204"
             column="12"/>
     </issue>
 
@@ -371,7 +360,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="209"
+            line="214"
             column="14"/>
     </issue>
 
@@ -382,7 +371,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"
+            line="215"
             column="14"/>
     </issue>
 
@@ -393,7 +382,7 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"
+            line="215"
             column="52"/>
     </issue>
 
@@ -404,7 +393,7 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"
+            line="215"
             column="52"/>
     </issue>
 
@@ -415,7 +404,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="211"
+            line="216"
             column="25"/>
     </issue>
 
@@ -426,7 +415,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="214"
+            line="218"
             column="25"/>
     </issue>
 
@@ -437,7 +426,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="215"
+            line="219"
             column="14"/>
     </issue>
 
@@ -448,7 +437,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="216"
+            line="220"
             column="25"/>
     </issue>
 
@@ -459,7 +448,7 @@
         errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="218"
+            line="222"
             column="12"/>
     </issue>
 
@@ -470,7 +459,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="224"
+            line="228"
             column="12"/>
     </issue>
 
@@ -481,7 +470,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="225"
+            line="229"
             column="12"/>
     </issue>
 
@@ -492,7 +481,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="226"
+            line="230"
             column="12"/>
     </issue>
 
@@ -503,7 +492,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="228"
+            line="232"
             column="29"/>
     </issue>
 
@@ -514,7 +503,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="232"
+            line="236"
             column="12"/>
     </issue>
 
@@ -525,7 +514,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="234"
+            line="238"
             column="29"/>
     </issue>
 
@@ -536,7 +525,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="238"
+            line="242"
             column="12"/>
     </issue>
 
@@ -547,7 +536,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="239"
+            line="243"
             column="12"/>
     </issue>
 
@@ -558,7 +547,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="240"
+            line="244"
             column="12"/>
     </issue>
 
@@ -569,7 +558,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="241"
+            line="245"
             column="12"/>
     </issue>
 
@@ -580,7 +569,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="264"
+            line="270"
             column="12"/>
     </issue>
 
@@ -591,7 +580,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="267"
+            line="273"
             column="14"/>
     </issue>
 
@@ -602,30 +591,30 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="271"
+            line="281"
             column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      selectItem(dialog.myDestinationComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_DESTINATION, AUTO_URI,"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialog.myDestinationComboBox,"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="274"
-            column="25"/>
+            line="284"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    selectItem(dialog.myPopToComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)"
-        errorLine2="                      ~~~~~~~~~~~~~~~">
+        errorLine1="      dialog.myPopToComboBox,"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="278"
-            column="23"/>
+            line="293"
+            column="14"/>
     </issue>
 
     <issue
@@ -635,7 +624,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="279"
+            line="299"
             column="12"/>
     </issue>
 
@@ -646,7 +635,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="280"
+            line="300"
             column="23"/>
     </issue>
 
@@ -657,19 +646,19 @@
         errorLine2="                      ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="281"
+            line="301"
             column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)"
-        errorLine2="                      ~~~~~~~~~~~~~~~~~~">
+        errorLine1="      dialog.myPopEnterComboBox,"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="282"
-            column="23"/>
+            line="303"
+            column="14"/>
     </issue>
 
     <issue
@@ -679,30 +668,30 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="283"
+            line="309"
             column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="      (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="285"
-            column="29"/>
+            line="312"
+            column="15"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="                    ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
-        errorLine2="                               ~~~~~~~~~~~~~~~">
+        errorLine1="        ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                   ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="286"
-            column="32"/>
+            line="313"
+            column="20"/>
     </issue>
 
     <issue
@@ -712,7 +701,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="290"
+            line="317"
             column="12"/>
     </issue>
 
@@ -723,7 +712,7 @@
         errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="291"
+            line="318"
             column="12"/>
     </issue>
 
@@ -734,7 +723,7 @@
         errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="292"
+            line="319"
             column="12"/>
     </issue>
 
@@ -745,7 +734,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="354"
+            line="381"
             column="12"/>
     </issue>
 
@@ -756,7 +745,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="355"
+            line="382"
             column="12"/>
     </issue>
 
@@ -767,7 +756,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="381"
+            line="414"
             column="12"/>
     </issue>
 
@@ -778,7 +767,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="385"
+            line="418"
             column="14"/>
     </issue>
 
@@ -789,7 +778,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="386"
+            line="419"
             column="14"/>
     </issue>
 
@@ -800,7 +789,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="387"
+            line="420"
             column="14"/>
     </issue>
 
@@ -811,7 +800,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="388"
+            line="421"
             column="14"/>
     </issue>
 
@@ -822,7 +811,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="390"
+            line="423"
             column="14"/>
     </issue>
 
@@ -833,7 +822,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="391"
+            line="424"
             column="14"/>
     </issue>
 
@@ -844,7 +833,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="392"
+            line="425"
             column="14"/>
     </issue>
 
@@ -855,74 +844,74 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="393"
+            line="426"
             column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="395"
-            column="31"/>
+            line="429"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="                      ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
-        errorLine2="                                 ~~~~~~~~~~~~~~~">
+        errorLine1="          ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="396"
-            column="34"/>
+            line="430"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="            dialog.myEnterComboBox.addItem(item)"
-        errorLine2="                   ~~~~~~~~~~~~~~~">
+        errorLine1="          dialog.myEnterComboBox.addItem(item)"
+        errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="405"
-            column="20"/>
+            line="438"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="            dialog.myExitComboBox.addItem(item)"
-        errorLine2="                   ~~~~~~~~~~~~~~">
+        errorLine1="          dialog.myExitComboBox.addItem(item)"
+        errorLine2="                 ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="406"
-            column="20"/>
+            line="439"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="            dialog.myPopEnterComboBox.addItem(item)"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialog.myPopEnterComboBox.addItem(item)"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="407"
-            column="20"/>
+            line="440"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="            dialog.myPopExitComboBox.addItem(item)"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialog.myPopExitComboBox.addItem(item)"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="408"
-            column="20"/>
+            line="441"
+            column="18"/>
     </issue>
 
     <issue
@@ -932,7 +921,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="413"
+            line="446"
             column="12"/>
     </issue>
 
@@ -943,7 +932,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="414"
+            line="447"
             column="12"/>
     </issue>
 
@@ -954,7 +943,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="416"
+            line="449"
             column="12"/>
     </issue>
 
@@ -965,7 +954,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="417"
+            line="450"
             column="25"/>
     </issue>
 
@@ -976,7 +965,7 @@
         errorLine2="                               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="419"
+            line="452"
             column="32"/>
     </issue>
 
@@ -987,7 +976,7 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="420"
+            line="453"
             column="36"/>
     </issue>
 
@@ -998,7 +987,7 @@
         errorLine2="                          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="421"
+            line="454"
             column="27"/>
     </issue>
 
@@ -1009,7 +998,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="422"
+            line="455"
             column="16"/>
     </issue>
 
@@ -1020,7 +1009,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="423"
+            line="456"
             column="16"/>
     </issue>
 
@@ -1031,7 +1020,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="424"
+            line="457"
             column="16"/>
     </issue>
 
@@ -1042,7 +1031,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="427"
+            line="459"
             column="21"/>
     </issue>
 
@@ -1053,7 +1042,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="428"
+            line="460"
             column="29"/>
     </issue>
 
@@ -1064,7 +1053,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="429"
+            line="461"
             column="18"/>
     </issue>
 
@@ -1075,7 +1064,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="430"
+            line="462"
             column="18"/>
     </issue>
 
@@ -1086,7 +1075,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="431"
+            line="463"
             column="18"/>
     </issue>
 
@@ -1097,7 +1086,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="432"
+            line="464"
             column="18"/>
     </issue>
 
@@ -1108,7 +1097,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="437"
+            line="469"
             column="12"/>
     </issue>
 
@@ -1119,7 +1108,7 @@
         errorLine2="                           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="438"
+            line="470"
             column="28"/>
     </issue>
 
@@ -1130,18 +1119,18 @@
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="439"
+            line="471"
             column="32"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      dialog.myInclusiveCheckBox.isEnabled = (popUpTo != null &amp;&amp; destination?.isReturnToSource != true)"
+        errorLine1="      dialog.myInclusiveCheckBox.isEnabled ="
         errorLine2="             ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="441"
+            line="473"
             column="14"/>
     </issue>
 
@@ -1152,7 +1141,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="443"
+            line="476"
             column="16"/>
     </issue>
 
@@ -1163,7 +1152,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="447"
+            line="480"
             column="12"/>
     </issue>
 
@@ -1174,7 +1163,7 @@
         errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="448"
+            line="481"
             column="12"/>
     </issue>
 
@@ -1185,7 +1174,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="449"
+            line="482"
             column="12"/>
     </issue>
 
@@ -1196,7 +1185,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="450"
+            line="483"
             column="12"/>
     </issue>
 
@@ -1207,7 +1196,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="453"
+            line="486"
             column="12"/>
     </issue>
 
@@ -1218,7 +1207,7 @@
         errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="458"
+            line="491"
             column="57"/>
     </issue>
 
@@ -1229,7 +1218,7 @@
         errorLine2="                                               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="461"
+            line="493"
             column="48"/>
     </issue>
 
@@ -1240,19 +1229,19 @@
         errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="464"
+            line="495"
             column="54"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    else if (dialog.myPopToComboBox.selectedItem != null &amp;&amp; popTo == null) {"
-        errorLine2="                    ~~~~~~~~~~~~~~~">
+        errorLine1="    } else if (dialog.myPopToComboBox.selectedItem != null &amp;&amp; popTo == null) {"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="466"
-            column="21"/>
+            line="496"
+            column="23"/>
     </issue>
 
     <issue
@@ -1262,7 +1251,7 @@
         errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="468"
+            line="499"
             column="61"/>
     </issue>
 
@@ -1273,63 +1262,63 @@
         errorLine2="                  ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="478"
+            line="508"
             column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This declaration implicitly references AddArgumentDialogUI, which should only be accessed from tests or within private scope"
-        errorLine1="  @VisibleForTesting"
-        errorLine2="  ^">
+        errorLine1="  @VisibleForTesting val dialogUI = AddArgumentDialogUI()"
+        errorLine2="  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="72"
+            line="73"
             column="3"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      dialogUI.myDefaultValueComboBox.selectedItem as String?"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialogUI.myDefaultValueComboBox.selectedItem as String?"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
             line="83"
-            column="16"/>
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      dialogUI.myDefaultValueTextField.text"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialogUI.myDefaultValueTextField.text"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="86"
-            column="16"/>
+            line="85"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      dialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue)"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue)"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
             line="89"
-            column="16"/>
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      dialogUI.myDefaultValueTextField.text = defaultValue"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialogUI.myDefaultValueTextField.text = defaultValue"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="92"
-            column="16"/>
+            line="91"
+            column="18"/>
     </issue>
 
     <issue
@@ -1339,7 +1328,7 @@
         errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="97"
+            line="96"
             column="22"/>
     </issue>
 
@@ -1350,7 +1339,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="99"
+            line="98"
             column="16"/>
     </issue>
 
@@ -1361,7 +1350,7 @@
         errorLine2="                     ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="104"
+            line="103"
             column="22"/>
     </issue>
 
@@ -1372,7 +1361,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="106"
+            line="105"
             column="16"/>
     </issue>
 
@@ -1383,7 +1372,7 @@
         errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="112"
+            line="111"
             column="22"/>
     </issue>
 
@@ -1394,7 +1383,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="114"
+            line="113"
             column="16"/>
     </issue>
 
@@ -1405,18 +1394,18 @@
         errorLine2="                                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="141"
+            line="152"
             column="38"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    dialogUI.myTypeComboBox.setRenderer(object : ListCellRendererWrapper&lt;Type>() {"
+        errorLine1="    dialogUI.myTypeComboBox.setRenderer("
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="143"
+            line="154"
             column="14"/>
     </issue>
 
@@ -1427,7 +1416,7 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="156"
+            line="174"
             column="14"/>
     </issue>
 
@@ -1438,7 +1427,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="158"
+            line="176"
             column="14"/>
     </issue>
 
@@ -1449,7 +1438,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="167"
+            line="185"
             column="18"/>
     </issue>
 
@@ -1460,7 +1449,7 @@
         errorLine2="                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="178"
+            line="195"
             column="22"/>
     </issue>
 
@@ -1471,30 +1460,30 @@
         errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="192"
+            line="210"
             column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine1="      (dialogUI.myDefaultValuePanel.layout as CardLayout).show("
         errorLine2="                ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="202"
+            line="219"
             column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
-        errorLine2="                                                                        ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        dialogUI.myDefaultValuePanel,"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="202"
-            column="73"/>
+            line="220"
+            column="18"/>
     </issue>
 
     <issue
@@ -1504,18 +1493,18 @@
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="207"
+            line="227"
             column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    dialogUI.myDefaultValueComboBox.renderer = object : ListCellRendererWrapper&lt;String>() {"
+        errorLine1="    dialogUI.myDefaultValueComboBox.renderer ="
         errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="213"
+            line="233"
             column="14"/>
     </issue>
 
@@ -1526,18 +1515,18 @@
         errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="219"
+            line="246"
             column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    dialogUI.myNullableCheckBox.addActionListener { event ->"
+        errorLine1="    dialogUI.myNullableCheckBox.addActionListener { event -> updateUi() }"
         errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="224"
+            line="251"
             column="14"/>
     </issue>
 
@@ -1548,19 +1537,19 @@
         errorLine2="                                ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="232"
+            line="258"
             column="33"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        val superType = when (dialogUI.myTypeComboBox.selectedItem) {"
-        errorLine2="                                       ~~~~~~~~~~~~~~">
+        errorLine1="          when (dialogUI.myTypeComboBox.selectedItem) {"
+        errorLine2="                         ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="236"
-            column="40"/>
+            line="263"
+            column="26"/>
     </issue>
 
     <issue
@@ -1570,7 +1559,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="255"
+            line="288"
             column="20"/>
     </issue>
 
@@ -1581,7 +1570,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="268"
+            line="300"
             column="14"/>
     </issue>
 
@@ -1592,7 +1581,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="269"
+            line="301"
             column="14"/>
     </issue>
 
@@ -1603,7 +1592,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="271"
+            line="303"
             column="16"/>
     </issue>
 
@@ -1614,7 +1603,7 @@
         errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="274"
+            line="306"
             column="14"/>
     </issue>
 
@@ -1625,7 +1614,7 @@
         errorLine2="             ~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="275"
+            line="307"
             column="14"/>
     </issue>
 
@@ -1636,74 +1625,74 @@
         errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="277"
+            line="309"
             column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show("
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="282"
+            line="314"
             column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
-        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialogUI.myDefaultValuePanel,"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="282"
-            column="75"/>
+            line="315"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show("
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="286"
+            line="321"
             column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
-        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialogUI.myDefaultValuePanel,"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="286"
-            column="75"/>
+            line="322"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show("
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="297"
+            line="336"
             column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
-        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialogUI.myDefaultValuePanel,"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="297"
-            column="75"/>
+            line="337"
+            column="20"/>
     </issue>
 
     <issue
@@ -1713,30 +1702,30 @@
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="303"
+            line="345"
             column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show("
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="304"
+            line="346"
             column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
-        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
+        errorLine1="          dialogUI.myDefaultValuePanel,"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="304"
-            column="75"/>
+            line="347"
+            column="20"/>
     </issue>
 
     <issue
@@ -1746,18 +1735,18 @@
         errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="307"
+            line="352"
             column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="    dialogUI.myContentPanel.minimumSize = Dimension(320,200)"
+        errorLine1="    dialogUI.myContentPanel.minimumSize = Dimension(320, 200)"
         errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="311"
+            line="356"
             column="14"/>
     </issue>
 
@@ -1768,7 +1757,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="312"
+            line="357"
             column="21"/>
     </issue>
 
@@ -1779,7 +1768,7 @@
         errorLine2="                                                         ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="322"
+            line="367"
             column="58"/>
     </issue>
 
@@ -1790,7 +1779,7 @@
         errorLine2="                                                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="329"
+            line="372"
             column="61"/>
     </issue>
 
@@ -1801,19 +1790,19 @@
         errorLine2="                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="333"
+            line="376"
             column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="          &amp;&amp; dialogUI.myTypeComboBox.selectedItem === Type.LONG &amp;&amp; !newDefaultValue.endsWith(&quot;L&quot;)) {"
-        errorLine2="                      ~~~~~~~~~~~~~~">
+        errorLine1="          dialogUI.myTypeComboBox.selectedItem === Type.LONG &amp;&amp;"
+        errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="394"
-            column="23"/>
+            line="446"
+            column="20"/>
     </issue>
 
     <issue
