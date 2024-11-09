@@ -26,6 +26,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
+import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.io.BaseOutputReader
 
 private const val NOTIFY_USER = "(?<notifyUser>USER_)?"
@@ -81,7 +82,11 @@ class EmulatorProcessHandler(
   }
 
   private fun notifyListeners(avd: AvdInfo, severity: EmulatorLogListener.Severity, notifyUser: Boolean, message: String) {
-    messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, severity, notifyUser, message)
+    try {
+      messageBus.syncPublisher(EmulatorLogListener.TOPIC).messageLogged(avd, severity, notifyUser, message)
+    }
+    catch (_: AlreadyDisposedException) {
+    }
   }
 
   override fun readerOptions(): BaseOutputReader.Options =
