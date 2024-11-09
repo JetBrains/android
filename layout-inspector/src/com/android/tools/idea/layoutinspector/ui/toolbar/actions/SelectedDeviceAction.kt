@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,7 +34,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
-import icons.StudioIcons
 import javax.swing.Icon
 import javax.swing.JComponent
 import org.jetbrains.annotations.VisibleForTesting
@@ -121,7 +121,7 @@ class SelectDeviceAction(
   /** Action used to detach the inspector. */
   @VisibleForTesting
   inner class DetachInspectorAction :
-    AnAction(detachPresentation.text, detachPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+    AnAction(detachPresentation.text, detachPresentation.desc, AllIcons.Run.Stop) {
 
     /** This action is enabled each time a device is selected. */
     @VisibleForTesting
