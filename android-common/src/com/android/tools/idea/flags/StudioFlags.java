@@ -1071,6 +1071,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs",
     ChannelDefault.enabledUpTo(CANARY));
+  public static final Flag<Boolean> RUNNING_DEVICES_WRAP_TOOLBAR = new BooleanFlag(
+    EMBEDDED_EMULATOR, "wrap.toolbar", "Enable Toolbar Wrapping",
+    "Wraps the toolbar when all buttons don't fit into the available width",
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Device Mirroring

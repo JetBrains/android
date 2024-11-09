@@ -19,6 +19,7 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -128,7 +129,8 @@ abstract class StreamingDevicePanel(
   private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+    toolbar.layoutStrategy =
+      if (StudioFlags.RUNNING_DEVICES_WRAP_TOOLBAR.get()) ToolbarLayoutStrategy.WRAP_STRATEGY else ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
