@@ -59,7 +59,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     model.handleFinished() // Generate module files
 
-    projectRule.invokeTasks("assembleDebug").apply {
+    projectRule.invokeTasks(10000, "assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }
@@ -83,7 +83,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     model.handleFinished() // Generate module files
 
-    projectRule.invokeTasks("assembleDebug").apply {
+    projectRule.invokeTasks(10000, "assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }
