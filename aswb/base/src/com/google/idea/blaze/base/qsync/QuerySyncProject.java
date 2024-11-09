@@ -358,6 +358,15 @@ public class QuerySyncProject {
     onNewSnapshot(context, newSnapshot);
   }
 
+  public void resetQuerySyncState(BlazeContext context) throws BuildException {
+    try {
+      artifactTracker.clear();
+    } catch (IOException e) {
+      throw new BuildException("Failed to clear dependency info", e);
+    }
+    fullSync(context);
+  }
+
   public void build(BlazeContext parentContext, DependencyTracker.DependencyBuildRequest request)
       throws IOException, BuildException {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
