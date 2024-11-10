@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher.ArtifactDestination;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
@@ -57,6 +58,7 @@ import java.util.concurrent.locks.StampedLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -266,6 +268,11 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
                 .filter(distinctBy(OutputArtifact::getDigest))
                 .filter(a -> !activeFetches.containsKey(a.getDigest()))
                 .collect(toImmutableList());
+        long totalSize = allArtifacts.stream().collect(Collectors.summarizingLong(BlazeArtifact::getLength)).getSum();
+        context.output(PrintOutput.output("Fetching %d new artifacts (%,.2f MB) out of %d requested...",
+                                          allArtifacts.size(),
+                                          (totalSize / (1024f*1024)),
+                                          artifacts.size()));
 
         // group them based on whether the artifact is already cached
         ImmutableListMultimap<Boolean, OutputArtifact> artifactsByPresence =
@@ -279,7 +286,10 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
         // the future will be used to wait until the fetch is complete.
         // They are unmarked by the future listener above.
         markAsActive(artifactsByPresence.get(false), fetch);
-        fetch.addListener(() -> unmarkAsActive(artifactsByPresence.get(false)), directExecutor());
+        fetch.addListener(() -> {
+          context.output(PrintOutput.output("Downloading done."));
+          unmarkAsActive(artifactsByPresence.get(false));
+        }, directExecutor());
 
         // Update metadata for present artifacts
         ListenableFuture<?> metadataUpdate =
