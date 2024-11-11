@@ -15,58 +15,41 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.adtui.stdui.CommonHyperLinkLabel
+import com.android.tools.adtui.HtmlLabel
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.mapReadyOrDefault
-import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.openapi.ui.messages.MessagesService
-import com.intellij.ui.ColorUtil
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
-import com.intellij.util.ui.UIUtil
-import java.awt.CardLayout
+import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
-import java.io.File
-import javax.swing.JLabel
+import javax.swing.JEditorPane
 import javax.swing.JPanel
+import javax.swing.event.HyperlinkEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-private const val WITHOUT_CODE = "without_code"
-private const val WITH_CODE = "with_code"
-
-private const val CODE_CONTEXT_TITLE = "Confirm Context Sharing"
-
-private val CODE_CONTEXT_DIALOG_MESSAGE_FORMAT =
-  """
-    <html>Android Studio needs to send code context from your project to enhance the insight for this issue.<br>Would you like to continue?%s
-    <p style="color:${ColorUtil.toHtmlColor(NamedColorUtil.getInactiveTextColor())};margin-top:5px;">You can change your context sharing preference from Settings > Tools > Gemini.</p></html>
-  """
-    .trimIndent()
-
-private const val NO_CONTEXT_TITLE = "No Context to Share"
-
-private const val NO_CONTEXT_MESSAGE =
-  "Android Studio attempted to find relevant files to improve this insight but found none. Please try again at a later time."
 
 class InsightDisclaimerPanel(
   private val controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
-  private val onEnhanceInsight: (Boolean) -> Unit,
 ) : JPanel() {
-  private val cardLayout =
-    object : CardLayout() {
+  private val borderLayout =
+    object : BorderLayout() {
       override fun preferredLayoutSize(parent: Container): Dimension? {
         val current = findCurrentComponent(parent) ?: return super.preferredLayoutSize(parent)
         val insets = parent.insets
@@ -79,100 +62,75 @@ class InsightDisclaimerPanel(
       private fun findCurrentComponent(parent: Container) = parent.components.first { it.isVisible }
     }
 
+  private val geminiOnboardingObserverAction =
+    object : AnAction() {
+      override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+      override fun update(e: AnActionEvent) {
+        // This action is never visible
+        e.presentation.isEnabledAndVisible = false
+        if (
+          this@InsightDisclaimerPanel.isVisible &&
+            GeminiPluginApi.getInstance().isContextAllowed(controller.project)
+        ) {
+          this@InsightDisclaimerPanel.isVisible = false
+          controller.refreshInsight(true)
+        }
+      }
+
+      override fun actionPerformed(e: AnActionEvent) = Unit
+    }
+
   private val withoutCodeDisclaimer =
-    DisclaimerLabel(
-      "This insight was generated without code context. For better results, review and share limited code context with Gemini."
+    disclaimerPanel(
+      text =
+        "<html>This insight was generated without code context because your current settings do not allow Gemini to use code context. You can change it via <a href='GeminiContextSettings'>Settings > Gemini > Context Awareness</a>.</html>",
+      hyperlinkActivated = {
+        ShowSettingsUtil.getInstance().showSettingsDialog(controller.project, "Gemini")
+      },
     )
 
-  private val linkLabel =
-    CommonHyperLinkLabel().apply {
-      text = "Regenerate with context"
-      font = JBFont.label()
-      hyperLinkListeners.add { scope.launch { askUserForCodeContext() } }
-    }
   private val withoutCodePanel =
     JPanel(VerticalLayout(JBUI.scale(3))).apply {
       name = "without_code_disclaimer_panel"
       add(withoutCodeDisclaimer)
-      add(linkLabel)
     }
 
-  private val withCodeDisclaimer = DisclaimerLabel("This insight was generated with code context.")
-  private val selectedIssueStateFlow =
-    controller.state.map { it.selectedIssue }.stateIn(scope, SharingStarted.Eagerly, null)
-
   init {
-    layout = cardLayout
+    layout = borderLayout
 
-    add(withoutCodePanel, WITHOUT_CODE)
-    add(withCodeDisclaimer, WITH_CODE)
-    cardLayout.show(this, WITHOUT_CODE)
+    add(withoutCodePanel, BorderLayout.CENTER)
+
+    val toolbar =
+      ActionManager.getInstance()
+        .createActionToolbar(
+          "GeminiOnboardingObserver",
+          DefaultActionGroup(geminiOnboardingObserverAction),
+          true,
+        )
+    toolbar.targetComponent = this
+    add(toolbar.component, BorderLayout.NORTH)
 
     scope.launch {
       currentInsightFlow
         .mapReadyOrDefault(false) { it?.isEnhancedWithCodeContext() == true }
         .distinctUntilChanged()
-        .collect { isEnhancedWithCodeContext ->
-          if (isEnhancedWithCodeContext) {
-            cardLayout.show(this@InsightDisclaimerPanel, WITH_CODE)
-          } else {
-            cardLayout.show(this@InsightDisclaimerPanel, WITHOUT_CODE)
+        .collect { isEnhancedWithCodeContext -> isVisible = !isEnhancedWithCodeContext }
+    }
+  }
+
+  private fun disclaimerPanel(text: String, hyperlinkActivated: (HyperlinkEvent) -> Unit) =
+    JEditorPane().apply {
+      HtmlLabel.setUpAsHtmlLabel(this)
+      this.text = text
+      addHyperlinkListener(
+        object : HyperlinkAdapter() {
+          override fun hyperlinkActivated(e: HyperlinkEvent) {
+            hyperlinkActivated(e)
           }
         }
-    }
-  }
-
-  private suspend fun askUserForCodeContext() {
-    val fileBlock = getFileBlock()
-    if (fileBlock.isEmpty()) {
-      showNoContextDialog()
-    } else {
-      if (showContextDialog(fileBlock)) {
-        onEnhanceInsight(true)
-      }
-    }
-  }
-
-  private fun showNoContextDialog() =
-    @Suppress("UnstableApiUsage")
-    MessagesService.getInstance()
-      .showMessageDialog(
-        project = null,
-        parentComponent = this,
-        message = NO_CONTEXT_MESSAGE,
-        title = NO_CONTEXT_TITLE,
-        icon = UIUtil.getInformationIcon(),
-        options = arrayOf("Ok"),
-        doNotAskOption = null,
-        helpId = null,
-        alwaysUseIdeaUI = true,
       )
-
-  private fun showContextDialog(fileBlock: String) =
-    MessageDialogBuilder.okCancel(
-        CODE_CONTEXT_TITLE,
-        CODE_CONTEXT_DIALOG_MESSAGE_FORMAT.format(fileBlock),
-      )
-      .ask(this)
-
-  private suspend fun getFileBlock(): String {
-    val selectedIssue = selectedIssueStateFlow.value ?: return ""
-    val stackTrace = selectedIssue.sampleEvent.stacktraceGroup
-    // User has not actually overridden the code context but to get the list of files we assume the
-    // user overrides it.
-    val codeContextData =
-      controller.aiInsightToolkit.getSource(stackTrace, true, overrideSourceLimit = true)
-    return if (codeContextData.codeContext.isEmpty()) {
-      ""
-    } else {
-      "<br><b>Files to be shared</b>: ${codeContextData.codeContext.joinToString { File(it.filePath).name }}"
-    }
-  }
-
-  private inner class DisclaimerLabel(text: String) : JLabel("<html>$text</html>") {
-    init {
       font = JBFont.label().asItalic()
       foreground = NamedColorUtil.getInactiveTextColor()
     }
-  }
 }

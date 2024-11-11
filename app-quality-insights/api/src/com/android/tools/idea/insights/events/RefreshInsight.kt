@@ -22,7 +22,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
-class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent {
+class RefreshInsight(private val forceFetch: Boolean) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
@@ -36,12 +36,7 @@ class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent 
     } else {
       StateTransition(
         state.copy(currentInsight = LoadingState.Loading),
-        Action.FetchInsight(
-          issue.id,
-          issue.issueDetails.fatality,
-          issue.sampleEvent,
-          contextSharingOverride,
-        ),
+        Action.FetchInsight(issue.id, issue.issueDetails.fatality, issue.sampleEvent, forceFetch),
       )
     }
   }

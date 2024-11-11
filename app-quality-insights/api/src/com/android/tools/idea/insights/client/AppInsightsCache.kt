@@ -78,7 +78,11 @@ interface AppInsightsCache {
   /** Removes the note matching [NoteId] from the cache. */
   fun removeNote(connection: Connection, noteId: NoteId)
 
-  /** Gets the cached [AiInsight] if one exists. */
+  /**
+   * Gets the cached [AiInsight] if one exists.
+   *
+   * TODO(b/378563731): cache insights by context data in addition to issueId.
+   */
   fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight?
 
   /**

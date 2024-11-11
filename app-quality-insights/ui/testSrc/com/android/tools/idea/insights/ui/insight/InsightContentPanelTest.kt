@@ -153,7 +153,7 @@ class InsightContentPanelTest {
             }
           }
         },
-      ) {}
+      )
   }
 
   @After
@@ -340,7 +340,6 @@ class InsightContentPanelTest {
               statusText: StatusText,
             ) {}
           },
-          { enableInsightDeferred.complete(true) },
         )
 
       assertThat(FakeUi(insightContentPanel).findComponent<InsightDisclaimerPanel>()).isNull()
