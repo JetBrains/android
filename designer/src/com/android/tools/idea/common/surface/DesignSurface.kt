@@ -204,7 +204,7 @@ abstract class DesignSurface<T : SceneManager>(
       if (focusedSceneView != null) {
         notifySelectionChanged(selection)
       } else {
-        notifySelectionChanged(emptyList<NlComponent>())
+        notifySelectionChanged(emptyList())
       }
     }
     selectionModel.addListener(selectionListener)
