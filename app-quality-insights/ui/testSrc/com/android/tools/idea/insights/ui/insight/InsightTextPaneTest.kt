@@ -18,14 +18,14 @@ package com.android.tools.idea.insights.ui.insight
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.ProjectRule
 import java.awt.datatransfer.DataFlavor
 import org.junit.Rule
 import org.junit.Test
 
 class InsightTextPaneTest {
 
-  @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val markdownText =
     """
@@ -38,14 +38,14 @@ class InsightTextPaneTest {
   private val renderedText =
     """
     The application crashed with a java.lang.RuntimeException exception with the message "Test Crash vcs". This could be caused by a number of factors, such as:
-    NullPointerException:  The code might be attempting to access a null object, which would result in a NullPointerException.
-    ArrayIndexOutOfBoundsException:  The code might be trying to access an element in an array that is out of bounds, which would result in an ArrayIndexOutOfBoundsException.
+    NullPointerException: The code might be attempting to access a null object, which would result in a NullPointerException.
+    ArrayIndexOutOfBoundsException: The code might be trying to access an element in an array that is out of bounds, which would result in an ArrayIndexOutOfBoundsException.
   """
       .trimIndent()
 
   @Test
   fun `copy text with selection`() {
-    val pane = InsightTextPane()
+    val pane = InsightTextPane(projectRule.project)
     pane.text = markdownText
 
     pane.select(149, 178)
@@ -56,7 +56,7 @@ class InsightTextPaneTest {
 
   @Test
   fun `copy entire text`() {
-    val pane = InsightTextPane()
+    val pane = InsightTextPane(projectRule.project)
     pane.text = markdownText
     pane.performCopy(DataContext.EMPTY_CONTEXT)
     assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor))
@@ -64,8 +64,8 @@ class InsightTextPaneTest {
   }
 
   @Test
-  fun `test something`() {
-    val pane = InsightTextPane()
+  fun `test markdown converted to HTML`() {
+    val pane = InsightTextPane(projectRule.project)
 
     pane.text =
       """
@@ -94,21 +94,21 @@ class InsightTextPaneTest {
       .isEqualTo(
         """
   <p>First Line</p>
-  <br><p><strong>Header:</strong></p>
+  <p><b>Header:</b></p>
   <ol>
-  <li><strong>ListItem1</strong></li>
-  <li><strong>ListItem2</strong></li>
+  <li><b>ListItem1</b></li>
+  <li><b>ListItem2</b></li>
   </ol>
-  <p><strong>Header2:</strong></p><br>
+  <p><b>Header2:</b></p>
   <p>Some text</p>
-  <br><p><strong>Header3:</strong></p>
+  <p><b>Header3:</b></p>
   <ul>
-  <li><strong>Item1</strong></li>
-  <li><strong>Item2</strong></li>
+  <li><b>Item1</b></li>
+  <li><b>Item2</b></li>
   </ul>
   <p>Paragraph of text</p>
-  <br><p><strong>Header4:</strong><br>
-  Another paragraph</p>
+  <p><b>Header4:</b>
+   Another paragraph</p>
 """
           .trimIndent()
           .replace("\n", "")

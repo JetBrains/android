@@ -71,9 +71,9 @@ class GeminiAiInsightClientTest {
     expectedPromptText =
       """
       |SYSTEM
-      |
-      |    Begin with the explanation directly. Do not add fillers at the start of response.
-      |  
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
       |
       |USER
       |Explain this exception from my app running on DeviceName with Android version ApiLevel:
@@ -138,9 +138,9 @@ class GeminiAiInsightClientTest {
     expectedPromptText =
       """
       |SYSTEM
-      |
-      |    Begin with the explanation directly. Do not add fillers at the start of response.
-      |  
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
       |
       |USER
       |Explain this exception from my app running on DeviceName with Android version ApiLevel.
@@ -218,9 +218,9 @@ class GeminiAiInsightClientTest {
     expectedPromptText =
       """
       |SYSTEM
-      |
-      |    Begin with the explanation directly. Do not add fillers at the start of response.
-      |  
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
       |
       |USER
       |Explain this exception from my app running on Google Pixel 4a with Android version 12.
