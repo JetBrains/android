@@ -198,8 +198,7 @@ abstract class DesignSurface<T : SceneManager>(
   init {
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a
-    // temporarily NlMode.
-    // In that case we don't change focused SceneView.
+    // temporarily NlModel. In that case we don't change focused SceneView.
     val selectionListener = SelectionListener { _, selection ->
       if (focusedSceneView != null) {
         notifySelectionChanged(selection)
