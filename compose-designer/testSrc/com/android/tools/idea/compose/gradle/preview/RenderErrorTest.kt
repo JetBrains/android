@@ -312,6 +312,66 @@ class RenderErrorTest {
     runVisualLintErrorsForModel("PreviewWithLongText")
   }
 
+  @Test
+  fun testSwitchLayoutWithoutRenderErrors() =
+    runBlocking(workerThread) {
+      lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
+
+      // We ensure we are starting from a non-Gallery mode.
+      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+
+      // Render the Preview of the current mode.
+      withContext(uiThread) {
+        waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
+        fakeUi.root.validate()
+      }
+
+      // We ensure there are no render errors for the preview we want to open in Gallery mode
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .firstOrNull { it.displayName == "PreviewWithoutRenderErrors" }
+          ?.also { sceneViewPanelWithoutErrors = it } != null
+      }
+      assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+
+      // Switch to Gallery Mode and ensure there are no render errors.
+      lateinit var galleryElement: ComposePreviewElementInstance<*>
+      delayUntilCondition(250, timeout = 1.minutes) {
+        previewView.mainSurface.models
+          .firstOrNull { it.displaySettings.modelDisplayName.value == "PreviewWithoutRenderErrors" }
+          ?.dataContext
+          ?.previewElement()
+          ?.also { galleryElement = it } != null
+      }
+      val onRefreshCompletable = previewView.getOnRefreshCompletable()
+      composePreviewRepresentation.setMode(PreviewMode.Gallery(galleryElement))
+      onRefreshCompletable.join()
+
+      // Wait to render the selected preview that is now in Gallery mode.
+      // Notice Gallery Mode shows only one item per tab and we shouldn't have more than one item.
+      withContext(uiThread) {
+        waitForRender(setOf(sceneViewPanelWithoutErrors), timeout = 2.minutes)
+        fakeUi.root.validate()
+      }
+
+      // Update the sceneViewPanel.
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .singleOrNull { it.displayName == "PreviewWithoutRenderErrors" }
+          ?.also { sceneViewPanelWithoutErrors = it } != null
+      }
+
+      // Ensure we are in Gallery mode
+      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Gallery)
+
+      // The selected sceneViewPanel shouldn't have render errors.
+      assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        !composePreviewRepresentation.status().hasErrorsAndNeedsBuild
+      }
+      assertFalse(composePreviewRepresentation.status().hasErrorsAndNeedsBuild)
+    }
+
   private fun countVisibleActions(
     actions: List<AnAction>,
     sceneViewPeerPanel: SceneViewPeerPanel,

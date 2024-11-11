@@ -360,6 +360,13 @@ class ComposePreviewRepresentation(
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
+  /**
+   * This field indicates whether the preview should restore its zoom level after rendering. Set it
+   * to true before operations like mode changes or layout adjustments causes a refresh or
+   * re-rendering of the previews, and where we want the previous zoom level to be preserved.
+   */
+  private val shouldRestoreZoomAfterRender = AtomicBoolean(true)
+
   @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
   /** Whether the preview needs a full refresh or not. */
@@ -1026,14 +1033,20 @@ class ComposePreviewRepresentation(
     // with 0 previews, e.g. when the panel is initializing. hasRenderedAtLeastOnce is also checked
     // when updating the animation panel visibility and when looking for render errors, which can
     // only happen if at least one preview is (attempted to be) rendered.
-    if (previewsCount > 0 && !hasRenderedAtLeastOnce.getAndSet(true)) {
-      logComposePreviewLiteModeEvent(
-        ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
-      )
-
-      // We can now notify to DesignSurface that Preview has rendered for the first time, and we can
-      // now attempt to restore the zoom.
-      launch(uiThread) { surface.notifyRestoreZoom() }
+    if (previewsCount > 0) {
+      if (!hasRenderedAtLeastOnce.getAndSet(true)) {
+        logComposePreviewLiteModeEvent(
+          ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
+        )
+      }
+      // When changing mode and when [shouldRestoreZoomAfterRender] is true we notify to
+      // DesignSurface to restore the zoom by calling [notifyRestoreZoom].
+      if (shouldRestoreZoomAfterRender.getAndSet(false)) {
+        launch(uiThread) {
+          // We notify DesignSurface to try to restore the zoom
+          surface.notifyRestoreZoom()
+        }
+      }
     }
   }
 
@@ -1503,14 +1516,14 @@ class ComposePreviewRepresentation(
         withContext(uiThread) {
           composeWorkBench.galleryMode = GalleryMode(composeWorkBench.mainSurface)
         }
-        resetFirstRendering()
+        resetRestoreZoomOnAfterRender()
       }
     }
     surface.background = mode.backgroundColor
   }
 
-  private fun resetFirstRendering() {
-    hasRenderedAtLeastOnce.set(false)
+  private fun resetRestoreZoomOnAfterRender() {
+    shouldRestoreZoomAfterRender.set(true)
     surface.resetRestoreZoomNotifier()
   }
 
@@ -1538,7 +1551,7 @@ class ComposePreviewRepresentation(
         withContext(uiThread) { composeWorkBench.galleryMode = null }
       }
     }
-    resetFirstRendering()
+    resetRestoreZoomOnAfterRender()
   }
 
   private fun createAnimationPreviewPanel(
