@@ -153,16 +153,18 @@ private suspend fun performActivity(project: Project) {
     return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
   }
 
-  // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
-  // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
-  removeGradleProducersFromIgnoredList(project)
 
-  // Also, make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
-  // But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
-  // This would also make sure that we do not even try to create configurations using JUnit.
-  addJUnitProducersToIgnoredList(project)
 
   if (shouldSyncOrAttachModels()) {
+    // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
+    // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
+    removeGradleProducersFromIgnoredList(project)
+
+    // Also, make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
+    // But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
+    // This would also make sure that we do not even try to create configurations using JUnit.
+    addJUnitProducersToIgnoredList(project)
+
     withContext(Dispatchers.EDT) {
       removePointlessModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
