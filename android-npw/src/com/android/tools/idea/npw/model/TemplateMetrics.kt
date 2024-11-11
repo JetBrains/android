@@ -24,7 +24,10 @@ data class TemplateMetrics(
   val wizardContext: TemplateComponent.WizardUiContext,
   val moduleType: TemplateModule.ModuleType,
   val minSdk: Int,
+  val minSdkCodename: String,
+  val targetSdk: Int,
+  val targetSdkCodename: String,
   val bytecodeLevel: BytecodeLevel?,
   val useGradleKts: Boolean,
-  val useAppCompat: Boolean
+  val useAppCompat: Boolean,
 )
