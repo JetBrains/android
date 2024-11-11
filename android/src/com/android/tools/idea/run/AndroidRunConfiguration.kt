@@ -139,6 +139,10 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   @JvmField
   var RESTORE_FILE = ""
 
+  /** If true, the restore file will only be used if the app is not already installed */
+  @JvmField
+  var RESTORE_FRESH_INSTALL_ONLY = false
+
   init {
     for (option in LAUNCH_OPTIONS) {
       myLaunchOptionStates[option.id] = option.createState()

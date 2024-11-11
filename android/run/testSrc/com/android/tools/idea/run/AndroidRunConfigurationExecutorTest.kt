@@ -131,7 +131,10 @@ class AndroidRunConfigurationExecutorTest {
     // InnocuousThread- is needed because adblib's AsynchronousChannelGroup is reusing IJ's background threads.
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "InnocuousThread-")
 
-    projectRule.project.replaceService(BackupManager::class.java, mockBackupManager, projectRule.testRootDisposable)
+    projectRule.replaceProjectService(BackupManager::class.java, mockBackupManager)
+    runBlocking {
+      whenever(mockBackupManager.isInstalled(any(), any())).thenReturn(true)
+    }
   }
 
   @After
