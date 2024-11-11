@@ -149,8 +149,6 @@ private suspend fun performActivity(project: Project) {
     return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
   }
 
-
-
   if (shouldSyncOrAttachModels()) {
     // Also, make sure that we do not use JUnit to run tests. This could happen if we find that we cannot use Gradle to run the unit tests.
     // But since we have moved to running tests with Gradle we only want to run these when it is possible via Gradle.
@@ -181,8 +179,7 @@ private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, 
   if (isJpsProjectLoaded || project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
-  }
-  else {
+  } else {
     // Initially, IJ loads the state of workspace model from the cache and in DelayedProjectSynchronizer synchronizes the state of
     // workspace model with project model files using JpsProjectModelSynchronizer. Since that activity runs async we need to detect
     // when the JPS was loaded, otherwise, any change will be overridden.
@@ -201,8 +198,7 @@ private fun removePointlessModules(project: Project) {
         emptyModulesToRemove.add(Pair(module) {
           LOG.warn("Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
         })
-      }
-      else if (module.hasOnlyNativeRoots()) {
+      } else if (module.hasOnlyNativeRoots()) {
         nativeOnlySourceRootsModulesToRemove.add(Pair(module) {
           LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native roots.")
         })
@@ -291,7 +287,7 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
         }
         val moduleVariants = project.getSelectedVariantAndAbis()
         externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
-        ?: requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants")
+          ?: requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants")
       }
 
 
@@ -304,8 +300,8 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
       .flatMap { module ->
         FacetManager.getInstance(module).let {
           it.getFacetsByType(GradleFacet.getFacetTypeId()) +
-          it.getFacetsByType(AndroidFacet.ID) +
-          it.getFacetsByType(NdkFacet.facetTypeId)
+            it.getFacetsByType(AndroidFacet.ID) +
+            it.getFacetsByType(NdkFacet.facetTypeId)
         }
       }
       .toMutableSet()
@@ -335,7 +331,7 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
   class ModuleSetupData(
     val module: Module,
     val dataNode: DataNode<out ModuleData>,
-    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModel,
+    val gradleAndroidModelFactory: (GradleAndroidModelData) -> GradleAndroidModel
   )
 
   val moduleSetupData: Collection<ModuleSetupData> =
@@ -354,8 +350,7 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
 
           if (sourceSets.isEmpty()) {
             listOf(ModuleSetupData(module, node, modelFactory))
-          }
-          else {
+          } else {
             sourceSets
               .mapNotNull { sourceSet ->
                 val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
@@ -370,15 +365,15 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
     fun GradleAndroidModelData.validate() =
       shouldDisableForceUpgrades() ||
       AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
-        !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
-      }
+          !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
+        }
 
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getModel: (DataNode<*>, Key<T>) -> T?,
       getFacet: (Module) -> V?,
       attach: V.(T) -> Unit,
-      validate: T.() -> Boolean = { true },
+      validate: T.() -> Boolean = { true }
     ): (() -> Unit) {
       val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
       if (!model.validate()) {
@@ -439,7 +434,7 @@ private fun addJUnitProducersToIgnoredList(project: Project) {
   val allJUnitProducers = DumbService.getInstance(project).filterByDumbAwareness(
     RunConfigurationProducer.EP_NAME.extensionList).filter { it.configurationType == JUnitConfigurationType.getInstance() }
   for (producer in allJUnitProducers) {
-    producerService.state.ignoredProducers.add(producer::class.java.name)
+    producerService.state.ignoredProducers.add (producer::class.java.name)
   }
 }
 
