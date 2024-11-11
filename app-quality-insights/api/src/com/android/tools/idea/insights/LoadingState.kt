@@ -16,11 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.com.google.rpc.Status
-import com.android.tools.idea.insights.LoadingState.Failure
-import com.android.tools.idea.insights.LoadingState.Loading
 import com.android.tools.idea.insights.LoadingState.Ready
-import com.android.tools.idea.insights.LoadingState.Unauthorized
-import com.android.tools.idea.insights.LoadingState.UnknownFailure
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
@@ -62,6 +58,9 @@ sealed class LoadingState<out T> {
   sealed class Failure : Done<Nothing>() {
     abstract val message: String?
     open val cause: Throwable? = null
+
+    fun getCauseMessageOrDefault(default: String = "An unknown failure occurred") =
+      cause?.message ?: message ?: default
   }
 
   /** Currently signed-in user does not have sufficient access. */

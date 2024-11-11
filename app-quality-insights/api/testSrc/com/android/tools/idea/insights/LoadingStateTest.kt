@@ -79,4 +79,23 @@ class LoadingStateTest {
       )
       .inOrder()
   }
+
+  @Test
+  fun `getCauseMessageOrDefault returns the correct message`() {
+    assertThat(
+        LoadingState.UnknownFailure(message = "message", cause = Throwable("throwable message"))
+          .getCauseMessageOrDefault(default = "error")
+      )
+      .isEqualTo("throwable message")
+    assertThat(
+        LoadingState.UnknownFailure(message = "message", cause = null)
+          .getCauseMessageOrDefault(default = "error")
+      )
+      .isEqualTo("message")
+    assertThat(
+        LoadingState.UnknownFailure(message = null, cause = null)
+          .getCauseMessageOrDefault(default = "error")
+      )
+      .isEqualTo("error")
+  }
 }
