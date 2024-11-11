@@ -18,7 +18,6 @@ package com.android.tools.idea.lint.quickFixes
 import com.android.SdkConstants.ATTR_TARGET_API
 import com.android.SdkConstants.FQCN_TARGET_API
 import com.android.SdkConstants.TOOLS_URI
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.isAnnotationTarget
@@ -54,7 +53,6 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import java.util.Locale
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.ClassId
@@ -136,14 +134,7 @@ class AddTargetApiQuickFix(
     if (file != null) {
       ensureNamespaceImported(file, TOOLS_URI)
       val first = requirements.first()
-      val api = first.fromInclusive()
-      val minor = first.fromInclusiveMinor()
-      val value =
-        if (minor > 0) {
-          first.minString()
-        } else {
-          SdkVersionInfo.getBuildCode(api)?.lowercase(Locale.US) ?: api.toString()
-        }
+      val value = first.minString()
       element.setAttribute(ATTR_TARGET_API, TOOLS_URI, value)
     }
   }
