@@ -385,16 +385,12 @@ def _get_followed_java_dependency_infos(rule):
 def _collect_own_java_artifacts(
         target,
         ctx,
-        dependency_infos,
+        can_follow_dependencies,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope):
     rule = ctx.rule
-
-    # Toolchains are collected for proto targets via aspect traversal, but jars
-    # produced for proto deps of the underlying proto_library are not
-    can_follow_dependencies = bool(dependency_infos) and not ctx.rule.kind in PROTO_RULE_KINDS
 
     must_build_main_artifacts = (
         not target_is_within_project_scope or rule.kind in always_build_rules.split(",")
@@ -477,18 +473,13 @@ def _collect_own_java_artifacts(
         for src_attr in JVM_SRC_ATTRS:
             if hasattr(rule.attr, src_attr):
                 for src in getattr(rule.attr, src_attr):
-                    for file in src.files.to_list():
-                        if not file.is_source:
-                            expand_sources = False
-                            if str(file.owner) in dependency_infos:
-                                src_depinfo = dependency_infos[str(file.owner)]
-                                expand_sources = src_depinfo.expand_sources
-
-                            # If the target that generates this source specifies that
-                            # the sources should be expanded, we ignore the generated
-                            # sources - the IDE will substitute the target sources
-                            # themselves instead.
-                            if not expand_sources:
+                    # If the target that generates this source specifies that
+                    # the sources should be expanded, we ignore the generated
+                    # sources - the IDE will substitute the target sources
+                    # themselves instead.
+                    if not (DependenciesInfo in src and src[DependenciesInfo].expand_sources):
+                        for file in src.files.to_list():
+                            if not file.is_source:
                                 own_gensrc_files.append(file)
 
     if not target_is_within_project_scope:
@@ -534,6 +525,11 @@ def _target_to_artifact_entry(
         "android_resources_package": android_resources_package,
     }
 
+def _can_follow_dependencies(ctx):
+    # Toolchains are collected for proto targets via aspect traversal, but jars
+    # produced for proto deps of the underlying proto_library are not
+    return not ctx.rule.kind in PROTO_RULE_KINDS
+
 def _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
@@ -542,10 +538,12 @@ def _collect_own_and_dependency_java_artifacts(
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope):
+    can_follow_dependencies = _can_follow_dependencies(ctx)
+
     own_files = _collect_own_java_artifacts(
         target,
         ctx,
-        dependency_infos,
+        can_follow_dependencies,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
@@ -693,10 +691,11 @@ def _collect_java_dependencies_core_impl(
 
     test_mode_own_files = None
     if test_mode:
+        can_follow_dependencies = _can_follow_dependencies(ctx)
         within_scope_own_files = _collect_own_java_artifacts(
             target,
             ctx,
-            dependency_infos,
+            can_follow_dependencies,
             always_build_rules,
             generate_aidl_classes,
             use_generated_srcjars,
