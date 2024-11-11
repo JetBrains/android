@@ -77,28 +77,7 @@ def _write_java_target_info(target, ctx, custom_prefix = ""):
 
     The proto format used is defined by proto bazel.intellij.JavaArtifacts.
     """
-    target_to_artifacts = dict(target[DependenciesInfo].target_to_artifacts)
-
-    jar_map = {}
-    for jar in target[DependenciesInfo].compile_time_jars.to_list():
-        if jar.owner:
-            owner = str(jar.owner)
-            if not owner in jar_map:
-                jar_map[owner] = []
-            jar_map[owner].append(jar)
-        else:
-            # I don't believe this will ever happen; `owner` can be None for a source file, but all
-            # the jar files are build artifacts. If it does happen we probably need to handle the
-            # case inside `_collect_own_java_artifacts` where the depset is populated.
-            print("WARNING: ignoring unowned jar file", jar.path)
-    for (owner, jars) in jar_map.items():
-        if owner not in target_to_artifacts:
-            target_to_artifacts[owner] = _target_to_artifact_entry(jars = jars)
-        else:
-            target_to_artifacts[owner] = dict(target_to_artifacts[owner])
-            target_to_artifacts[owner]["jars"] = list(target_to_artifacts[owner]["jars"])
-            target_to_artifacts[owner]["jars"].extend(jars)
-
+    target_to_artifacts = target[DependenciesInfo].target_to_artifacts
     if not target_to_artifacts:
         return []
     file_name = custom_prefix + target.label.name + ".java-info.txt"
@@ -586,9 +565,11 @@ def _collect_own_and_dependency_java_artifacts(
     target_to_artifacts = {}
     if has_own_artifacts:
         # Pass the following lists through depset() to to remove any duplicates.
+        jars = depset(own_files.jars, transitive = own_files.jar_depsets).to_list()
         ide_aars = depset(own_files.ide_aars).to_list()
         gen_srcs = depset(own_files.gensrcs).to_list()
         target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
+            jars = jars,
             ide_aars = ide_aars,
             gen_srcs = gen_srcs,
             srcs = own_files.srcs,
