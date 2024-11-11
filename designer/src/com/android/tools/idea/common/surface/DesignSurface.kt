@@ -120,25 +120,6 @@ import org.jetbrains.annotations.TestOnly
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
 
-/**
- * The expected bitwise Integer when both [DesignSurface] sizes and [Preview] renders are updated.
- */
-private const val RESTORE_ZOOM_DONE_INT_MASK = 4
-
-/**
- * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
- *
- * @see [DesignSurface.notifyRestoreZoom]
- */
-private const val NOTIFY_RESTORE_ZOOM_INT_MASK = 1
-
-/**
- * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
- *
- * @see also [DesignSurface.notifyRestoreZoom].
- */
-private const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
-
 /** Filter got [DesignSurface.models] to avoid returning disposed elements */
 val FILTER_DISPOSED_MODELS =
   Predicate<NlModel> { input: NlModel? -> input != null && !input.module.isDisposed }
@@ -187,10 +168,11 @@ abstract class DesignSurface<T : SceneManager>(
   private val expectedRestoreZoomMask: Int =
     if (waitForRenderBeforeRestoringZoom) {
       // We should wait for rendering and to DesignSurface to resize.
-      NOTIFY_RESTORE_ZOOM_INT_MASK or NOTIFY_COMPONENT_RESIZED_INT_MASK
+      ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK or
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
     } else {
       // There is no need to wait for rendering we can restore zoom whenever DesignSurface resizes.
-      NOTIFY_COMPONENT_RESIZED_INT_MASK
+      ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
     }
 
   init {
@@ -436,12 +418,13 @@ abstract class DesignSurface<T : SceneManager>(
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
             if (
-              readyToRestoreZoomMask.get() != RESTORE_ZOOM_DONE_INT_MASK &&
+              readyToRestoreZoomMask.get() != ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK &&
                 isShowing &&
                 width > 0 &&
                 height > 0
             ) {
-              val hasModelAttached = checkIfReadyToRestoreZoom(NOTIFY_COMPONENT_RESIZED_INT_MASK)
+              val hasModelAttached =
+                checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
               if (!hasModelAttached) {
                 // No model is attached, ignore the setup of initial zoom level.
                 return
@@ -603,8 +586,8 @@ abstract class DesignSurface<T : SceneManager>(
 
   /**
    * A bitwise mask used by [notifyRestoreZoom]. If the "or" operator applied to this mask gets a
-   * bitwise values of [NOTIFY_RESTORE_ZOOM_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] we can
-   * restore the zoom.
+   * bitwise values of [ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK],
+   * [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can restore the zoom.
    */
   private val readyToRestoreZoomMask = AtomicInteger(0)
 
@@ -620,7 +603,7 @@ abstract class DesignSurface<T : SceneManager>(
    */
   @UiThread
   fun notifyRestoreZoom() {
-    checkIfReadyToRestoreZoom(NOTIFY_RESTORE_ZOOM_INT_MASK)
+    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
   }
 
   /**
@@ -634,10 +617,14 @@ abstract class DesignSurface<T : SceneManager>(
    * performed at least once before trying to restore the zoom.
    */
   fun resetRestoreZoomNotifier() {
-    if (readyToRestoreZoomMask.get() == RESTORE_ZOOM_DONE_INT_MASK && height > 0 && width > 0) {
+    if (
+      readyToRestoreZoomMask.get() == ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK &&
+        height > 0 &&
+        width > 0
+    ) {
       // If we have performed already the first [DesignSurface.waitForRenderBeforeRestoringZoom]
       // we can just set the bitwise map with the NOTIFY_RESTORE_ZOOM_INT_MASK flag.
-      readyToRestoreZoomMask.set(NOTIFY_RESTORE_ZOOM_INT_MASK)
+      readyToRestoreZoomMask.set(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
     } else {
       readyToRestoreZoomMask.set(0)
     }
@@ -645,7 +632,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   @TestOnly
   fun notifyComponentResizedForTest() {
-    checkIfReadyToRestoreZoom(NOTIFY_COMPONENT_RESIZED_INT_MASK)
+    checkIfReadyToRestoreZoom(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
   }
 
   /**
@@ -663,8 +650,8 @@ abstract class DesignSurface<T : SceneManager>(
   private fun checkIfReadyToRestoreZoom(bitwiseNumber: Int): Boolean {
     val newMask =
       readyToRestoreZoomMask.updateAndGet {
-        if (it == expectedRestoreZoomMask || it == RESTORE_ZOOM_DONE_INT_MASK) {
-          RESTORE_ZOOM_DONE_INT_MASK
+        if (it == expectedRestoreZoomMask || it == ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK) {
+          ZoomMaskConstants.RESTORE_ZOOM_DONE_INT_MASK
         } else {
           it or bitwiseNumber
         }
@@ -1349,5 +1336,35 @@ abstract class DesignSurface<T : SceneManager>(
 
   final override fun add(comp: Component?): Component {
     return super.add(comp)
+  }
+
+  /**
+   * Class to define constants used in the restore zoom logic. These constants are integers masks to
+   * be used in bitwise operations.
+   *
+   * @see [readyToRestoreZoomMask]
+   */
+  private class ZoomMaskConstants {
+    companion object {
+      /**
+       * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
+       *
+       * @see [DesignSurface.notifyRestoreZoom]
+       */
+      const val NOTIFY_RESTORE_ZOOM_INT_MASK = 1
+
+      /**
+       * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
+       *
+       * @see also [DesignSurface.notifyRestoreZoom].
+       */
+      const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
+
+      /**
+       * The expected bitwise Integer when both [DesignSurface] sizes and [Preview] renders are
+       * updated.
+       */
+      const val RESTORE_ZOOM_DONE_INT_MASK = 4
+    }
   }
 }
