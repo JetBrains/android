@@ -1418,12 +1418,13 @@ class ComposePreviewRepresentation(
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
-    val psiFile = SlowOperations.knownIssue("IDEA-359563").use {
-      runReadAction { psiFilePointer.element }
-    } ?: return
+    val psiFile =
+      SlowOperations.knownIssue("IDEA-359563").use { runReadAction { psiFilePointer.element } }
+        ?: return
     BuildAndRefresh { psiFile }
       .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
+
   private val delegateFastPreviewSurface =
     CommonFastPreviewSurface(
       parentDisposable = this,
