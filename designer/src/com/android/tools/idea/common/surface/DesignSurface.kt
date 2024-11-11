@@ -707,13 +707,13 @@ abstract class DesignSurface<T : SceneManager>(
     state.saveFileScale(project, model.virtualFile, zoomController)
   }
 
-  protected fun notifyScaleChanged(previousScale: Double, newScale: Double) {
+  private fun notifyScaleChanged(previousScale: Double, newScale: Double) {
     for (listener in getZoomListeners()) {
       listener.zoomChanged(previousScale, newScale)
     }
   }
 
-  protected fun notifyPanningChanged() {
+  private fun notifyPanningChanged() {
     for (listener in getZoomListeners()) {
       listener.panningChanged()
     }
