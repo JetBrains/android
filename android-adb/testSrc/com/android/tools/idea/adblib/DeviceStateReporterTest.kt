@@ -60,7 +60,7 @@ class DeviceStateReporterTest {
     yieldUntil { getLoggedAdbUsageEvents().isNotEmpty() }
     val adbEvent = getLoggedAdbUsageEvents()[0].adbUsageEvent
 
-    // Assert
+    // Assert: device goes online
     assertEquals(
       AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE,
       adbEvent.deviceStateChangeEvent.deviceState,
@@ -73,7 +73,7 @@ class DeviceStateReporterTest {
     yieldUntil { getLoggedAdbUsageEvents().size == 2 }
     val adbEvent2 = getLoggedAdbUsageEvents()[1].adbUsageEvent
 
-    // Assert
+    // Assert: device gets disconnected
     assertEquals(
       AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED,
       adbEvent2.deviceStateChangeEvent.deviceState,
@@ -88,6 +88,8 @@ class DeviceStateReporterTest {
     // Note that `adbRule.attachDevice` goes through an OFFLINE state very quickly, and it mostly,
     // though not always, isn't registered by a `ConnectedDevice.deviceInfoFlow` which is a
     // `StateFlow`.
+    // delay a little to make sure we register a time difference when going from online to online
+    delay(100)
     adbRule.attachDevice(deviceSerial, "Google", "Pix3l", "versionX", "32")
     yieldUntil { getLoggedAdbUsageEvents().size >= 3 }
     val adbEvent3 = getLoggedAdbUsageEvents()[2].adbUsageEvent
