@@ -16,14 +16,13 @@
 package com.android.tools.idea.editing.documentation
 
 import com.android.SdkConstants
+import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.editing.documentation.AndroidJavaDocExternalFilter.Companion.filterTo
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator
 import com.intellij.codeInsight.navigation.SingleTargetElementInfo
 import com.intellij.codeInsight.navigation.targetPresentation
 import com.intellij.model.Pointer
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.platform.backend.documentation.DocumentationResult
@@ -33,22 +32,15 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.createSmartPointer
-import com.intellij.util.application
-import com.intellij.util.io.HttpRequests
 import java.io.BufferedReader
-import java.io.StringReader
-import org.jetbrains.annotations.VisibleForTesting
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.io.InputStreamReader
+import kotlin.io.path.readText
+import kotlin.time.Duration.Companion.days
 
 private const val DEV_SITE_ROOT = "http://developer.android.com"
 private val HREF_REGEX = Regex("(<A.*?HREF=\")(/[^/])", RegexOption.IGNORE_CASE)
-
-private fun correctLinks(html: String): String {
-  // This is an ugly hack to replace relative URL links with absolute links so that the platform can
-  // correctly follow them. It would be best not to do this, but it's equivalent to what the
-  // platform was already doing in JavaDocExternalFilter. Once we are rendering doc pages on the
-  // server formatted specifically for Studio, we should be able to remove this.
-  return HREF_REGEX.replace(html, "$1$DEV_SITE_ROOT$2")
-}
 
 private fun isNavigatableQuickDoc(source: PsiElement?, target: PsiElement) =
   target !== source && target !== source?.parent
@@ -80,6 +72,17 @@ class AndroidSdkDocumentationTargetProvider : PsiDocumentationTargetProvider {
     return JarFileSystem.getInstance().getVirtualFileForJar(virtualFile)?.name ==
       SdkConstants.FN_FRAMEWORK_LIBRARY
   }
+}
+
+private fun InputStream.filter(): InputStream {
+  val stringBuilder = StringBuilder()
+  BufferedReader(InputStreamReader(this)).filterTo(stringBuilder)
+  // This is an ugly hack to replace relative URL links with absolute links so that the platform
+  // can correctly follow them. It would be best not to do this, but it's equivalent to what the
+  // platform was already doing in JavaDocExternalFilter. Once we are rendering doc pages on the
+  // server formatted specifically for Studio, we should be able to remove this.
+  val corrected = HREF_REGEX.replace(stringBuilder.toString(), "$1$DEV_SITE_ROOT$2")
+  return ByteArrayInputStream(corrected.toByteArray())
 }
 
 /** A [DocumentationTarget] representing a class in the Android SDK. */
@@ -122,15 +125,17 @@ private constructor(
   }
 
   private fun getDocumentationHtml(): String {
-    val content = UrlReaderService.getInstance().readUrl(url)
-    if (!content.isNullOrEmpty()) {
-      val html = buildString { BufferedReader(StringReader(content)).filterTo(this) }
-      if (html.isNotEmpty()) return correctLinks(html)
+    try {
+      val html =
+        UrlFileCache.getInstance(targetElement.project)
+          .get(url, maxFileAge = 1.days) { it.filter() }
+          .readText()
+      if (html.isNotEmpty()) return html
+    } catch (e: Exception) {
+      thisLogger().warn("Failed to fetch documentation URL.", e)
     }
 
-    localJavaDocInfo?.let {
-      return it
-    }
+    if (localJavaDocInfo != null) return localJavaDocInfo
 
     thisLogger().error("Couldn't get local java docs for ${targetElement.qualifiedName}.")
     return "Unable to load documentation for <code>${targetElement.qualifiedName}</code>."
@@ -151,26 +156,5 @@ private constructor(
 
       return AndroidSdkClassDocumentationTarget(targetElement, sourceElement, url, localJavaDocInfo)
     }
-  }
-}
-
-/**
- * Service used to encapsulate fetching a URL for documentation. This service only exists for
- * testing purposes, so that it can be more easily mocked.
- */
-@Service
-@VisibleForTesting
-class UrlReaderService {
-  fun readUrl(url: String): String? {
-    try {
-      return HttpRequests.request(url).readString()
-    } catch (e: Exception) {
-      thisLogger().warn("Failed to fetch documentation URL.", e)
-      return null
-    }
-  }
-
-  companion object {
-    fun getInstance(): UrlReaderService = application.service<UrlReaderService>()
   }
 }

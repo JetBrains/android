@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.benchmark
+package com.android.tools.idea.downloads
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.HttpRequests.HttpStatusException
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpServer
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
@@ -35,12 +31,20 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 private const val LOCALHOST = "127.0.0.1"
 private const val LAST_MODIFIED = "last modified header value"
 private const val ETAG = "etag header value"
-private val FILES = listOf("/path/to/file1" to "Hey these are the great contents of my file.",
-                          "/path/to/file2" to  "This file isn't quite as great.")
+private val FILES =
+  listOf(
+    "/path/to/file1" to "Hey these are the great contents of my file.",
+    "/path/to/file2" to "This file isn't quite as great.",
+  )
 
 /** Tests the [UrlFileCache] class. */
 @RunWith(JUnit4::class)
@@ -84,9 +88,10 @@ class UrlFileCacheTest {
   fun get_fresh_transform() {
     serveTextFile(FILES[0])
 
-    val path = urlFileCache.get(url + FILES[0].first) {
-      ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
-    }
+    val path =
+      urlFileCache.get(url + FILES[0].first) {
+        ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
+      }
     assertThat(path).isNotEmpty()
     assertThat(path.exists()).isTrue()
     assertThat(path.isRegularFile()).isTrue()
@@ -132,7 +137,7 @@ class UrlFileCacheTest {
     serveTextFile(FILES[0])
 
     val initialPath = urlFileCache.get(url + FILES[0].first)
-    val repeatedPath = urlFileCache.get(url + FILES[0].first, Duration.INFINITE.inWholeMilliseconds)
+    val repeatedPath = urlFileCache.get(url + FILES[0].first, Duration.INFINITE)
 
     assertThat(repeatedPath).isEqualTo(initialPath)
     assertThat(initialPath.exists()).isTrue()
@@ -178,9 +183,10 @@ class UrlFileCacheTest {
   fun get_repeated_notModifiedHeader_withCache_transform() {
     // Load up the cache.
     serveTextFile(FILES[0])
-    val initialPath = urlFileCache.get(url + FILES[0].first) {
-      ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
-    }
+    val initialPath =
+      urlFileCache.get(url + FILES[0].first) {
+        ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
+      }
     server.removeContext(FILES[0].first)
 
     server.createContext(FILES[0].first) {
@@ -189,9 +195,10 @@ class UrlFileCacheTest {
     }
 
     // The transform should not be repeated
-    val repeatedPath = urlFileCache.get(url + FILES[0].first) {
-      ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
-    }
+    val repeatedPath =
+      urlFileCache.get(url + FILES[0].first) {
+        ByteArrayInputStream(String(it.readAllBytes()).reversed().toByteArray())
+      }
 
     assertThat(repeatedPath).isEqualTo(initialPath)
     assertThat(repeatedPath.exists()).isTrue()
@@ -202,12 +209,15 @@ class UrlFileCacheTest {
   @Test
   fun get_repeated_usesLastModifiedHeaders() {
     // Load up the cache.
-    serveTextFile(FILES[0], responseHeaders = mapOf("Last-Modified" to LAST_MODIFIED, "ETag" to ETAG))
+    serveTextFile(
+      FILES[0],
+      responseHeaders = mapOf("Last-Modified" to LAST_MODIFIED, "ETag" to ETAG),
+    )
 
     urlFileCache.get(url + FILES[0].first)
     server.removeContext(FILES[0].first)
 
-    lateinit var requestHeaders: Headers
+    var requestHeaders = Headers()
     server.createContext(FILES[0].first) {
       requestHeaders = it.requestHeaders
       it.responseHeaders.add("Content-Type", "text/plain")
@@ -219,6 +229,11 @@ class UrlFileCacheTest {
     urlFileCache.get(url + FILES[0].first)
     assertThat(requestHeaders["If-Modified-Since"]).containsExactly(LAST_MODIFIED)
     assertThat(requestHeaders["If-None-Match"]).containsExactly(ETAG)
+
+    // The last response didn't have the headers so we should not have those on the next request.
+    urlFileCache.get(url + FILES[0].first)
+    assertThat(requestHeaders["If-Modified-Since"]).isNull()
+    assertThat(requestHeaders["If-None-Match"]).isNull()
   }
 
   @Test
@@ -233,15 +248,20 @@ class UrlFileCacheTest {
     parents.forEach { assertThat(it.exists()).isFalse() }
   }
 
-  private fun serveTextFile(pathAndContent: Pair<String, String>, responseHeaders: Map<String, String> = mapOf()) {
+  private fun serveTextFile(
+    pathAndContent: Pair<String, String>,
+    responseHeaders: Map<String, String> = mapOf(),
+  ) {
     serveFile(pathAndContent.first, pathAndContent.second.toByteArray(), responseHeaders)
   }
 
-  private fun serveFile(path: String, content: ByteArray, responseHeaders: Map<String, String> = mapOf()) {
+  private fun serveFile(
+    path: String,
+    content: ByteArray,
+    responseHeaders: Map<String, String> = mapOf(),
+  ) {
     server.createContext(path) { ex ->
-      responseHeaders.forEach {
-        ex.responseHeaders.add(it.key, it.value)
-      }
+      responseHeaders.forEach { ex.responseHeaders.add(it.key, it.value) }
       ex.responseHeaders.add("Content-Type", "text/plain")
       ex.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0)
       ex.responseBody.write(content)

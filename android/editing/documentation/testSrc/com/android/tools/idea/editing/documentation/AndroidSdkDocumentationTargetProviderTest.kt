@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.editing.documentation
 
+import com.android.mockito.kotlin.getTypedArgument
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
+import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.google.common.truth.Truth.assertThat
@@ -34,6 +36,11 @@ import com.intellij.psi.PsiClass
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -43,6 +50,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -60,25 +71,36 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
   private val fixture by lazy { projectRule.fixture }
   private val project by lazy { projectRule.project }
 
-  private val mockUrlReaderService: UrlReaderService = mock()
+  private val documentationContentFromServer by lazy {
+    Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.html"))
+  }
+
+  private val mockUrlFileCache: UrlFileCache = mock {
+    on { get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()) } doAnswer
+      { invocationOnMock ->
+        val fileToReturn = File(fixture.tempDirPath, "serverContent.tmp")
+        if (!fileToReturn.exists()) {
+          ByteArrayInputStream(documentationContentFromServer.toByteArray()).use {
+            serverContentStream ->
+            val filter: (InputStream) -> InputStream = invocationOnMock.getTypedArgument(3)
+            filter.invoke(serverContentStream).use { filteredStream ->
+              FileOutputStream(fileToReturn).use { it.write(filteredStream.readAllBytes()) }
+            }
+          }
+        }
+        fileToReturn.toPath()
+      }
+  }
 
   @Before
   fun setUp() {
-    application.replaceService(
-      UrlReaderService::class.java,
-      mockUrlReaderService,
-      fixture.testRootDisposable,
-    )
+    project.replaceService(UrlFileCache::class.java, mockUrlFileCache, fixture.testRootDisposable)
   }
 
   @Test
   fun checkDocumentation() {
-    val documentationContentFromServer =
-      Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.html"))
     val documentationContentAfterFiltering =
       Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.Rendered.html"))
-    whenever(mockUrlReaderService.readUrl(ACTIVITY_DOC_URL))
-      .thenReturn(documentationContentFromServer)
 
     setUpCursorForActivity()
     val doc = getDocsAtCursor().single()
@@ -94,7 +116,9 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
 
   @Test
   fun checkDocumentationWhenServerUnavailable() {
-    whenever(mockUrlReaderService.readUrl(ACTIVITY_DOC_URL)).thenReturn("")
+    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any())).then {
+      throw IOException()
+    }
 
     setUpCursorForActivity()
     val doc = getDocsAtCursor().single()
@@ -123,7 +147,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
     assertThat(documentationHint).contains("class")
     assertThat(documentationHint).contains("Activity")
 
-    verifyNoInteractions(mockUrlReaderService)
+    verifyNoInteractions(mockUrlFileCache)
   }
 
   @Test
@@ -150,11 +174,6 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
 
   @Test
   fun noRemoteDocumentationWhenLocalSourcesArePresent() {
-    val documentationContentFromServer =
-      Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.html"))
-    whenever(mockUrlReaderService.readUrl(ACTIVITY_DOC_URL))
-      .thenReturn(documentationContentFromServer)
-
     setUpCursorForActivity()
     val docWithNoSources = getDocsAtCursor().single()
 
