@@ -15,10 +15,10 @@
  */
 package com.google.idea.blaze.qsync.deps;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -29,6 +29,7 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
 import java.nio.file.Path;
+import java.util.Collection;
 
 /** Information about a project dependency that is calculated when the dependency is built. */
 @AutoValue
@@ -81,11 +82,30 @@ public abstract class JavaArtifactInfo {
    *
    * <p>See {@link NewArtifactTracker#getUniqueTargetBuildInfos} to understand why this exists.
    * */
-  public boolean equalsIgnoringJars(JavaArtifactInfo that) {
-    return this.toBuilder()
-        .setJars(ImmutableList.of())
-        .build()
-        .equals(that.toBuilder().setJars(ImmutableList.of()).build());
+  public boolean equalsIgnoringJarsAndGenSrcsAndConfigurationDifferences(JavaArtifactInfo that) {
+    // TODO: b/376833687 - Replace de-duplication with proper target configuration tracking.
+    //   if (!artifactNoConfigurationPaths(jars()).equals(artifactNoConfigurationPaths(that.jars()))) return false;
+    if (!artifactNoConfigurationPaths(ideAars()).equals(artifactNoConfigurationPaths(that.ideAars()))) return false;
+    //    if (!artifactNoConfigurationPaths(genSrcs()).equals(artifactNoConfigurationPaths(that.genSrcs()))) return false;
+    if (!noConfigurationPaths(sources()).equals(noConfigurationPaths(that.sources()))) return false;
+    if (!noConfigurationPaths(srcJars()).equals(noConfigurationPaths(that.srcJars()))) return false;
+    if (!androidResourcesPackage().equals(that.androidResourcesPackage())) return false;
+    return true;
+  }
+
+  private ImmutableList<Path> artifactNoConfigurationPaths(Collection<BuildArtifact> artifacts) {
+    return artifacts.stream().map(it -> dropConfigurationPath(it.artifactPath())).collect(toImmutableList());
+  }
+
+  private ImmutableList<Path> noConfigurationPaths(Collection<Path> artifacts) {
+    return artifacts.stream().map(this::dropConfigurationPath).collect(toImmutableList());
+  }
+
+  private Path dropConfigurationPath(Path path) {
+    if (path.startsWith("bazel-out") || path.startsWith("blaze-out")) {
+      return path.subpath(2, path.getNameCount());
+    }
+    return path;
   }
 
   public static Builder builder() {
