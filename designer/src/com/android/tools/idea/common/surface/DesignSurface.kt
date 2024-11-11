@@ -1365,7 +1365,7 @@ abstract class DesignSurface<T : SceneManager>(
       const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
 
       /**
-       * The expected bitwise Integer when both [DesignSurface] sizes and [Preview] renders are
+       * The expected bitwise Integer when both [DesignSurface] sizes and preview renders are
        * updated.
        */
       const val RESTORE_ZOOM_DONE_INT_MASK = 4
