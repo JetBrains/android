@@ -309,7 +309,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
         uniqueTargetInfo.put(t, Iterables.getOnlyElement(targetInfos));
       } else {
         TargetBuildInfo first = Iterables.get(targetInfos, 0);
-        if (targetInfos.stream().skip(1).allMatch(first::equalsIgnoringJavaCompileJars)) {
+        if (targetInfos.stream().skip(1).allMatch(first::equalsIgnoringJarsAndGenSrcsAndConfigurationDifferences)) {
           JavaArtifactInfo.Builder combinedJava =
               first.javaInfo().map(JavaArtifactInfo::toBuilder).orElse(null);
           if (combinedJava != null) {
