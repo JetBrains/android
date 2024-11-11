@@ -18,20 +18,19 @@ package com.android.tools.idea.backup
 
 import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupBundle.message
-import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.RunConfigSection
 import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
+import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindSelected
-import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import java.awt.Component
@@ -111,19 +110,14 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     restoreSupported.set(!instantAppDeploy)
   }
 
-  private fun Row.backupFileChooser(width: Int): Cell<TextFieldWithBrowseButton> {
-    val cell =
-      textFieldWithBrowseButton(
-        FILE_CHOOSER_DESCRIPTOR.withTitle(message("backup.choose.restore.file.dialog.title")),
-        project
-      ) {
-        val file = it.path
-        val basePath = project.basePath
-        file.takeIf { basePath == null } ?: file.removePrefix("$basePath/")
-      }
-    return cell.apply {
+  private fun Row.backupFileChooser(width: Int): Cell<BackupFileTextField> {
+    return cell(BackupFileTextField.createFileChooser(project)).applyToComponent {
       // TODO(aalbert): Figure out how to resize this properly. `Cell.resizeableColumn` doesn't work
-      applyToComponent { preferredSize = Dimension(JBUI.scale(width), preferredSize.height) }
+      preferredSize = Dimension(JBUI.scale(width), preferredSize.height)
     }
   }
+}
+
+fun Cell<BackupFileTextField>.bindText(property: ObservableMutableProperty<String>): Cell<BackupFileTextField> {
+  return applyToComponent { textComponent.bind(property) }
 }

@@ -17,18 +17,11 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
-import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
-import com.intellij.ui.TextAccessor
-import com.intellij.ui.TextFieldWithHistory
-import com.intellij.ui.TextFieldWithStoredHistory
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
 import org.jetbrains.annotations.VisibleForTesting
@@ -42,9 +35,7 @@ import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import kotlin.io.path.exists
 import kotlin.io.path.extension
-import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.pathString
-import kotlin.io.path.relativeToOrSelf
 
 private const val APPLICATION_ID_FIELD_WIDTH = 300
 private const val TYPE_FIELD_WIDTH = 100
@@ -66,8 +57,7 @@ internal class BackupDialog(
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
       name = "typeComboBox"
     }
-  private val fileTextField =
-    TextFieldWithStoredHistoryWithBrowseButton().apply { name = "fileTextField" }
+  private val fileTextField = BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }.apply { name = "fileTextField" }
   private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
@@ -77,7 +67,7 @@ internal class BackupDialog(
 
   val backupPath: Path
     get() {
-      val path = Path.of(fileTextField.text).absolute()
+      val path = Path.of(fileTextField.text).absoluteInProject(project)
       return when (path.extension) {
         BackupFileType.defaultExtension -> path
         else -> Path.of("${path.pathString}.${BackupFileType.defaultExtension}")
@@ -106,19 +96,6 @@ internal class BackupDialog(
     val applicationIdLabel = JLabel("Application ID:")
     val typeLabel = JLabel("Backup type:")
     val fileLabel = JLabel("Backup file:")
-
-    fileTextField.addActionListener {
-      val path =
-        FileChooserFactory.getInstance()
-          .createSaveFileDialog(FILE_SAVER_DESCRIPTOR, project)
-          .save(backupPath.parent, backupPath.nameWithoutExtension)
-          ?.file
-          ?.toPath()
-      if (path != null) {
-        fileTextField.setTextAndAddToHistory(path.relative().pathString)
-        fileSetByChooser = true
-      }
-    }
 
     fileTextField.text = getLastUsedFile()
 
@@ -183,7 +160,7 @@ internal class BackupDialog(
   }
 
   override fun doOKAction() {
-    setLastUsedFile(backupPath.relative().pathString)
+    setLastUsedFile(backupPath.relativeToProject(project).pathString)
     setLastUsedType(typeComboBox.item)
     if (backupPath.exists() && !fileSetByChooser) {
       @Suppress("DialogTitleCapitalization")
@@ -217,35 +194,6 @@ internal class BackupDialog(
 
   private fun setLastUsedType(type: BackupType) {
     properties.setValue(LAST_USED_TYPE_KEY, type.name)
-  }
-
-  private fun Path.relative() = relativeToOrSelf(Path.of(project.basePath!!))
-
-  private fun Path.absolute(): Path {
-    val projectDir = project.guessProjectDir()!!.toNioPath()
-    return when {
-      isAbsolute -> this
-      else -> projectDir.resolve(this)
-    }
-  }
-
-  /** Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton] */
-  private class TextFieldWithStoredHistoryWithBrowseButton :
-    ComponentWithBrowseButton<TextFieldWithHistory>(
-      TextFieldWithStoredHistory("Backup.File.History"),
-      null,
-    ),
-    TextAccessor {
-
-    fun setTextAndAddToHistory(text: String) {
-      childComponent.setTextAndAddToHistory(text)
-    }
-
-    override fun setText(text: String) {
-      childComponent.text = text
-    }
-
-    override fun getText(): String = childComponent.text
   }
 
   companion object {
