@@ -26,8 +26,9 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.js.inline.util.toIdentitySet
 import java.awt.Image
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.concurrent.CompletableFuture
 import javax.swing.JTextField
 
@@ -35,6 +36,15 @@ import javax.swing.JTextField
  * Maximum number of files to import at a time.
  */
 const val MAX_IMPORT_FILES = 400
+
+private fun <T> Collection<T>.toIdentitySet(): MutableSet<T> {
+  val result = Collections.newSetFromMap<T>(IdentityHashMap())
+  for (element in this) {
+    result.add(element)
+  }
+
+  return result
+}
 
 /**
  * ViewModel for [ResourceImportDialogViewModel]
