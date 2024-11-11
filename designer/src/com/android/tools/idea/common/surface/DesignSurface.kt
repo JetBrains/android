@@ -589,7 +589,7 @@ abstract class DesignSurface<T : SceneManager>(
    * bitwise values of [ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK],
    * [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can restore the zoom.
    */
-  private val readyToRestoreZoomMask = AtomicInteger(0)
+  private val readyToRestoreZoomMask = AtomicInteger(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
 
   /**
    * Notify to [DesignSurface] that we can now try to restore the zoom or apply zoom to fit if no
@@ -626,7 +626,7 @@ abstract class DesignSurface<T : SceneManager>(
       // we can just set the bitwise map with the NOTIFY_RESTORE_ZOOM_INT_MASK flag.
       readyToRestoreZoomMask.set(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
     } else {
-      readyToRestoreZoomMask.set(0)
+      readyToRestoreZoomMask.set(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
     }
   }
 
@@ -1346,6 +1346,10 @@ abstract class DesignSurface<T : SceneManager>(
    */
   private class ZoomMaskConstants {
     companion object {
+
+      /** Constant to represent the initial state, where none of the values below are set. */
+      const val INITIAL_STATE_INT_MASK = 0
+
       /**
        * Number used as part of the bitwise mask to notify [DesignSurface] to restore zoom.
        *
