@@ -86,6 +86,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -105,7 +106,6 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -371,7 +371,7 @@ class DeviceViewPanelWithFullInspectorTest {
       checkDeviceAction(
         children[3],
         enabled = true,
-        StudioIcons.Shell.Toolbar.STOP,
+        AllIcons.Run.Stop,
         "Stop Inspector",
       )
     } else if (dropDownAction is SelectDeviceAction) {
@@ -401,7 +401,7 @@ class DeviceViewPanelWithFullInspectorTest {
       checkDeviceAction(
         children[3],
         enabled = true,
-        StudioIcons.Shell.Toolbar.STOP,
+        AllIcons.Run.Stop,
         "Stop Inspector",
       )
     }
