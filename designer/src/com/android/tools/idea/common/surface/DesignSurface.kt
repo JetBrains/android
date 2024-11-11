@@ -608,8 +608,8 @@ abstract class DesignSurface<T : SceneManager>(
 
   /**
    * Resets the bitwise mask responsible to check weather restoring zoom or waiting for
-   * [notifyRestoreZoom]. Resetting will allow DesignSurface to call
-   * [waitForRenderBeforeRestoringZoom] as if it happens for the first time.
+   * [notifyRestoreZoom]. Resetting will allow DesignSurface to call [restoreZoomOrZoomToFit] as if
+   * it happens for the first time.
    *
    * This is useful when we switch modes or layouts.
    *
@@ -622,7 +622,7 @@ abstract class DesignSurface<T : SceneManager>(
         height > 0 &&
         width > 0
     ) {
-      // If we have performed already the first [DesignSurface.waitForRenderBeforeRestoringZoom]
+      // If we have performed already the first [DesignSurface.restoreZoomOrZoomToFit]
       // we can just set the bitwise map with the NOTIFY_RESTORE_ZOOM_INT_MASK flag.
       readyToRestoreZoomMask.set(ZoomMaskConstants.NOTIFY_RESTORE_ZOOM_INT_MASK)
     } else {
