@@ -607,13 +607,13 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Resets the bitwise mask responsible to check weather restoring zoom or waiting for
+   * Resets the bitwise mask responsible to check whether restoring zoom or waiting for
    * [notifyRestoreZoom]. Resetting will allow DesignSurface to call [restoreZoomOrZoomToFit] as if
    * it happens for the first time.
    *
    * This is useful when we switch modes or layouts.
    *
-   * Note: if [waitForRenderBeforeRestoringZoom] is enabledit will wait [notifyRestoreZoom] to be
+   * Note: if [waitForRenderBeforeRestoringZoom] is enabled, it will wait [notifyRestoreZoom] to be
    * performed at least once before trying to restore the zoom.
    */
   fun resetRestoreZoomNotifier() {
