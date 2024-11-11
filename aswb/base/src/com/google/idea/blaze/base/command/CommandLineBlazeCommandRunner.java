@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException.ThrowOption;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
+import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.execution.BazelGuard;
 import com.google.idea.blaze.base.execution.ExecutionDeniedException;
@@ -44,6 +45,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtilRt;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,6 +84,8 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
           Optional.ofNullable(context.getScope(SharedStringPoolScope.class))
               .map(SharedStringPoolScope::getStringInterner)
               .orElse(null);
+      ParsedBepOutput buildOutput = buildResultHelper.getBuildOutput(stringInterner);
+      context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
       return BlazeBuildOutputs.fromParsedBepOutput(
           buildResult, buildResultHelper.getBuildOutput(stringInterner));
     } catch (GetArtifactsException e) {
