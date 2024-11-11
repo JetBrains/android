@@ -166,12 +166,10 @@ abstract class DesignSurface<T : SceneManager>(
   interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
   positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
-  // defined as open.
-  // "open" can be removed if we remove the mocks.
+  // defined as open. "open" can be removed if we remove the mocks.
   open val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
-  // defined as open.
-  // "open" can be removed if we remove the mocks.
+  // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
   waitForRenderBeforeRestoringZoom: Boolean = false,
