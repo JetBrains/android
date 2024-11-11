@@ -206,6 +206,7 @@ class ProjectDumper(
       .removeAndroidVersionsFromPath()
       .replace(transformFolderPattern, "/<TRANSFORMS>/")
       .replace(gradleVersionWithoutPrefixPattern, "/<GRADLE_VERSION>/")
+      .replaceKotlinVersionForTests()
 
   fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 

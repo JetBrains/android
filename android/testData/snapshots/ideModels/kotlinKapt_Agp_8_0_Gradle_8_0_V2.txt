@@ -2486,7 +2486,7 @@ MODULE                        : MainActivity.app
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             localDebug                    : KotlinTaskPropertiesImpl
@@ -2602,7 +2602,7 @@ MODULE                        : MainActivity.javaLib
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -3729,7 +3729,7 @@ MODULE                        : MainActivity.lib
             major                         : 2
             minor                         : 1
             patch                         : 0
-            versionString                 : 2.1.0-Beta2
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
