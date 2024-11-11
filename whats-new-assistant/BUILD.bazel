@@ -1,0 +1,92 @@
+### auto-generated section `build intellij.android.whats-new-assistant` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "whats-new-assistant_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "whats-new-assistant",
+  module_name = "intellij.android.whats-new-assistant",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:http-client",
+    "@lib//:jaxb-api",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/app-inspection/ide:android-app-inspection-ide",
+    "//android/assistant",
+    "//android/build-attribution",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/streaming",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+  ],
+  runtime_deps = [":whats-new-assistant_resources"]
+)
+### auto-generated section `build intellij.android.whats-new-assistant` end
+
+### auto-generated section `build intellij.android.whats-new-assistant-test` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "whats-new-assistant-test",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "whats-new-assistant-test_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/assistant",
+    "//android/build-attribution",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//android/whats-new-assistant",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.whats-new-assistant-test` end

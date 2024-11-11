@@ -1,0 +1,46 @@
+### auto-generated section `build intellij.android.server-flags` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_resources(
+  name = "server-flags_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "server-flags",
+  module_name = "intellij.android.server-flags",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//platform/core-api:core",
+  ],
+  runtime_deps = [":server-flags_resources"]
+)
+
+kt_jvm_test(
+  name = "server-flags_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":server-flags"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:android_server-flags_libserver-flag-test-proto",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//platform/core-api:core",
+  ],
+  runtime_deps = [":server-flags_resources"]
+)
+### auto-generated section `build intellij.android.server-flags` end

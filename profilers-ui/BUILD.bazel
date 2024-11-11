@@ -1,0 +1,112 @@
+### auto-generated section `build intellij.android.profilers.ui` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  context_receivers = True
+)
+
+jvm_resources(
+  name = "profilers-ui_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "profilers-ui",
+  module_name = "intellij.android.profilers.ui",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:java_compatibility",
+    "@lib//:fastutil-min",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-html-jvm",
+    "//android/adt-ui",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-model",
+    "//android/artwork",
+    "//android/codenavigation",
+    "//android/android-common:common",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/profilers",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//android/artwork-compose",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+  ],
+  runtime_deps = [":profilers-ui_resources"]
+)
+
+kt_jvm_test(
+  name = "profilers-ui_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  associates = [":profilers-ui"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:android_profilers_ui_traceprocessor-protos",
+    "@lib//:guava",
+    "@lib//:java_compatibility",
+    "@lib//:fastutil-min",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-html-jvm",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/adt-ui",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-model",
+    "//android/artwork",
+    "//android/codenavigation",
+    "//android/android-common:common",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/profilers",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-transport:transport",
+    "//android/android-transport:transport_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//android/artwork-compose",
+  ],
+  runtime_deps = [":profilers-ui_resources"]
+)
+### auto-generated section `build intellij.android.profilers.ui` end

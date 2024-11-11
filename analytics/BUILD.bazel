@@ -1,0 +1,55 @@
+### auto-generated section `build intellij.android.analytics` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "analytics",
+  module_name = "intellij.android.analytics",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:hdr_histogram",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/android-common:common",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-ex",
+  ]
+)
+
+kt_jvm_test(
+  name = "analytics_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":analytics"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:hdr_histogram",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "//android/android-common:common",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-ex",
+  ]
+)
+### auto-generated section `build intellij.android.analytics` end

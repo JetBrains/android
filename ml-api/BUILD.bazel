@@ -1,0 +1,61 @@
+### auto-generated section `build intellij.android.ml-api` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "ml-api_resources",
+  files = glob(["src/resources/**/*"]),
+  strip_prefix = "src/resources"
+)
+
+jvm_library(
+  name = "ml-api",
+  module_name = "intellij.android.ml-api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "//platform/code-style-api:codeStyle",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor",
+    "//platform/core-ui",
+    "//platform/core-impl",
+    "//platform/platform-impl:ide-impl",
+  ],
+  runtime_deps = [":ml-api_resources"]
+)
+### auto-generated section `build intellij.android.ml-api` end
+
+### auto-generated section `build intellij.android.ml-api-tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "ml-api-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "ml-api-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlin-test",
+    "//android/ml-api",
+    "@lib//:junit4",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+  ]
+)
+### auto-generated section `build intellij.android.ml-api-tests` end

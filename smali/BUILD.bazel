@@ -1,0 +1,67 @@
+### auto-generated section `build intellij.android.smali` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_resources(
+  name = "smali_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "smali",
+  module_name = "intellij.android.smali",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/diff-api:diff",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":smali_resources"]
+)
+
+kt_jvm_test(
+  name = "smali_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":smali"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/diff-api:diff",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/adt-testutils:adt-testutils_test",
+    "//platform/core-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+  ],
+  runtime_deps = [":smali_resources"]
+)
+### auto-generated section `build intellij.android.smali` end

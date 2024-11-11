@@ -1,0 +1,56 @@
+### auto-generated section `build intellij.android.observable.ui` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "observable-ui",
+  module_name = "intellij.android.observable.ui",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-ui",
+    "//android/observable",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/util",
+    "//platform/util:util-ui",
+  ]
+)
+
+kt_jvm_test(
+  name = "observable-ui_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":observable-ui"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/adt-ui",
+    "//android/observable",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/adt-testutils:adt-testutils_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+  ]
+)
+### auto-generated section `build intellij.android.observable.ui` end

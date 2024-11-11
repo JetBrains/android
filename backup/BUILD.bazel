@@ -1,0 +1,104 @@
+### auto-generated section `build intellij.android.backup` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "backup_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "backup",
+  module_name = "intellij.android.backup",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/artwork",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/backup:backup-api",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/execution/common:android-execution-common",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/execution",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:guava",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/core-ui",
+    "//platform/execution-impl",
+    "//platform/progress/shared:ide-progress",
+    "//android/streaming",
+  ],
+  runtime_deps = [":backup_resources"]
+)
+### auto-generated section `build intellij.android.backup` end
+
+### auto-generated section `build intellij.android.backup.api` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_library(
+  name = "backup-api",
+  module_name = "intellij.android.backup.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["api/src/**/*.kt", "api/src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+  ]
+)
+### auto-generated section `build intellij.android.backup.api` end
+
+### auto-generated section `build intellij.android.backup.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "backup-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "backup-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-test",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test",
+    "//android/backup",
+    "//android/backup:backup-api",
+    "//android/android:core",
+    "//android/android-common:common",
+    "//android/project-system:projectSystem",
+    "//android/android-test-framework:testFramework_test",
+    "@lib//:junit4",
+    "//platform/editor-ui-api:editor",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "@lib//:protobuf",
+  ]
+)
+### auto-generated section `build intellij.android.backup.tests` end

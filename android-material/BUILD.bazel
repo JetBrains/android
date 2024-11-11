@@ -1,0 +1,66 @@
+### auto-generated section `build intellij.android.android-material` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_library(
+  name = "android-material",
+  module_name = "intellij.android.android-material",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:kotlin-stdlib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+  ]
+)
+### auto-generated section `build intellij.android.android-material` end
+
+### auto-generated section `build intellij.android.android-material.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "android-material-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "android-material-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testResources/**/*.kt", "testResources/**/*.java", "testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-material",
+    "//android/android:core",
+    "//android/android-test-framework:testFramework_test",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/ide-core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test",
+  ]
+)
+### auto-generated section `build intellij.android.android-material.tests` end

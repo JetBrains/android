@@ -1,0 +1,23 @@
+### auto-generated section `build intellij.android.as-driver.integration` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "android-as-driver-integration",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "android-as-driver-integration_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/as-driver/utils:android-as-driver-utils_test",
+  ]
+)
+### auto-generated section `build intellij.android.as-driver.integration` end

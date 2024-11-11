@@ -1,0 +1,48 @@
+### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.model` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "android-app-inspection-inspectors-backgroundtask-model",
+  module_name = "intellij.android.app-inspection.inspectors.backgroundtask.model",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/app-inspection/api:android-app-inspection-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/codenavigation",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+  ]
+)
+
+kt_jvm_test(
+  name = "android-app-inspection-inspectors-backgroundtask-model_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":android-app-inspection-inspectors-backgroundtask-model"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/app-inspection/api:android-app-inspection-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/codenavigation",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/adt-testutils:adt-testutils_test",
+  ]
+)
+### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.model` end

@@ -1,0 +1,143 @@
+### auto-generated section `build intellij.android.logcat` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "logcat_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "logcat",
+  module_name = "intellij.android.logcat",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/android-adb-ui:adb-ui",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/logcat:logcat-tests",
+    "//android/project-system:projectSystem",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/java-indexing-api:indexing",
+    "//json",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/diff-api:diff",
+    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-ex:editor-ex",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-frontback:frontback",
+    "//android/ml-api",
+  ],
+  runtime_deps = [":logcat_resources"]
+)
+### auto-generated section `build intellij.android.logcat` end
+
+### auto-generated section `build intellij.android.logcat.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "logcat-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "logcat-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:gson",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/logcat",
+    "//android/project-system:projectSystem",
+    "//android/android-test-framework:testFramework_test",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl:java-debugger-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-indexing-api:indexing",
+    "//java/java-psi-api:psi",
+    "//json",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/editor-ui-ex:editor-ex",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test",
+    "//platform/util:util-ui",
+    "//xml/xml-frontback:frontback",
+    "//android/ml-api",
+  ]
+)
+### auto-generated section `build intellij.android.logcat.tests` end

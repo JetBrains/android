@@ -1,0 +1,91 @@
+### auto-generated section `build intellij.android.projectSystem` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "projectSystem_resources",
+  files = glob(["src/META-INF/project-system-plugin.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "projectSystem",
+  module_name = "intellij.android.projectSystem",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:kotlinx-collections-immutable",
+    "//android/android-common:common",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/ide-core",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//xml/dom-openapi:dom",
+  ],
+  runtime_deps = [":projectSystem_resources"]
+)
+### auto-generated section `build intellij.android.projectSystem` end
+
+### auto-generated section `build intellij.android.projectSystem.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "projectSystem-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "projectSystem-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "//android/android-test-framework:testFramework",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//jps/model-api:model",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.tests` end

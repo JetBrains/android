@@ -1,0 +1,53 @@
+### auto-generated section `build intellij.android.kotlin.extensions.common` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "android-kotlin-extensions-common_resources",
+  files = glob(["src/META-INF/android-kotlin-extensions-common.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-kotlin-extensions-common",
+  module_name = "intellij.android.kotlin.extensions.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:gradle",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_android-extensions-compiler-plugin.provided",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_kotlin-jps-common.provided",
+    "//android/android-kotlin/android-extensions-toolingExtension:android-kotlin-extensions-tooling",
+    "//plugins/gradle:gradle-common",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//plugins/kotlin/base/facet:kotlin-base-facet",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/gradle/gradle-java:kotlin-gradle-gradle-java",
+    "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
+    "//plugins/kotlin/highlighting/highlighting-minimal:kotlin-highlighting-minimal",
+  ],
+  runtime_deps = [":android-kotlin-extensions-common_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.extensions.common` end

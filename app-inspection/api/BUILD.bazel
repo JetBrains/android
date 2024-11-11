@@ -1,0 +1,55 @@
+### auto-generated section `build intellij.android.app-inspection.api` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "android-app-inspection-api",
+  module_name = "intellij.android.app-inspection.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:grpc-core",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android-transport:transport",
+    "//platform/util",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+  ]
+)
+
+kt_jvm_test(
+  name = "android-app-inspection-api_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":android-app-inspection-api"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:grpc-core",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android-transport:transport",
+    "//platform/util",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/android-test-framework:testFramework_test",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+  ]
+)
+### auto-generated section `build intellij.android.app-inspection.api` end

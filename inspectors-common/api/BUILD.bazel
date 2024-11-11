@@ -1,0 +1,49 @@
+### auto-generated section `build intellij.android.inspectors-common.api` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "android-inspectors-common-api",
+  module_name = "intellij.android.inspectors-common.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-ui-model",
+    "//android/codenavigation",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+  ]
+)
+
+kt_jvm_test(
+  name = "android-inspectors-common-api_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":android-inspectors-common-api"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/adt-ui-model",
+    "//android/codenavigation",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+    "//android/adt-testutils:adt-testutils_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+  ]
+)
+### auto-generated section `build intellij.android.inspectors-common.api` end

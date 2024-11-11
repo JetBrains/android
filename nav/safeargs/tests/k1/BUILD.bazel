@@ -1,0 +1,57 @@
+### auto-generated section `build intellij.android.nav.safeargs.tests.k1` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "android-nav-safeargs-tests-k1",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "android-nav-safeargs-tests-k1_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/nav/safeargs:android-nav-safeargs",
+    "//android/nav/safeargs/common:android-nav-safeargs-common",
+    "//android/nav/safeargs/k1:android-nav-safeargs-k1",
+    "//android/nav/safeargs/tests/common:android-nav-safeargs-tests-common_test",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/render-resources",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//uast/uast-common:uast",
+    "//platform/usageView",
+    "//platform/util",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test",
+    "//plugins/kotlin/base/resources:kotlin-base-resources",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-uast-kotlin-base",
+  ]
+)
+### auto-generated section `build intellij.android.nav.safeargs.tests.k1` end

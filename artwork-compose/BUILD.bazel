@@ -1,0 +1,26 @@
+### auto-generated section `build intellij.android.artwork-compose` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  context_receivers = True
+)
+
+jvm_library(
+  name = "artwork-compose",
+  module_name = "intellij.android.artwork-compose",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "//android/artwork",
+    "//android/adt-ui-compose",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+  ]
+)
+### auto-generated section `build intellij.android.artwork-compose` end

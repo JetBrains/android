@@ -1,0 +1,60 @@
+### auto-generated section `build intellij.android.core.diagnostics` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "core-diagnostics",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "core-diagnostics_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:fastutil-min",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "@lib//:kotlin-reflect",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android:core-tests_test",
+    "//android/server-flags",
+    "//android/server-flags:server-flags_test",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//platform/util-ex",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//java/testFramework",
+  ]
+)
+### auto-generated section `build intellij.android.core.diagnostics` end

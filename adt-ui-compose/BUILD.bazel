@@ -1,0 +1,67 @@
+### auto-generated section `build intellij.android.adt.ui.compose` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  context_receivers = True
+)
+
+jvm_library(
+  name = "adt-ui-compose",
+  module_name = "intellij.android.adt.ui.compose",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//platform/util:util-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/core-api:core",
+    "@lib//:android_adt_ui_compose_jewel-markdown-ide-laf-bridge-styling-242",
+    "@lib//:android_adt_ui_compose_jetbrains_jewel_ide_laf_bridge_242",
+  ],
+  exports = [
+    "@lib//:android_adt_ui_compose_jetbrains_skiko_awt_runtime_all_0_8_9",
+    "@lib//:android_adt_ui_compose_jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android_adt_ui_compose_jewel-markdown-int-ui-standalone-styling-242",
+    "@lib//:android_adt_ui_compose_jewel-int-ui-standalone-242",
+    "@lib//:android_adt_ui_compose_jewel-markdown-ide-laf-bridge-styling-242",
+    "@lib//:android_adt_ui_compose_jetbrains_jewel_ide_laf_bridge_242",
+  ],
+  runtime_deps = ["@lib//:android_adt_ui_compose_jetbrains_skiko_awt_runtime_all_0_8_9"]
+)
+
+kt_jvm_test(
+  name = "adt-ui-compose_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  associates = [":adt-ui-compose"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-test-framework:testFramework_test",
+    "//platform/util:util-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/core-api:core",
+    "@lib//:android_adt_ui_compose_jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android_adt_ui_compose_jewel-markdown-int-ui-standalone-styling-242",
+    "@lib//:android_adt_ui_compose_jewel-int-ui-standalone-242",
+    "@lib//:android_adt_ui_compose_jewel-markdown-ide-laf-bridge-styling-242",
+    "@lib//:android_adt_ui_compose_jetbrains_jewel_ide_laf_bridge_242",
+  ]
+)
+### auto-generated section `build intellij.android.adt.ui.compose` end

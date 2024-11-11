@@ -1,0 +1,44 @@
+### auto-generated section `build intellij.android.adt.ui.model` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "adt-ui-model",
+  module_name = "intellij.android.adt.ui.model",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//platform/platform-api:ide",
+    "//platform/util",
+    "//platform/util-rt",
+  ]
+)
+
+kt_jvm_test(
+  name = "adt-ui-model_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":adt-ui-model"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//platform/platform-api:ide",
+    "//platform/util",
+    "//platform/util-rt",
+  ]
+)
+### auto-generated section `build intellij.android.adt.ui.model` end

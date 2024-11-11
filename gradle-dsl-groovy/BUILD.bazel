@@ -1,0 +1,30 @@
+### auto-generated section `build intellij.android.gradle.dsl.groovy` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "gradle-dsl-groovy_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl-groovy",
+  module_name = "intellij.android.gradle.dsl.groovy",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "//plugins/groovy/groovy-psi:psi",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//android/gradle-dsl",
+  ],
+  runtime_deps = [":gradle-dsl-groovy_resources"]
+)
+### auto-generated section `build intellij.android.gradle.dsl.groovy` end

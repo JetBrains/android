@@ -1,0 +1,143 @@
+### auto-generated section `build intellij.android.build-attribution` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "build-attribution_resources",
+  files = glob(["src/META-INF/build-attribution.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "build-attribution",
+  module_name = "intellij.android.build-attribution",
+  visibility = ["//visibility:public"],
+  srcs = glob(["resources/**/*.kt", "resources/**/*.java", "src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:gradle",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:jna",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-collections-immutable",
+    "@lib//:protobuf",
+    "@lib//:kotlinc_lombok-compiler-plugin.provided",
+    "//android/adt-ui",
+    "//android/analytics",
+    "//android/artwork",
+    "//android/build-common:buildCommon",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/gradle-dsl",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/gradle:gradle-common",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/usageView",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//plugins/properties/properties-psi-api:psi",
+  ],
+  runtime_deps = [":build-attribution_resources"]
+)
+### auto-generated section `build intellij.android.build-attribution` end
+
+### auto-generated section `build intellij.android.build-attribution.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "build-attribution-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "build-attribution-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlin-reflect",
+    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:gradle",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:gson",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/artwork",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test",
+    "//android/build-attribution",
+    "//android/build-common:buildCommon",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/gradle-dsl",
+    "//android/gradle-dsl:gradle-dsl-testutils_test",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/gradle:gradle-common",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/external-system-api:externalSystem",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework/common",
+    "//platform/testFramework/core",
+    "//platform/usageView",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test",
+    "//platform/util:util-ui",
+    "//plugins/properties/properties-psi-api:psi",
+    "//plugins/kotlin/base/psi:kotlin-base-psi",
+  ]
+)
+### auto-generated section `build intellij.android.build-attribution.tests` end

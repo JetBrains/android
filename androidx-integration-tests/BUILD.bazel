@@ -1,0 +1,29 @@
+### auto-generated section `build intellij.android.androidx-integration-tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "androidx-integration-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "androidx-integration-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:layoutlib",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android:core-tests_test",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+  ]
+)
+### auto-generated section `build intellij.android.androidx-integration-tests` end

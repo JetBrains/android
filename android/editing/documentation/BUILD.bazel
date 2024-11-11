@@ -1,0 +1,67 @@
+### auto-generated section `build intellij.android.core.editing.documentation` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_resources(
+  name = "android-core-editing-documentation_resources",
+  files = glob(["src/META-INF/android-editing-documentation.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-core-editing-documentation",
+  module_name = "intellij.android.core.editing.documentation",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//android/rendering",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+    "//java/java-impl:impl",
+    "//xml/xml-psi-api:psi",
+    "//xml/dom-openapi:dom",
+  ],
+  runtime_deps = [":android-core-editing-documentation_resources"]
+)
+
+kt_jvm_test(
+  name = "android-core-editing-documentation_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":android-core-editing-documentation"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//android/rendering",
+    "@lib//:truth",
+    "//android/android:core-tests_test",
+    "//android/android-test-framework:testFramework_test",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+    "//java/java-impl:impl",
+    "//xml/xml-psi-api:psi",
+    "//xml/dom-openapi:dom",
+    "//android/intellij.android.testutils:testutils_test",
+    "//java/testFramework",
+    "@lib//:jsoup",
+  ],
+  runtime_deps = [":android-core-editing-documentation_resources"]
+)
+### auto-generated section `build intellij.android.core.editing.documentation` end

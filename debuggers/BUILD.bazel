@@ -1,0 +1,130 @@
+### auto-generated section `build intellij.android.debuggers` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "debuggers_resources",
+  files = glob(["src/META-INF/android-debuggers.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "debuggers",
+  module_name = "intellij.android.debuggers",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/analytics",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/execution/common:android-execution-common",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl:java-debugger-impl",
+    "//java/execution/openapi:java-execution",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/xdebugger-impl:debugger-impl",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//images",
+    "//platform/indexing-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util/nanoxml",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//plugins/kotlin/jvm-debugger/coroutines:kotlin-jvm-debugger-coroutines",
+    "//java/openapi:java",
+  ],
+  runtime_deps = [":debuggers_resources"]
+)
+### auto-generated section `build intellij.android.debuggers` end
+
+### auto-generated section `build intellij.android.debuggers.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "debuggers-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "debuggers-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:fastutil-min",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/android-test-framework:testFramework",
+    "//platform/util/nanoxml",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/debuggers",
+    "//android/deploy",
+    "//android/deploy:deploy_test",
+    "//android/execution/common:android-execution-common",
+    "//android/intellij.android.testutils:testutils_test",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl:java-debugger-impl",
+    "//java/execution/openapi:java-execution",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/testFramework",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//images",
+    "//images:images_test",
+    "//platform/indexing-impl",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.debuggers.tests` end

@@ -1,0 +1,116 @@
+### auto-generated section `build intellij.android.common` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+jvm_resources(
+  name = "common_resources",
+  files = glob(["src/META-INF/android-common.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "common",
+  module_name = "intellij.android.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "resources/**/*.kt", "resources/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_kotlin-compiler-ir.provided",
+    "//android/artwork",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//android/server-flags",
+    "//java/openapi:java",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-frontback:frontback",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/core",
+  ],
+  runtime_deps = [":common_resources"]
+)
+### auto-generated section `build intellij.android.common` end
+
+### auto-generated section `build intellij.android.common.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "common-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "common-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["test/**/*.kt", "test/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:truth",
+    "@lib//:mockito",
+    "@lib//:kotlinc_analysis-api",
+    "@lib//:kotlinc_kotlin-compiler-common",
+    "@lib//:kotlinc_kotlin-compiler-fe10",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/artwork",
+    "//android/server-flags",
+    "//android/server-flags:server-flags_test",
+    "//android/jps-model",
+    "//android/render-resources",
+    "//android/android-common:common",
+    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test",
+    "//java/testFramework",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+  ]
+)
+### auto-generated section `build intellij.android.common.tests` end

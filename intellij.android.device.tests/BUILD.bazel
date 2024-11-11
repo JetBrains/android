@@ -1,0 +1,40 @@
+### auto-generated section `build intellij.android.device.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  context_receivers = True
+)
+
+java_library(
+  name = "device-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "device-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:guava",
+    "@lib//:truth",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-collections-immutable",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test",
+    "//android/intellij.android.device:device",
+    "//android/android:core",
+    "//platform/core-api:core",
+    "//android/artwork-compose",
+  ]
+)
+### auto-generated section `build intellij.android.device.tests` end

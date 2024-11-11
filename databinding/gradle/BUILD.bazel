@@ -1,0 +1,27 @@
+### auto-generated section `build intellij.android.databinding.gradle` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "android-databinding-gradle_resources",
+  files = glob(["src/META-INF/databinding-gradle.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-databinding-gradle",
+  module_name = "intellij.android.databinding.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "//android/databinding",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/core-api:core",
+  ],
+  runtime_deps = [":android-databinding-gradle_resources"]
+)
+### auto-generated section `build intellij.android.databinding.gradle` end

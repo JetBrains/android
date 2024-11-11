@@ -1,0 +1,66 @@
+### auto-generated section `build intellij.android.plugin` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "plugin",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "plugin_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/android-adb:adb",
+    "//android/app-inspection/ide:android-app-inspection-ide",
+    "//android/app-inspection/inspectors/backgroundtask/ide:android-app-inspection-inspectors-backgroundtask-ide",
+    "//android/app-inspection/inspectors/database:android-app-inspection-inspectors-database",
+    "//android/app-inspection/inspectors/network/ide:android-app-inspection-inspectors-network-ide",
+    "//android/assistant",
+    "//android/build-attribution",
+    "//android/connection-assistant",
+    "//android/android:core",
+    "//android/dagger",
+    "//android/databinding",
+    "//android/debuggers",
+    "//android/intellij.android.device:device",
+    "//android/device-explorer",
+    "//android/android-lang:lang",
+    "//android/android-lang-databinding:lang-databinding",
+    "//android/layout-inspector",
+    "//android/lint:lint-common",
+    "//android/logcat",
+    "//android/backup",
+    "//android/mlkit",
+    "//android/nav/safeargs:android-nav-safeargs",
+    "//android/android-npw:newProjectWizard",
+    "//android/profilers-android:profilersAndroid",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-psd:projectSystem-gradle-psd",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
+    "//android/room",
+    "//android/sdk-updates:sdkUpdates",
+    "//android/streaming",
+    "//android/android-templates:templates",
+    "//android/android-transport:transport",
+    "//android/whats-new-assistant",
+    "//android/adt-testutils:adt-testutils_test",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+  ]
+)
+### auto-generated section `build intellij.android.plugin` end

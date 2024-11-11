@@ -1,0 +1,89 @@
+### auto-generated section `build intellij.android.room` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "room_resources",
+  files = glob(["src/META-INF/android-room.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "room",
+  module_name = "intellij.android.room",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "//android/android-lang:lang",
+    "//android/project-system:projectSystem",
+    "//java/openapi:java",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//jps/model-api:model",
+    "//platform/projectModel-api:projectModel",
+    "//platform/refactoring",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":room_resources"]
+)
+### auto-generated section `build intellij.android.room` end
+
+### auto-generated section `build intellij.android.room.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "room-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "room-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:mockito",
+    "//android/android-lang:lang",
+    "//android/room",
+    "//android/android-test-framework:testFramework",
+    "//android/adt-testutils:adt-testutils_test",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.room.tests` end

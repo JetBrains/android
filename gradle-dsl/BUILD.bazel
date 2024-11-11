@@ -1,0 +1,152 @@
+### auto-generated section `build intellij.android.gradle.dsl` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "gradle-dsl_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl",
+  module_name = "intellij.android.gradle.dsl",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:commons-lang3",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "//plugins/groovy/groovy-psi:psi",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/external-system-api:externalSystem",
+    "//plugins/gradle:gradle-common",
+    "@lib//:kotlinx-collections-immutable",
+  ],
+  runtime_deps = [":gradle-dsl_resources"]
+)
+### auto-generated section `build intellij.android.gradle.dsl` end
+
+### auto-generated section `build intellij.android.gradle.dsl.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "gradle-dsl-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "gradle-dsl-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:mockito",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/gradle-dsl",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-groovy",
+    "//android/gradle-dsl:gradle-dsl-testutils_test",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//plugins/groovy/groovy-psi:psi",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/ide-core",
+    "//plugins/toml/core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core_test",
+    "//android/gradle-dsl-declarative",
+    "//android/lint:lint-common",
+    "//android/gradle-declarative-lang-ide",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.dsl.tests` end
+
+### auto-generated section `build intellij.android.gradle.dsl.testutils` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "gradle-dsl-testutils",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "gradle-dsl-testutils_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testutils/**/*.kt", "testutils/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/gradle-dsl",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//plugins/gradle:gradle-common",
+    "//java/openapi:java",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/external-system-api:externalSystem",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test",
+    "//plugins/toml",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.dsl.testutils` end

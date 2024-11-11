@@ -1,0 +1,124 @@
+### auto-generated section `build intellij.android.lang` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "lang_resources",
+  files = glob(["src/META-INF/android-lang.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "lang",
+  module_name = "intellij.android.lang",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java", "resources/**/*.kt", "resources/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/project-system:projectSystem",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-frontback-impl:frontback-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-indexing-api:indexing",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/diff-api:diff",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/indexing-api:indexing",
+    "//platform/indexing-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//uast/uast-common:uast",
+    "//platform/usageView",
+    "//platform/usageView-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":lang_resources"]
+)
+### auto-generated section `build intellij.android.lang` end
+
+### auto-generated section `build intellij.android.lang.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "lang-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "lang-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:truth",
+    "//android/android:core",
+    "//android/project-system:projectSystem",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-common:common",
+    "//android/android-lang:lang",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//java/java-runtime:rt",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/refactoring",
+    "//platform/service-container:serviceContainer",
+    "//platform/service-container:serviceContainer_test",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test",
+    "//plugins/kotlin/base/psi:kotlin-base-psi",
+  ]
+)
+### auto-generated section `build intellij.android.lang.tests` end

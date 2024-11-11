@@ -1,0 +1,46 @@
+### auto-generated section `build intellij.android.kotlin.idea.k2` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  context_receivers = True,
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+jvm_resources(
+  name = "android-kotlin-idea-k2_resources",
+  files = glob(["src/META-INF/android-kotlin.k2.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-kotlin-idea-k2",
+  module_name = "intellij.android.kotlin.idea.k2",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_analysis-api-k2.provided",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/util",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+  ],
+  runtime_deps = [":android-kotlin-idea-k2_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.idea.k2` end

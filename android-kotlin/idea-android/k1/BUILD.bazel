@@ -1,0 +1,48 @@
+### auto-generated section `build intellij.android.kotlin.idea.k1` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "android-kotlin-idea-k1_resources",
+  files = glob(["src/META-INF/android-kotlin.k1.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-kotlin-idea-k1",
+  module_name = "intellij.android.kotlin.idea.k1",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
+    "//android/lint:lint-common",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/fe10/code-insight:kotlin-base-fe10-code-insight",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//plugins/kotlin/code-insight/utils:kotlin-code-insight-utils",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/idea",
+  ],
+  runtime_deps = [":android-kotlin-idea-k1_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.idea.k1` end

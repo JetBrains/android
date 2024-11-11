@@ -1,0 +1,54 @@
+### auto-generated section `build intellij.android.kotlin.idea` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+jvm_resources(
+  name = "android-kotlin-idea_resources",
+  files = glob(["src/META-INF/android-kotlin.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-kotlin-idea",
+  module_name = "intellij.android.kotlin.idea",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
+    "//android/android-kotlin/idea-android/k1:android-kotlin-idea-k1",
+    "//android/android-kotlin/idea-android/k2:android-kotlin-idea-k2",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//xml/dom-openapi:dom",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
+  ],
+  runtime_deps = [":android-kotlin-idea_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.idea` end

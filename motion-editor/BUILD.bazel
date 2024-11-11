@@ -1,0 +1,96 @@
+### auto-generated section `build intellij.android.motion-editor` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_resources(
+  name = "motion-editor_resources",
+  files = glob(["src/META-INF/motion-editor.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "motion-editor",
+  module_name = "intellij.android.motion-editor",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "//android/designer",
+    "//android/adt-ui",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/render-resources",
+    "//android/layout-ui",
+    "//android/artwork",
+    "//android/rendering",
+    "//android/adt-ui-model",
+    "@lib//:layoutlib",
+    "//android/artwork-compose",
+    "//platform/platform-api:ide",
+    "@lib//:guava",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//platform/util/concurrency",
+    "//platform/core-ui",
+    "@lib//:protobuf",
+    "//platform/core-impl",
+    "//platform/lang-core",
+    "//platform/platform-impl:ide-impl",
+    "@lib//:commons-lang3",
+    "//java/java-psi-api:psi",
+  ],
+  runtime_deps = [":motion-editor_resources"]
+)
+
+kt_jvm_test(
+  name = "motion-editor_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":motion-editor"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "//android/android-test-framework:testFramework_test",
+    "//android/designer",
+    "//android/adt-ui",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/render-resources",
+    "//android/layout-ui",
+    "//android/artwork",
+    "//android/rendering",
+    "//android/adt-ui-model",
+    "@lib//:layoutlib",
+    "//android/artwork-compose",
+    "//android/designer:designer-tests_test",
+    "@lib//:truth",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "//platform/platform-api:ide",
+    "@lib//:guava",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//platform/util/concurrency",
+    "//platform/core-ui",
+    "@lib//:protobuf",
+    "//platform/core-impl",
+    "//platform/lang-core",
+    "//platform/platform-impl:ide-impl",
+    "@lib//:commons-lang3",
+    "//java/java-psi-api:psi",
+    "//android/adt-testutils:adt-testutils_test",
+    "@lib//:junit4",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+  ],
+  runtime_deps = [":motion-editor_resources"]
+)
+### auto-generated section `build intellij.android.motion-editor` end

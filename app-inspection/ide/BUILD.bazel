@@ -1,0 +1,128 @@
+### auto-generated section `build intellij.android.app-inspection.ide` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "android-app-inspection-ide_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-app-inspection-ide",
+  module_name = "intellij.android.app-inspection.ide",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//android/adt-ui-model",
+    "//android/analytics",
+    "//android/app-inspection/api:android-app-inspection-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/execution/common:android-execution-common",
+    "//android/project-system:projectSystem",
+    "//android/android-transport:transport",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/indexing-api:indexing",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-ex",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":android-app-inspection-ide_resources"]
+)
+### auto-generated section `build intellij.android.app-inspection.ide` end
+
+### auto-generated section `build intellij.android.app-inspection.ide.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+java_library(
+  name = "android-app-inspection-ide-tests",
+  visibility = ["//visibility:public"]
+)
+
+kt_jvm_test(
+  name = "android-app-inspection-ide-tests_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/app-inspection/api:android-app-inspection-api",
+    "//android/app-inspection/api:android-app-inspection-api_test",
+    "//android/app-inspection/ide:android-app-inspection-ide",
+    "//android/app-inspection/ide/gradle:android-app-inspection-ide-gradle",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test",
+    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/deploy:deploy_test",
+    "//android/execution/common:android-execution-common",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/sdk-updates:sdkUpdates",
+    "//android/android-test-framework:testFramework_test",
+    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-transport:transport",
+    "//android/android-transport:transport_test",
+    "//java/execution/openapi:java-execution",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/extensions:extensions_test",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test",
+    "//platform/util",
+    "//platform/util/jdom",
+  ]
+)
+### auto-generated section `build intellij.android.app-inspection.ide.tests` end

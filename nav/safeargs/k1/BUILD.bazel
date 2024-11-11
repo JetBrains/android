@@ -1,0 +1,70 @@
+### auto-generated section `build intellij.android.nav.safeargs.k1` start
+load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  opt_in = ["org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"]
+)
+
+jvm_resources(
+  name = "android-nav-safeargs-k1_resources",
+  files = glob(["src/META-INF/safeargs.k1.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-nav-safeargs-k1",
+  module_name = "intellij.android.nav.safeargs.k1",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "//android/analytics",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/nav/safeargs/common:android-nav-safeargs-common",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//plugins/kotlin/base/analysis:kotlin-base-analysis",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/fe10/code-insight:kotlin-base-fe10-code-insight",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/resources:kotlin-base-resources",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//plugins/kotlin/completion/impl-k1:kotlin-completion-impl-k1",
+    "//plugins/kotlin/frontend-independent:fir-frontend-independent",
+  ],
+  runtime_deps = [":android-nav-safeargs-k1_resources"]
+)
+### auto-generated section `build intellij.android.nav.safeargs.k1` end

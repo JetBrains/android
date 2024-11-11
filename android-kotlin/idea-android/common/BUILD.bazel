@@ -1,0 +1,71 @@
+### auto-generated section `build intellij.android.kotlin.idea.common` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "android-kotlin-idea-common_resources",
+  files = glob(["src/META-INF/android-kotlin.common.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-kotlin-idea-common",
+  module_name = "intellij.android.kotlin.idea.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:android_kotlin_idea_common_jb-r8",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-jps-plugin-classpath.provided",
+    "@lib//:kotlinc_analysis-api.provided",
+    "//android/android-common:common",
+    "//android/intellij.android.compose-common:compose-common",
+    "//android/android:core",
+    "//android/gradle-dsl",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//plugins/gradle:gradle-common",
+    "//java/java-impl:impl",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
+    "//plugins/kotlin/base/facet:kotlin-base-facet",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//plugins/kotlin/frontend-independent:fir-frontend-independent",
+    "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-code-insight-common",
+    "//plugins/kotlin/gradle/gradle:kotlin-gradle-gradle",
+    "//plugins/kotlin/jvm-debugger/evaluation:kotlin-jvm-debugger-evaluation",
+    "//plugins/kotlin/project-configuration",
+    "//android/project-system-gradle:projectSystem-gradle",
+  ],
+  runtime_deps = [":android-kotlin-idea-common_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.idea.common` end

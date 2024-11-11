@@ -1,0 +1,48 @@
+### auto-generated section `build intellij.android.transportDatabase` start
+load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+
+jvm_library(
+  name = "transportDatabase",
+  module_name = "intellij.android.transportDatabase",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:sqlite",
+    "@lib//:guava",
+    "//android/adt-ui-model",
+    "//android/android-common:common",
+  ]
+)
+
+kt_jvm_test(
+  name = "transportDatabase_test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  associates = [":transportDatabase"],
+  deps = [
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:sqlite",
+    "@lib//:junit4",
+    "@lib//:jaxb-api",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:android_tools_sdklib",
+    "//android/adt-ui-model",
+    "//android/android-common:common",
+    "//android/intellij.android.testutils:testutils_test",
+  ]
+)
+### auto-generated section `build intellij.android.transportDatabase` end

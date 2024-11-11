@@ -1,0 +1,42 @@
+### auto-generated section `build intellij.android.projectSystem.apk` start
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:rules.bzl", "jvm_library")
+
+jvm_resources(
+  name = "projectSystem-apk_resources",
+  files = glob(["src/META-INF/project-system-apk-plugin.xml"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "projectSystem-apk",
+  module_name = "intellij.android.projectSystem.apk",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  javac_opts = "@rules_jvm//:j17",
+  kotlinc_opts = "@rules_jvm//:k17",
+  deps = [
+    "@lib//:studio-platform.provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:kotlinx-collections-immutable",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/deploy",
+    "//android/execution/common:android-execution-common",
+    "//android/streaming",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/editor-ui-api:editor",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/util",
+    "//java/java-psi-api:psi",
+    "//android/project-system:projectSystem",
+  ],
+  runtime_deps = [":projectSystem-apk_resources"]
+)
+### auto-generated section `build intellij.android.projectSystem.apk` end
