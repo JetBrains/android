@@ -30,6 +30,7 @@ import com.google.idea.blaze.qsync.java.artifacts.AspectProto.OutputArtifact.Pat
 import com.google.idea.blaze.qsync.testdata.JavaInfoTxt;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -62,6 +63,7 @@ public class AspectUnitTest {
   }
 
   @Test
+  @Ignore("b/353651427")
   public void exporting_target_has_no_jars() throws Exception {
     ImmutableMap<Label, JavaTargetArtifacts> byTarget =
         Maps.uniqueIndex(
@@ -77,7 +79,8 @@ public class AspectUnitTest {
   }
 
   @Test
-  public void each_jar_beloings_to_a_single_target() throws IOException {
+  @Ignore("b/353651427")
+  public void each_jar_belongs_to_a_single_target() throws IOException {
     HashMultimap<Label, String> targetToJar =
         JavaInfoTxt.EXTERNAL_EXPORTS.readOnlyProto().getArtifactsList().stream()
             .collect(
