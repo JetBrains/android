@@ -52,6 +52,8 @@
     <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
     <!-- Disable phased sync as we've found it to be slower and there is currently no benefit for Android Studio. Context: b/360851078 -->
     <registryKey key="gradle.phased.sync.enabled" defaultValue="false" description="Enable the phased Gradle sync execution"/>
+    <!-- Disable project widget status as it does not work (has no benefit) as expected in Android Studio. Discuss with JB about its benefits: b/378463994 -->
+    <registryKey key="ide.widget.project.status" defaultValue="false" description="Enables the project status widget and disables editor project notifications"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
