@@ -45,6 +45,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   private val projectSystem = project.getProjectSystem()
   private val propertyGraph = PropertyGraph()
   private val restoreApp = propertyGraph.property(false)
+  private val freshInstall = propertyGraph.property(false)
   private var backupFile = propertyGraph.property("")
   private var restoreSupported = propertyGraph.property(true)
 
@@ -53,8 +54,13 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
       group(message("restore.run.config.group")) {
           row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
           indent {
-            row { backupFileChooser(PATH_FIELD_WIDTH).enabledIf(restoreApp).bindText(backupFile) }
-          }
+              row { backupFileChooser(PATH_FIELD_WIDTH).bindText(backupFile) }
+              row {
+                checkBox(message("restore.run.config.fresh.install.checkbox"))
+                  .bindSelected(freshInstall)
+              }
+            }
+            .enabledIf(restoreApp)
         }
         .enabledIf(restoreSupported)
     }
@@ -65,6 +71,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     restoreSupported.set(config.DEPLOY_AS_INSTANT)
     restoreApp.set(config.RESTORE_ENABLED)
     backupFile.set(config.RESTORE_FILE)
+    freshInstall.set(config.RESTORE_FRESH_INSTALL_ONLY)
     restoreSupported.set(!config.DEPLOY_AS_INSTANT)
   }
 
@@ -72,6 +79,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     val config = runConfiguration as? AndroidRunConfiguration ?: return
     config.RESTORE_ENABLED = restoreApp.get()
     config.RESTORE_FILE = backupFile.get()
+    config.RESTORE_FRESH_INSTALL_ONLY = freshInstall.get()
   }
 
   override fun validate(runConfiguration: RunConfiguration): List<ValidationError> {
@@ -118,6 +126,8 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   }
 }
 
-fun Cell<BackupFileTextField>.bindText(property: ObservableMutableProperty<String>): Cell<BackupFileTextField> {
+fun Cell<BackupFileTextField>.bindText(
+  property: ObservableMutableProperty<String>
+): Cell<BackupFileTextField> {
   return applyToComponent { textComponent.bind(property) }
 }

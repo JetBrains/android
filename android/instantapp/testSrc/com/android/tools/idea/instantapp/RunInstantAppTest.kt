@@ -45,6 +45,7 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
+import com.intellij.testFramework.replaceService
 import java.io.File
 import org.junit.Before
 import org.junit.Rule

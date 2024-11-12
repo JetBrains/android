@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
@@ -125,6 +126,8 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Launching on devices"
       devices.map { device ->
         async {
+          val restoreEnabled = configuration.isRestoreEnabled()
+          val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
           LOG.info("Launching on device ${device.name}")
 
           //Deploy
@@ -137,8 +140,10 @@ class AndroidRunConfigurationExecutor(
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
             if (configuration.isRestoreEnabled()) {
-              indicator.text = "Restoring app data"
-              restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+              if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
+                indicator.text = "Restoring app data"
+                restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+              }
             }
 
             if (launch(mainApp.app, device, console, isDebug = false)) {
@@ -246,6 +251,8 @@ class AndroidRunConfigurationExecutor(
           attachDebuggerToSandboxSdk(device, applicationId, env, indicator, console)
         }
 
+        val restoreEnabled = configuration.isRestoreEnabled()
+        val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
         val apks = apkInfosSafe(device)
         val deployResults =
           deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
@@ -255,9 +262,11 @@ class AndroidRunConfigurationExecutor(
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
-        if (configuration.isRestoreEnabled()) {
-          indicator.text = "Restoring app data"
-          restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+        if (restoreEnabled) {
+          if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
+            indicator.text = "Restoring app data"
+            restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+          }
         }
 
         launch(mainApp.app, device, console, isDebug = true)
