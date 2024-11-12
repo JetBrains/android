@@ -17,11 +17,9 @@ package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentWithBrowseButton
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.TextAccessor
 import com.intellij.ui.TextFieldWithHistory
 import java.nio.file.Path
@@ -30,19 +28,16 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
 
-private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
-
 /**
  * A TextField for selecting a backup file
  *
  * Includes a browse button and a persisted history dropdown.
  *
- *  Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton]
+ * Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton]
  */
-class BackupFileTextField private constructor(project: Project) : ComponentWithBrowseButton<TextFieldWithHistory>(
-  TextFieldWithProjectStoredHistory(project, FILE_HISTORY_PROPERTY),
-  null,
-), TextAccessor {
+class BackupFileTextField private constructor(project: Project) :
+  ComponentWithBrowseButton<TextFieldWithHistory>(TextFieldWithProjectStoredHistory(project), null),
+  TextAccessor {
 
   val textComponent: JTextComponent = childComponent.textEditor
 
@@ -56,34 +51,28 @@ class BackupFileTextField private constructor(project: Project) : ComponentWithB
 
   override fun getText(): String = childComponent.text
 
-  /**
-   * Based on [com.intellij.ui.TextFieldWithStoredHistory] but with a `project` scope
-   */
-  private class TextFieldWithProjectStoredHistory(
-    private val project: Project,
-    private val propertyName: String,
-  ) : TextFieldWithHistory() {
+  /** Based on [com.intellij.ui.TextFieldWithStoredHistory] but with a `project` scope */
+  private class TextFieldWithProjectStoredHistory(project: Project) : TextFieldWithHistory() {
+    private val backupFileHistory = BackupFileHistory(project)
+
     init {
       reset()
     }
 
     override fun addCurrentTextToHistory() {
       super.addCurrentTextToHistory()
-      PropertiesComponent.getInstance(project).setValue(propertyName, StringUtil.join(history, "\n"))
+      backupFileHistory.setFileHistory(history)
     }
 
     fun reset() {
-      val propertiesComponent = PropertiesComponent.getInstance(project)
-      val history = propertiesComponent.getValue(propertyName) ?: return
-      setHistory(history.lines().filter { it.isNotEmpty() })
+      val history = backupFileHistory.getFileHistory()
+      setHistory(history)
       selectedItem = ""
     }
   }
 
   companion object {
-    /**
-     * Create a BackupFileTextField for saving a backup file
-     */
+    /** Create a BackupFileTextField for saving a backup file */
     fun createFileSaver(project: Project, onFileChosen: (Path) -> Unit): BackupFileTextField {
       val textField = BackupFileTextField(project)
       textField.addActionListener {
@@ -97,16 +86,16 @@ class BackupFileTextField private constructor(project: Project) : ComponentWithB
             ?.file
             ?.toPath()
         if (path != null) {
-          textField.setTextAndAddToHistory(path.relativeToOrSelf(Path.of(project.basePath!!)).pathString)
+          textField.setTextAndAddToHistory(
+            path.relativeToOrSelf(Path.of(project.basePath!!)).pathString
+          )
           onFileChosen(path)
         }
       }
       return textField
     }
 
-    /**
-     * Create a BackupFileTextField for choosing a backup file
-     */
+    /** Create a BackupFileTextField for choosing a backup file */
     fun createFileChooser(project: Project): BackupFileTextField {
       val textField = BackupFileTextField(project)
       textField.addActionListener {
@@ -117,7 +106,9 @@ class BackupFileTextField private constructor(project: Project) : ComponentWithB
             .firstOrNull()
             ?.toNioPath()
         if (path != null) {
-          textField.setTextAndAddToHistory(path.relativeToOrSelf(Path.of(project.basePath!!)).pathString)
+          textField.setTextAndAddToHistory(
+            path.relativeToOrSelf(Path.of(project.basePath!!)).pathString
+          )
         }
       }
       return textField

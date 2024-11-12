@@ -34,6 +34,8 @@ interface BackupManager {
     BACKUP_APP_ACTION,
     /** Correlate with `BackupForegroundAppAction.place` */
     BACKUP_FOREGROUND_APP_ACTION,
+    /** Correlate with `BackupAppAction.place` */
+    RESTORE_APP_ACTION,
   }
 
   /**
