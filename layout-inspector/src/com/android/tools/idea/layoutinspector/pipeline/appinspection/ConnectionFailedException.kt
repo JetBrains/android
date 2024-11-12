@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
@@ -55,6 +56,8 @@ data class AttachErrorInfo(val code: AttachErrorCode, val args: Map<String, Stri
 fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
   return when (this) {
     is ConnectionFailedException -> code.toInfo()
+    is AppInspectorForcefullyDisposedException ->
+      AttachErrorCode.APP_INSPECTION_FORCEFULLY_DISPOSED.toInfo()
     is AppInspectionCannotFindAdbDeviceException ->
       AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.toInfo()
     is AppInspectionProcessNoLongerExistsException ->
