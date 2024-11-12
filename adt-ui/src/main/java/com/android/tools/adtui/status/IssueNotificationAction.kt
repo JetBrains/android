@@ -21,6 +21,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -132,12 +133,12 @@ open class IssueNotificationAction(
    */
   @VisibleForTesting
   var actionEventCreator: (MouseEvent, IssueNotificationAction) -> AnActionEvent = { me, action ->
-    AnActionEvent.createFromInputEvent(
-      me,
-      ActionPlaces.EDITOR_POPUP,
-      PresentationFactory().getPresentation(action),
+    AnActionEvent.createEvent(
       ActionToolbar.getDataContextFor(me.component),
-      false, true
+      PresentationFactory().getPresentation(action),
+      ActionPlaces.EDITOR_POPUP,
+      ActionUiKind.TOOLBAR,
+      me
     )
   }
 
