@@ -61,14 +61,14 @@ open class FrameworkResourceRepositoryManagerImpl(
     languages: Set<String>,
     overlays: List<FrameworkOverlay>,
   ): ResourceRepository {
-    val path = resourceJarFile
-    val cachingData = createCachingData(path)
-    val baseRepository = getFrameworkRepository(path, "", useCompiled9Patches, languages, cachingData)
+    val cachingData = createCachingData(resourceJarFile)
+    val baseRepository = getFrameworkRepository(resourceJarFile, "", useCompiled9Patches, languages, cachingData)
     if (overlays.isEmpty()) {
       return baseRepository
     }
 
-    val overlayRepositories = overlays.map { getFrameworkRepository(path, it.overlayName, useCompiled9Patches, languages, cachingData) }
+    val overlayRepositories = overlays.map {
+      getFrameworkRepository(resourceJarFile, it.overlayName, useCompiled9Patches, languages, cachingData) }
     return FrameworkWithOverlaysResourceRepository(baseRepository, overlayRepositories)
   }
 
