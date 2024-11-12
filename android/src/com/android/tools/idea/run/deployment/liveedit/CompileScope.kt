@@ -216,7 +216,6 @@ private object CompileScopeImpl : CompileScope {
 
     generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
       compilerConfiguration,
-      PhaseConfig(),
       jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
         override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
           val psiSourceFile =
