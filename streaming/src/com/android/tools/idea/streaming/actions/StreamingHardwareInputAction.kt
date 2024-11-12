@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.DeviceId
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent

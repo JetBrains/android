@@ -18,15 +18,11 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorController
-import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 
 internal abstract class AbstractStreamingAction<T : AnAction, U : AnAction>(
@@ -62,19 +58,6 @@ internal abstract class AbstractStreamingAction<T : AnAction, U : AnAction>(
 
 internal open class StreamingAction(virtualDeviceAction: AnAction, physicalDeviceAction: AnAction) :
     AbstractStreamingAction<AnAction, AnAction>(virtualDeviceAction, physicalDeviceAction)
-
-/** Enables action tooltip that includes the name and description of the action. */
-internal fun AnAction.enableRichTooltip(presentation: Presentation) {
-  presentation.putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
-    @Suppress("DialogTitleCapitalization")
-    setTitle(presentation.text)
-    setDescription(presentation.description)
-    val shortcut = KeymapUtil.getFirstKeyboardShortcutText(shortcutSet)
-    if (shortcut.isNotEmpty()) {
-      setShortcut(shortcut)
-    }
-  })
-}
 
 internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
     event.getData(DISPLAY_VIEW_KEY)
