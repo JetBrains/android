@@ -57,7 +57,7 @@ void Base128OutputStream::Flush() {
       throw EndOfFile();
     }
     if (res == SocketWriter::Result::TIMEOUT) {
-      throw IoException();
+      throw IoException("timeout");
     }
     offset_ = 0;
   }
