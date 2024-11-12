@@ -16,8 +16,8 @@
 package com.android.tools.idea.diagnostics.util;
 
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.lang.management.ThreadInfo;
 import java.util.*;
 import java.util.function.Predicate;
@@ -139,7 +139,7 @@ public class FrameInfo {
 
   private long myTimeSpent;
   @Nullable
-  private List<String> leafInfo = null;
+  private Set<String> leafInfo = null;
 
   FrameInfo(@Nullable StackTraceElement element) {
     myChildren = new TreeMap<>(STACK_TRACE_ELEMENT_COMPARATOR);
@@ -184,7 +184,7 @@ public class FrameInfo {
     }
     if (leafInfo != null) {
       if (currentFrameInfo.leafInfo == null) {
-        currentFrameInfo.leafInfo = Lists.newArrayList();
+        currentFrameInfo.leafInfo = Sets.newHashSet();
       }
       currentFrameInfo.leafInfo.add(leafInfo);
     }
