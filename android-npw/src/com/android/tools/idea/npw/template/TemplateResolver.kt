@@ -35,7 +35,7 @@ class TemplateResolver {
         it.getTemplates().filter { template ->
           when (template.name) {
             "Gemini API Starter" -> StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get()
-            "XR Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
+            "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
             else -> true
           }
         }

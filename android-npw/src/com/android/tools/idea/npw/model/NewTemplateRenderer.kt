@@ -252,7 +252,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
     "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
     "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
-    // TODO: TemplateRenderer.EXPERIMENTAL_ACTIVITY_2
+    "Basic Headset Activity" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY_2
     else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
   }
 
