@@ -16,128 +16,117 @@
 
 package com.android.tools.idea.adblib
 
+import com.android.adblib.AdbUsageTracker
+import com.android.adblib.AdbUsageTracker.DeviceState
+import com.android.adblib.DeviceAddress
+import com.android.adblib.DevicePropertyNames
+import com.android.adblib.DeviceSelector
+import com.android.adblib.testing.FakeAdbSession
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
-import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.adb.FakeAdbServiceRule
-import com.google.wireless.android.sdk.stats.AdbUsageEvent
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.intellij.testFramework.ProjectRule
-import kotlinx.coroutines.delay
+import com.intellij.testFramework.RuleChain
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class DeviceStateReporterTest {
-  @get:Rule val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
 
-  @get:Rule val adbRule = FakeAdbRule()
+  private val adbSession = FakeAdbSession()
 
-  @get:Rule val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  private val adbLibServiceRule =
+    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(adbSession))
 
-  @get:Rule val usageTracker = UsageTrackerRule()
+  @get:Rule val rule = RuleChain(projectRule, adbLibServiceRule)
 
   private val deviceSerial = "device1"
   private lateinit var deviceStateReporter: DeviceStateReporter
 
   @Before
   fun setup() = runBlockingWithTimeout {
-    adbRule.attachDevice(deviceSerial, "Google", "Pix3l", "versionX", "32")
-    // Delay a little for the device to settle on an ONLINE state
-    delay(50)
+    // "getprop" is used to retrieve a device model
+    adbSession.deviceServices.configureDeviceProperties(
+      DeviceSelector.fromSerialNumber(deviceSerial),
+      mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pix3l"),
+    )
 
     deviceStateReporter = DeviceStateReporter()
     deviceStateReporter.execute(projectRule.project)
+
+    adbSession.hostServices.connect(DeviceAddress(deviceSerial))
   }
 
   @Test
   fun reportsStatus() = runBlockingWithTimeout {
+    // Prepare
+    adbSession.host.timeProvider.pause()
+
     // Act
     yieldUntil { getLoggedAdbUsageEvents().isNotEmpty() }
-    val adbEvent = getLoggedAdbUsageEvents()[0].adbUsageEvent
+    val adbEvent = getLoggedAdbUsageEvents()[0]
 
     // Assert: device goes online
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE,
-      adbEvent.deviceStateChangeEvent.deviceState,
-    )
-    assertFalse(adbEvent.deviceStateChangeEvent.hasPreviousDeviceState())
-    assertFalse(adbEvent.deviceStateChangeEvent.hasLastOnlineMs())
+    assertEquals(DeviceState.ONLINE, adbEvent.adbDeviceStateChange!!.deviceState)
+    assertNull(adbEvent.adbDeviceStateChange!!.previousDeviceState)
+    assertNull(adbEvent.adbDeviceStateChange!!.lastOnlineMs)
 
-    // Act
-    adbRule.disconnectDevice(deviceSerial)
+    // Act: let the device stay online for 50ms and disconnect
+    adbSession.host.timeProvider.advance(50L, TimeUnit.MILLISECONDS)
+    adbSession.hostServices.disconnect(DeviceAddress(deviceSerial))
     yieldUntil { getLoggedAdbUsageEvents().size == 2 }
-    val adbEvent2 = getLoggedAdbUsageEvents()[1].adbUsageEvent
+    val adbEvent2 = getLoggedAdbUsageEvents()[1]
 
-    // Assert: device gets disconnected
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED,
-      adbEvent2.deviceStateChangeEvent.deviceState,
-    )
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE,
-      adbEvent2.deviceStateChangeEvent.previousDeviceState,
-    )
-    assertEquals(0, adbEvent2.deviceStateChangeEvent.lastOnlineMs)
+    // Assert: device gets disconnected (ONLINE->DISCONNECTED)
+    assertEquals(DeviceState.DISCONNECTED, adbEvent2.adbDeviceStateChange!!.deviceState)
+    assertEquals(DeviceState.ONLINE, adbEvent2.adbDeviceStateChange!!.previousDeviceState)
+    assertEquals(0L, adbEvent2.adbDeviceStateChange!!.lastOnlineMs)
 
-    // Act: Re-attach
+    // Act: Re-attach after the device stayed offline for another 125ms
     // Note that `adbRule.attachDevice` goes through an OFFLINE state very quickly, and it mostly,
     // though not always, isn't registered by a `ConnectedDevice.deviceInfoFlow` which is a
     // `StateFlow`.
-    // delay a little to make sure we register a time difference when going from online to online
-    delay(100)
-    adbRule.attachDevice(deviceSerial, "Google", "Pix3l", "versionX", "32")
+    adbSession.host.timeProvider.advance(125L, TimeUnit.MILLISECONDS)
+    adbSession.hostServices.connect(DeviceAddress(deviceSerial))
     yieldUntil { getLoggedAdbUsageEvents().size >= 3 }
-    val adbEvent3 = getLoggedAdbUsageEvents()[2].adbUsageEvent
+    val adbEvent3 = getLoggedAdbUsageEvents()[2]
 
-    // Assert
+    // Assert (DISCONNECTED->ONLINE or DISCONNECTED->OFFLINE->ONLINE)
     assertTrue(
-      adbEvent3.deviceStateChangeEvent.deviceState ==
-        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE ||
-        adbEvent3.deviceStateChangeEvent.deviceState ==
-          AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OFFLINE
+      adbEvent3.adbDeviceStateChange!!.deviceState == DeviceState.ONLINE ||
+        adbEvent3.adbDeviceStateChange!!.deviceState == DeviceState.OFFLINE
     )
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED,
-      adbEvent3.deviceStateChangeEvent.previousDeviceState,
-    )
-    assertTrue(adbEvent3.deviceStateChangeEvent.lastOnlineMs > 0)
+    assertEquals(DeviceState.DISCONNECTED, adbEvent3.adbDeviceStateChange!!.previousDeviceState)
+    assertEquals(125L, adbEvent3.adbDeviceStateChange!!.lastOnlineMs)
   }
 
   @Test
   fun containsDeviceInfoEvenForDisconnectedDevice() = runBlockingWithTimeout {
     // Act
     yieldUntil { getLoggedAdbUsageEvents().isNotEmpty() }
-    val studioEvent = getLoggedAdbUsageEvents()[0]
+    val adbEvent = getLoggedAdbUsageEvents()[0]
 
     // Assert
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE,
-      studioEvent.adbUsageEvent.deviceStateChangeEvent.deviceState,
-    )
-    assertEquals("Pix3l", studioEvent.deviceInfo.model)
+    assertEquals(DeviceState.ONLINE, adbEvent.adbDeviceStateChange!!.deviceState)
+    assertEquals("Pix3l", adbEvent.deviceInfo!!.model)
 
     // Act
-    adbRule.disconnectDevice(deviceSerial)
+    adbSession.hostServices.disconnect(DeviceAddress(deviceSerial))
     yieldUntil { getLoggedAdbUsageEvents().size == 2 }
-    val studioEvent2 = getLoggedAdbUsageEvents()[1]
+    val adbEvent2 = getLoggedAdbUsageEvents()[1]
 
     // Assert
-    assertEquals(
-      AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED,
-      studioEvent2.adbUsageEvent.deviceStateChangeEvent.deviceState,
-    )
-    assertEquals("Pix3l", studioEvent2.deviceInfo.model)
+    assertEquals(DeviceState.DISCONNECTED, adbEvent2.adbDeviceStateChange!!.deviceState)
+    assertEquals("Pix3l", adbEvent2.deviceInfo!!.model)
   }
 
-  private fun getLoggedAdbUsageEvents(): List<AndroidStudioEvent> {
-    return usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.ADB_USAGE_EVENT }
-      .map { it.studioEvent }
-      .toList()
+  private fun getLoggedAdbUsageEvents(): List<AdbUsageTracker.Event> {
+    return adbSession.host.usageTracker.getLoggedEvents()
   }
 }
