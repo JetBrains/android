@@ -43,6 +43,7 @@ class DeviceStateReporter : ProjectActivity {
     }
 
     val session = AdbLibService.getInstance(project).session
+    val timeProvider = session.host.timeProvider
     session.scope.launch {
       // These maps are never cleared. This shouldn't be a problem since the number
       // of devices in use is generally limited.
@@ -51,14 +52,14 @@ class DeviceStateReporter : ProjectActivity {
 
       session.deviceInfoChangeFlow(AdbUsageTracker.DeviceInfo::createFrom).collect {
         (deviceState, deviceSerial, calculationResult) ->
-        var timeSinceLastOnlineMs =
-          lastOnlineByDeviceSerial[deviceSerial]?.let { System.currentTimeMillis() - it }
+        var timeSinceLastOnlineNs =
+          lastOnlineByDeviceSerial[deviceSerial]?.let { timeProvider.nanoTime() - it }
 
         val previousDeviceState = previousStateByDeviceSerial[deviceSerial]
         // Device goes offline (i.e. stops being online)
         if (previousDeviceState == DeviceState.ONLINE) {
-          lastOnlineByDeviceSerial[deviceSerial] = System.currentTimeMillis()
-          timeSinceLastOnlineMs = 0
+          lastOnlineByDeviceSerial[deviceSerial] = timeProvider.nanoTime()
+          timeSinceLastOnlineNs = 0
         }
         previousStateByDeviceSerial[deviceSerial] = deviceState
 
@@ -69,7 +70,7 @@ class DeviceStateReporter : ProjectActivity {
               AdbDeviceStateChangeEvent(
                 deviceState = deviceState.toUsageTrackerDeviceState(),
                 previousDeviceState = previousDeviceState?.toUsageTrackerDeviceState(),
-                lastOnlineMs = timeSinceLastOnlineMs,
+                lastOnlineMs = timeSinceLastOnlineNs?.div(1_000_000),
               ),
           )
         )
