@@ -370,17 +370,12 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   private class MyProjectViewTree extends ProjectViewTree {
     MyProjectViewTree(DefaultTreeModel treeModel) {
       super(treeModel);
-      DataProvider parentProvider = DataManager.getDataProvider(this);
-      DataManager.removeDataProvider(this);
-      DataManager.registerDataProvider(this, new DataProvider() {
-        @Override
-        public @Nullable Object getData(@NotNull @NonNls String dataId) {
-          Object result = AndroidProjectViewPane.this.getData(dataId);
-          if (result != null) return result;
-          if (parentProvider != null) parentProvider.getData(dataId);
-          return null;
-        }
-      });
+    }
+
+    @Override
+    public void uiDataSnapshot(@NotNull DataSink sink) {
+      super.uiDataSnapshot(sink);
+      AndroidProjectViewPane.this.uiDataSnapshot(sink);
     }
   }
 
