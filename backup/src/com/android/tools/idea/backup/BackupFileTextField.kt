@@ -17,12 +17,13 @@ package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentWithBrowseButton
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.TextAccessor
 import com.intellij.ui.TextFieldWithHistory
-import com.intellij.ui.TextFieldWithStoredHistory
 import java.nio.file.Path
 import javax.swing.text.JTextComponent
 import kotlin.io.path.nameWithoutExtension
@@ -38,8 +39,8 @@ private const val FILE_HISTORY_PROPERTY = "Backup.File.History"
  *
  *  Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton]
  */
-class BackupFileTextField : ComponentWithBrowseButton<TextFieldWithHistory>(
-  TextFieldWithStoredHistory(FILE_HISTORY_PROPERTY),
+class BackupFileTextField private constructor(project: Project) : ComponentWithBrowseButton<TextFieldWithHistory>(
+  TextFieldWithProjectStoredHistory(project, FILE_HISTORY_PROPERTY),
   null,
 ), TextAccessor {
 
@@ -55,12 +56,36 @@ class BackupFileTextField : ComponentWithBrowseButton<TextFieldWithHistory>(
 
   override fun getText(): String = childComponent.text
 
+  /**
+   * Based on [com.intellij.ui.TextFieldWithStoredHistory] but with a `project` scope
+   */
+  private class TextFieldWithProjectStoredHistory(
+    private val project: Project,
+    private val propertyName: String,
+  ) : TextFieldWithHistory() {
+    init {
+      reset()
+    }
+
+    override fun addCurrentTextToHistory() {
+      super.addCurrentTextToHistory()
+      PropertiesComponent.getInstance(project).setValue(propertyName, StringUtil.join(history, "\n"))
+    }
+
+    fun reset() {
+      val propertiesComponent = PropertiesComponent.getInstance(project)
+      val history = propertiesComponent.getValue(propertyName) ?: return
+      setHistory(history.lines().filter { it.isNotEmpty() })
+      selectedItem = ""
+    }
+  }
+
   companion object {
     /**
      * Create a BackupFileTextField for saving a backup file
      */
     fun createFileSaver(project: Project, onFileChosen: (Path) -> Unit): BackupFileTextField {
-      val textField = BackupFileTextField()
+      val textField = BackupFileTextField(project)
       textField.addActionListener {
         val absolutePath = Path.of(textField.text).absoluteInProject(project)
         val parent = absolutePath.parent
@@ -83,7 +108,7 @@ class BackupFileTextField : ComponentWithBrowseButton<TextFieldWithHistory>(
      * Create a BackupFileTextField for choosing a backup file
      */
     fun createFileChooser(project: Project): BackupFileTextField {
-      val textField = BackupFileTextField()
+      val textField = BackupFileTextField(project)
       textField.addActionListener {
         val path =
           FileChooserFactory.getInstance()
