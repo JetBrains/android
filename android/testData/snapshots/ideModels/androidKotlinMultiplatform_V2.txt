@@ -1165,14 +1165,14 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :androidLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/androidLib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1237,7 +1237,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         buildType                     : release
     FlavorDimensions              : type
     FlavorDimensions              : mode
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1247,8 +1247,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1610,8 +1610,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionNameSuffix             :
             ProductFlavors                : typeone
             ProductFlavors                : modetwo
@@ -1768,14 +1768,14 @@ MODULE                        : Kotlin_Multiplatform.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1825,7 +1825,7 @@ MODULE                        : Kotlin_Multiplatform.app
     - basicVariant:               : release
         applicationId                 : com.example.app
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1838,8 +1838,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2006,8 +2006,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -2225,7 +2225,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ProjectPath                   : :kmpFirstLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2270,7 +2270,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         DataBindingEnabled            : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultSourceProvider
         SourceProvider
             Name                          : androidMain
@@ -3040,7 +3040,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     ProjectPath                   : :kmpSecondLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/kmpSecondLib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -3083,7 +3083,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         AndroidResourcesEnabled       : false
         DataBindingEnabled            : false
     - basicVariant:               : androidMain
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultSourceProvider
         SourceProvider
             Name                          : androidMain

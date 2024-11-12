@@ -7,9 +7,9 @@ MODULE                        : project.app
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - DynamicFeatures             : :dyn_feature
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -251,7 +251,7 @@ MODULE                        : project.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/processBasicBarDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         ManifestPlaceholders
             aa                            : aaa
             bb                            : bbb
@@ -805,9 +805,9 @@ MODULE                        : project.dyn_feature
     MavenName                     : project:dyn_feature:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -900,9 +900,9 @@ MODULE                        : project.lib
     MavenName                     : project:lib:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1131,7 +1131,7 @@ MODULE                        : project.lib
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/lib/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/lib/src/main/java
@@ -1510,9 +1510,9 @@ MODULE                        : project.nested1
     MavenName                     : project:nested1:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1600,9 +1600,9 @@ MODULE                        : project.nested1.deep
     MavenName                     : project.nested1:nested1:deep:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1696,9 +1696,9 @@ MODULE                        : project.nested2
     MavenName                     : project:nested2:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1806,9 +1806,9 @@ MODULE                        : project.nested2.deep
     MavenName                     : project.nested2:nested2:deep:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1900,9 +1900,9 @@ MODULE                        : project.nested2.trans.deep2
     MavenName                     : project.nested2.trans:nested2:trans:deep2:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
