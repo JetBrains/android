@@ -474,6 +474,18 @@ public class QuerySyncManager implements Disposable {
         OperationType.OTHER);
   }
 
+  @CanIgnoreReturnValue
+  public ListenableFuture<Boolean> resetQuerySyncState(
+      QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
+    return run(
+        "Resetting query sync",
+        "Clearing artifacts and running full query",
+        querySyncActionStats,
+        loadedProject::resetQuerySyncState,
+        taskOrigin,
+        OperationType.OTHER);
+  }
+
   public boolean canEnableAnalysisFor(Path workspaceRelativePath) {
     if (loadedProject == null) {
       return false;
