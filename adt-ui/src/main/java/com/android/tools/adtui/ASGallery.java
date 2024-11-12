@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui;
 
+import static javax.swing.SwingConstants.TOP;
+
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
@@ -53,6 +55,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
@@ -60,6 +63,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -480,7 +486,7 @@ public class ASGallery<E> extends JBList {
 
   private static class TextAndImageCellRenderer extends AbstractCellRenderer {
     private JPanel myPanel;
-    private JLabel myLabel;
+    private JTextPane myTextPane;
 
     private TextAndImageCellRenderer(Font font, String label, Icon icon) {
       // If there is an image, create a panel with the image at the top and
@@ -495,12 +501,20 @@ public class ASGallery<E> extends JBList {
       // +-------------+
       JLabel imageLabel = new JLabel(icon);
       imageLabel.getAccessibleContext().setAccessibleDescription(label);
+      imageLabel.setVerticalAlignment(TOP);
 
-      JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
-      textLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+      JTextPane textPane = new JTextPane();
+      textPane.getAccessibleContext().setAccessibleName(label);
+      StyledDocument document = textPane.getStyledDocument();
+      SimpleAttributeSet centerAttribute = new SimpleAttributeSet();
+      StyleConstants.setAlignment(centerAttribute, StyleConstants.ALIGN_CENTER);
+      document.setParagraphAttributes(0, document.getLength(), centerAttribute, false);
+      textPane.setText(label);
+      textPane.setEditable(false);
+
       int hPadding = font.getSize() / 3;
       Border padding = BorderFactory.createEmptyBorder(hPadding, 0, hPadding, 0);
-      textLabel.setBorder(padding);
+      textPane.setBorder(padding);
 
       JPanel panel = new JPanel() {
         @Override
@@ -515,38 +529,49 @@ public class ASGallery<E> extends JBList {
       panel.setOpaque(false); // so that background is from parent window
       panel.setLayout(new BorderLayout());
       panel.add(imageLabel);
-      panel.add(textLabel, BorderLayout.PAGE_END);
-      panel.getAccessibleContext().setAccessibleName(textLabel.getAccessibleContext().getAccessibleName());
-      panel.getAccessibleContext().setAccessibleDescription(textLabel.getAccessibleContext().getAccessibleDescription());
-
+      panel.add(textPane, BorderLayout.PAGE_END);
+      panel.getAccessibleContext().setAccessibleName(textPane.getAccessibleContext().getAccessibleName());
+      panel.getAccessibleContext().setAccessibleDescription(textPane.getAccessibleContext().getAccessibleDescription());
       myPanel = panel;
-      myLabel = textLabel;
+      myTextPane = textPane;
+    }
+
+    @Override
+    protected void setSelectionBorder(JComponent component) {
+      if (myIsSelected) {
+        component.setBorder(new LineBorder(UIUtil.getTreeSelectionBackground(myCellHasFocus)));
+      } else {
+        // Prevent the selecting of elements from changing size now that they are centered at the TOP
+        component.setBorder(new LineBorder(UIUtil.getPanelBackground()));
+      }
     }
 
     @Override
     public void updateAppearance() {
       setSelectionBorder(myPanel);
-      setLabelBackground(myLabel);
-      setLabelForeground(myLabel);
+      setTextPaneBackground(myTextPane);
+      setTextPaneForeground(myTextPane);
     }
+
+
 
     @Override
     public Component getComponent() {
       return myPanel;
     }
 
-    public void setLabelBackground(JLabel label) {
+    public void setTextPaneBackground(JTextPane textPane) {
       if (myIsSelected) {
-        label.setBackground(UIUtil.getTreeSelectionBackground(myCellHasFocus));
-        label.setOpaque(true);
+        textPane.setBackground(UIUtil.getTreeSelectionBackground(myCellHasFocus));
+        textPane.setOpaque(true);
       } else {
-        label.setBackground(null);
-        label.setOpaque(false);
+        textPane.setBackground(null);
+        textPane.setOpaque(false);
       }
     }
 
-    public void setLabelForeground(JLabel label) {
-      label.setForeground(UIUtil.getTreeForeground(myIsSelected, myCellHasFocus));
+    public void setTextPaneForeground(JTextPane textPane) {
+      textPane.setForeground(UIUtil.getTreeForeground(myIsSelected, myCellHasFocus));
     }
   }
 }

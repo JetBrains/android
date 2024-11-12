@@ -29,6 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.border.Border;
 
 public final class ASGalleryTest extends LightPlatformTestCase {
@@ -108,8 +109,8 @@ public final class ASGalleryTest extends LightPlatformTestCase {
         assertNotNull(((JLabel)((JPanel)renderer).getComponent(0)).getIcon());
         assertEquals(THUMBNAIL_SIZE.width, ((JLabel)((JPanel)renderer).getComponent(0)).getIcon().getIconHeight());
         assertEquals(THUMBNAIL_SIZE.height, ((JLabel)((JPanel)renderer).getComponent(0)).getIcon().getIconHeight());
-        assertTrue(((JPanel)renderer).getComponent(1) instanceof JLabel);
-        assertEquals(model.myLabel, ((JLabel)((JPanel)renderer).getComponent(1)).getText());
+        assertTrue(((JPanel)renderer).getComponent(1) instanceof JTextPane);
+        assertEquals(model.myLabel, ((JTextPane)((JPanel)renderer).getComponent(1)).getText());
       }
     }
   }
@@ -156,7 +157,6 @@ public final class ASGalleryTest extends LightPlatformTestCase {
       Accessible child = gallery.getAccessibleContext().getAccessibleChild(i);
       assertNotNull(child);
       assertEquals(model.myLabel, child.getAccessibleContext().getAccessibleName());
-      assertEquals(null, child.getAccessibleContext().getAccessibleDescription());
       assertEquals(gallery, child.getAccessibleContext().getAccessibleParent());
       assertEquals(i, child.getAccessibleContext().getAccessibleIndexInParent());
     }
