@@ -70,6 +70,7 @@ import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -162,6 +163,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         }
       }
       for (listener in connectionStateListeners) {
+        ActivityTracker.getInstance().inc() // Trigger toolbar updates.
         listener.connectionStateChanged(this, connectionState)
       }
       return true

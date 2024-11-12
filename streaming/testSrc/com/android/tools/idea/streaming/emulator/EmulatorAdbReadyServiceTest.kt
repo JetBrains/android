@@ -26,6 +26,7 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.Disposable
@@ -114,8 +115,9 @@ class EmulatorAdbReadyServiceTest {
     val serialNumber = panel.emulator.emulatorId.serialNumber
     val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
     deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    val count = ActivityTracker.getInstance().count
     deviceHandle.connectToMockDevice(serialNumber)
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { button.isEnabled }
+    waitForCondition(TIMEOUT) { ActivityTracker.getInstance().count > count }
   }
 
   @Test
@@ -132,8 +134,9 @@ class EmulatorAdbReadyServiceTest {
     val button = ui.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     assertThat(button.isEnabled).isTrue()
 
+    val count = ActivityTracker.getInstance().count
     deviceHandle.disconnect()
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !button.isEnabled }
+    waitForCondition(TIMEOUT) { ActivityTracker.getInstance().count > count }
   }
 
   private fun FakeDeviceHandle.connectToMockDevice(serialNumber: String) {

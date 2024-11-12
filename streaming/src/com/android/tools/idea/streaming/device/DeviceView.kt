@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
@@ -154,6 +155,7 @@ internal class DeviceView(
     set(value) {
       if (field != value) {
         field = value
+        ActivityTracker.getInstance().inc() // Trigger toolbar updates.
         UIUtil.invokeLaterIfNeeded {
           if (!disposed) {
             for (listener in connectionStateListeners) {

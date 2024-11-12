@@ -19,15 +19,13 @@ import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.concurrency.ConcurrentCollectionFactory
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
-import java.awt.EventQueue
 
 /**
  * Returns true if the ADB is ready to handle commands for the device with [serialNumber] in [project].
@@ -66,23 +64,19 @@ internal class EmulatorAdbReadyService(private val project: Project): Disposable
     if (connectedDevice != null) {
       deviceHandleMap[connectedDevice.serialNumber] = this
       if (state.isReady) {
-        EventQueue.invokeLater { updateToolbar(connectedDevice.serialNumber) }
+        updateToolbar()
       }
     }
     else {
       val serialNumber = deviceHandleMap.keys.find { deviceHandleMap[it] == this }
       deviceHandleMap.values.remove(this)
       serialNumber?.let {
-        EventQueue.invokeLater { updateToolbar(serialNumber) }
+        updateToolbar()
       }
     }
   }
 
-  private fun updateToolbar(serialNumber: String) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
-    toolWindow.contentManager.contents.map { it.component }
-      .filterIsInstance<EmulatorToolWindowPanel>()
-      .filter { it.emulator.emulatorId.serialNumber == serialNumber }
-      .forEach { it.updateMainToolbar() }
+  private fun updateToolbar() {
+    ActivityTracker.getInstance().inc()
   }
 }
