@@ -107,7 +107,8 @@ sealed interface TableColumnWidth {
   @Composable fun RowScope.widthModifier(): Modifier
 
   class Fixed(val width: Dp) : TableColumnWidth {
-    @Composable override fun RowScope.widthModifier(): Modifier = Modifier.width(width)
+    @Composable
+    override fun RowScope.widthModifier(): Modifier = Modifier.width(width + CELL_SPACING)
   }
 
   class Weighted(val weight: Float) : TableColumnWidth {
