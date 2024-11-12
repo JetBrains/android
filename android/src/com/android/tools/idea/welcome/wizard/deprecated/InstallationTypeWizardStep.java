@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,19 +28,17 @@ import javax.swing.*;
 @Deprecated
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
-  private JBScrollPane myContents;
-  private JRadioButton myStandardRadioButton;
-  private JRadioButton myCustomRadioButton;
+  private final InstallationTypeWizardStepForm myForm = new InstallationTypeWizardStepForm();
 
   public InstallationTypeWizardStep(@NotNull ScopedStateStore.Key<Boolean> customInstall) {
     super("Install Type");
     myDataKey = customInstall;
-    setComponent(myContents);
+    setComponent(myForm.getContents());
   }
 
   @Override
   public void init() {
-    register(myDataKey, myContents, new TwoRadiosToBooleanBinding(myCustomRadioButton, myStandardRadioButton));
+    register(myDataKey, myForm.getContents(), new TwoRadiosToBooleanBinding(myForm.getCustomRadioButton(), myForm.getStandardRadioButton()));
   }
 
   @Nullable
@@ -52,6 +49,6 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myStandardRadioButton;
+    return myForm.getStandardRadioButton();
   }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardStep">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardStepForm">
   <scrollpane id="8eb" class="com.intellij.ui.components.JBScrollPane" binding="myContents">
     <constraints>
       <xy x="0" y="0" width="684" height="276"/>

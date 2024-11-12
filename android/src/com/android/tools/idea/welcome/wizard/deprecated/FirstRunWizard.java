@@ -63,16 +63,8 @@ public class FirstRunWizard extends DynamicWizard {
   @Override
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
-    ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      boolean sdkExists = false;
-      if (initialSdkLocation.isDirectory()) {
-        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, initialSdkLocation.toPath());
-        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
-      }
-      addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
+      addPath(new SingleStepPath(new FirstRunWelcomeStep(getSdkExists(initialSdkLocation))));
       if (initialSdkLocation.getPath().isEmpty()) {
         // We don't have a default path specified, have to do custom install.
         myState.put(KEY_CUSTOM_INSTALL, true);
@@ -85,11 +77,22 @@ public class FirstRunWizard extends DynamicWizard {
       addPath(new SingleStepPath(new MissingSdkAlertStep()));
     }
 
+    ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
+    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, true);
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 
     addPath(new SingleStepPath(progressStep));
     super.init();
+  }
+
+  private boolean getSdkExists(File initialSdkLocation) {
+    if (initialSdkLocation.isDirectory()) {
+      AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, initialSdkLocation.toPath());
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      return !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
+    }
+    return false;
   }
 
   private void conditionallyAddEmulatorSettingsStep() {
