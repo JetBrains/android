@@ -17,6 +17,9 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assertCountEquals
@@ -27,6 +30,7 @@ import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
@@ -52,21 +56,14 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class StorageGroupTest {
-  private var device = pixel6()
+  private var device by mutableStateOf(pixel6())
+  private val state = StorageGroupState(device, createInMemoryFileSystem())
   @get:Rule val rule = createStudioComposeTestRule()
 
   @Test
   fun internalStorageIsValid() {
     // Arrange
-    setContent {
-      StorageGroup(
-        device,
-        StorageGroupState(device),
-        hasPlayStore = false,
-        isExistingImageValid = true,
-        onDeviceChange = { device = it },
-      )
-    }
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
     rule.onInternalStorageTextField().performTextReplacement("3")
@@ -85,15 +82,7 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsEmpty() {
     // Arrange
-    setContent {
-      StorageGroup(
-        device,
-        StorageGroupState(device),
-        hasPlayStore = false,
-        isExistingImageValid = true,
-        onDeviceChange = { device = it },
-      )
-    }
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
     rule.onInternalStorageTextField().performTextReplacement("")
@@ -109,15 +98,7 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsLessThanMinAndHasPlayStore() {
     // Arrange
-    setContent {
-      StorageGroup(
-        device,
-        StorageGroupState(device),
-        hasPlayStore = true,
-        isExistingImageValid = true,
-        onDeviceChange = { device = it },
-      )
-    }
+    setContent { StorageGroup(device, state, true, onDeviceChange = { device = it }) }
 
     // Act
     rule.onInternalStorageTextField().performTextReplacement("1")
@@ -136,15 +117,7 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsLessThanMin() {
     // Arrange
-    setContent {
-      StorageGroup(
-        device,
-        StorageGroupState(device),
-        hasPlayStore = false,
-        isExistingImageValid = true,
-        onDeviceChange = { device = it },
-      )
-    }
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
     rule.onInternalStorageTextField().performTextReplacement("1")
@@ -160,15 +133,7 @@ class StorageGroupTest {
   @Test
   fun internalStorageIsOverflow() {
     // Arrange
-    setContent {
-      StorageGroup(
-        device,
-        StorageGroupState(device),
-        hasPlayStore = false,
-        isExistingImageValid = true,
-        onDeviceChange = { device = it },
-      )
-    }
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
     rule.onInternalStorageTextField().performTextReplacement("8589934592")
@@ -179,6 +144,23 @@ class StorageGroupTest {
     // Assert
     rule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
     assertNull(device.internalStorage)
+  }
+
+  @Test
+  fun onExistingImageRadioButtonClick() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    rule.onNodeWithText("Existing image").performClick()
+
+    @OptIn(ExperimentalTestApi::class)
+    rule.onNodeWithTag("ExistingImageField").performMouseInput { moveTo(center) }
+
+    // Assert
+    assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
+    rule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
+    assertNull(device.expandedStorage)
   }
 
   private fun setContent(composable: @Composable () -> Unit) {

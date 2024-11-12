@@ -34,6 +34,7 @@ import com.android.tools.idea.adddevicedialog.DeviceDetails
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.FileSystem
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.TreeSet
@@ -197,6 +198,7 @@ internal constructor(
   device: VirtualDevice,
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
+  fileSystem: FileSystem,
 ) {
   internal var device by mutableStateOf(device)
 
@@ -204,22 +206,14 @@ internal constructor(
     private set
 
   internal val systemImageTableSelectionState = TableSelectionState(image)
-  internal val storageGroupState = StorageGroupState(device)
+  internal val storageGroupState = StorageGroupState(device, fileSystem)
   internal val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
 
   internal val isValid
-    get() =
-      device.internalStorage != null &&
-        device.ram != null &&
-        device.vmHeapSize != null &&
-        validity.isValid
+    get() = device.isValid && validity.isValid
 
   internal var validity by mutableStateOf(Validity())
     private set
-
-  init {
-    setExpandedStorage(device.expandedStorage)
-  }
 
   internal fun hasPlayStore(): Boolean {
     val image = systemImageTableSelectionState.selection
@@ -232,10 +226,6 @@ internal constructor(
 
   internal fun setSystemImageSelection(systemImage: ISystemImage) {
     systemImageTableSelectionState.selection = systemImage
-
-    validity =
-      validity.copy(isExpandedStorageValid = device.expandedStorage.isValid(hasPlayStore()))
-
     updatePreferredAbiValidity()
   }
 
@@ -277,17 +267,6 @@ internal constructor(
     return skin
   }
 
-  internal fun setExpandedStorage(expandedStorage: ExpandedStorage?) {
-    if (expandedStorage != null) {
-      device = device.copy(expandedStorage = expandedStorage)
-    }
-
-    validity =
-      validity.copy(
-        isExpandedStorageValid = expandedStorage != null && expandedStorage.isValid(hasPlayStore())
-      )
-  }
-
   internal fun resetPlayStoreFields(skin: Path) {
     if (!hasPlayStore()) return
 
@@ -307,15 +286,10 @@ internal data class Validity
 internal constructor(
   private val isDeviceNameValid: Boolean = true,
   internal val isSystemImageTableSelectionValid: Boolean = true,
-  internal val isExpandedStorageValid: Boolean = true,
   val isPreferredAbiValid: Boolean = true,
 ) {
   internal val isValid
-    get() =
-      isDeviceNameValid &&
-        isSystemImageTableSelectionValid &&
-        isExpandedStorageValid &&
-        isPreferredAbiValid
+    get() = isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
 }
 
 private enum class Tab(val text: String) {

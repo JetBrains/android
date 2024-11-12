@@ -76,7 +76,8 @@ class AdditionalSettingsPanelTest {
     val image = mock<ISystemImage>()
     whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
 
-    val state = ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image)
+    val state =
+      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image, fileSystem)
 
     rule.setContent {
       CompositionLocalProvider(
@@ -100,7 +101,7 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     assertThat(state.device)
-      .isEqualTo(device.copy(expandedStorage = ExistingImage(mySdCardFileImg.toString())))
+      .isEqualTo(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)))
 
     // Act
     rule.onNodeWithTag("CustomRadioButton").performClick()

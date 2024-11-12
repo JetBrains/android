@@ -120,6 +120,7 @@ internal fun WizardPageScope.ConfigurationPage(
             filteredImageState.images.sortedWith(SystemImageComparator).last().takeIf {
               it.isSupported()
             },
+            fileSystem,
           )
 
         state.setSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
@@ -132,7 +133,7 @@ internal fun WizardPageScope.ConfigurationPage(
             device
           }
 
-        ConfigureDevicePanelState(copy, skins, image)
+        ConfigureDevicePanelState(copy, skins, image, fileSystem)
       }
     }
 

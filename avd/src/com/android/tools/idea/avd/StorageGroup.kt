@@ -46,6 +46,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
 import icons.StudioIconsCompose
 import java.awt.Component
+import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.Path
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -63,10 +64,10 @@ internal fun StorageGroup(
   device: VirtualDevice,
   state: StorageGroupState,
   hasPlayStore: Boolean,
-  isExistingImageValid: Boolean,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
+    @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
     GroupHeader("Storage")
 
     Row(Modifier.testTag("InternalStorageRow")) {
@@ -77,8 +78,6 @@ internal fun StorageGroup(
         state.internalStorage.result().internalStorageErrorMessage(hasPlayStore),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
-
-      @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
 
       LaunchedEffect(Unit) {
         state.internalStorage.storageCapacity.collect {
@@ -161,10 +160,17 @@ internal fun StorageGroup(
         !hasPlayStore,
       )
 
+      val enabled =
+        state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE && !hasPlayStore
+
       ExistingImageField(
         state.existingImage,
-        state.selectedRadioButton == ExpandedStorageRadioButton.EXISTING_IMAGE && !hasPlayStore,
-        isExistingImageValid,
+        if (enabled && device.expandedStorage == null) {
+          "The specified image must be a valid file"
+        } else {
+          null
+        },
+        enabled,
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
       )
     }
@@ -175,6 +181,10 @@ internal fun StorageGroup(
       onClick = { state.selectedRadioButton = ExpandedStorageRadioButton.NONE },
       enabled = !hasPlayStore,
     )
+
+    LaunchedEffect(Unit) {
+      state.expandedStorageFlow.collect { onDeviceChange(device.copy(expandedStorage = it)) }
+    }
   }
 }
 
@@ -226,22 +236,20 @@ private fun <E : Enum<E>> RadioButtonRow(
 @Composable
 private fun ExistingImageField(
   existingImage: TextFieldState,
+  errorMessage: String?,
   enabled: Boolean,
-  isExistingImageValid: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Row(modifier) {
     @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
     val project = LocalProject.current
 
-    val errorText =
-      "The specified image must be a valid file".takeIf { enabled && !isExistingImageValid }
-    ErrorTooltip(errorText) {
+    ErrorTooltip(errorMessage) {
       TextField(
         existingImage,
         Modifier.testTag("ExistingImageField"),
         enabled,
-        outline = if (enabled && !isExistingImageValid) Outline.Error else Outline.None,
+        outline = if (enabled && errorMessage != null) Outline.Error else Outline.None,
         trailingIcon = {
           Icon(
             AllIconsKeys.General.OpenDisk,
@@ -282,7 +290,8 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
   return path
 }
 
-internal class StorageGroupState internal constructor(private val device: VirtualDevice) {
+internal class StorageGroupState
+internal constructor(private val device: VirtualDevice, fileSystem: FileSystem) {
   internal val internalStorage =
     StorageCapacityFieldState(
       requireNotNull(device.internalStorage),
@@ -290,7 +299,7 @@ internal class StorageGroupState internal constructor(private val device: Virtua
     )
 
   internal var selectedRadioButton by
-    mutableStateOf(ExpandedStorageRadioButton.valueOf(device.expandedStorage))
+    mutableStateOf(ExpandedStorageRadioButton.valueOf(requireNotNull(device.expandedStorage)))
 
   internal val custom =
     StorageCapacityFieldState(
@@ -298,7 +307,8 @@ internal class StorageGroupState internal constructor(private val device: Virtua
       VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE,
     )
 
-  internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
+  internal val existingImage =
+    TextFieldState(requireNotNull(device.expandedStorage).toTextFieldValue())
 
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
@@ -306,7 +316,10 @@ internal class StorageGroupState internal constructor(private val device: Virtua
         val value = custom.result().storageCapacity
         if (value == null) null else Custom(value.withMaxUnit())
       }
-      ExpandedStorageRadioButton.EXISTING_IMAGE -> ExistingImage(existingImage.text.toString())
+      ExpandedStorageRadioButton.EXISTING_IMAGE -> {
+        val value = fileSystem.getPath(existingImage.text.toString())
+        if (Files.isRegularFile(value)) ExistingImage(value) else null
+      }
       ExpandedStorageRadioButton.NONE -> None
     }
   }
