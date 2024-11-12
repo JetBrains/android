@@ -34,9 +34,10 @@
     />
   </extensions>
 
+
   <actions>
     <action
-        id="action.android.restore" class="com.android.tools.idea.backup.RestoreFileAction"
+        id="action.android.restore.file" class="com.android.tools.idea.backup.RestoreFileAction"
         text="Restore Application"
         description="Restore Application from file"
         icon="AllIcons.Actions.Download">
@@ -57,7 +58,32 @@
         text="Backup App State"
         description="Backup app state to a file"
         icon="AllIcons.Actions.Upload">
-      <add-to-group group-id="android.streaming.backup"/>
+      <add-to-group group-id="android.streaming.backup" anchor="first"/>
+    </action>
+
+    <!--
+      Both action.android.restore.group and action.android.restore are installed, but they are mutually exclusive.
+      Only one of them is actually displayed. The group is only displayed if there are any recently used backup files.
+      Otherwise, the action is displayed.
+    -->
+    <group
+        id="action.android.restore.group" class="com.android.tools.idea.backup.RestoreAppActionGroup"
+        text="Restore Application"
+        description="Restore Application from file"
+        icon="AllIcons.Actions.Download">
+      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="action.android.backup"/>
+      <add-to-group group-id="RunMenu" anchor="after" relative-to-action="action.android.backup"/>
+      <add-to-group group-id="android.streaming.backup" anchor="last"/>
+    </group>
+
+    <action
+        id="action.android.restore" class="com.android.tools.idea.backup.RestoreAppAction"
+        text="Restore Application"
+        description="Restore Application from file"
+        icon="AllIcons.Actions.Download">
+      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="action.android.backup"/>
+      <add-to-group group-id="RunMenu" anchor="after" relative-to-action="action.android.backup"/>
+      <add-to-group group-id="android.streaming.backup" anchor="last"/>
     </action>
   </actions>
 
