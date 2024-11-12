@@ -45,6 +45,10 @@ class BackupFileTextField private constructor(project: Project) :
     childComponent.setTextAndAddToHistory(text)
   }
 
+  fun addCurrentTextToHistory() {
+    childComponent.addCurrentTextToHistory()
+  }
+
   override fun setText(text: String) {
     childComponent.text = text
   }

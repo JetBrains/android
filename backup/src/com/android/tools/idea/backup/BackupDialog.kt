@@ -24,7 +24,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
-import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
@@ -36,6 +35,7 @@ import javax.swing.ListCellRenderer
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.pathString
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val APPLICATION_ID_FIELD_WIDTH = 300
 private const val TYPE_FIELD_WIDTH = 100
@@ -43,10 +43,8 @@ private const val PATH_FIELD_WIDTH = 500
 
 private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
 
-internal class BackupDialog(
-  private val project: Project,
-  initialApplicationId: String,
-) : DialogWrapper(project) {
+internal class BackupDialog(private val project: Project, initialApplicationId: String) :
+  DialogWrapper(project) {
   private val applicationIds =
     project.getService(ProjectAppsProvider::class.java).getApplicationIds()
   private val applicationIdComboBox =
@@ -57,7 +55,9 @@ internal class BackupDialog(
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
       name = "typeComboBox"
     }
-  private val fileTextField = BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }.apply { name = "fileTextField" }
+  private val fileTextField =
+    BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }
+      .apply { name = "fileTextField" }
   private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
@@ -162,6 +162,7 @@ internal class BackupDialog(
   override fun doOKAction() {
     setLastUsedFile(backupPath.relativeToProject(project).pathString)
     setLastUsedType(typeComboBox.item)
+    fileTextField.addCurrentTextToHistory()
     if (backupPath.exists() && !fileSetByChooser) {
       @Suppress("DialogTitleCapitalization")
       val result =
@@ -197,8 +198,7 @@ internal class BackupDialog(
   }
 
   companion object {
-    @VisibleForTesting
-    internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
+    @VisibleForTesting internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
 
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
   }
