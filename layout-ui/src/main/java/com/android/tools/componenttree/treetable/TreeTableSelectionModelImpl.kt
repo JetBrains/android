@@ -33,16 +33,12 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
-  private var delayedSelectionUpdate = false
 
   init {
     table.selectionModel.addListSelectionListener {
-      if (!it.valueIsAdjusting) {
-        if (!isUpdating) {
-          fireSelectionChange()
-        } else {
-          delayedSelectionUpdate = true
-        }
+      if (!isUpdating && !it.valueIsAdjusting) {
+        val newSelection = currentSelection
+        selectionListeners.forEach { it.invoke(newSelection) }
       }
     }
   }
@@ -52,7 +48,7 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     set(value) {
       val oldValue = currentSelection
       if (value != oldValue) {
-        update(performDelayedSelectionUpdates = false) {
+        update {
           // First expand the selected nodes in the tree
           val paths = value.map { createTreePath(it) }
           val parentPaths = paths.mapNotNull { it.parentPath }
@@ -71,7 +67,7 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
   fun keepSelectionDuring(operation: () -> Unit) {
     val oldSelection =
       table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }.filterNotNull()
-    update(operation = operation)
+    update(operation)
 
     // Tricky:
     // When the operation is initiated from a data update on the TreeTableImpl, there are several
@@ -82,21 +78,8 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     invokeLater { currentSelection = oldSelection }
   }
 
-  /**
-   * Perform an update [operation] without firing a storm of selection events.
-   *
-   * Do this by not firing selection events during the [operation]. If any selection events were
-   * blocked during the [operation], fire a single event after the [operation] has finished unless
-   * [performDelayedSelectionUpdates] is false.
-   *
-   * Selection changes can be created by:
-   * 1. The user selecting a new cell in the TreeTable
-   * 2. An outside event initiated with a [currentSelection] change
-   * 3. The TreeTable may create several selection changes as a result of the implementation in
-   *    TreeTable.
-   */
   @UiThread
-  fun update(performDelayedSelectionUpdates: Boolean = true, operation: () -> Unit) {
+  fun update(operation: () -> Unit) {
     // Protect the "isUpdating" var against multi threading:
     ThreadingAssertions.assertEventDispatchThread()
 
@@ -108,12 +91,6 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
       // Guard for recursive update calls. Here: isUpdating should remain false until all
       // invocations of update are done.
       isUpdating = wasUpdating
-      if (!wasUpdating && delayedSelectionUpdate) {
-        if (performDelayedSelectionUpdates) {
-          fireSelectionChange()
-        }
-        delayedSelectionUpdate = false
-      }
     }
   }
 
@@ -123,11 +100,6 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
 
   override fun removeSelectionListener(listener: (List<Any>) -> Unit) {
     selectionListeners.remove(listener)
-  }
-
-  private fun fireSelectionChange() {
-    val newSelection = currentSelection
-    selectionListeners.forEach { it.invoke(newSelection) }
   }
 
   fun addAutoScrollListener(listener: () -> Unit) {

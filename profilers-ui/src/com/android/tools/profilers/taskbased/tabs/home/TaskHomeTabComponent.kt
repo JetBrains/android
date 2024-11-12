@@ -15,43 +15,31 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
+import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
 
 @Composable
 fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
-  Column(
-    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
-  ) {
-    val processListModel = taskHomeTabModel.processListModel
-
-    HorizontalSplitLayout(
-      minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
-      maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
-      first = {
-        ProcessList(processListModel, it)
-      },
-      second = {
-        TaskGridAndBars(taskHomeTabModel, ideProfilerComponents, it)
-      }
-    )
-  }
+  HorizontalSplitLayout(
+    firstPaneMinWidth = 400.dp,
+    secondPaneMinWidth = 250.dp,
+    first = { ProcessList(taskHomeTabModel.processListModel) },
+    second = { TaskGridAndBars(taskHomeTabModel, ideProfilerComponents) },
+    state = rememberSplitLayoutState(.3f),
+    modifier = Modifier.fillMaxSize(),
+  )
 }
 
-class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
-  { TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
+class TaskHomeTabComponent(
+  taskHomeTabModel: TaskHomeTabModel,
+  ideProfilerComponents: IdeProfilerComponents,
+) : TaskTabComponent({ TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })

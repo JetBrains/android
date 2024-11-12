@@ -212,7 +212,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean) {
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, model.reportUiData.buildRequestData, isFeatureConsideredStable)
     analytics.turnConfigurationCacheOnInPropertiesClicked()
   }
 
@@ -244,7 +244,7 @@ class BuildAnalyzerViewController(
 
   override fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>) {
     val duration = runAndMeasureDuration {
-      StudioProvidedInfo.disableJetifier(project) { property ->
+      StudioProvidedInfo.disableJetifier(project, model.reportUiData.buildRequestData) { property ->
         if (property == null) {
           invokeLater {
             val feedbackBalloonRelativePoint = sourceRelativePointSupplier.get()

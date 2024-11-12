@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import static com.android.SdkConstants.FN_BUILD_PROP;
-import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI;
-import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABI2;
-import static com.android.adblib.DevicePropertyNames.RO_PRODUCT_CPU_ABILIST;
-
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
 import com.android.io.CancellableFileIo;
@@ -27,7 +22,6 @@ import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.CameraLocation;
@@ -42,7 +36,7 @@ import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.internal.avd.GpuMode;
-import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -378,33 +372,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (sysImgDesc == null) {
       return;
     }
-    Path systemImageLocation = sysImgDesc.getSystemImage().getLocation();
-    PathFileWrapper buildPropFile = new PathFileWrapper(systemImageLocation.resolve(FN_BUILD_PROP));
-    if (!buildPropFile.exists()) {
-      return;
-    }
-
-    Map<String, String> buildProp = ProjectProperties.parsePropertyFile(buildPropFile, null);
-    if (buildProp == null) {
-      return;
-    }
-
-    String systemAbiList = buildProp.getOrDefault("ro.system.product.cpu.abilist", "");
-    List<String> abiList = systemAbiList.isBlank() ? null : Arrays.asList(systemAbiList.split(","));
+    List<String> abiList = SystemImage.readAbisFromBuildProps(sysImgDesc.getSystemImage().getLocation());
     if (abiList == null) {
-      String cpuAbiList = buildProp.getOrDefault(RO_PRODUCT_CPU_ABILIST, "");
-      abiList = cpuAbiList.isBlank() ? null : Arrays.asList(cpuAbiList.split(","));
-    }
-    if (abiList == null) {
-      abiList = new ArrayList<>(2);
-      String property = buildProp.get(RO_PRODUCT_CPU_ABI);
-      if (property != null) {
-        abiList.add(property);
-      }
-      property = buildProp.get(RO_PRODUCT_CPU_ABI2);
-      if (property != null) {
-        abiList.add(property);
-      }
+      return;
     }
     DefaultComboBoxModel<String> comboBoxModel = new DefaultComboBoxModel<>();
     comboBoxModel.addElement(null);

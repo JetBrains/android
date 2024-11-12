@@ -21,8 +21,9 @@ import com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF
 import com.android.SdkConstants.ATTR_ORIENTATION
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.MotionSceneTags.CUSTOM_ATTRIBUTE
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
@@ -81,7 +82,7 @@ class MotionLayoutAttributesViewTest {
     val table = PTable.create(constraints).component as JTable
     val transferHandler = table.transferHandler
     table.setRowSelectionInterval(2, 2)
-    val clipboard: Clipboard = MockitoKt.mock()
+    val clipboard: Clipboard = mock()
     assertThat(constraints.items.size).isEqualTo(17)
     assertThat(constraints.items.map { it.name }).contains(ATTR_LAYOUT_END_TO_END_OF)
     transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
@@ -89,7 +90,7 @@ class MotionLayoutAttributesViewTest {
     assertThat(constraints.items.map { it.name }).doesNotContain(ATTR_LAYOUT_END_TO_END_OF)
 
     val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
-    Mockito.verify(clipboard).setContents(transferableCaptor.capture(), MockitoKt.eq(null))
+    Mockito.verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
     assertThat(transferable.getTransferData(DataFlavor.stringFlavor))
@@ -124,7 +125,7 @@ class MotionLayoutAttributesViewTest {
     val table = PTable.create(constraints).component as JTable
     val transferHandler = table.transferHandler
     table.setRowSelectionInterval(0, 0)
-    val clipboard: Clipboard = MockitoKt.mock()
+    val clipboard: Clipboard = mock()
     assertThat(constraints.items.size).isEqualTo(1)
     assertThat(constraints.items.map { it.name }).contains(ATTR_TEXT_SIZE)
     transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
@@ -132,7 +133,7 @@ class MotionLayoutAttributesViewTest {
     assertThat(constraints.items.map { it.name }).doesNotContain(ATTR_TEXT_SIZE)
 
     val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
-    Mockito.verify(clipboard).setContents(transferableCaptor.capture(), MockitoKt.eq(null))
+    Mockito.verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
     assertThat(transferable.getTransferData(DataFlavor.stringFlavor))

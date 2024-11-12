@@ -29,6 +29,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -153,6 +155,7 @@ public final class GradleModuleImportTest extends HeavyPlatformTestCase {
     Project project = getProject();
     dir = getBaseDirPath(project);
     IdeSdks.removeJdksOn(getTestRootDisposable());
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
   }
 
   /**

@@ -19,7 +19,7 @@ import com.android.tools.idea.preview.animation.PlaybackControls.TimelineSpeed
 import javax.swing.JSlider
 
 /** Clock control for a [JSlider]. */
-class SliderClockControl(val slider: JSlider) {
+class SliderClockControl(private val slider: JSlider) {
 
   /** Speed multiplier of the timeline clock. [TimelineSpeed.X_1] by default (normal speed). */
   var speed: TimelineSpeed = TimelineSpeed.X_1

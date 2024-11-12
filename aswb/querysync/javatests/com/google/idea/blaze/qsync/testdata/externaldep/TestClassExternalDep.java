@@ -15,15 +15,14 @@
  */
 package com.google.idea.blaze.qsync.testdata.externaldep;
 
-import com.google.common.collect.ImmutableList;
-import java.util.List;
+import com.google.idea.blaze.qsync.testdata.nodeps.TestClassNoDeps;
 
 public class TestClassExternalDep {
 
   private TestClassExternalDep() {}
 
   @SuppressWarnings("PreferredInterfaceType")
-  public static List<String> getImmutableList() {
-    return ImmutableList.of("Hello World");
+  public static void printDepsClass() {
+    System.out.println(TestClassNoDeps.class);
   }
 }

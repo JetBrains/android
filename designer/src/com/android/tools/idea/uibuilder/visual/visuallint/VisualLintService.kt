@@ -388,7 +388,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
 
       // TODO: Potentially save this task for future?
       return@thenCompose newTask.inflate().whenComplete { result, inflateException ->
-        val exception: Throwable? = inflateException ?: result.renderResult.exception
+        val exception: Throwable? = inflateException ?: result?.renderResult?.exception
         newTask.dispose()
         if (exception != null || result == null) {
           logger.error(

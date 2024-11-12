@@ -44,11 +44,11 @@ class AndroidTestRunConfigurationTest {
       var errors = invokeAndWaitIfNeeded { androidTestRunConfiguration!!.validate(null) }
       Truth.assertThat(errors).hasSize(0)
       switchVariant(it, ":app", "basicRelease")
-      errors = androidTestRunConfiguration.validate(null)
+      errors = invokeAndWaitIfNeeded { androidTestRunConfiguration.validate(null) }
       Truth.assertThat(errors).isNotEmpty()
       Truth.assertThat(errors.stream().map { obj: ValidationError? -> obj!!.message }
                          .collect(Collectors.toList()))
-        .contains("Module 'project.lib.androidTest' doesn't exist in project")
+        .contains("Run configuration ExampleInstrumentedTest is not supported in the current project. Cannot obtain the package.")
     }
   }
 

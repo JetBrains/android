@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -29,11 +25,12 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -42,13 +39,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito
-import org.mockito.Mockito.argThat
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LegacyClientTest {
@@ -59,7 +57,7 @@ class LegacyClientTest {
   private val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
-    doAnswer { windowIds }.whenever(loader).getAllWindowIds(Mockito.any())
+    doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
     val client =
       LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector)
         as LegacyClient
@@ -95,19 +93,19 @@ class LegacyClientTest {
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window1" },
-        any(ResourceLookup::class.java),
+        any(),
         eq(client.process),
       )
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window2" },
-        any(ResourceLookup::class.java),
+        any(),
         eq(client.process),
       )
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window3" },
-        any(ResourceLookup::class.java),
+        any(),
         eq(client.process),
       )
   }
@@ -138,7 +136,7 @@ class LegacyClientTest {
       .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    notification1.actions.last().invoke(MockitoKt.mock())
+    notification1.actions.last().invoke(mock())
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
     inspectorRule.awaitLaunch()
@@ -155,7 +153,7 @@ class LegacyClientTest {
     verify(client.treeLoader)
       .loadComponentTree(
         argThat { event: LegacyEvent -> event.windowId == "window1" },
-        any(ResourceLookup::class.java),
+        any(),
         eq(client.process),
       )
   }

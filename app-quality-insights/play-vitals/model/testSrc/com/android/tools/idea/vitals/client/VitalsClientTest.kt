@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.client
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DeviceType
@@ -34,15 +35,25 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.StatsGroup
+import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.Language
+import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
+import com.android.tools.idea.insights.client.FakeAiInsightClient
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.zeroCounts
+import com.android.tools.idea.protobuf.Message
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
 import com.android.tools.idea.vitals.TEST_ISSUE2
@@ -57,11 +68,15 @@ import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.Freshness
 import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
+import com.google.android.studio.gemini.CodeSnippet
+import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.DateTime
-import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule
+import kotlin.collections.listOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -69,7 +84,7 @@ import org.junit.Test
 
 class VitalsClientTest {
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val database = FakeVitalsDatabase(TEST_CONNECTION_1)
   private val clock = FakeClock()
@@ -112,7 +127,14 @@ class VitalsClientTest {
   fun `client returns top cached issues when offline`() = runTest {
     val cache = AppInsightsCacheImpl()
     val grpcClient = TestVitalsGrpcClient() // return empty result for every API call.
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     cache.populateIssues(TEST_CONNECTION_1, listOf(TEST_ISSUE1))
 
@@ -175,7 +197,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -234,7 +263,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     val responseIssue =
       (client.listTopOpenIssues(
@@ -260,7 +296,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -310,7 +347,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -342,7 +380,8 @@ class VitalsClientTest {
     runBlocking<Unit> {
       val client =
         VitalsClient(
-          disposableRule.disposable,
+          projectRule.project,
+          projectRule.disposable,
           AppInsightsCacheImpl(),
           ForwardingInterceptor,
           VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor),
@@ -396,7 +435,14 @@ class VitalsClientTest {
           pageTokenFromPreviousCall: String?,
         ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
       }
-    val client = VitalsClient(disposableRule.disposable, cache, ForwardingInterceptor, grpcClient)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        grpcClient,
+      )
 
     // Verify list connections returns expected result
     val result = client.listConnections()
@@ -414,5 +460,231 @@ class VitalsClientTest {
     // Verify the cache contains both connections and issues computed in the previous steps
     assertThat(cache.getRecentConnections()).containsExactly(TEST_CONNECTION_1)
     assertThat(cache.getTopIssues(issueRequest)).containsExactly(ISSUE1.zeroCounts())
+  }
+
+  @Test
+  fun `fetch insight populates proto fields correctly`() = runBlocking {
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        ISSUE1.issueDetails.fatality,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData(
+          listOf(
+            CodeContext(
+              "com.example.MainActivity",
+              "src/com/example/MainActivity.kt",
+              "class MainActivity {}",
+              Language.KOTLIN,
+            ),
+            CodeContext(
+              "com.example.lib.Library",
+              "src/com/example/lib/Library.kt",
+              "class Library {}",
+              Language.KOTLIN,
+            ),
+          ),
+          Experiment.TOP_SOURCE,
+        ),
+      )
+
+    val value = (insight as LoadingState.Ready).value
+    val request = GeminiInsightsRequest.parseFrom(BaseEncoding.base64().decode(value.rawInsight))
+    assertThat(request.deviceName).isEqualTo("Google Pixel 4a")
+    assertThat(request.apiLevel).isEqualTo("12")
+    assertThat(request.stackTrace)
+      .isEqualTo(
+        "retrofit2.HttpException: HTTP 401 " +
+          "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)" +
+          "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)"
+      )
+    assertThat(request.codeSnippetsList)
+      .containsExactly(
+        CodeSnippet.newBuilder()
+          .apply {
+            codeSnippet = "class MainActivity {}"
+            filePath = "src/com/example/MainActivity.kt"
+          }
+          .build(),
+        CodeSnippet.newBuilder()
+          .apply {
+            codeSnippet = "class Library {}"
+            filePath = "src/com/example/lib/Library.kt"
+          }
+          .build(),
+      )
+      .inOrder()
+  }
+
+  @Test
+  fun `fetch insight caches new insights`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(
+          projectId: String,
+          additionalContextMsg: Message,
+        ): AiInsight {
+          return DEFAULT_AI_INSIGHT
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    client.fetchInsight(
+      TEST_CONNECTION_1,
+      ISSUE1.id,
+      ISSUE1.issueDetails.fatality,
+      ISSUE1.sampleEvent,
+      TimeIntervalFilter.ONE_DAY,
+      CodeContextData.EMPTY,
+      false,
+    )
+    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true, experiment = Experiment.CONTROL))
+  }
+
+  @Test
+  fun `fetch insight uses cached insight when not forced to refetch`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    assertThat(
+        client.fetchInsight(
+          TEST_CONNECTION_1,
+          ISSUE1.id,
+          ISSUE1.issueDetails.fatality,
+          ISSUE1.sampleEvent,
+          TimeIntervalFilter.ONE_DAY,
+          CodeContextData.EMPTY,
+          false,
+        )
+      )
+      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(isCached = true)))
+  }
+
+  @Test
+  fun `fetch insight is forced to call API when forceFetch is true`() = runBlocking {
+    val cache = AppInsightsCacheImpl()
+    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
+
+    val newInsight = AiInsight("new")
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(
+          projectId: String,
+          additionalContextMsg: Message,
+        ): AiInsight {
+          return newInsight
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        cache,
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    assertThat(
+        client.fetchInsight(
+          TEST_CONNECTION_1,
+          ISSUE1.id,
+          ISSUE1.issueDetails.fatality,
+          ISSUE1.sampleEvent,
+          TimeIntervalFilter.ONE_DAY,
+          CodeContextData.EMPTY,
+          true,
+        )
+      )
+      .isEqualTo(LoadingState.Ready(newInsight.copy(experiment = Experiment.CONTROL)))
+  }
+
+  @Test
+  fun `test fetch insight on ANR returns unsupported operation`() = runBlocking {
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        FailureType.ANR,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData.EMPTY,
+      )
+
+    assertThat(insight)
+      .isEqualTo(
+        LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+      )
+  }
+
+  @Test
+  fun `fetch insight returns AiInsight with experiment set`() = runBlocking {
+    val fakeAiClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message) =
+          DEFAULT_AI_INSIGHT
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        ISSUE1.issueDetails.fatality,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData(emptyList(), Experiment.TOP_SOURCE),
+      )
+    assertThat(insight)
+      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(experiment = Experiment.TOP_SOURCE)))
   }
 }

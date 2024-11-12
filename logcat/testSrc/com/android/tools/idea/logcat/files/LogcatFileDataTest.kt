@@ -13,41 +13,49 @@ class LogcatFileDataTest {
   fun safeGetFilter_noMine() {
     val packages = setOf("package1")
     val data = LogcatFileData(Metadata(device, "package:foo tag:Foo", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("package:foo tag:Foo")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("package:foo tag:Foo")
   }
 
   @Test
   fun safeGetFilter_withMineAndSingleProjectPackage() {
     val packages = setOf("package1")
     val data = LogcatFileData(Metadata(device, "package:mine", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("package:package1")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("package:package1")
   }
 
   @Test
   fun safeGetFilter_withMineAndSingleProjectPackageAndMoreFilters() {
     val packages = setOf("package1")
     val data = LogcatFileData(Metadata(device, "foo package:mine tag:Bar", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("foo package:package1 tag:Bar")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("foo package:package1 tag:Bar")
   }
 
   @Test
   fun safeGetFilter_withMineAndMultipleProjectPackages() {
     val packages = setOf("package1", "package2")
     val data = LogcatFileData(Metadata(device, "package:mine", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("package:package1 package:package2")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("package:package1 package:package2")
   }
 
   @Test
   fun safeGetFilter_withMineAndMultipleProjectPackagesAndMoreFilters() {
     val packages = setOf("package1", "package2")
     val data = LogcatFileData(Metadata(device, "foo package:mine tag:Bar", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("foo (package:package1 | package:package2) tag:Bar")
+    assertThat(data.safeGetFilter(emptySet()))
+      .isEqualTo("foo (package:package1 | package:package2) tag:Bar")
   }
 
   @Test
   fun safeGetFilter_withMineWithoutProjectPackages() {
     val packages = emptySet<String>()
     val data = LogcatFileData(Metadata(device, "foo package:mine tag:Bar", packages), emptyList())
-    assertThat(data.safeGetFilter()).isEqualTo("foo  tag:Bar")
+    assertThat(data.safeGetFilter(emptySet())).isEqualTo("foo  tag:Bar")
+  }
+
+  @Test
+  fun safeGetFilter_withMine_matchingProject() {
+    val packages = setOf("package1", "package2")
+    val data = LogcatFileData(Metadata(device, "foo package:mine tag:Bar", packages), emptyList())
+    assertThat(data.safeGetFilter(packages)).isEqualTo("foo package:mine tag:Bar")
   }
 }

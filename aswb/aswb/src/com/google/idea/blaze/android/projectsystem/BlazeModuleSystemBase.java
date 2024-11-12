@@ -15,10 +15,8 @@
  */
 package com.google.idea.blaze.android.projectsystem;
 
-import static com.android.SdkConstants.DOT_AAR;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.singleTarget;
 import static java.util.Arrays.stream;
 
 import com.android.ide.common.repository.GradleCoordinate;
@@ -53,7 +51,6 @@ import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
 import com.google.idea.blaze.android.sync.model.BlazeAndroidSyncData;
 import com.google.idea.blaze.base.command.buildresult.OutputArtifactResolver;
-import com.google.idea.blaze.base.ideinfo.AndroidAarIdeInfo;
 import com.google.idea.blaze.base.ideinfo.ArtifactLocation;
 import com.google.idea.blaze.base.ideinfo.Dependency;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -66,7 +63,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncProject;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -102,7 +98,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 import kotlin.Triple;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +115,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   public static final BoolExperiment returnSimpleDirectResourceDependents =
       new BoolExperiment("aswb.return.simple.direct.resource.dependents", true);
 
-  protected static final Logger logger = Logger.getInstance(BlazeModuleSystem.class);
+  protected static final Logger logger = Logger.getInstance(BazelModuleSystem.class);
   protected Module module;
   protected final Project project;
   private final ProjectPath.Resolver pathResolver;
@@ -501,7 +496,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
 
     if (isWorkspaceModule) {
       return SyncCache.getInstance(project)
-          .get(BlazeModuleSystem.class, BlazeModuleSystemBase::getLibrariesForWorkspaceModule);
+          .get(BazelModuleSystem.class, BlazeModuleSystemBase::getLibrariesForWorkspaceModule);
     }
 
     AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
@@ -615,12 +610,12 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @TestOnly
-  public static BlazeModuleSystem create(Module module) {
+  public static BazelModuleSystem create(Module module) {
     Preconditions.checkState(ApplicationManager.getApplication().isUnitTestMode());
-    return new BlazeModuleSystem(module);
+    return new BazelModuleSystem(module);
   }
 
-  public static BlazeModuleSystem getInstance(Module module) {
-    return module.getService(BlazeModuleSystem.class);
+  public static BazelModuleSystem getInstance(Module module) {
+    return module.getService(BazelModuleSystem.class);
   }
 }

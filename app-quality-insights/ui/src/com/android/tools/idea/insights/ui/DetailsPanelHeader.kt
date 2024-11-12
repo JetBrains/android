@@ -81,9 +81,14 @@ class DetailsPanelHeader(
   @VisibleForTesting val titleLabel = JBLabel()
 
   // User, event counts
-  @VisibleForTesting val eventsCountLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
   @VisibleForTesting
-  val usersCountLabel = JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
+  val eventsCountLabel =
+    JLabel(StudioIcons.AppQualityInsights.ISSUE).apply { toolTipText = "Number of Events" }
+  @VisibleForTesting
+  val usersCountLabel =
+    JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE).apply {
+      toolTipText = "Number of Users"
+    }
   private val countsPanel =
     transparentPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)

@@ -50,6 +50,15 @@ class NewBaselineProfilesModuleModel(
   val targetModule = OptionalValueProperty<Module>()
   val useGmd = BoolValueProperty(false)
 
+  override fun getParamsToLog(): String {
+    return super.getParamsToLog() + """
+      |
+      |[Baseline Profile Generator params]
+      |Target application: ${targetModule.valueOrNull ?: "N/A"}
+      |Use GMD: ${useGmd.get()}
+    """.trimMargin()
+  }
+
   override val renderer: MultiTemplateRenderer.TemplateRenderer
     get() = object : ModuleTemplateRenderer() {
       override val recipe: Recipe

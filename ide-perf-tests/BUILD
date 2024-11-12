@@ -6,8 +6,8 @@ iml_module(
     name = "intellij.android.ide-perf-tests",
     iml_files = ["intellij.android.ide-perf-tests.iml"],
     split_test_targets = {
-        "SantaTrackerBenchmark": {
-            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
+        "JetNewsBenchmark": {
+            "test_filter": "com.android.tools.idea.benchmarks.JetNewsBenchmark",
             "tags": [
                 "cpu:3",
                 "noci:studio-win",
@@ -15,6 +15,18 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=false"],
+        },
+        "JetNewsBenchmark_k2": {
+            "test_filter": "com.android.tools.idea.benchmarks.JetNewsK2Benchmark",
+            "tags": [
+                "cpu:3",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+                "ci:perfgate-win",
+            ],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=true"],
         },
         "SantaTrackerKotlinBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
@@ -25,6 +37,7 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=false"],
         },
         "SantaTrackerKotlinBenchmark_k2": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinK2Benchmark",
@@ -35,9 +48,22 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
             ],
+            "additional_jvm_args": ["-Didea.kotlin.plugin.use.k2=true"],
         },
-        "tests": {
-            "test_filter": "com.android.tools.idea.benchmarks.tests",
+        "JetNewsProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest",
+            "timeout": "long",
+        },
+        "MlModelBindingProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.MlModelBindingBenchmarkTest",
+            "timeout": "long",
+        },
+        "SantaTrackerKotlinProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.SantaTrackerKotlinBenchmarkTest",
+            "timeout": "long",
+        },
+        "SimpleHighlightingProjectCheck": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests.SimpleHighlightingBenchmarkTest",
             "timeout": "long",
         },
         "other": {
@@ -54,8 +80,8 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps",
+        "//prebuilts/studio/buildbenchmarks:JetNews_project",
         "//prebuilts/studio/buildbenchmarks:SantaTrackerKotlin_project",
-        "//prebuilts/studio/buildbenchmarks:SantaTracker_project",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -78,6 +104,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.toml.lang",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -167,6 +194,8 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.9.24",
+        "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.1.0-Beta1",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
 )

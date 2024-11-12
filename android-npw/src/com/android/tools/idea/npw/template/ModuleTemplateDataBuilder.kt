@@ -70,6 +70,7 @@ class ModuleTemplateDataBuilder(
 ) {
   var srcDir: File? = null
   var commonSrcDir: File? = null
+  var iosSrcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null
   var testDir: File? = null
@@ -245,6 +246,7 @@ class ModuleTemplateDataBuilder(
       useGenericLocalTests = useGenericLocalTests,
       useGenericInstrumentedTests = useGenericInstrumentedTests,
       commonSrcDir = commonSrcDir,
+      iosSrcDir = iosSrcDir,
     )
   }
 }

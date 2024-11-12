@@ -28,7 +28,7 @@ import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -117,7 +117,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testGestureOverlayNotInstalled() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
     model.gestureOverlayInstalled.setFromController(false)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
@@ -126,7 +126,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetGestureNavigationFromUi() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.override(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
     model.gestureOverlayInstalled.setFromController(true)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.isShowing).isTrue()

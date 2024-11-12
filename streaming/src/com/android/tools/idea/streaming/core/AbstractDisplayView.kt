@@ -18,6 +18,8 @@ package com.android.tools.idea.streaming.core
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
+import com.android.tools.adtui.util.rotatedByQuadrants
+import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.StreamingHardwareInputAction
@@ -29,6 +31,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.containers.ContainerUtil
@@ -81,7 +84,10 @@ import kotlin.math.roundToInt
  * [com.android.tools.idea.streaming.device.DeviceView].
  */
 @Suppress("UseJBColor")
-abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
+abstract class AbstractDisplayView(
+  project: Project,
+  val displayId: Int,
+) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
 
   /** Serial number of the device shown in the view. */
   val deviceSerialNumber: String
@@ -108,6 +114,10 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
   protected open val hardwareInput: HardwareInput = HardwareInput()
+  private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+
+  protected open val project: Project?
+    get() = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
   init {
     background = primaryPanelBackground
@@ -288,11 +298,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return normalized.scaledUnbiased(imageSize, deviceDisplaySize)
   }
 
-  protected fun getProject(): Project? =
-      CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
-
   protected fun isHardwareInputEnabled(): Boolean =
-      getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
+      hardwareInputStateStorage.isHardwareInputEnabled(deviceId)
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
     if (!isHardwareInputEnabled()) {
@@ -311,6 +318,18 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     if (!enabled) {
       hardwareInput.resetMetaKeys()
     }
+  }
+
+  /** Given a graphics context for drawing in logical pixels returns a context for drawing in physical pixels. */
+  protected fun createAdjustedGraphicsContext(graphics: Graphics): Graphics2D {
+    val g = graphics.create() as Graphics2D
+    val physicalToVirtualScale = 1.0 / screenScale
+    g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
+    if (SystemInfo.isMac) {
+      // Disable dithering that is for some bizarre reason is used by default on Mac.
+      g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE)
+    }
+    return g
   }
 
   protected open class HardwareInput {

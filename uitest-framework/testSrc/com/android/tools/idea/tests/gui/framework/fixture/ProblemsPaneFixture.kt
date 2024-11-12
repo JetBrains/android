@@ -16,9 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.wm.impl.content.ContentTabLabel
+import org.fest.swing.fixture.JLabelFixture
+import org.fest.swing.timing.Wait
 import org.fest.swing.util.TextMatcher
+import javax.swing.JLabel
 
 /**
  * Fixture for the ProblemsPane in the IDE
@@ -30,6 +35,22 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
   init {
     activate()
     waitUntilIsVisible()
+  }
+
+  fun switchToTab(tabTitle: String): Boolean {
+    val tabsList = robot().finder().findAll(Matchers.byType(ContentTabLabel::class.java))
+    for (tab in tabsList) {
+      if (tab.text.contains(tabTitle)) {
+        Wait.seconds(60)
+          .expecting("Switching tabs in Problems Panel")
+          .until {
+            robot().click(tab)
+            isTabSelected(tabTitle)
+          }
+        return true
+      }
+    }
+    return false
   }
 
   fun doesTabExist(tabTitle: String): Boolean {

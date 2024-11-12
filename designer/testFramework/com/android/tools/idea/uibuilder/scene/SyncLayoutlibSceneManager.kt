@@ -25,9 +25,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableSet
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -72,9 +72,7 @@ open class SyncLayoutlibSceneManager(
     // After running render calls, there might be pending actions to run on the UI thread, dispatch
     // those to ensure that after this call, everything
     // is done.
-    ApplicationManager.getApplication().invokeAndWait {
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     return result
   }
 
@@ -86,13 +84,13 @@ open class SyncLayoutlibSceneManager(
     return result
   }
 
-  override fun requestRenderAsync(
-    trigger: LayoutEditorRenderResult.Trigger?
+  override fun executeInRenderSessionAsync(
+    block: Runnable,
+    timeout: Long,
+    timeUnit: TimeUnit,
   ): CompletableFuture<Void> {
-    if (ignoreRenderRequests) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger))
+    block.run()
+    return CompletableFuture.completedFuture(null)
   }
 
   fun putDefaultPropertyValue(

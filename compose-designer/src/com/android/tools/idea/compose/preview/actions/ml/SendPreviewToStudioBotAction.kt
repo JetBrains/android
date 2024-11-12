@@ -18,16 +18,18 @@ package com.android.tools.idea.compose.preview.actions.ml
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.actions.ml.utils.Blob
 import com.android.tools.idea.compose.preview.actions.ml.utils.ContextualEditorBalloon.Companion.contextualEditorBalloon
-import com.android.tools.idea.compose.preview.actions.ml.utils.transformAndShowDiff
+import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.containingFile
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.studiobot.MimeType
-import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -41,10 +43,9 @@ import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.psi.KtFunction
 
-// TODO: create a second class to send only a portion of the preview as the image context, e.g.
-//  highlighting a toolbar when the user right-clicks it and ask to fix something related.
 class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.gemini")) {
 
   override fun update(e: AnActionEvent) {
@@ -61,7 +62,8 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
       return
     }
     e.getData(VIRTUAL_FILE)?.let {
-      if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it)) {
+      val file = if (it is BackedVirtualFile) it.originFile else it
+      if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(file)) {
         // The file is excluded, so it can't be used by AI services. Don't display the action.
         return@update
       }
@@ -102,12 +104,12 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
           icon = StudioIcons.Compose.Toolbar.RUN_CONFIGURATION,
           placeholderText = message("circle.to.fix.balloon.placeholder"),
         ) { userQuery ->
-          transformAndShowDiff(
-            buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
-            filePointer,
-            diffDisposable,
-            ModelType.EXPERIMENTAL_LONG_CONTEXT,
-          )
+          AndroidCoroutineScope(diffDisposable).launch(AndroidDispatchers.workerThread) {
+            generateCodeAndExecuteCallback(
+              buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
+              filePointer,
+            )
+          }
         }
       }
       .show(dataContext)

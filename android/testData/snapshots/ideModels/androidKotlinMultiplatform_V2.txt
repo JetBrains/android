@@ -2256,6 +2256,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             JavaDirectories               : <ROOT>/kmpFirstLib/src/androidMain/java
             KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidMain/kotlin
             ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidMain/resources
+            ResDirectories                : <ROOT>/kmpFirstLib/src/androidMain/res [-]
+            AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidMain/assets [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2265,6 +2267,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     JavaDirectories               : <ROOT>/kmpFirstLib/src/androidUnitTest/java [-]
                     KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
                     ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidUnitTest/resources [-]
+                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidUnitTest/res [-]
+                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/assets [-]
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
                 SourceProvider
@@ -2273,6 +2277,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     JavaDirectories               : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
                     KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
                     ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
+                    ResDirectories                : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/res [-]
+                    AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/assets [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3062,6 +3068,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             Manifest                      : <ROOT>/kmpSecondLib/src/androidMain/AndroidManifest.xml [-]
             KotlinDirectories             : <ROOT>/kmpSecondLib/src/androidMain/kotlin
             ResourcesDirectories          : <ROOT>/kmpSecondLib/src/androidMain/resources [-]
+            ResDirectories                : <ROOT>/kmpSecondLib/src/androidMain/res [-]
+            AssetsDirectories             : <ROOT>/kmpSecondLib/src/androidMain/assets [-]
         ExtraSourceProviders
     SigningConfigs
     VariantBuildInformation

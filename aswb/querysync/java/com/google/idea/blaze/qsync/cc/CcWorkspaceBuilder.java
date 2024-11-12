@@ -17,9 +17,6 @@ package com.google.idea.blaze.qsync.cc;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.BLAZE_DATA_SUBDIRECTORY;
-import static com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.GEN_HEADERS_DIRECTORY;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -31,10 +28,11 @@ import com.google.common.collect.Multimap;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
-import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
+import com.google.idea.blaze.qsync.deps.CcCompilationInfo;
+import com.google.idea.blaze.qsync.deps.CcToolchain;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
+import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilationContext;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlag;
@@ -42,13 +40,10 @@ import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerFlagSet;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcCompilerSettings;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcLanguage;
 import com.google.idea.blaze.qsync.project.ProjectProto.CcSourceFile;
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath;
-import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -62,15 +57,6 @@ public class CcWorkspaceBuilder {
   private final CcDependenciesInfo ccDependenciesInfo;
   private final BuildGraphData graph;
   private final Context<?> context;
-
-  /* The set of top-level directories within the workspace that store generated header files.
-   * This is needed to distinguish between header search paths that refer to generated vs source
-   * directories, since the information is not provided explicitly by bazel. We derive the contents
-   * of this from the set of generated header files.
-   *
-   * Typically this will contain a single entry `bazel-out` but we don't hardcode that since it can
-   * be different in different variants of bazel. */
-  private final ImmutableSet<Path> topLevelGenHdrsPaths;
 
   /* Map from toolchain ID -> language -> flags for that toolchain & language. */
   private final Map<String, Multimap<CcLanguage, CcCompilerFlag>> toolchainLanguageFlags =
@@ -90,26 +76,6 @@ public class CcWorkspaceBuilder {
     this.ccDependenciesInfo = ccDepsInfo;
     this.graph = graph;
     this.context = context;
-    // We save the top level dirs that generated headers go into as we need them later on to
-    // distinguish between sources and generated files (bazel gives us all paths relative to
-    // the workspace root, where generated files go under e.g. `bazel-out` there)
-    // TODO(mathewi) this is not perfect, as it fails if there are no generated headers, although
-    //  that failure is benign. It would be better to derive the information from the `bazel info`
-    //  output.
-    this.topLevelGenHdrsPaths =
-        ccDependenciesInfo.targetInfoMap().values().stream()
-            .map(CcTargetInfo::getGenHdrsList)
-            .flatMap(List::stream)
-            .map(
-                a ->
-                    switch (a.getPathCase()) {
-                      case DIRECTORY -> a.getDirectory();
-                      case FILE -> a.getFile();
-                      case PATH_NOT_SET -> "";
-                    })
-            .map(Path::of)
-            .map(p -> p.getName(0))
-            .collect(toImmutableSet());
   }
 
   public ProjectProto.Project updateProjectProtoForCcDeps(ProjectProto.Project projectProto) {
@@ -134,33 +100,27 @@ public class CcWorkspaceBuilder {
     return Optional.of(workspaceBuilder.build());
   }
 
-  private void visitToolchainMap(Map<String, CcToolchainInfo> toolchainInfoMap) {
+  private void visitToolchainMap(Map<String, CcToolchain> toolchainInfoMap) {
     toolchainInfoMap.values().forEach(this::visitToolchain);
   }
 
-  private void visitToolchain(CcToolchainInfo toolchainInfo) {
-    compilerExecutableMap.put(
-        toolchainInfo.getId(),
-        ProjectPath.newBuilder()
-            .setPath(toolchainInfo.getCompilerExecutable())
-            .setBase(Base.WORKSPACE)
-            .build());
+  private void visitToolchain(CcToolchain toolchainInfo) {
+    compilerExecutableMap.put(toolchainInfo.id(), toolchainInfo.compilerExecutable());
 
     ImmutableList<CcCompilerFlag> commonFlags =
-        toolchainInfo.getBuiltInIncludeDirectoriesList().stream()
-            .map(Path::of)
+        toolchainInfo.builtInIncludeDirectories().stream()
             .map(p -> makePathFlag("-I", p))
             .collect(toImmutableList());
 
     toolchainLanguageFlags.put(
-        toolchainInfo.getId(),
+        toolchainInfo.id(),
         ImmutableListMultimap.<CcLanguage, CcCompilerFlag>builder()
             .putAll(
                 CcLanguage.C,
                 ImmutableList.<CcCompilerFlag>builder()
                     .addAll(commonFlags)
                     .addAll(
-                        toolchainInfo.getCOptionsList().stream()
+                        toolchainInfo.cOptions().stream()
                             .map(f -> makeStringFlag(f, ""))
                             .iterator())
                     .build())
@@ -169,18 +129,18 @@ public class CcWorkspaceBuilder {
                 ImmutableList.<CcCompilerFlag>builder()
                     .addAll(commonFlags)
                     .addAll(
-                        toolchainInfo.getCppOptionsList().stream()
+                        toolchainInfo.cppOptions().stream()
                             .map(f -> makeStringFlag(f, ""))
                             .iterator())
                     .build())
             .build());
   }
 
-  private void visitTargetMap(Map<Label, CcTargetInfo> targetMap) {
+  private void visitTargetMap(Map<Label, CcCompilationInfo> targetMap) {
     targetMap.forEach(this::visitTarget);
   }
 
-  private void visitTarget(Label label, CcTargetInfo target) {
+  private void visitTarget(Label label, CcCompilationInfo target) {
     if (!graph.targetMap().containsKey(label)) {
       // This target is no longer present in the project. Ignore it.
       // We should really clean up the dependency cache itself to remove any artifacts relating to
@@ -190,30 +150,23 @@ public class CcWorkspaceBuilder {
     }
     ProjectTarget projectTarget = Preconditions.checkNotNull(graph.targetMap().get(label));
 
-    CcToolchainInfo toolchain = ccDependenciesInfo.toolchainInfoMap().get(target.getToolchainId());
+    CcToolchain toolchain = ccDependenciesInfo.toolchainInfoMap().get(target.toolchainId());
 
     ImmutableList<CcCompilerFlag> targetFlags =
         ImmutableList.<CcCompilerFlag>builder()
             .addAll(projectTarget.copts().stream().map(d -> makeStringFlag(d, "")).iterator())
-            .addAll(target.getDefinesList().stream().map(d -> makeStringFlag("-D", d)).iterator())
+            .addAll(target.defines().stream().map(d -> makeStringFlag("-D", d)).iterator())
+            .addAll(target.includeDirectories().stream().map(p -> makePathFlag("-I", p)).iterator())
             .addAll(
-                target.getIncludeDirectoriesList().stream()
-                    .map(Path::of)
-                    .map(p -> makePathFlag("-I", p))
-                    .iterator())
-            .addAll(
-                target.getQuoteIncludeDirectoriesList().stream()
-                    .map(Path::of)
+                target.quoteIncludeDirectories().stream()
                     .map(p -> makePathFlag("-iquote", p))
                     .iterator())
             .addAll(
-                target.getSystemIncludeDirectoriesList().stream()
-                    .map(Path::of)
+                target.systemIncludeDirectories().stream()
                     .map(p -> makePathFlag("-isystem", p))
                     .iterator())
             .addAll(
-                target.getFrameworkIncludeDirectoriesList().stream()
-                    .map(Path::of)
+                target.frameworkIncludeDirectories().stream()
                     .map(p -> makePathFlag("-F", p))
                     .iterator())
             .build();
@@ -232,14 +185,14 @@ public class CcWorkspaceBuilder {
                 .setCompilerSettings(
                     CcCompilerSettings.newBuilder()
                         .setCompilerExecutablePath(
-                            compilerExecutableMap.get(target.getToolchainId()))
+                            compilerExecutableMap.get(target.toolchainId()).toProto())
                         .setFlagSetId(
                             addFlagSet(
                                 ImmutableList.<CcCompilerFlag>builder()
                                     .addAll(targetFlags)
                                     .addAll(
                                         toolchainLanguageFlags
-                                            .get(target.getToolchainId())
+                                            .get(target.toolchainId())
                                             .get(lang.get()))
                                     .build())))
                 .build());
@@ -249,18 +202,18 @@ public class CcWorkspaceBuilder {
 
     CcCompilationContext targetContext =
         CcCompilationContext.newBuilder()
-            .setId(label + "%" + toolchain.getTargetName())
-            .setHumanReadableName(label + " - " + toolchain.getTargetName())
+            .setId(label + "%" + toolchain.targetGnuSystemName())
+            .setHumanReadableName(label + " - " + toolchain.targetGnuSystemName())
             .addAllSources(srcs)
             .putAllLanguageToCompilerSettings(
-                toolchainLanguageFlags.get(toolchain.getId()).asMap().entrySet().stream()
+                toolchainLanguageFlags.get(toolchain.id()).asMap().entrySet().stream()
                     .collect(
                         toImmutableMap(
                             e -> e.getKey().getValueDescriptor().getName(),
                             e ->
                                 CcCompilerSettings.newBuilder()
                                     .setCompilerExecutablePath(
-                                        compilerExecutableMap.get(toolchain.getId()))
+                                        compilerExecutableMap.get(toolchain.id()).toProto())
                                     .setFlagSetId(addFlagSet(e.getValue()))
                                     .build())))
             .build();
@@ -286,22 +239,8 @@ public class CcWorkspaceBuilder {
     return CcCompilerFlag.newBuilder().setFlag(flag).setPlainValue(value).build();
   }
 
-  private CcCompilerFlag makePathFlag(String flag, Path path) {
-    ProjectPath.Builder pathBuilder = ProjectPath.newBuilder();
-    if (topLevelGenHdrsPaths.contains(path.getName(0))) {
-      // The directories given by blaze include the "bazel-out" component, but that is not present
-      // in the paths of the generated headers themselves due to the legacy semantics of
-      // OutputArtifactInfo which strips it. Since that determines their location in the
-      // cache, remove here too it to ensure consistency:
-      path = path.subpath(1, path.getNameCount());
-      pathBuilder
-          .setBase(Base.PROJECT)
-          .setPath(
-              Path.of(BLAZE_DATA_SUBDIRECTORY, GEN_HEADERS_DIRECTORY).resolve(path).toString());
-    } else {
-      pathBuilder.setBase(Base.WORKSPACE).setPath(path.toString());
-    }
-    return CcCompilerFlag.newBuilder().setFlag(flag).setPath(pathBuilder.build()).build();
+  private CcCompilerFlag makePathFlag(String flag, ProjectPath path) {
+    return CcCompilerFlag.newBuilder().setFlag(flag).setPath(path.toProto()).build();
   }
 
   private static final ImmutableMap<String, CcLanguage> EXTENSION_TO_LANGUAGE_MAP =

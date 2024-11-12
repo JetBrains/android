@@ -501,8 +501,8 @@ PROJECT                       : project
         BUILD_TASKS
     RUN_CONFIGURATION             : gradle_project.app
         *class*                       : AndroidRunConfiguration
-        ModuleName                    : gradle_project.app.main
-        Module                        : gradle_project.app.main
+        ModuleName                    : gradle_project.app
+        Module                        : gradle_project.app
     LIBRARY_TABLE
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/

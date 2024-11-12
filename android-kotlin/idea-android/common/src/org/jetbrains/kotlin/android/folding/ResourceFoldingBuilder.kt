@@ -31,6 +31,7 @@ import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.SourceTreeToPsiMap
@@ -45,6 +46,7 @@ import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.name
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -74,21 +76,18 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     override fun getPlaceholderText(node: ASTNode): String? {
 
         tailrec fun KtElement.unwrapReferenceAndGetValue(
-          resources: ResourceRepository,
           ktCallElement: KtCallElement? = null
         ): String? = when (this) {
             is KtDotQualifiedExpression ->
-                selectorExpression?.unwrapReferenceAndGetValue(resources, ktCallElement)
+                selectorExpression?.unwrapReferenceAndGetValue(ktCallElement)
             is KtCallElement ->
-                valueArguments.firstOrNull()?.getArgumentExpression()?.unwrapReferenceAndGetValue(resources, this)
+                valueArguments.firstOrNull()?.getArgumentExpression()?.unwrapReferenceAndGetValue(this)
             else ->
-                (this as? KtReferenceExpression)?.getAndroidResourceValue(resources, ktCallElement)
+                (this as? KtReferenceExpression)?.getAndroidResourceValue(ktCallElement)
         }
 
         val element = SourceTreeToPsiMap.treeElementToPsi(node) as? KtElement ?: return null
-        // We force creation of the app resources repository when necessary to keep things deterministic.
-        val appResources = StudioResourceRepositoryManager.getInstance(element)?.appResources ?: return null
-        return element.unwrapReferenceAndGetValue(appResources)
+        return element.unwrapReferenceAndGetValue()
     }
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
@@ -117,10 +116,14 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     override fun isCollapsedByDefault(node: ASTNode): Boolean = isFoldingEnabled
 
     private fun KtReferenceExpression.getFoldingDescriptor(): FoldingDescriptor? {
-        analyze(this) {
-            val symbol = mainReference.resolveToSymbol() ?: return null
-            val resourceType = getAndroidResourceType(symbol) ?: return null
-            if (resourceType !in RESOURCE_TYPES) return null
+        // TODO(b/268387878)
+        @OptIn(KaAllowAnalysisOnEdt::class)
+        allowAnalysisOnEdt {
+            analyze(this) {
+                val symbol = mainReference.resolveToSymbol() ?: return null
+                val resourceType = getAndroidResourceType(symbol) ?: return null
+                if (resourceType !in RESOURCE_TYPES) return null
+            }
         }
 
         fun PsiElement.createFoldingDescriptor(): FoldingDescriptor {
@@ -173,18 +176,25 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     private fun KtReferenceExpression.getAndroidResourceValue(
-      resources: ResourceRepository,
       call: KtCallElement? = null
     ): String? {
-        val (resourceType, resolvedName) =
-          @OptIn(KaAllowAnalysisOnEdt::class)
-          allowAnalysisOnEdt {
-              analyze(this) {
-                  val symbol = mainReference.resolveToSymbol() ?: return null
-                  val resourceType = getAndroidResourceType(symbol) ?: return null
-                  resourceType to symbol.name?.identifier
-              }
-          }
+        lateinit var resourceModule: Module
+        lateinit var resourceType: ResourceType
+        var resolvedName: String? = null
+
+        // TODO(b/268387878)
+        @OptIn(KaAllowAnalysisOnEdt::class)
+        allowAnalysisOnEdt {
+            analyze(this) {
+                val symbol = mainReference.resolveToSymbol() ?: return null
+                resourceType = getAndroidResourceType(symbol) ?: return null
+                resourceModule = mainReference.resolve()?.module ?: return null
+                resolvedName = symbol.name?.identifier
+            }
+        }
+
+        val resources = StudioResourceRepositoryManager.getInstance(resourceModule)?.appResources ?: return null
+
         val referenceConfig = FolderConfiguration().apply { localeQualifier = LocaleQualifier("xx") }
         val key = resolvedName ?: return null
         val resourceValue = resources.getResourceValue(resourceType, key, referenceConfig) ?: return null

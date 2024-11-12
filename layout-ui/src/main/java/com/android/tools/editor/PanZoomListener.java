@@ -15,8 +15,6 @@
  */
 package com.android.tools.editor;
 
-import java.awt.event.AdjustmentEvent;
-
 /**
  * Used to notify when DesignSurface has been zoomed or that its content
  * has been scrolled
@@ -32,7 +30,6 @@ public interface PanZoomListener {
 
   /**
    * The scrollbars value has changed.
-   * @param adjustmentEvent
    */
-  void panningChanged(AdjustmentEvent adjustmentEvent);
+  void panningChanged();
 }

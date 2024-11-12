@@ -671,7 +671,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // Kotlin does not support 1.7
     // See https://kotlinlang.org/docs/reference/using-gradle.html#attributes-specific-for-jvm
     if (kotlinSupport && languageLevel == LanguageLevel.JDK_1_7) {
-      languageLevel = LanguageLevel.JDK_1_8
+      languageLevel = LanguageLevel.JDK_11
     }
     val buildModel = moduleGradleBuildModel ?: return
 

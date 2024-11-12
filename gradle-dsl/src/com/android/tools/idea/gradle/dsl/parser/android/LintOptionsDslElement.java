@@ -59,13 +59,11 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -204,8 +202,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
     new PropertiesElementDescription<>("lintOptions",
                                        LintOptionsDslElement.class,
-                                       LintOptionsDslElement::new,
-                                       LintOptionsDslElementSchema::new);
+                                       LintOptionsDslElement::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
@@ -223,20 +220,6 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     //  assigning a completely new set.  (Also, there might be some other properties like that lurking: check other Set<String> Dsl
     //  properties)
     super.setParsedElement(element);
-  }
-
-  public static final class LintOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
-    }
-
-    @Nullable
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.LintOptions";
-    }
   }
 
 }

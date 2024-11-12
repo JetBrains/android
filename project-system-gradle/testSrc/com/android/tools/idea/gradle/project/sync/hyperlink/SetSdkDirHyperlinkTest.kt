@@ -16,18 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
 import com.android.utils.SdkUtils.escapePropertyValue
 import com.intellij.openapi.util.io.FileUtil.loadFile
-import org.junit.Test
 import java.io.File
 import javax.swing.event.HyperlinkEvent
 
 class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
-  @Test
   fun testSdkDirHyperlinkUpdatesOnePropertiesFile() {
+    IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
     prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete the main local.properties file
@@ -41,8 +42,8 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
       .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.toString())}"))
   }
 
-  @Test
   fun testSdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
+    IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
     prepareProjectForImport(COMPOSITE_BUILD)
 
     // Delete all the properties files we want to re-create

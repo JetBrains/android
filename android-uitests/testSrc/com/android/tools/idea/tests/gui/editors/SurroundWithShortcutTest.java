@@ -24,11 +24,11 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.AbstractPopup;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
@@ -83,7 +83,7 @@ public class SurroundWithShortcutTest {
   @RunIn(TestGroup.FAT_BAZEL)
   public void surroundWithShortcut() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(180));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     EditorFixture editorFixture = ideFrame.getEditor().open("/app/src/main/java/google/simpleapplication/MyActivity.java");
     editorFixture.waitForFileToActivate();
@@ -92,40 +92,25 @@ public class SurroundWithShortcutTest {
       .typeText("\n" + HELLO_STR)
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    clickCodeSurroundWith(ideFrame, "6"); // Shortcut: "6" for try / catch
-
+    // Test Shortcut: "6" for try / catch
+    clickCodeSurroundWith(ideFrame, KeyEvent.VK_6);
     assertThat(editorFixture.getCurrentFileContents()).contains(TRY_CATCH_BLOCK);
 
     removeTryCatchAndVerify(ideFrame, editorFixture);
 
-    clickCodeSurroundWith(ideFrame, "4"); // Shortcut: "4" for do/while
 
+    // Test Shortcut: "4" for do/while
+    clickCodeSurroundWith(ideFrame, KeyEvent.VK_4);
     assertThat(editorFixture.getCurrentFileContents()).contains(DO_WHILE_BLOCK);
   }
 
-  private void clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame, @NotNull String shortcutForSurroundWith) {
+  private void clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame, int key) {
     ideFrame.invokeMenuPath("Code", "Surround With...");
-
-    Ref<JBList> popList = new Ref<>();
-    Wait.seconds(5).expecting("Popup list to show.").until(() -> {
-      Collection<JBList> allFound =
-        ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JBList.class));
-      JBList methodsList = null;
-      for (JBList jbList : allFound) {
-        if (jbList instanceof DataProvider) {
-          methodsList = jbList;
-        }
-      }
-
-      if (methodsList == null) {
-        return false;
-      }
-
-      popList.set(methodsList);
-      return true;
-    });
-    guiTest.robot().enterText(shortcutForSurroundWith);
+    GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(JBList.class));
+    guiTest.robot().pressAndReleaseKey(key);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.getEditor()
+      .waitUntilErrorAnalysisFinishes();
   }
 
   private void removeTryCatchAndVerify(@NotNull IdeFrameFixture ideFrame,

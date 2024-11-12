@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class ScreenRecorderOptionsDialog extends DialogWrapper {
   @NonNls private static final String SCREENRECORDER_DIMENSIONS_KEY = "ScreenshotRecorder.Options.Dimensions";
-  private final DefaultComboBoxModel<Integer> myComboBoxModel = new DefaultComboBoxModel<>(new Integer[]{100, 50, 30});
+  private final DefaultComboBoxModel<Integer> myComboBoxModel = new DefaultComboBoxModel<>(new Integer[]{100, 75, 50, 37, 25});
 
   private JPanel myPanel;
   @VisibleForTesting JTextField myBitRateTextField;
@@ -110,8 +110,7 @@ class ScreenRecorderOptionsDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    ValidationInfo info =
-      validateInteger(myBitRateTextField, AndroidAdbUiBundle.message("screenrecord.options.bit.rate.invalid"));
+    ValidationInfo info = validateInteger(myBitRateTextField, AndroidAdbUiBundle.message("screenrecord.options.bit.rate.invalid"));
     if (info != null) {
       return info;
     }

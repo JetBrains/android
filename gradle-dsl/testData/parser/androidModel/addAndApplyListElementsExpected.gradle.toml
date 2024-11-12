@@ -1,5 +1,0 @@
-[android]
-aidlPackagedList = ['src/main/aidl/foo.aidl']
-assetPacks = [':a1']
-dynamicFeatures = [':f']
-flavorDimensions = 'xyz'

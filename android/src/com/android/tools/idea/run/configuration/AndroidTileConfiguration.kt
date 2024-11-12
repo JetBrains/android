@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -58,7 +57,6 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
     environment: ExecutionEnvironment,
     deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
-    applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider,
     applicationContext: ApplicationProjectContext,
     deployer: ApplicationDeployer
@@ -67,7 +65,6 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
       environment,
       deviceFutures,
       appRunSettings,
-      applicationIdProvider,
       apkProvider,
       applicationContext,
       deployer

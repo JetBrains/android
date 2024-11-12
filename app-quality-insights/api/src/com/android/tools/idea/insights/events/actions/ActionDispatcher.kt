@@ -20,19 +20,19 @@ import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.EventPage
-import com.android.tools.idea.insights.EventsChanged
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.client.AppInsightsCache
+import com.android.tools.idea.insights.ai.GeminiToolkit
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.EnterOnlineMode
 import com.android.tools.idea.insights.events.ErrorThrown
+import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.IssueDetailsChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.IssueVariantsChanged
@@ -86,7 +86,7 @@ class ActionDispatcher(
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
   private val defaultFilters: Filters,
-  private val cache: AppInsightsCache,
+  private val geminiToolkit: GeminiToolkit,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -100,7 +100,7 @@ class ActionDispatcher(
     scope.launch {
       var lastToken = CancellationToken.noop(Action.NONE)
       for (ctx in actions.batchWithTimeout(scope, 200)) {
-        LOG.info("Dispatching actions ${ctx.action}")
+        LOG.debug("Dispatching actions ${ctx.action}")
         val newToken = doDispatch(ctx)
         // We keep holding on to not cancelled tokens since we may need to cancel them in the
         // future.
@@ -288,10 +288,10 @@ class ActionDispatcher(
             if (connectionMode == ConnectionMode.ONLINE && state.mode == ConnectionMode.OFFLINE) {
               eventEmitter(EnterOnlineMode)
             }
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
           }
           is LoadingState.Failure -> {
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
           }
         }
       }
@@ -353,17 +353,27 @@ class ActionDispatcher(
   ): CancellationToken {
     return scope
       .launch {
-        val timeFilter =
-          state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
-        val fetchedInsight =
-          appInsightsClient.fetchInsight(
-            connection,
-            action.id,
-            action.eventId,
-            action.variantId,
-            timeFilter,
-          )
-        eventEmitter(AiInsightFetched(fetchedInsight))
+        val insight =
+          when {
+            !geminiToolkit.isGeminiEnabled -> LoadingState.Unauthorized("Gemini is not enabled")
+            state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
+            else -> {
+              val timeFilter =
+                state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
+              val codeContextData =
+                geminiToolkit.getSource(action.event.stacktraceGroup, action.contextSharingOverride)
+              appInsightsClient.fetchInsight(
+                connection,
+                action.id,
+                action.issueFatality,
+                action.event,
+                timeFilter,
+                codeContextData,
+                action.contextSharingOverride || action.forceFetch,
+              )
+            }
+          }
+        eventEmitter(AiInsightFetched(insight))
       }
       .toToken(action)
   }

@@ -333,6 +333,9 @@ private class BuildFailureViewComponentContainer(failureType: FailureResult.Type
       There was an internal failure in Build Analyzer while running analysis of this build.<br>
       Please help us fix it by reporting the problem using Help > Submit Feedback action.<br>
     """.trimIndent()
+    FailureResult.Type.ANALYSIS_CANCELED -> """
+      Build operation was canceled before Build Analyzer completed analysis of this build.<br>
+    """.trimIndent()
   }
 
   override fun getPreferredFocusableComponent(): JComponent = component

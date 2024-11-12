@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -37,6 +36,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class InspectorPropertiesModelTest {
   private val device1 =

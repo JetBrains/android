@@ -26,8 +26,9 @@ import com.intellij.openapi.project.DumbAware
 
 /**
  * Action group showing an "Ask Studio Bot" menu in the editor, *if* the user is signed in and has
- * completed onboarding for Studio Bot. The menu contains actions like [ExplainCodeAction] and
- * [com.android.studio.ml.bot.action.transform.DocumentCodeAction].
+ * completed onboarding for Studio Bot. The menu contains actions like
+ * [com.android.studio.ml.bot.action.ExplainCodeAction] and
+ * [com.android.studio.ml.bot.action.transform.DocumentElementAction].
  */
 class GeminiEditorActionGroup : NonTrivialActionGroup(), DumbAware, MainMenuPresentationAware {
 

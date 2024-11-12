@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.gradle
 import com.sun.management.HotSpotDiagnosticMXBean
 import org.gradle.BuildAdapter
 import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -49,12 +50,14 @@ enum class MeasurementCheckpoint {
 object MeasurementPluginConfig {
   var outputPath: String = ""
   var captureTypes: Set<CaptureType> = emptySet()
+  var captureJfr: Boolean = false
 
   /** Call this from a benchmark test to configure and apply the plugin globally via init script in Gradle home. */
   @JvmStatic
   fun configureAndApply(
     outputPath: String,
-    captureTypes: Set<CaptureType>
+    captureTypes: Set<CaptureType>,
+    captureJfr: Boolean = false
   ) {
 
     val src = File("tools/adt/idea/sync-memory-tests/testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt")
@@ -62,6 +65,7 @@ object MeasurementPluginConfig {
     src.copyTo(initScript, overwrite = true)
     initScript.appendText("""
       ${this::class.simpleName}.${this::outputPath.name} = "$outputPath"
+      ${this::class.simpleName}.${this::captureJfr.name} = $captureJfr
       ${this::class.simpleName}.${this::captureTypes.name} = setOf(${
       captureTypes.joinToString(",") { "${CaptureType::class.simpleName}.$it" }
     })
@@ -76,6 +80,12 @@ class MeasurementPlugin @Inject constructor(private val registry: BuildEventsLis
     registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("measurement-service", MeasurementService::class.java) {})
   }
 
+  override fun beforeSettings(settings: Settings) {
+    if (MeasurementPluginConfig.captureJfr) {
+      EventRecorder.startJavaFlightRecording()
+    }
+  }
+
   override fun projectsEvaluated(gradle: Gradle) {
     EventRecorder.recordEvent(MeasurementCheckpoint.CONFIGURATION_FINISHED)
   }
@@ -88,6 +98,9 @@ abstract class MeasurementService : OperationCompletionListener, Closeable, Buil
 
 
   override fun close() {
+    if (MeasurementPluginConfig.captureJfr) {
+      EventRecorder.stopJavaFlightRecording()
+    }
     EventRecorder.recordEvent(MeasurementCheckpoint.SYNC_FINISHED)
     EventRecorder.captureGcCollectionTime()
   }
@@ -110,6 +123,22 @@ object EventRecorder {
       captureEventTimestamp(checkpoint)
     }
   }
+
+  @JvmStatic
+  fun startJavaFlightRecording() {
+    val server = ManagementFactory.getPlatformMBeanServer()
+    println("Started capturing jfr")
+    println(server.execute("jfrStart", arrayOf(arrayOf("name=jfr settings=profile method-profiling=max"))))
+  }
+
+  @JvmStatic
+  fun stopJavaFlightRecording() {
+    val fileJfr = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_gradle.jfr")
+    val server = ManagementFactory.getPlatformMBeanServer()
+
+    println(server.execute("jfrStop", arrayOf(arrayOf("name=jfr filename=${fileJfr.path}"))))
+  }
+
 
   @JvmStatic
   fun captureGcCollectionTime() {
@@ -157,10 +186,10 @@ object EventRecorder {
   }
 
   @JvmStatic
-  private fun MBeanServer.execute(name: String) = invoke(
+  private fun MBeanServer.execute(name: String, args: Array<Array<String>?> = arrayOf(null)) = invoke(
     ObjectName("com.sun.management:type=DiagnosticCommand"),
     name,
-    arrayOf(null),
+    args,
     arrayOf(Array<String>::class.java.name)
   ).toString()
 }

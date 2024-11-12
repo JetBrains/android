@@ -24,7 +24,6 @@ import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.PopupHandler
 import kotlinx.coroutines.CoroutineScope
@@ -107,7 +106,6 @@ class LayoutInspectorRenderer(
       addMouseMotionListener(it)
     }
     addMouseListener(LayoutInspectorPopupHandler())
-    LayoutInspectorDoubleClickListener().installOn(this)
 
     // re-render each time Layout Inspector model changes
     renderModel.modificationListeners.add(repaintDisplayView)
@@ -270,24 +268,6 @@ class LayoutInspectorRenderer(
     }
   }
 
-  private inner class LayoutInspectorDoubleClickListener : DoubleClickListener() {
-    override fun onDoubleClick(e: MouseEvent): Boolean {
-      if (!interceptClicks) return false
-
-      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return false
-      renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
-      // Navigate to sources on double click.
-      // TODO(b/265150325) move to RenderModel for consistency
-      GotoDeclarationAction.navigateToSelectedView(
-        coroutineScope,
-        renderModel.model,
-        renderModel.notificationModel,
-      )
-      currentSessionStatistics().gotoSourceFromRenderDoubleClick()
-      return true
-    }
-  }
-
   private inner class LayoutInspectorMouseListener(private val renderModel: RenderModel) :
     MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
@@ -295,6 +275,18 @@ class LayoutInspectorRenderer(
 
       val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
       renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
+
+      if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1) {
+        // Navigate to sources on double click.
+        // TODO(b/265150325) move to RenderModel for consistency
+        GotoDeclarationAction.navigateToSelectedView(
+          coroutineScope,
+          renderModel.model,
+          renderModel.currentClientProvider(),
+          renderModel.notificationModel,
+        )
+        currentSessionStatistics().gotoSourceFromRenderDoubleClick()
+      }
 
       refresh()
     }

@@ -89,7 +89,7 @@ constructor(
 
     val scene = sceneComponent.scene
     val designSurface = scene.designSurface
-    val context = scene.sceneManager.sceneView.context
+    val context = scene.sceneManager.sceneViews.first().context
     val popup =
       LightCalloutPopup(
         closedCallback = this::fireCloseEvent,

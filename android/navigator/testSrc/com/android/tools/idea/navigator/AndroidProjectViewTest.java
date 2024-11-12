@@ -100,7 +100,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
         }""",
       new File(projectRoot, "app/build.gradle"),
       StandardCharsets.UTF_8);
-    requestSyncAndWait();
+    importProject();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
@@ -150,7 +150,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
         }""",
       new File(projectRoot, "app/build.gradle"),
       StandardCharsets.UTF_8);
-    requestSyncAndWait();
+    importProject();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);

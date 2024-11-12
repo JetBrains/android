@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.workbench.WorkBench
@@ -55,10 +53,13 @@ import com.intellij.testFramework.replaceService
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class LayoutInspectorManagerTest {
 
@@ -434,6 +435,9 @@ class LayoutInspectorManagerTest {
         it.component.name == "LayoutInspector.MainToolbar"
       }
 
+    waitForCondition(10.seconds) {
+      toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().any()
+    }
     val toggleDeepInspectAction =
       toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().first()
     assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))

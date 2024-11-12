@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.tools.idea.devicemanagerv2.DeviceManagerBundle.message
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -24,17 +23,16 @@ import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
 import org.jetbrains.android.sdk.AndroidSdkUtils
 
-internal class DeviceManager2Action : DumbAwareAction() {
+open class DeviceManager2Action : DumbAwareAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
-    presentation.isVisible = StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()
+    presentation.isVisible = true
     presentation.icon = StudioIcons.Shell.Toolbar.DEVICE_MANAGER
     presentation.text = message("action.text")
     presentation.description = message("action.description")
-    presentation.isEnabled =
-      AndroidSdkUtils.isAndroidSdkAvailable() && StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()
+    presentation.isEnabled = AndroidSdkUtils.isAndroidSdkAvailable()
   }
 
   override fun actionPerformed(event: AnActionEvent) {

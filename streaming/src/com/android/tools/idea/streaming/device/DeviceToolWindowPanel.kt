@@ -38,9 +38,9 @@ import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
-import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
@@ -221,17 +221,22 @@ internal class DeviceToolWindowPanel(
 
   override fun uiDataSnapshot(sink: DataSink) {
     super.uiDataSnapshot(sink)
+
     sink[DEVICE_VIEW_KEY] = primaryDisplayView
     sink[DEVICE_CLIENT_KEY] = deviceClient
     sink[DEVICE_CONTROLLER_KEY] = deviceClient.deviceController
     sink[DEVICE_HANDLE_KEY] = deviceHandle
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = primaryDisplayView?.let {
-      if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null
-    }
+    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =  primaryDisplayView?.let { if (it.isConnected) createScreenshotOptions(it) else null }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceClient.deviceController?.let {
       ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
     }
   }
+
+  private fun createScreenshotOptions(deviceView: DeviceView) =
+      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceView.screenshotOrientationProvider)
+
+  private val DeviceView.screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
+    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
 
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 

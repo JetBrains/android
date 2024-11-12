@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Container;
@@ -49,7 +50,7 @@ class MenuFixture {
   /**
    * Invokes an action by menu path
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Assemble Project ")}
    */
   void invokeMenuPath(int timeToWaitAtStepMs, @NotNull String... path) {
     doInvokeMenuPath(path, false, timeToWaitAtStepMs);
@@ -58,7 +59,7 @@ class MenuFixture {
   /**
    * Invokes an action by menu path in a contextual menu
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
+   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Assemble Project ")}
    */
   void invokeContextualMenuPath(@NotNull String... path) {
     doInvokeMenuPath(path, true, 10);
@@ -117,7 +118,11 @@ class MenuFixture {
           new GenericTypeMatcher<>(JMenuItem.class) {
             @Override
             protected boolean isMatching(@NotNull JMenuItem component) {
-              return component.getHeight() > 0;
+              if (SystemInfo.isWindows) {
+                return component.getHeight() > 25;
+              } else {
+                return component.getHeight() > 0;
+              }
             }
           }));
         if (menuItems.isEmpty()) {

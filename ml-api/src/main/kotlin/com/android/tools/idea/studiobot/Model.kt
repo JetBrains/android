@@ -40,6 +40,10 @@ interface Model {
    * @return a list of generated code samples. The list may contain up to [nSamples] elements.
    * @throws [StatusRuntimeException] if the model endpoint throws an exception.
    */
+  @Deprecated(
+    message = "Use transform service",
+    replaceWith = ReplaceWith("ModelProvider.transformService"),
+  )
   suspend fun generateCode(
     userQuery: String,
     fileContext: FileWithSelection?,
@@ -48,7 +52,7 @@ interface Model {
     history: Prompt? = null,
     legacyClientSidePrompt: Prompt? = null,
     isTransformUseCase: Boolean = false,
-  ): List<Content>
+  ): List<Content> = emptyList()
 
   /**
    * Sends a query to the model and returns the raw response.
@@ -81,8 +85,8 @@ data class ModelConfig(
  * Configuration options for generation. Note that not all parameters may be configurable for every
  * model.
  *
- * @param candidateCount The number of samples to generate. This isn't supported by streaming APIs
- *   like [Model.generateContent], but is for some implementations of [Model.generateCode].
+ * @param candidateCount The number of samples to generate. This parameter is typically not
+ *   supported by models that stream content.
  * @param temperature Model temperature. If left unset, the backend will use a default value that
  *   may vary from model to model.
  * @param maxOutputTokens The maximum number of tokens to include in a candidate.
@@ -165,14 +169,4 @@ open class StubModel : Model {
   override fun config() = ModelConfig(inputTokenLimit = 1024, outputTokenLimit = 1024)
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
-
-  override suspend fun generateCode(
-    userQuery: String,
-    fileContext: FileWithSelection?,
-    language: MimeType,
-    config: GenerationConfig,
-    history: Prompt?,
-    legacyClientSidePrompt: Prompt?,
-    isTransformUseCase: Boolean,
-  ): List<Content> = emptyList()
 }

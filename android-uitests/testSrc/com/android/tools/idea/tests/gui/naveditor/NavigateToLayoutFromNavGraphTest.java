@@ -58,8 +58,6 @@ public class NavigateToLayoutFromNavGraphTest {
 
   @Before
   public void setUp() throws Exception{
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -99,7 +97,6 @@ public class NavigateToLayoutFromNavGraphTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void navigateToLayoutFromDesignTab() throws Exception{
-
     ideFrame.requestFocusIfLost();
     //Loading the navigation layout from Design View
     myNlEditorFixture  = myEditorFixture

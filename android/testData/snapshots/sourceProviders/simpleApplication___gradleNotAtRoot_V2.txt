@@ -385,6 +385,197 @@ MODULE: gradle_project.app
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./gradle_project/app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/main
+                ManifestDirectories:
+                    file://./gradle_project/app/src/main
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/main/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/main/java
+                JavaDirectories:
+                    file://./gradle_project/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/main/java
+                    file://./gradle_project/app/src/main/kotlin
+                KotlinDirectories:
+                    file://./gradle_project/app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/main/res
+                ResDirectories:
+                    file://./gradle_project/app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest
+                ManifestDirectories:
+                    file://./gradle_project/app/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/java
+                JavaDirectories:
+                    file://./gradle_project/app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/java
+                    file://./gradle_project/app/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./gradle_project/app/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/java
+                    file://./gradle_project/app/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/debug
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/debug/java
+                    file://./gradle_project/app/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/release
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/release/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/release/java
+                    file://./gradle_project/app/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/test
+                ManifestDirectories:
+                    file://./gradle_project/app/src/test
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/test/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/test/java
+                JavaDirectories:
+                    file://./gradle_project/app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/test/java
+                    file://./gradle_project/app/src/test/kotlin
+                KotlinDirectories:
+                    file://./gradle_project/app/src/test/java
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/java
+                    file://./gradle_project/app/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./gradle_project/app/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/java
+                    file://./gradle_project/app/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./gradle_project/app/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

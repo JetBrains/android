@@ -203,7 +203,15 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   fun supportsProfilingMode() = false
 
+  /**
+   * Return a [Comparator] for (partially) ordering modules in a project-system-specific way, suitable for use by [minWith] to
+   * find the most production-relevant module(s).  (This is inherently a vague specification; callers should not be critically
+   * dependent on the order returned from this [Comparator].)
+   */
+  fun getProjectSystemModuleTypeComparator(): Comparator<Module> = defaultProjectSystemModuleTypeComparator
 }
+
+private val defaultProjectSystemModuleTypeComparator: Comparator<Module> = Comparator.comparingInt { 0 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 

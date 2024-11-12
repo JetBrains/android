@@ -19,7 +19,6 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -59,7 +58,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -119,29 +117,17 @@ public class AndroidUtils extends CommonAndroidUtil {
   @NonNls public static final String MANIFEST_CLASS_NAME = SdkConstants.FN_MANIFEST_BASE;
 
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
-  @NonNls public static final String WALLPAPER_SERVICE_ACTION_NAME = "android.service.wallpaper.WallpaperService";
 
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
   @NonNls public static final String LEANBACK_LAUNCH_CATEGORY_NAME = "android.intent.category.LEANBACK_LAUNCHER";
   @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
-  @NonNls public static final String WATCHFACE_CATEGORY_NAME = "com.google.android.wearable.watchface.category.WATCH_FACE";
 
   @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = SdkConstants.CLASS_INSTRUMENTATION;
   @NonNls public static final String SERVICE_CLASS_NAME = SdkConstants.CLASS_SERVICE;
   @NonNls public static final String RECEIVER_CLASS_NAME = SdkConstants.CLASS_BROADCASTRECEIVER;
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
-  // Properties
-  @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
-  @NonNls public static final String ANDROID_PROJECT_TYPE_PROPERTY = "project.type";
-  @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
-  @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
-  @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
-  @NonNls public static final String ANDROID_TARGET_PROPERTY = ProjectProperties.PROPERTY_TARGET;
-  @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
   @NonNls public static final String TAG_LINEAR_LAYOUT = SdkConstants.LINEAR_LAYOUT;
-  private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
-    SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
   private static class LazyHolder {
     static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
@@ -221,43 +207,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     return child == null ? parent.createChildDirectory(project, name) : child;
   }
 
-  @Nullable
-  public static PsiFile getContainingFile(@NotNull PsiElement element) {
-    return element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-  }
-
-  public static void navigateTo(@NotNull PsiElement[] targets, @Nullable RelativePoint pointToShowPopup) {
-    if (targets.length == 0) {
-      JComponent renderer = HintUtil.createErrorLabel("Empty text");
-      JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(renderer, renderer).createPopup();
-      if (pointToShowPopup != null) {
-        popup.show(pointToShowPopup);
-      }
-      return;
-    }
-    if (targets.length == 1 || pointToShowPopup == null) {
-      PsiNavigateUtil.navigate(targets[0]);
-    }
-    else {
-      DefaultPsiElementCellRenderer renderer = new DefaultPsiElementCellRenderer() {
-        @Override
-        public String getElementText(PsiElement element) {
-          PsiFile file = getContainingFile(element);
-          return file != null ? file.getName() : super.getElementText(element);
-        }
-
-        @Override
-        public String getContainerText(PsiElement element, String name) {
-          PsiFile file = getContainingFile(element);
-          PsiDirectory dir = file != null ? file.getContainingDirectory() : null;
-          return dir == null ? "" : '(' + dir.getName() + ')';
-        }
-      };
-      JBPopup popup = NavigationUtil.getPsiElementPopup(targets, renderer, null);
-      popup.show(pointToShowPopup);
-    }
-  }
-
   @NotNull
   public static String getSimpleNameByRelativePath(@NotNull String relativePath) {
     relativePath = FileUtil.toSystemIndependentName(relativePath);
@@ -301,82 +250,53 @@ public class AndroidUtils extends CommonAndroidUtil {
     properties.RES_OVERLAY_FOLDERS.replaceAll(overlayFolder -> '/' + s + overlayFolder);
   }
 
+  // Note to the reader: originally, this loop attempted to detect an existing run configuration of the same type
+  // and the same module, and would short-circuit with the target selection mode of that configuration if present.
+  // However, the detection was buggy, because it was an identity comparison between a Module and a
+  // RunConfigurationModule, so the short-circuit was never taken in 13 years of the code existing.  It's not clear
+  // that this routine has any value at all (it will tend to choose the target selection mode from the last
+  // current run configuration in some arbitrary order) and in any case I would expect that the vast majority of
+  // projects have exactly one TargetSelectionMode available.
   @Nullable
-  public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Module module,
+  public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Project project,
                                                                   @NotNull ConfigurationType type,
                                                                   @NonNls ConfigurationType alternativeType) {
-    RunManager runManager = RunManager.getInstance(module.getProject());
+    RunManager runManager = RunManager.getInstance(project);
     List<RunConfiguration> configurations = runManager.getConfigurationsList(type);
 
     TargetSelectionMode alternative = null;
 
     if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
-        if (configuration instanceof AndroidRunConfigurationBase) {
-          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
-          TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
-          if (runConfig.getConfigurationModule() == module) {
-            return targetMode;
-          }
-          else {
-            alternative = targetMode;
-          }
+        if (configuration instanceof AndroidRunConfigurationBase runConfig) {
+          alternative = runConfig.getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }
-
     if (alternative != null) {
       return alternative;
     }
     configurations = runManager.getConfigurationsList(alternativeType);
-
     if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
-        if (configuration instanceof AndroidRunConfigurationBase) {
-          return ((AndroidRunConfigurationBase)configuration).getDeployTargetContext().getTargetSelectionMode();
+        if (configuration instanceof AndroidRunConfigurationBase runConfig) {
+          return runConfig.getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }
     return null;
   }
 
-  public static boolean equal(@Nullable String s1, @Nullable String s2, boolean distinguishDelimiters) {
-    if (s1 == null || s2 == null) {
-      return false;
-    }
+  public static boolean equalIgnoringDelimiters(@NotNull String s1, @NotNull String s2) {
     if (s1.length() != s2.length()) return false;
     for (int i = 0, n = s1.length(); i < n; i++) {
       char c1 = s1.charAt(i);
       char c2 = s2.charAt(i);
-      if (distinguishDelimiters || (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2))) {
+      if (Character.isLetterOrDigit(c1) || Character.isLetterOrDigit(c2)) {
         if (c1 != c2) return false;
       }
     }
     return true;
-  }
-
-  @NotNull
-  public static List<AndroidFacet> getAndroidLibraryDependencies(@NotNull Module module) {
-    List<AndroidFacet> depFacets = new ArrayList<>();
-
-    for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-      if (orderEntry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
-          Module depModule = moduleOrderEntry.getModule();
-
-          if (depModule != null) {
-            AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
-
-            if (depFacet != null && depFacet.getConfiguration().canBeDependency()) {
-              depFacets.add(depFacet);
-            }
-          }
-        }
-      }
-    }
-    return depFacets;
   }
 
   public static void checkNewPassword(JPasswordField passwordField, JPasswordField confirmedPasswordField) throws CommitStepException {
@@ -582,26 +502,8 @@ public class AndroidUtils extends CommonAndroidUtil {
     return StringUtil.isJavaIdentifier(candidate) && !PsiUtil.isKeyword(candidate, LanguageLevel.JDK_1_5);
   }
 
-  public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notification notification = new Notification(NotificationGroup.createIdWithTitle(
-      "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
-                                              AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, NotificationType.ERROR);
-    if (listener != null) notification.setListener(listener);
-    notification.notify(project);
-    LOG.debug(message);
-  }
-
   public static boolean isPackagePrefix(@NotNull String prefix, @NotNull String name) {
     return name.equals(prefix) || name.startsWith(prefix + ".");
-  }
-
-  @NotNull
-  public static Set<Module> getSetWithBackwardDependencies(@NotNull Module module) {
-    Graph<Module> graph = ModuleManager.getInstance(module.getProject()).moduleGraph();
-    Set<Module> set = new HashSet<>();
-    GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
-    return set;
   }
 
   @NotNull
@@ -618,30 +520,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
-  }
-
-  public static boolean isAndroidComponent(@NotNull PsiClass c) {
-    Project project = c.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-
-    for (String componentClassName : ANDROID_COMPONENT_CLASSES) {
-      PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
-      if (componentClass != null && c.isInheritor(componentClass, true)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Do not use. Use {@code CommonAndroidutil.getInstance().isAndroidProject()} to test whether
-   * a project is an Android project.
-   */
-  @Deprecated(forRemoval = true)
-  public static boolean hasAndroidFacets(@NotNull Project project) {
-    LOG.error("hasAndroidFacets is to be removed. Use CommonAndroidutil.getInstance().isAndroidProject().");
-    ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.ID);
   }
 
   /**

@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
@@ -30,6 +31,7 @@ import com.android.tools.idea.common.surface.organization.SceneViewHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.createTestOrganizationHeader
+import com.android.tools.idea.common.surface.organization.findGroups
 import com.android.tools.idea.common.surface.organization.paintLines
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -46,8 +48,11 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
@@ -57,7 +62,6 @@ import org.jetbrains.annotations.TestOnly
  * @param interactionLayersProvider A [Layer] provider that returns the additional interaction
  *   [Layer]s, if any
  * @param actionManagerProvider provides an [ActionManager]
- * @param disposable
  * @param shouldRenderErrorsPanel Returns true whether render error panels should be rendered when
  *   [SceneView] in this surface have render errors.
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and
@@ -67,10 +71,12 @@ class SceneViewPanel(
   private val sceneViewProvider: () -> Collection<SceneView>,
   private val interactionLayersProvider: () -> Collection<Layer>,
   private val actionManagerProvider: () -> ActionManager<*>,
-  private val disposable: Disposable,
   private val shouldRenderErrorsPanel: () -> Boolean,
   layoutManager: PositionableContentLayoutManager,
-) : JPanel(layoutManager) {
+) : JPanel(layoutManager), Disposable.Default {
+
+  private val scope = AndroidCoroutineScope(this)
+
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size. If the size of
    * the {@link SceneView} is less than the minimum, this enum describes how to align the content
@@ -89,8 +95,8 @@ class SceneViewPanel(
   val positionableContent: Collection<PositionableContent>
     get() =
       components
-        .filterIsInstance<SceneViewPeerPanel>()
-        .filter { it.isVisible }
+        .filterIsInstance<PositionablePanel>()
+        .filter { it.isVisible() }
         .map { it.positionableAdapter }
         .toList()
 
@@ -111,18 +117,16 @@ class SceneViewPanel(
 
   val groups = mutableMapOf<OrganizationGroup, MutableList<JComponent>>()
 
-  private val scope = AndroidCoroutineScope(disposable)
-
-  private val sceneScopes = mutableMapOf<JComponent, CoroutineScope>()
+  /** True if layout supports organization. */
+  private val isOrganizationEnabled = MutableStateFlow(false)
 
   override fun remove(comp: Component?) {
-    sceneScopes.remove(comp)?.cancel()
+    (comp as? SceneViewPeerPanel)?.scope?.cancel()
     super.remove(comp)
   }
 
   override fun removeAll() {
-    sceneScopes.values.forEach { it.cancel() }
-    sceneScopes.clear()
+    components.filterIsInstance<SceneViewPeerPanel>().forEach { it.scope.cancel() }
     super.removeAll()
   }
 
@@ -138,12 +142,15 @@ class SceneViewPanel(
             headers.forEach { remove(it) }
             groups.clear()
           }
+          isOrganizationEnabled.value = layoutOption.organizationEnabled
         }
       }
     }
   }
 
   private var organizationWasEnabled = false
+
+  private var activeGroups: ImmutableSet<OrganizationGroup> = persistentSetOf()
 
   @UiThread
   private fun revalidateSceneViews() {
@@ -153,7 +160,7 @@ class SceneViewPanel(
 
     if (
       designSurfaceSceneViews == currentSceneViews &&
-        organizationWasEnabled == organizationIsEnabled()
+        organizationWasEnabled == isOrganizationEnabled.value
     )
       return // No updates
 
@@ -161,10 +168,12 @@ class SceneViewPanel(
     removeAll()
 
     // Headers to be added.
-    organizationWasEnabled = organizationIsEnabled()
+    organizationWasEnabled = isOrganizationEnabled.value
+    activeGroups =
+      if (organizationWasEnabled) designSurfaceSceneViews.findGroups() else persistentSetOf()
     val headers =
       if (organizationWasEnabled)
-        designSurfaceSceneViews.createOrganizationHeaders(
+        activeGroups.createOrganizationHeaders(
           this,
           if (useTestNonComposeHeaders) ::createTestOrganizationHeader
           else ::createOrganizationHeader,
@@ -174,31 +183,8 @@ class SceneViewPanel(
     groups.clear()
 
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
-      val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
-
-      // The left bar is only added for the first panel
-      val leftBar = if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null
-      val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
-
-      val errorsPanel =
-        if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
-
-      val sceneScope = this.scope.createChildScope()
-      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView, sceneScope)
       val peerPanel =
-        SceneViewPeerPanel(
-            sceneScope,
-            sceneView,
-            labelPanel,
-            statusIconAction,
-            toolbarActions,
-            leftBar,
-            rightBar,
-            errorsPanel,
-          )
-          .also { it.alignmentX = sceneViewAlignment }
-
+        createScenePanel(sceneView, index, this.scope.createChildScope(), activeGroups)
       // Add header to layout and store information about created group.
       sceneView.scene.sceneManager.model.organizationGroup?.let { organizationGroup ->
         headers.remove(organizationGroup)?.let {
@@ -208,16 +194,39 @@ class SceneViewPanel(
         groups[organizationGroup]?.add(peerPanel)
       }
       add(peerPanel)
-      sceneScopes[peerPanel] = sceneScope
     }
   }
 
-  /** @return true if layout supports organization. */
-  private fun organizationIsEnabled() =
-    (layout as? NlDesignSurfacePositionableContentLayoutManager)
-      ?.currentLayout
-      ?.value
-      ?.organizationEnabled == true
+  private fun createScenePanel(
+    sceneView: SceneView,
+    index: Int,
+    sceneScope: CoroutineScope,
+    activeGroups: Collection<OrganizationGroup>,
+  ): SceneViewPeerPanel {
+    val partOfTheGroup = activeGroups.contains(sceneView.scene.sceneManager.model.organizationGroup)
+    return SceneViewPeerPanel(
+        scope = sceneScope,
+        sceneView = sceneView,
+        labelPanel =
+          actionManagerProvider()
+            .createSceneViewLabel(
+              sceneView,
+              sceneScope,
+              if (partOfTheGroup) isOrganizationEnabled else MutableStateFlow(false),
+            ),
+        statusIconAction = actionManagerProvider().sceneViewStatusIconAction,
+        toolbarActions = actionManagerProvider().sceneViewContextToolbarActions,
+        // The left bar is only added for the first panel
+        leftPanel =
+          if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null,
+        rightPanel = actionManagerProvider().getSceneViewRightBar(sceneView),
+        errorsPanel =
+          if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView)
+          else null,
+        isOrganizationEnabled = isOrganizationEnabled,
+      )
+      .also { it.alignmentX = sceneViewAlignment }
+  }
 
   /** Use [createTestOrganizationHeader] instead of [createOrganizationHeader] if true. */
   private var useTestNonComposeHeaders = false

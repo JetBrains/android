@@ -180,7 +180,9 @@ public final class TreeWalker {
       // continues to run, we'll visit its children later, in a breadth-first manner.
       if (c instanceof Container) {
         for (Component child : ((Container)c).getComponents()) {
-          myDescendants.addLast(child);
+          if (child != null) {
+            myDescendants.addLast(child);
+          }
         }
       }
 

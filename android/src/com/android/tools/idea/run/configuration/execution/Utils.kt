@@ -46,10 +46,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.util.AndroidBundle
@@ -185,29 +182,21 @@ suspend fun getDevices(deviceFutures: DeviceFutures, indicator: ProgressIndicato
   }.onEach { LaunchUtils.initiateDismissKeyguard(it) }
 }
 
+private const val APPLICATION_ID_NOT_FOUND = "APPLICATION_ID_NOT_FOUND"
+
 @Throws(ExecutionException::class)
 @WorkerThread
 suspend fun getDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget, stats: RunStats): List<IDevice> {
   return getDevices(prepareDevices (project, indicator, deployTarget), indicator, stats)
 }
 
-private const val APPLICATION_ID_NOT_FOUND = "APPLICATION_ID_NOT_FOUND"
-
 @Throws(ExecutionException::class)
-suspend fun getApplicationIdAndDevices(environment: ExecutionEnvironment, deviceFutures: DeviceFutures, applicationIdProvider: ApplicationIdProvider, indicator: ProgressIndicator): Pair<String, List<IDevice>> {
-  val applicationId = try {
-    applicationIdProvider.packageName
-  } catch (e: ApkProvisionException) {
-    throw AndroidExecutionException(APPLICATION_ID_NOT_FOUND, e.message)
-  }
-  val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
-  return Pair(applicationId, devices)
+suspend fun getDevices(environment: ExecutionEnvironment, deviceFutures: DeviceFutures, indicator: ProgressIndicator): List<IDevice> {
+  return getDevices(deviceFutures, indicator, RunStats.from(environment))
 }
 
-/**
- * Only for compatibility with ASwB until it supports kotlin. Don't use outside of ASwB.
- */
-fun getApplicationIdAndDevicesSync(environment: ExecutionEnvironment, deviceFutures: DeviceFutures, applicationIdProvider: ApplicationIdProvider, indicator: ProgressIndicator): Pair<String, List<IDevice>> {
- return ProgressManager.getInstance().runProcess(
-   Computable { runBlockingCancellable { getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator) } }, indicator)
+val ApplicationIdProvider.applicationIdOrAndroidExecutionException: String @Throws(ExecutionException::class) get() = try {
+  packageName
+} catch (e: ApkProvisionException) {
+  throw AndroidExecutionException(APPLICATION_ID_NOT_FOUND, e.message)
 }

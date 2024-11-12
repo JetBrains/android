@@ -24,9 +24,11 @@ import com.google.common.truth.FailureMetadata
 import com.google.common.truth.Subject
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import com.intellij.diagnostic.Checks.fail
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMethod
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -35,6 +37,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class WearTilePreviewElementFinderTest {
   @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
@@ -44,6 +48,8 @@ class WearTilePreviewElementFinderTest {
 
   private val fixture
     get() = projectRule.fixture
+
+  private val elementFinder = WearTilePreviewElementFinder()
 
   @Before
   fun setUp() {
@@ -200,18 +206,12 @@ class WearTilePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
-      .isTrue()
-    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, otherFileTest.virtualFile))
-      .isTrue()
-    assertThat(
-        WearTilePreviewElementFinder.hasPreviewElements(project, fileWithNoPreviews.virtualFile)
-      )
-      .isFalse()
+    assertThat(elementFinder.hasPreviewElements(project, previewsTest.virtualFile)).isTrue()
+    assertThat(elementFinder.hasPreviewElements(project, otherFileTest.virtualFile)).isTrue()
+    assertThat(elementFinder.hasPreviewElements(project, fileWithNoPreviews.virtualFile)).isFalse()
 
     runBlocking {
-      val previewElements =
-        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
       assertThat(previewElements).hasSize(10)
 
       previewElements.elementAt(0).let {
@@ -422,12 +422,10 @@ class WearTilePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
-      .isTrue()
+    assertThat(elementFinder.hasPreviewElements(project, previewsTest.virtualFile)).isTrue()
 
     runBlocking {
-      val previewElements =
-        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
       assertThat(previewElements).hasSize(1)
 
       previewElements.first().let {
@@ -468,12 +466,10 @@ class WearTilePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
-      .isTrue()
+    assertThat(elementFinder.hasPreviewElements(project, previewsTest.virtualFile)).isTrue()
 
     runBlocking {
-      val previewElements =
-        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
       assertThat(previewElements).hasSize(1)
 
       previewElements.elementAt(0).let {
@@ -560,16 +556,12 @@ class WearTilePreviewElementFinderTest {
           .trimIndent(),
       )
 
-    assertTrue(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
+    assertTrue(elementFinder.hasPreviewElements(project, previewsTest.virtualFile))
     assertTrue(
-      WearTilePreviewElementFinder.hasPreviewElements(
-        project,
-        previewsWithoutDirectUseOfPreviewTest.virtualFile,
-      )
+      elementFinder.hasPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile)
     )
 
-    val previewElements =
-      WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+    val previewElements = elementFinder.findPreviewElements(project, previewsTest.virtualFile)
     assertThat(previewElements).hasSize(7)
 
     previewElements.elementAt(0).let {
@@ -665,10 +657,7 @@ class WearTilePreviewElementFinderTest {
     }
 
     val previewsWithoutDirectUseOfPreview =
-      WearTilePreviewElementFinder.findPreviewElements(
-        project,
-        previewsWithoutDirectUseOfPreviewTest.virtualFile,
-      )
+      elementFinder.findPreviewElements(project, previewsWithoutDirectUseOfPreviewTest.virtualFile)
     assertThat(previewsWithoutDirectUseOfPreview).hasSize(2)
 
     previewsWithoutDirectUseOfPreview.elementAt(0).let {
@@ -706,6 +695,43 @@ class WearTilePreviewElementFinderTest {
           )
         )
       assertThat(it).hasAnnotationDefinition("@MultiPreviewLevel1")
+    }
+  }
+
+  // Regression test for b/368402966
+  @Test
+  fun testHandlesInvalidPsiElements() = runBlocking {
+    val previewFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/Test.kt",
+        // language=kotlin
+        """
+          package com.android.test
+
+          import androidx.wear.tiles.tooling.preview.Preview
+          import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+          @Preview
+          private fun tilePreview(): TilePreviewData {
+            return TilePreviewData()
+          }
+          """
+          .trimIndent(),
+      )
+
+    val invalidPsiElement = mock<PsiMethod>()
+    whenever(invalidPsiElement.isValid).thenReturn(false)
+
+    val methodReturningInvalidElements = { _: PsiFile? -> listOf(invalidPsiElement) }
+
+    try {
+      assertThat(
+          WearTilePreviewElementFinder(findMethods = methodReturningInvalidElements)
+            .hasPreviewElements(project, previewFile.virtualFile)
+        )
+        .isFalse()
+    } catch (e: Exception) {
+      fail("The invalid PSI element should be handled")
     }
   }
 }

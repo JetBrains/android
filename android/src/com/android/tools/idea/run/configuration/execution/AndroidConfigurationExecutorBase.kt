@@ -30,7 +30,6 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
@@ -51,7 +50,6 @@ abstract class AndroidConfigurationExecutorBase(
   protected val environment: ExecutionEnvironment,
   private val deviceFutures: DeviceFutures,
   protected val appRunSettings: AppRunSettings,
-  protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider,
   protected val applicationContext: ApplicationProjectContext,
   protected val applicationDeployer: ApplicationDeployer
@@ -70,7 +68,8 @@ abstract class AndroidConfigurationExecutorBase(
 
   @WorkerThread
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(environment, deviceFutures, indicator)
     RunStats.from(environment).setPackage(applicationId)
     val console = createConsole()
     val processHandler = AndroidProcessHandler(applicationId, getStopCallback(console, applicationId, false))
@@ -98,7 +97,8 @@ abstract class AndroidConfigurationExecutorBase(
 
   @WorkerThread
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    val applicationId = applicationContext.applicationId
+    val devices = getDevices(environment, deviceFutures, indicator)
     RunStats.from(environment).setPackage(applicationId)
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")

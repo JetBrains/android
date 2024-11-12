@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.client
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
@@ -35,6 +36,8 @@ import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.TestConnection
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.Experiment
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
@@ -474,17 +477,6 @@ class AppInsightsCacheTest {
     val cache = AppInsightsCacheImpl()
     cache.populateIssues(connection, listOf(issue))
 
-    val issueRequest =
-      IssueRequest(
-        connection,
-        QueryFilters(
-          interval = Interval(now.minus(Duration.ofDays(3)), now),
-          devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
-          operatingSystems =
-            setOf(OperatingSystemInfo("Android 11", "11"), OperatingSystemInfo("Android 12", "12")),
-        ),
-      )
-
     // Mismatch device
     assertThat(
         cache.getEvent(
@@ -562,5 +554,22 @@ class AppInsightsCacheTest {
         )
       )
       .isEqualTo(testEvent)
+  }
+
+  @Test
+  fun `get and put AI insights`() {
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(ISSUE1))
+
+    assertThat(cache.getAiInsight(connection, ISSUE1.id)).isNull()
+
+    cache.putAiInsight(connection, ISSUE1.id, DEFAULT_AI_INSIGHT)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+
+    val newInsight = AiInsight("blah", Experiment.TOP_THREE_SOURCES)
+    cache.putAiInsight(connection, ISSUE1.id, newInsight)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+      .isEqualTo(newInsight.copy(isCached = true))
   }
 }

@@ -31,8 +31,9 @@ import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
-import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
+import com.android.tools.idea.projectsystem.gradle.isTestFixturesModule
 import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -107,7 +108,9 @@ class GradleTaskFinderWorker private constructor(
 
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_APP ->
-        androidProject
+        // AGP does not bring in app's Dynamic Features when running app android test, so no need to expand here
+        if (!this.module.isHolderModule() && !this.module.isMainModule()) return emptyList()
+        else androidProject
           .dynamicFeatures
           .mapNotNull { GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode) }
 
@@ -129,10 +132,9 @@ class GradleTaskFinderWorker private constructor(
           .baseFeature
           ?.let {
             listOfNotNull(
-              GradleHolderProjectPath(buildRoot, it)
-                .toModuleAndMode(
-                  buildMode = buildMode
-                )
+              // We should get the baseFeature (APP) and also expand it so we can pull out other dynamic features too that will be needed
+              // for build.
+              GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode, true)
             )
           }
           .orEmpty()
@@ -262,9 +264,10 @@ class GradleTaskFinderWorker private constructor(
     (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.taskLegacy
 
   private fun GradleProjectPath.toModuleAndMode(
-    buildMode: BuildMode
+    buildMode: BuildMode,
+    expandModule: Boolean = false
   ): ModuleAndMode? =
-    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode) }
+    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, expandModule = expandModule) }
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
@@ -361,6 +364,7 @@ private fun ModuleAndMode.getTasksBy(
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }.takeIf { module.isScreenshotTestModule() || module.isHolderModule() })
         addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { module.isAndroidTestModule() || module.isHolderModule() })
+        addIfNotNull(variant.testFixturesArtifact.takeIf { module.isTestFixturesModule() || module.isHolderModule() })
       }
       artifacts.flatMap { by.invoke(it) }.toSet()
   }.orEmpty()

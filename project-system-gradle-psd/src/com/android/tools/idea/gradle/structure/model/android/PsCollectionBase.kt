@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
 import com.android.tools.idea.gradle.structure.model.ChangeDispatcher
 import com.android.tools.idea.gradle.structure.model.PsKeyedModelCollection
 import com.android.tools.idea.gradle.structure.model.PsModel
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.ide.PooledThreadExecutor
 
 abstract class PsCollectionBase<TModel , TKey, TParent>
 protected constructor(val parent: TParent) :
@@ -39,11 +44,20 @@ protected constructor(val parent: TParent) :
 
   override fun findElement(key: TKey): TModel? = entries[key]
 
-  fun refresh() {
-    entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)) }.toMap()
+  private fun refreshFromKeys(keys: Set<TKey>) {
+    entries = keys.associateWith { key -> (entries[key] ?: create(key)) }
     entries.forEach { (key, value) -> update(key, value) }
     notifyChanged()
   }
+
+  fun refresh() = refreshFromKeys(getKeys(parent))
+
+  fun refreshFuture(): ListenableFuture<Unit> =
+    if (ApplicationManager.getApplication().isUnitTestMode)
+      Futures.immediateFuture(refresh())
+    else
+      Futures.submitAsync({ Futures.immediateFuture(getKeys(parent)) }, PooledThreadExecutor.INSTANCE)
+        .continueOnEdt(::refreshFromKeys)
 
   override fun onChange(disposable: Disposable, listener: () -> Unit) = changedDispatcher.add(disposable, listener)
 

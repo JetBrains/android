@@ -97,7 +97,7 @@ public class BazelQueryRunner implements QueryRunner {
         InputStream in =
             commandRunner.runQuery(project, commandBuilder, buildResultHelper, context)) {
       QuerySummary querySummary = readFrom(in, context);
-      int packagesWithErrorsCount = querySummary.proto().getPackagesWithErrorsCount();
+      int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();
       context.output(
           PrintOutput.output("Total query time ms: " + timer.elapsed(TimeUnit.MILLISECONDS)));
       if (packagesWithErrorsCount > 0) {

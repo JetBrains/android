@@ -26,6 +26,9 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
 
@@ -50,6 +53,10 @@ abstract class PositionableContentLayoutManager : LayoutManager {
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
+  private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+  /** Notifies when [layoutContainer(parent: Container)] is called. */
+  val layoutContainerFlow: SharedFlow<Unit> = _layoutContainerFlow.asSharedFlow()
+
   final override fun layoutContainer(parent: Container) {
     val panels = parent.findVisiblePositionablePanels()
 
@@ -63,6 +70,8 @@ abstract class PositionableContentLayoutManager : LayoutManager {
       .filterIsInstance<PositionablePanel>()
       .filterNot { it.isVisible() }
       .forEach { it.positionableAdapter.setLocation(INVISIBLE_POINT.x, INVISIBLE_POINT.y) }
+
+    _layoutContainerFlow.tryEmit(Unit)
   }
 
   open fun minimumLayoutSize(

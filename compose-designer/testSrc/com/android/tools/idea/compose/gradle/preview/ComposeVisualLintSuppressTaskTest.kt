@@ -26,7 +26,7 @@ import com.android.tools.idea.compose.preview.ComposeVisualLintSuppressTask
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.getPreviewNodes
-import com.android.tools.idea.preview.rendering.createRenderTaskFuture
+import com.android.tools.idea.preview.rendering.createRenderTaskFutureForTest
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
@@ -90,7 +90,7 @@ class ComposeVisualLintSuppressTaskTest {
         targetFile,
       )
     val renderTaskFuture =
-      createRenderTaskFuture(
+      createRenderTaskFutureForTest(
         facet = facet,
         file = file,
         privateClassLoader = false,
@@ -193,7 +193,7 @@ class ComposeVisualLintSuppressTaskTest {
         targetFile,
       )
     val renderTaskFuture =
-      createRenderTaskFuture(
+      createRenderTaskFutureForTest(
         facet = facet,
         file = file,
         privateClassLoader = false,

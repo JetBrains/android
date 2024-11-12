@@ -64,38 +64,28 @@ fun toBuildErrorMessage(buildEvent: BuildEvent): BuildErrorMessage? {
     return null
   }
 
-  return if (buildEvent is BuildIssueEvent) {
-    addStatsFromBuildIssue(buildEvent)
-  }
-  else {
-    addStatsFromDefaultMessage(buildEvent)
-  }
-}
-
-private fun addStatsFromBuildIssue(buildEvent: BuildIssueEvent): BuildErrorMessage? {
-  val issue = buildEvent.issue
-  if (issue is ErrorMessageAwareBuildIssue) {
-    return issue.buildErrorMessage
-  }
-  return BuildErrorMessage.newBuilder().build()
-}
-
-private fun addStatsFromDefaultMessage(buildEvent: MessageEvent): BuildErrorMessage? {
-  val buildErrorMessageBuilder = BuildErrorMessage.newBuilder()
-  findErrorTypeByGroup(buildEvent.group)?.let {
-    buildErrorMessageBuilder.errorShownType = it
-  }
-
-  if (buildEvent is FileMessageEvent) {
-    buildErrorMessageBuilder.fileLocationIncluded = true
-    buildErrorMessageBuilder.fileIncludedType = getFileType(buildEvent.filePosition.file)
-    if (buildEvent.filePosition.startLine >= 0) {
-      buildErrorMessageBuilder.lineLocationIncluded = true
+  if (buildEvent is BuildIssueEvent) {
+    val issue = buildEvent.issue
+    // If the build issue is already error message aware, use this error message.
+    if (issue is ErrorMessageAwareBuildIssue) {
+      return issue.buildErrorMessage
     }
   }
-  return buildErrorMessageBuilder.build()
-}
 
+  val builder = BuildErrorMessage.newBuilder()
+  findErrorTypeByGroup(buildEvent.group)?.let {
+    builder.errorShownType = it
+  }
+  if (buildEvent is FileMessageEvent) {
+    builder.fileLocationIncluded = true
+    builder.fileIncludedType = getFileType(buildEvent.filePosition.file)
+    if (buildEvent.filePosition.startLine >= 0) {
+      builder.lineLocationIncluded = true
+    }
+  }
+
+  return builder.build()
+}
 
 private val toolNameToEnumMap = mapOf("Compiler" to BuildErrorMessage.ErrorType.JAVA_COMPILER,
                                       "Kotlin Compiler" to BuildErrorMessage.ErrorType.KOTLIN_COMPILER,

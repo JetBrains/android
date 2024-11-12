@@ -55,6 +55,7 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.base.Predicate
@@ -92,11 +93,9 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
-import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
-import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -111,6 +110,10 @@ import javax.swing.Timer
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
@@ -138,11 +141,10 @@ val FILTER_DISPOSED_MODELS =
  */
 abstract class DesignSurface<T : SceneManager>(
   val project: Project,
-  val parentDisposable: Disposable,
   actionManagerProvider: (DesignSurface<T>) -> ActionManager<out DesignSurface<T>>,
   interactableProvider: (DesignSurface<T>) -> Interactable = { SurfaceInteractable(it) },
   interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
-  val positionableLayoutManagerProvider: (DesignSurface<T>) -> PositionableContentLayoutManager,
+  positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
   // defined as open.
   // "open" can be removed if we remove the mocks.
@@ -152,6 +154,7 @@ abstract class DesignSurface<T : SceneManager>(
   // "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
+  private val shouldZoomOnFirstComponentResize: Boolean = true,
 ) :
   EditorDesignSurface(BorderLayout()),
   Disposable,
@@ -159,12 +162,10 @@ abstract class DesignSurface<T : SceneManager>(
   ScaleListener,
   UiDataProvider {
 
-  /** [CoroutineScope] to be used by any operations constrained to the zoom changes. */
-  protected val zoomControllerScope = AndroidCoroutineScope(parentDisposable)
+  /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
+  protected val scope = AndroidCoroutineScope(this)
 
   init {
-    Disposer.register(parentDisposable, this)
-
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a
     // temporarily NlMode.
@@ -216,11 +217,11 @@ abstract class DesignSurface<T : SceneManager>(
         sceneViewProvider = ::sceneViews,
         interactionLayersProvider = ::getLayers,
         actionManagerProvider = ::actionManager,
-        disposable = this,
         shouldRenderErrorsPanel = ::shouldRenderErrorsPanel,
-        layoutManager = positionableLayoutManagerProvider(this),
+        layoutManager = positionableLayoutManager,
       )
       .apply {
+        Disposer.register(this@DesignSurface, this)
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
       }
@@ -228,17 +229,18 @@ abstract class DesignSurface<T : SceneManager>(
   /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
   val scrollPane: JScrollPane? =
     if (hasZoomControls) {
-      createDefaultScrollPane(sceneViewPanel, background, ::notifyPanningChanged).apply {
-        addComponentListener(
-          object : ComponentAdapter() {
-            override fun componentResized(e: ComponentEvent) {
-              // Relayout the PositionableContents when visible size (e.g. window size) of
-              // ScrollPane is changed.
-              revalidateScrollArea()
+      createDefaultScrollPane(sceneViewPanel, background) { notifyPanningChanged() }
+        .apply {
+          addComponentListener(
+            object : ComponentAdapter() {
+              override fun componentResized(e: ComponentEvent) {
+                // Relayout the PositionableContents when visible size (e.g. window size) of
+                // ScrollPane is changed.
+                revalidateScrollArea()
+              }
             }
-          }
-        )
-      }
+          )
+        }
     } else null
 
   /** Current scrollable [Rectangle] if available or null. */
@@ -413,6 +415,14 @@ abstract class DesignSurface<T : SceneManager>(
 
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
+            // There are conditions where it is better to skip the first zooming.
+            // For example, if we are using a Compose Preview we want to wait for the content to be
+            // rendered before we can calculate the right fit scale.
+            if (!shouldZoomOnFirstComponentResize) {
+              // We skip the zooming calculation by setting the isInitialZoomLevelDetermined flag to
+              // true.
+              isInitialZoomLevelDetermined = true
+            }
             if (!isInitialZoomLevelDetermined && isShowing && width > 0 && height > 0) {
               // Set previous scale when DesignSurface becomes visible at first time.
               val hasModelAttached = restoreZoomOrZoomToFit()
@@ -603,9 +613,9 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  protected fun notifyPanningChanged(adjustmentEvent: AdjustmentEvent) {
+  protected fun notifyPanningChanged() {
     for (listener in getZoomListeners()) {
-      listener.panningChanged(adjustmentEvent)
+      listener.panningChanged()
     }
   }
 
@@ -913,7 +923,7 @@ abstract class DesignSurface<T : SceneManager>(
       val managers = sceneManagers
       if (managers.size == 1) {
         // Always return primary SceneView In single-model mode,
-        val manager: T = checkNotNull(model?.let { getSceneManager(it) })
+        val manager: T = model?.let { getSceneManager(it) } ?: return null
         return manager.sceneViews.firstOrNull()
       }
       val selection = selectionModel.selection
@@ -960,7 +970,7 @@ abstract class DesignSurface<T : SceneManager>(
   ): SceneView? {
     // TODO: For keeping the behaviour as before in multi-model case, we return primary SceneView
     // when there is no hovered SceneView.
-    return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneView
+    return getSceneViewAt(x, y) ?: model?.let { getSceneManager(it) }?.sceneViews?.firstOrNull()
   }
 
   /**
@@ -1077,21 +1087,20 @@ abstract class DesignSurface<T : SceneManager>(
       return
     }
 
-    CompletableFuture.runAsync({ addModel(newModel) }, AppExecutorUtil.getAppExecutorService())
-      .thenCompose { requestRender() }
-      .whenCompleteAsync(
-        { _, _ ->
-          // Mark the scene view panel as invalid to force the scene views to be updated
-          sceneViewPanel.invalidate()
+    scope.launch {
+      addModel(newModel)
+      sceneManagers.forEach { it.requestRenderAsync().await() }
+      // Mark the scene view panel as invalid to force the scene views to be updated
+      sceneViewPanel.invalidate()
 
-          reactivateGuiInputHandler()
-          restoreZoomOrZoomToFit()
-          revalidateScrollArea()
+      reactivateGuiInputHandler()
+      withContext(uiThread) {
+        restoreZoomOrZoomToFit()
+        revalidateScrollArea()
+      }
 
-          notifyModelChanged(newModel)
-        },
-        EdtExecutorService.getInstance(),
-      )
+      notifyModelChanged(newModel)
+    }
   }
 
   /**
@@ -1144,9 +1153,9 @@ abstract class DesignSurface<T : SceneManager>(
    */
   fun addModelWithoutRender(modelToAdd: NlModel): CompletableFuture<T> {
     return CompletableFuture.supplyAsync(
-      { addModel(modelToAdd) },
-      AppExecutorUtil.getAppExecutorService(),
-    )
+        { addModel(modelToAdd) },
+        AppExecutorUtil.getAppExecutorService(),
+      )
       .whenCompleteAsync(
         { _, _ ->
           if (project.isDisposed || modelToAdd.isDisposed) return@whenCompleteAsync
@@ -1155,72 +1164,6 @@ abstract class DesignSurface<T : SceneManager>(
         },
         EdtExecutorService.getInstance(),
       )
-  }
-
-  private val renderFutures = mutableListOf<CompletableFuture<Void>>()
-
-  /** Returns true if this surface is currently refreshing. */
-  fun isRefreshing(): Boolean {
-    synchronized(renderFutures) {
-      return renderFutures.isNotEmpty()
-    }
-  }
-
-  /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the [NlModel]s
-   * and render them sequentially. The result [CompletableFuture] will notify when all the
-   * renderings have completed.
-   */
-  open fun requestRender(): CompletableFuture<out Void?> {
-    if (sceneManagers.isEmpty()) {
-      return CompletableFuture.completedFuture(null)
-    }
-    return requestSequentialRender { it.requestRenderAsync() }
-  }
-
-  /**
-   * Schedule the render requests sequentially for all [SceneManager]s in this [DesignSurface].
-   *
-   * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to
-   *   choose the preferred rendering request.
-   * @return A callback which is triggered when the scheduled rendering are completed.
-   */
-  protected fun requestSequentialRender(
-    renderRequest: (T) -> CompletableFuture<Void>
-  ): CompletableFuture<Void> {
-    val callback = CompletableFuture<Void>()
-    synchronized(renderFutures) {
-      if (renderFutures.isNotEmpty()) {
-        // TODO: This may make the rendered previews not match the last status of NlModel if the
-        // modifications happen during rendering.
-        // Similar case happens in LayoutlibSceneManager#requestRender function, both need to be
-        // fixed.
-        renderFutures.add(callback)
-        return callback
-      } else {
-        renderFutures.add(callback)
-      }
-    }
-
-    // Cascading the CompletableFuture to make them executing sequentially.
-    var renderFuture = CompletableFuture.completedFuture<Void?>(null)
-    for (manager in sceneManagers) {
-      renderFuture =
-        renderFuture.thenCompose {
-          val future = renderRequest(manager)
-          invalidate()
-          future
-        }
-    }
-    renderFuture.thenRun {
-      synchronized(renderFutures) {
-        renderFutures.forEach { it.complete(null) }
-        renderFutures.clear()
-      }
-      updateNotifications()
-    }
-
-    return callback
   }
 
   private var lintIssueProvider: LintIssueProvider? = null
@@ -1303,14 +1246,6 @@ abstract class DesignSurface<T : SceneManager>(
     clearListeners()
     guiInputHandler.stopListening()
     Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
-    synchronized(renderFutures) {
-      for (future in renderFutures) {
-        try {
-          future.cancel(true)
-        } catch (ignored: CancellationException) {}
-      }
-      renderFutures.clear()
-    }
     if (repaintTimer.isRunning) {
       repaintTimer.stop()
     }

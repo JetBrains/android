@@ -81,7 +81,7 @@ public class BlazeBuildOutputs {
   public final Optional<String> sourceUri;
 
   /**
-   * {@link BepArtifactData} by {@link OutputArtifact#getRelativePath()} for all artifacts from a
+   * {@link BepArtifactData} by {@link OutputArtifact#getBazelOutRelativePath()} for all artifacts from a
    * build.
    */
   public final ImmutableMap<String, BepArtifactData> artifacts;
@@ -151,14 +151,14 @@ public class BlazeBuildOutputs {
           continue;
         }
         // no longer output by this target; need to update target associations
-        BepArtifactData data = combined.get(old.getRelativePath());
+        BepArtifactData data = combined.get(old.getBazelOutRelativePath());
         if (data != null) {
           data = data.removeTargetAssociation(target);
         }
         if (data == null) {
-          combined.remove(old.getRelativePath());
+          combined.remove(old.getBazelOutRelativePath());
         } else {
-          combined.put(old.getRelativePath(), data);
+          combined.put(old.getBazelOutRelativePath(), data);
         }
       }
     }

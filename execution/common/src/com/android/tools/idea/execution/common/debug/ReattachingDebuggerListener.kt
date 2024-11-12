@@ -156,7 +156,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
         val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, applicationContext,
                                                                          environment,
                                                                          androidDebugger, androidDebuggerState,
-                                                                         { it.forceStop(client.clientData.clientDescription!!) },
+                                                                         { it.forceStop(client.clientData.processName!!) },
                                                                          indicator = EmptyProgressIndicator(), consoleViewToReuse)
         processHandlerForOpenedTab.detachProcess()
         processHandlerForOpenedTab = ReattachingProcessHandler(masterProcessHandler)

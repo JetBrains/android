@@ -25,7 +25,6 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.history.core.Paths;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -78,9 +77,12 @@ public class DeprecatedLoadQuickFix implements LocalQuickFix, HighPriorityAction
     if (packagePath == null) {
       return;
     }
-    String relativePath =
-        Paths.relativeIfUnder(workspacePath.relativePath(), packagePath.relativePath());
-    if (relativePath == null) {
+    String relativePath;
+    try {
+      relativePath = packagePath.asPath().relativize(workspacePath.asPath()).toString();
+    }
+    catch (IllegalArgumentException ignored) {
+      // workspacePath is not under packagePath.
       return;
     }
     String newString = "//" + packagePath + ":" + relativePath + ".bzl";

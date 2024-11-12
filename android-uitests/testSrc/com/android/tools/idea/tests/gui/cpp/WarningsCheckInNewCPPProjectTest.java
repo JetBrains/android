@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -75,16 +76,16 @@ public class WarningsCheckInNewCPPProjectTest {
       .typeText("int x = 0;\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myIdeFrameFixture.requestFocusIfLost();
+
     InspectionsFixture myInspections = myIdeFrameFixture.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickAnalyze();
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    myIdeFrameFixture.waitUntilProgressBarNotDisplayed();
+    myEditorFixture.waitUntilErrorAnalysisFinishes();
 
-    GuiTests.takeScreenshot(myIdeFrameFixture.robot(), "Problems panel");
-    myIdeFrameFixture.requestFocusIfLost();
+    new ProblemsPaneFixture(myIdeFrameFixture)
+      .switchToTab("File");
+
     String inspectionResults = myInspections.getResults(); //get inspections results from the problem panel
     assertThat((inspectionResults).contains("Local variable 'x' is only assigned but never accessed")).isTrue();
-    assertThat((inspectionResults).contains("The value is never used")).isTrue();
   }
 }

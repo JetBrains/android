@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
@@ -41,6 +40,7 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -55,7 +55,7 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
 
   private suspend fun subscribeAnimations(animations: List<ComposeAnimation>) {
-    surface.sceneManagers.forEach { it.render() }
+    surface.sceneManagers.forEach { it.requestRenderAsync().await() }
     animations.forEach { animationPreview.addAnimation(it).join() }
   }
 

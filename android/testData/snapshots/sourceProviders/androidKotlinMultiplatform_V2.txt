@@ -850,6 +850,561 @@ MODULE: Kotlin_Multiplatform.androidLib
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./androidLib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/main
+                ManifestDirectories:
+                    file://./androidLib/src/main
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/main/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/main/java
+                JavaDirectories:
+                    file://./androidLib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/main/java
+                    file://./androidLib/src/main/kotlin
+                KotlinDirectories:
+                    file://./androidLib/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/main/resources
+                ResourcesDirectories:
+                    file://./androidLib/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTest/java
+                    file://./androidLib/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/java
+                    file://./androidLib/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestDebug/shaders
+            androidTestModeone (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestModeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/java
+                    file://./androidLib/src/androidTestModeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestModeone/shaders
+            androidTestModetwo (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestModetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/java
+                    file://./androidLib/src/androidTestModetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestModetwo/shaders
+            androidTestTypeone (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestTypeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/java
+                    file://./androidLib/src/androidTestTypeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeone/shaders
+            androidTestTypeoneModetwo (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
+                    file://./androidLib/src/androidTestTypeoneModetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwo/shaders
+            androidTestTypeoneModetwoDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/shaders
+            androidTestTypetwo (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/androidTestTypetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/java
+                    file://./androidLib/src/androidTestTypetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/androidTestTypetwo/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/debug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/debug/java
+                    file://./androidLib/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/debug/shaders
+            modeone (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/modeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/modeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/modeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/modeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/modeone/java
+                    file://./androidLib/src/modeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/modeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/modeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/modeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/modeone/shaders
+            modetwo (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/modetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/modetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/modetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/modetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/modetwo/java
+                    file://./androidLib/src/modetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/modetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/modetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/modetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/modetwo/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/release
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/release/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/release/java
+                    file://./androidLib/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/test
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/test/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/test/java
+                    file://./androidLib/src/test/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testDebug/java
+                    file://./androidLib/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testDebug/shaders
+            testModeone (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testModeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testModeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testModeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testModeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testModeone/java
+                    file://./androidLib/src/testModeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testModeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testModeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testModeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testModeone/shaders
+            testModetwo (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testModetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testModetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testModetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testModetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testModetwo/java
+                    file://./androidLib/src/testModetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testModetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testModetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testModetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testModetwo/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testRelease/java
+                    file://./androidLib/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testRelease/shaders
+            testTypeone (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testTypeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testTypeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testTypeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testTypeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testTypeone/java
+                    file://./androidLib/src/testTypeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testTypeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testTypeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testTypeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testTypeone/shaders
+            testTypeoneModetwo (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/java
+                    file://./androidLib/src/testTypeoneModetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwo/shaders
+            testTypeoneModetwoDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
+                    file://./androidLib/src/testTypeoneModetwoDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/jniLibs
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testTypeoneModetwoDebug/shaders
+            testTypetwo (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./androidLib/src/testTypetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/testTypetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/java
+                    file://./androidLib/src/testTypetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/testTypetwo/shaders
+            typeone (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/typeone/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/typeone
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/typeone/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/typeone/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/typeone/java
+                    file://./androidLib/src/typeone/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/typeone/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/typeone/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/typeone/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/typeone/shaders
+            typeoneModetwo (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/typeoneModetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/java
+                    file://./androidLib/src/typeoneModetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwo/shaders
+            typeoneModetwoDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/typeoneModetwoDebug/shaders
+            typetwo (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./androidLib/src/typetwo/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./androidLib/src/typetwo
+                AssetsDirectoryUrls:
+                    file://./androidLib/src/typetwo/assets
+                JavaDirectoryUrls:
+                    file://./androidLib/src/typetwo/java
+                KotlinDirectoryUrls:
+                    file://./androidLib/src/typetwo/java
+                    file://./androidLib/src/typetwo/kotlin
+                JniLibsDirectoryUrls:
+                    file://./androidLib/src/typetwo/jniLibs
+                ResDirectoryUrls:
+                    file://./androidLib/src/typetwo/res
+                ResourcesDirectoryUrls:
+                    file://./androidLib/src/typetwo/resources
+                ShadersDirectoryUrls:
+                    file://./androidLib/src/typetwo/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1817,6 +2372,189 @@ MODULE: Kotlin_Multiplatform.app
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            main (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/main/AndroidManifest.xml
+                ManifestFiles:
+                    file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/main
+                ManifestDirectories:
+                    file://./app/src/main
+                AssetsDirectoryUrls:
+                    file://./app/src/main/assets
+                JavaDirectoryUrls:
+                    file://./app/src/main/java
+                JavaDirectories:
+                    file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/main/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/main/shaders
+            androidTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTest
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/debug
+                AssetsDirectoryUrls:
+                    file://./app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/debug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/debug/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/release
+                AssetsDirectoryUrls:
+                    file://./app/src/release/assets
+                JavaDirectoryUrls:
+                    file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/release/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/release/shaders
+            test (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/test
+                ManifestDirectories:
+                    file://./app/src/test
+                AssetsDirectoryUrls:
+                    file://./app/src/test/assets
+                JavaDirectoryUrls:
+                    file://./app/src/test/java
+                JavaDirectories:
+                    file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/test/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/test/shaders
+            testDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testDebug
+                AssetsDirectoryUrls:
+                    file://./app/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testDebug/shaders
+            testRelease (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./app/src/testRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testRelease
+                AssetsDirectoryUrls:
+                    file://./app/src/testRelease/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testRelease/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testRelease/java
+                    file://./app/src/testRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./app/src/testRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./app/src/testRelease/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testRelease/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testRelease/shaders
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2045,6 +2783,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 file://./kmpFirstLib/src/androidMain
             ManifestDirectories:
                 file://./kmpFirstLib/src/androidMain
+            AssetsDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/assets
             JavaDirectoryUrls:
                 file://./kmpFirstLib/src/androidMain/java
             JavaDirectories:
@@ -2053,6 +2793,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 file://./kmpFirstLib/src/androidMain/kotlin
             KotlinDirectories:
                 file://./kmpFirstLib/src/androidMain/kotlin
+            ResDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/res
             ResourcesDirectoryUrls:
                 file://./kmpFirstLib/src/androidMain/resources
             ResourcesDirectories:
@@ -2061,30 +2803,42 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
         androidMain
             Manifest:
                 ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            AssetsDirectories:
+                ./kmpFirstLib/src/androidMain/assets
             JavaDirectories:
                 ./kmpFirstLib/src/androidMain/java
             KotlinDirectories:
                 ./kmpFirstLib/src/androidMain/kotlin
+            ResDirectories:
+                ./kmpFirstLib/src/androidMain/res
             ResourcesDirectories:
                 ./kmpFirstLib/src/androidMain/resources
         Active:
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpFirstLib/src/androidMain/assets
                 JavaDirectories:
                     ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpFirstLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpFirstLib/src/androidMain/resources
         All:
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpFirstLib/src/androidMain/assets
                 JavaDirectories:
                     ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpFirstLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpFirstLib/src/androidMain/resources
         HostTest:
@@ -2092,10 +2846,14 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 androidUnitTest
                     Manifest:
                         ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/assets
                     JavaDirectories:
                         ./kmpFirstLib/src/androidUnitTest/java
                     KotlinDirectories:
                         ./kmpFirstLib/src/androidUnitTest/kotlin
+                    ResDirectories:
+                        ./kmpFirstLib/src/androidUnitTest/res
                     ResourcesDirectories:
                         ./kmpFirstLib/src/androidUnitTest/resources
         DeviceTest:
@@ -2103,10 +2861,14 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 androidInstrumentedTest
                     Manifest:
                         ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/assets
                     JavaDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/java
                     KotlinDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    ResDirectories:
+                        ./kmpFirstLib/src/androidInstrumentedTest/res
                     ResourcesDirectories:
                         ./kmpFirstLib/src/androidInstrumentedTest/resources
         TestFixtures:
@@ -2124,6 +2886,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -2132,6 +2896,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -2145,12 +2911,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
         DeviceTestSources:
@@ -2164,12 +2934,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/resources
         TestFixturesSources:
@@ -2187,6 +2961,75 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            androidInstrumentedTest (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                ManifestFiles:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/java
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/resources
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestFiles:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/java
+                JavaDirectories:
+                    file://./kmpFirstLib/src/androidMain/java
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/resources
+                ResourcesDirectories:
+                    file://./kmpFirstLib/src/androidMain/resources
+            androidUnitTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/java
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             androidMain (IDEA)
                 ScopeType: MAIN
@@ -2198,6 +3041,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -2206,6 +3051,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -2221,6 +3068,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/java
                 JavaDirectories:
@@ -2229,6 +3078,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/resources
                 ResourcesDirectories:
@@ -2242,12 +3093,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/resources
         CurrentDeviceTestSourceProviders:
@@ -2261,12 +3116,16 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                AssetsDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/assets
                 JavaDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
+                ResDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/res
                 ResourcesDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/resources
         CurrentTestFixturesSourceProviders:
@@ -2280,34 +3139,50 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                 file://./kmpSecondLib/src/androidMain
             ManifestDirectories:
                 file://./kmpSecondLib/src/androidMain
+            AssetsDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/assets
             KotlinDirectoryUrls:
                 file://./kmpSecondLib/src/androidMain/kotlin
             KotlinDirectories:
                 file://./kmpSecondLib/src/androidMain/kotlin
+            ResDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/res
             ResourcesDirectoryUrls:
                 file://./kmpSecondLib/src/androidMain/resources
     by AndroidModel:
         androidMain
             Manifest:
                 ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+            AssetsDirectories:
+                ./kmpSecondLib/src/androidMain/assets
             KotlinDirectories:
                 ./kmpSecondLib/src/androidMain/kotlin
+            ResDirectories:
+                ./kmpSecondLib/src/androidMain/res
             ResourcesDirectories:
                 ./kmpSecondLib/src/androidMain/resources
         Active:
             androidMain
                 Manifest:
                     ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpSecondLib/src/androidMain/assets
                 KotlinDirectories:
                     ./kmpSecondLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpSecondLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpSecondLib/src/androidMain/resources
         All:
             androidMain
                 Manifest:
                     ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                AssetsDirectories:
+                    ./kmpSecondLib/src/androidMain/assets
                 KotlinDirectories:
                     ./kmpSecondLib/src/androidMain/kotlin
+                ResDirectories:
+                    ./kmpSecondLib/src/androidMain/res
                 ResourcesDirectories:
                     ./kmpSecondLib/src/androidMain/resources
         HostTest:
@@ -2325,10 +3200,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         HostTestSources:
@@ -2348,6 +3227,25 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        AllVariantAllArtifactsSources:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
+                KotlinDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
+                ResourcesDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             androidMain (IDEA)
                 ScopeType: MAIN
@@ -2357,10 +3255,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentSourceProviders:
@@ -2372,10 +3274,14 @@ MODULE: Kotlin_Multiplatform.kmpSecondLib
                     file://./kmpSecondLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpSecondLib/src/androidMain
+                AssetsDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/assets
                 KotlinDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/kotlin
                 KotlinDirectories:
                     file://./kmpSecondLib/src/androidMain/kotlin
+                ResDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/res
                 ResourcesDirectoryUrls:
                     file://./kmpSecondLib/src/androidMain/resources
         CurrentHostTestSourceProviders:

@@ -206,7 +206,7 @@ class TableControllerTest {
     val tableController =
       TableController(
         project,
-        10,
+        rowBatchSize = 10,
         tableView,
         mockDatabaseConnectionId,
         { sqliteTable },
@@ -216,6 +216,7 @@ class TableControllerTest {
         {},
         edtExecutor,
         edtExecutor,
+        liveUpdatesEnabled = false,
       )
     Disposer.register(disposable, tableController)
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
@@ -90,14 +91,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     // In the base class implementation, it assumes that configuration module is null, and if not so,
     // it returns false, which is not always the case with AndroidTestRunConfiguration when the producer
     // is invoked from test result panel.
-    // So here we just use either the contextModule or the configuration module.
-    return if (contextModule != null) {
-      contextModule
-    }
-    else if (configuration.getConfigurationModule().getModule() != null) {
-      configuration.getConfigurationModule().getModule()
-    }
-    else null
+    // So here we just use either the contextModule's holder module or the configuration module.
+    return contextModule?.getHolderModule() ?: configuration.configurationModule.module
   }
 
   override fun isConfigurationFromContext(configuration: AndroidTestRunConfiguration, context: ConfigurationContext): Boolean {
@@ -207,11 +202,9 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
       return false
     }
 
-    val androidTestModule =
-      (if (module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) module.getMainModule() else module.getAndroidTestModule())
-      ?: return false
+    val project = module.project
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+      project, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }

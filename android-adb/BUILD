@@ -19,7 +19,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
-        "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "@intellij//:com.intellij.platform.images",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
@@ -32,6 +31,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:libadblib-tools-proto",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
     ],
 )
 
@@ -72,6 +73,8 @@ iml_module(
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module, test]",
         "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 

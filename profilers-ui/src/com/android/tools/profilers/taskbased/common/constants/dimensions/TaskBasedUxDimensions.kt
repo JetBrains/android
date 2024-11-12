@@ -18,10 +18,6 @@ package com.android.tools.profilers.taskbased.common.constants.dimensions
 import androidx.compose.ui.unit.dp
 
 object TaskBasedUxDimensions {
-  // Selection panel (process and recording list) minimum and maximum ratio in horizontal split divider component.
-  const val SELECTION_PANEL_MIN_RATIO_FLOAT = 0.275f
-  const val SELECTION_PANEL_MAX_RATIO_FLOAT = 0.35f
-
   // Size of each Task grid item in the Task selection grid. This includes both the task icon and title.
   val TASK_WIDTH_DP = 150.dp
   val TASK_GRID_HORIZONTAL_SPACE_DP = 25.dp
@@ -75,4 +71,12 @@ object TaskBasedUxDimensions {
   // Task notification dimensions
   val TASK_NOTIFICATION_CONTAINER_PADDING_DP = 5.dp
   val TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP = 5.dp
+
+  // LeakCanary LeakList dimensions
+  val LEAKCANARY_OCCURRENCE_COL_WIDTH_DP = 100.dp
+  val LEAKCANARY_TOTAL_LEAKED_COL_WIDTH_DP = 100.dp
+
+  // LeakCanary LeakDetail dimensions
+  val LEAKCANARY_MORE_INFO_TITLE_PADDING = 16.dp
+  val LEAKCANARY_MORE_INFO_TEXT_PADDING = 8.dp
 }

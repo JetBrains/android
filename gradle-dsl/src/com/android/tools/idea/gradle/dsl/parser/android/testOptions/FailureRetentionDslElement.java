@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -37,8 +36,7 @@ public class FailureRetentionDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<FailureRetentionDslElement> FAILURE_RETENTION =
     new PropertiesElementDescription<>("failureRetention",
                                        FailureRetentionDslElement.class,
-                                       FailureRetentionDslElement::new,
-                                       FailureRetentionDslElementSchema::new);
+                                       FailureRetentionDslElement::new);
 
   public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][]{
     {"enable", property, ENABLE, VAR},
@@ -66,17 +64,4 @@ public class FailureRetentionDslElement extends GradleDslBlockElement {
     super(parent, name);
   }
 
-  public static final class FailureRetentionDslElementSchema extends GradlePropertiesDslElementSchema {
-    @NotNull
-    @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelMap, ktsToModelMap, declarativeToModelMap);
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.FailureRetention";
-    }
-  }
 }

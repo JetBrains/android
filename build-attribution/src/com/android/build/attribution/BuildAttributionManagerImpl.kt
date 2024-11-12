@@ -46,12 +46,15 @@ import com.intellij.build.BuildViewManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 
 class BuildAttributionManagerImpl(
   val project: Project
@@ -85,22 +88,20 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  private lateinit var currentBuildAnalysisContext: BuildAnalysisContext
-  // Leave these fields temporarily to not break tests
+  private val currentBuildAnalysisContext = AtomicReference<BuildAnalysisContext>()
   @get:VisibleForTesting
-  val analyzersProxy: BuildEventsAnalyzersProxy get() = currentBuildAnalysisContext.analyzersProxy
-  @get:VisibleForTesting
-  val currentBuildRequest: GradleBuildInvoker.Request get() = currentBuildAnalysisContext.currentBuildRequest
+  val currentBuildRequest: GradleBuildInvoker.Request get() = currentBuildAnalysisContext.get().currentBuildRequest
 
   override fun onBuildStart(request: GradleBuildInvoker.Request) {
-    currentBuildAnalysisContext = BuildAnalysisContext(request)
-
-    ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
-    if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
-    currentBuildAnalysisContext.analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
-      val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildAnalysisContext.currentBuildDisposable)
-      it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
-      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildAnalysisContext.currentBuildDisposable, downloadsInfoDataModel)
+    BuildAnalysisContext(request).run {
+      currentBuildAnalysisContext.set(this)
+      ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
+      if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+      analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
+        val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable)
+        it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
+        project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable, downloadsInfoDataModel)
+      }
     }
   }
 
@@ -108,7 +109,7 @@ class BuildAttributionManagerImpl(
     val buildFinishedProcessedTimestamp = System.currentTimeMillis()
     var agpVersion: AgpVersion? = null
 
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       analyticsManager.use { analyticsManager ->
         analyticsManager.runLoggingPerformanceStats(
           toolingApiLatencyMs = buildFinishedProcessedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp,
@@ -132,6 +133,11 @@ class BuildAttributionManagerImpl(
               BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
             }
           }
+          catch (e: ProcessCanceledException) {
+            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_CANCELED)
+            analyticsManager.logAnalysisCancellation(currentBuildInvocationType)
+            throw e
+          }
           catch (t: Throwable) {
             log.error("Error during post-build analysis", t)
             analyticsManager.logAnalysisFailure(currentBuildInvocationType)
@@ -148,7 +154,7 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       cleanup(getAgpAttributionFileDir(request.data))
       project.invokeLaterIfNotDisposed {
         val buildSessionId = UUID.randomUUID().toString()
@@ -162,23 +168,25 @@ class BuildAttributionManagerImpl(
   }
 
   private fun BuildAnalysisContext.cleanup(attributionFileDir: File) {
-    try {
-      // There is a valid codepath that would result in this being already disposed and set tu null.
-      // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
-      // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
-      currentBuildDisposable.let { Disposer.dispose(it) }
-    } catch (t: Throwable) {
-      log.error("Error disposing build disposable", t)
-    }
-    try {
-      FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
-    } catch (t: Throwable) {
-      log.error("Error during build attribution files cleanup", t)
+    ProgressManager.getInstance().executeNonCancelableSection {
+      try {
+        // There is a valid codepath that would result in this being already disposed and set to null.
+        // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
+        // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
+        currentBuildDisposable.let { Disposer.dispose(it) }
+      } catch (t: Throwable) {
+        log.error("Error disposing build disposable", t)
+      }
+      try {
+        FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+      } catch (t: Throwable) {
+        log.error("Error during build attribution files cleanup", t)
+      }
     }
   }
 
   override fun statusChanged(event: ProgressEvent?) {
-    currentBuildAnalysisContext.run {
+    currentBuildAnalysisContext.get()?.run {
       if (eventsProcessingFailedFlag) return
       try {
         if (event == null) return
@@ -197,7 +205,7 @@ class BuildAttributionManagerImpl(
 
   override fun shouldShowBuildOutputLink(): Boolean = !(
     ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningFirstConfigurationCacheBuild
-    || currentBuildAnalysisContext.eventsProcessingFailedFlag
+    || currentBuildAnalysisContext.get()?.eventsProcessingFailedFlag == true
                                                        )
 
   private fun getNumberOfPartialResultsGenerated(attributionFileDir: File): Int? {

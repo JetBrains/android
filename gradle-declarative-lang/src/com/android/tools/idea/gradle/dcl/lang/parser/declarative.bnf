@@ -57,6 +57,7 @@
     long_literal
     unsigned_long
     unsigned_integer
+    double_literal
   ]
 
   implements("assignment|block|factory")=[
@@ -71,13 +72,16 @@
   implements("factory|property|literal")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
+  implements("factory|embedded_factory")=[
+       "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
+  ]
   implements("property")=[
      "com.intellij.psi.ContributedReferenceHost"
   ]
 }
 
 entries ::= one_line_entries*
-private one_line_entries::=entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?
+private one_line_entries::=<<atNewLine (entry <<atSameLine (SEMI <<atSameLine entry>>)>>* SEMI?)>>
 private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
 private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN|SEMI)
 assignment ::= lvalue OP_EQ rvalue {
@@ -95,7 +99,7 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= multiline_string_literal | one_line_string_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
+literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
 methods=[getValue]
 }
 private rvalue ::= factory | property | literal
@@ -104,13 +108,13 @@ qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
 block ::= block_head block_group {
    methods=[
+     getIdentifier
      getEntries
-     getFactory
      getBlockEntriesStart
-     factory=""
+     identifier=""
    ]
 }
-block_group ::= OP_LBRACE block_entry* OP_RBRACE {
+block_group ::= OP_LBRACE block_entries? newline_block_entries* OP_RBRACE {
    pin=1
    methods=[
        getEntries
@@ -121,9 +125,22 @@ block_group ::= OP_LBRACE block_entry* OP_RBRACE {
    ]
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockMixin"
 }
-private block_head ::= (factory | identifier)
+private block_entries ::= block_entry <<atSameLine (SEMI <<atSameLine block_entry>>)>>* SEMI?
+private newline_block_entries ::= <<atNewLine block_entries+>>
+private block_head ::= (embedded_factory | identifier)
 private block_entry ::= !'}' entry
-factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {pin=2}
-argumentsList ::= (rvalue (OP_COMMA rvalue)*)? {
-   methods=[getArguments factory="" literal="" property=""]
+private private_factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {
+   pin=2
+}
+embedded_factory ::= private_factory { // part of block - cannot be independent
+   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+}
+factory ::= private_factory {
+   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+}
+argumentsList ::= (argument (OP_COMMA argument)*)? {
+   methods=[getArguments]
+}
+argument ::= (identifier OP_EQ)? rvalue {
+   methods=[getValue factory="" literal="" property=""]
 }

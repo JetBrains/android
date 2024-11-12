@@ -18,5 +18,7 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />
   </component>
 </module>

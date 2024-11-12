@@ -53,7 +53,6 @@ import com.intellij.openapi.ui.Messages.getQuestionIcon
 import com.intellij.openapi.ui.Messages.showEditableChooseDialog
 import com.intellij.openapi.ui.Messages.showInputDialog
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -66,7 +65,6 @@ import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
 import java.io.File
 import java.util.EnumSet
-import com.android.ide.common.gradle.Module as ExternalModule
 
 open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
@@ -117,9 +115,7 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
     if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
 
-    if (
-      Registry.`is`("android.gradle.ide.gradle.declarative.ide.support") && file.name.endsWith(EXT_GRADLE_DECLARATIVE)
-    )
+    if (file.name.endsWith(EXT_GRADLE_DECLARATIVE))
       return true
 
     return when (file.fileType) {

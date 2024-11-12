@@ -15,30 +15,43 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.sdklib.devices.Abi
-import com.android.sdklib.getFullApiName
 import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
 import com.android.tools.idea.adddevicedialog.ApiFilter
+import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
+import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
-import com.android.utils.CpuArchitecture
-import com.android.utils.osArchitecture
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
@@ -46,75 +59,98 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
-import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   devicePanelState: DevicePanelState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
-  images: ImmutableList<ISystemImage>,
-  onDevicePanelStateChange: (DevicePanelState) -> Unit,
+  deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  Text("Name", Modifier.padding(bottom = Padding.SMALL))
+  Column(modifier) {
+    Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
-  TextField(
-    configureDevicePanelState.device.name,
-    onValueChange = configureDevicePanelState::setDeviceName,
-    Modifier.padding(bottom = Padding.MEDIUM_LARGE),
-  )
+    var nameError by remember { mutableStateOf<String?>(null) }
+    val nameState = rememberTextFieldState(configureDevicePanelState.device.name)
+    LaunchedEffect(Unit) {
+      snapshotFlow { nameState.text.toString() }
+        .collect {
+          configureDevicePanelState.setDeviceName(it)
+          nameError = deviceNameValidator.validate(it)
+          configureDevicePanelState.setIsDeviceNameValid(nameError == null)
+        }
+    }
 
-  Text("Select System Image", Modifier.padding(bottom = Padding.SMALL_MEDIUM))
+    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
+      ErrorTooltip(nameError) {
+        TextField(
+          nameState,
+          Modifier.padding(bottom = Padding.MEDIUM_LARGE).alignByBaseline(),
+          outline = if (nameError == null) Outline.None else Outline.Error,
+        )
+      }
+    }
 
-  Text(
-    "Available system images are displayed based on the service and ABI configuration",
-    Modifier.padding(bottom = Padding.SMALL_MEDIUM),
-  )
-
-  Row {
-    ApiFilter(
-      androidVersions,
-      selectedApiLevel = devicePanelState.selectedApiLevel,
-      onApiLevelChange = { onDevicePanelStateChange(devicePanelState.copy(selectedApiLevel = it)) },
+    Text(
+      "Select system image",
+      fontWeight = FontWeight.SemiBold,
+      fontSize = LocalTextStyle.current.fontSize * 1.1,
+      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
     )
 
-    ServicesDropdown(
-      devicePanelState.selectedServices,
-      servicesCollection,
-      onSelectedServicesChange = {
-        onDevicePanelStateChange(devicePanelState.copy(selectedServices = it))
-      },
-      Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
+      ApiFilter(
+        androidVersions,
+        devicePanelState.selectedApi,
+        devicePanelState::setSelectedApi,
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+      )
+
+      ServicesDropdown(
+        devicePanelState.selectedServices,
+        servicesCollection,
+        devicePanelState::setSelectedServices,
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+      )
+    }
+
+    Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
+      if (devicePanelState.filteredSystemImages.isEmpty()) {
+        Box(Modifier.fillMaxSize()) {
+          Text(
+            "No system images available matching the current set of filters.",
+            Modifier.align(Alignment.Center),
+          )
+        }
+      } else {
+        SystemImageTable(
+          devicePanelState.filteredSystemImages,
+          configureDevicePanelState.systemImageTableSelectionState,
+          configureDevicePanelState::setIsSystemImageTableSelectionValid,
+          onDownloadButtonClick,
+          onSystemImageTableRowClick,
+        )
+      }
+    }
+
+    ShowSdkExtensionSystemImagesCheckbox(
+      devicePanelState.showSdkExtensionSystemImages,
+      devicePanelState::setShowSdkExtensionSystemImages,
+      Modifier.padding(bottom = Padding.SMALL),
+    )
+
+    CheckboxRow(
+      "Show only recommended system images",
+      devicePanelState.showOnlyRecommendedSystemImages,
+      devicePanelState::setShowOnlyRecommendedSystemImages,
     )
   }
-
-  SystemImageTable(
-    images,
-    devicePanelState,
-    configureDevicePanelState.systemImageTableSelectionState,
-    onDownloadButtonClick,
-    onSystemImageTableRowClick,
-    Modifier.height(150.dp).padding(bottom = Padding.SMALL),
-  )
-
-  ShowSdkExtensionSystemImagesCheckbox(
-    devicePanelState.sdkExtensionSystemImagesVisible,
-    onSdkExtensionSystemImagesVisibleChange = {
-      onDevicePanelStateChange(devicePanelState.copy(sdkExtensionSystemImagesVisible = it))
-    },
-    Modifier.padding(bottom = Padding.SMALL),
-  )
-
-  CheckboxRow(
-    "Only show system images recommended for my host CPU architecture",
-    devicePanelState.onlyForHostCpuArchitectureVisible,
-    onCheckedChange = {
-      onDevicePanelStateChange(devicePanelState.copy(onlyForHostCpuArchitectureVisible = it))
-    },
-  )
 }
 
 @Composable
@@ -147,83 +183,140 @@ private fun ServicesDropdown(
         Text(selectedServices?.toString() ?: "Show All")
       }
 
-      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+      InfoOutlineIcon(
+        "Filter by images that include full support for the Google Play Store, only Google APIs and services, or the base version of " +
+          "Android (AOSP) without any Google apps or services",
+        Modifier.align(Alignment.CenterVertically),
+      )
     }
   }
 }
 
 @Composable
 private fun SystemImageTable(
-  images: ImmutableList<ISystemImage>,
-  devicePanelState: DevicePanelState,
+  images: List<ISystemImage>,
   selectionState: TableSelectionState<ISystemImage>,
+  onIsSystemImageTableSelectionValidChange: (Boolean) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  onIsSystemImageTableSelectionValidChange(selectionState.selection in images)
+
+  val sortedImages = images.sortedWith(SystemImageComparator)
+  val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isRecommended() })
+  val starColumn = remember {
+    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) {
+      if (it == starredImage) {
+        Icon(
+          AllIconsKeys.Nodes.Favorite,
+          contentDescription = "Recommended",
+          modifier = Modifier.size(16.dp),
+        )
+      }
+    }
+  }
   val columns =
     listOf(
+      starColumn,
       TableColumn(
         "",
         TableColumnWidth.Fixed(16.dp),
         Comparator.comparing { it is RemoteSystemImage },
       ) {
-        if (it is RemoteSystemImage)
-          DownloadButton(onClick = { onDownloadButtonClick(it.`package`.path) })
+        if (it is RemoteSystemImage) {
+          DownloadButton(
+            onClick = { onDownloadButtonClick(it.`package`.path) },
+            Modifier.size(16.dp),
+          )
+        }
       },
       TableTextColumn("System Image", attribute = { it.`package`.displayName }),
       TableTextColumn(
         "API",
-        TableColumnWidth.Fixed(250.dp),
-        { it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true) },
+        TableColumnWidth.Fixed(125.dp),
+        { it.androidVersion.apiStringWithExtension },
         Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )
 
   Table(
     columns,
-    images.filter(devicePanelState::test),
+    images,
     { it },
     modifier,
+    tableSortState =
+      remember {
+        TableSortState<ISystemImage>().apply {
+          sortColumn = starColumn
+          sortOrder = SortOrder.DESCENDING
+        }
+      },
     tableSelectionState = selectionState,
     onRowClick = onRowClick,
   )
 }
 
-internal data class DevicePanelState
+internal class DevicePanelState
 internal constructor(
-  internal val selectedApiLevel: AndroidVersionSelection,
-  internal val selectedServices: Services?,
-  internal val sdkExtensionSystemImagesVisible: Boolean = false,
-  internal val onlyForHostCpuArchitectureVisible: Boolean = true,
+  selectedApi: AndroidVersionSelection,
+  selectedServices: Services?,
+  private val systemImages: List<ISystemImage>,
+  showSdkExtensionSystemImages: Boolean = false,
+  showOnlyRecommendedSystemImages: Boolean = true,
 ) {
-  internal fun test(image: ISystemImage): Boolean {
-    val servicesMatch = selectedServices == null || image.getServices() == selectedServices
+  internal var selectedApi by mutableStateOf(selectedApi)
+    private set
 
-    val androidVersionMatches =
-      (sdkExtensionSystemImagesVisible || image.androidVersion.isBaseExtension) &&
-        selectedApiLevel.matches(image.androidVersion)
+  internal var selectedServices by mutableStateOf(selectedServices)
+    private set
 
-    val abisMatch =
-      !onlyForHostCpuArchitectureVisible ||
-        image.abiTypes.contains(valueOfCpuArchitecture(osArchitecture))
+  internal var filteredSystemImages by mutableStateOf(systemImages)
+    private set
 
-    return servicesMatch && androidVersionMatches && abisMatch
+  internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
+    private set
+
+  internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
+    private set
+
+  init {
+    filteredSystemImages = systemImages.filter(this::matches)
   }
 
-  private companion object {
-    private fun valueOfCpuArchitecture(architecture: CpuArchitecture) =
-      when (architecture) {
-        CpuArchitecture.X86_64 -> Abi.X86_64.toString()
-        CpuArchitecture.ARM -> Abi.ARM64_V8A.toString()
-        else -> throw IllegalArgumentException(architecture.toString())
-      }
+  internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
+    this.selectedApi = selectedApi
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setSelectedServices(selectedServices: Services?) {
+    this.selectedServices = selectedServices
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
+    this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
+    this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
+    filteredSystemImages = systemImages.filter(this::matches)
+  }
+
+  private fun matches(image: ISystemImage): Boolean {
+    val apiMatches = selectedApi.matches(image.androidVersion)
+    val servicesMatches = selectedServices == null || image.getServices() == selectedServices
+    val isSdkExtensionMatches = showSdkExtensionSystemImages || image.androidVersion.isBaseExtension
+    val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
+
+    return apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
   }
 }
 
 @Composable
-private fun DownloadButton(onClick: () -> Unit) {
-  IconButton(onClick) { Icon(PathIconKey("expui/general/download.svg"), null) }
+private fun DownloadButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+  IconButton(onClick, modifier) { Icon(AllIconsKeys.Actions.Download, "Download") }
 }
 
 @Composable
@@ -240,6 +333,9 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
       Modifier.padding(end = Padding.MEDIUM),
     )
 
-    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    InfoOutlineIcon(
+      "Select this option to see images of SDK extensions for the selected API level",
+      Modifier.align(Alignment.CenterVertically),
+    )
   }
 }

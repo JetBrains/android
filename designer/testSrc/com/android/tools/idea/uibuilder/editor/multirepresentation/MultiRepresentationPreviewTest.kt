@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
@@ -55,6 +54,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview

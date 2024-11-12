@@ -69,11 +69,11 @@ fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) 
       LocalIsInUiTest provides true,
     ) {
       ProvideMarkdownStyling(
-        JewelTheme.isDark,
-        markdownStyling,
-        markdownProcessor,
-        blockRenderer,
-        content,
+        isDark = JewelTheme.isDark,
+        markdownStyling = markdownStyling,
+        markdownProcessor = markdownProcessor,
+        markdownBlockRenderer = blockRenderer,
+        content = content,
       )
     }
   }

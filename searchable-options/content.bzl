@@ -11,4 +11,5 @@ SEARCHABLE_OPTIONS = {
     "p-com.google.gct.test.recorder-searchableOptions.json": "com.google.gct.test.recorder",
     "p-com.google.urlassistant-searchableOptions.json": "com.google.urlassistant",
     "p-com.google.targetsdkversionassistant-searchableOptions.json": "com.google.targetsdkversionassistant",
+    "p-com.android.tools.gradle.dcl-searchableOptions.json": "com.android.tools.gradle.dcl",
 }

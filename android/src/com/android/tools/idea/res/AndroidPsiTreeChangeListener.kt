@@ -29,9 +29,6 @@ import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.Consumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Project component that tracks changes to the PSI tree.
@@ -60,10 +57,7 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
       psiFile == null -> {
         when (val child = event.child) {
           is PsiFile ->
-            child.virtualFile?.let {
-              computeModulesToInvalidateAttributeDefinitions(it)
-              if (isRelevantFile(it)) dispatchChildAdded(event, it)
-            }
+            child.virtualFile?.let { if (isRelevantFile(it)) dispatchChildAdded(event, it) }
           is PsiDirectory -> dispatchChildAdded(event, child.virtualFile)
         }
       }
@@ -82,8 +76,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   override fun childRemoved(event: PsiTreeChangeEvent) {
     val psiFile = event.file
-
-    psiFile?.virtualFile?.let(::computeModulesToInvalidateAttributeDefinitions)
 
     when {
       psiFile == null -> {
@@ -117,7 +109,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
       return
     }
     val file = psiFile.virtualFile
-    if (file != null) computeModulesToInvalidateAttributeDefinitions(file)
 
     when {
       isRelevantFile(psiFile) -> dispatchChildReplaced(event, file)
@@ -148,7 +139,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
   override fun childrenChanged(event: PsiTreeChangeEvent) {
     val psiFile = event.file ?: return
     val file = psiFile.virtualFile
-    if (file != null) computeModulesToInvalidateAttributeDefinitions(file)
 
     if (isRelevantFile(psiFile)) dispatchChildrenChanged(event, file)
 
@@ -174,7 +164,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
     } else {
       // Change inside a file
       val file = psiFile.virtualFile ?: return
-      computeModulesToInvalidateAttributeDefinitions(file)
       if (isRelevantFile(file)) dispatchChildMoved(event, file)
 
       sampleDataListener?.childMoved(event)
@@ -218,18 +207,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   private fun dispatchPropertyChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
     dispatch(virtualFile) { it?.propertyChanged(event) }
-  }
-
-  /** Invalidates attribute definitions of relevant modules after changes to a given file */
-  private fun computeModulesToInvalidateAttributeDefinitions(file: VirtualFile) {
-    if (!isRelevantFile(file)) return
-    val facet = AndroidFacet.getInstance(file, project) ?: return
-
-    for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
-      AndroidFacet.getInstance(module)?.let {
-        ModuleResourceManagers.getInstance(it).localResourceManager.invalidateAttributeDefinitions()
-      }
-    }
   }
 
   private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener>) {

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.listeners
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -22,6 +24,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.SdkIndexProjectStats
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
@@ -44,7 +48,8 @@ import org.jetbrains.annotations.VisibleForTesting
  * Notify users is there is any dependency with blocking issues in the project
  */
 class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : GradleSyncListenerWithRoot {
-  private var wasNotificationShown = false
+  @VisibleForTesting
+  var wasNotificationShown = false
 
   companion object {
     const val SDK_INDEX_NOTIFICATION_GROUP = "Google Play SDK Index Notifications"
@@ -73,6 +78,20 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
   }
 
   private suspend fun notifyBlockingIssuesIfNeeded(project: Project, sdkIndex: GooglePlaySdkIndex): Notification? {
+    // SdkIndexIssuesSyncListenerTest.`Disposed project does not show notification` spy project isDisposed returns need to be changed if
+    // this function calls to isDisposed changes
+    if (project.isDisposed) {
+      return null
+    }
+    // Wait for SDK Index to be ready up to one minute (it might need to download data)
+    var maxRetries = 60
+    while (!sdkIndex.isReady() && maxRetries > 0) {
+      delay(1000)
+      maxRetries -= 1
+      if (project.isDisposed) {
+        break
+      }
+    }
     if (project.isDisposed) {
       return null
     }
@@ -85,17 +104,37 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       .filterIsInstance<IdeArtifactLibrary>()
       .mapNotNull { it.component }
       .toSet()
-    // Wait for SDK Index to be ready up to one minute (it might need to download data)
-    var maxRetries = 60
-    while (!sdkIndex.isReady() && maxRetries > 0) {
-      delay(1000)
-      maxRetries -= 1
+    var numErrorsAndWarnings = 0
+    var numBlockingIssues = 0
+    var numPolicyIssues = 0
+    var numCriticalIssues = 0
+    var numVulnerabilities = 0
+    var numOutdatedIssues = 0
+    dependencies.forEach { library->
+      val version = library.version.toString()
+      if (sdkIndex.hasLibraryErrorOrWarning(library.group, library.name, version)) {
+        numErrorsAndWarnings++
+      }
+      if (sdkIndex.hasLibraryBlockingIssues(library.group, library.name, version)) {
+        numBlockingIssues++
+      }
+      if (sdkIndex.isLibraryNonCompliant(library.group, library.name, version, null)) {
+        numPolicyIssues++
+      }
+      if (sdkIndex.hasLibraryCriticalIssues(library.group, library.name, version, null)) {
+        numCriticalIssues++
+      }
+      if (sdkIndex.hasLibraryVulnerabilityIssues(library.group, library.name, version, null)) {
+        numVulnerabilities++
+      }
+      if (sdkIndex.isLibraryOutdated(library.group, library.name, version, null)) {
+        numOutdatedIssues++
+      }
     }
-    val numOfBlockingIssues = dependencies.count { library ->
-      sdkIndex.hasLibraryBlockingIssues(library.group, library.name, library.version.toString())
-    }
-    if (numOfBlockingIssues > 0 && !wasNotificationShown) {
-      val notification = SdkIndexNotification("There are $numOfBlockingIssues SDKs with warnings that will prevent app release in Google Play Console")
+    // Report stats even if not presented to user
+    reportProjectStats(project, numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues)
+    if (numBlockingIssues > 0 && !wasNotificationShown) {
+      val notification = SdkIndexNotification("There are $numBlockingIssues SDKs with warnings that will prevent app release in Google Play Console")
       val psdService = ProjectSettingsService.getInstance(project)
       if (psdService is AndroidProjectSettingsService) {
         val openSuggestionsAction = object : NotificationAction("Open Project Structure for details") {
@@ -110,11 +149,28 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       wasNotificationShown = true
       return notification
     }
-    if (numOfBlockingIssues == 0) {
+    if (numBlockingIssues == 0) {
       // Since the project now has 0 issues, we would like to notify users as soon as they add one, set states as if we have not shown a notification
       wasNotificationShown = false
     }
     return null
+  }
+
+  private fun reportProjectStats(project: Project, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int) {
+    val event = AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
+      .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_PROJECT_STATS)
+      .withProjectId(project)
+      .setSdkIndexProjectStats(
+        SdkIndexProjectStats.newBuilder()
+          .setNumErrorsAndWarnings(numErrorsAndWarnings)
+          .setNumBlockingIssues(numBlockingIssues)
+          .setNumPolicyIssues(numPolicyIssues)
+          .setNumCriticalIssues(numCriticalIssues)
+          .setNumVulnerabilityIssues(numVulnerabilities)
+          .setNumOutdatedIssues(numOutdatedIssues)
+      )
+    UsageTracker.log(event)
   }
 
   class SdkIndexNotification(val message: String): Notification(SDK_INDEX_NOTIFICATION_GROUP, message, NotificationType.WARNING)

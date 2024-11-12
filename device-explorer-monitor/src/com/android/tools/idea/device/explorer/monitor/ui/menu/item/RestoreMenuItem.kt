@@ -18,7 +18,6 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
-import icons.StudioIcons
 import javax.swing.Icon
 
 class RestoreMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {

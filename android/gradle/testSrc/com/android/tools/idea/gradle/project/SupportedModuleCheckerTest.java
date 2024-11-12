@@ -22,11 +22,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -35,22 +35,16 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
 public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
-  @Mock private Info myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
-
-    Project project = getProject();
-    new IdeComponents(project).replaceProjectService(Info.class, myGradleProjectInfo);
     myModuleChecker = new SupportedModuleChecker();
   }
 
@@ -58,7 +52,6 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     Project project = getProject();
     AndroidNotification androidNotification = mock(AndroidNotification.class);
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
 
     myModuleChecker.checkForSupportedModules(project);
 
@@ -66,9 +59,8 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
   }
 
   public void testCheckForSupportedModulesWithNonGradleModules() {
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-
     Project project = getProject();
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
     AndroidNotificationStub androidNotification = new AndroidNotificationStub(project);
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
 

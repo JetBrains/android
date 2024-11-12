@@ -573,6 +573,7 @@
           "load-overlay.svg": "studio/icons/layout-inspector/toolbar/load-overlay.svg",
           "mode-2d.svg": "studio/icons/layout-inspector/toolbar/mode-2d.svg",
           "mode-3d.svg": "studio/icons/layout-inspector/toolbar/mode-3d.svg",
+          "recomposition-children-count.svg": "studio/icons/layout-inspector/toolbar/recomposition-children-count.svg",
           "recomposition-count.svg": "studio/icons/layout-inspector/toolbar/recomposition-count.svg",
           "recomposition-skipped.svg": "studio/icons/layout-inspector/toolbar/recomposition-skipped.svg",
           "reset-view.svg": "studio/icons/layout-inspector/toolbar/reset-view.svg"
@@ -786,6 +787,7 @@
           "apply-code-swap.svg": "studio/icons/shell/toolbar/apply-code-swap.svg",
           "attach-debugger.svg": "studio/icons/shell/toolbar/attach-debugger.svg",
           "build-module.svg": "studio/icons/shell/toolbar/build-module.svg",
+          "build-run-configuration.svg": "studio/icons/shell/toolbar/build-run-configuration.svg",
           "device-manager.svg": "studio/icons/shell/toolbar/device-manager.svg",
           "gradle-sync.svg": "studio/icons/shell/toolbar/gradle-sync.svg",
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
@@ -793,7 +795,8 @@
           "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
           "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg",
           "profiler-detailed.svg": "studio/icons/shell/toolbar/profiler-detailed.svg",
-          "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg"
+          "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg",
+          "build-run-configuration.svg": "studio/icons/shell/toolbar/build-run-configuration.svg"
         }
       },
       "studio-bot": {

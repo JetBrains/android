@@ -63,7 +63,7 @@ fun baselineProfilesBuildGradle(
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     """
   }
@@ -115,8 +115,8 @@ android {
   ${toAndroidFieldVersion("compileSdk", "${maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi.api)}", agpVersion)}
 
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
   }
 
   $kotlinOptionsBlock

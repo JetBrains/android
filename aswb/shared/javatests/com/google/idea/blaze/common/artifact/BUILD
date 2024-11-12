@@ -32,7 +32,7 @@ java_library(
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/artifact",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
-        "//tools/vendor/google/aswb/third_party/java/auto:auto_value",
+        "//tools/adt/idea/aswb/third_party/java/auto_value",
         "@maven//:com.google.guava.guava",
     ],
 )

@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.resourceManagers;
 
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -26,10 +25,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -44,9 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class LocalResourceManager extends ResourceManager {
   private final AndroidFacet myFacet;
-  private final Object myAttrDefsLock = new Object();
-  @GuardedBy("myAttrDefsLock")
-  private AttributeDefinitions myAttrDefs;
+  private volatile CachedValue<AttributeDefinitions> myAttrDefs;
 
   @Nullable
   public static LocalResourceManager getInstance(@NotNull Module module) {
@@ -63,6 +66,7 @@ public class LocalResourceManager extends ResourceManager {
   public LocalResourceManager(@NotNull AndroidFacet facet) {
     super(facet.getModule().getProject());
     myFacet = facet;
+    myAttrDefs = createAttributeDefinitions(myFacet, myProject);
   }
 
   public AndroidFacet getFacet() {
@@ -88,20 +92,25 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
-    synchronized (myAttrDefsLock) {
-      if (myAttrDefs == null) {
-        ResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(myFacet).getFrameworkResourceManager();
-        AttributeDefinitions frameworkAttributes = frameworkResourceManager == null ? null : frameworkResourceManager.getAttributeDefinitions();
-        myAttrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, getResourceRepository());
-      }
-      return myAttrDefs;
-    }
+    return myAttrDefs.getValue();
   }
 
   public void invalidateAttributeDefinitions() {
-    synchronized (myAttrDefsLock) {
-      myAttrDefs = null;
-    }
+    myAttrDefs = createAttributeDefinitions(myFacet, myProject);
+  }
+
+  private static CachedValue<AttributeDefinitions> createAttributeDefinitions(AndroidFacet facet, Project project) {
+    return CachedValuesManager.getManager(project).createCachedValue(facet, () -> {
+      ResourceManager frameworkResourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
+      AttributeDefinitions frameworkAttributes = frameworkResourceManager == null ? null : frameworkResourceManager.getAttributeDefinitions();
+
+      LocalResourceRepository<VirtualFile> resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
+
+      AttributeDefinitions attrDefs = AttributeDefinitionsImpl.create(frameworkAttributes, resourceRepository);
+
+      ModificationTracker resourceRepositoryTracker = resourceRepository::getModificationCount;
+      return new CachedValueProvider.Result<>(attrDefs, resourceRepositoryTracker);
+    }, false);
   }
 
   /**
@@ -166,7 +175,7 @@ public class LocalResourceManager extends ResourceManager {
         items = leafRepository.getResources(namespace, resourceType, nameToLookFor);
       }
       else {
-        items = leafRepository.getResources(namespace, resourceType, item -> AndroidUtils.equal(nameToLookFor, item.getName(), false));
+        items = leafRepository.getResources(namespace, resourceType, item -> AndroidUtils.equalIgnoringDelimiters(nameToLookFor, item.getName()));
       }
 
       for (ResourceItem item : items) {
@@ -184,11 +193,6 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   protected Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
-    return getResourceRepository().getLeafResourceRepositories();
-  }
-
-  @NotNull
-  private ResourceRepository getResourceRepository() {
-    return StudioResourceRepositoryManager.getAppResources(myFacet);
+    return StudioResourceRepositoryManager.getAppResources(myFacet).getLeafResourceRepositories();
   }
 }

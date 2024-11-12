@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
-import android.annotation.SuppressLint
 import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -28,7 +27,7 @@ import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.utils.addIfNotNull
 import com.intellij.openapi.diagnostic.Logger
 
-@SuppressLint("AddDependencyUsage")
+@Suppress("AddDependencyUsage")
 open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
 
   /**

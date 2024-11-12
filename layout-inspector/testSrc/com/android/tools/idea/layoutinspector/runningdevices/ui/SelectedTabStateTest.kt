@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -53,6 +52,7 @@ import kotlin.test.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class SelectedTabStateTest {
 

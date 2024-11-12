@@ -25,6 +25,7 @@ import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.ScheduledExecutorService
@@ -190,20 +191,24 @@ class InspectorModel(
   /** The dimension of the screen, if available. Otherwise, the dimension of the roo node. */
   val screenDimension: Dimension
     get() {
-      // Use the screen size from the resource lookup if available.
       // This will make sure the screen size is correct even if there are windows we don't know
       // about yet.
+      //
       // Example: If the initial screen has a dialog open, we may receive the dialog first. We do
-      // not want to zoom to fit the dialog size
-      // since it is often smaller than the screen size.
-      val screenDimension = resourceLookup.screenDimension
-      if (screenDimension != null) {
-        return screenDimension
+      // not want to zoom to fit the dialog size since it is often smaller than the screen size.
+      resourceLookup.screenDimension?.let {
+        return it
       }
+
       // For the legacy inspector and for old snapshots loaded from file, we do not have the screen
       // size,
       // but we know that all windows are loaded. New snapshots have the screen size.
       return Dimension(root.layoutBounds.width, root.layoutBounds.height)
+    }
+
+  val windowBounds: Rectangle?
+    get() {
+      return resourceLookup.windowBounds
     }
 
   private val hiddenNodes = ConcurrentHashMap.newKeySet<ViewNode>()
@@ -569,4 +574,8 @@ class InspectorModel(
       } ?: true
     }
   }
+}
+
+fun Rectangle.toDimension(): Dimension {
+  return Dimension(width, height)
 }

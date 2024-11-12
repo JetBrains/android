@@ -22,6 +22,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,15 +41,14 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
 
   @Override
   public boolean isGeneratedSource(@NotNull VirtualFile file, @NotNull Project project) {
-    Info projectInfo = Info.getInstance(project);
     GradleAndroidModel androidModel = GradleProjectSystemUtil.findAndroidModelInModule(project, file);
-    return isGeneratedSource(file, project, projectInfo, androidModel);
+    return isGeneratedSource(file, project, androidModel);
   }
 
   @VisibleForTesting
   public static boolean isGeneratedSource(@NotNull VirtualFile file,
                                           @NotNull Project project,
-                                          Info projectInfo, GradleAndroidModel androidModel) {
+                                          GradleAndroidModel androidModel) {
     if (androidModel != null) {
       return isAncestor(androidModel.getAndroidProject().getBuildFolder(), virtualToIoFile(file), false);
     }
@@ -60,7 +61,7 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
     }
 
     VirtualFile buildFolder = rootFolder.findChild(BUILD_DIR_DEFAULT_NAME);
-    boolean isBuiltWithGradle = projectInfo.isBuildWithGradle();
+    boolean isBuiltWithGradle = ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem;
     return buildFolder != null && isBuiltWithGradle && isAncestor(buildFolder, file, false);
   }
 }

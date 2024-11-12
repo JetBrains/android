@@ -140,6 +140,8 @@ class HeapDumpSnapshotRunnable(
     if (!userInvoked) {
       if (java.lang.Boolean.getBoolean("diagnostics.disable.heap.analysis")) {
         LOG.info("Disabled with system property.")
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.DISABLED_SYSTEM_PROPERTY).build()))
         return false
       }
 
@@ -152,9 +154,13 @@ class HeapDumpSnapshotRunnable(
       val heapReportConfig = ServerFlagService.instance.getProtoOrNull("diagnostics/heap_reports", HeapReportConfig.getDefaultInstance())
       if (heapReportConfig != null) {
         minHeapSizeThreshold = heapReportConfig.minUsedMemoryMb.toInt()
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.DISABLED_SERVER_FLAG).build()))
       }
       if (minHeapSizeThreshold == -1) {
         LOG.info("Heap dump analysis disabled")
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.DISABLED_NOT_64_BIT).build()))
         return false
       }
 

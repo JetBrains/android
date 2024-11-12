@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.compile.fast.CompilationResult
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
@@ -39,5 +40,5 @@ interface CompilerDaemonClient : Disposable {
    * @param outputDirectory [Path] existing path to store the result of the compilation.
    * @param indicator [ProgressIndicator] that the request can use to inform the user about the progress of the request.
    */
-  suspend fun compileRequest(files: Collection<PsiFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator): CompilationResult
+  suspend fun compileRequest(applicationLiveEditServices: ApplicationLiveEditServices, files: Collection<PsiFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator): CompilationResult
 }

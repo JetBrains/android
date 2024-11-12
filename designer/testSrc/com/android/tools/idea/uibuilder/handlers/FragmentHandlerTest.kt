@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
 import com.android.SdkConstants.ATTR_NAV_GRAPH
 import com.android.SdkConstants.AUTO_URI
+import com.android.mockito.kotlin.whenever
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.uibuilder.LayoutTestCase

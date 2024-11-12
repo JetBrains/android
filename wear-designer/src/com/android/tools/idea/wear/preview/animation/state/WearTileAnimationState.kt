@@ -42,9 +42,9 @@ interface WearTileAnimationState<T> : FromToState<T> {
   fun updateAnimation(animation: ProtoAnimation)
 }
 
-class WearTileFloatState(initial: Float, target: Float) : WearTileAnimationState<Float> {
+class WearTileFloatState(initial: Float?, target: Float?) : WearTileAnimationState<Float> {
 
-  override val state = MutableStateFlow(initial to target)
+  override val state = MutableStateFlow((initial ?: 0f) to (target ?: 0f))
 
   override fun updateAnimation(animation: ProtoAnimation) {
     val (initial, target) = state.value
@@ -60,8 +60,8 @@ class WearTileFloatState(initial: Float, target: Float) : WearTileAnimationState
     )
 }
 
-class WearTileIntState(initial: Int, target: Int) : WearTileAnimationState<Int> {
-  override val state = MutableStateFlow(initial to target)
+class WearTileIntState(initial: Int?, target: Int?) : WearTileAnimationState<Int> {
+  override val state = MutableStateFlow((initial ?: 0) to (target ?: 0))
 
   override fun updateAnimation(animation: ProtoAnimation) {
     val (initial, target) = state.value

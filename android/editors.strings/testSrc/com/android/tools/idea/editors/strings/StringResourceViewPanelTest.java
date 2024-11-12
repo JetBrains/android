@@ -52,6 +52,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -256,7 +257,10 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable.getFrozenTable().changeSelection(2, 3, false, false);
 
     // Update all actions:
-    notNull(myPanel.getToolbar()).updateActionsAsync().get();
+    Future<?> promise = myPanel.getToolbar().updateActionsAsync();
+    waitForCondition(10, TimeUnit.SECONDS, () -> {
+      return promise.isDone();
+    });
 
     // StopLoading will also make the toolbar navigable:
     myPanel.stopLoading();

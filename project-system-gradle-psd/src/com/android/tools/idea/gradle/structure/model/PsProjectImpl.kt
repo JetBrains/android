@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -125,9 +126,9 @@ class PsProjectImpl(
     }
   }
 
-  fun refreshFrom(models: List<PsResolvedModuleModel>) {
+  fun refreshFrom(models: List<PsResolvedModuleModel>): ListenableFuture<Unit> {
     internalResolvedModuleModels = models.associateBy { it.gradlePath }
-    moduleCollection.refresh()
+    return moduleCollection.refreshFuture()
   }
 
   internal fun getResolvedModuleModelsByGradlePath(): Map<String, PsResolvedModuleModel> =

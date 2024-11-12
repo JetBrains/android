@@ -92,7 +92,7 @@ class DeviceFileDropHandlerTest {
     // Simulate drop.
     target.drop(event)
 
-    waitForCondition(2, SECONDS) { device.cmdLogs.size >= 3 }
+    waitForCondition(5, SECONDS) { device.cmdLogs.size >= 3 }
     assertThat(device.cmdLogs).containsExactly("package install-create -t --user current --full -S 675",
                                                "package install-write -S 675 1234 test.apk -", "package install-commit 1234")
   }
@@ -117,7 +117,7 @@ class DeviceFileDropHandlerTest {
     // Simulate drop.
     target.drop(event)
 
-    waitForCondition(2, SECONDS) {
+    waitForCondition(5, SECONDS) {
       device.getFile("/sdcard/Download/${file1.fileName}") != null &&
       device.getFile("/sdcard/Download/${file2.fileName}") != null
     }

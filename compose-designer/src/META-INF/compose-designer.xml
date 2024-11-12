@@ -82,62 +82,6 @@
                      key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.UpdateTransitionLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.update.transition.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimatedContentLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.animated.content.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfiniteTransitionLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.remember.infinite.transition.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimateAsStateLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.animate.as.state.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.CrossfadeLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.crossfade.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.transition.properties.no.label.parameter.set.name"
-                     level="WARNING"/>
-
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfinitePropertiesLabelInspection"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.infinite.transition.properties.no.label.parameter.set.name"
-                     level="WARNING"/>
-
     <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
@@ -219,15 +163,18 @@
       <add-to-group group-id="Android.Designer.IssuePanel.ToolbarActions" anchor="first"/>
     </action>
 
-    <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
-            id="Android.Designer.GenerateComposePreviewAction">
-      <add-to-group group-id="sml.studiobot.gemini.editor.group"/>
-      <add-to-group group-id="GenerateGroup" anchor="first"/>
-    </action>
-    <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
-            id="Android.Designer.GenerateComposePreviewsForFileAction">
+    <group id="Android.Designer.ComposePreviewActionGroup">
+      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
+              id="Android.Designer.GenerateComposePreviewAction">
+        <add-to-group group-id="GenerateGroup" anchor="first"/>
+      </action>
+      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
+              id="Android.Designer.GenerateComposePreviewsForFileAction">
+      </action>
+      <separator/>
       <add-to-group group-id="sml.studiobot.gemini.editor.group" />
-    </action>
+    </group>
+
   </actions>
 
 </idea-plugin>

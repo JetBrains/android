@@ -41,7 +41,7 @@ class NewKotlinMultiplatformLibraryModuleModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
-  name: String = "kmplibrary",
+  name: String = "shared",
 ) : ModuleModel(
   name = name,
   commandName = "New Kotlin Multiplatform Library Module",
@@ -69,6 +69,8 @@ class NewKotlinMultiplatformLibraryModuleModel(
       moduleTemplateDataBuilder.apply {
         commonSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
           .getCommonSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
+        iosSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
+          .getIosSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
       }
     }
     override val recipe: Recipe

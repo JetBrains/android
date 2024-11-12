@@ -117,7 +117,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   public List<SceneViewFixture> getAllSceneViews() {
     return target().getModels().stream()
       .map(model -> target().getSceneManager(model))
-      .map(sceneManager -> sceneManager.getSceneView())
+      .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
       .map(sceneView -> new SceneViewFixture(robot(), sceneView))
       .collect(Collectors.toList());
   }

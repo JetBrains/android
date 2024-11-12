@@ -35,16 +35,19 @@ import javax.swing.JSeparator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A popup menu that supports scrolling if the number of menu items exceeds what the screen can renders.
- *
+ * A popup menu that supports scrolling if the number of menu items exceeds what the screen can render.
+ * <p>
  * We also need this class because {@link JMenu} does not expose its internal popup menu used for showing sub-menus, and thus there is no
  * way for us to control its style. The current solution essentially duplicates the {@link JMenu} implementation into {@link CommonMenu},
  * changing the internal logic to instantiate this {@link CommonPopupMenu} instead, where we can control the style. A better solution might
  * be to go through the laf system instead, which would eliminate the need to duplicate/subclass the entire menu chain.
- *
+ * <p>
  * Note that at the moment, the scrollbar component is always inserted and kept at index 0 of the children component list. We should look
  * for ways to hide it from the public APIs.
+ *
+ * @deprecated Prefer the use of {@link com.android.tools.adtui.actions.DropDownAction} instead.
  */
+@Deprecated
 public class CommonPopupMenu extends JPopupMenu {
 
   // Scrollbar used for when the menus are longer than what the screen can render.

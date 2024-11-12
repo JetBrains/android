@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
@@ -30,6 +29,7 @@ import com.intellij.ui.tree.TreeVisitor
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class DesignerIssueNodeVisitorTest {
 

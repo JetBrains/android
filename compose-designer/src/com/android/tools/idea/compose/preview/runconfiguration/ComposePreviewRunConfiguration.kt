@@ -46,7 +46,15 @@ open class ComposePreviewRunConfiguration(
   project: Project,
   factory: ConfigurationFactory,
   activityName: String = "androidx.compose.ui.tooling.PreviewActivity",
-) : AndroidRunConfiguration(project, factory) {
+) :
+  /**
+   * Compose preview run configuration is considered a test configuration in order to use the test
+   * artifact when performing apk related validations, because non-test configurations use the main
+   * artifact instead, and that would cause validations to fail for library projects, as the main
+   * artifact would produce an .aar file instead of an .apk file, and as a consequence, this run
+   * configuration wouldn't be able to be executed in library projects.
+   */
+  AndroidRunConfiguration(project, factory, true) {
 
   /**
    * To be able to support deploying compose preview to devices for library projects, the android
@@ -55,15 +63,6 @@ open class ComposePreviewRunConfiguration(
    */
   override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> =
     Pair(java.lang.Boolean.TRUE, null)
-
-  /**
-   * Compose preview run configuration is considered a test configuration in order to use the test
-   * artifact when performing apk related validations, because non-test configurations use the main
-   * artifact instead, and that would cause validations to fail for library projects, as the main
-   * artifact would produce an .aar file instead of an .apk file, and as a consequence, this run
-   * configuration wouldn't be able to be executed in library projects.
-   */
-  override fun isTestConfiguration() = true
 
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()

@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -51,6 +49,8 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class Toggle3dActionTest {
 

@@ -34,6 +34,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.android.tools.idea.flags.StudioFlags
@@ -59,7 +60,6 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.utils.TraceUtils.simpleId
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToggleToolbarAction
@@ -200,8 +200,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(REMOTE_DEVICE_REQUEST_EXPIRATION).build<DeviceHandle, ContentManager>()
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-  @Suppress("UnstableApiUsage")
-  private val toolWindowScope = disposingScope(Dispatchers.EDT)
+  private val toolWindowScope = createCoroutineScope(extraContext = Dispatchers.EDT)
 
   // Copy-on-write to allow changes while iterating.
   private val contentManagers = ContainerUtil.createLockFreeCopyOnWriteList<ContentManager>()

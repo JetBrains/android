@@ -22,10 +22,10 @@ import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyChangesTask extends AbstractDeployTask {
@@ -37,8 +37,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
                           @NotNull Collection<ApkInfo> packages,
                           boolean rerunOnSwapFailure,
                           boolean alwaysInstallWithPm,
+                          boolean allowAssumeVerified,
                           Computable<String> installPathProvider) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, installPathProvider);
   }
 
   @NotNull

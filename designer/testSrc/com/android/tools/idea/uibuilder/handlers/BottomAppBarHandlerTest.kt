@@ -18,8 +18,6 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
@@ -38,6 +36,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class BottomAppBarHandlerTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.inMemory().onEdt()

@@ -62,6 +62,7 @@ class SelectedIssueChangedTest {
           Action.FetchDetails(ISSUE2.id),
           Action.FetchNotes(ISSUE2.id),
           Action.ListEvents(ISSUE2.id, null, null),
+          Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent),
         )
     }
   }
@@ -104,7 +105,11 @@ class SelectedIssueChangedTest {
       assertThat(transition.newState.currentEvents)
         .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")))
 
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE2.id))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchDetails(ISSUE2.id) and
+            Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent)
+        )
     }
   }
 }

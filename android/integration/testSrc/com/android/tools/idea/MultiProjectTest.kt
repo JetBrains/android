@@ -41,7 +41,7 @@ class MultiProjectTest {
       system.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
       val targetPath = project2.install(system.installation.fileSystem.root)
       system.installation.trustPath(targetPath)
-      studio.openProject(targetPath.toString())
+      studio.openProject(targetPath.toString(), true)
       val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
       // Make first edit
       studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")

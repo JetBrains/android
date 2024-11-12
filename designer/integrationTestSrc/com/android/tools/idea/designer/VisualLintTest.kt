@@ -36,7 +36,7 @@ class VisualLintTest {
   @Before
   fun setup() {
     system.installation.addVmOption(
-      "-Didea.log.debug.categories=#com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService"
+      "-Didea.log.debug.categories=#com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService,#com.android.tools.rendering.RenderResult"
     )
     // Create a new android project, and set a fixed distribution
     project = AndroidProject("tools/adt/idea/designer/testData/projects/visualLintApplication")
@@ -76,6 +76,11 @@ class VisualLintTest {
       studio.openFile("visualLintApplication", homePath.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
       system.installation.ideaLog.waitForMatchingLine(
+        ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:fragment_home\\.xml.*",
+        10,
+        TimeUnit.SECONDS,
+      )
+      system.installation.ideaLog.waitForMatchingLine(
         ".*Visual Lint analysis finished, 2 errors found",
         10,
         TimeUnit.SECONDS,
@@ -85,8 +90,13 @@ class VisualLintTest {
       // of the issues.
       studio.editFile(homePath.toString(), "(?s)(id/button.+=\")0(dp)", "$1100$2")
       system.installation.ideaLog.waitForMatchingLine(
-        ".*Visual Lint analysis finished, 1 error found",
+        ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:fragment_home\\.xml.*",
         10,
+        TimeUnit.SECONDS,
+      )
+      system.installation.ideaLog.waitForMatchingLine(
+        ".*Visual Lint analysis finished, 1 error found",
+        60,
         TimeUnit.SECONDS,
       )
     }

@@ -46,6 +46,12 @@ public class DeclarativeArgumentsListImpl extends CompositePsiElement implements
 
   @Override
   @NotNull
+  public List<DeclarativeArgument> getArgumentList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, DeclarativeArgument.class);
+  }
+
+  @Override
+  @NotNull
   public List<DeclarativeValue> getArguments() {
     return PsiImplUtil.getArguments(this);
   }

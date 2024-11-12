@@ -38,7 +38,7 @@ public class SceneLayer extends Layer {
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final boolean myShowAlways;
-  private final Display myDisplay = new Display();
+  private final Display myDisplay = Display.create();
   private boolean myShowOnHover = false;
   private boolean myAlwaysShowSelection;
   private boolean myTemporaryShow = false;
@@ -163,6 +163,6 @@ public class SceneLayer extends Layer {
 
   public void setTemporaryShow(boolean temporaryShow) {
     myTemporaryShow = temporaryShow;
-    myDisplay.reLayout();
+    myDisplay.relayout();
   }
 }

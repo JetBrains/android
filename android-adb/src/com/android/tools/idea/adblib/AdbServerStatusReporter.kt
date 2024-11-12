@@ -20,6 +20,7 @@ import com.android.adblib.AdbSession
 import com.android.adblib.ServerStatus
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbOptionsService
+import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AdbServerStatus
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
@@ -31,7 +32,9 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
   @Suppress("unused") constructor() : this(::reportAdbStatus)
 
   override suspend fun execute(project: Project) {
-
+    if (!isAndroidEnvironment(project)) {
+      return
+    }
     val session = AdbLibService.getInstance(project).session
     session.scope.launch {
       val serverStatus = retrieveServerStatus(session)

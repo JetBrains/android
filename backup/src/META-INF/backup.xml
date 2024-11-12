@@ -47,6 +47,14 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="AndroidConnectDebuggerAction"/>
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="AndroidConnectDebuggerAction"/>
     </action>
+
+    <action
+        id="action.android.backup.foreground.app" class="com.android.tools.idea.backup.BackupForegroundAppAction"
+        text="Backup App State"
+        description="Backup app state to a file"
+        icon="AllIcons.Actions.Upload">
+      <add-to-group group-id="android.streaming.backup"/>
+    </action>
   </actions>
 
 </idea-plugin>

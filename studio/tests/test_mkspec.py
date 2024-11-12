@@ -26,6 +26,7 @@ class MkSpecTest(unittest.TestCase):
              <id>com.sample.bar</id>
            </idea-plugin>"""},
         "plugins/common/lib/common.jar": {"META-INF/plugin.xml": "<idea-plugin><id>com.sample.common</id></idea-plugin>"},
+        "plugins/common/lib/modules/common.plugin.module.jar": {"common.plugin.module.xml": "<idea-plugin></idea-plugin>"},
         "plugins/noid/lib/noid.jar": {"META-INF/plugin.xml": "<idea-plugin><name>the_name</name></idea-plugin>"},
         "product-info.json": {
             "launch": [{
@@ -45,7 +46,6 @@ SPEC = struct(
     major_version = "2024",
     minor_version = "1",
     jars = [
-        "/lib/modules/intellij.platform.coverage.jar",
         "/lib/util.jar",
     ],
     jars_linux = [
@@ -59,6 +59,12 @@ SPEC = struct(
         ],
         "com.sample.foo": [
             "plugins/foo/lib/foo.jar",
+        ],
+        "common.plugin.module": [
+            "plugins/common/lib/modules/common.plugin.module.jar",
+        ],
+        "intellij.platform.coverage": [
+            "lib/modules/intellij.platform.coverage.jar",
         ],
         "the_name": [
             "plugins/noid/lib/noid.jar",

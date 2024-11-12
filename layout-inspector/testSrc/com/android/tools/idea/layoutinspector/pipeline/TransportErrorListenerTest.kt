@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -28,6 +27,7 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 class TransportErrorListenerTest {
 

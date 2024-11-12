@@ -1,4 +1,0 @@
-[android.buildTypes.custom]
-
-[dependencies]
-customImplementation= [{notation="com.example:artifact:1.0"}]

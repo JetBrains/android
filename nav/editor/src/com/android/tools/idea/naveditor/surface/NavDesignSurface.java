@@ -36,7 +36,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
-import com.android.tools.idea.common.layout.manager.PositionableContentLayoutManager;
 import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
@@ -78,7 +77,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
@@ -99,6 +97,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -152,21 +151,22 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   private final NavDesignSurfaceZoomController myZoomController;
 
   @TestOnly
-  public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    this(project, null, parentDisposable);
+  public NavDesignSurface(@NotNull Project project) {
+    this(project, null);
   }
 
   /**
    * {@code editorPanel} should only be null in tests
    */
-  public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface),
+  public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel) {
+    super(project, surface -> new NavActionManager((NavDesignSurface)surface),
           SurfaceInteractable::new,
           (NavInteractionHandler::new),
-          (surface) -> (PositionableContentLayoutManager)(new SinglePositionableContentLayoutManager()),
+          new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           new DefaultSelectionModel(),
-          ZoomControlsPolicy.VISIBLE);
+          ZoomControlsPolicy.VISIBLE,
+          true);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
@@ -175,7 +175,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       @Override
       public void componentResized(ComponentEvent e) {
         removeComponentListener(this);
-        requestRender();
+        SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
+        if (manager != null) manager.requestRenderAsync();
       }
     });
 
@@ -183,7 +184,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     myZoomController = new NavDesignSurfaceZoomController(
       getSize(),
       getViewport(),
-      () -> getSceneManager(getModel()),
+      () -> {
+        NlModel model = getModel();
+        return model != null ? getSceneManager(model) : null;
+      },
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
@@ -191,16 +195,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     );
     myZoomController.setZoomListener(this);
     myZoomController.setOnScaleListener(this);
-  }
-
-  @NotNull
-  @Override
-  public CompletableFuture<Void> requestRender() {
-    // TODO: According to the documentation of this function -- "Invalidates all models and request a render of the layout. This will
-    //  re-inflate the NlModel ...", we should implement NavSceneManager#requestLayoutAndRender() and call it because
-    //  SceneManager#requestRender() doesn't re-inflate the NlModel.
-    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
   }
 
   @Override
@@ -449,7 +443,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   private Boolean validateCurrentNavigation() {
     NlComponent current = myCurrentNavigation;
-    if (current == null || current.getModel() != getModel()) {
+    NlModel surfaceModel = getModel();
+    if (current == null || surfaceModel == null || current.getModel() != surfaceModel) {
       return false;
     }
 
@@ -462,21 +457,26 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       current = parent;
     }
 
-    List<NlComponent> components = getModel().getTreeReader().getComponents();
+    List<NlComponent> components = surfaceModel.getTreeReader().getComponents();
     assert (components.size() == 1);
 
     return (current == components.get(0));
   }
 
-  public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
+  public CompletableFuture<Void> setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     SceneManager sceneManager = getSceneManager(getModel());
-    sceneManager.update();
-    sceneManager.requestLayoutAsync(false);
-    myZoomController.zoomToFit();
-    currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
-    repaint();
+    if (sceneManager != null) {
+      sceneManager.update();
+      currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
+    }
+    return sceneManager
+      .requestLayoutAsync(false)
+      .whenCompleteAsync((result, ex) -> {
+        myZoomController.zoomToFit();
+        repaint();
+      }, EdtExecutorService.getInstance());
   }
 
   @Override

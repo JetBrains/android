@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-import com.android.tools.idea.gradle.dcl.ide.DeclarativeLanguage
+import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider

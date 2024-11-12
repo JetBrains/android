@@ -1,8 +1,5 @@
 <idea-plugin>
   <depends>com.intellij.gradle</depends>
-  <dependencies>
-    <module name="intellij.platform.lvcs.impl"/>
-  </dependencies>
   <actions>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
             icon="StudioIcons.Shell.ToolWindows.AGP_UPGRADE_ASSISTANT"

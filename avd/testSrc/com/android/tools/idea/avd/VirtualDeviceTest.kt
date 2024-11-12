@@ -44,8 +44,7 @@ class VirtualDeviceTest {
 
     val avdBuilder =
       AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
-    avdBuilder.systemImage =
-      mock<ISystemImage>().apply { whenever(androidVersion).thenReturn(AndroidVersion(34)) }
+    avdBuilder.systemImage = mockSystemImage()
     avdBuilder.displayName = "My Pixel"
     avdBuilder.sdCard = InternalSdCard(100 * 1024 * 1024L)
     avdBuilder.skin = OnDiskSkin(Paths.get("pixel_8"))
@@ -63,18 +62,17 @@ class VirtualDeviceTest {
 
     with(VirtualDevice.withDefaults(pixel8).copyFrom(avdBuilder)) {
       assertThat(device).isEqualTo(pixel8)
-      assertThat(androidVersion).isEqualTo(AndroidVersion(34))
       assertThat(name).isEqualTo("My Pixel")
       assertThat(expandedStorage).isEqualTo(Custom(StorageCapacity(100, StorageCapacity.Unit.MB)))
       assertThat(skin.path().toString()).isEqualTo("pixel_8")
       assertThat(orientation).isEqualTo(ScreenOrientation.LANDSCAPE)
       assertThat(cpuCoreCount).isEqualTo(2)
-      assertThat(simulatedRam).isEqualTo(StorageCapacity(16, StorageCapacity.Unit.GB))
+      assertThat(ram).isEqualTo(StorageCapacity(16, StorageCapacity.Unit.GB))
       assertThat(vmHeapSize).isEqualTo(StorageCapacity(500, StorageCapacity.Unit.MB))
       assertThat(internalStorage).isEqualTo(StorageCapacity(128, StorageCapacity.Unit.GB))
       assertThat(frontCamera).isEqualTo(AvdCamera.WEBCAM)
       assertThat(rearCamera).isEqualTo(AvdCamera.EMULATED)
-      assertThat(graphicAcceleration).isEqualTo(GpuMode.AUTO)
+      assertThat(graphicsMode).isEqualTo(GraphicsMode.AUTO)
       assertThat(latency).isEqualTo(AvdNetworkLatency.GPRS)
       assertThat(speed).isEqualTo(AvdNetworkSpeed.GSM)
       assertThat(defaultBoot).isEqualTo(Boot.COLD)
@@ -91,24 +89,23 @@ class VirtualDeviceTest {
     val device =
       VirtualDevice(
         device = pixel8,
-        androidVersion = AndroidVersion(34),
         name = "My Pixel",
         expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB)),
         skin = DefaultSkin(Paths.get("pixel_8")),
         orientation = ScreenOrientation.LANDSCAPE,
         cpuCoreCount = 2,
-        simulatedRam = StorageCapacity(16, StorageCapacity.Unit.GB),
+        ram = StorageCapacity(16, StorageCapacity.Unit.GB),
         vmHeapSize = StorageCapacity(500, StorageCapacity.Unit.MB),
         internalStorage = StorageCapacity(128, StorageCapacity.Unit.GB),
         frontCamera = AvdCamera.WEBCAM,
         rearCamera = AvdCamera.EMULATED,
-        graphicAcceleration = GpuMode.AUTO,
+        graphicsMode = GraphicsMode.AUTO,
         latency = AvdNetworkLatency.GPRS,
         speed = AvdNetworkSpeed.GSM,
         defaultBoot = Boot.COLD,
       )
 
-    avdBuilder.copyFrom(device)
+    avdBuilder.copyFrom(device, mockSystemImage())
 
     with(avdBuilder) {
       assertThat(displayName).isEqualTo("My Pixel")
@@ -127,4 +124,7 @@ class VirtualDeviceTest {
       assertThat(bootMode).isEqualTo(ColdBoot)
     }
   }
+
+  private fun mockSystemImage(): ISystemImage =
+    mock<ISystemImage>().apply { whenever(androidVersion).thenReturn(AndroidVersion(34)) }
 }

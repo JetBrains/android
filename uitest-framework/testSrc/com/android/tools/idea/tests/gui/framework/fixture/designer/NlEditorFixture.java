@@ -44,6 +44,8 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -120,6 +122,12 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     wait.expecting("WorkBench is showing").until(() -> !myLoadingPanelFixture.isLoading());
     // Fade out of the loading panel takes 500ms
     Pause.pause(1000);
+    return this;
+  }
+
+  @NotNull
+  public NlEditorFixture waitForPaletteInitialization(int secondsToWait, LayoutEditorFileType expectedType) {
+    getPalette().waitForInitialization(secondsToWait, expectedType);
     return this;
   }
 

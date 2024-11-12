@@ -326,6 +326,10 @@ class BuildAttributionAnalyticsManager(
     attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_FAILURE
   }
 
+  fun logAnalysisCancellation(buildInvocationType: BuildInvocationType) {
+    attributionStatsBuilder.buildType = buildInvocationType.metricsType
+    attributionStatsBuilder.buildAnalysisStatus = BuildAttributionStats.BuildAnalysisStatus.ANALYSIS_CANCELED
+  }
 }
 
 fun transformDownloadsAnalyzerData(repositoryResults: List<DownloadsAnalyzer.RepositoryResult>): BuildDownloadsAnalysisData =

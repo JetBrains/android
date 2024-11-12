@@ -19,7 +19,9 @@ import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VfsUtil
@@ -39,7 +41,7 @@ import java.io.File
 @RunsInEdt
 class ConfigurationCachePropertyAccessTest {
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
@@ -124,12 +126,19 @@ class ConfigurationCacheTurningOnTest(private val useStableFeatureProperty: Bool
   }
 
   val propertyName = if (useStableFeatureProperty) "org.gradle.configuration-cache" else "org.gradle.unsafe.configuration-cache"
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private lateinit var gradlePropertiesFile: VirtualFile
+
+  private val buildRequestData: GradleBuildInvoker.Request.RequestData
+    get() = GradleBuildInvoker.Request.RequestData(
+      BuildMode.DEFAULT_BUILD_MODE,
+      gradlePropertiesFile.parent.toIoFile(),
+      listOf(":assembleDebug")
+    )
 
   @Before
   fun setUp() {
@@ -141,7 +150,7 @@ class ConfigurationCacheTurningOnTest(private val useStableFeatureProperty: Bool
 
   @Test
   fun testAddingPropertyWhenNotSet() {
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, useStableFeatureProperty)
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, buildRequestData, useStableFeatureProperty)
 
     val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
     Truth.assertThat(propertiesText).contains("$propertyName=true")
@@ -151,7 +160,7 @@ class ConfigurationCacheTurningOnTest(private val useStableFeatureProperty: Bool
   fun testAddingPropertyWhenSetToFalse() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "org.gradle.unsafe.configuration-cache=false") }
 
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, useStableFeatureProperty)
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, buildRequestData, useStableFeatureProperty)
 
     val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
     Truth.assertThat(propertiesText).contains("$propertyName=true")
@@ -162,7 +171,7 @@ class ConfigurationCacheTurningOnTest(private val useStableFeatureProperty: Bool
   fun testAddingPropertyWhenSetToTrue() {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, "$propertyName=true") }
 
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, useStableFeatureProperty)
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project, buildRequestData, useStableFeatureProperty)
 
     val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
     Truth.assertThat(propertiesText).contains("$propertyName=true")

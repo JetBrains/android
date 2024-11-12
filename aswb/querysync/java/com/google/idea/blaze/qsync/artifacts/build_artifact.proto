@@ -21,7 +21,7 @@ option java_outer_classname = "AspectProto";
 
 // A reference to an output artifact from the build_dependencies.bzl aspect.
 message OutputArtifact {
-  // All paths are build-output relative
+  // All paths are execution_root relative (i.e. include bazel-out when present).
   oneof path {
     // a plain file
     string file = 1;

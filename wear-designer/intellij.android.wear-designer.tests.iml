@@ -48,6 +48,7 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.preview-designer.tests" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.wear-designer" />
 </module>

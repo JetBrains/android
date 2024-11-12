@@ -185,9 +185,8 @@ internal class EmptyStatePanel(
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         when (event.description) {
           "DeviceManager" -> {
-            // Action id is from com.android.tools.idea.devicemanager.DeviceManagerAction.
-            val action = ActionManager.getInstance().getAction(
-              if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) "Android.DeviceManager2" else "Android.DeviceManager")
+            // Action id is from com.android.tools.idea.devicemanager2.DeviceManager2Action.
+            val action = ActionManager.getInstance().getAction("Android.DeviceManager2")
             ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
           }
           "CheckForUpdate" -> {

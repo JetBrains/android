@@ -16,10 +16,6 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -59,6 +55,10 @@ import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Ignore
@@ -66,10 +66,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.anyString
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()

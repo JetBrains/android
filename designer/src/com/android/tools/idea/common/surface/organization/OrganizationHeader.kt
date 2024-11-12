@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.compose.StudioTheme
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
@@ -42,14 +41,11 @@ import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 private val toolbarSpacing = 6.dp
-private val fontSize = UIUtil.getFontSize(UIUtil.FontSize.SMALL)
-private const val iconOpened = "expui/general/chevronDown.svg"
-private const val iconClosed = "expui/general/chevronRight.svg"
 private const val descriptionOpened = "Hide preview group"
 private const val descriptionClosed = "Show preview group"
-private val iconClass = AllIcons::General::class.java
 
 @Composable
 fun OrganizationHeader(group: OrganizationGroup) {
@@ -63,8 +59,9 @@ fun OrganizationHeader(group: OrganizationGroup) {
     onClick = { group.setOpened(!opened.value) },
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-      if (opened.value) Icon(iconOpened, descriptionOpened, iconClass)
-      else Icon(iconClosed, descriptionClosed, iconClass)
+      if (opened.value)
+        Icon(AllIconsKeys.General.ChevronDown, contentDescription = descriptionOpened)
+      else Icon(AllIconsKeys.General.ChevronRight, contentDescription = descriptionClosed)
 
       Spacer(Modifier.width(toolbarSpacing))
 
@@ -72,7 +69,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
         displayName.value,
         modifier = Modifier.testTag("displayName"),
         color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
-        fontSize = TextUnit(fontSize, TextUnitType.Sp),
+        fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
         fontWeight = FontWeight.Bold,
       )
       Spacer(Modifier.width(toolbarSpacing))

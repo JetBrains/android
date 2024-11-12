@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -30,11 +29,7 @@ internal class DeviceManagerWelcomeScreenAction : DumbAwareAction() {
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
-    if (
-      !StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get() ||
-        HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated() ||
-        event.project != null
-    ) {
+    if (HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated() || event.project != null) {
       presentation.isEnabledAndVisible = false
       return
     }

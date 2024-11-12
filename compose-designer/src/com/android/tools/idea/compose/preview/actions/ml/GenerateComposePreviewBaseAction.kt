@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.actions.ml
 
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.compose.isValidPreviewLocation
-import com.android.tools.idea.compose.preview.actions.ml.utils.transformAndShowDiff
-import com.android.tools.idea.compose.preview.isMultiPreviewAnnotation
-import com.android.tools.idea.compose.preview.isPreviewAnnotation
-import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.compose.preview.actions.ml.utils.appendBlock
+import com.android.tools.idea.compose.preview.actions.ml.utils.generateCodeAndExecuteCallback
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
@@ -33,9 +32,8 @@ import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.toUElement
 
 private const val PREAMBLE =
   """
@@ -76,16 +74,6 @@ fun UserProfilePreview() {
 abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-  override fun actionPerformed(e: AnActionEvent) {
-    val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
-    val editor = e.getData(CommonDataKeys.EDITOR) as? EditorImpl ?: return
-    val filePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
-    val composableFunctions = getTargetComposableFunctions(e)
-    if (composableFunctions.isEmpty()) return
-    val prompt = buildPrompt(filePointer, composableFunctions)
-    transformAndShowDiff(prompt, filePointer, editor.disposable)
-  }
-
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabledAndVisible = false
@@ -100,21 +88,34 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
   }
 
   /**
-   * Whether this [KtNamedFunction] is a valid Composable function, i.e. a function annotated
-   * with @Composable that's not yet annotated with a @Preview or a MultiPreview annotation. It also
-   * must be in a valid preview location (see [isValidPreviewLocation]).
+   * Asks the model to generate one compose preview per Composable function provided in
+   * [composableFunctions]. Shows a diff view with the resulting code.
    */
-  protected fun KtNamedFunction.isValidComposableFunction(): Boolean {
-    if (annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }) return false
-    if (!isValidPreviewLocation()) return false
-    if (
-      annotationEntries.any {
-        val uAnnotation = (it.toUElement() as? UAnnotation) ?: return@any false
-        return@any uAnnotation.isPreviewAnnotation() || uAnnotation.isMultiPreviewAnnotation()
+  protected fun generateComposePreviews(
+    e: AnActionEvent,
+    composableFunctions: () -> List<KtNamedFunction> = { getTargetComposableFunctions(e) },
+  ) {
+    val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
+    val editor = e.getData(CommonDataKeys.EDITOR) as? EditorImpl ?: return
+    val filePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+    composableFunctions().run {
+      if (isEmpty()) return@generateComposePreviews
+      AndroidCoroutineScope(editor.disposable).launch(AndroidDispatchers.workerThread) {
+        generateCodeAndExecuteCallback(
+          prompt = buildPrompt(filePointer, this@run),
+          filePointer = filePointer,
+          progressIndicatorText = message("ml.actions.progress.indicator.generating.previews"),
+          callback = { project, psiFile, kotlinCodeBlock ->
+            appendBlock(
+              project = project,
+              psiFile = psiFile,
+              kotlinCodeBlock = kotlinCodeBlock,
+              inline = true,
+            )
+          },
+        )
       }
-    )
-      return false
-    return true
+    }
   }
 
   protected abstract fun getTargetComposableFunctions(e: AnActionEvent): List<KtNamedFunction>
@@ -147,14 +148,16 @@ abstract class GenerateComposePreviewBaseAction(text: String) : AnAction(text) {
           listOf(),
         )
         filePointer.element?.let {
-          code(
-            composableFunctions.joinToString(
-              transform = { function -> function.text },
-              separator = "\n\n",
-            ),
-            MimeType.KOTLIN,
-            listOf(it.virtualFile),
-          )
+          runReadAction {
+            code(
+              composableFunctions.joinToString(
+                transform = { function -> function.text },
+                separator = "\n\n",
+              ),
+              MimeType.KOTLIN,
+              listOf(it.virtualFile),
+            )
+          }
         }
         text(
           """

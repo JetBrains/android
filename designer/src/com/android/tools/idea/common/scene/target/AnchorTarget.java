@@ -218,7 +218,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
     // When width or height is too small, move the anchor outer to avoid anchors overlap each other.
     // The minimal distance between anchors is 4 * ANCHOR_SIZE in Swing Coordinate.
-    int anchorSizeDip = Coordinates.getAndroidDimensionDip(myComponent.getScene().getSceneManager().getSceneView(), ANCHOR_SIZE);
+    int anchorSizeDip = Coordinates.getAndroidDimensionDip(myComponent.getScene().getSceneManager().getSceneViews().get(0), ANCHOR_SIZE);
     float xDiff = myPositionX - mw;
     if (sceneTransform.getSwingDimensionDip(Math.abs(xDiff)) < ANCHOR_SIZE * 2) {
       float sign = Math.signum(xDiff);

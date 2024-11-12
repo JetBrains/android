@@ -283,7 +283,7 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMetho
   if (!ApplicationManager.getApplication().isReadAccessAllowed) {
     Logger.getInstance(AnnotatedMethodsFinder::class.java)
       .error("getContainingUMethodAnnotatedWith called without read lock")
-    runReadAction { getContainingUMethodWithReadLock() }
+    return runReadAction { getContainingUMethodWithReadLock() }
   }
 
   return getContainingUMethodWithReadLock()

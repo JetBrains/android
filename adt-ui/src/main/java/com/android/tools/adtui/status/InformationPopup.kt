@@ -191,6 +191,7 @@ class InformationPopupImpl(
 
   override fun dispose() {
     popup?.cancel()
+    popup = null
   }
 
   /**

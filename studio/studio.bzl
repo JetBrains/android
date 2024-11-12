@@ -1507,19 +1507,3 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
             "//conditions:default": jars_linux,
         }),
     )
-
-def iml_studio_test(
-        name,
-        data = [],
-        **kwargs):
-    iml_test(
-        name = name,
-        data = select({
-            "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
-            "//tools/base/bazel/platforms:macos-x86_64": ["//tools/adt/idea/studio:android-studio.mac.zip"],
-            "//tools/base/bazel/platforms:macos-arm64": ["//tools/adt/idea/studio:android-studio.mac_arm.zip"],
-            "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
-            "//conditions:default": [],
-        }) + data,
-        **kwargs
-    )

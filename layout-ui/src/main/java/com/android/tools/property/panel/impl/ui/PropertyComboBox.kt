@@ -26,6 +26,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.property.panel.impl.support.BaseActionEnumValue
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
@@ -348,6 +349,10 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[HelpSupport.PROPERTY_ITEM] = model.property
+  }
+
+  override fun acceptChosenItem(item: Any?): Boolean {
+    return item !is BaseActionEnumValue
   }
 
   // Hack: This method is called to update the text editor with the content of the

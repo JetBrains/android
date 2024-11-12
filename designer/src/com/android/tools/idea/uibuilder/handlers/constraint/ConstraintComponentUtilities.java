@@ -99,7 +99,6 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
 
 import com.android.AndroidXConstants;
-import com.android.SdkConstants;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
@@ -128,6 +127,7 @@ import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.util.SlowOperations;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -567,23 +567,6 @@ public final class ConstraintComponentUtilities {
       }
     }
     return isConnected;
-  }
-
-  /**
-   * Given a NlComponent and an attribute, return the corresponding ConstraintAnchorTarget
-   *
-   * @param scene
-   * @param targetComponent
-   * @param attribute
-   * @return
-   */
-  public static ConstraintAnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
-    AnchorTarget.Type type = ourMapSideToOriginAnchors.get(attribute);
-    SceneComponent component = scene.getSceneComponent(targetComponent);
-    if (component != null) {
-      return getAnchorTarget(component, type);
-    }
-    return null;
   }
 
   /**
@@ -1236,12 +1219,15 @@ public final class ConstraintComponentUtilities {
   }
 
   public static NlComponent getComponent(List<NlComponent> list, String id) {
-    for (NlComponent nlComponent : list) {
-      if (id.equals(nlComponent.getId())) {
-        return nlComponent;
-      }
-    }
-    return null;
+    return SlowOperations.allowSlowOperations(
+      () -> {
+        for (NlComponent nlComponent : list) {
+          if (id.equals(nlComponent.getId())) {
+            return nlComponent;
+          }
+        }
+        return null;
+    });
   }
 
   /**
@@ -1744,65 +1730,6 @@ public final class ConstraintComponentUtilities {
         connected =
           DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
         return connected.contains(target);
-    }
-    return false;
-  }
-
-  @SafeVarargs
-  private static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
-    HashSet<String> set = new HashSet<>();
-    set.add(c.getId());
-    int lastCount;
-    do {
-      lastCount = set.size();
-      for (NlComponent sister : sisters) {
-        for (int i = 0; i < list.length; i++) {
-          String str = getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
-          if (set.contains(str)) {
-            set.add(sister.getId());
-          }
-        }
-      }
-    }
-    while (set.size() > lastCount);
-    return set;
-  }
-
-  /**
-   * Search for any connection of type
-   *
-   * @param component
-   * @param sisters
-   * @param list
-   * @return
-   */
-  @SafeVarargs
-  private static boolean isConnected(NlComponent component, ArrayList<String>... list) {
-
-    for (int i = 0; i < list.length; i++) {
-      int count = list[i].size();
-      for (int k = 0; k < count; k++) {
-        if (null != component.getLiveAttribute(SdkConstants.SHERPA_URI, list[i].get(k))) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Logic to decide when to use left and right margins
-   *
-   * @param component
-   * @return
-   */
-  static boolean useLeftRight(NlComponent component) {
-    if (isConnected(component, ourStartAttributes, ourEndAttributes)) {
-      return false;
-    }
-    if (isConnected(component, ourLeftAttributes, ourRightAttributes)) {
-      return true;
     }
     return false;
   }

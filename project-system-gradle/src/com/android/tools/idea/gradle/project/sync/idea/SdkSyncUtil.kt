@@ -169,5 +169,5 @@ private fun logAndroidSdkHomeNotFound() {
 
 private fun logSdkFound(sdk: Sdk, moduleName: String) {
   val sdkPath = sdk.homePath ?: "<path not set>"
-  LOG.info("Set Android SDK '${sdk.name}' ($sdkPath) to module $moduleName")
+  LOG.debug("Set Android SDK '${sdk.name}' ($sdkPath) to module $moduleName")
 }

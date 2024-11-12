@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -62,6 +61,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(Parameterized::class)
 class SourceCodeEditorProviderTest(private val asyncMode: EditorCreationMode) {

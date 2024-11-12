@@ -43,21 +43,16 @@ import kotlin.math.cos
 private const val FADEOUT_TIME_MILLIS = 5000
 private const val TOTAL_FRAMES = 150
 
-/**
- * A panel that can display a notification at the top.
- */
+/** A panel that can display notifications at the top. */
 class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane() {
-  private val fadeOutNotificationContent = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
-  private val fadeOutNotificationPopup = NotificationPopup(fadeOutNotificationContent)
+
+  private var fadeOutNotificationPopup: NotificationPopup? = null
   private var animator: Animator? = null
-  private var fadeOutNotificationVisible = false
 
   init {
     border = JBUI.Borders.empty()
     setLayer(contentPanel, DEFAULT_LAYER)
     add(contentPanel)
-    setLayer(fadeOutNotificationPopup, POPUP_LAYER)
-    fadeOutNotificationPopup.isOpaque = false
   }
 
   override fun doLayout() {
@@ -111,13 +106,16 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     repaint()
   }
 
-  /** Shows a fade-out notification with the given text. */
-  fun showFadeOutNotification(text: String) {
-    fadeOutNotificationContent.text = text
-    if (!fadeOutNotificationVisible) {
-      add(fadeOutNotificationPopup)
-      fadeOutNotificationVisible = true
-    }
+  /**
+   * Shows a fade-out notification with the given text. If [status] is null, the notification
+   * is shown with info background and without an icon. Otherwise, it is shown with the background
+   * and icon corresponding to [status].
+   */
+  fun showFadeOutNotification(text: String, status: EditorNotificationPanel.Status? = null) {
+    hideFadeOutNotification()
+    val notificationPopup = createFadeOutNotificationPopup(status)
+    fadeOutNotificationPopup = notificationPopup
+    notificationPopup.notificationPanel.text = text
     startFadeOutAnimation()
     revalidate()
   }
@@ -128,17 +126,25 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     hideFadeOutNotificationPopup()
   }
 
+  private fun createFadeOutNotificationPopup(severity: EditorNotificationPanel.Status?): NotificationPopup {
+    val notificationPanel = severity?.let { EditorNotificationPanel(it) } ?: EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
+    val popup = NotificationPopup(notificationPanel)
+    setLayer(popup, POPUP_LAYER)
+    addImpl(popup, null, 0)
+    return popup
+  }
+
   private fun hideFadeOutNotificationPopup() {
-    if (fadeOutNotificationVisible) {
-      remove(fadeOutNotificationPopup)
-      fadeOutNotificationVisible = false
+    fadeOutNotificationPopup?.let {
+      remove(it)
+      fadeOutNotificationPopup = null
       revalidate()
     }
   }
 
   private fun startFadeOutAnimation() {
     animator?.dispose()
-    fadeOutNotificationPopup.alpha = 1.0F
+    fadeOutNotificationPopup?.alpha = 1.0F
     animator = FadeOutAnimator().apply { resume() }
   }
 
@@ -147,11 +153,12 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     animator = null
   }
 
-  private class NotificationPopup(notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {
+  private class NotificationPopup(val notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {
     var alpha = 1.0F
 
     init {
       border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
+      isOpaque = false
       addToCenter(notificationPanel)
     }
 
@@ -175,22 +182,19 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     }
   }
 
-  private inner class FadeOutAnimator : Animator(
-    name = "FadeOutAnimator",
-    totalFrames = TOTAL_FRAMES,
-    cycleDuration = FADEOUT_TIME_MILLIS,
-    isRepeatable = false,
-  ) {
+  private inner class FadeOutAnimator : Animator("FadeOutAnimator", TOTAL_FRAMES, FADEOUT_TIME_MILLIS, false) {
+
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
+      val popup = fadeOutNotificationPopup ?: return
       val alpha = cos(0.5 * PI * frame / totalFrames).toFloat()
-      if (abs(alpha - fadeOutNotificationPopup.alpha) >= 0.005) {
-        fadeOutNotificationPopup.alpha = alpha
-        fadeOutNotificationPopup.paintImmediately(0, 0, fadeOutNotificationPopup.width, fadeOutNotificationPopup.height)
+      if (abs(alpha - popup.alpha) >= 0.005) {
+        popup.alpha = alpha
+        popup.paintImmediately(0, 0, popup.width, popup.height)
       }
     }
 
     override fun paintCycleEnd() {
-      // In a headless or a test environment, paintCycleEnd is called by the Animator's constructor.
+      // In a headless or a test environment paintCycleEnd is called by the Animator's constructor.
       // Don't hide the notification is that case.
       if (!skipAnimation()) {
         hideFadeOutNotificationPopup()

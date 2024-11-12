@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
@@ -202,16 +203,18 @@ class LiveEditServiceImpl(val project: Project,
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  override fun notifyAppDeploy(runProfile: RunProfile,
-                               executor: com.intellij.execution.Executor,
-                               packageName: String,
-                               device: IDevice,
-                               app: LiveEditApp): Boolean {
+  override fun notifyAppDeploy(
+    runProfile: RunProfile,
+    executor: com.intellij.execution.Executor,
+    applicationProjectContext: ApplicationProjectContext,
+    device: IDevice,
+    app: LiveEditApp
+  ): Boolean {
     // Obtain the list of files open and focused in the editor. This will be a single file unless the user has a split view.
     // When Live Edit is active, the first time a file is focused in the editor, we take a snapshot of the PSI. We pass the list of
     // currently focused files when a deployment occurs to ensure that we also take a PSI snapshot of them.
     val openFiles = FileEditorManager.getInstance(project).selectedFiles.toList()
-    return deployMonitor.notifyAppDeploy(packageName, device, app, openFiles) { isLiveEditable(runProfile, executor) }
+    return deployMonitor.notifyAppDeploy(applicationProjectContext, device, app, openFiles) { isLiveEditable(runProfile, executor) }
   }
 
   override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {

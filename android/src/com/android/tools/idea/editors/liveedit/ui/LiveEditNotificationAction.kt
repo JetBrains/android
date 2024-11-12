@@ -33,6 +33,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -55,6 +56,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.putUserData
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.refactoring.project
 import java.awt.Insets
 import java.util.Collections
 
@@ -212,6 +214,7 @@ class LiveEditIssueNotificationAction(
 
 @UiThread
 private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
+  dataContext.project?.let { if (!CommonAndroidUtil.getInstance().isAndroidProject(it)) return true } ?: return true
   if (status != LiveEditStatus.Disabled) {
     // Always show when it's an active status, even if error.
     return false

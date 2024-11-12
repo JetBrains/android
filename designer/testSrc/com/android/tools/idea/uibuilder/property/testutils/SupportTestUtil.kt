@@ -26,7 +26,6 @@ import com.android.SdkConstants.XMLNS_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -56,6 +55,7 @@ import java.util.function.Predicate
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.mockito.kotlin.mock
 
 private const val DEFAULT_FILENAME = "layout.xml"
 

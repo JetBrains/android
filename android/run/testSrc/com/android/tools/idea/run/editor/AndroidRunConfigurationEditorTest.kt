@@ -53,6 +53,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Rule
@@ -85,12 +86,17 @@ class AndroidRunConfigurationEditorTest {
   @Test
   fun `android run configuration`() {
     val runConfiguration = createConfiguration<AndroidRunConfiguration>(AndroidRunConfigurationType::class.java)
-    val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector }
+    val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector
+    }
     assertThat(availableModules)
       .containsExactly(
-        module(":app").getMainModule(),
-        module(":feature").getMainModule(),
+        module(":app").getHolderModule(),
+        module(":feature").getHolderModule(),
       )
+    runConfiguration.setModule(module(":app").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":app").getMainModule())
+    runConfiguration.setModule(module(":feature").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":feature").getMainModule())
   }
 
   @Test
@@ -99,11 +105,19 @@ class AndroidRunConfigurationEditorTest {
     val availableModules = runConfiguration.getAvailableModules<AndroidRunConfigurationEditor<*>>() { it.moduleSelector }
     assertThat(availableModules)
       .containsExactly(
-        module(":app").getAndroidTestModule(),
-        module(":lib").getAndroidTestModule(),
-        module(":feature").getAndroidTestModule(),
-        module(":test_only").getMainModule(),
+        module(":app").getHolderModule(),
+        module(":lib").getHolderModule(),
+        module(":feature").getHolderModule(),
+        module(":test_only").getHolderModule(),
       )
+    runConfiguration.setModule(module(":app").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":app").getAndroidTestModule())
+    runConfiguration.setModule(module(":lib").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":lib").getAndroidTestModule())
+    runConfiguration.setModule(module(":feature").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":feature").getAndroidTestModule())
+    runConfiguration.setModule(module(":test_only").getHolderModule())
+    assertThat(runConfiguration.modules.asList()).containsExactly(module(":test_only").getMainModule())
   }
 
   @Test
@@ -163,7 +177,9 @@ class AndroidRunConfigurationEditorTest {
   private inline fun <reified E : SettingsEditor<out RunConfiguration>> RunConfiguration.getAvailableModules(
     selector: (E) -> ConfigurationModuleSelector
   ): List<Module> {
-    return ModuleManager.getInstance(projectRule.project).modules.filter { selector(configurationEditor as E).isModuleAccepted(it) }
+    val editor = configurationEditor as E
+    Disposer.register(projectRule.testRootDisposable, editor)
+    return ModuleManager.getInstance(projectRule.project).modules.filter { selector(editor).isModuleAccepted(it) }
   }
 
   private fun getProfilingTabIndex(): Int {

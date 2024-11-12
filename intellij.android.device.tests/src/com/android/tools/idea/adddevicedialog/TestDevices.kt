@@ -17,12 +17,13 @@ package com.android.tools.idea.adddevicedialog
 
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.google.common.collect.Range
 import kotlin.time.Duration.Companion.minutes
 
 internal object TestDevices {
   val mediumPhone =
     TestDevice(
-      apiLevels = androidVersionRange(24, 34),
+      apiRange = Range.closed(24, 34),
       manufacturer = "Generic",
       name = "Medium Phone",
       resolution = Resolution(1080, 2400),
@@ -37,7 +38,7 @@ internal object TestDevices {
 
   val remotePixel5 =
     TestDevice(
-      apiLevels = androidVersionRange(30, 30),
+      apiRange = Range.closed(30, 30),
       manufacturer = "Google",
       name = "Pixel 5",
       resolution = Resolution(1080, 2340),
@@ -53,7 +54,7 @@ internal object TestDevices {
 
   val pixelFold =
     TestDevice(
-      apiLevels = androidVersionRange(33, 34),
+      apiRange = Range.closed(33, 34),
       manufacturer = "Google",
       name = "Pixel Fold",
       resolution = Resolution(2208, 1840),
@@ -68,7 +69,7 @@ internal object TestDevices {
 
   val pixelTablet =
     TestDevice(
-      apiLevels = androidVersionRange(33, 33),
+      apiRange = Range.closed(33, 33),
       manufacturer = "Google",
       name = "Pixel Tablet",
       resolution = Resolution(2560, 1600),
@@ -83,7 +84,7 @@ internal object TestDevices {
 
   val wearLargeRound =
     TestDevice(
-      apiLevels = androidVersionRange(20, 34),
+      apiRange = Range.closed(20, 34),
       manufacturer = "Google",
       name = "Wear OS Large Round",
       resolution = Resolution(454, 454),
@@ -99,7 +100,7 @@ internal object TestDevices {
 
   val galaxyS22 =
     TestDevice(
-      apiLevels = androidVersionRange(33, 33),
+      apiRange = Range.closed(33, 33),
       manufacturer = "Samsung",
       name = "Galaxy S22",
       resolution = Resolution(1440, 3088),
@@ -113,7 +114,7 @@ internal object TestDevices {
 
   val automotive =
     TestDevice(
-      apiLevels = androidVersionRange(28, 34),
+      apiRange = Range.closed(28, 34),
       manufacturer = "Google",
       name = "Automotive (1024p landscape)",
       resolution = Resolution(1024, 768),
@@ -127,7 +128,7 @@ internal object TestDevices {
 
   val tv4k =
     TestDevice(
-      apiLevels = androidVersionRange(31, 34),
+      apiRange = Range.closed(31, 34),
       manufacturer = "Google",
       name = "Television (4K)",
       resolution = Resolution(3840, 2160),

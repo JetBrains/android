@@ -1,4 +1,0 @@
-[android.buildTypes.type1]
-applicationIdSuffix = "typeSuffix-1"
-[android.buildTypes.type2]
-applicationIdSuffix = "typeSuffix-2"

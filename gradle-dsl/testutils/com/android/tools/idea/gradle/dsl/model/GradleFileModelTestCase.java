@@ -73,6 +73,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -162,6 +163,10 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     assumeFalse("test irrelevant for KotlinScript: " + reason, isKotlinScript());
   }
 
+  protected void isIrrelevantForDeclarative(String reason) {
+    assumeFalse("test irrelevant for declarative: " + reason, isKotlinScript());
+  }
+
   protected void skipGradleDeclarativeTemporary() {
     assumeFalse("Test does not yet support Gradle Declarative build", isGradleDeclarative());
   }
@@ -211,9 +216,11 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   @Before
   public void before() throws Exception {
-    // ignore Gradle declarative test cases
-    assumeFalse(isGradleDeclarative());
-
+    // Run Declarative test if at least one flag is up
+    // meaning test knows about Declarative
+    assumeTrue(!isGradleDeclarative() ||
+               Registry.is("gradle.declarative.ide.support") ||
+               Registry.is("gradle.declarative.studio.support"));
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
     Path basePath = ProjectKt.getStateStore(myProject).getProjectBasePath();

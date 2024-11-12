@@ -225,7 +225,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           namespace = ResourceNamespace.fromPackageName(namespacePrefix);
         }
       }
-      else if (StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get()) {
+      else {
         // We don't offer framework resources in completion, unless the string already starts with the framework namespace. But we do offer
         // the right prefix, which will cause the framework resources to show up as follow-up completion. These variants are later handled
         // in createLookupElement below.
@@ -419,7 +419,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       StudioResourceRepositoryManager repoManager = StudioResourceRepositoryManager.getInstance(facet);
       ResourceRepository appResources = repoManager.getAppResources();
 
-      if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
+      if (onlyNamespace == ResourceNamespace.ANDROID) {
         ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
         if (frameworkResources != null) {
           addResourceReferenceValuesFromRepo(frameworkResources, repoManager, element, prefix, type,

@@ -17,13 +17,13 @@ package com.android.tools.idea.uibuilder.actions
 
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.BUTTON
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class ChainStyleViewActionTest : SceneTest() {
 

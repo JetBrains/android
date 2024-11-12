@@ -245,7 +245,7 @@ public class LayoutTestUtilities {
       }
     };
     screenView.setLocation(x, y);
-    when(spy.getSceneView()).thenReturn(screenView);
+    when(spy.getSceneViews()).thenReturn(ImmutableList.of(screenView));
     when(surface.getSceneViews()).thenReturn(ImmutableList.of(screenView));
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;

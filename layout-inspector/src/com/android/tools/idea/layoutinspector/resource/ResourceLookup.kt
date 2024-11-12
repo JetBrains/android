@@ -40,6 +40,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
+import java.awt.Rectangle
 import javax.swing.Icon
 
 /**
@@ -59,7 +60,7 @@ class ResourceLookup(private val project: Project) {
     get() = resolver != null
 
   /**
-   * The dpi of the device we are currently inspecting or <code>null</code> if unknown.
+   * The dpi of the device we are currently inspecting or `null` if unknown.
    *
    * This is unknown for older saved snapshots.
    */
@@ -67,7 +68,7 @@ class ResourceLookup(private val project: Project) {
     @VisibleForTesting set
 
   /**
-   * The fontScale currently used on the device or <code>null</code> if unknown.
+   * The fontScale currently used on the device or `null` if unknown.
    *
    * This is unknown for the legacy client and older saved snapshots.
    */
@@ -75,11 +76,18 @@ class ResourceLookup(private val project: Project) {
     @VisibleForTesting set
 
   /**
-   * The screen dimension in pixels <code>null</code> if unknown.
+   * The screen dimension in pixels `null` if unknown.
    *
    * This is unknown for the legacy client and older saved snapshots.
    */
   var screenDimension: Dimension? = null
+
+  /**
+   * The window bounds in pixels `null` if unknown.
+   *
+   * This is unknown for the legacy client and older saved snapshots.
+   */
+  var windowBounds: Rectangle? = null
     @VisibleForTesting set
 
   var displayOrientation: Int? = null
@@ -101,12 +109,14 @@ class ResourceLookup(private val project: Project) {
     fontScaleFromConfig: Float = 0f,
     mainDisplayOrientation: Int = 0,
     screenSize: Dimension? = null,
+    windowBounds: Rectangle? = null,
     isRunningInMainDisplay: Boolean? = null,
   ) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
     resolver = createResolver(folderConfig, theme, process)
     screenDimension = screenSize
+    this.windowBounds = windowBounds
     displayOrientation = mainDisplayOrientation
     this.isRunningInMainDisplay = isRunningInMainDisplay
   }
@@ -116,11 +126,13 @@ class ResourceLookup(private val project: Project) {
     deviceDpi: Int?,
     deviceFontScale: Float? = null,
     screenSize: Dimension? = null,
+    windowBounds: Rectangle? = null,
   ) {
     dpi = deviceDpi?.takeIf { it > 0 }
     fontScale = deviceFontScale?.takeIf { it > 0f }
     resolver = null
     screenDimension = screenSize
+    this.windowBounds = windowBounds
   }
 
   @Slow

@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.android.sync.model.idea;
 
-import com.android.ide.common.repository.GoogleMavenArtifactIdCompat;
+import com.android.ide.common.repository.GoogleMavenArtifactIdHelper;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -202,7 +202,7 @@ public final class BlazeImportFixture {
           new MavenArtifactLocator() {
             @Override
             public Label labelFor(GradleCoordinate coordinate) {
-              return GoogleMavenArtifactIdCompat.getLabelForGoogleMaventArtifact(coordinate);
+              return GoogleMavenArtifactIdHelper.getLabelForGoogleMavenArtifactId(coordinate);
             }
 
             @Override

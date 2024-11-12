@@ -145,8 +145,8 @@ message LocalFile {
 
 // an output artifact not necessarily available on the local file system
 message OutputArtifact {
-  // the blaze-out-relative path of this artifact
-  string relative_path = 1;
+  // Depecated: artifact_path is used instead. The blaze-out-relative path of this artifact
+  string relative_path = 1 [deprecated = true];
   // a string uniquely identifying this artifact. May be used to
   // retrieve it from a remote caching service
   string id = 2;
@@ -159,6 +159,9 @@ message OutputArtifact {
   // algorithm. It represents the content of the file and can be used to detect
   // whether the content has changed.
   string digest = 5;
+  // The artifact path as returned by Bazel/s File.path (i.e. includes prefixes like bazel-out if present and maybe an absolute path).
+  // Components of this path should not be inspected individually (except the file name).
+  string artifact_path = 6;
 }
 
 message AndroidResourceModule {

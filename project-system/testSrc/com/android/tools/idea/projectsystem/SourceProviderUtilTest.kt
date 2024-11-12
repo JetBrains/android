@@ -120,6 +120,8 @@ class SourceProviderUtilTest {
       currentHostTestSourceProviders = mapOf(CommonTestType.UNIT_TEST to listOf(test, testDebug)),
       currentDeviceTestSourceProviders = mapOf(CommonTestType.ANDROID_TEST to listOf(androidTest, androidTestDebug)),
       currentTestFixturesSourceProviders = listOf(),
+      allVariantAllArtifactsSourceProviders =
+        listOf(main, debug, release, test, testDebug, testRelease, androidTest, androidTestDebug),
       currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(main, debug, release),
       mainAndFlavorSourceProviders = listOf(main),
       generatedSources = emptySourceProvider(ScopeType.MAIN),

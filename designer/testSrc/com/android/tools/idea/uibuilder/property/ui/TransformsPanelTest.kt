@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property.ui
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class TransformsPanelTest {
 

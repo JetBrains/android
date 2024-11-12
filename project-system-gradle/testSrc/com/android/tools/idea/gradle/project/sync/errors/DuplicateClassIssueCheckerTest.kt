@@ -23,7 +23,12 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
 class DuplicateClassIssueCheckerTest {
-  private val VALID_MESSAGE =
+  private val VALID_MESSAGE_AGP_8_7 =
+    "Duplicate class org.intellij.lang.annotations.Identifier found in modules jetified-annotations-12.0 (com.intellij:annotations:12.0) and jetified-annotations-13.0 (org.jetbrains:annotations:13.0)\n" +
+    "\n" +
+    "Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors"
+  // Message before change in 8.7
+  private val VALID_MESSAGE_AGP_OLD =
     "Duplicate class org.intellij.lang.annotations.Identifier found in modules jetified-annotations-12.0 (com.intellij:annotations:12.0) and jetified-annotations-13.0 (org.jetbrains:annotations:13.0)\n" +
     "\n" +
     "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>."
@@ -31,14 +36,14 @@ class DuplicateClassIssueCheckerTest {
 
   @Test
   fun `not BuildException causes null issue`() {
-    val issueData = GradleIssueData("projectFolderPath", Throwable(VALID_MESSAGE), null, null)
+    val issueData = GradleIssueData("projectFolderPath", Throwable(VALID_MESSAGE_AGP_8_7), null, null)
     val buildIssue = issueChecker.check(issueData)
     assertThat(buildIssue).isNull()
   }
 
   @Test
   fun `BuildException with no RuntimeException causes null issue`() {
-    val issueData = GradleIssueData("projectFolderPath", BuildException("BuildException", Throwable(VALID_MESSAGE)), null, null)
+    val issueData = GradleIssueData("projectFolderPath", BuildException("BuildException", Throwable(VALID_MESSAGE_AGP_8_7)), null, null)
     val buildIssue = issueChecker.check(issueData)
     assertThat(buildIssue).isNull()
   }
@@ -51,8 +56,17 @@ class DuplicateClassIssueCheckerTest {
   }
 
   @Test
-  fun `href is replaced with correct message`() {
-    val issueData = GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE)), null, null)
+  fun `link is replaced with correct message`() {
+    val issueData = GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_8_7)), null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes).isEmpty()
+    assertThat(buildIssue.description).contains("https://d.android.com/r/tools/classpath-sync-errors")
+  }
+
+  @Test
+  fun `link is replaced with correct older message`() {
+    val issueData = GradleIssueData("projectFolderPath", BuildException("Build exception", RuntimeException(VALID_MESSAGE_AGP_OLD)), null, null)
     val buildIssue = issueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes).hasSize(1)
@@ -63,25 +77,32 @@ class DuplicateClassIssueCheckerTest {
 
   @Test
   fun `testCheckIssueHandled`() {
+    /*
+    Full message is:
+    ```
+    Duplicate class  ABC
+
+    Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors
+    ```
+    But GradleBuildScriptErrorParser does not support empty lines in the description, so the link line is missing in practice.
+     */
     assertThat(
       issueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
-        "Duplicate class  ABC \n" +
-        "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>.",
-        "Caused by: java.lang.RuntimeException",
+        "Duplicate class  ABC",
         null,
-        "",
+        null,
+        ":app:checkDebugDuplicateClasses",
         TestMessageEventConsumer()
       )).isEqualTo(true)
 
     assertThat(
       issueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
-        "Duplicate class  ABC \n" +
-        "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>.",
-        "Caused by: java.net.SocketException",
+        "Duplicate class  ABC",
         null,
-        "",
+        null,
+        ":app:compileDebug",
         TestMessageEventConsumer()
       )).isEqualTo(false)
   }

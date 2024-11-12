@@ -32,9 +32,13 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deploy.proto.Deploy
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor.NUM_RECOMPOSITION_STATUS_POLLS_PER_EDIT
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.application.ReadAction
@@ -74,6 +78,7 @@ class LiveEditProjectMonitorTest {
   fun setUp() {
     UsageTracker.setWriterForTest(usageTracker)
     myProject = projectRule.project
+    FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
   }
 
@@ -92,7 +97,7 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     monitor.handleChangedMethods(myProject, listOf(file))
     monitor.doOnManualLETrigger()
@@ -102,14 +107,15 @@ class LiveEditProjectMonitorTest {
   @Test
   fun autoModeCompileSuccess() {
     val monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
+      LiveEditService.getInstance(myProject), myProject
+    )
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
 
     // Fake a UpToDate Physical Device
     val device1: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     MockitoKt.whenever(device1.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device1, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device1, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     // Push A.class into the class cache and pretend we already modified it once already.
     monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
@@ -134,7 +140,7 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
@@ -149,7 +155,7 @@ class LiveEditProjectMonitorTest {
     val device: IDevice = MockitoKt.mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
-    monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
 
@@ -224,7 +230,7 @@ class LiveEditProjectMonitorTest {
     }
 
     // Fake Deployment
-    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("some.app"), device, LiveEditApp(emptySet(), 32), emptyList()) { true }
     monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
     monitor.scheduleErrorPolling(deployer, installer, adb, "some.app")
     taskFinished.await()
@@ -266,7 +272,7 @@ class LiveEditProjectMonitorTest {
     }
 
     // Fake Deployment
-    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("some.app"), device, LiveEditApp(emptySet(), 32), emptyList()) { true }
     monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
 
     for (i in 1..numRecompositionRequested) {
@@ -310,7 +316,7 @@ class LiveEditProjectMonitorTest {
 
     MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).thenReturn(listOf(Deploy.ComposeException.newBuilder().build()))
     // Fake Deployment
-    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), emptyList()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext("some.app"), device, LiveEditApp(emptySet(), 32), emptyList()) { true }
     monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
 
     for (i in 1..numRecompositionRequested) {
@@ -347,7 +353,7 @@ class LiveEditProjectMonitorTest {
       done.countDown()
     }
 
-    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 30), listOf()) { true }
+    monitor.notifyAppDeploy(TestApplicationProjectContext(appId), device, LiveEditApp(emptySet(), 30), listOf()) { true }
     assertTrue(ready.await(5000, TimeUnit.MILLISECONDS))
 
     ReadAction.run<Throwable> {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property.testutil
 
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAtt
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.PropertiesTable
@@ -199,6 +200,12 @@ class MotionAttributeRule(
         ComponentDescriptorUtil.component(layout),
         )
         .build()
+        .also {
+          val manager = it.surface.getSceneManager(it) as? SyncLayoutlibSceneManager
+          manager?.ignoreRenderRequests = true
+          manager?.ignoreModelUpdateRequests = true
+        }
+
     val surface = model.surface
     val panel = Mockito.mock(AccessoryPanel::class.java)
     whenever(surface.accessoryPanel).thenReturn(panel)

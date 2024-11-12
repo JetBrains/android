@@ -18,10 +18,9 @@ package com.google.idea.blaze.qsync.java;
 import static java.util.function.Predicate.not;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
+import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -34,18 +33,15 @@ import java.util.Optional;
  */
 public class AddAndroidResPackages implements ProjectProtoUpdateOperation {
 
-  private final Supplier<State> artifactStateSupplier;
-
-  public AddAndroidResPackages(Supplier<State> artifactStateSupplier) {
-    this.artifactStateSupplier = artifactStateSupplier;
-  }
+  public AddAndroidResPackages() {}
 
   @Override
-  public void update(ProjectProtoUpdate update) throws BuildException {
+  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
+      throws BuildException {
     update
         .workspaceModule()
         .addAllAndroidSourcePackages(
-            artifactStateSupplier.get().depsMap().values().stream()
+            artifactState.depsMap().values().stream()
                 .map(TargetBuildInfo::javaInfo)
                 .flatMap(Optional::stream)
                 .map(JavaArtifactInfo::androidResourcesPackage)

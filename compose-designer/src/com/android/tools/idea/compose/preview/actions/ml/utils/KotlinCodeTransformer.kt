@@ -16,11 +16,9 @@
 package com.android.tools.idea.compose.preview.actions.ml.utils
 
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.GenerationConfig
 import com.android.tools.idea.studiobot.MimeType
-import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.intellij.diff.DiffContentFactory
@@ -29,37 +27,34 @@ import com.intellij.diff.DiffManager
 import com.intellij.diff.chains.SimpleDiffRequestChain
 import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.diff.util.DiffUserDataKeysEx
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
- * Given a [Prompt] with instructions to modify a given file, show a diff view so the user can
- * compare the changes and decide which part(s) to merge.
+ * Given a [Prompt] with instructions to modify a given file, this method queries a model and
+ * applies the given [callback] with the generated code and original [PsiFile].
  */
-internal fun transformAndShowDiff(
+internal suspend fun generateCodeAndExecuteCallback(
   prompt: Prompt,
   filePointer: SmartPsiElementPointer<PsiFile>,
-  disposable: Disposable,
-  modelType: ModelType = ModelType.CHAT,
-): Job {
+  progressIndicatorText: String = message("ml.actions.progress.indicator.sending.query"),
+  callback: (Project, PsiFile, KotlinCodeBlock) -> Unit = ::mergeBlockAndShowDiff,
+) {
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
 
-  // Send the prompt + code directly to the model, with a progress indicator
-  return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
-    withBackgroundProgress(project, message("ml.actions.sending.query"), true) {
+  withContext(AndroidDispatchers.workerThread) {
+    // Send the prompt + code directly to the model, with a progress indicator
+    withBackgroundProgress(project, progressIndicatorText, true) {
       val botResponse =
         studioBot
-          .model(project, modelType)
+          .model(project)
           .generateCode(
             legacyClientSidePrompt = prompt,
             language = MimeType.KOTLIN,
@@ -72,21 +67,29 @@ internal fun transformAndShowDiff(
           .first()
           .text
 
-      withContext(AndroidDispatchers.uiThread) {
-        val psiFile = filePointer.element ?: return@withContext
+      withContext(AndroidDispatchers.uiThread) uiThread@{
+        val psiFile = filePointer.element ?: return@uiThread
         val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
-
-        val modifiedDocument: Document = mergeOrAppendResponse(psiFile, parsedBlock)
-        showDiff(project, psiFile, modifiedDocument.text)
+        callback(project, psiFile, parsedBlock)
       }
     }
   }
 }
 
-private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: String) {
+/**
+ * Modifies a [Document] given a [kotlinCodeBlock] and shows a diff view to compare the resulting
+ * document with a given [psiFile].
+ */
+private fun mergeBlockAndShowDiff(
+  project: Project,
+  psiFile: PsiFile,
+  kotlinCodeBlock: KotlinCodeBlock,
+) {
+  val modifiedDocument: Document = mergeOrAppendResponse(psiFile, kotlinCodeBlock)
+
   val diffFactory = DiffContentFactory.getInstance()
   val originalContent = diffFactory.create(project, psiFile.virtualFile)
-  val modifiedContent = diffFactory.create(project, modifiedDocument)
+  val modifiedContent = diffFactory.create(project, modifiedDocument, psiFile.fileType)
   val request =
     SimpleDiffRequest(
       "Review Code Changes",
@@ -116,7 +119,7 @@ private fun mergeOrAppendResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock
   if (merged != null) {
     return merged
   }
-  return codeMerger.appendBlock(parsedBlock, psiFile)
+  return appendBlock(project, psiFile, parsedBlock)
 }
 
 private fun generateKotlinCodeBlock(

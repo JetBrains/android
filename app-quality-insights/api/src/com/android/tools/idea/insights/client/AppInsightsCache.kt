@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.ai.AiInsight
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet
@@ -76,6 +77,17 @@ interface AppInsightsCache {
 
   /** Removes the note matching [NoteId] from the cache. */
   fun removeNote(connection: Connection, noteId: NoteId)
+
+  /** Gets the cached [AiInsight] if one exists. */
+  fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight?
+
+  /**
+   * Puts an [AiInsight] in the cache.
+   *
+   * If [clearExistingCacheEntries] is specified, clears all cached insights. This is used to force
+   * the client to re-fetch an insight.
+   */
+  fun putAiInsight(connection: Connection, issueId: IssueId, aiInsight: AiInsight)
 }
 
 private const val MAXIMUM_ISSUES_CACHE_SIZE = 1000L
@@ -89,7 +101,11 @@ private data class IssueDetailsValue(
   fun toIssue() = AppInsightsIssue(issueDetails, sampleEvents.first(), state)
 }
 
-private data class CacheValue(val issueDetails: IssueDetailsValue?, val notes: List<Note>?)
+private data class CacheValue(
+  val issueDetails: IssueDetailsValue?,
+  val notes: List<Note>?,
+  val aiInsight: AiInsight?,
+)
 
 // TODO(b/249510375): persist cache
 /** Cache for storing issues used in offline and online mode. */
@@ -154,7 +170,11 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issues.forEach { newIssue ->
       issuesCache.compute(newIssue.issueDetails.id) { _, oldValue ->
-        CacheValue(oldValue?.issueDetails.reconcileWith(newIssue), oldValue?.notes)
+        CacheValue(
+          oldValue?.issueDetails.reconcileWith(newIssue),
+          oldValue?.notes,
+          oldValue?.aiInsight,
+        )
       }
     }
   }
@@ -200,6 +220,22 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
       checkNotNull(oldValue) { "Issue should exist for this note by this time." }
       checkNotNull(oldValue.notes) { "Notes should already be populated." }
       oldValue.copy(notes = oldValue.notes.filterNot { it.id.noteId == noteId.noteId })
+    }
+  }
+
+  override fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight? {
+    return compositeIssuesCache
+      .getIfPresent(connection)
+      ?.getIfPresent(issueId)
+      ?.aiInsight
+      ?.copy(isCached = true)
+  }
+
+  override fun putAiInsight(connection: Connection, issueId: IssueId, aiInsight: AiInsight) {
+    val issuesCache = getOrCreateIssuesCache(connection).asMap()
+    issuesCache.compute(issueId) { _, oldValue ->
+      var cacheValue = oldValue ?: CacheValue(null, null, null)
+      cacheValue.copy(aiInsight = aiInsight)
     }
   }
 

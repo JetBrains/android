@@ -1,2 +1,0 @@
-[dependencies]
-implementation = [{ notation = 'com.example:artifact:1.0' }]

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -23,12 +24,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.HideablePanel
 import java.util.TreeSet
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.items
 
@@ -67,7 +70,7 @@ fun <V> SetFilter(values: List<V>, state: SetFilterState<*, V>, modifier: Modifi
   SetFilter(state.attribute.name, values, state.selection, modifier)
 }
 
-interface RowFilter<T> {
+interface RowFilter<in T> {
   fun apply(row: T): Boolean
 }
 
@@ -98,6 +101,20 @@ fun <T, V> SingleSelectionDropdown(values: List<V>, state: SingleSelectionFilter
       },
     ) {
       Text(state.selection.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+  }
+}
+
+/** A set of radio buttons that acts as a view to a SingleSelectionFilterState. */
+@Composable
+fun <T, V> SingleSelectionRadioButtons(values: List<V>, state: SingleSelectionFilterState<T, V>) {
+  Column(modifier = Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Text(state.attribute.name, fontWeight = FontWeight.SemiBold)
+
+    for (value in values) {
+      RadioButtonRow(selected = state.selection == value, onClick = { state.selection = value }) {
+        Text(value.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+      }
     }
   }
 }

@@ -111,6 +111,7 @@
     <orderEntry type="library" scope="PROVIDED" name="jetbrains.kotlin.compose.compiler.plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>

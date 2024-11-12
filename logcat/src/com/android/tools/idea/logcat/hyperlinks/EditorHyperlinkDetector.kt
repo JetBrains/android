@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -41,19 +41,18 @@ internal class EditorHyperlinkDetector(
   executor: ExecutorService = AppExecutorUtil.getAppExecutorService(),
 ) : HyperlinkDetector, Disposable {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
-  private val studioBot = StudioBot.getInstance()
   private var isDisposed = false
 
   private val expirableToken = Expirable { isDisposed }
 
-  @VisibleForTesting val filter = SdkSourceRedirectFilter(project, SimpleFileLinkFilter(project))
+  @VisibleForTesting val filter = SdkSourceRedirectFilter(project)
 
   init {
     Disposer.register(parentDisposable, this)
 
-    if (studioBot.isAvailable()) {
-      filter.addFilter(StudioBotFilter(editor))
-    }
+    LogcatConsoleFilterProvider.EP_NAME.extensionList
+      .map { it.create(editor) }
+      .forEach { filter.addFilter(it) }
 
     // Add all standard filters
     // Performed as a background task based on `ConsoleViewImpl.updatePredefinedFiltersLater()`
@@ -63,6 +62,7 @@ internal class EditorHyperlinkDetector(
       .expireWith(parentDisposable)
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
         filters.forEach { filter.addFilter(it) }
+        filter.addFilter(SimpleFileLinkFilter(project))
       }
       .submit(executor)
   }

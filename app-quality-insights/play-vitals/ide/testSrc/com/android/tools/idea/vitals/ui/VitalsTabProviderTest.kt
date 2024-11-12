@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.FakeAppInsightsProjectLevelController
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
+import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -29,80 +28,121 @@ import com.intellij.testFramework.replaceService
 import java.awt.Component
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class VitalsTabProviderTest {
 
   @get:Rule val projectRule = ProjectRule()
 
-  @Test
-  fun `model change triggers different UI presentation`() = runTest {
-    // Setup
-    val manager =
+  private lateinit var modelStateFlow: MutableStateFlow<AppInsightsModel>
+  private lateinit var manager: AppInsightsConfigurationManager
+  private lateinit var service: VitalsConfigurationService
+  private lateinit var tabPanel: AppInsightsTabPanel
+  private lateinit var tabProvider: VitalsTabProvider
+
+  @Before
+  fun setUp() {
+    modelStateFlow = MutableStateFlow(AppInsightsModel.Uninitialized)
+    manager =
       object : AppInsightsConfigurationManager {
         override val project = projectRule.project
-        override val configuration =
-          MutableStateFlow<AppInsightsModel>(AppInsightsModel.Uninitialized)
+        override val configuration = modelStateFlow
         override val offlineStatusManager = OfflineStatusManagerImpl()
 
         override fun refreshConfiguration() {}
       }
 
-    val mockService = MockitoKt.mock<VitalsConfigurationService>()
-    Mockito.`when`(mockService.manager).thenReturn(manager)
+    service = mock()
+    Mockito.`when`(service.manager).thenReturn(manager)
     projectRule.project.replaceService(
       VitalsConfigurationService::class.java,
-      mockService,
+      service,
       projectRule.disposable,
     )
 
-    val tabProvider = VitalsTabProvider()
-    val tabPanel = AppInsightsTabPanel()
+    tabProvider = VitalsTabProvider()
+    tabPanel = AppInsightsTabPanel()
     Disposer.register(projectRule.disposable, tabPanel)
+  }
 
-    val callbackFlow =
-      callbackFlow<Component> {
-        tabPanel.addContainerListener(
-          object : ContainerAdapter() {
-            override fun componentAdded(e: ContainerEvent) {
-              trySendBlocking(e.child)
-            }
-          }
-        )
-        tabProvider.populateTab(projectRule.project, tabPanel)
-        awaitClose()
+  private fun populateTabAndGetComponentsFlow(): Flow<Component> = callbackFlow {
+    tabPanel.addContainerListener(
+      object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) {
+          trySendBlocking(e.child)
+        }
       }
+    )
+    tabProvider.populateTab(projectRule.project, tabPanel)
+    awaitClose()
+  }
+
+  @Test
+  fun `model change triggers different UI presentation`() = runTest {
+    val callbackFlow = populateTabAndGetComponentsFlow()
 
     callbackFlow.take(3).collectIndexed { index, component ->
       when (index) {
         0 -> {
           assertThat(component.toString()).contains("placeholderContent")
-          manager.configuration.value =
-            AppInsightsModel.Authenticated(FakeAppInsightsProjectLevelController())
+          modelStateFlow.value =
+            AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
         }
         1 -> {
           assertThat(component).isInstanceOf(VitalsTab::class.java)
-          manager.configuration.value = AppInsightsModel.Unauthenticated
+          modelStateFlow.value = AppInsightsModel.Unauthenticated
         }
         2 -> {
           assertThat(component.toString()).contains("loggedOutErrorStateComponent")
-          manager.configuration.value = AppInsightsModel.InitializationFailed
+          modelStateFlow.value = AppInsightsModel.InitializationFailed
         }
         3 -> {
           assertThat(component.toString()).contains("initializationFailedComponent")
         }
       }
     }
+  }
+
+  @Test
+  fun `controller is refreshed after reauthentication`() = runTest {
+    val controller =
+      object : StubAppInsightsProjectLevelController() {
+        var refreshCount = 0
+
+        override fun refresh() {
+          refreshCount++
+        }
+      }
+
+    val flow = populateTabAndGetComponentsFlow()
+    val collection = launch {
+      flow.collectIndexed { index, _ ->
+        when (index) {
+          0 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+          1 -> modelStateFlow.value = AppInsightsModel.Unauthenticated
+          2 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+          3 -> modelStateFlow.value = AppInsightsModel.InitializationFailed
+          4 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+          else -> cancel()
+        }
+      }
+    }
+
+    collection.join()
+    assertThat(controller.refreshCount).isEqualTo(2)
   }
 }

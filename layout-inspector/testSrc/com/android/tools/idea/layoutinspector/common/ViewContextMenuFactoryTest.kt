@@ -17,11 +17,8 @@ package com.android.tools.idea.layoutinspector.common
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.mockito.kotlin.getTypedArgument
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.getTypedArgument
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -44,13 +41,16 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.replaceService
+import javax.swing.JComponent
+import javax.swing.JPopupMenu
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import javax.swing.JComponent
-import javax.swing.JPopupMenu
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class ViewContextMenuFactoryTest {
   @get:Rule val applicationRule = ApplicationRule()

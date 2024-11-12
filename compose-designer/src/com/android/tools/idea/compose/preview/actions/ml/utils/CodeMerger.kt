@@ -191,32 +191,39 @@ internal class CodeMerger(private val project: Project) {
     }
     return document
   }
+}
 
-  /**
-   * Returns the document obtained by appending the given [block] of code to the end of the existing
-   * [userFile]. The block starts in a new line, so a line break is needed before inserting the full
-   * string.
-   */
-  fun appendBlock(block: KotlinCodeBlock, userFile: PsiFile): Document {
-    val project = userFile.project
+/**
+ * Returns the document obtained by appending the given [kotlinCodeBlock] to the end of the existing
+ * [psiFile]. The block starts in a new line, so a line break is needed before inserting the full
+ * string. If [inline], the [psiFile] document will be modified directly.
+ */
+internal fun appendBlock(
+  project: Project,
+  psiFile: PsiFile,
+  kotlinCodeBlock: KotlinCodeBlock,
+  inline: Boolean = false,
+): Document {
+  val documentManager = PsiDocumentManager.getInstance(project)
+  val originalDocument =
+    documentManager.getDocument(psiFile)
+      ?: throw RuntimeException("No document associated with ${psiFile.name}")
 
-    val documentManager = PsiDocumentManager.getInstance(project)
-    val originalDocument =
-      documentManager.getDocument(userFile)
-        ?: throw RuntimeException("No document associated with ${userFile.name}")
-
-    val psiFile =
-      PsiFileFactory.getInstance(project)
-        .createFileFromText(userFile.language, originalDocument.text)
-    val mergedDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
-
-    WriteCommandAction.runWriteCommandAction(project) {
-      mergedDocument.insertString(mergedDocument.textLength, block.text)
-      documentManager.commitDocument(mergedDocument)
+  val documentToModify =
+    if (inline) originalDocument
+    else {
+      val copiedDocument =
+        PsiFileFactory.getInstance(project)
+          .createFileFromText(psiFile.language, originalDocument.text)
+      PsiDocumentManager.getInstance(project).getDocument(copiedDocument)!!
     }
 
-    return mergedDocument
+  WriteCommandAction.runWriteCommandAction(project) {
+    documentToModify.insertString(documentToModify.textLength, kotlinCodeBlock.text)
+    documentManager.commitDocument(documentToModify)
   }
+
+  return documentToModify
 }
 
 private fun getIndent(file: PsiFile, offset: Int): CharSequence {

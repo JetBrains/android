@@ -22,7 +22,6 @@ import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -67,8 +66,6 @@ import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
 import java.awt.EventQueue
-import java.awt.KeyboardFocusManager
-import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.IntFunction
 import javax.swing.Icon
@@ -88,8 +85,7 @@ internal class EmulatorToolWindowPanel(
     ConnectionStateListener {
 
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
-  private val displayConfigurator = DisplayConfigurator()
-  private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
+  private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
 
   override var primaryDisplayView: EmulatorView? = null
@@ -97,23 +93,6 @@ internal class EmulatorToolWindowPanel(
   private val multiDisplayStateStorage = MultiDisplayStateStorage.getInstance(project)
   private val multiDisplayStateUpdater = Runnable {
     multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdFolder, displayConfigurator.getMultiDisplayState())
-  }
-
-  private val focusOwnerListener = PropertyChangeListener { event ->
-    val newFocus = event.newValue
-    val gained = newFocus is EmulatorView && newFocus.emulator == emulator
-    val oldFocus = event.oldValue
-    val lost = oldFocus is EmulatorView && oldFocus.emulator == emulator
-    if (gained != lost) {
-      if (gained) {
-        if (connected && EmulatorSettings.getInstance().synchronizeClipboard) {
-          clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
-        }
-      }
-      else {
-        clipboardSynchronizer?.stopKeepingHostClipboardInSync()
-      }
-    }
   }
 
   private val emulatorId
@@ -162,11 +141,6 @@ internal class EmulatorToolWindowPanel(
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
-      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        if (isFocusOwner && EmulatorSettings.getInstance().synchronizeClipboard) {
-          clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
-        }
-      }
     }
   }
 
@@ -184,15 +158,12 @@ internal class EmulatorToolWindowPanel(
     Disposer.register(this, disposable)
     contentDisposable = disposable
 
-    clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)
-
     val primaryDisplayPanel =
-        EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
+        EmulatorDisplayPanel(disposable, emulator, project, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
     displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
     val emulatorView = primaryDisplayPanel.displayView
     primaryDisplayView = emulatorView
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
     emulatorView.addPostureListener(object: PostureListener {
       override fun postureChanged(posture: PostureDescriptor) {
@@ -274,7 +245,6 @@ internal class EmulatorToolWindowPanel(
       })
     }
 
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     emulator.removeConnectionStateListener(this)
     Disposer.dispose(disposable)
 
@@ -283,7 +253,6 @@ internal class EmulatorToolWindowPanel(
     primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
-    clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
   }
@@ -305,7 +274,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
-  private inner class DisplayConfigurator : DisplayConfigurationListener {
+  private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
@@ -374,7 +343,7 @@ internal class EmulatorToolWindowPanel(
           val displayId = display.displayId
           displayPanels.computeIfAbsent(displayId, IntFunction {
             assert(it != PRIMARY_DISPLAY_ID)
-            EmulatorDisplayPanel(contentDisposable!!, emulator, it, display.size, zoomToolbarVisible)
+            EmulatorDisplayPanel(contentDisposable!!, emulator, project, it, display.size, zoomToolbarVisible)
           })
         }
         is SplitNode -> {
@@ -399,7 +368,7 @@ internal class EmulatorToolWindowPanel(
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
         displayPanels.computeIfAbsent(displayId, IntFunction {
           assert(it != PRIMARY_DISPLAY_ID)
-          EmulatorDisplayPanel(contentDisposable!!, emulator, it, display.size, zoomToolbarVisible)
+          EmulatorDisplayPanel(contentDisposable!!, emulator, project, it, display.size, zoomToolbarVisible)
         })
       }
     }
@@ -410,7 +379,7 @@ internal class EmulatorToolWindowPanel(
       centerPanel.validate()
 
       // Toolbar updates should be requested after all AbstractDisplayView have been placed in component hierarchy.
-      // Otherwise we risk the action update to have a partial component hierarchy which may lead to wrong results.
+      // Otherwise, we risk the action update to have a partial component hierarchy which may lead to wrong results.
       // See b/351129848
       mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
       secondaryToolbar.updateActionsAsync()

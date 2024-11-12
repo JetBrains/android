@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +48,9 @@ interface AppInsightsProjectLevelController {
 
   /** [CoroutineScope] whose lifecycle is tied to current configuration of the host module. */
   val coroutineScope: CoroutineScope
+
+  /** The project this controller is associated with. */
+  val project: Project
 
   // events
   fun refresh()
@@ -88,4 +92,6 @@ interface AppInsightsProjectLevelController {
   fun selectVisibilityType(value: VisibilityType)
 
   fun selectIssueVariant(variant: IssueVariant?)
+
+  fun refreshInsight(contextSharingOverride: Boolean)
 }

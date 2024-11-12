@@ -23,10 +23,12 @@ import java.awt.event.FocusEvent
 import javax.swing.table.TableModel
 
 open class PFormTableImpl(model: TableModel) : JBTable(model) {
+  // Controls whether the table can accept focus requests or not.
+  private var canFocus = false
 
   init {
     isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = PTableFocusTraversalPolicy(this)
+    focusTraversalPolicy = PTableFocusTraversalPolicy(this) { canFocus }
     super.resetDefaultFocusTraversalKeys()
 
     super.addFocusListener(
@@ -106,6 +108,21 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
     }
     super.removeEditor()
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+    canFocus = true
+  }
+
+  override fun removeNotify() {
+    // Do not allow the FocusTraversalPolicy to bring focus to this table
+    // during and after this table removal.
+    // Note: `super.removeNotify()` will attempt to transfer the focus to
+    // another component which will call the current FocusTraversalPolicy.
+    // See b/315753149
+    canFocus = false
+    super.removeNotify()
   }
 
   fun scrollCellIntoView(row: Int, column: Int) {

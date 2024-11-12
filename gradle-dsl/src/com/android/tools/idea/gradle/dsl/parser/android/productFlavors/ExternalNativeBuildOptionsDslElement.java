@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalN
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -33,8 +32,7 @@ public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement 
   public static final PropertiesElementDescription<ExternalNativeBuildOptionsDslElement> EXTERNAL_NATIVE_BUILD_OPTIONS =
     new PropertiesElementDescription<>("externalNativeBuild",
                                        ExternalNativeBuildOptionsDslElement.class,
-                                       ExternalNativeBuildOptionsDslElement::new,
-                                       ExternalNativeBuildOptionsDslElementSchema::new);
+                                       ExternalNativeBuildOptionsDslElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"cmake", CMakeOptionsDslElement.CMAKE_OPTIONS},
@@ -51,18 +49,5 @@ public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement 
 
   public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public static final class ExternalNativeBuildOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
-    protected ImmutableMap<String, PropertiesElementDescription<?>> getAllBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-      return CHILD_PROPERTIES_ELEMENTS_MAP;
-    }
-
-    @NotNull
-    @Override
-    public String getAgpDocClass() {
-      return "com.android.build.api.dsl.ExternalNativeBuild";
-    }
   }
 }

@@ -28,23 +28,28 @@ import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
-import com.android.tools.idea.adddevicedialog.LoadingState
+import com.android.tools.idea.adddevicedialog.LocalFileSystem
+import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.adddevicedialog.WizardAction
+import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.ui.Messages
 import java.awt.Component
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -55,60 +60,83 @@ private fun matches(device: VirtualDevice, image: ISystemImage): Boolean {
     DeviceSystemImageMatcher.matches(device.device, image)
 }
 
-private fun resolve(deviceSkin: Path, imageSkins: Iterable<Path>) =
+private fun resolve(sdkHandler: AndroidSdkHandler, deviceSkin: Path, imageSkins: Iterable<Path>) =
   DeviceSkinResolver.resolve(
-    deviceSkin,
-    imageSkins,
-    AndroidSdks.getInstance().tryToChooseSdkHandler().location,
-    DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath(),
-  )
+      deviceSkin,
+      imageSkins,
+      sdkHandler.location,
+      DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath(),
+    )
+    .takeIf { Files.exists(it) } ?: SkinUtils.noSkin()
 
 @Composable
 internal fun WizardPageScope.ConfigurationPage(
   device: VirtualDevice,
   image: ISystemImage?,
   skins: ImmutableCollection<Skin>,
+  deviceNameValidator: DeviceNameValidator,
+  sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
-  val allImages: LoadingState<List<ISystemImage>> by
-    remember {
-        ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler()).map {
-          LoadingState.Ready(it)
-        }
-      }
-      .collectAsState(LoadingState.Loading)
-  val readyImages =
-    allImages as? LoadingState.Ready<List<ISystemImage>>
-      ?: run {
-        Box(Modifier.fillMaxSize()) {
-          Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
-        }
-        return
-      }
-  val images = readyImages.value.filter { matches(device, it) }.toImmutableList()
+  val project = LocalProject.current
+  val imagesState: SystemImageState by
+    remember { ISystemImages.systemImageFlow(sdkHandler, project) }
+      .collectAsState(SystemImageState.INITIAL)
+  val images = imagesState.images.filter { matches(device, it) }.toImmutableList()
+  if (!imagesState.hasLocal || (images.isEmpty() && !imagesState.hasRemote)) {
+    Box(Modifier.fillMaxSize()) {
+      Text("Loading system images...", modifier = Modifier.align(Alignment.Center))
+    }
+    return
+  }
   if (images.isEmpty()) {
     Box(Modifier.fillMaxSize()) {
       Text("No system images available.", modifier = Modifier.align(Alignment.Center))
     }
+    return
   }
 
-  // TODO: http://b/342003916
-  val configureDevicePanelState =
-    remember(device) { configureDevicePanelState(device, skins, image) }
+  val fileSystem = LocalFileSystem.current
+  val state =
+    remember(device) {
+      if (image == null) {
+        // Adding a device
+        val state =
+          ConfigureDevicePanelState(
+            device,
+            skins,
+            images.sortedWith(SystemImageComparator).last().takeIf { it.isRecommended() },
+          )
+
+        val skin = device.device.defaultHardware.skinFile
+        state.setSkin(
+          resolve(
+            sdkHandler,
+            if (skin == null) SkinUtils.noSkin(fileSystem) else fileSystem.getPath(skin.path),
+            emptyList(),
+          )
+        )
+
+        state
+      } else {
+        // Editing a device
+        ConfigureDevicePanelState(device, skins, image)
+      }
+    }
 
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
   val coroutineScope = rememberCoroutineScope()
 
   ConfigureDevicePanel(
-    configureDevicePanelState,
+    state,
+    image,
     images,
+    deviceNameValidator,
     onDownloadButtonClick = { coroutineScope.launch { downloadSystemImage(parent, it) } },
     onSystemImageTableRowClick = {
-      configureDevicePanelState.systemImageTableSelectionState.selection = it
-
-      val skin = resolve(configureDevicePanelState.device.skin.path(), it.skins)
-      configureDevicePanelState.setSkin(skin)
+      state.systemImageTableSelectionState.selection = it
+      state.setSkin(resolve(sdkHandler, state.device.skin.path(), it.skins))
     },
     onImportButtonClick = {
       // TODO Validate the skin
@@ -120,41 +148,51 @@ internal fun WizardPageScope.ConfigurationPage(
           null,
         )
 
-      if (skin != null) {
-        configureDevicePanelState.setSkin(skin.toNioPath())
-      }
+      if (skin != null) state.setSkin(skin.toNioPath())
     },
   )
 
   nextAction = WizardAction.Disabled
 
-  finishAction = WizardAction {
-    coroutineScope.launch {
-      val selectedDevice = configureDevicePanelState.device
-      val selectedImage = configureDevicePanelState.systemImageTableSelectionState.selection!!
-
-      if (ensureSystemImageIsPresent(selectedImage, parent)) {
-        if (finish(selectedDevice, selectedImage)) {
-          close()
+  finishAction =
+    if (state.validity.isValid) {
+      WizardAction {
+        coroutineScope.launch {
+          finish(
+            state.device,
+            state.systemImageTableSelectionState.selection!!,
+            parent,
+            finish,
+            sdkHandler,
+          )
         }
       }
+    } else {
+      WizardAction.Disabled
     }
-  }
 }
 
-private fun configureDevicePanelState(
+private suspend fun WizardDialogScope.finish(
   device: VirtualDevice,
-  skins: ImmutableCollection<Skin>,
-  image: ISystemImage?,
-): ConfigureDevicePanelState {
-  val state = ConfigureDevicePanelState(device, skins, image)
-
-  if (image == null) {
-    val skin = device.device.defaultHardware.skinFile
-    state.setSkin(resolve(if (skin == null) SkinUtils.noSkin() else skin.toPath(), emptyList()))
+  image: ISystemImage,
+  parent: Component,
+  finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+  sdkHandler: AndroidSdkHandler,
+) {
+  if (ensureSystemImageIsPresent(image, parent)) {
+    try {
+      if (finish(device, sdkHandler.toLocalImage(image))) {
+        close()
+      }
+    } catch (e: Exception) {
+      logger<LocalVirtualDeviceSource>().error(e)
+      Messages.showErrorDialog(
+        parent,
+        "An error occurred while creating the AVD. See idea.log for details.",
+        "Error Creating AVD",
+      )
+    }
   }
-
-  return state
 }
 
 /**
@@ -174,6 +212,23 @@ private fun ensureSystemImageIsPresent(image: ISystemImage, parent: Component): 
     return downloadSystemImage(parent, image.`package`.path)
   }
   return true
+}
+
+// TODO: http://b/367394413 - This is a hack. Find a better way.
+private fun AndroidSdkHandler.toLocalImage(image: ISystemImage): ISystemImage {
+  if (image !is RemoteSystemImage) return image
+
+  val indicator = StudioLoggerProgressIndicator(AvdConfigurationPage::class.java)
+
+  val images =
+    getSystemImageManager(indicator).imageMap.get(getLocalPackage(image.`package`.path, indicator))
+
+  if (images.size > 1) {
+    logger<AvdConfigurationPage>()
+      .warn("Multiple images for ${image.`package`.path}. Returning the first.")
+  }
+
+  return images.first()
 }
 
 private fun downloadSystemImage(parent: Component, path: String): Boolean {

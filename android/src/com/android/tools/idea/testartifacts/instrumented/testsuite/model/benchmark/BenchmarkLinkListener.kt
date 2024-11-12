@@ -15,39 +15,36 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.tools.idea.perfetto.PerfettoTraceWebLoader
 import com.android.tools.idea.project.AndroidNotification
+import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.io.File
+import java.net.URI
 
 class BenchmarkLinkListener(private val project: Project) : HyperlinkListener {
   override fun hyperlinkClicked(link: String) {
-    if (link.startsWith(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX)) {
-      val localFile = File(FileUtil.getTempDirectory() + link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, File.separator))
-      if (!localFile.exists()) {
-        AndroidNotification.getInstance(project).showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})",
-                                                             NotificationType.WARNING)
-        // TODO (gijosh): Check if we have a task that is currently pulling the file
-        return
-      }
-      val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile) ?: return
-
-      // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-      if (Registry.`is`(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
-        PerfettoTraceWebLoader.loadTrace(virtualFileTrace.toNioPath().toFile())
-      } else {
-        val fd = OpenFileDescriptor(project, virtualFileTrace)
-        ApplicationManager.getApplication().invokeAndWait {
-          FileEditorManager.getInstance(project).openEditor(fd, true)
+    when {
+      link.startsWith(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX) -> {
+        val localFile = File(FileUtil.getTempDirectory() + link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, File.separator))
+        if (!localFile.exists()) {
+          AndroidNotification.getInstance(project).showBalloon("Benchmark file not found", "Unable to open trace file (${localFile.name})",
+                                                               NotificationType.WARNING)
+          // TODO (gijosh): Check if we have a task that is currently pulling the file
+          return
         }
+        val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile) ?: return
+        val fd = OpenFileDescriptor(project, virtualFileTrace)
+        FileEditorManager.getInstance(project).openEditor(fd, true)
       }
+      link.startsWith("http://") || link.startsWith("https://") -> {
+        BrowserLauncher.instance.browse(URI.create(link))
+      }
+      else -> { /* ignore unrecognized links */ }
     }
   }
 }

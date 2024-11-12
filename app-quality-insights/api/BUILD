@@ -32,9 +32,14 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
+        "@intellij//:intellij.platform.vcs.dvcs.impl",
+        "@intellij//:intellij.platform.vcs.impl[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
@@ -49,5 +54,12 @@ jvm_import(
 jvm_import(
     name = "libandroid-core-proto",
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gemini_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

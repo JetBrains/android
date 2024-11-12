@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.VITALS_KEY
+import com.android.tools.idea.insights.ai.GeminiToolkitImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppConnection
@@ -199,6 +200,7 @@ class VitalsConfigurationManager(
         if (testClient == null) {
           clientDeferred.complete(
             VitalsClient(
+              project,
               this@VitalsConfigurationManager,
               cache,
               GoogleLoginService.instance.getActiveUserAuthInterceptor(
@@ -236,7 +238,7 @@ class VitalsConfigurationManager(
               )
             },
             defaultFilters = createVitalsFilters(),
-            cache = cache,
+            geminiToolkit = GeminiToolkitImpl(project),
           )
         controllerDeferred.complete(vitalsController)
       }

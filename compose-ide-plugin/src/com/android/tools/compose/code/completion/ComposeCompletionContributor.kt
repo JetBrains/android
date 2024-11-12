@@ -202,6 +202,11 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     // Allow Kotlin to do the insertion
     super.handleInsert(context)
 
+    // The super handler sometimes leaves postponed operations, specifically when it has to add an
+    // import. Those operations need to be completed before further modifications can be made.
+    val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
+    psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+
     // If the function ends in a required lambda, we may need to make adjustments.
     if (!functionInfo.endsInRequiredLambda || !applyComposeLambdaHandling(context)) return
 
@@ -219,7 +224,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
 
     // Insert the lambda.
     context.document.insertString(context.tailOffset, trailingLambda)
-    PsiDocumentManager.getInstance(context.project).commitDocument(context.document)
+    psiDocumentManager.commitDocument(context.document)
 
     // If there are required parameters before the lambda, then we can just leave the function's
     // parens there.
@@ -230,7 +235,7 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
       context.getLastElementInOffset()?.parentOfType<KtCallExpression>()?.valueArgumentList
         ?: return
     valueArgumentList.delete()
-    PsiDocumentManager.getInstance(context.project).commitDocument(context.document)
+    psiDocumentManager.commitDocument(context.document)
 
     // Move the caret inside the lambda.
     context.editor.caretModel.moveToOffset(context.tailOffset - 2)

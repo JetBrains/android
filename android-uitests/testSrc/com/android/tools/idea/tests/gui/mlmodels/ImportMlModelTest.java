@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.testing.FileSubject;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.mlmodels.ImportMlModelWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
@@ -48,7 +49,10 @@ public class ImportMlModelTest {
     String modelFilePath =
       TestUtils.resolveWorkspacePath("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite").toString();
 
-    guiTest.importSimpleApplication()
+    IdeFrameFixture myIdeFrameFixture = guiTest.importSimpleApplication();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    myIdeFrameFixture
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app")
@@ -57,9 +61,10 @@ public class ImportMlModelTest {
       .enterModelPath(modelFilePath)
       .enterFlavor(flavor)
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    File modelFile = new File(guiTest.ideFrame().getProjectPath(), String.format("/app/src/%s/ml/mobilenet_quant_metadata.tflite", flavor));
+    File modelFile = new File(myIdeFrameFixture.getProjectPath(), String.format("/app/src/%s/ml/mobilenet_quant_metadata.tflite", flavor));
     assertAbout(FileSubject.file()).that(modelFile).isFile();
   }
 }

@@ -93,6 +93,6 @@ public class SnapshotSerializer {
   }
 
   private void visitQuerySummary(QuerySummary summary) {
-    proto.setQuerySummary(summary.proto());
+    proto.setQuerySummary(summary.protoForSerializationOnly());
   }
 }

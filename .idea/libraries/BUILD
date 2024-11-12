@@ -137,13 +137,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "kotlinx-coroutines-guava",
-    jars = ["//prebuilts/tools/common/m2:kotlinx-coroutines-guava_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "guava-testlib",
     jars = ["//prebuilts/tools/common/m2:guava-testlib_files"],
     visibility = ["//visibility:public"],
@@ -319,13 +312,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "gradle-declarative-dsl",
-    jars = ["//prebuilts/tools/common/m2:gradle-declarative-dsl_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "opentest4j",
     jars = ["//prebuilts/tools/common/m2:opentest4j_files"],
     visibility = ["//visibility:public"],
@@ -335,5 +321,12 @@ jvm_import(
 jvm_import(
     name = "mockito-kotlin",
     jars = ["//prebuilts/tools/common/m2:mockito-kotlin_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gradle-declarative-dsl",
+    jars = ["//prebuilts/tools/common/m2:gradle-declarative-dsl_files"],
     visibility = ["//visibility:public"],
 )

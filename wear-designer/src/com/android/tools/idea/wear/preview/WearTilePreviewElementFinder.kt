@@ -28,10 +28,14 @@ import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_NAME
 import com.android.utils.cache.ChangeTracker
 import com.android.utils.cache.ChangeTrackerCachedValue
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
@@ -70,8 +74,18 @@ private val previewElementsCacheKey =
 private val uMethodsWithTilePreviewSignatureCacheKey =
   Key<ChangeTrackerCachedValue<List<UMethod>>>("uMethodsWithTilePreviewSignature")
 
-/** Object that can detect wear tile preview elements in a file. */
-internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearTilePreviewElement> {
+/**
+ * Object that can detect wear tile preview elements in a file.
+ *
+ * @param findMethods a function that returns all [PsiMethod]s and [KtNamedFunction]s for a given
+ *   [PsiFile]. The method will be invoked under a read lock.
+ */
+internal class WearTilePreviewElementFinder(
+  @RequiresReadLock
+  private val findMethods: (PsiFile?) -> Collection<PsiElement> = { psiFile ->
+    PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
+  }
+) : FilePreviewElementFinder<PsiWearTilePreviewElement> {
 
   /**
    * Checks if a given [vFile] contains any [PsiWearTilePreviewElement]s. Results of this method
@@ -80,15 +94,14 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
    * be garbage collected, in which case the results will be recomputed.
    */
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
-    val psiFile = readAction { vFile.toPsiFile(project) } ?: return false
     val cachedValue =
-      psiFile.getOrCreateCachedValue(hasPreviewElementsCacheKey) {
+      vFile.getOrCreateCachedValue(hasPreviewElementsCacheKey) {
         ChangeTrackerCachedValue.softReference()
       }
     return ChangeTrackerCachedValue.get(
       cachedValue,
       {
-        findUMethodsWithTilePreviewSignature(project, psiFile).any {
+        findUMethodsWithTilePreviewSignature(project, vFile, findMethods).any {
           it.findAllTilePreviewAnnotations().any()
         }
       },
@@ -106,15 +119,14 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
     project: Project,
     vFile: VirtualFile,
   ): Collection<PsiWearTilePreviewElement> {
-    val psiFile = readAction { vFile.toPsiFile(project) } ?: return emptyList()
     val cachedValue =
-      psiFile.getOrCreateCachedValue(previewElementsCacheKey) {
+      vFile.getOrCreateCachedValue(previewElementsCacheKey) {
         ChangeTrackerCachedValue.weakReference()
       }
     return ChangeTrackerCachedValue.get(
       cachedValue,
       {
-        findUMethodsWithTilePreviewSignature(project, psiFile)
+        findUMethodsWithTilePreviewSignature(project, vFile, findMethods)
           .flatMap { method ->
             ProgressManager.checkCanceled()
             method
@@ -156,8 +168,8 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
 
   val displaySettings = runReadAction {
-    val name = annotation.findAttributeValue("name")?.evaluateString()?.nullize()
-    val group = annotation.findAttributeValue("group")?.evaluateString()?.nullize()
+    val name = annotation.findAttributeValue(PARAMETER_NAME)?.evaluateString()?.nullize()
+    val group = annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
     PreviewDisplaySettings(
       buildPreviewName(
         methodName = uMethod.name,
@@ -179,14 +191,14 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 
   val configuration = runReadAction {
     val device =
-      annotation.findAttributeValue("device")?.evaluateString()?.nullize()
-        ?: defaultValues["device"]
+      annotation.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
+        ?: defaultValues[PARAMETER_DEVICE]
     val locale =
-      (annotation.findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])
-        ?.nullize()
+      (annotation.findAttributeValue(PARAMETER_LOCALE)?.evaluateString()?.nullize()
+        ?: defaultValues[PARAMETER_LOCALE])
     val fontScale =
-      annotation.findAttributeValue("fontScale")?.evaluate() as? Float
-        ?: defaultValues["fontScale"]?.toFloatOrNull()
+      annotation.findAttributeValue(PARAMETER_FONT_SCALE)?.evaluate() as? Float
+        ?: defaultValues[PARAMETER_FONT_SCALE]?.toFloatOrNull()
 
     PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
   }
@@ -202,25 +214,26 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
 }
 
 /**
- * Retrieves all [UMethod]s in a given [psiFile] that have a Tile Preview signature. Results of this
- * method will be cached until there are changes to any java or kotlin files in the given [project]
- * or when there are smart mode changes to the [project]. It's also possible for the cached value to
- * be garbage collected, in which case the results will be recomputed.
+ * Retrieves all [UMethod]s in a given [virtualFile] that have a Tile Preview signature. Results of
+ * this method will be cached until there are changes to any java or kotlin files in the given
+ * [project] or when there are smart mode changes to the [project]. It's also possible for the
+ * cached value to be garbage collected, in which case the results will be recomputed.
  *
  * @see isMethodWithTilePreviewSignature for details on what a tile preview signature should be
  */
 @Slow
 private suspend fun findUMethodsWithTilePreviewSignature(
   project: Project,
-  psiFile: PsiFile,
+  virtualFile: VirtualFile,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val cachedValue =
-    psiFile.getOrCreateCachedValue(uMethodsWithTilePreviewSignatureCacheKey) {
+    virtualFile.getOrCreateCachedValue(uMethodsWithTilePreviewSignatureCacheKey) {
       ChangeTrackerCachedValue.weakReference()
     }
   return ChangeTrackerCachedValue.get(
     cachedValue,
-    { findUMethodsWithTilePreviewSignatureNonCached(project, psiFile) },
+    { findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile, findMethods) },
     project.javaKotlinAndDumbChangeTrackers(),
   )
 }
@@ -228,11 +241,16 @@ private suspend fun findUMethodsWithTilePreviewSignature(
 @Slow
 private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
   project: Project,
-  psiFile: PsiFile,
+  virtualFile: VirtualFile,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
-      PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
+      if (!virtualFile.isValid) {
+        return@smartReadAction emptyList()
+      }
+      findMethods(virtualFile.toPsiFile(project))
+        .filter { it.isValid }
         .map {
           ProgressManager.checkCanceled()
           pointerManager.createSmartPsiElementPointer(it)
@@ -305,7 +323,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
   return hasSingleContextParameter
 }
 
-private fun <T> PsiFile.getOrCreateCachedValue(
+private fun <T> VirtualFile.getOrCreateCachedValue(
   key: Key<ChangeTrackerCachedValue<T>>,
   create: () -> ChangeTrackerCachedValue<T>,
 ) = getUserData(key) ?: create().also { putUserData(key, it) }

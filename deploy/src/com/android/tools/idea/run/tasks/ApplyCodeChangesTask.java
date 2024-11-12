@@ -26,10 +26,10 @@ import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyCodeChangesTask extends AbstractDeployTask {
@@ -39,16 +39,15 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   /**
    * Creates a task to deploy a list of apks.
-   *
-   * @param project             the project that this task is running within.
-   * @param packages            a collection of apks representing the packages this task will deploy.
-   * @param rerunOnSwapFailure  rerun the app when swap fails
-   * @param installPathProvider
+   * @param project  the project that this task is running within.
+   * @param packages a collection of apks representing the packages this task will deploy.
+   * @param rerunOnSwapFailure rerun the app when swap fails
    */
   public ApplyCodeChangesTask(
-    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
+    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm, boolean allowAssumeVerified,
     Computable<String> installPathProvider) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
+
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, installPathProvider);
   }
 
   @NotNull

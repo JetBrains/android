@@ -159,11 +159,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
 
-    AndroidModuleSystem moduleSystem =
-      ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(module);
-    if (moduleSystem.isRClassTransitive()) {
-      // If the module's R class is transitive, it makes sense that the resource can be created in a dependent module.
-      // If it's not, then the resource must be created only on the module defining the R class.
+    if (includeDependentModules(module, contextFile)) {
       for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
         Module depModule = depFacet.getModule();
         AndroidModuleSystem depModuleSystem =
@@ -217,6 +213,23 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (defaultFile != null) {
       resetFromFile(defaultFile, module.getProject());
     }
+  }
+
+  private boolean includeDependentModules(Module module, @Nullable VirtualFile contextFile) {
+    // If the current file is an XML resource file, then it's okay to include dependent modules as choices. This is
+    // because resource references don't specify a namespace, and so it's straightforward to create the new resource
+    // wherever the user wants.
+    if (contextFile != null && "xml".equals(contextFile.getExtension())) {
+      return true;
+    }
+
+    // If the file isn't XML, we expect it to be either Java or Kotlin. For Java and Kotlin references, we can
+    // create the resource in a dependent module iff transitive resources are in use. Otherwise, with
+    // non-transitive resources it would be necessary to change the `R` class reference to point to a
+    // different package. (That logic could be added at a future date if it seems a desired scenario.)
+    AndroidModuleSystem moduleSystem =
+      ProjectSystemService.getInstance(module.getProject()).getProjectSystem().getModuleSystem(module);
+    return moduleSystem.isRClassTransitive();
   }
 
   private void createUIComponents() {

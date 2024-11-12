@@ -128,6 +128,14 @@ interface SourceProviders {
   val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
+   * Returns a list of source providers for all variants, not just the currently-selected one, of all artifacts in this module.
+   *
+   * Note: Inactive source providers (those not associated with the current variant) are not configured as project source roots
+   *       and may not represent directories under a configured content entry.
+   */
+  val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
+
+  /**
    * NOTE: (In Gradle) Does not return ALL source providers!
    *
    * (In Gradle) Returns a list of all active main scope source providers (i.e. the same as [currentSourceProviders]) and additionally
@@ -188,6 +196,8 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
+        override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
+          get() = ImmutableList.of(sourceSet)
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = ImmutableList.of(sourceSet)
         @Suppress("OverridingDeprecatedMember")
@@ -234,6 +244,8 @@ interface SourceProviders {
         override val currentTestFixturesSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val allVariantAllArtifactsSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>

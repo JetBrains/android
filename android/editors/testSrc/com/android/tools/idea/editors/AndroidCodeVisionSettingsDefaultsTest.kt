@@ -19,7 +19,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.codeVision.CodeVisionProviderFactory
 import com.intellij.codeInsight.codeVision.settings.CodeVisionSettings
-import com.intellij.codeInsight.hints.VcsCodeVisionProvider
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,8 +31,8 @@ class AndroidCodeVisionSettingsDefaultsTest {
   @Test
   fun codeVisionDefault() {
     val provider =
-      CodeVisionProviderFactory.createAllProviders(rule.project).single {
-        it is VcsCodeVisionProvider
+      CodeVisionProviderFactory.createAllProviders(rule.project).single { provider ->
+        provider.id == "vcs.code.vision"
       }
     assertThat(CodeVisionSettings.getInstance().isProviderEnabled(provider.id)).isFalse()
   }

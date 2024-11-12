@@ -51,4 +51,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <databinding.layoutBindingSupport implementation="com.android.tools.idea.databinding.LayoutBindingSupportImpl"/>
   </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.databinding.bindingLayoutToken"
+                    interface="com.android.tools.idea.databinding.BindingLayoutToken"/>
+  </extensionPoints>
 </idea-plugin>

@@ -74,8 +74,8 @@ class ConfigureKotlinMultiplatformLibraryModuleStepTest {
     val (step, model) = buildStepWithProject(TestProjectPaths.KOTLIN_LIB)
 
     assertEquals(step.title, "Kotlin Multiplatform Library")
-    assertEquals(model.moduleName.get(), "kmplibrary")
-    assertEquals(model.packageName.get(), "com.example.kmplibrary")
+    assertEquals(model.moduleName.get(), "shared")
+    assertEquals(model.packageName.get(), "com.example.shared")
   }
 
   companion object {

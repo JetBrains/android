@@ -46,6 +46,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private var _lookup: Lookup<M>? = null
   private var updatingFromModel = false
   private var documentChangeFromSetText = false
+  private var lastModelValue = ""
 
   /**
    * If false ignore all calls to scrollRectToVisible.
@@ -123,14 +124,15 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private fun setFromModel() {
     updatingFromModel = true
     try {
-      if (hasFocus() || _lookup?.isVisible == true) {
+      if (hasFocus() && text != lastModelValue || _lookup?.isVisible == true) {
         // b/341537014:
         // If the user is actively editing, we should not take a new text value from the model,
-        // since that would remove the users work. Instead set the model value to the edited value.
+        // since that would remove the users work. Instead, set the model value to the edited value.
         editorModel.text = text
       } else {
         // The user is not actively editing, take a new text value from the model.
-        text = editorModel.value
+        lastModelValue = editorModel.value
+        text = lastModelValue
       }
       isEnabled = editorModel.enabled
       isEditable = editorModel.editable

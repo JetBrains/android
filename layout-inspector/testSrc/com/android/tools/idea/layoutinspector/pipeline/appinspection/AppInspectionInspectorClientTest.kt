@@ -30,9 +30,6 @@ import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
 import com.android.testutils.waitForCondition
@@ -117,6 +114,9 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -884,7 +884,7 @@ class AppInspectionInspectorClientTest {
     val notification = inspectorRule.notificationModel.notifications.single()
     assertThat(notification.message)
       .isEqualTo(
-        "No compose source information found. For full inspector functionality: make sure that sourceInformation is turned on for the kotlin compiler plugin."
+        "No compose source information found. For full inspector functionality: Make sure that sourceInformation is turned on for the Kotlin compiler plugin and the app code is not obfuscated."
       )
     inspectorRule.notificationModel.clear()
 
@@ -1348,7 +1348,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
             null
           }
           .whenever(it)
-          .updateProgress(any(AttachErrorState::class.java))
+          .updateProgress(any())
       }
   }
 

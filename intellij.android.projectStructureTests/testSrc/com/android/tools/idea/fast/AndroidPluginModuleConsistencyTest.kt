@@ -35,6 +35,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
    */
   private val gradleDslPluginModules = listOf(
     "intellij.android.gradle.declarative.lang",
+    "intellij.android.gradle.declarative.lang.ide",
     "intellij.android.gradle.dsl",
     "intellij.android.gradle.dsl.declarative",
     "intellij.android.gradle.dsl.kotlin",
@@ -126,6 +127,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
           // Gradle DSL plugin modules can depend on following two modules:
           val isGradleDslModule = "intellij.android.gradle.dsl" == otherAndroidModuleName
           val isGradleDslDeclarativeLangModule = "intellij.android.gradle.declarative.lang" == otherAndroidModuleName
+                                                 || "intellij.android.gradle.declarative.lang.ide" == otherAndroidModuleName
 
           !isGradleDslModule && !isGradleDslDeclarativeLangModule && otherAndroidModuleName.startsWith("intellij.android")
         }

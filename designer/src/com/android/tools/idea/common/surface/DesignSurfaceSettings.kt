@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.ZoomController
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.components.PersistentStateComponent
@@ -27,8 +28,12 @@ import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.xmlb.annotations.Transient
 import java.io.File
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableMap
 
 @Service(Service.Level.PROJECT)
 @State(
@@ -62,6 +67,14 @@ class SurfaceState {
    * [loadFileScale] instead.
    */
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
+
+  /**
+   * The map of [OrganizationGroup] states - whether each group is expanded or collapsed. Maps file
+   * url to the map of (composable name to group state). This field is public because
+   * [PersistentStateComponent] needs to access its getter and setter. Do not access this field
+   * directly, use [getOrganizationGroupState] and [saveOrganizationGroupState] instead.
+   */
+  var organizationGroups: MutableMap<String, MutableMap<String, Boolean>> = HashMap()
 
   /**
    * The map of file path and the drawable background type. We use path string here because
@@ -111,6 +124,42 @@ class SurfaceState {
     lastSelectedDrawableBackgroundType = type
     val relativePath = getRelativePathInProject(project, file) ?: return
     filePathToDrawableBackgroundType[relativePath] = type
+  }
+
+  /** Get saved state for all [OrganizationGroup]s in the [file]. */
+  fun getOrganizationGroupState(file: VirtualFile): ImmutableMap<String, Boolean> {
+    return organizationGroups[file.url]?.toImmutableMap() ?: persistentMapOf()
+  }
+
+  /** Save state of [OrganizationGroup]s in the [file]. */
+  fun saveOrganizationGroupState(file: VirtualFile, methodFqn: String, isOpened: Boolean) {
+    organizationGroups.getOrPut(file.url) { HashMap() }[methodFqn] = isOpened
+  }
+
+  /**
+   * Validates saved state for [file] removing all non-existing Composables what are not in
+   * [validMethodFqn].
+   *
+   * TODO(b/360301383) Call the method to revalidate settings
+   */
+  fun revalidateOrganizationGroups(file: VirtualFile, validMethodFqn: Set<String>) {
+    organizationGroups[file.url]
+      ?.filter { validMethodFqn.contains(it.key) }
+      ?.toMutableMap()
+      ?.let { organizationGroups[file.url] = it }
+  }
+
+  /**
+   * Delete from [SurfaceState] information about non-existing files.
+   *
+   * TODO(b/360301383) Call the method to revalidate settings
+   */
+  fun revalidateOrganizationGroups() {
+    val deletedFiles =
+      organizationGroups.keys.filter { url ->
+        VirtualFileManager.getInstance().findFileByUrl(url) == null
+      }
+    deletedFiles.forEach { url -> organizationGroups.remove(url) }
   }
 }
 

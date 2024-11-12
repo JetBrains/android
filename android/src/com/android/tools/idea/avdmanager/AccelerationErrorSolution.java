@@ -27,9 +27,8 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.wizard.VmWizard;
-import com.android.tools.idea.sdk.install.VmType;
-import com.android.tools.idea.welcome.install.VmInstallationIntention;
+import com.android.tools.idea.sdk.wizard.AehdWizard;
+import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -97,8 +96,6 @@ public class AccelerationErrorSolution {
     UPDATE_PLATFORM_TOOLS("Update Platform Tools"),
     UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
-    INSTALL_HAXM("Install HAXM"),
-    REINSTALL_HAXM("Reinstall HAXM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
     INSTALL_AEHD("Install Android Emulator hypervisor driver"),
     REINSTALL_AEHD("Reinstall Android Emulator hypervisor driver");
@@ -216,15 +213,11 @@ public class AccelerationErrorSolution {
             reportBack();
           }
         };
-
-      case INSTALL_HAXM:
-      case REINSTALL_HAXM:
       case INSTALL_AEHD:
       case REINSTALL_AEHD:
-        final VmType type = myError.getSolution() == INSTALL_AEHD || myError.getSolution() == REINSTALL_AEHD ? VmType.AEHD : VmType.HAXM;
         return () -> {
           try {
-            VmWizard wizard = new VmWizard(VmInstallationIntention.INSTALL_WITH_UPDATES, type);
+            AehdWizard wizard = new AehdWizard(Aehd.InstallationIntention.INSTALL_WITH_UPDATES);
             wizard.init();
             myChangesMade = wizard.showAndGet();
           }
@@ -278,8 +271,6 @@ public class AccelerationErrorSolution {
 
   /**
    * Prompts the user to reboot now, and performs the reboot if accepted.
-   * HAXM Installer may need a reboot only on Windows, so this method is intended to work only on Windows
-   * and only for HAXM installer use case
    *
    * @param prompt the message to display to the user
    * @exception ExecutionException if the shutdown command fails to execute

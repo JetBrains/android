@@ -47,7 +47,7 @@ public abstract class AbstractBuildDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
-    {"path", property, PATH, VAR},
+    {"path", exactly(1), PATH, SET},
     {"version", property, VERSION, VAR},
   }).collect(toModelMap());
 

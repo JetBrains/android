@@ -31,6 +31,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -45,7 +46,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -55,6 +55,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -392,7 +393,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true);
+    DeclarativeStudioSupport.override(true);
     try {
       loadSimpleApplication();
 
@@ -401,12 +402,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
-    Registry.get("android.gradle.ide.gradle.declarative.ide.support").setValue(true);
+    DeclarativeStudioSupport.override(true);
     try {
       loadSimpleApplication();
 
@@ -415,7 +416,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      Registry.get("android.gradle.ide.gradle.declarative.ide.support").resetToDefault();
+      DeclarativeStudioSupport.clearOverride();
     }
   }
 
