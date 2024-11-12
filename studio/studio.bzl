@@ -751,9 +751,6 @@ def _android_studio_os(ctx, platform, out):
 
     # for plugin in platform_plugins:
     for plugin, this_plugin_files in plugin_files.items():
-        # TODO(b/329416516): Rework "excluding" performanceTesting plugin
-        if plugin == "performanceTesting":
-            continue
         this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, overwrite_plugin_version = False)
         all_files.update({platform_prefix + k: v for k, v in this_plugin_files.items()})
 

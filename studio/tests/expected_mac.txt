@@ -2929,6 +2929,7 @@ Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/modules/intellij.markdown.compose.preview.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar
+Android Studio Preview.app/Contents/plugins/performanceTesting/lib/performanceTesting.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/platform-images.jar
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/java-langInjection-jps.jar
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/platform-langInjection.jar

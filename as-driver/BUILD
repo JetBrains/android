@@ -43,7 +43,6 @@ intellij_plugin(
 iml_module(
     name = "as-driver.utils",
     data = [
-        "//prebuilts/studio/intellij-sdk:performanceTesting.zip",
         "//prebuilts/studio/sdk:platforms/android-33",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/base/threading-agent:threading_agent.jar",
