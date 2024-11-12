@@ -202,7 +202,7 @@ class PsVariable(
       potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
       return Futures
         .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
-        .transform(directExecutor()) { it.combineKnownValues() }
+        .transform(directExecutor()) { it.filterNotNull().combineKnownValues() }
     }
   }
 
