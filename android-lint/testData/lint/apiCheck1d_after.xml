@@ -4,4 +4,4 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:columnCount="2"
-    tools:targetApi="ice_cream_sandwich" />
+    tools:targetApi="14" />
