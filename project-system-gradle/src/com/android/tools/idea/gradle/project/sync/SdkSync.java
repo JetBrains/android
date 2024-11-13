@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -230,7 +231,9 @@ public class SdkSync {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
+      // ExternalSystemException appends the file's location from the lower level exception,
+      // so we only output the name here, to not show the full path twice.
+      String msg = String.format("Unable to save '%1$s'. The file path is: ", FN_LOCAL_PROPERTIES);
       throw new ExternalSystemException(msg, e);
     }
   }
@@ -258,7 +261,9 @@ public class SdkSync {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
+      // ExternalSystemException appends the file's location from the lower level exception,
+      // so we only output the name here, to not show the full path twice.
+      String msg = String.format("Unable to save '%1$s'. The file path is: ", FN_LOCAL_PROPERTIES);
       throw new ExternalSystemException(msg, e);
     }
   }

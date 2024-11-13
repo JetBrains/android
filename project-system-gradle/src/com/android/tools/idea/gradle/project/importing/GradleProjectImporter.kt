@@ -124,7 +124,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
       }
     }
-    catch (e: IOException) {
+    catch (e: Exception) {
       logger.info("Failed to sync SDKs", e)
       Messages.showErrorDialog(e.message, "Project Import")
       throw e
