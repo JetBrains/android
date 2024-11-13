@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.sdk
 
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.WritingAccessProvider
 import com.intellij.util.SlowOperations
+import java.util.concurrent.Callable
 
 /** Marks Android SDK sources as read-only to prevent accidental edits. */
 class SdkWritingAccessProvider(private val project: Project) : WritingAccessProvider() {
@@ -35,7 +36,10 @@ class SdkWritingAccessProvider(private val project: Project) : WritingAccessProv
 
   private fun isInAndroidSdk(file: VirtualFile): Boolean {
     return SlowOperations.allowSlowOperations(ThrowableComputable {
-      runReadAction { AndroidSdks.getInstance().isInAndroidSdk(project, file) }
+      ReadAction
+        .nonBlocking(Callable { AndroidSdks.getInstance().isInAndroidSdk(project, file) })
+        .expireWhen { project.isDisposed }
+        .executeSynchronously()
     })
   }
 }
