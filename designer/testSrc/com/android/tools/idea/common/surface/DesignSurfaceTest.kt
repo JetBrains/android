@@ -279,7 +279,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(10.0, surface.zoomController.scale)
   }
 
-  // Regression test for b/369957614 and b/368527727)
   fun testWaitDesignSurfaceResizeBeforeRestoreZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
@@ -308,7 +307,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(fitScaleValue, surface.zoomController.scale)
   }
 
-  // Regression test for b/369957614 and b/368527727)
   fun testWaitRenderBeforeRestoreZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
@@ -337,7 +335,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(fitScaleValue, surface.zoomController.scale)
   }
 
-  // Regression test for b/369957614 and b/368527727)
   fun testDoNotWaitToRestoreZoomToFit() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val fitScaleValue = 1.78
