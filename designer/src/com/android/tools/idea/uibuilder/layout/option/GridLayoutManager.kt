@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
@@ -46,15 +48,21 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 open class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
-  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup> =
-    NO_GROUP_TRANSFORM,
-) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
+  val transform: (Collection<PositionableContent>) -> List<PositionableGroup> = NO_GROUP_TRANSFORM,
+) : SurfaceLayoutManager {
 
   @VisibleForTesting var cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>? = null
 
   override fun useCachedLayoutGroups(cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>) {
     this.cachedLayoutGroups = cachedLayoutGroups
   }
+
+  override fun getRequiredSize(
+    content: Collection<PositionableContent>,
+    @SwingCoordinate availableWidth: Int,
+    @SwingCoordinate availableHeight: Int,
+    @SwingCoordinate dimension: Dimension?,
+  ) = getSize(content, { scale }, availableWidth)
 
   /**
    * Special case of single content (non-header) is handled differently. Returns this single content
@@ -64,12 +72,10 @@ open class GridLayoutManager(
     this.singleOrNull().takeIf { it !is HeaderPositionableContent }
 
   /** Get the total required size to layout the [content] with the given conditions. */
-  override fun getSize(
+  fun getSize(
     content: Collection<PositionableContent>,
-    sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
     availableWidth: Int,
-    dimension: Dimension?,
   ): Dimension {
     return calculateSize(content = content, scaleFunc = scaleFunc, availableWidth = availableWidth)
   }
@@ -420,5 +426,19 @@ open class GridLayoutManager(
       }
     }
     return positionMap
+  }
+
+  /** Get the actual position should be set to the given [PositionableContent] */
+  @SwingCoordinate
+  private fun getContentPosition(
+    content: PositionableContent,
+    @SwingCoordinate previewX: Int,
+    @SwingCoordinate previewY: Int,
+  ): Point {
+    // The new compose layout consider the toolbar size as the anchor of location.
+    val margin = content.margin
+    val shiftedX = previewX + margin.left
+    val shiftedY = previewY + margin.top
+    return Point(shiftedX, shiftedY)
   }
 }

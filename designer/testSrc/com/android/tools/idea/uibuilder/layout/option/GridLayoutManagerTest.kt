@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.common.model.scaleOf
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
@@ -112,7 +111,7 @@ class GridLayoutManagerTest {
       val singleContent = TestPositionableContent(null, Dimension(100, 100))
       val content = listOf(singleContent)
       val fitScale = manager.getFitIntoScale(content, availableSize, availableSize)
-      val fitSize = manager.getSize(content, { Dimension(0, 0) }, { fitScale }, availableSize, null)
+      val fitSize = manager.getSize(content, { fitScale }, availableSize)
       // Check fit scale actually fits
       assertTrue { fitSize.width <= availableSize }
       assertTrue(fitSize.height <= availableSize)
@@ -197,15 +196,7 @@ class GridLayoutManagerTest {
   @Test
   fun checkContentFitWhileResizing() {
     val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
-    fun getSize(width: Int) =
-      manager.getSize(
-        largeGroupOfPreviews,
-        /** Unused */
-        { Dimension(0, 0) },
-        scaleFunc = { 1.0 },
-        width,
-        null,
-      )
+    fun getSize(width: Int) = manager.getSize(largeGroupOfPreviews, scaleFunc = { 1.0 }, width)
 
     // For this test case - we know what each preview can fit fully into width 150
     (0..100).forEach { iteration ->
@@ -218,15 +209,7 @@ class GridLayoutManagerTest {
   @Test
   fun checkHeightAlwaysIncreasesWithScaleIncrease() {
     val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
-    fun getSize(scale: Double) =
-      manager.getSize(
-        largeGroupOfPreviews,
-        /** Unused */
-        { Dimension(0, 0) },
-        scaleFunc = { scale },
-        150,
-        null,
-      )
+    fun getSize(scale: Double) = manager.getSize(largeGroupOfPreviews, scaleFunc = { scale }, 150)
 
     var prevHeight = 0
     (1000 downTo 1 step 10).forEach { iteration ->
@@ -259,14 +242,7 @@ class GridLayoutManagerTest {
     val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
     (400..1000 step 50).forEach { availableSize ->
       val fitScale = manager.getFitIntoScale(largeGroupOfPreviews, availableSize, availableSize)
-      val fitSize =
-        manager.getSize(
-          largeGroupOfPreviews,
-          { Dimension(0, 0) },
-          { fitScale },
-          availableSize,
-          null,
-        )
+      val fitSize = manager.getSize(largeGroupOfPreviews, { fitScale }, availableSize)
       assertTrue { fitSize.width <= availableSize }
       assertTrue(fitSize.height <= availableSize)
     }
@@ -675,13 +651,7 @@ class GridLayoutManagerTest {
 
     // Once we get the scale that fits the content in the available space, we calculate the size of
     // the layout having the content with that scale applied.
-    val fitScaleSize =
-      manager.getSizeForTestOnly(
-        contents,
-        { fitScale },
-        availableSize.width,
-        { contentSize.scaleOf(fitScale) },
-      )
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
 
     assertTrue(fitScaleSize.height <= availableSize.height)
     // However, we also expect that the height is not smaller than a certain tolerance.
@@ -720,13 +690,7 @@ class GridLayoutManagerTest {
     val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
     // Once we get the scale that fits the content in the available space, we calculate the size of
     // the layout having the content with that scale applied.
-    val fitScaleSize =
-      manager.getSizeForTestOnly(
-        contents,
-        { fitScale },
-        availableSize.width,
-        { contentSize.scaleOf(fitScale) },
-      )
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
 
     // Because it shows a grid we expect the width is not smaller than the available space.
     // Delta value is chosen by the minimum height of the content, if the test fails means
@@ -771,13 +735,7 @@ class GridLayoutManagerTest {
 
     // Once we get the scale that fits the content in the available space, we calculate the size of
     // the layout having the content with that scale applied.
-    val fitScaleSize =
-      manager.getSizeForTestOnly(
-        contents,
-        { fitScale },
-        availableSize.width,
-        { contentSize.scaleOf(fitScale) },
-      )
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
 
     assertTrue(fitScaleSize.height <= availableSize.height)
     // However, we also expect that the height is not smaller than a certain tolerance.
