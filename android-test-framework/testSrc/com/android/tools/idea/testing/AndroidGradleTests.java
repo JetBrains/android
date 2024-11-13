@@ -198,26 +198,21 @@ public class AndroidGradleTests {
 
     internalUpdateToolingVersionsAndPaths(path,
                                           true,
-                                          agpVersion.getGradleVersion(),
-                                          agpVersion.getAgpVersion(),
-                                          agpVersion.getKotlinVersion(),
-                                          agpVersion.getCompileSdk(),
+                                          agpVersion,
                                           ndkVersion,
                                           localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
                                                             boolean isRoot,
-                                                            @NotNull String gradleVersion,
-                                                            @NotNull String pluginVersion,
-                                                            @NotNull String kotlinVersion,
-                                                            @NotNull String compileSdkVersion,
+                                                            @NotNull ResolvedAgpVersionSoftwareEnvironment agpEnvironment,
                                                             @Nullable String ndkVersion,
                                                             @NotNull List<File> localRepos) throws IOException {
+
     // Tools/base versions are the same but with then major incremented by 23
-    int firstSeparator = pluginVersion.indexOf('.');
-    int majorVersion = Integer.parseInt(pluginVersion.substring(0, firstSeparator)) + 23;
-    String toolsBaseVersion = majorVersion + pluginVersion.substring(firstSeparator);
+    int firstSeparator = agpEnvironment.getAgpVersion().indexOf('.');
+    int majorVersion = Integer.parseInt(agpEnvironment.getAgpVersion().substring(0, firstSeparator)) + 23;
+    String toolsBaseVersion = majorVersion + agpEnvironment.getAgpVersion().substring(firstSeparator);
 
     BasicFileAttributes fileAttributes;
     try {
@@ -238,17 +233,17 @@ public class AndroidGradleTests {
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
         try {
-          updateGradleProperties(path, AgpVersion.parse(pluginVersion), new AndroidVersion(compileSdkVersion));
+          updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()), new AndroidVersion(agpEnvironment.getCompileSdk()));
         }
         catch (AndroidVersion.AndroidVersionException e) {
           throw new IOException(e);
         }
         // We need the wrapper for import to succeed
-        createGradleWrapper(path, gradleVersion);
+        createGradleWrapper(path, agpEnvironment.getGradleVersion());
       }
       for (File child : notNullize(path.listFiles())) {
         internalUpdateToolingVersionsAndPaths(
-          child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion, localRepos
+          child, false, agpEnvironment, ndkVersion, localRepos
         );
       }
     }
@@ -258,18 +253,19 @@ public class AndroidGradleTests {
         String contents = contentsOrig;
         String localRepositories = getLocalRepositoriesForGroovy(localRepos);
 
-        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
+        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", agpEnvironment.getAgpVersion());
 
-        contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
+        contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", agpEnvironment.getKotlinVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]",
+                                     agpEnvironment.getKotlinVersion());
 
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
 
         contents = updateBuildToolsVersion(contents);
-        contents = updateCompileSdkVersion(contents, compileSdkVersion);
-        contents = updateTargetSdkVersion(contents);
+        contents = updateCompileSdkVersion(contents, agpEnvironment.getCompileSdk());
+        contents = updateTargetSdkVersion(contents, agpEnvironment.getTargetSdk());
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion *[(=]? *(\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
@@ -287,25 +283,26 @@ public class AndroidGradleTests {
         String contents = contentsOrig;
         String localRepositories = getLocalRepositoriesForKotlin(localRepos);
 
-        contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
+        contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", agpEnvironment.getAgpVersion());
 
         contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
-                                     kotlinVersion);
+                                     agpEnvironment.getKotlinVersion());
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
         // "implementation"(kotlin("stdlib", "1.3.61"))
-        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", kotlinVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
+        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"",
+                                     agpEnvironment.getKotlinVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]",
+                                     agpEnvironment.getKotlinVersion());
 
-        final var buildEnvironment = BuildEnvironment.getInstance();
-        contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
-        contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
-        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", compileSdkVersion);
-        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", compileSdkVersion);
-        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
-        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", buildEnvironment.getTargetSdkVersion());
+        contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", BuildEnvironment.getInstance().getBuildToolsVersion());
+        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
@@ -322,9 +319,9 @@ public class AndroidGradleTests {
         String contentsOrig = Files.readString(path.toPath());
         String contents = contentsOrig;
 
-        contents = updateVersionInCatalog(contents, "com.android.application", pluginVersion);
-        contents = updateVersionInCatalog(contents, "org.jetbrains.kotlin.android", kotlinVersion);
-        contents = updateVersionInCatalog(contents, "com.android.library", pluginVersion);
+        contents = updateVersionInCatalog(contents, "com.android.application", agpEnvironment.getAgpVersion());
+        contents = updateVersionInCatalog(contents, "org.jetbrains.kotlin.android", agpEnvironment.getKotlinVersion());
+        contents = updateVersionInCatalog(contents, "com.android.library", agpEnvironment.getAgpVersion());
 
         if (!contents.equals(contentsOrig)) {
           Files.writeString(path.toPath(), contents);
@@ -364,9 +361,9 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String updateTargetSdkVersion(@NotNull String contents) {
-    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
-    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+  public static String updateTargetSdkVersion(@NotNull String contents, @NotNull String targetSdkVersion) {
+    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", targetSdkVersion);
+    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", targetSdkVersion);
     return contents;
   }
 

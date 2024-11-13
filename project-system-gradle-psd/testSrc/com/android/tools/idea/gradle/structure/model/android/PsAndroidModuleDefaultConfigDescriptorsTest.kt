@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -118,9 +119,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
-      val buildEnvironmentTargetSdkVersion = BuildEnvironment.getInstance().targetSdkVersion
-      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(buildEnvironmentTargetSdkVersion))
-      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(buildEnvironmentTargetSdkVersion))
+      val latestAgpVersionDescriptorTargetSdk = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(latestAgpVersionDescriptorTargetSdk))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(latestAgpVersionDescriptorTargetSdk))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default.test"))

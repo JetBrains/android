@@ -895,8 +895,8 @@ MODULE                        : project.app
             ApiLevel                      : 23
             ApiString                     : 23
         targetSdk
-            ApiLevel                      : 34
-            ApiString                     : 34
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -963,8 +963,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1105,8 +1105,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.alruiz.transitive_dependencies

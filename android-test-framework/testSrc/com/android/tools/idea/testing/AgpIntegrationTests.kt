@@ -57,6 +57,8 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    */
   override val compileSdk: String,
 
+  override val targetSdk: String = compileSdk,
+
   /**
    * Builder model version to query.
    */
