@@ -42,6 +42,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Before
@@ -88,7 +89,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
             }
           }
         }
-        fileToReturn.toPath()
+        CompletableDeferred(fileToReturn.toPath())
       }
   }
 
@@ -116,9 +117,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
 
   @Test
   fun checkDocumentationWhenServerUnavailable() {
-    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any())).then {
-      throw IOException()
-    }
+    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()))
+      .thenReturn(CompletableDeferred<Nothing>().apply { completeExceptionally(IOException()) })
 
     setUpCursorForActivity()
     val doc = getDocsAtCursor().single()

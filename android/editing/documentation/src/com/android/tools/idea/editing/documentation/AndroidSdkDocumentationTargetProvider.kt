@@ -124,12 +124,13 @@ private constructor(
     }
   }
 
-  private fun getDocumentationHtml(): String {
+  private suspend fun getDocumentationHtml(): String {
     try {
-      val html =
-        UrlFileCache.getInstance(targetElement.project)
-          .get(url, maxFileAge = 1.days) { it.filter() }
-          .readText()
+      val path =
+        UrlFileCache.getInstance(targetElement.project).get(url, maxFileAge = 1.days) {
+          it.filter()
+        }
+      val html = path.await().readText()
       if (html.isNotEmpty()) return html
     } catch (e: Exception) {
       thisLogger().warn("Failed to fetch documentation URL.", e)
