@@ -49,7 +49,7 @@ sealed class EmulatorXrInputModeAction(private val inputMode: XrInputMode) : Tog
     event.presentation.isEnabledAndVisible = getEmulatorConfig(event)?.deviceType == DeviceType.XR &&
                                              (inputMode != XrInputMode.HAND || StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) &&
                                              (inputMode != XrInputMode.EYE || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
-    enableRichTooltip(event.presentation)
+    event.presentation.enableRichTooltip(this)
   }
 
   class HandTracking : EmulatorXrInputModeAction(XrInputMode.HAND)
