@@ -9,6 +9,7 @@ import com.android.tools.lint.checks.LibraryIdentifier
 import com.android.tools.lint.checks.LibraryVersion
 import com.android.tools.lint.checks.LibraryVersionLabels
 import com.android.tools.lint.checks.LibraryVersionLabels.PolicyIssuesInfo.SdkPolicy
+import com.android.tools.lint.checks.MavenIdentifier
 import com.android.tools.lint.checks.Sdk
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -182,7 +183,7 @@ class PsAnalyzerDaemonKtTest {
                   .setLibraryId(
                     LibraryIdentifier.newBuilder()
                       .setMavenId(
-                        LibraryIdentifier.MavenIdentifier.newBuilder()
+                        MavenIdentifier.newBuilder()
                           .setGroupId(LIBRARY_GROUP)
                           .setArtifactId(LIBRARY_ARTIFACT)
                           .build()
