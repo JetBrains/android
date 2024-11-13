@@ -1510,7 +1510,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
     COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
     "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", enabledUpTo(CANARY));
+    "enabling or disabling (File -> Invalidate Caches...)", true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT = new BooleanFlag(
     COMPOSE, "preview.uicheck.group.layout", "Enable organization of Compose Preview in UI Check",

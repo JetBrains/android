@@ -290,6 +290,8 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
 
+      fakeUi.findComponent<SceneViewPanel>()!!.setNoComposeHeadersForTests()
+
       projectRule.validate()
 
       withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
