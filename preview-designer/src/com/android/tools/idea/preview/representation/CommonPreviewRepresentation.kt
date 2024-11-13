@@ -68,9 +68,6 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
-import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -114,6 +111,8 @@ import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -124,8 +123,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.JComponent
 
 private val modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
@@ -261,10 +258,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
               else -> null
             }
-          }
-          .setShouldShowLayoutDeprecationBanner {
-            listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
-              .contains(it)
           }
           .apply { configureDesignSurface(navigationHandler) },
         this,

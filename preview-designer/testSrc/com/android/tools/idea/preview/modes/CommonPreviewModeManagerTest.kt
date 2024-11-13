@@ -45,7 +45,7 @@ class CommonPreviewModeManagerTest {
     manager.setMode(
       PreviewMode.UiCheck(
         UiCheckInstance(previewElement, isWearPreview = false),
-        LIST_NO_GROUP_LAYOUT_OPTION,
+        GRID_LAYOUT_OPTION,
       )
     )
     manager.restorePrevious()
@@ -71,10 +71,10 @@ class CommonPreviewModeManagerTest {
     manager.setMode(
       PreviewMode.UiCheck(
         UiCheckInstance(previewElement, isWearPreview = false),
-        LIST_NO_GROUP_LAYOUT_OPTION,
+        GRID_LAYOUT_OPTION,
       )
     )
-    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_NO_GROUP_LAYOUT_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.Interactive(previewElement))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
@@ -112,17 +112,5 @@ class CommonPreviewModeManagerTest {
 
     // The default value is a gallery view mode, no option set (null)
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Gallery(null))
-  }
-
-  @Test
-  fun testListLayoutModeDefaultPreference_ListIsDefault(): Unit = runBlocking {
-    // List is set as a preference
-    androidEditorSettings.globalState.preferredPreviewLayoutMode =
-      AndroidEditorSettings.LayoutType.LIST
-
-    val manager = CommonPreviewModeManager()
-
-    // The default value is a default view mode with a list layout option
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
   }
 }

@@ -37,7 +37,6 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode.SPLIT
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GALLERY
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GRID
-import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.LIST
 
 /**
  * Usage tracker to collect all the metrics of the settings panel found in Preferences > Editor > Ui
@@ -88,7 +87,6 @@ interface UiToolsPreferenceUsageTracker {
     previewLayoutType?.let {
       builder.setPreviewLayoutMode(
         when (it) {
-          LIST -> LayoutMode.LIST
           GRID -> LayoutMode.GRID
           GALLERY -> LayoutMode.GALLERY
         }

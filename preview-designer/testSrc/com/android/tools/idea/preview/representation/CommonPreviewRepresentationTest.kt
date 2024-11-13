@@ -49,7 +49,6 @@ import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -615,37 +614,34 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val persistedPreviewRepresentation = createPreviewRepresentation()
       persistedPreviewRepresentation.compileAndWaitForRefresh()
-
-      assertThat(persistedPreviewRepresentation.mode.value)
-        .isNotEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
-      persistedPreviewRepresentation.setMode(PreviewMode.Default(LIST_LAYOUT_OPTION))
-      assertThat(persistedPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      // We can't use Grid layout option in this test as it's default layout.
+      assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Gallery(null))
+      persistedPreviewRepresentation.setMode(PreviewMode.Gallery(null))
+      assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Gallery(null))
       retryUntilPassing(1.seconds) {
         assertThat(
             persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayout
               ?.value
           )
-          .isEqualTo(LIST_LAYOUT_OPTION)
+          .isEqualTo(GALLERY_LAYOUT_OPTION)
       }
 
       val state = persistedPreviewRepresentation.getState()
 
       val restoredPreviewRepresentation = createPreviewRepresentation()
-      assertThat(restoredPreviewRepresentation.mode.value)
-        .isNotEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+      assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Gallery(null))
       restoredPreviewRepresentation.setState(state)
       restoredPreviewRepresentation.compileAndWaitForRefresh()
       assertThat(restoredPreviewRepresentation.mode.value)
-        .isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+        .isInstanceOf(PreviewMode.Gallery::class.java)
       retryUntilPassing(1.seconds) {
         assertThat(
             restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
               ?.currentLayout
               ?.value
           )
-          .isEqualTo(LIST_LAYOUT_OPTION)
+          .isEqualTo(GALLERY_LAYOUT_OPTION)
       }
 
       persistedPreviewRepresentation.onDeactivateImmediately()
