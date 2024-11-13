@@ -22,15 +22,29 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.keymap.KeymapUtil
 
-/** Enables action tooltip that includes the name and description of the action. */
-fun AnAction.enableRichTooltip(presentation: Presentation) {
-  presentation.putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
+/**
+ * Enables action tooltip that includes the name of the action, the shortcut if any, and
+ * the additional text that, if not provided, defaults to the description of the action.
+ */
+fun Presentation.enableRichTooltip(action: AnAction, detailText: String? = description) {
+  putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
     @Suppress("DialogTitleCapitalization")
-    setTitle(presentation.text)
-    setDescription(presentation.description)
-    val shortcut = KeymapUtil.getFirstKeyboardShortcutText(shortcutSet)
+    setTitle(text)
+    setDescription(detailText)
+    val shortcut = KeymapUtil.getFirstKeyboardShortcutText(action.shortcutSet)
     if (shortcut.isNotEmpty()) {
       setShortcut(shortcut)
     }
   })
+}
+
+/** Disables custom tooltip and reverts to the standard one. */
+fun Presentation.disableRichTooltip() {
+  putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, null);
+}
+
+/** Enables action tooltip that includes the name and description of the action. */
+@Deprecated("Use Presentation.enableRichTooltip instead", ReplaceWith("presentation.enableRichTooltip(this)"))
+fun AnAction.enableRichTooltip(presentation: Presentation) {
+  presentation.enableRichTooltip(this)
 }

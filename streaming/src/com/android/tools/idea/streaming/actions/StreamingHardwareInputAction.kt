@@ -46,7 +46,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    enableRichTooltip(event.presentation)
+    event.presentation.enableRichTooltip(this)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

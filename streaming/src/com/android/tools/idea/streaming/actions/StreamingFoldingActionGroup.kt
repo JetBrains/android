@@ -31,6 +31,6 @@ internal class StreamingFoldingActionGroup : StreamingActionGroup(EmulatorFoldin
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    enableRichTooltip(event.presentation)
+    event.presentation.enableRichTooltip(this)
   }
 }
