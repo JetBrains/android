@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.benchmark
+package com.android.tools.idea.downloads
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -21,7 +21,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
-import com.intellij.util.io.HttpRequests.HttpStatusException
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -29,15 +28,20 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import kotlin.io.path.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
-private const val CONNECT_TIMEOUT_MS = 5_000
-private const val READ_TIMEOUT_MS = 120_000
+private val CONNECT_TIMEOUT = 5.seconds
+private val READ_TIMEOUT = 2.minutes
+
+private fun Path.isFresh(age: Duration) =
+  exists() && System.currentTimeMillis() - getLastModifiedTime().toMillis() < age.inWholeMilliseconds
 
 /** Read-through, on-disk cache of downloaded files. */
 @Service(Service.Level.PROJECT)
@@ -50,30 +54,27 @@ class UrlFileCache : Disposable {
   /**
    * Downloads a file at the given [url] and returns a [Path] to the downloaded file.
    *
-   * If a [transform] is provided, this transform is applied to the file before writing to disk. If the
-   * file is already downloaded, not more than [maxFileAgeMs] old, or the server indicates the file has
-   * not changed, the cached copy will be provided and the [transform] will NOT be re-applied.
+   * If a [transform] is provided, this transform is applied to the file before writing to disk. If
+   * the file is already downloaded, not more than [maxFileAge] old, or the server indicates the
+   * file has not changed, the cached copy will be provided and the [transform] will NOT be
+   * re-applied.
    */
   fun get(
     url: String,
-    maxFileAgeMs: Long = 0L,  // This should be Duration, but it breaks Mockito (Duration is an inline class)
+    maxFileAge: Duration = Duration.ZERO,
     indicator: ProgressIndicator? = null,
     transform: ((InputStream) -> InputStream)? = null,
   ): Path {
     indicator?.isIndeterminate = true
     indicator?.text = "Checking cached downloads"
-    val existing = files[url]
     // Check the cache first
-    if (existing != null && existing.exists() &&
-        System.currentTimeMillis() - existing.getLastModifiedTime().toMillis() < maxFileAgeMs) {
-      return existing
-    }
+    val existing = files[url]?.also { if (it.isFresh(maxFileAge)) return it }
 
     indicator?.text = "Downloading from ${URL(url).host}"
     val file: Path =
       HttpRequests.request(url)
-        .connectTimeout(CONNECT_TIMEOUT_MS)
-        .readTimeout(READ_TIMEOUT_MS)
+        .connectTimeout(CONNECT_TIMEOUT.inWholeMilliseconds.toInt())
+        .readTimeout(READ_TIMEOUT.inWholeMilliseconds.toInt())
         .tuner { connection ->
           lastModified[url]?.let { connection.setRequestProperty("If-Modified-Since", it) }
           eTags[url]?.let { connection.setRequestProperty("If-None-Match", it) }
@@ -82,17 +83,24 @@ class UrlFileCache : Disposable {
           val responseCode = (request.connection as HttpURLConnection).responseCode
           if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
             if (existing != null && existing.exists()) return@connect existing
-            throw HttpStatusException("Received NOT_MODIFIED (304) but nothing in the cache.", 304, url)
+            throw HttpRequests.HttpStatusException(
+              "Received NOT_MODIFIED (304) but nothing in the cache.",
+              304,
+              url,
+            )
           }
-          request.connection.getHeaderField("Last-Modified")?.let { lastModified[url] = it }
-          request.connection.getHeaderField("ETag")?.let { eTags[url] = it }
           val newFile = createTempFile(tmpDir)
           try {
             request.saveToFile(newFile, indicator)
-          }
-          catch (e: IOException) {
+          } catch (e: IOException) {
             newFile.deleteIfExists()
             throw e
+          }
+          request.connection.getHeaderField("Last-Modified").let {
+            if (it != null) lastModified[url] = it else lastModified.remove(url)
+          }
+          request.connection.getHeaderField("ETag").let {
+            if (it != null) eTags[url] = it else eTags.remove(url)
           }
           return@connect newFile
         }
@@ -103,14 +111,15 @@ class UrlFileCache : Disposable {
     return file
   }
 
-  private fun Path.transform(cachedPath: Path?, transform: ((InputStream) -> InputStream)?) : Path {
+  private fun Path.transform(cachedPath: Path?, transform: ((InputStream) -> InputStream)?): Path {
     // Don't bother if there is no transform or if we want to serve the cached file.
     if (transform == null || cachedPath == this) return this
     val transformedPath = createTempFile(tmpDir)
     try {
-      Files.newInputStream(this).use { Files.copy(transform(it), transformedPath, StandardCopyOption.REPLACE_EXISTING) }
-    }
-    catch (e: Exception) {
+      Files.newInputStream(this).use {
+        Files.copy(transform(it), transformedPath, StandardCopyOption.REPLACE_EXISTING)
+      }
+    } catch (e: Exception) {
       transformedPath.deleteIfExists()
       throw e
     }
@@ -124,7 +133,6 @@ class UrlFileCache : Disposable {
   }
 
   companion object {
-    @JvmStatic
-    fun getInstance(project: Project): UrlFileCache = project.service()
+    @JvmStatic fun getInstance(project: Project): UrlFileCache = project.service()
   }
 }
