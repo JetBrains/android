@@ -16,6 +16,8 @@
 package com.android.tools.idea.assistant
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.npw.model.actuallyRender
 import com.android.tools.idea.npw.model.findReferences
 import com.android.tools.idea.npw.template.getExistingModuleTemplateDataBuilder
@@ -52,6 +54,7 @@ object RecipeUtils {
     ConcurrentHashMap()
 
   @JvmStatic
+  @WorkerThread
   /**
    * Creates a [RecipeMetadata] for the given [Recipe] for each module in the [Project]
    *
@@ -79,6 +82,7 @@ object RecipeUtils {
   }
 
   @JvmStatic
+  @UiThread
   /**
    * Executes the given [Recipe] in the context of the given [Module]
    *
