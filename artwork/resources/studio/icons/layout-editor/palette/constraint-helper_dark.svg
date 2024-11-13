@@ -1,6 +1,1 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M2.016 12.2203H4.08356C5.32083 12.2203 6.32731 11.2134 6.32731 9.9789V5.99143C6.32731 3.92419 8.00914 2.25 10.0827 2.25H12V3.75H10.0827C8.83604 3.75 7.82731 4.75415 7.82731 5.99143V9.9789C7.82731 12.0417 6.14941 13.7203 4.08356 13.7203H2.016V12.2203Z" fill="#9AA7B0"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M2 15C0.895431 15 0 14.1046 0 13C0 11.8954 0.895431 11 2 11C3.10457 11 4 11.8954 4 13C4 14.1046 3.10457 15 2 15Z" fill="#9AA7B0"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C10.8954 5 10 4.10457 10 3C10 1.89543 10.8954 1 12 1C13.1046 1 14 1.89543 14 3C14 4.10457 13.1046 5 12 5Z" fill="#9AA7B0"/>
-<rect x="10" y="10" width="5" height="5" fill="#40B6E0"/>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="a" fill="#fff"><rect x="11" y="10" width="4" height="4" rx=".5"/></mask><rect x="11" y="10" width="4" height="4" rx=".5" stroke="#548AF7" stroke-width="2" mask="url(#a)"/><path clip-rule="evenodd" d="M3 14a2 2 0 110-4 2 2 0 010 4zM13 6a2 2 0 110-4 2 2 0 010 4z" stroke="#CED0D6"/><path d="M11 4h-1a2 2 0 00-2 2v4a2 2 0 01-2 2H5" stroke="#CED0D6"/></svg>

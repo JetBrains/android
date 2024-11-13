@@ -181,8 +181,7 @@ class SelectProcessAction(
     // For consistency, always add a stop action, but only enable it if there's a current process
     // that can actually be stopped.
     val stopInspectionAction =
-      object :
-        AnAction(stopPresentation.text, stopPresentation.desc, AllIcons.Run.Stop) {
+      object : AnAction(stopPresentation.text, stopPresentation.desc, AllIcons.Run.Stop) {
 
         override fun getActionUpdateThread() = BGT
 

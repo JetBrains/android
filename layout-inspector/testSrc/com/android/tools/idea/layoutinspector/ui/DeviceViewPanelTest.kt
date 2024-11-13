@@ -368,12 +368,7 @@ class DeviceViewPanelWithFullInspectorTest {
         ICON_PHONE,
         "Google Older Legacy Model (Unsupported for API < 23)",
       )
-      checkDeviceAction(
-        children[3],
-        enabled = true,
-        AllIcons.Run.Stop,
-        "Stop Inspector",
-      )
+      checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     } else if (dropDownAction is SelectDeviceAction) {
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -398,12 +393,7 @@ class DeviceViewPanelWithFullInspectorTest {
         ICON_PHONE,
         "Google Older Legacy Model (Unsupported for API < 23)",
       )
-      checkDeviceAction(
-        children[3],
-        enabled = true,
-        AllIcons.Run.Stop,
-        "Stop Inspector",
-      )
+      checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     }
   }
 

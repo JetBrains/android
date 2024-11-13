@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.BadgeIconSupplier
 import icons.StudioIcons
 import java.time.Instant
 import java.time.ZoneId
@@ -109,6 +110,7 @@ class DeviceNamePanelTest {
     assertThat(panel.deviceIcon.baseIcon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
   }
 
+  @Suppress("UnstableApiUsage")
   @Test
   fun wearPairing() {
     val panel = DeviceNamePanel()
@@ -139,7 +141,7 @@ class DeviceNamePanelTest {
 
     assertThat(panel.pairedLabel.isVisible).isTrue()
     assertThat(panel.pairedLabel.baseIcon)
-      .isEqualTo(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED)
+      .isEqualTo(BadgeIconSupplier(StudioIcons.DeviceExplorer.DEVICE_PAIRED).liveIndicatorIcon)
     assertThat(panel.pairedLabel.accessibleContext.accessibleDescription).contains("Pixel Watch")
   }
 

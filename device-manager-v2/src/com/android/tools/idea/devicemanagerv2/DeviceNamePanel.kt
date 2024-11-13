@@ -21,6 +21,7 @@ import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
+import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
@@ -89,8 +90,8 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
       pairedLabel.baseIcon =
         when {
           pairList.any { it.state == PairingState.CONNECTED } ->
-            StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED
-          else -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+            BadgeIconSupplier(StudioIcons.DeviceExplorer.DEVICE_PAIRED).liveIndicatorIcon
+          else -> StudioIcons.DeviceExplorer.DEVICE_PAIRED
         }
     }
 
