@@ -197,6 +197,12 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
 
+    if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
+      // IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
+      // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
+      return
+    }
+
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
     //  that we should be able to move this to some kind of sync listener.
     if (projectData != null) {
@@ -216,9 +222,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (IdeInfo.getInstance().isAndroidStudio) {
       MemorySettingsPostSyncChecker
         .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
-    }
 
-    SupportedModuleChecker.getInstance().checkForSupportedModules(project)
+      SupportedModuleChecker.getInstance().checkForSupportedModules(project)
+    }
 
     ProjectSetup(project).setUpProject(false /* sync successful */)
 
