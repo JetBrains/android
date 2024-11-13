@@ -31,6 +31,10 @@ class PositionableGroup(
   val hasHeader = header != null
 }
 
+val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
+  listOf(PositionableGroup(it.toList()))
+}
+
 /** Group [PositionableContent] into [PositionableGroup]. */
 val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->

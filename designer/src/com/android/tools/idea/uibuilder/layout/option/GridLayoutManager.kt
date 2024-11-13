@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.layout.padding.DEFAULT_LAYOUT_PADDING
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
+import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.layout.positionable.content
 import com.android.tools.idea.uibuilder.surface.layout.MAX_ITERATION_TIMES
@@ -45,7 +46,8 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 open class GridLayoutManager(
   private val padding: OrganizationPadding = DEFAULT_LAYOUT_PADDING,
-  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>,
+  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup> =
+    NO_GROUP_TRANSFORM,
 ) : GroupedSurfaceLayoutManager(padding.previewPaddingProvider) {
 
   @VisibleForTesting var cachedLayoutGroups: MutableStateFlow<List<GridLayoutGroup>>? = null

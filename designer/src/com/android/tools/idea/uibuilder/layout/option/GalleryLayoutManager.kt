@@ -15,10 +15,5 @@
  */
 package com.android.tools.idea.uibuilder.layout.option
 
-import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
-
 /** [SurfaceLayoutManager] for Gallery mode. */
-class GalleryLayoutManager(
-  transform: (Collection<PositionableContent>) -> List<PositionableGroup>
-) : GridLayoutManager(transform = transform)
+class GalleryLayoutManager : GridLayoutManager()

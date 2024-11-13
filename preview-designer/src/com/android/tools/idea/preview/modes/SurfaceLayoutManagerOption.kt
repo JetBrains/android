@@ -38,7 +38,7 @@ private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
-    GalleryLayoutManager(NO_GROUP_TRANSFORM),
+    GalleryLayoutManager(),
     false,
     SceneViewAlignment.LEFT,
   )
@@ -47,8 +47,7 @@ val GALLERY_LAYOUT_OPTION =
 val GRID_NO_GROUP_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("new.grid.layout.title"),
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      GridLayoutManager(transform = NO_GROUP_TRANSFORM)
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) GridLayoutManager()
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
