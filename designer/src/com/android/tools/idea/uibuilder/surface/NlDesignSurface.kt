@@ -56,8 +56,6 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -82,7 +80,6 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.util.function.Supplier
 import java.util.stream.Collectors
-import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.launch
 
@@ -531,22 +528,11 @@ internal constructor(
 
     val layoutManager = sceneViewLayoutManager.currentLayout.value.layoutManager
 
-    // If layout is a vertical list layout
-    val isGroupedListLayout =
-      layoutManager is GroupedListSurfaceLayoutManager || layoutManager is ListLayoutManager
     // If layout is grouped grid layout.
     val isGroupedGridLayout =
       layoutManager is GroupedGridSurfaceLayoutManager || layoutManager is GridLayoutManager
 
-    if (isGroupedListLayout) {
-      viewportScroller =
-        createScrollerForGroupedSurfaces(
-          port,
-          update,
-          scrollPosition,
-          Point(scrollPosition.x, max(0.0, focusPoint.y.toDouble()).toInt()),
-        )
-    } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
+    if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =
         createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
     } else if (layoutManager !is GridSurfaceLayoutManager) {
