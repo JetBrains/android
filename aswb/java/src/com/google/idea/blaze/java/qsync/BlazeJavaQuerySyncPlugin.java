@@ -45,7 +45,7 @@ public class BlazeJavaQuerySyncPlugin implements BlazeQuerySyncPlugin {
     }
 
     LanguageLevel javaLanguageLevel =
-        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_11);
+        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21);
     Sdk currentSdk = ProjectRootManager.getInstance(project).getProjectSdk();
     Sdk sdk = Jdks.chooseOrCreateJavaSdk(currentSdk, javaLanguageLevel);
 

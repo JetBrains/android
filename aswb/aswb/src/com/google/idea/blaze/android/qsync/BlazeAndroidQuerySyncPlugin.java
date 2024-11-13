@@ -67,7 +67,7 @@ public class BlazeAndroidQuerySyncPlugin implements BlazeQuerySyncPlugin {
         AndroidSdkFromProjectView.getAndroidSdkPlatform(context, projectViewSet);
     Sdk sdk = BlazeSdkProvider.getInstance().findSdk(androidSdkPlatform.androidSdk);
     LanguageLevel javaLanguageLevel =
-        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_11);
+        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21);
     ProjectRootManagerEx rootManager = ProjectRootManagerEx.getInstanceEx(project);
     rootManager.setProjectSdk(sdk);
     LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
