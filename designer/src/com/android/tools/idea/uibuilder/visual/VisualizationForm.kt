@@ -42,8 +42,7 @@ import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -126,18 +125,7 @@ class VisualizationForm(
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
   private val myLayoutOption =
-    SurfaceLayoutOption(
-      "Layout",
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        GRID_HORIZONTAL_SCREEN_DELTA,
-        VERTICAL_SCREEN_DELTA,
-        false,
-      ),
-      false,
-      SceneViewAlignment.LEFT,
-    )
+    SurfaceLayoutOption("Layout", GridLayoutManager(), false, SceneViewAlignment.LEFT)
   private val myUpdateQueue: MergingUpdateQueue
 
   private var myCancelPendingModelLoad = AtomicBoolean(false)
