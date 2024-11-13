@@ -16,9 +16,15 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.RestoreAppAction.Config.Browse
 import com.android.tools.idea.backup.RestoreAppAction.Config.File
+import com.android.tools.idea.backup.asyncaction.ActionEnableState
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
+import com.android.tools.idea.backup.asyncaction.ActionGroupWithAsyncUpdate
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
@@ -27,7 +33,9 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 /** A Restore App popup [ActionGroup] containing recently used backup files and a browse action */
-internal class RestoreAppActionGroup : ActionGroup() {
+internal class RestoreAppActionGroup : ActionGroupWithAsyncUpdate() {
+  private val actionHelper: ActionHelper = ActionHelperImpl()
+
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -37,7 +45,24 @@ internal class RestoreAppActionGroup : ActionGroup() {
     }
     val project = e.project ?: return
     e.presentation.isPopupGroup = true
-    e.presentation.isEnabledAndVisible = showGroup(project)
+    e.presentation.isVisible = showGroup(project)
+    e.presentation.isEnabled = false
+    super.update(e)
+  }
+
+  override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
+    if (actionHelper.getDeployTargetCount(project) != 1) {
+      return Disabled(message("error.multiple.devices"))
+    }
+    val serialNumber =
+      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.running"))
+    val backupManager = BackupManager.getInstance(project)
+    val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
+    val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
+    return when (found) {
+      true -> Enabled
+      else -> Disabled(message("error.applications.not.installed"))
+    }
   }
 
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
@@ -48,6 +73,11 @@ internal class RestoreAppActionGroup : ActionGroup() {
         files.forEach { add(RestoreAppAction(File(Path.of(it)))) }
       }
       .toTypedArray()
+  }
+
+  private suspend fun getDeviceSerialNumber(e: AnActionEvent): String? {
+    val project = e.project ?: return null
+    return SERIAL_NUMBER_KEY.getData(e.dataContext) ?: actionHelper.getDeployTargetSerial(project)
   }
 
   companion object {

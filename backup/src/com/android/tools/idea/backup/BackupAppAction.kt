@@ -20,11 +20,14 @@ import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Invalid
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Valid
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
+import com.android.tools.idea.backup.asyncaction.ActionEnableState
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
+import com.android.tools.idea.backup.asyncaction.ActionWithAsyncUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
@@ -33,18 +36,32 @@ import kotlinx.coroutines.launch
 internal class BackupAppAction(
   private val actionHelper: ActionHelper = ActionHelperImpl(),
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
-) : AnAction() {
+) : ActionWithAsyncUpdate() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = false
-    val project = e.project ?: return
     if (!StudioFlags.BACKUP_ENABLED.get()) {
       // For now, the only place this is shown is the main toolbar
       return
     }
     e.presentation.isVisible = true
-    e.presentation.isEnabled = actionHelper.getApplicationId(project) != null
+    super.update(e)
+  }
+
+  override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
+    if (actionHelper.getApplicationId(project) == null) {
+      return Disabled("Selected run configuration is not an app")
+    }
+    return when (val backupInfo = e.getBackupInfo()) {
+      is Invalid -> Disabled(backupInfo.reason)
+      is Valid -> {
+        val installed =
+          BackupManager.getInstance(project)
+            .isInstalled(backupInfo.serialNumber, backupInfo.applicationId)
+        if (installed) Enabled else Disabled(message("error.application.not.installed"))
+      }
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

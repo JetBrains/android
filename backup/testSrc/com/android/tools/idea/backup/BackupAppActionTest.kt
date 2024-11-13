@@ -16,6 +16,7 @@
 package com.android.tools.idea.backup
 
 import com.android.flags.junit.FlagRule
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeDialogFactory
@@ -24,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -32,13 +34,17 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 
 /** Tests for [BackupAppAction] */
 @RunWith(JUnit4::class)
@@ -47,7 +53,10 @@ internal class BackupAppActionTest {
   private val project
     get() = projectRule.project
 
-  private val mockBackupManager = mock<BackupManager>()
+  private val mockBackupManager =
+    mock<BackupManager>().apply {
+      runBlocking { whenever(isInstalled(any(), any())).thenReturn(true) }
+    }
 
   @get:Rule
   val rule =
@@ -61,10 +70,15 @@ internal class BackupAppActionTest {
   fun update() {
     val action = BackupAppAction(FakeActionHelper("com.app", 1, "serial"))
     val event = testEvent(project)
+    val activityTracker = ActivityTracker.getInstance()
+    val count = activityTracker.count
 
+    action.update(event)
+    waitForCondition(3.seconds) { action.updateState.get() != null }
     action.update(event)
 
     val presentation = event.presentation
+    assertThat(activityTracker.count > count)
     assertThat(presentation.isVisible).isTrue()
     assertThat(presentation.isEnabled).isTrue()
   }

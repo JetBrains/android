@@ -17,24 +17,42 @@
 package com.android.tools.idea.backup
 
 import com.android.adblib.DeviceSelector
+import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_ACTION
+import com.android.tools.idea.backup.asyncaction.ActionEnableState
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
+import com.android.tools.idea.backup.asyncaction.ActionWithAsyncUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Backups the state of the foreground app to a file */
-internal class BackupForegroundAppAction : AnAction() {
+internal class BackupForegroundAppAction : ActionWithAsyncUpdate() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = StudioFlags.BACKUP_ENABLED.get()
+    e.presentation.isVisible = StudioFlags.BACKUP_ENABLED.get()
+    e.presentation.isEnabled = false
+    super.update(e)
+  }
+
+  override suspend fun computeState(project: Project, e: AnActionEvent): ActionEnableState {
+    val backupManager = BackupManager.getInstance(project)
+    val serialNumber = getDeviceSerialNumber(e)
+    val applicationIds = project.getService(ProjectAppsProvider::class.java).getApplicationIds()
+    val found = applicationIds.any { backupManager.isInstalled(serialNumber, it) }
+    return when (found) {
+      true -> Enabled
+      else -> Disabled(message("error.applications.not.installed"))
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
