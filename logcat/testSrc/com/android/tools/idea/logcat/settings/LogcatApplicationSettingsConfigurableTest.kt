@@ -19,7 +19,7 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.io.FileUtilRt.LARGE_FOR_CONTENT_LOADING
+import com.intellij.openapi.vfs.limits.FileSizeLimit
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -88,7 +88,9 @@ class LogcatApplicationSettingsConfigurableTest {
   fun bufferSize_large() {
     val configurable = logcatApplicationSettingsConfigurable()
 
-    configurable.cycleBufferSizeTextField.text = (LARGE_FOR_CONTENT_LOADING / 1024 + 1).toString()
+    @Suppress("UnstableApiUsage")
+    configurable.cycleBufferSizeTextField.text =
+      (FileSizeLimit.getDefaultContentLoadLimit() / 1024 + 1).toString()
 
     assertThat(configurable.isModified).isTrue()
     assertThat(configurable.cyclicBufferSizeWarningLabel.text)
