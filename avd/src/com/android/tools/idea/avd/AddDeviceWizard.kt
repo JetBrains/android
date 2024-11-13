@@ -305,8 +305,8 @@ private val playColumn =
       extraPadding = 16.dp,
     ),
     comparator = compareBy { it.isGooglePlaySupported },
-  ) {
-    if (it.isGooglePlaySupported) {
+  ) { profile, _ ->
+    if (profile.isGooglePlaySupported) {
       Icon(
         StudioIconsCompose.Avd.DevicePlayStore,
         contentDescription = "Play Store supported",

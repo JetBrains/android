@@ -99,7 +99,7 @@ data class TableColumn<in T>(
   val comparator: Comparator<in T>? = null,
   /** The comparator for the rows when sorted by this column in descending order. */
   val reverseComparator: Comparator<in T>? = comparator?.reversed(),
-  val rowContent: @Composable BoxScope.(T) -> Unit,
+  val rowContent: @Composable BoxScope.(value: T, selected: Boolean) -> Unit,
 )
 
 @Suppress("ModifierFactoryExtensionFunction")
@@ -149,8 +149,8 @@ fun <T> TableTextColumn(
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
 ) =
-  TableColumn(name, width, comparator) {
-    Text(attribute(it), overflow = overflow, maxLines = maxLines)
+  TableColumn(name, width, comparator) { value, _ ->
+    Text(attribute(value), overflow = overflow, maxLines = maxLines)
   }
 
 /**
@@ -165,8 +165,8 @@ fun <T, V : Comparable<V>> DefaultSortableTableColumn(
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
 ) =
-  TableColumn(name, width, comparator) {
-    Text(attribute(it).toString(), overflow = overflow, maxLines = maxLines)
+  TableColumn(name, width, comparator) { value, _ ->
+    Text(attribute(value).toString(), overflow = overflow, maxLines = maxLines)
   }
 
 enum class SortOrder {
@@ -305,7 +305,7 @@ internal fun <T> TableRow(
     CompositionLocalProvider(LocalContentColor provides contentColor) {
       columns.forEach {
         Box(with(it.width) { widthModifier() }.padding(horizontal = CELL_SPACING / 2)) {
-          it.rowContent.invoke(this@Box, value)
+          it.rowContent.invoke(this@Box, value, selected)
         }
       }
     }
@@ -400,15 +400,24 @@ fun <T> Table(
             .focusable(),
       ) {
         items(sortedRows.size, { index -> rowId(sortedRows[index]) }) { index ->
+          var hasFocus by remember { mutableStateOf(false) }
           TableRow(
             sortedRows[index],
             selected = sortedRows[index] == tableSelectionState.selection,
             { row ->
-              tableFocusRequester.requestFocus()
               onRowClick(row)
+              if (!hasFocus) {
+                tableFocusRequester.requestFocus()
+              }
             },
             onRowSecondaryClick,
             columns,
+            Modifier.onFocusChanged {
+              hasFocus = it.hasFocus
+              if (hasFocus) {
+                tableSelectionState.selection = sortedRows[index]
+              }
+            },
           )
         }
       }

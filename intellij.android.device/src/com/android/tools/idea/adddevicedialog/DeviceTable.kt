@@ -182,7 +182,9 @@ class DeviceTableShowDetailsState {
 
 object DeviceTableColumns {
   val icon =
-    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) }
+    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { profile, _ ->
+      profile.Icon(Modifier.size(16.dp))
+    }
   val oem = TableTextColumn<DeviceProfile>("OEM", attribute = { it.manufacturer })
   val name =
     TableTextColumn<DeviceProfile>(
@@ -213,7 +215,7 @@ object DeviceTableColumns {
       width = TableColumnWidth.ToFit("30-35", extraPadding = 8.dp),
       comparator = apiRangeAscendingOrder,
       reverseComparator = apiRangeDescendingOrder,
-      rowContent = { Text(it.apiRange.firstAndLastApiLevel()) },
+      rowContent = { profile, _ -> Text(profile.apiRange.firstAndLastApiLevel()) },
     )
 
   // Make it just big enough to fit the header plus the sort icon.
