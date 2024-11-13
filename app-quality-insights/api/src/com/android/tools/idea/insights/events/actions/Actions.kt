@@ -21,7 +21,6 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 
 /**
  * Describes all the actions available in App Insights.
@@ -141,7 +140,6 @@ sealed class Action {
     override val id: IssueId,
     val issueFatality: FailureType,
     val event: Event,
-    val contextSharingOverride: Boolean = false,
     val forceFetch: Boolean = false,
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =

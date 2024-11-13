@@ -75,7 +75,6 @@ class InsightContentPanel(
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-  onRefresh: (Boolean) -> Unit,
 ) : JPanel(), DataProvider, Disposable {
 
   private val cardLayout = CardLayout()
@@ -90,7 +89,7 @@ class InsightContentPanel(
         AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT) !=
           Experiment.UNKNOWN
       ) {
-        add(InsightDisclaimerPanel(controller, scope, currentInsightFlow, onRefresh))
+        add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
       }
       add(insightTextPane)
 
@@ -168,7 +167,7 @@ class InsightContentPanel(
     val toolbar =
       ActionManager.getInstance()
         .createActionToolbar(
-          "GeminiOnboardingObserver",
+          "ContextSharingObserver",
           DefaultActionGroup(geminiOnboardingObserverAction),
           true,
         )

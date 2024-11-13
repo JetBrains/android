@@ -21,18 +21,14 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
-import com.android.tools.idea.insights.ui.INSIGHT_KEY
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val MAIN_CARD = "main"
@@ -48,7 +44,7 @@ class InsightMainPanel(
   controller: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-) : JPanel(), DataProvider {
+) : JPanel() {
 
   private val scope =
     controller.coroutineScope.createChildScope(parentDisposable = parentDisposable)
@@ -62,19 +58,7 @@ class InsightMainPanel(
       controller.state.map { it.currentInsight }.distinctUntilChanged(),
       parentDisposable,
       permissionDeniedHandler,
-    ) {
-      controller.refreshInsight(it)
-    }
-
-  private val issueFlow =
-    controller.state
-      .map { it.selectedIssue }
-      .stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
-
-  private val insightFlow =
-    controller.state
-      .map { (it.currentInsight as? LoadingState.Ready)?.value }
-      .stateIn(controller.coroutineScope, SharingStarted.Eagerly, null)
+    )
 
   private val emptyStateText =
     AppInsightsStatusText(this) { !isShowingInsight }
@@ -105,10 +89,4 @@ class InsightMainPanel(
     super.paint(g)
     emptyStateText.paint(this, g)
   }
-
-  override fun getData(dataId: String): Any? =
-    when {
-      INSIGHT_KEY.`is`(dataId) -> insightFlow.value
-      else -> null
-    }
 }

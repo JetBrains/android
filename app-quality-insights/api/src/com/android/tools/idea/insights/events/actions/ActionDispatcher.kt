@@ -360,10 +360,7 @@ class ActionDispatcher(
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
               val codeContextData =
-                aiInsightToolkit.getSource(
-                  action.event.stacktraceGroup,
-                  action.contextSharingOverride,
-                )
+                aiInsightToolkit.getSource(action.event.stacktraceGroup, action.forceFetch)
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
@@ -371,7 +368,7 @@ class ActionDispatcher(
                 action.event,
                 timeFilter,
                 codeContextData,
-                action.contextSharingOverride || action.forceFetch,
+                action.forceFetch,
               )
             }
           }
