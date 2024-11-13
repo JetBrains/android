@@ -43,6 +43,8 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.junit.Assert.assertEquals
@@ -54,11 +56,14 @@ import org.junit.runners.JUnit4
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class StorageGroupTest {
   private var device by mutableStateOf(pixel6())
   private val state = StorageGroupState(device, createInMemoryFileSystem())
-  @get:Rule val rule = createStudioComposeTestRule()
+
+  @get:Rule val composeRule = createStudioComposeTestRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun internalStorageIsValid() {
@@ -66,15 +71,15 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onInternalStorageTextField().performTextReplacement("3")
+    composeRule.onInternalStorageTextField().performTextReplacement("3")
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
 
     // Assert there are no tooltips
-    rule.onNode(isPopup()).onChildren().assertCountEquals(0)
+    composeRule.onNode(isPopup()).onChildren().assertCountEquals(0)
 
     assertEquals(device.copy(internalStorage = StorageCapacity(3, StorageCapacity.Unit.GB)), device)
   }
@@ -85,13 +90,13 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onInternalStorageTextField().performTextReplacement("")
+    composeRule.onInternalStorageTextField().performTextReplacement("")
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule.onNodeWithText("Specify an internal storage value").assertIsDisplayed()
+    composeRule.onNodeWithText("Specify an internal storage value").assertIsDisplayed()
     assertNull(device.internalStorage)
   }
 
@@ -101,13 +106,13 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, true, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onInternalStorageTextField().performTextReplacement("1")
+    composeRule.onInternalStorageTextField().performTextReplacement("1")
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule
+    composeRule
       .onNodeWithText("Internal storage for Play Store devices must be at least 2G")
       .assertIsDisplayed()
 
@@ -120,13 +125,13 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onInternalStorageTextField().performTextReplacement("1")
+    composeRule.onInternalStorageTextField().performTextReplacement("1")
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule.onNodeWithText("Internal storage must be at least 2G").assertIsDisplayed()
+    composeRule.onNodeWithText("Internal storage must be at least 2G").assertIsDisplayed()
     assertNull(device.internalStorage)
   }
 
@@ -136,14 +141,29 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onInternalStorageTextField().performTextReplacement("8589934592")
+    composeRule.onInternalStorageTextField().performTextReplacement("8589934592")
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onInternalStorageTextField().performMouseInput { moveTo(center) }
+    composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-    rule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
+    composeRule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
     assertNull(device.internalStorage)
+  }
+
+  @Test
+  fun onCustomRadioButtonClick() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onNodeWithText("Existing image").performClick()
+    composeRule.onNodeWithText("Custom").performClick()
+    composeRule.waitForIdle()
+
+    // Assert
+    assertEquals(ExpandedStorageRadioButton.CUSTOM, state.selectedRadioButton)
+    assertEquals(Custom(StorageCapacity(512, StorageCapacity.Unit.MB)), device.expandedStorage)
   }
 
   @Test
@@ -152,19 +172,19 @@ class StorageGroupTest {
     setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
 
     // Act
-    rule.onNodeWithText("Existing image").performClick()
+    composeRule.onNodeWithText("Existing image").performClick()
 
     @OptIn(ExperimentalTestApi::class)
-    rule.onNodeWithTag("ExistingImageField").performMouseInput { moveTo(center) }
+    composeRule.onNodeWithTag("ExistingImageField").performMouseInput { moveTo(center) }
 
     // Assert
     assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
-    rule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
+    composeRule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
     assertNull(device.expandedStorage)
   }
 
   private fun setContent(composable: @Composable () -> Unit) {
-    rule.setContent {
+    composeRule.setContent {
       CompositionLocalProvider(
         @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
         LocalProject provides mock(),
