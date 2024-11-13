@@ -107,7 +107,7 @@ public final class AndroidVirtualDeviceTest {
     builder.put("image.sysdir.1", "system-images/android-34/google_apis_playstore/x86_64/");
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
-    builder.put("sdcard.size", "800M");
+    builder.put("sdcard.size", "512M");
     builder.put("skin.name", DEVICE_SKIN);
     builder.put("tag.display", "Google Play");
     builder.put("tag.displaynames", "Google Play");

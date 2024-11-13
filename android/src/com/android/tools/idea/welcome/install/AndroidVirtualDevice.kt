@@ -104,7 +104,7 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
       displayName = avdManager.uniquifyDisplayName(AvdNames.getDefaultDeviceDisplayName(device, systemImageDescription.version))
       avdName = avdManager.uniquifyAvdName(AvdNames.cleanAvdName(displayName))
       systemImage = systemImageDescription.systemImage
-      sdCard = InternalSdCard(EmulatedProperties.defaultInternalStorage(device).size)
+      sdCard = InternalSdCard(EmulatedProperties.DEFAULT_SDCARD_SIZE.size)
       skin = device.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }?.let { defaultHardwareSkin ->
         OnDiskSkin(DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get())
       } ?: device.defaultGenericSkin()
@@ -116,7 +116,7 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
       networkLatency = EmulatedProperties.DEFAULT_NETWORK_LATENCY
       networkSpeed = EmulatedProperties.DEFAULT_NETWORK_SPEED
       ram = DEFAULT_RAM_SIZE
-      internalStorage = DEFAULT_RAM_SIZE
+      internalStorage = EmulatedProperties.defaultInternalStorage(device)
       vmHeap = DEFAULT_HEAP_SIZE
     }
 
