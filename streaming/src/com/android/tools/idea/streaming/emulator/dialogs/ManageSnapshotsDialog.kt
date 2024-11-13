@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.concurrency.AndroidIoManager
@@ -35,6 +34,7 @@ import com.google.common.html.HtmlEscapers
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
@@ -340,7 +340,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
                 snapshotTableModel.addRow(snapshot)
                 snapshotTable.selection = listOf(snapshot)
                 TableUtil.scrollSelectionToVisible(snapshotTable)
-                updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
+                ActivityTracker.getInstance().inc() // Update toolbar. Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
               }
             }
           }
