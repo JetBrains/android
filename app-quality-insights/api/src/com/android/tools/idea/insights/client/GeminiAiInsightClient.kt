@@ -58,6 +58,10 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+private const val ANDROID_NATIVE_CRASH_HEADER =
+  "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
+private val PID_REGEX = Regex("^pid: (\\d+), tid: (\\d+) >>> (.+?) <<<$")
+
 // Extra space reserved for system preamble
 private const val CONTEXT_WINDOW_PADDING = 150
 
@@ -141,10 +145,15 @@ fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
 private fun Event.prettyStackTrace() =
   buildString {
       stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
-        if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
+        if (idx == 0 || exception.rawExceptionMessage.shouldTakeException()) {
           appendLine(exception.rawExceptionMessage)
           append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
         }
       }
     }
     .trim()
+
+private fun String.shouldTakeException() = startsWith("Caused by") || isNativeCrashHeader()
+
+private fun String.isNativeCrashHeader() =
+  equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")
