@@ -41,7 +41,7 @@ public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
 
     // Set jvm-target from java language level
     LanguageLevel javaLanguageLevel =
-        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_11);
+        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21);
     setProjectJvmTarget(project, javaLanguageLevel);
   }
 
