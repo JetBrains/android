@@ -16,9 +16,9 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
-import com.android.tools.idea.streaming.actions.enableRichTooltip
 import com.android.tools.idea.streaming.actions.getDisplayView
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
