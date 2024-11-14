@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
+import com.android.tools.idea.preview.actions.ViewInGalleryAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
@@ -81,6 +82,8 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
+    // View in Gallery mode
+    actionGroup.add(ViewInGalleryAction(mousePosition.x, mousePosition.y))
     // Send Preview to Studio Bot and ask to fix it
     if (StudioFlags.COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT.get()) {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {

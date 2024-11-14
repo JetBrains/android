@@ -1345,6 +1345,11 @@ public final class StudioFlags {
     "If enabled, Gallery view will only have dropdown selector instead of tabs.",
     false);
 
+  public static final Flag<Boolean> VIEW_IN_GALLERY = new BooleanFlag(
+    PREVIEW_COMMON, "view.preview.in.gallery", "View preview in Gallery mode",
+    "If enabled, shows a menu item to open the selected preview in Gallery mode.",
+    ChannelDefault.enabledUpTo(CANARY));
+
   //endregion
 
   //region Compose
