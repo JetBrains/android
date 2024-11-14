@@ -1364,10 +1364,11 @@ internal class DeviceClientRegistry : Disposable {
       clientCreator(serial).also { client ->
         Disposer.register(this, client)
         for (listener in listeners) {
-          EventQueue.invokeLater {
-            if (clientsBySerialNumber[serialNumber] == client) {
-              listener.deviceClientAdded(client, requester)
-            }
+          try {
+            listener.deviceClientAdded(client, requester)
+          }
+          catch (e: Exception) {
+            logger.error(e)
           }
         }
       }
@@ -1382,13 +1383,14 @@ internal class DeviceClientRegistry : Disposable {
   fun removeDeviceClient(serialNumber: String, requester: Any?) {
     clientsBySerialNumber.remove(serialNumber)?.also { client ->
       for (listener in listeners) {
-        EventQueue.invokeLater {
+        try {
           listener.deviceClientRemoved(client, requester)
         }
+        catch (e: Exception) {
+          logger.error(e)
+        }
       }
-      EventQueue.invokeLater {
-        Disposer.dispose(client)
-      }
+      Disposer.dispose(client)
     }
   }
 
