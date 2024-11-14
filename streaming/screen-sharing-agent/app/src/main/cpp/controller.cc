@@ -625,9 +625,9 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
         SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
       }
     }
-    JObject exception = jni.GetAndClearException();
+    JThrowable exception = jni.GetAndClearException();
     if (exception.IsNotNull()) {
-      Log::W(jni.GetAndClearException(), "Unable to turn display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
+      Log::W(std::move(exception), "Unable to turn display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
       return false;
     }
     Log::I("Turned display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
