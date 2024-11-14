@@ -29,11 +29,18 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.android.AndroidDeclarativeModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
+import com.android.tools.idea.gradle.dsl.model.build.EmptyBuildScriptModel
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
+import com.android.tools.idea.gradle.dsl.model.configurations.EmptyConfigurationsModelImpl
+import com.android.tools.idea.gradle.dsl.model.dependencies.EmptyDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
+import com.android.tools.idea.gradle.dsl.model.ext.EmptyExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
+import com.android.tools.idea.gradle.dsl.model.java.EmptyJavaModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
+import com.android.tools.idea.gradle.dsl.model.kotlin.EmptyKotlinModelImpl
 import com.android.tools.idea.gradle.dsl.model.kotlin.KotlinModelImpl
+import com.android.tools.idea.gradle.dsl.model.repositories.EmptyRepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE
@@ -57,7 +64,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuildFile> {
 
   override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleBuildFile>> {
-    return when(kind) {
+    return when (kind) {
       DECLARATIVE -> DECLARATIVE_ROOT_AVAILABLE_MODELS
       else -> DEFAULT_ROOT_AVAILABLE_MODELS
     }
@@ -67,7 +74,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
   override val parentDslClass = GradleBuildFile::class.java
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
-    return when(kind) {
+    return when (kind) {
       DECLARATIVE -> DECLARATIVE_ROOT_ELEMENTS_MAP
       else -> DEFAULT_ROOT_ELEMENTS_MAP
     }
@@ -102,17 +109,10 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       throw IllegalStateException("Cannot create android[App|Library] dsl element")
     }
 
-    private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
-      AndroidDeclarativeModel::class.java from {
-        declarativeBuilder(it)
-      }
-    )
-
     private val DEFAULT_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
       AndroidModel::class.java from {
         AndroidModelImpl(it.ensurePropertyElement(AndroidDslElement.ANDROID))
       },
-
       BuildScriptModel::class.java from {
         BuildScriptModelImpl(it.ensurePropertyElementAt(BuildScriptDslElement.BUILDSCRIPT, 0))
       },
@@ -124,7 +124,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       DependenciesModel::class.java from { file ->
         val dependenciesDslElement: DependenciesDslElement = file.ensurePropertyElement(
           DependenciesDslElement.DEPENDENCIES)
-          ScriptDependenciesModelImpl(dependenciesDslElement)
+        ScriptDependenciesModelImpl(dependenciesDslElement)
       },
 
       ExtModel::class.java from {
@@ -151,6 +151,17 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       RepositoriesModel::class.java from {
         RepositoriesModelImpl(it.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES))
       }
+    )
+
+    private val DECLARATIVE_ROOT_AVAILABLE_MODELS = listOf<BlockModelBuilder<*, GradleBuildFile>>(
+      AndroidDeclarativeModel::class.java from { declarativeBuilder(it) },
+      BuildScriptModel::class.java from { EmptyBuildScriptModel() },
+      ConfigurationsModel::class.java from { EmptyConfigurationsModelImpl() },
+      DependenciesModel::class.java from { EmptyDependenciesModelImpl() },
+      ExtModel::class.java from { EmptyExtModelImpl() },
+      JavaModel::class.java from { EmptyJavaModelImpl() },
+      KotlinModel::class.java from { EmptyKotlinModelImpl() },
+      RepositoriesModel::class.java from { EmptyRepositoriesModelImpl() }
     )
   }
 }

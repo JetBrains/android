@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -26,14 +28,32 @@ import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests for {@link GradleBuildModelImpl}.
  */
 public class GradleBuildModelImplTest extends GradleFileModelTestCase {
+
+  @Before
+  @Override
+  public void before() throws Exception {
+    DeclarativeIdeSupport.override(true);
+    DeclarativeStudioSupport.override(true);
+    super.before();
+  }
+
+  @After
+  public void after() {
+    DeclarativeIdeSupport.clearOverride();
+    DeclarativeStudioSupport.clearOverride();
+  }
+
   @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
+    isIrrelevantForDeclarative("No repositories for Declarative");
     writeToBuildFile(TestFile.REMOVE_REPOSITORIES_SINGLE_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
@@ -47,7 +67,18 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testDeclarativeOnRepositoryBlock() throws IOException {
+    isIrrelevantForGroovy("Declarative only");
+    isIrrelevantForKotlinScript("Declarative only");
+    writeToBuildFile(TestFile.DECLARATIVE_LIST_REPOSITORIES);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
+    isIrrelevantForDeclarative("No repositories for Declarative");
     writeToBuildFile(TestFile.REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
@@ -83,6 +114,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesWithAllprojectsBlock() throws IOException {
+    isIrrelevantForDeclarative("No repositories for Declarative");
     writeToBuildFile(TestFile.REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
@@ -98,6 +130,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testPluginsBlockPsi() throws IOException {
+    isIrrelevantForDeclarative("No plugin in build file for Declarative");
     writeToBuildFile(TestFile.PLUGINS_BLOCK_PSI);
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -114,6 +147,7 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
 
   @Test
   public void testApplyPluginNoPluginsBlockPsi() throws IOException {
+    isIrrelevantForDeclarative("No plugin in build file for Declarative");
     writeToBuildFile(TestFile.APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI);
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -127,7 +161,9 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED("removeRepositoriesWithBuildscriptRepositoriesExpected"),
     REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK("removeRepositoriesWithAllprojectsBlock"),
     PLUGINS_BLOCK_PSI("pluginsBlockPsi"),
-    APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI("applyPluginNoPluginsBlockPsi")
+    APPLY_PLUGIN_NO_PLUGINS_BLOCK_PSI("applyPluginNoPluginsBlockPsi"),
+    DECLARATIVE_LIST_REPOSITORIES("declarativeListRepositories"),
+
     ;
 
     @NotNull private @SystemDependent String path;
