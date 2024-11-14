@@ -213,7 +213,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.24",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.24",
-        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_2.1.0-Beta2",
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_2.1.0-RC",
         "@maven//:org.jetbrains.kotlin.kotlin-test_1.9.24",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
     ],
