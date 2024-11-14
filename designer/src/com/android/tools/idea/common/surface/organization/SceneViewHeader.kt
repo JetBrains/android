@@ -74,8 +74,6 @@ class SceneViewHeader(
     object : HeaderPositionableContent {
       override val organizationGroup = organizationGroup
       override val scale: Double = 1.0
-      override val topPanelHeight: Int
-        get() = 0
 
       override val x
         get() = this@SceneViewHeader.x
