@@ -126,7 +126,7 @@ internal class StreamingBenchmarkerAppInstallerImpl(
     else {
       // Installed Studio.
       try {
-        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours, indicator) { Base64.getDecoder().wrap(it) }
+        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours, indicator) { Base64.getDecoder().wrap(it) }.await()
       }
       catch (e: Exception) {
         logger.error(e)

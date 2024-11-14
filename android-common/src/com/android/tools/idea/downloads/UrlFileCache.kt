@@ -36,23 +36,31 @@ import kotlin.io.path.getLastModifiedTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private val CONNECT_TIMEOUT = 5.seconds
 private val READ_TIMEOUT = 2.minutes
 
 private fun Path.isFresh(age: Duration) =
-  exists() && System.currentTimeMillis() - getLastModifiedTime().toMillis() < age.inWholeMilliseconds
+  exists() &&
+    System.currentTimeMillis() - getLastModifiedTime().toMillis() < age.inWholeMilliseconds
 
 /** Read-through, on-disk cache of downloaded files. */
 @Service(Service.Level.PROJECT)
-class UrlFileCache : Disposable {
+class UrlFileCache(private val coroutineScope: CoroutineScope) : Disposable {
   private val files = mutableMapOf<String, Path>()
   private val lastModified = mutableMapOf<String, String>()
   private val eTags = mutableMapOf<String, String>()
   private val tmpDir = createTempDirectory()
+  private val mutex = Mutex()
 
   /**
-   * Downloads a file at the given [url] and returns a [Path] to the downloaded file.
+   * Downloads a file at the given [url] and returns a [Deferred] for the [Path] to the downloaded
+   * file.
    *
    * If a [transform] is provided, this transform is applied to the file before writing to disk. If
    * the file is already downloaded, not more than [maxFileAge] old, or the server indicates the
@@ -64,9 +72,21 @@ class UrlFileCache : Disposable {
     maxFileAge: Duration = Duration.ZERO,
     indicator: ProgressIndicator? = null,
     transform: ((InputStream) -> InputStream)? = null,
-  ): Path {
+  ): Deferred<Path> {
     indicator?.isIndeterminate = true
     indicator?.text = "Checking cached downloads"
+
+    return coroutineScope.async {
+      mutex.withLock { fetchAndFilterUrlLocked(url, maxFileAge, indicator, transform) }
+    }
+  }
+
+  private fun fetchAndFilterUrlLocked(
+    url: String,
+    maxFileAge: Duration,
+    indicator: ProgressIndicator?,
+    transform: ((InputStream) -> InputStream)?,
+  ): Path {
     // Check the cache first
     val existing = files[url]?.also { if (it.isFresh(maxFileAge)) return it }
 

@@ -25,6 +25,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import io.ktor.util.encodeBase64
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -74,7 +75,7 @@ class StreamingBenchmarkerAppInstallerTest {
     val studioPathManager = mockStatic<StudioPathManager>(testRootDisposable)
     studioPathManager.whenever<Any?> { StudioPathManager.isRunningFromSources() }.thenReturn(false)
     val indicator: ProgressIndicator = mock()
-    whenever(urlFileCache.get(eq(apkUrl), any(), eq(indicator), any())).thenReturn(downloadPath)
+    whenever(urlFileCache.get(eq(apkUrl), any(), eq(indicator), any())).thenReturn(CompletableDeferred(downloadPath))
     whenever(adb.install(SERIAL_NUMBER, downloadPath)).thenReturn(true)
 
     assertThat(installer.installBenchmarkingApp(indicator)).isTrue()
@@ -84,6 +85,7 @@ class StreamingBenchmarkerAppInstallerTest {
       verify(indicator).isIndeterminate = true
       verify(indicator).text = "Installing benchmarking app"
       val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
+      @Suppress("DeferredResultUnused")
       verify(urlFileCache).get(eq(apkUrl), any(), eq(indicator), transformCaptor.capture())
       val helloWorld = "Hello World"
       assertThat(String(transformCaptor.firstValue.invoke(helloWorld.encodeBase64().byteInputStream()).readBytes()))
