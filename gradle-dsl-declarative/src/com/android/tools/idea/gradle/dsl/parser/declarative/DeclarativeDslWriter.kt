@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlockGroup
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
@@ -71,12 +73,17 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     val name = getNameTrimmedForParent(element)
     val externalNameInfo = maybeTrimForParent(element, this)
     val psiElement = when (element) {
+      is GradleDslInfixExpression -> factory.createPrefixedFactory()
       is GradleDslLiteral ->
         if (parentPsiElement is DeclarativeArgumentsList)
           factory.createArgument(factory.createLiteral(element.value))
         else if (parent is DependenciesDslElement || externalNameInfo.syntax == METHOD)
           factory.createOneParameterFactory(name, "\"placeholder\"")
-        else // default syntax
+        else if (parent is GradleDslInfixExpression) {
+          // this is only for id("").value("") with restriction to one parameter function call chain
+          val literal = factory.createLiteral(element.value)
+          factory.createOneParameterFactory(element.name, literal.text)
+        } else // default syntax
           factory.createAssignment(name, "\"placeholder\"")
       is GradleDslNamedDomainElement -> element.accessMethodName?.let { factory.createOneParameterFactoryBlock(it, name) }
       is GradleDslElementList, is GradleDslBlockElement, is GradleDslNamedDomainContainer -> factory.createBlock(name)
@@ -100,6 +107,11 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     // after processing
     val comma = factory.createComma()
     when (parentPsiElement) {
+      is DeclarativeReceiverPrefixedFactory ->
+        // if it's only one element in prefixedFactory it's not fully
+        // constructed yet and methods may return exceptions/wrong results
+        if(parentPsiElement.children.filterIsInstance<DeclarativeFactory>().size > 1 )
+          parentPsiElement.addBefore(factory.createDot(), addedElement)
       is DeclarativeBlockGroup -> addedElement.addAfter(factory.createNewline(), null)
       is DeclarativeArgumentsList ->
         if (parentPsiElement.arguments.size > 1)
@@ -136,13 +148,14 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
     methodName != name && methodName.isNotEmpty()
 
   private fun getAnchor(parent: PsiElement, dslAnchor: GradleDslAnchor?): PsiElement? {
+    val lastParentChild = parent.lastChild
     var anchor = (dslAnchor as? GradleDslAnchor.After)?.let { findLastPsiElementIn(it.dslElement) }
     if (anchor == null && parent is DeclarativeBlockGroup) return parent.blockEntriesStart
     if (anchor == null && parent is DeclarativeArgumentsList) return parent.firstChild
     while (anchor != null && anchor.parent != parent) {
       anchor = anchor.parent
     }
-    return anchor ?: parent
+    return anchor ?: lastParentChild
   }
 
   override fun deleteDslElement(element: GradleDslElement) {

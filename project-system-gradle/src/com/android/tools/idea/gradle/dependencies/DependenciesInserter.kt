@@ -276,7 +276,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
 
   // Adding plugin to settings file plugin{} block.
   // It does not init version catalog declaration yet so catalog references are illegible here.
-  fun applySettingsPlugin(pluginId: String,
+  open fun applySettingsPlugin(pluginId: String,
                           version: String): Set<PsiFile> {
     val changedFiles = mutableSetOf<PsiFile>()
     val settingsFile = projectModel.projectSettingsModel
