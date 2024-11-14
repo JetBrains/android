@@ -268,7 +268,8 @@ open class ProjectsUpgradeTestBase {
       agpVersion = agpVersionString(),
       gradleVersion = gradleVersionString(),
       jdkVersion = jdkVersion(),
-      kotlinVersion = kotlinVersion()
+      kotlinVersion = kotlinVersion(),
+      compileSdk = version.compileSdkVersion.apiStringWithoutExtension,
     )
 
   private fun AUATestProjectState.ndkVersion(): String? = null
