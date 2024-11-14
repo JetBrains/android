@@ -78,19 +78,15 @@
       <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
       <add-to-group group-id="BuildMenu" anchor="first"/>
     </action>
-    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="AssembleGradleModule"/>
-    </action>
-    <action id="AssembleGradleProjectWithTests" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectWithTestsAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
-    </action>
+    <group>
+      <add-to-group group-id="BuildMenu" anchor="before" relative-to-action="Android.BuildApkOrBundle"/>
+      <action id="AssembleGradleModule" class="com.android.tools.idea.gradle.actions.AssembleGradleModuleAction"/>
+      <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectAction"/>
+      <action id="AssembleGradleProjectWithTests" class="com.android.tools.idea.gradle.actions.AssembleGradleProjectWithTestsAction"/>
+      <separator/>
+    </group>
     <action internal="true" id="VerifyGradleTokensAction" class="com.android.tools.idea.projectsystem.VerifyGradleTokensAction">
       <add-to-group group-id="Internal.Android"/>
-    </action>
-    <action id="AssembleGradleModule" class="com.android.tools.idea.gradle.actions.AssembleGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="before" relative-to-action="Android.BuildApkOrBundle"/>
-    </action>
-    <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
     </action>
     <action id="CompileGradleModule" class="com.android.tools.idea.gradle.actions.CompileGradleModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="BuildRunConfigModule"/>
