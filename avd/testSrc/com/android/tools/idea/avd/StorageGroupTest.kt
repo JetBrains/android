@@ -284,6 +284,31 @@ class StorageGroupTest {
     assertEquals(device.copy(expandedStorage = null), device)
   }
 
+  @Test
+  fun existingCustomExpandedStorageDoesntEqualState() {
+    // Arrange
+    device =
+      device.copy(
+        existingCustomExpandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
+      )
+
+    setContent {
+      StorageGroup(
+        device,
+        StorageGroupState(device, createInMemoryFileSystem()),
+        false,
+        onDeviceChange = { device = it },
+      )
+    }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("513")
+    composeRule.waitForIdle()
+
+    // Assert
+    composeRule.onNodeWithText("Modifying storage size erases existing content").assertIsDisplayed()
+  }
+
   private fun setContent(composable: @Composable () -> Unit) {
     composeRule.setContent {
       CompositionLocalProvider(
