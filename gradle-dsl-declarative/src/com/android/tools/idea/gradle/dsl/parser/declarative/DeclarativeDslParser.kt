@@ -103,9 +103,8 @@ class DeclarativeDslParser(
           }
         }
 
-
         override fun visitAssignment(psi: DeclarativeAssignment) {
-          psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.identifier, this@DeclarativeDslParser)))
+          psi.value?.accept(getVisitor(context, GradleNameElement.from(psi.assignableProperty, this@DeclarativeDslParser)))
         }
 
         override fun visitSimpleFactory(psi: DeclarativeSimpleFactory) {
