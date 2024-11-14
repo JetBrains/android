@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.testing.TestMessagesDialog
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
@@ -33,6 +34,8 @@ import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Pair
@@ -46,6 +49,7 @@ import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.table.JBTable
 import junit.framework.Assert.assertFalse
 import junit.framework.TestCase
+import org.jetbrains.kotlin.cli.common.isWindows
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -62,6 +66,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JRadioButton
+import javax.swing.JTextPane
 import kotlin.test.assertNull
 
 @RunsInEdt
@@ -89,6 +94,9 @@ class WelcomeScreenWizardTest {
   @Before
   fun setUp() {
     StudioFlags.NPW_FIRST_RUN_WIZARD.override(!isTestingLegacyWizard!!)
+
+    val dialog = TestMessagesDialog(Messages.OK)
+    TestDialogManager.setTestDialog(dialog)
   }
 
   @After
@@ -263,6 +271,28 @@ class WelcomeScreenWizardTest {
   }
 
   @Test
+  fun installSummaryStep_showsSummary() {
+    val sdkPath = FileUtil.createTempDirectory("sdk", null)
+    mockStatic(FirstRunWizardDefaults::class.java).use {
+      val mode = FirstRunWizardMode.NEW_INSTALL
+      `when`(FirstRunWizardDefaults.getInitialSdkLocation(mode)).thenReturn(sdkPath)
+
+      val fakeUi = createWizard(mode)
+      navigateToInstallSummaryStep(fakeUi)
+
+      val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Verify Settings") })
+      assertTrue(fakeUi.isShowing(title))
+
+      val summarySection = checkNotNull(fakeUi.findComponent<JTextPane> { it.text.contains("Setup Type:") })
+      assertTrue(fakeUi.isShowing(summarySection))
+
+      assertTrue(summarySection.text.contains("Custom"))
+      assertTrue(summarySection.text.contains("SDK Folder:"))
+      assertTrue(summarySection.text.contains(sdkPath.absolutePath))
+    }
+  }
+
+  @Test
   fun licenseStep_refreshedWhenSdkPathChanged() {
     // TODO - will implement when migrating the license step
   }
@@ -306,5 +336,17 @@ class WelcomeScreenWizardTest {
     checkNotNull(fakeUi.findComponent<JRadioButton> { it.text.contains("Custom") }).doClick()
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
+  private fun navigateToInstallSummaryStep(fakeUi: FakeUi) {
+    navigateToSdkComponentsStep(fakeUi)
+    checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    if (isWindows) {
+      // Skip the AehdInstallInfo step
+      checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
   }
 }
