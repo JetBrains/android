@@ -30,6 +30,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade.integration
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.LATEST
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_0
@@ -68,6 +69,7 @@ enum class TestAGPVersion(
   val gradleVersion: CompatibleGradleVersion,
   val jdkVersion: JavaSdkVersion? = null,
   val kotlinVersion: String = "1.3.72",
+  val compileSdkVersion: AndroidVersion = AndroidVersion(34)
 ) {
   V_4_0("4.0.0", CompatibleGradleVersion.VERSION_6_1_1, jdkVersion = JavaSdkVersion.JDK_11),
   V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5, jdkVersion = JavaSdkVersion.JDK_11),
