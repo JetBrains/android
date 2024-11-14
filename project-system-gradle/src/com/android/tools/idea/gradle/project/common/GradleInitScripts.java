@@ -247,6 +247,7 @@ public class GradleInitScripts {
       }
 
       return """
+        import org.gradle.util.GradleVersion
         initscript {
           dependencies {
             %s
