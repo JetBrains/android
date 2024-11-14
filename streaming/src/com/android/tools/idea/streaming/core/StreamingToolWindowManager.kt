@@ -429,7 +429,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
-    for ((serialNumber, deviceClient) in deviceClientRegistry.clientsBySerialNumber) {
+    deviceClientRegistry.forEachClient { deviceClient ->
+      val serialNumber = deviceClient.deviceSerialNumber
       if (serialNumber !in deviceClients) {
         val handle = onlineDevices[serialNumber]?.handle
         if (handle != null) {
@@ -868,7 +869,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val activation = maxOf(maxOf(recentAttentionRequests.remove(serialNumber), recentDisconnections.remove(serialNumber)),
                              when {
                                deviceMirroringSettings.activateOnConnection -> ActivationLevel.SHOW_TOOL_WINDOW
-                               deviceClientRegistry.clientsBySerialNumber.containsKey(serialNumber) -> ActivationLevel.CREATE_TAB
+                               deviceClientRegistry.containsClientFor(serialNumber) -> ActivationLevel.CREATE_TAB
                                else -> null
                              })
       if (activation == null) {
@@ -1347,7 +1348,7 @@ private fun maxOf(a: ActivationLevel?, b: ActivationLevel?): ActivationLevel? {
 @Service(Service.Level.APP)
 internal class DeviceClientRegistry : Disposable {
 
-  val clientsBySerialNumber = LinkedHashMap<String, DeviceClient>()
+  private val clientsBySerialNumber = LinkedHashMap<String, DeviceClient>()
     /** The returned map may only be accessed on the UI thread. */
     @UiThread
     get
@@ -1388,6 +1389,17 @@ internal class DeviceClientRegistry : Disposable {
       EventQueue.invokeLater {
         Disposer.dispose(client)
       }
+    }
+  }
+
+  @UiThread
+  fun containsClientFor(serialNumber: String): Boolean = clientsBySerialNumber.containsKey(serialNumber)
+
+  /** Iterates over existing device clients. The passed in consumer should not create or delete clients. */
+  @UiThread
+  fun forEachClient(consumer: (DeviceClient) -> Unit) {
+    for (client in clientsBySerialNumber.values) {
+      consumer(client)
     }
   }
 
