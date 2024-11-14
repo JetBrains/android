@@ -18,6 +18,7 @@
   <name>Smali Support</name>
   <category>Android</category>
   <vendor>JetBrains, Google</vendor>
+  <idea-version since-build="243.21565" until-build="243.*" />
 
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>
 

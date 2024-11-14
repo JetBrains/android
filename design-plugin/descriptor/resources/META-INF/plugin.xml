@@ -19,6 +19,8 @@
   <category>Android</category>
   <vendor>JetBrains, Google</vendor>
 
+  <idea-version since-build="243.21565" until-build="243.*" />
+
   <description>Provides a suite of design tools for Android Studio</description>
   <resource-bundle>messages.AndroidDesignerActionsBundle</resource-bundle>
 

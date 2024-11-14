@@ -9,6 +9,8 @@
   <category>Android</category>
   <vendor>JetBrains, Google</vendor>
 
+  <idea-version since-build="243.21565" until-build="243.*" />
+
   <change-notes><![CDATA[
     This release contains updates from Android Studio Ladybug Feature Drop Canary 5.
 
