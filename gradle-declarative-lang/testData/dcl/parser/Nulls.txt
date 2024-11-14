@@ -1,7 +1,8 @@
 FILE
   PsiElement(ASSIGNMENT)
-    PsiElement(IDENTIFIER)
-      PsiElement(DeclarativeTokenType.token)('a')
+    PsiElement(ASSIGNABLE_BARE)
+      PsiElement(IDENTIFIER)
+        PsiElement(DeclarativeTokenType.token)('a')
     PsiWhiteSpace(' ')
     PsiElement(DeclarativeTokenType.=)('=')
     PsiWhiteSpace(' ')

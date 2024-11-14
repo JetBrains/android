@@ -24,18 +24,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
-import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeAssignmentImpl extends CompositePsiElement implements DeclarativeAssignment {
+public class DeclarativeAssignableQualifiedImpl extends DeclarativeAssignablePropertyImpl implements DeclarativeAssignableQualified {
 
-  public DeclarativeAssignmentImpl(@NotNull IElementType type) {
+  public DeclarativeAssignableQualifiedImpl(@NotNull IElementType type) {
     super(type);
   }
 
+  @Override
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitAssignment(this);
+    visitor.visitAssignableQualified(this);
   }
 
   @Override
@@ -52,32 +52,8 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
 
   @Override
   @Nullable
-  public DeclarativeFactory getFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeLiteral getLiteral() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeLiteral.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeProperty getProperty() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeProperty.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeValue getValue() {
-    return PsiImplUtil.getValue(this);
-  }
-
-  @Override
-  @NotNull
   public DeclarativeIdentifier getIdentifier() {
-    return PsiImplUtil.getIdentifier(this);
+    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
   }
 
 }

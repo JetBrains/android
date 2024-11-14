@@ -123,6 +123,17 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testAssignment() {
+    check(
+      """
+      rootProject.name = some.value
+      """,
+      """
+      checkDslPropertyAssignment(property="name", value="some.value", parent="rootProject")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("Declarative") gradleSource: String, expected: String) {

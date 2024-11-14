@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.dcl.lang.psi
 
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ARGUMENTS_LIST
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_BARE
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BARE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
@@ -29,6 +32,9 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignableBareImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignablePropertyImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignableQualifiedImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignmentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBareImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeBlockGroupImpl
@@ -46,6 +52,8 @@ import com.intellij.psi.tree.IElementType
 class DeclarativeASTFactory : ASTFactory() {
   override fun createComposite(type: IElementType): CompositeElement = when (type) {
     ARGUMENTS_LIST -> DeclarativeArgumentsListImpl(type)
+    ASSIGNABLE_BARE -> DeclarativeAssignableBareImpl(type)
+    ASSIGNABLE_QUALIFIED -> DeclarativeAssignableQualifiedImpl(type)
     ASSIGNMENT -> DeclarativeAssignmentImpl(type)
     BARE -> DeclarativeBareImpl(type)
     BLOCK -> DeclarativeBlockImpl(type)

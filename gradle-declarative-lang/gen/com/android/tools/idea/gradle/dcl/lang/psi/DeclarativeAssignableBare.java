@@ -21,22 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIdentifierOwner {
-
-  @NotNull
-  DeclarativeAssignableProperty getAssignableProperty();
-
-  @Nullable
-  DeclarativeFactory getFactory();
-
-  @Nullable
-  DeclarativeLiteral getLiteral();
-
-  @Nullable
-  DeclarativeProperty getProperty();
-
-  @Nullable
-  DeclarativeValue getValue();
+public interface DeclarativeAssignableBare extends DeclarativeAssignableProperty {
 
   @NotNull
   DeclarativeIdentifier getIdentifier();

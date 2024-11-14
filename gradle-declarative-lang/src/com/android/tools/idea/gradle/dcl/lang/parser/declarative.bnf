@@ -75,7 +75,7 @@
   implements("factory|embedded_factory")=[
        "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
   ]
-  implements("property")=[
+  implements("property|assignable_property")=[
      "com.intellij.psi.ContributedReferenceHost"
   ]
 }
@@ -88,9 +88,15 @@ assignment ::= lvalue OP_EQ rvalue {
    pin=2
    methods=[
       getValue
+      getIdentifier
    ]
 }
-private lvalue ::= identifier
+private lvalue ::= assignable_property
+
+assignable_property ::= assignable_qualified | assignable_bare {methods=[getField getReceiver getReference getReferences]}
+assignable_qualified ::= assignable_property OP_DOT identifier {extends=assignable_property pin=2}
+assignable_bare ::= identifier {extends=assignable_property}
+
 identifier ::= token {
    methods=[
      getName
@@ -103,9 +109,11 @@ literal ::= multiline_string_literal | one_line_string_literal | double_literal 
 methods=[getValue]
 }
 private rvalue ::= factory | property | literal
-property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
+
+property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }
 qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
+
 block ::= block_head block_group {
    methods=[
      getIdentifier

@@ -26,16 +26,17 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.*;
 import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativeAssignmentImpl extends CompositePsiElement implements DeclarativeAssignment {
+public abstract class DeclarativeAssignablePropertyImpl extends CompositePsiElement implements DeclarativeAssignableProperty {
 
-  public DeclarativeAssignmentImpl(@NotNull IElementType type) {
+  public DeclarativeAssignablePropertyImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitAssignment(this);
+    visitor.visitAssignableProperty(this);
   }
 
   @Override
@@ -46,38 +47,26 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
 
   @Override
   @NotNull
-  public DeclarativeAssignableProperty getAssignableProperty() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeAssignableProperty.class);
+  public DeclarativeIdentifier getField() {
+    return PsiImplUtil.getField(this);
   }
 
   @Override
   @Nullable
-  public DeclarativeFactory getFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
+  public DeclarativeAssignableProperty getReceiver() {
+    return PsiImplUtil.getReceiver(this);
   }
 
   @Override
   @Nullable
-  public DeclarativeLiteral getLiteral() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeLiteral.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeProperty getProperty() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeProperty.class);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativeValue getValue() {
-    return PsiImplUtil.getValue(this);
+  public PsiReference getReference() {
+    return PsiImplUtil.getReference(this);
   }
 
   @Override
   @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiImplUtil.getIdentifier(this);
+  public PsiReference[] getReferences() {
+    return PsiImplUtil.getReferences(this);
   }
 
 }

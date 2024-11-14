@@ -20,25 +20,21 @@ package com.android.tools.idea.gradle.dcl.lang.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.ContributedReferenceHost;
+import com.intellij.psi.PsiReference;
 
-public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIdentifierOwner {
-
-  @NotNull
-  DeclarativeAssignableProperty getAssignableProperty();
-
-  @Nullable
-  DeclarativeFactory getFactory();
-
-  @Nullable
-  DeclarativeLiteral getLiteral();
-
-  @Nullable
-  DeclarativeProperty getProperty();
-
-  @Nullable
-  DeclarativeValue getValue();
+public interface DeclarativeAssignableProperty extends ContributedReferenceHost {
 
   @NotNull
-  DeclarativeIdentifier getIdentifier();
+  DeclarativeIdentifier getField();
+
+  @Nullable
+  DeclarativeAssignableProperty getReceiver();
+
+  @Nullable
+  PsiReference getReference();
+
+  @NotNull
+  PsiReference[] getReferences();
 
 }
