@@ -96,7 +96,8 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
 
   private fun getAgentPath(): Path {
     return when (
-      StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio
+      StudioPathManager.isRunningFromSources() &&
+        (IdeInfo.getInstance().isAndroidStudio || IdeInfo.getInstance().isGameTools)
     ) {
       true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
       false -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
