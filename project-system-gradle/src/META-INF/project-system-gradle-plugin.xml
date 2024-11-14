@@ -339,13 +339,18 @@
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="RevealIn"/>
     </group>
-    <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
-    </action>
+    <group id="RebuildCleanProject">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="com.android.build.attribution.ui.OpenBuildAnalyzerAction"/>
+      <separator/>
+      <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction"/>
+      <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction"/>
+      <separator/>
+    </group>
     <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
     <group>
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildCleanProject"/>
       <separator/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="com.android.build.attribution.ui.OpenBuildAnalyzerAction"/>
       <separator/>
     </group>
     <group id="Android.BuildApkOrBundle" class="com.android.tools.idea.gradle.actions.BuildApkOrBundleActionGroup" text="Generate App Bundle(s) / APK(s)" popup="true">
