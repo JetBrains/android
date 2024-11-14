@@ -21,8 +21,6 @@
 ]]></description>
   <vendor url="https://www.android.com">JetBrains, Google</vendor>
 
-  <idea-version since-build="243.21565" until-build="243.*" />
-
   <depends>org.jetbrains.android</depends>
   <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
