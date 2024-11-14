@@ -30,5 +30,6 @@ enum class AgpVersionInBuildAttributionTest(
   AGP_71_GRADLE_75(agpVersion = "7.1.0", gradleVersion = "7.5", jdkVersion = JavaSdkVersion.JDK_17, compileSdk = "34")
   ;
 
+  override val targetSdk: String get() = compileSdk
   override val modelVersion: ModelVersion = ModelVersion.V2
 }

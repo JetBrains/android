@@ -312,8 +312,8 @@ MODULE                        : project.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : 34
-            ApiString                     : 34
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -385,8 +385,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -577,8 +577,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.localaarsasmodules
@@ -683,8 +683,8 @@ MODULE                        : project.library
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : 34
-            ApiString                     : 34
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library
@@ -750,8 +750,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -932,8 +932,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.library

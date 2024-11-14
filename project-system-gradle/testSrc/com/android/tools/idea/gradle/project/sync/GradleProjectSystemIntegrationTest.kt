@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
@@ -42,7 +41,7 @@ data class GradleProjectSystemIntegrationTest(
   override val name: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-  val body: (project: Project, expect: Expect) -> Unit
+  val body: (project: Project, agpVersion: AgpVersionSoftwareEnvironmentDescriptor, expect: Expect) -> Unit
 ) : SyncedProjectTestDef {
 
   companion object {
@@ -51,7 +50,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "manifestOverrides",
           testProject = TestProject.MULTI_FLAVOR
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val overrides = project.gradleModule(":app")!!.getModuleSystem().getManifestOverrides().directOverrides
           expect.that(overrides[ManifestSystemProperty.Instrumentation.FUNCTIONAL_TEST]).isNull()
           expect.that(overrides[ManifestSystemProperty.Instrumentation.HANDLE_PROFILING]).isNull()
@@ -61,8 +60,7 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
           expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.firstAbc.secondAbc.debug")
           expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
-          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION])
-            .isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(agpVersion.targetSdk)
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("20")
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
@@ -73,7 +71,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "manifestOverrides_firstXyzSecondXyzRelease",
           testProject = TestProject.MULTI_FLAVOR_SWITCH_VARIANT
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val overrides = project.gradleModule(":app")!!.getModuleSystem().getManifestOverrides().directOverrides
           expect.that(overrides[ManifestSystemProperty.Instrumentation.FUNCTIONAL_TEST]).isNull()
           expect.that(overrides[ManifestSystemProperty.Instrumentation.HANDLE_PROFILING]).isNull()
@@ -83,8 +81,7 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Instrumentation.NAME]).isNull()
           expect.that(overrides[ManifestSystemProperty.Document.PACKAGE]).isEqualTo("com.example.multiflavor.secondXyz.release")
           expect.that(overrides[ManifestSystemProperty.Instrumentation.TARGET_PACKAGE]).isNull()
-          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION])
-            .isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+          expect.that(overrides[ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION]).isEqualTo(agpVersion.targetSdk)
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_CODE]).isEqualTo("31")
           expect.that(overrides[ManifestSystemProperty.Manifest.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
@@ -95,13 +92,13 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "manifestOverridesInLibrary",
           testProject = TestProject.INCLUDE_FROM_LIB
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val overrides = project.gradleModule(":lib")!!.getModuleSystem().getManifestOverrides().directOverrides
           assertThat(overrides).containsExactlyEntriesIn(
             mapOf(
               ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
               ManifestSystemProperty.Document.PACKAGE to "com.example.lib",
-              ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+              ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to agpVersion.targetSdk,
               ManifestSystemProperty.Manifest.VERSION_CODE to "1",
               ManifestSystemProperty.Manifest.VERSION_NAME to "1.0",
             )
@@ -110,34 +107,34 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "manifestOverridesInSeparateTest",
           testProject = TestProject.TEST_ONLY_MODULE
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val overrides = project.gradleModule(":test")!!.getModuleSystem().getManifestOverrides().directOverrides
           assertThat(overrides).containsExactlyEntriesIn(
             mapOf(
               ManifestSystemProperty.UsesSdk.MIN_SDK_VERSION to "16",
               ManifestSystemProperty.Document.PACKAGE to "com.example.android.app.testmodule",
-              ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+              ManifestSystemProperty.UsesSdk.TARGET_SDK_VERSION to agpVersion.targetSdk,
             )
           )
         },
         GradleProjectSystemIntegrationTest(
           name = "packageName",
           testProject = TestProject.MULTI_FLAVOR
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
           expect.that(packageName).isEqualTo("com.example.multiflavor")
         },
         GradleProjectSystemIntegrationTest(
           name = "packageName_firstXyzSecondXyzRelease",
           testProject = TestProject.MULTI_FLAVOR_SWITCH_VARIANT
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
           expect.that(packageName).isEqualTo("com.example.multiflavor")
         },
         GradleProjectSystemIntegrationTest(
           name = "isValidAndroidManifestPackage",
           testProject = TestProject.TRANSITIVE_DEPENDENCIES
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val projectSystem = project.getProjectSystem()
           // All namespaces and superpackages of namespaces should resolve
           listOf(
@@ -173,7 +170,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "module_allApplicationIds",
           testProject = TestProject.MULTI_FLAVOR
-        ) { project, expect ->
+        ) { project, agpVersion,  expect ->
           val appIds = AndroidModel.get(project.gradleModule(":app")!!)?.allApplicationIds.orEmpty()
           expect.that(appIds).containsExactly(
             "com.example.multiflavor.firstAbc.secondAbc.debug",
@@ -193,7 +190,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "knownApplicationIds",
           testProject = TestProject.MULTI_FLAVOR
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val appIds = project.getProjectSystem().getKnownApplicationIds(project)
           expect.that(appIds).containsExactly(
             "com.example.multiflavor.firstAbc.secondAbc.debug",
@@ -213,7 +210,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "knownApplicationIds",
           testProject = TestProject.TRANSITIVE_DEPENDENCIES
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val appIds = project.getProjectSystem().getKnownApplicationIds(project)
           expect.that(appIds).containsExactly(
             "com.example.alruiz.transitive_dependencies",
@@ -225,7 +222,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "knownApplicationIds",
           testProject = TestProject.PSD_SAMPLE_GROOVY
-        ) { project, expect ->
+        ) { project, agpVersion,  expect ->
           val appIds = project.getProjectSystem().getKnownApplicationIds(project)
           expect.that(appIds).containsExactly(
             "com.example.dyn_feature.test",
@@ -250,7 +247,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "findModulesWithApplicationId",
           testProject = TestProject.PSD_SAMPLE_GROOVY
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           fun doLookup(applicationId: String) =
             project.getProjectSystem().findModulesWithApplicationId(applicationId).map { it.name }
           expect.that(doLookup("com.example.dyn_feature.test")).containsExactly("project.dyn_feature.androidTest")
@@ -274,7 +271,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "pseudoLocalesToken",
           testProject = TestProject.PSD_SAMPLE_GROOVY
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           fun doLookup(applicationId: String) =
             project.getProjectSystem().isPseudoLocalesEnabled(
               applicationProjectContext = FacetBasedApplicationProjectContext(
@@ -301,7 +298,7 @@ data class GradleProjectSystemIntegrationTest(
         GradleProjectSystemIntegrationTest(
           name = "getResolvedDependency",
           testProject = TestProject.SIMPLE_APPLICATION
-        ) { project, expect ->
+        ) { project, agpVersion, expect ->
           val module = project.gradleModule(":app")?.getModuleSystem() ?: error(":app module not found")
           expect
             .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
@@ -341,7 +338,7 @@ data class GradleProjectSystemIntegrationTest(
   }
 
   override fun runTest(root: File, project: Project, expect: Expect) {
-    body(project, expect)
+    body(project, agpVersion, expect)
   }
 }
 

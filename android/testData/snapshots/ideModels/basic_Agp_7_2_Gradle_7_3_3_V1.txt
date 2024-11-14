@@ -587,8 +587,8 @@ MODULE                        : project
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : 34
-            ApiString                     : 34
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :
@@ -683,8 +683,8 @@ MODULE                        : project
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -867,8 +867,8 @@ MODULE                        : project
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 34
-                ApiString                     : 34
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 12
             VersionNameWithSuffix         : 2.0
             DeprecatedPreMergedApplicationId        : com.android.tests.basic.debug
