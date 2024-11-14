@@ -37,10 +37,14 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
   init {
     table.selectionModel.addListSelectionListener {
       if (!isUpdating && !it.valueIsAdjusting) {
-        val newSelection = currentSelection
-        selectionListeners.forEach { it.invoke(newSelection) }
+        fireSelectionChanged()
       }
     }
+  }
+
+  fun fireSelectionChanged() {
+    val newSelection = currentSelection
+    selectionListeners.forEach { it.invoke(newSelection) }
   }
 
   override var currentSelection: List<Any>

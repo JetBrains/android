@@ -36,6 +36,7 @@ import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.advanced.AdvancedSettingType
 import com.intellij.openapi.options.advanced.AdvancedSettings
@@ -696,6 +697,9 @@ class TreeTableImplTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     selectionModel.currentSelection = listOf(table.getValueAt(2, 0))
 
+    var lastSelection = emptyList<Any>()
+    result.selectionModel.addSelectionListener { selection -> lastSelection = selection }
+
     // Click on tree expansion icon to close the root node:
     setScrollPaneSize(table, 400, 700)
     val ui = FakeUi(table)
@@ -708,6 +712,30 @@ class TreeTableImplTest {
     assertThat(table.rowCount).isEqualTo(1)
     // The root node is selected (and we got a selection update):
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(item1))
+    assertThat(lastSelection).containsExactly(item1)
+  }
+
+  @Test
+  fun testCollapseAllCausesSelectionUpdate() {
+    val result = createTree() { withExpandableRoot() }
+    val table = result.focusComponent as TreeTableImpl
+    val selectionModel = result.selectionModel
+    TreeUtil.expandAll(table.tree)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    selectionModel.currentSelection = listOf(table.getValueAt(2, 0))
+
+    var lastSelection = emptyList<Any>()
+    result.selectionModel.addSelectionListener { selection -> lastSelection = selection }
+
+    // Collapse all
+    DefaultTreeExpander(table.tree).collapseAll()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Nothing is now expanded:
+    assertThat(table.rowCount).isEqualTo(1)
+    // The root node is selected (and we got a selection update):
+    assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(item1))
+    assertThat(lastSelection).containsExactly(item1)
   }
 
   @Test
