@@ -380,19 +380,15 @@ class LayoutlibSceneRenderer(
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
     // disk contents, so we have to push any edits to disk before rendering)
     // Wrapping into blockingContext because model.file requires read action
-    blockingContext { model.file }.saveFileIfNecessary()
+    val file = blockingContext { model.file }
+    file.saveFileIfNecessary()
 
     // Record the current version we're rendering from; we'll use that in #activate to make sure
     // we're picking up any external changes
     val facet: AndroidFacet = model.facet
     val configuration: Configuration = model.configuration
     val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
-    renderedVersion =
-      resourceNotificationManager.getCurrentVersion(
-        facet,
-        blockingContext { model.file },
-        configuration,
-      )
+    renderedVersion = resourceNotificationManager.getCurrentVersion(facet, file, configuration)
 
     val renderService = StudioRenderService.getInstance(project)
     val logger =
@@ -403,16 +399,16 @@ class LayoutlibSceneRenderer(
     var newTask: RenderTask? = null
     try {
       newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
-      result =
-        newTask?.let { doInflate(it, logger) }
-          ?: createRenderTaskErrorResult(blockingContext { model.file }, logger)
+      result = newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
     } catch (throwable: Throwable) {
+      result = createRenderTaskErrorResult(file, throwable)
       if (throwable is CancellationException) {
         // Re-throw any CancellationException to correctly propagate cancellations upward
         throw throwable
+      } else {
+        // Log but don't re-throw other exceptions, as these exceptions are specific to inflation
+        Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       }
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
-      result = createRenderTaskErrorResult(blockingContext { model.file }, throwable)
     } finally {
       // Make sure not to cancel the post-inflation work needed to keep this renderer in a
       // consistent state
@@ -455,8 +451,6 @@ class LayoutlibSceneRenderer(
       }
       return result!!
     } catch (throwable: Throwable) {
-      // Do some logging and re-throw
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       // Do not ignore ClassNotFoundException on inflate
       if (throwable is ClassNotFoundException) {
         logger.addMessage(

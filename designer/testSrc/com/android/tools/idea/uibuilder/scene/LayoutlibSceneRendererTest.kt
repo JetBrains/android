@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.Result
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.rendering.StudioEnvironmentContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
@@ -32,13 +31,17 @@ import com.android.tools.rendering.RenderResultStats
 import com.android.tools.rendering.RenderService.RenderTaskBuilder
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.imagepool.ImagePool
+import com.android.tools.rendering.imagepool.ImagePoolFactory
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.util.concurrency.EdtExecutorService
+import java.awt.BasicStroke
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -52,6 +55,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -153,8 +159,47 @@ class LayoutlibSceneRendererTest {
     assertEquals("expected inflation but didn't happen", 4, taskInflateCount.get())
   }
 
+  // Regression test for b/377708749
   @Test
-  fun testCancellationException(): Unit = runBlocking {
+  fun testCancellationExceptionOnInflate(): Unit = runBlocking {
+    // Run a successful render to have a non-null result
+    assertNull(renderer.renderResult)
+    renderer.requestRenderAndWait(trigger = null)
+    assertNotNull(renderer.renderResult)
+    checkImage(renderer.renderResult!!.renderedImage)
+    renderer.sceneRenderConfiguration.needsInflation.set(true)
+    renderer.sceneRenderConfiguration.cacheSuccessfulRenderImage = true
+
+    // Use the fact that inflation re-throws the exception from its result to simulate a
+    // cancellation exception
+    val myCancellationException = CancellationException("Test")
+    simulatedInflateResult =
+      createRenderResult(Result.Status.ERROR_INFLATION, myCancellationException)
+    renderer.requestRenderAndWait(trigger = null)
+    assertEquals("expected inflation but didn't happen", 2, taskInflateCount.get())
+    assertEquals("expected render not to happen, but it did", 1, taskRenderCount.get())
+
+    // A cancellation during inflation should be caught by the render and create a render result
+    // that wraps the caught exception. This result should still have a copy the old image.
+    assertNotNull(renderer.renderResult)
+    assertNotEquals(renderer.renderResult, simulatedInflateResult)
+    assertNotEquals(renderer.renderResult, simulatedRenderResult)
+    assertFalse(renderer.renderResult!!.renderResult.isSuccess)
+    assertEquals(myCancellationException, renderer.renderResult!!.renderResult.exception)
+    assertNotEquals(ImagePool.NULL_POOLED_IMAGE, renderer.renderResult!!.renderedImage)
+    checkImage(renderer.renderResult!!.renderedImage)
+
+    // After the exception, everything should still work normally
+    simulatedInflateResult = createRenderResult(Result.Status.SUCCESS)
+    renderer.sceneRenderConfiguration.needsInflation.set(true)
+    renderer.requestRenderAndWait(trigger = null)
+    assertEquals("expected inflation but didn't happen", 3, taskInflateCount.get())
+    assertEquals("expected render but didn't happen", 2, taskRenderCount.get())
+    assertTrue(renderer.renderResult!!.renderResult.isSuccess)
+  }
+
+  @Test
+  fun testCancellationExceptionOnRender(): Unit = runBlocking {
     // Simulate a cancellation exception when reading the render result
     val resultMock = mock<RenderResult>()
     val myCancellationException = CancellationException("Test")
@@ -165,6 +210,9 @@ class LayoutlibSceneRendererTest {
     assertEquals("expected render but didn't happen", 1, taskRenderCount.get())
     // The render result shouldn't be the mock instance, but an error result created by the
     // renderer wrapping the caught exception.
+    assertNotNull(renderer.renderResult)
+    assertNotEquals(renderer.renderResult, simulatedInflateResult)
+    assertNotEquals(renderer.renderResult, simulatedRenderResult)
     assertFalse(renderer.renderResult!!.renderResult.isSuccess)
     assertEquals(myCancellationException, renderer.renderResult!!.renderResult.exception)
 
@@ -299,22 +347,42 @@ class LayoutlibSceneRendererTest {
     inflateLatch.countDown()
   }
 
-  private fun createRenderResult(result: Result.Status) =
-    RenderResult(
-      { StudioEnvironmentContext(projectRule.module).getOriginalFile(projectRule.fixture.file) },
+  private fun createRenderResult(result: Result.Status, t: Throwable? = null): RenderResult {
+    return RenderResult(
+      { projectRule.fixture.file },
       projectRule.project,
       { projectRule.module },
       RenderLogger(projectRule.project),
       null,
       false,
-      result.createResult(),
+      t.let { result.createResult("test-custom-throwable", t) } ?: result.createResult(),
       ImmutableList.of(),
       ImmutableList.of(),
-      ImagePool.NULL_POOLED_IMAGE,
+      if (result == Result.Status.SUCCESS) getTestImage() else ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,
       Dimension(0, 0),
       RenderResultStats.EMPTY,
     )
+  }
+
+  private val imageWidth = 10
+  private val imageHeight = 10
+
+  private fun checkImage(image: ImagePool.Image) {
+    assertEquals(imageHeight, image.height)
+    assertEquals(imageHeight, image.width)
+  }
+
+  private fun getTestImage(): ImagePool.Image {
+    val imagePool = ImagePoolFactory.createImagePool()
+    val imageHQ = imagePool.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
+    imageHQ.paint { g ->
+      g.stroke = BasicStroke(10F)
+      g.color = Color.WHITE
+      g.fillRect(0, 0, imageWidth, imageHeight)
+    }
+    return imageHQ
+  }
 }
