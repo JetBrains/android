@@ -81,5 +81,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
         "@intellij//:com.intellij.modules.json[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )
