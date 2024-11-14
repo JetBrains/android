@@ -36,12 +36,12 @@ import kotlinx.coroutines.flow.map
 sealed class LoadingState<out T> {
 
   /** The value is being loaded and is not yet available. */
-  object Loading : LoadingState<Nothing>() {
+  data class Loading(val message: String = "") : LoadingState<Nothing>() {
     override fun <U> map(fn: (Nothing) -> U): Loading {
       return this
     }
 
-    override fun toString(): String = "LoadingState.Loading"
+    override fun toString(): String = "LoadingState.Loading $message"
   }
 
   /** Loading has completed with either a [success][Ready] or a [Failure]. */
@@ -142,6 +142,10 @@ sealed class LoadingState<out T> {
 
   /** Gets the ready value or null. */
   fun valueOrNull() = if (this is LoadingState.Ready) value else null
+
+  companion object {
+    val Loading = Loading()
+  }
 }
 
 fun <T, U> Flow<LoadingState<T>>.mapReady(fn: (T) -> U): Flow<LoadingState<U>> = map { it.map(fn) }

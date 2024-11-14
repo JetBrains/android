@@ -68,6 +68,8 @@ private const val TEMPORARY_KILL_SWITCH_MESSAGE = "Cannot process request for di
 
 @VisibleForTesting const val GEMINI_NOT_AVAILABLE = "Gemini is not available"
 
+private const val GENERATING_INSIGHT = "Generating insight..."
+
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
   controller: AppInsightsProjectLevelController,
@@ -127,7 +129,7 @@ class InsightContentPanel(
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
-      setLoadingText("Generating insight...")
+      setLoadingText(GENERATING_INSIGHT)
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
       add(insightBottomPanel, BorderLayout.SOUTH)
@@ -218,6 +220,11 @@ class InsightContentPanel(
             }
             is LoadingState.Loading -> {
               insightTextPane.text = ""
+              if (aiInsight.message.isNotEmpty()) {
+                loadingPanel.setLoadingText(aiInsight.message)
+              } else {
+                loadingPanel.setLoadingText(GENERATING_INSIGHT)
+              }
               showContentCard(true)
             }
             // Gemini plugin disabled or scope is not authorized

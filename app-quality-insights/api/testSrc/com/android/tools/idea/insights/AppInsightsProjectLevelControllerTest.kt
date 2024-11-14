@@ -1553,7 +1553,7 @@ class AppInsightsProjectLevelControllerTest {
 
     controllerRule.controller.refreshInsight(true)
     state = controllerRule.consumeNext()
-    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading("Regenerating insight..."))
 
     val newInsight = AiInsight("Insight")
     client.completeFetchInsightCallWith(LoadingState.Ready(newInsight))

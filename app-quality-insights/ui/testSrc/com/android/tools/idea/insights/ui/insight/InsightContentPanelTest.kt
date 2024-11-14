@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.gemini.GeminiPluginApi
@@ -54,6 +55,7 @@ import java.time.Instant
 import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -169,6 +171,9 @@ class InsightContentPanelTest {
 
     val loadingPanel = fakeUi.findComponent<JBLoadingPanel>() ?: fail("Loading panel not found")
     assertThat(loadingPanel.getLoadingText()).isEqualTo("Generating insight...")
+
+    currentInsightFlow.update { LoadingState.Loading("Regenerating insight...") }
+    waitForCondition(2.seconds) { loadingPanel.getLoadingText() == "Regenerating insight..." }
   }
 
   @Test
