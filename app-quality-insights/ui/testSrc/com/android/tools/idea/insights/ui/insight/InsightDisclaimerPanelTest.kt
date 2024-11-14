@@ -88,8 +88,8 @@ class InsightDisclaimerPanelTest {
         createDisclaimerPanel(
           controller =
             object : StubAppInsightsProjectLevelController() {
-              override fun refreshInsight(contextSharingOverride: Boolean) {
-                refreshInsightCalled.complete(contextSharingOverride)
+              override fun refreshInsight(regenerateWithContext: Boolean) {
+                refreshInsightCalled.complete(regenerateWithContext)
               }
             }
         )

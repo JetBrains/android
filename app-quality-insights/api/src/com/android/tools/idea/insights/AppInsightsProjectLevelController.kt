@@ -98,7 +98,7 @@ interface AppInsightsProjectLevelController {
 
   fun selectIssueVariant(variant: IssueVariant?)
 
-  fun refreshInsight(contextSharingOverride: Boolean)
+  fun refreshInsight(regenerateWithContext: Boolean)
 
   fun submitInsightFeedback(insightFeedback: InsightFeedback)
 }

@@ -76,7 +76,7 @@ open class StubAppInsightsProjectLevelController(
 
   override fun selectIssueVariant(variant: IssueVariant?) {}
 
-  override fun refreshInsight(contextSharingOverride: Boolean) {}
+  override fun refreshInsight(regenerateWithContext: Boolean) {}
 
   override fun submitInsightFeedback(insightFeedback: InsightFeedback) {}
 }
