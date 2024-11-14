@@ -18,16 +18,23 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import com.jetbrains.rd.util.first
+import junit.framework.TestCase
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -131,6 +138,33 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
   }
 
   @Test
+  fun testUpdatePluginVersion() {
+    val file = """
+      plugins {
+          id("org.example").version("1.0")
+      }
+    """.trimIndent()
+    val expected = """
+      plugins {
+          id("com.android").version("2.0")
+      }
+    """.trimIndent()
+    doSettingsTest(file, expected) {
+      val plugins = (elements.first().value as PluginsDslElement)
+      val pluginDeclaration = (plugins.elements.first().value as GradleDslInfixExpression)
+      val elements = pluginDeclaration.elements.values
+      assertThat(elements).hasSize(2)
+      val version = (elements.toList()[1] as? GradleDslLiteral)
+      val id = (elements.toList()[0] as? GradleDslLiteral)
+      assertThat(version).isNotNull()
+      assertThat(id).isNotNull()
+      version!!.setValue("2.0")
+      id!!.setValue("com.android")
+    }
+  }
+
+
+  @Test
   @Ignore("Dependencies fo android element will be added in future")
   fun testAppendDependencyToBlock(){
     val file = """
@@ -151,13 +185,22 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
-  private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
+  private fun doSettingsTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val declarativeFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      "build.gradle.dcl",
+      "settings.gradle.dcl",
       text
     )
-    val dslFile = object : GradleBuildFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    val dslFile = object : GradleSettingsFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
+  }
+
+  private fun handleChangeAndVerification(
+    dslFile: GradleScriptFile,
+    changer: GradleDslFile.() -> Unit,
+    declarativeFile: VirtualFile,
+    expected: String
+  ) {
     dslFile.parse()
     changer(dslFile)
     WriteCommandAction.runWriteCommandAction(project) {
@@ -166,5 +209,15 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
     val newText = VfsUtil.loadText(declarativeFile).replace("\r", "")
     assertEquals(expected, newText)
+  }
+
+  private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
+    val declarativeFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "build.gradle.dcl",
+      text
+    )
+    val dslFile = object : GradleBuildFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
   }
 }
