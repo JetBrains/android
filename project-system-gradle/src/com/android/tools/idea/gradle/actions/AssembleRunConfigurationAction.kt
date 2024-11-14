@@ -34,10 +34,9 @@ import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
 /**
- * Builds a module belonging to an IDEA project that is not an Android-model-based project.
+ * Action to build the currently selected run configuration.
  */
-/** Action added to the "Build" menu. If the new UI is used, it is also added to the toolbar. */
-class BuildRunConfigurationAction : AbstractBuildRunConfigurationAction()
+class AssembleRunConfigurationAction : AbstractBuildRunConfigurationAction()
 
 abstract class AbstractBuildRunConfigurationAction :
   AndroidStudioGradleAction("Build Selected Run Configuration", "Build selected Run Configuration", BUILD_RUN_CONFIGURATION) {
@@ -122,9 +121,9 @@ abstract class AbstractBuildRunConfigurationAction :
       val presentation = e.presentation
       presentation.isEnabled = runConfigurationName != null
       val presentationText = if (!presentation.isEnabled) {
-        "Build Run Configuration (No Configuration Selected)"
+        "Assemble Run Configuration (No Configuration Selected)"
       } else {
-        "Build '$runConfigurationName' Run Configuration"
+        "Assemble '$runConfigurationName' Run Configuration"
       }
       presentation.text = presentationText
     }
