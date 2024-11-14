@@ -104,7 +104,7 @@ internal fun StorageGroup(
       )
     }
 
-    Row {
+    Row(Modifier.testTag("CustomRow")) {
       RadioButtonRow(
         ExpandedStorageRadioButton.CUSTOM,
         state.selectedRadioButton,

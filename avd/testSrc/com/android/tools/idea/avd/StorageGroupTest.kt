@@ -48,7 +48,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -77,10 +76,7 @@ class StorageGroupTest {
     composeRule.onInternalStorageTextField().performMouseInput { moveTo(center) }
 
     // Assert
-
-    // Assert there are no tooltips
-    composeRule.onNode(isPopup()).onChildren().assertCountEquals(0)
-
+    composeRule.onTooltips().assertCountEquals(0)
     assertEquals(device.copy(internalStorage = StorageCapacity(3, StorageCapacity.Unit.GB)), device)
   }
 
@@ -97,7 +93,7 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Specify an internal storage value").assertIsDisplayed()
-    assertNull(device.internalStorage)
+    assertEquals(device.copy(internalStorage = null), device)
   }
 
   @Test
@@ -116,7 +112,7 @@ class StorageGroupTest {
       .onNodeWithText("Internal storage for Play Store devices must be at least 2G")
       .assertIsDisplayed()
 
-    assertNull(device.internalStorage)
+    assertEquals(device.copy(internalStorage = null), device)
   }
 
   @Test
@@ -132,7 +128,7 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Internal storage must be at least 2G").assertIsDisplayed()
-    assertNull(device.internalStorage)
+    assertEquals(device.copy(internalStorage = null), device)
   }
 
   @Test
@@ -148,7 +144,7 @@ class StorageGroupTest {
 
     // Assert
     composeRule.onNodeWithText("Internal storage is too large").assertIsDisplayed()
-    assertNull(device.internalStorage)
+    assertEquals(device.copy(internalStorage = null), device)
   }
 
   @Test
@@ -163,7 +159,11 @@ class StorageGroupTest {
 
     // Assert
     assertEquals(ExpandedStorageRadioButton.CUSTOM, state.selectedRadioButton)
-    assertEquals(Custom(StorageCapacity(512, StorageCapacity.Unit.MB)), device.expandedStorage)
+
+    assertEquals(
+      device.copy(expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))),
+      device,
+    )
   }
 
   @Test
@@ -180,7 +180,108 @@ class StorageGroupTest {
     // Assert
     assertEquals(ExpandedStorageRadioButton.EXISTING_IMAGE, state.selectedRadioButton)
     composeRule.onNodeWithText("The specified image must be a valid file").assertIsDisplayed()
-    assertNull(device.expandedStorage)
+    assertEquals(device.copy(expandedStorage = null), device)
+  }
+
+  @Test
+  fun onNoneRadioButtonClick() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onNodeWithText("None").performClick()
+    composeRule.waitForIdle()
+
+    // Assert
+    assertEquals(ExpandedStorageRadioButton.NONE, state.selectedRadioButton)
+    assertEquals(device.copy(expandedStorage = None), device)
+  }
+
+  @Test
+  fun customIsValid() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("513")
+
+    @OptIn(ExperimentalTestApi::class)
+    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    composeRule.onTooltips().assertCountEquals(0)
+
+    assertEquals(
+      device.copy(expandedStorage = Custom(StorageCapacity(513, StorageCapacity.Unit.MB))),
+      device,
+    )
+  }
+
+  @Test
+  fun customIsEmpty() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("")
+
+    @OptIn(ExperimentalTestApi::class)
+    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    composeRule.onNodeWithText("Specify an SD card size").assertIsDisplayed()
+    assertEquals(device.copy(expandedStorage = null), device)
+  }
+
+  @Test
+  fun customIsLessThanMinAndHasPlayStore() {
+    // Arrange
+    setContent { StorageGroup(device, state, true, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("99")
+
+    @OptIn(ExperimentalTestApi::class)
+    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    composeRule
+      .onNodeWithText("The SD card for Play Store devices must be at least 100M")
+      .assertIsDisplayed()
+
+    assertEquals(device.copy(expandedStorage = null), device)
+  }
+
+  @Test
+  fun customIsLessThanMin() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("9")
+
+    @OptIn(ExperimentalTestApi::class)
+    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    composeRule.onNodeWithText("The SD card must be at least 10M").assertIsDisplayed()
+    assertEquals(device.copy(expandedStorage = null), device)
+  }
+
+  @Test
+  fun customIsOverflow() {
+    // Arrange
+    setContent { StorageGroup(device, state, false, onDeviceChange = { device = it }) }
+
+    // Act
+    composeRule.onCustomTextField().performTextReplacement("8796093022208")
+
+    @OptIn(ExperimentalTestApi::class)
+    composeRule.onCustomTextField().performMouseInput { moveTo(center) }
+
+    // Assert
+    composeRule.onNodeWithText("SD card size is too large").assertIsDisplayed()
+    assertEquals(device.copy(expandedStorage = null), device)
   }
 
   private fun setContent(composable: @Composable () -> Unit) {
@@ -228,5 +329,10 @@ class StorageGroupTest {
 
     private fun SemanticsNodeInteractionsProvider.onInternalStorageTextField() =
       onNodeWithTag("InternalStorageRow").onChildren().filterToOne(hasSetTextAction())
+
+    private fun SemanticsNodeInteractionsProvider.onCustomTextField() =
+      onNodeWithTag("CustomRow").onChildren().filterToOne(hasSetTextAction())
+
+    private fun SemanticsNodeInteractionsProvider.onTooltips() = onNode(isPopup()).onChildren()
   }
 }
