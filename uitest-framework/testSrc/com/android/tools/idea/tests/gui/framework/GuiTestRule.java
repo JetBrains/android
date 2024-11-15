@@ -455,7 +455,8 @@ public class GuiTestRule implements TestRule {
     // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
     System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
+    AgpVersionSoftwareEnvironmentDescriptor current = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, current.getCompileSdk(), current.getTargetSdk(), current.getModelVersion()),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
@@ -495,7 +496,9 @@ public class GuiTestRule implements TestRule {
   ) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, compileSdkVersion),
+    AgpVersionSoftwareEnvironmentDescriptor current = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+    if (compileSdkVersion == null) compileSdkVersion = current.getCompileSdk();
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, compileSdkVersion, current.getTargetSdk(), current.getModelVersion()),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
