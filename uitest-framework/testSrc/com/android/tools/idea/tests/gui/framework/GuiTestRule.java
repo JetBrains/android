@@ -387,8 +387,9 @@ public class GuiTestRule implements TestRule {
                                                                     @Nullable String gradlePluginVersion,
                                                                     @Nullable String kotlinVersion,
                                                                     @Nullable String ndkVersion,
+                                                                    @Nullable String compileSdkVersion,
                                                                     @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
@@ -399,12 +400,17 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, null, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(@NotNull String projectDirName, @NotNull String compileSdkVersion) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, compileSdkVersion, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
@@ -475,6 +481,8 @@ public class GuiTestRule implements TestRule {
    * @param gradleVersion              optional Gradle version to use or null to use the default.
    * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
    * @param kotlinVersion              optional Kotlin version to use or null to use the default.
+   * @param ndkVersion    optional NDK version to use or null to use the default.
+   * @param compileSdkVersion  optional SDK version to use or null to use the default.
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
@@ -482,15 +490,27 @@ public class GuiTestRule implements TestRule {
                            @Nullable String gradleVersion,
                            @Nullable String gradlePluginVersion,
                            @Nullable String kotlinVersion,
-                           @Nullable String ndkVersion) throws IOException {
+                           @Nullable String ndkVersion,
+                           @Nullable String compileSdkVersion
+  ) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, compileSdkVersion),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
     return projectPath;
+  }
+
+  @NotNull
+  public File setUpProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion
+                           ) throws IOException {
+    return setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
   }
 
   /**

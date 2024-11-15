@@ -84,6 +84,7 @@ class GradleVersionCatalogTest {
                                                                                        "7.4.1",
                                                                                        "1.9.0",
                                                                                        null,
+                                                                                       null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
@@ -175,6 +176,7 @@ class GradleVersionCatalogTest {
                                                                                        null,
                                                                                        "7.4.1",
                                                                                        "1.9.0",
+                                                                                       null,
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
