@@ -73,10 +73,13 @@
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
   implements("factory|embedded_factory")=[
-       "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
+     "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
   ]
   implements("property|assignable_property")=[
      "com.intellij.psi.ContributedReferenceHost"
+  ]
+  implements("assignable_property")=[
+     "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
   ]
 }
 
