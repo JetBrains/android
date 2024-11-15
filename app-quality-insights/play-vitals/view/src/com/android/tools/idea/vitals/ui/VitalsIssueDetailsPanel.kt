@@ -40,6 +40,7 @@ import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
 import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.ISSUE_DETAILS_PANEL_MIN_SIZE
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
@@ -65,7 +66,6 @@ import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -230,7 +230,7 @@ class VitalsIssueDetailsPanel(
   private val scrollPane: JScrollPane
 
   init {
-    minimumSize = Dimension(90, 0)
+    minimumSize = ISSUE_DETAILS_PANEL_MIN_SIZE
     background = primaryContentBackground
     Disposer.register(parentDisposable, stackTraceConsole)
     scope.launch(AndroidDispatchers.uiThread) {
