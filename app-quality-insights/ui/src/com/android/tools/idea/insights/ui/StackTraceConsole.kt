@@ -53,6 +53,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.unscramble.AnalyzeStacktraceUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -213,7 +214,7 @@ class StackTraceConsole(
         stackPanel.preferredSize = emptyStatePane.preferredSize
       } else {
         cardLayout.show(stackPanel, CONSOLE_VIEW)
-        stackPanel.preferredSize = null
+        stackPanel.preferredSize = consoleView.preferredSize
       }
 
       fun Blames.getConsoleViewContentType() =
@@ -243,11 +244,13 @@ class StackTraceConsole(
                 return@runBatchFoldingOperation
               }
               val region =
-                consoleView.editor!!.foldingModel.addFoldRegion(
-                  startOffset,
-                  endOffset,
-                  "    <${stack.stacktrace.frames.size} frames>",
-                )
+                consoleView.editor!!
+                  .foldingModel
+                  .addFoldRegion(
+                    startOffset,
+                    endOffset,
+                    "    <${stack.stacktrace.frames.size} frames>",
+                  )
               if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
               }
@@ -265,11 +268,13 @@ class StackTraceConsole(
               return@synchronized
             }
             val region =
-              consoleView.editor!!.foldingModel.addFoldRegion(
-                startOfOtherThreads,
-                consoleView.contentSize,
-                "    Show all ${event.stacktraceGroup.exceptions.size} threads",
-              )
+              consoleView.editor!!
+                .foldingModel
+                .addFoldRegion(
+                  startOfOtherThreads,
+                  consoleView.contentSize,
+                  "    Show all ${event.stacktraceGroup.exceptions.size} threads",
+                )
             region?.isExpanded = false
           }
         }
@@ -300,8 +305,8 @@ class StackTraceConsole(
     (consoleView.editor as EditorEx).apply {
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
-      setVerticalScrollbarVisible(false)
       setCaretEnabled(false)
+      scrollPane.verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
     }
 
     val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState, scope)
