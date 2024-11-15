@@ -95,7 +95,7 @@ class CreateNewFlavorsTest {
       .currentFileContents
 
     val dimenDemo = "dimension '$DIMEN_NAME'"
-    val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdk 24\n            targetSdk 24\n        }"
+    val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdk 34\n            targetSdk 24\n        }"
     val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode 2\n            versionName '2.3'\n        }"
 
     assertThat(gradleFileContents).contains(flavor1)

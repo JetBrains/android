@@ -747,7 +747,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/sdk:platforms/android-25_build_only",
         "@maven//:com.android.support.support-annotations_28.0.0",
         "@maven//:com.android.support.appcompat-v7_26.1.0",
     ] + glob([
@@ -1415,9 +1414,7 @@ java_test(
 java_test(
     name = "CreateNewFlavorsTest",
     size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/sdk:platforms/android-24_build_only",
-    ] + glob([
+    data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
@@ -1732,9 +1729,7 @@ java_test(
     timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
-    ]) + [
-        "//prebuilts/studio/sdk:platforms/android-23_build_only",
-    ] + select({
+    ]) + select({
         ":has_emulator": [
             "@externsdk//:emulator",
             "@externsdk//:system-images",
@@ -2557,8 +2552,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//tools/adt/idea/android/lib:sampleData",
-        "//tools/adt/idea/android/testData",
     ] + glob([
         "testData/MultiAndroidModule/**",
     ]),
@@ -2581,8 +2574,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//tools/adt/idea/android/lib:sampleData",
-        "//tools/adt/idea/android/testData",
     ] + glob([
         "testData/DrawableResource/**",
     ]),
@@ -2605,8 +2596,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//tools/adt/idea/android/lib:sampleData",
-        "//tools/adt/idea/android/testData",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.ImageViewResourceTest"],
     tags = COMMON_TAGS + [
@@ -2747,7 +2736,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
-        "//prebuilts/studio/sdk:platforms/android-25_build_only",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -2994,10 +2982,7 @@ java_test(
 
 java_test(
     name = "FlavorsEditingTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/sdk:platforms/android-24_build_only",
-        "//prebuilts/studio/sdk:platforms/android-25_build_only",
-    ] + glob([
+    data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsEditingTest"],
