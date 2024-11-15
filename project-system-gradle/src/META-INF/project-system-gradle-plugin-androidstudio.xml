@@ -73,7 +73,7 @@
     <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
-    <action id="BuildRunConfigModule" class="com.android.tools.idea.gradle.actions.BuildRunConfigurationAction" use-shortcut-of="CompileDirty">
+    <action id="AssembleRunConfiguration" class="com.android.tools.idea.gradle.actions.AssembleRunConfigurationAction" use-shortcut-of="CompileDirty">
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
       <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
       <add-to-group group-id="BuildMenu" anchor="first"/>
@@ -89,7 +89,7 @@
       <add-to-group group-id="Internal.Android"/>
     </action>
     <action id="CompileGradleModule" class="com.android.tools.idea.gradle.actions.CompileGradleModuleAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="BuildRunConfigModule"/>
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="AssembleRunConfiguration"/>
     </action>
     <action id="CompileAllSources" class="com.android.tools.idea.gradle.actions.CompileAllSources">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileGradleModule"/>
