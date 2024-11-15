@@ -98,6 +98,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1027,7 +1028,9 @@ public class AndroidJavaDocRenderer {
         }
         else {
           try {
-            file = FileUtilRt.createTempFile("render", DOT_PNG, true);
+            Path outputPath = Files.createTempFile("render", DOT_PNG);
+            file = outputPath.toFile();
+            file.deleteOnExit();
             try (InputStream input = virtualFile.getInputStream();
                 OutputStream output = Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
               copy(input, output);
@@ -1093,7 +1096,9 @@ public class AndroidJavaDocRenderer {
           if (image != null) {
             // Need to write it somewhere.
             try {
-              File tempFile = FileUtilRt.createTempFile("render", DOT_PNG, true);
+              Path outputFile = Files.createTempFile("render", DOT_PNG);
+              File tempFile = outputFile.toFile();
+              tempFile.deleteOnExit();
               boolean ok = ImageIO.write(image, "PNG", tempFile);
               if (ok) {
                 URL fileUrl = fileToUrl(tempFile);
