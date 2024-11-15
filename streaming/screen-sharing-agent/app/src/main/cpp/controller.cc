@@ -47,7 +47,6 @@ constexpr duration SOCKET_READ_TIMEOUT = 5s;
 constexpr duration SOCKET_WRITE_TIMEOUT = 10s;
 constexpr duration DISPLAY_POLLING_DURATION = 500ms;
 
-
 constexpr int FINGER_TOUCH_SIZE = 1;
 
 nanoseconds UptimeNanos() {
@@ -97,6 +96,22 @@ bool CheckVideoSize(Size video_resolution) {
   }
   Log::E("An attempt to set an invalid video resolution: %dx%d", video_resolution.width, video_resolution.height);
   return false;
+}
+
+vector<JObject> tokens_of_displays_turned_off;
+
+bool SetDisplayPowerMode(Jni jni, JObject&& display_token, DisplayPowerMode power_mode) {
+  SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+  JThrowable exception = jni.GetAndClearException();
+  if (exception.IsNotNull()) {
+    Log::W(std::move(exception), "Unable to turn display %s", power_mode == DisplayPowerMode::POWER_MODE_OFF ? "off" : "on");
+    return false;
+  }
+  if (power_mode == DisplayPowerMode::POWER_MODE_OFF) {
+    tokens_of_displays_turned_off.push_back(std::move(display_token).ToGlobal());
+  }
+  Log::I("Turned display %s", power_mode == DisplayPowerMode::POWER_MODE_OFF ? "off" : "on");
+  return true;
 }
 
 }  // namespace
@@ -254,6 +269,7 @@ void Controller::Run() {
     }
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
+    Agent::Shutdown();
   } catch (IoException& e) {
     Log::Fatal(SOCKET_IO_ERROR, "Error reading from command socket channel - %s", e.GetMessage().c_str());
   }
@@ -611,26 +627,37 @@ bool Controller::ControlDisplayPower(Jni jni, int state) {
     // TODO: Turn off secondary physical displays.
   } else {
     DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
-    vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
-    if (display_ids.empty()) {
-      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-      if (display_token.IsNull()) {
-        Log::W(jni.GetAndClearException(), "Unable to find the display to turn it %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
-        return false;
-      }
-      SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
-    } else {
-      for (int64_t display_id: display_ids) {
-        JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
-        SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+    if (power_mode == DisplayPowerMode::POWER_MODE_NORMAL) {
+      while (!tokens_of_displays_turned_off.empty()) {
+        JObject display_token = std::move(tokens_of_displays_turned_off.back());
+        tokens_of_displays_turned_off.pop_back();
+        if (!SetDisplayPowerMode(jni, std::move(display_token), power_mode)) {
+          return false;
+        }
       }
     }
-    JThrowable exception = jni.GetAndClearException();
-    if (exception.IsNotNull()) {
-      Log::W(std::move(exception), "Unable to turn display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
-      return false;
+    else {
+      vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+      if (display_ids.empty()) {
+        JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+        if (display_token.IsNull()) {
+          Log::W(jni.GetAndClearException(), "Unable to find the primary display to turn it off");
+          return false;
+        }
+        return SetDisplayPowerMode(jni, std::move(display_token), power_mode);
+      } else {
+        for (int64_t display_id: display_ids) {
+          JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+          if (display_token.IsNull()) {
+            Log::W(jni.GetAndClearException(), "Unable to get token for display %" PRIx64, display_id);
+            continue;
+          }
+          if (!SetDisplayPowerMode(jni, std::move(display_token), power_mode)) {
+            return false;
+          }
+        }
+      }
     }
-    Log::I("Turned display %s", state == DisplayInfo::STATE_OFF ? "off" : "on");
   }
   return true;
 }
