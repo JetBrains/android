@@ -216,6 +216,10 @@ class LogcatMainPanelFactory {
         )
       }
 
+      ApplicationManager.getApplication().executeOnPooledThread {
+        project.getService(ProcessNameMonitor::class.java).start()
+      }
+
       return LogcatMainPanel(
         project = project,
         splitterPopupActionGroup = DefaultActionGroup(),
