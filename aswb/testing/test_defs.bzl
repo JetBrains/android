@@ -190,6 +190,7 @@ def intellij_integration_test_suite(
         runtime_deps = [],
         plugins = DEFAULT_INTEGRATION_TEST_PLUGINS,
         required_plugins = None,
+        friends = [],
         **kwargs):
     """Creates a java_test rule composed of all valid test classes in the specified srcs and specifically tailored for intellij-ide integration tests.
 
@@ -218,6 +219,7 @@ def intellij_integration_test_suite(
       runtime_deps: the required runtime dependencies, (e.g., intellij_plugin targets).
       required_plugins: optional comma-separated list of plugin IDs. Integration tests will fail if
           these plugins aren't loaded at runtime.
+      friends: Kotlin test friends
       **kwargs: Any other args to be passed to the java_test.
     """
     suite_class_name = name + "TestSuite"
@@ -290,6 +292,7 @@ def intellij_integration_test_suite(
         lint_enabled = False,
         target_compatible_with = target_compatible_with,
         testonly = 1,
+        friends = friends,
         #        stdlib = "//tools/adt/idea/aswb/testing:lib",
     )
 
