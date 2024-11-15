@@ -16,13 +16,16 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.prefs.AndroidLocationsSingleton
+import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.AndroidSdk
@@ -32,11 +35,16 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.install.Platform
 import com.android.tools.idea.welcome.install.Aehd
+import com.android.tools.idea.welcome.install.ComponentInstaller
+import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.model.WizardModel
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.util.containers.orNull
 import java.io.File
 import java.nio.file.Path
+import java.util.function.Supplier
 
 // Contains all the data which Studio should collect in the First Run Wizard
 class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
@@ -59,9 +67,20 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     false
   }
 
-  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath()))
+  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())).apply {
+    this.addListener {
+      val location = this.get().location
+      if (location == null) {
+        sdkInstallLocationProperty.clear()
+      } else {
+        sdkInstallLocationProperty.value = location
+      }
+    }
+  }
   val localHandler get() = localHandlerProperty.get()
-  val sdkInstallLocation: Path? get() = localHandler.location
+
+  val sdkInstallLocationProperty: OptionalValueProperty<Path> = OptionalValueProperty(sdkLocation.toPath())
+  val sdkInstallLocation: Path? get() = sdkInstallLocationProperty.get().orNull()
 
   // FIXME (why always true?)
   /**
@@ -77,6 +96,17 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     }
     componentTree.init(mockProgressStep)
     componentTree.updateState(localHandler)
+  }
+
+  fun getPackagesToInstallSupplier(): Supplier<Collection<RemotePackage>?> = Supplier {
+    val components: Iterable<InstallableComponent> = componentTree.childrenToInstall
+    try {
+      ComponentInstaller(localHandler).getPackagesToInstall(components)
+    }
+    catch (e: SdkQuickfixUtils.PackageResolutionException) {
+      logger<StudioFirstRunWelcomeScreen>().warn(e)
+      null
+    }
   }
 
   private fun createComponentTree(createAvd: Boolean): ComponentTreeNode {

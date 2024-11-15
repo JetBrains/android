@@ -68,31 +68,20 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
         addStep(MissingSdkAlertStep())
       }
 
-      val licenseAgreementStep = LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation.toPath()), listOf())
+      val supplier = model.getPackagesToInstallSupplier()
+      val licenseAgreementStep = LicenseAgreementStep(LicenseAgreementModel(model.sdkInstallLocationProperty), supplier)
 
       addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,this@StudioFirstRunWelcomeScreen))
 
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        val supplier = Supplier<Collection<RemotePackage>?> {
-          val components: Iterable<InstallableComponent> = model.componentTree.childrenToInstall
-          try {
-            ComponentInstaller(model.localHandler).getPackagesToInstall(components)
-          }
-          catch (e: SdkQuickfixUtils.PackageResolutionException) {
-            logger<StudioFirstRunWelcomeScreen>().warn(e)
-            null
-          }
-        }
         model.componentTree.steps.forEach { addStep(it) }
         addStep(InstallSummaryStep(model, supplier))
+
+        addStep(licenseAgreementStep)
       }
 
       if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
         addStep(LinuxKvmInfoStep())
-      }
-
-      if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        addStep(licenseAgreementStep)
       }
 
       // TODO: addStep(ProgressStep(model))

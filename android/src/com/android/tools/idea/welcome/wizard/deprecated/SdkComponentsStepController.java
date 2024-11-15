@@ -34,6 +34,7 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
@@ -162,7 +163,7 @@ public abstract class SdkComponentsStepController {
     }
   }
 
-  public void onPathUpdated(@NotNull String sdkPath) {
+  public void onPathUpdated(@NotNull String sdkPath, @NotNull ModalityState modalityState) {
     File sdkLocation = new File(sdkPath);
     if (!FileUtil.filesEqual(myLocalSdkHandlerProperty.get().getLocation().toFile(), sdkLocation)) {
       if (sdkPath.isEmpty()) {
@@ -180,13 +181,13 @@ public abstract class SdkComponentsStepController {
 
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         localHandler.getSdkManager(progress)
-          .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
+          .loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(packages -> {
                   myRootNode.updateState(localHandler);
                   stopLoading();
                 }), ImmutableList.of(this::loadingError),
                 new StudioProgressRunner(false, false, "Finding Available SDK Components", myProject), new StudioDownloader(),
                 StudioSettingsController.getInstance());
-        reloadLicenseAgreementStep();
+        ApplicationManager.getApplication().invokeLater(this::reloadLicenseAgreementStep, modalityState);
       });
     }
   }

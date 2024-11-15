@@ -247,6 +247,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   private List<Change> createChangesList() {
+    myLicenses.clear();
+
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandlerSupplier.get().getSdkManager(progress);
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),

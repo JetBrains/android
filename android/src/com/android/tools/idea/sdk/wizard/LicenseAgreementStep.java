@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -36,9 +37,11 @@ import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -76,15 +79,20 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // Only licenses that have not been accepted in the past by the user are displayed.
   private final Set<String> myVisibleLicenses = Sets.newHashSet();
 
-  // All package paths that will get installed.
-  private final List<RemotePackage> myInstallRequests;
+  // All package paths that will get installed - we use a Supplier as the packages
+  // to install may be changed by other wizard steps
+  private final Supplier<Collection<RemotePackage>> myInstallRequestsSupplier;
 
   // True when all the visible licenses have been accepted.
   private final BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
+  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier) {
     super(model, "License Agreement");
-    myInstallRequests = installRequests;
+    myInstallRequestsSupplier = installRequestsSupplier;
+  }
+
+  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
+    this(model, () -> installRequests);
   }
 
   public void reload() {
@@ -273,9 +281,11 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
+    getModel().getLicenses().clear();
     List<Change> toReturn = new ArrayList<>();
-    if (myInstallRequests != null) {
-      for (RemotePackage p : myInstallRequests) {
+    Collection<RemotePackage> installRequests = myInstallRequestsSupplier.get();
+    if (installRequests != null) {
+      for (RemotePackage p : installRequests) {
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);

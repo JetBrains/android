@@ -27,17 +27,22 @@ private val log get() = logger<LicenseAgreementModel>()
  * [WizardModel] that stores all the licenses related to the packages the user is about to install
  * and marks them as accepted after the packages are installed so that the user only accepts each license once.
  */
-class LicenseAgreementModel(sdkLocation: Path?) : WizardModel() {
+class LicenseAgreementModel: WizardModel {
   val licenses =  hashSetOf<License>()
-  val sdkRoot = OptionalValueProperty<Path>()
+  val sdkRoot: OptionalValueProperty<Path>
 
-  init {
+  constructor(sdkLocation: Path?) {
+    sdkRoot = OptionalValueProperty<Path>()
     if (sdkLocation != null) {
       sdkRoot.setValue(sdkLocation)
     }
     else {
       sdkRoot.clear()
     }
+  }
+
+  constructor(sdkLocation: OptionalValueProperty<Path>) {
+    sdkRoot = sdkLocation
   }
 
   override fun handleFinished() {

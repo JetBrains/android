@@ -37,8 +37,10 @@ class InstallSummaryStep(
 
   companion object {
     @JvmStatic
-    fun getSdkFolderSection(location: File): Section {
-      val text = if (isWritable(location.toPath()))
+    fun getSdkFolderSection(location: File?): Section {
+      val text = if (location == null)
+        ""
+      else if (isWritable(location.toPath()))
         location.absolutePath
       else
         location.absolutePath + " (read-only)"
@@ -119,7 +121,7 @@ class InstallSummaryStep(
     }
     val sections = listOf(
       getSetupTypeSection(StringUtil.capitalize(model.installationType.get().name.lowercase())),
-      getSdkFolderSection(model.sdkLocation),
+      getSdkFolderSection(model.sdkInstallLocation?.toFile()),
       getDownloadSizeSection(packages),
       getPackagesSection(packages)
     )
