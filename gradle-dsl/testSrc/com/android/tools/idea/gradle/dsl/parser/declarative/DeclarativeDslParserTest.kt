@@ -183,6 +183,14 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     doSettingsTest(file, expected)
   }
 
+  fun testAssignment(){
+    val file = """
+      rootProject.name = "someName"
+    """.trimIndent()
+    val expected = mapOf("rootProject.name" to "someName")
+    doSettingsTest(file, expected)
+  }
+
   private fun doSettingsTest(text: String, expected: Map<String, Any>) {
     val declarativeFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
