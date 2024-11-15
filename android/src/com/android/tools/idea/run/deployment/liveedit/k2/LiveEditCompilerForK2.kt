@@ -20,7 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.IrClassCache
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
-import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilderWithBytecodeAnalysis
+import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
@@ -47,7 +47,7 @@ internal class LiveEditCompilerForK2(
   private val project: Project,
   private val inlineCandidateCache: SourceInlineCandidateCache,
   private val irClassCache: IrClassCache,
-  private val outputBuilder: LiveEditOutputBuilderWithBytecodeAnalysis,
+  private val outputBuilder: LiveEditOutputBuilder,
   private val module: Module,
 ): LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 

@@ -56,7 +56,7 @@ class LiveEditCompiler(val project: Project,
   var inlineCandidateCache = SourceInlineCandidateCache()
 
   private var desugarer = LiveEditDesugar()
-  private val outputBuilderWithAnalysis = LiveEditOutputBuilderWithBytecodeAnalysis(apkClassProvider)
+  private val outputBuilderWithAnalysis = LiveEditOutputBuilder(apkClassProvider)
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
