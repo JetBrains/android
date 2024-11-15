@@ -101,7 +101,7 @@ interface ResolvedAgpVersionSoftwareEnvironment : AgpVersionSoftwareEnvironment 
 
 }
 
-data class CustomAgpVersionSoftwareEnvironment @JvmOverloads constructor(
+data class CustomAgpVersionSoftwareEnvironment constructor(
   override val agpVersion: String?,
   override val gradleVersion: String?,
   override val jdkVersion: JavaSdkVersion? = null,
