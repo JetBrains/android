@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
+import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.DependenciesInserter
 import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
@@ -24,11 +27,13 @@ import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_BUILD_CONFIG
 import com.android.tools.idea.testing.TestProjectPaths.MINIMAL_CATALOG_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.android.tools.idea.testing.findModule
@@ -121,9 +126,25 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testSimpleAddDeclarative() {
+    doDeclarativeTest(SIMPLE_APPLICATION_DECLARATIVE,
+           { _, moduleModel, helper ->
+             val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+             assertThat(updates.size).isEqualTo(1)
+           },
+           {
+             val buildFile = project.getTextForFile("app/build.gradle.dcl")
+             val dependencies = getBlockContent(buildFile, "androidApp.dependenciesDcl")
+             assertThat(dependencies).contains("api(\"com.example.libs:lib2:1.0\")")
+             // check that it's existing dependenciesDcl block - not new one
+             assertThat(dependencies).contains("api(\"com.google.guava:guava:19.0\")")
+           })
+  }
+
+  @Test
   fun testAddToClasspathNoCatalog() {
     doTest(SIMPLE_APPLICATION,
-           { _, moduleModel, helper ->
+           { _, _, helper ->
              val updates = helper.addClasspathDependency("com.example.libs:lib2:1.0")
              assertThat(updates.size).isEqualTo(1)
            },
@@ -869,6 +890,20 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+private fun doDeclarativeTest(projectPath: String,
+                              change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
+                              assert: () -> Unit) {
+  DeclarativeStudioSupport.override(true)
+  DeclarativeIdeSupport.override(true)
+  try {
+    doTest(projectPath, {}, change, assert, true)
+  }
+  finally {
+    DeclarativeStudioSupport.clearOverride()
+    DeclarativeIdeSupport.clearOverride()
+  }
+}
+
   private fun doTest(projectPath: String,
                      change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {
@@ -879,13 +914,21 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
                      updateFiles: () -> Unit,
                      change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
                      assert: () -> Unit) {
+    doTest(projectPath, updateFiles, change, assert, true)
+  }
+
+  private fun doTest(projectPath: String,
+                     updateFiles: () -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesInserter) -> Unit,
+                     assert: () -> Unit,
+                     setupGradleSnapshot: Boolean) {
     prepareProjectForImport(projectPath)
     updateFiles()
-    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true));
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectFolderPath, true))
+    if(setupGradleSnapshot) setupGradleSnapshotToWrapper()
     importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
-
     val projectBuildModel = ProjectBuildModel.get(project)
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()
@@ -962,4 +1005,10 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   private fun Project.doesFileExists(relativePath:String) =
     VfsUtil.findFile(Paths.get(basePath, relativePath), false)?.exists() ?: false
 
+  private fun setupGradleSnapshotToWrapper() {
+    val distribution = TestUtils.resolveWorkspacePath("tools/external/gradle")
+    val gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip")
+    val wrapper = GradleWrapper.find(project)!!
+    wrapper.updateDistributionUrl(gradle.toFile())
+  }
 }

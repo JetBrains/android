@@ -17,11 +17,14 @@ package com.android.tools.idea.testing;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
+import static com.android.SdkConstants.EXT_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
@@ -315,6 +318,25 @@ public class AndroidGradleTests {
           Files.writeString(path.toPath(), contents);
         }
       }
+      else if (path.getPath().endsWith(EXT_GRADLE_DECLARATIVE)) {
+        String contentsOrig = Files.readString(path.toPath());
+        String contents = contentsOrig;
+        String localRepositories = getLocalRepositoriesForDeclarative(localRepos);
+        contents = replaceRegexGroup(contents, "id\\(\"com.android.ecosystem\"\\).version\\(\"(.+)\"\\)", agpEnvironment.getAgpVersion());
+
+        final var buildEnvironment = BuildEnvironment.getInstance();
+        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
+        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\"org.jetbrains.kotlin:kotlin-stdlib:(.+)\"\\)", agpEnvironment.getKotlinVersion());
+
+        contents = updateLocalRepositories(contents, localRepositories);
+        if (!contents.equals(contentsOrig)) {
+          Files.writeString(path.toPath(), contents);
+        }
+      }
       else if (path.getPath().endsWith(DOT_VERSIONS_DOT_TOML)) {
         String contentsOrig = Files.readString(path.toPath());
         String contents = contentsOrig;
@@ -466,6 +488,16 @@ public class AndroidGradleTests {
               "    mavenPom()\n" +
               "    artifact()\n" +
               "  }\n" +
+              "}", "\n");
+  }
+
+  @NotNull
+  public static String getLocalRepositoriesForDeclarative(@NotNull List<File> localRepos) {
+    // Add metadataSources to work around http://b/144088459.
+    return StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
+      file -> "maven {\n" +
+              "  url = uri(\"" + file.toURI() + "\")\n" +
               "}", "\n");
   }
 
@@ -670,8 +702,12 @@ public class AndroidGradleTests {
     File build = new File(srcRoot, FN_BUILD_GRADLE);
     File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
     File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
-    TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-                        settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+    File dclSettings = new File(srcRoot, FN_SETTINGS_GRADLE_DECLARATIVE);
+    File dclBuild = new File(srcRoot, FN_BUILD_GRADLE_DECLARATIVE);
+    TestCase.assertTrue("Couldn't find build.gradle(.kts|.dcl) or settings.gradle(.kts|dcl) in " + srcRoot.getPath(),
+                        settings.exists() || build.exists() ||
+                        ktsSettings.exists() || ktsBuild.exists() ||
+                        dclSettings.exists() || dclBuild.exists());
   }
 
   public static void syncProject(@NotNull Project project,

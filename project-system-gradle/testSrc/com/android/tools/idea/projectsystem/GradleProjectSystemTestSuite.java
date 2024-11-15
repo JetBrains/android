@@ -36,9 +36,15 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
+    Path declarativePlugin = TestUtils.getWorkspaceRoot().resolve("tools/base/build-system/declarative_android_gradle_plugin.zip");
+    if (Files.exists(declarativePlugin)) {
+      unzipIntoOfflineMavenRepo("tools/base/build-system/declarative_android_gradle_plugin.zip");
+    }
     Path file = TestUtils.getWorkspaceRoot().resolve("tools/base/build-system/android_gradle_plugin.zip");
     if (Files.exists(file)) {
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    }
+    if (Files.exists(declarativePlugin) || Files.exists(file)) {
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
       linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
