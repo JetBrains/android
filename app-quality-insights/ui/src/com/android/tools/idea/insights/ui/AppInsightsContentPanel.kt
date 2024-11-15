@@ -31,7 +31,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseListener
-import java.lang.Integer.min
 import javax.swing.JPanel
 
 val REQUEST_SOURCE_KEY = DataKey.create<GeminiPluginApi.RequestSource>("RequestSource")
@@ -65,9 +64,12 @@ class AppInsightsContentPanel(
       ThreeComponentsSplitter(false, true).apply {
         setHonorComponentsMinimumSize(true)
         firstComponent = issuesTableView.component
-        innerComponent = mainContentPanel
-        val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
-        firstSize = min((toolWindow?.component?.width ?: 1350) / 3, 700)
+        lastComponent = mainContentPanel
+        ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)?.let { toolWindow ->
+          val minSize = toolWindow.component.width / 4
+          firstSize = minSize
+          lastSize = minSize
+        }
       }
     splitter.isFocusCycleRoot = false
     val workBench = workBenchFactory(this)
