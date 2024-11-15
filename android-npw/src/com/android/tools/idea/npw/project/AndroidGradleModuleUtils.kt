@@ -33,6 +33,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 import java.io.IOException
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
 
 /**
  * Convenience method to convert a [NamedModuleTemplate] into a [SourceProvider]. Note that this
@@ -72,14 +73,18 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 
 /** Find the most appropriate Kotlin plugin version for the specified project. */
 @Slow
-fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
+fun determineKotlinVersionOrDefault(project: Project, isNewProject: Boolean): String {
   if (isNewProject) return DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 
-  val versionInUse =
-    project.basePath
-      ?.let { KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, it) }
-      ?.firstOrNull()
+  val versionInUse = determineKotlinVersion(project)
   return versionInUse?.toString() ?: DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+}
+
+@Slow
+fun determineKotlinVersion(project: Project): KotlinGradlePluginVersion? {
+  return project.basePath
+    ?.let { KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, it) }
+    ?.firstOrNull()
 }
 
 /**
