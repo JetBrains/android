@@ -19,9 +19,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -30,18 +28,16 @@ import com.intellij.ui.popup.PopupFactoryImpl
 import java.time.Duration
 import java.time.Instant
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.SwingConstants
 
 object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
-
-  init {
-    templatePresentation.isPerformGroup = true
-  }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabledAndVisible = event.reservationAction() != null
+    event.presentation.isPerformGroup = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -57,13 +53,8 @@ object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
     } else {
       popup.addListSelectionListener { selectEvent ->
         val text =
-          when (
-            val selectedItem =
-              PlatformCoreDataKeys.SELECTED_ITEM.getData(selectEvent.source as DataProvider)
-          ) {
-            is PopupFactoryImpl.ActionItem -> selectedItem.description
-            else -> ""
-          }
+          ((selectEvent.source as? JList<*>)?.selectedValue as? PopupFactoryImpl.ActionItem)
+            ?.description ?: ""
         popup.setAdText(text, SwingConstants.LEFT)
       }
     }
