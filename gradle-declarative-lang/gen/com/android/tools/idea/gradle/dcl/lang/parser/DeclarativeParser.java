@@ -52,6 +52,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(ASSIGNABLE_BARE, ASSIGNABLE_PROPERTY, ASSIGNABLE_QUALIFIED),
     create_token_set_(BARE, PROPERTY, QUALIFIED),
     create_token_set_(FACTORY, RECEIVER_PREFIXED_FACTORY, SIMPLE_FACTORY),
   };
@@ -397,9 +398,9 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier
+  // assignable_property
   static boolean lvalue(PsiBuilder b, int l) {
-    return identifier(b, l + 1);
+    return assignable_property(b, l + 1, -1);
   }
 
   /* ********************************************************** */
@@ -494,6 +495,63 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     r = factory(b, l + 1, -1);
     if (!r) r = property(b, l + 1, -1);
     if (!r) r = literal(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // Expression root: assignable_property
+  // Operator priority table:
+  // 0: POSTFIX(assignable_qualified)
+  // 1: ATOM(assignable_bare)
+  public static boolean assignable_property(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "assignable_property")) return false;
+    addVariant(b, "<assignable property>");
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, "<assignable property>");
+    r = assignable_bare(b, l + 1);
+    p = r;
+    r = r && assignable_property_0(b, l + 1, g);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  public static boolean assignable_property_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "assignable_property_0")) return false;
+    boolean r = true;
+    while (true) {
+      Marker m = enter_section_(b, l, _LEFT_, null);
+      if (g < 0 && assignable_qualified_0(b, l + 1)) {
+        r = true;
+        exit_section_(b, l, m, ASSIGNABLE_QUALIFIED, r, true, null);
+      }
+      else {
+        exit_section_(b, l, m, null, false, false, null);
+        break;
+      }
+    }
+    return r;
+  }
+
+  // OP_DOT identifier
+  private static boolean assignable_qualified_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignable_qualified_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, OP_DOT);
+    r = r && identifier(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // identifier
+  public static boolean assignable_bare(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignable_bare")) return false;
+    if (!nextTokenIsSmart(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    exit_section_(b, m, ASSIGNABLE_BARE, r);
     return r;
   }
 

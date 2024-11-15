@@ -28,6 +28,9 @@ public interface DeclarativeElementTypeHolder {
 
   IElementType ARGUMENT = new DeclarativeElementType("ARGUMENT");
   IElementType ARGUMENTS_LIST = new DeclarativeElementType("ARGUMENTS_LIST");
+  IElementType ASSIGNABLE_BARE = new DeclarativeElementType("ASSIGNABLE_BARE");
+  IElementType ASSIGNABLE_PROPERTY = new DeclarativeElementType("ASSIGNABLE_PROPERTY");
+  IElementType ASSIGNABLE_QUALIFIED = new DeclarativeElementType("ASSIGNABLE_QUALIFIED");
   IElementType ASSIGNMENT = new DeclarativeElementType("ASSIGNMENT");
   IElementType BARE = new DeclarativeElementType("BARE");
   IElementType BLOCK = new DeclarativeElementType("BLOCK");
@@ -69,6 +72,12 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == ARGUMENTS_LIST) {
         return new DeclarativeArgumentsListImpl(type);
+      }
+      else if (type == ASSIGNABLE_BARE) {
+        return new DeclarativeAssignableBareImpl(type);
+      }
+      else if (type == ASSIGNABLE_QUALIFIED) {
+        return new DeclarativeAssignableQualifiedImpl(type);
       }
       else if (type == ASSIGNMENT) {
         return new DeclarativeAssignmentImpl(type);

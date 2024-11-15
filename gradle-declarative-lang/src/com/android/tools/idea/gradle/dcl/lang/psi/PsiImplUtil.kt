@@ -49,6 +49,31 @@ class PsiImplUtil {
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
     @JvmStatic
+    fun getReceiver(property: DeclarativeAssignableProperty): DeclarativeAssignableProperty? = when (property) {
+      is DeclarativeAssignableBare -> null
+      is DeclarativeAssignableQualified -> property.assignableProperty
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
+    }
+
+    @JvmStatic
+    fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier = when (property) {
+      is DeclarativeAssignableBare -> property.identifier
+      is DeclarativeAssignableQualified -> property.identifier!!
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+    }
+
+    @JvmStatic
+    fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
+      assignment.assignableProperty.field
+
+    @JvmStatic
+    fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
+
+    @JvmStatic
+    fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
+      ReferenceProvidersRegistry.getReferencesFromProviders(property)
+
+    @JvmStatic
     fun getName(property: DeclarativeIdentifier): String {
       var text = property.text
       if (text.startsWith("`") && text.endsWith("`"))
