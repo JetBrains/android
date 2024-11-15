@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
@@ -116,13 +117,18 @@ class DeclarativeDslParser(
           val expression = GradleDslInfixExpression(context, factory)
           //parse factory if expression consists only one element
           if (factory.receiver != null && factory.receiver!!.receiver == null) {
-            val list = listOf(factory, factory.receiver!!)
+            val list = listOf(factory.receiver!!, factory)
             if (list.any { it.argumentsList?.arguments?.size == 1 }) {
-              list.forEach {
-                val name = it.identifier.name
-                val arg = it.argumentsList?.arguments?.first()
+              list.forEach { factoryElement ->
+                val name = factoryElement.identifier.name
+                val arg = factoryElement.argumentsList?.arguments?.first()
                 if (name != null && arg != null && arg is DeclarativeLiteral)
-                  arg.value?.let { expression.setNewLiteral(name, it) }
+                  arg.value?.let {
+                    GradleDslLiteral(context, factoryElement, GradleNameElement.from(factoryElement.identifier, this@DeclarativeDslParser), arg, LITERAL).also {
+                      it.externalSyntax = ExternalNameInfo.ExternalNameSyntax.METHOD
+                      expression.addParsedElement(it)
+                    }
+                  }
               }
             }
             context.addParsedElement(expression)
