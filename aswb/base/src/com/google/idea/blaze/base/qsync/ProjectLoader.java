@@ -196,7 +196,7 @@ public class ProjectLoader {
         new DependencyTrackerImpl(graph, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
-            vcsHandler.map(BlazeVcsHandler::getVcsStateDiffer).orElse(VcsStateDiffer.NONE),
+            vcsHandler.map(it -> (VcsStateDiffer)it::diffVcsState).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
             enableExperimentalQuery.getValue() ? QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS : QueryStrategy.PLAIN,
             graph::getCurrent,

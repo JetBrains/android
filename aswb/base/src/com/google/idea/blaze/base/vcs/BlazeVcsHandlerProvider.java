@@ -135,10 +135,6 @@ public interface BlazeVcsHandlerProvider {
      */
     Optional<ImmutableSet<Path>> diffVcsState(VcsState current, VcsState previous)
         throws BuildException;
-
-    default VcsStateDiffer getVcsStateDiffer() {
-      return this::diffVcsState;
-    }
   }
 
   /** Sync handler that performs VCS specific computation. */
