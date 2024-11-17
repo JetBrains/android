@@ -26,8 +26,10 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.workspace.WorkingSet;
 import com.google.idea.blaze.common.vcs.VcsState;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -79,7 +81,8 @@ public class FallbackBlazeVcsHandlerProvider implements BlazeVcsHandlerProvider 
     }
 
     @Override
-    public Optional<VcsState> vcsStateForSourceUri(String sourceUri) {
+    public Optional<VcsState> vcsStateForWorkspaceStatus(Map<String, String> workspaceStatus)
+      throws BuildException {
       return Optional.empty();
     }
 

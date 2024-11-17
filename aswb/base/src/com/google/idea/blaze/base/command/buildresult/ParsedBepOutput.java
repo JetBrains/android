@@ -67,15 +67,13 @@ public final class ParsedBepOutput {
       new ParsedBepOutput(
           "build-id",
           null,
-          Optional.empty(),
+          ImmutableMap.of(),
           ImmutableMap.of(),
           ImmutableSetMultimap.of(),
           0,
           BuildResult.SUCCESS,
           0,
           ImmutableSet.of());
-
-  private static final String WORKSPACE_ITEM_KEY_SOURCE_URI = "SOURCE_URI";
 
   /** Parses BEP events into {@link ParsedBepOutput} */
   public static ParsedBepOutput parseBepArtifacts(InputStream bepStream)
@@ -112,7 +110,7 @@ public final class ParsedBepOutput {
     ImmutableSet.Builder<Label> targetsWithErrors = ImmutableSet.builder();
     String localExecRoot = null;
     String buildId = null;
-    Optional<String> sourceUri = Optional.empty();
+    ImmutableMap<String, String> workspaceStatus = ImmutableMap.of();
     long startTimeMillis = 0L;
     BuildResult buildResult = BuildResult.SUCCESS;
     boolean emptyBuildEventStream = true;
@@ -124,14 +122,8 @@ public final class ParsedBepOutput {
           localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
           continue;
         case WORKSPACE_STATUS:
-          ImmutableMap<String, Item> itemMap =
-              Maps.uniqueIndex(event.getWorkspaceStatus().getItemList(), Item::getKey);
-          // TODO(mathewi) This shouldn't really be here since it is dependant on VCS specific
-          //   integration with Bazel. We should refactor this code to allow the BlazeVcsHandler to
-          //   be involved here instead.
-          if (itemMap.containsKey(WORKSPACE_ITEM_KEY_SOURCE_URI)) {
-            sourceUri = Optional.of(itemMap.get(WORKSPACE_ITEM_KEY_SOURCE_URI).getValue());
-          }
+          workspaceStatus =
+            event.getWorkspaceStatus().getItemList().stream().collect(toImmutableMap(Item::getKey, Item::getValue));
           continue;
         case CONFIGURATION:
           configIdToMnemonic.put(
@@ -196,7 +188,7 @@ public final class ParsedBepOutput {
     return new ParsedBepOutput(
         buildId,
         localExecRoot,
-        sourceUri,
+        workspaceStatus,
         filesMap,
         targetToFileSets.build(),
         startTimeMillis,
@@ -250,7 +242,7 @@ public final class ParsedBepOutput {
   /** A path to the local execroot */
   @Nullable private final String localExecRoot;
 
-  final Optional<String> sourceUri;
+  final ImmutableMap<String, String> workspaceStatus;
 
   /** A map from file set ID to file set, with the same ordering as the BEP stream. */
   private final ImmutableMap<String, FileSet> fileSets;
@@ -265,18 +257,18 @@ public final class ParsedBepOutput {
   private final ImmutableSet<Label> targetsWithErrors;
 
   private ParsedBepOutput(
-      @Nullable String buildId,
-      @Nullable String localExecRoot,
-      Optional<String> sourceUri,
-      ImmutableMap<String, FileSet> fileSets,
-      ImmutableSetMultimap<String, String> targetFileSets,
-      long syncStartTimeMillis,
-      BuildResult buildResult,
-      long bepBytesConsumed,
-      ImmutableSet<Label> targetsWithErrors) {
+    @Nullable String buildId,
+    @Nullable String localExecRoot,
+    ImmutableMap<String, String> workspaceStatus,
+    ImmutableMap<String, FileSet> fileSets,
+    ImmutableSetMultimap<String, String> targetFileSets,
+    long syncStartTimeMillis,
+    BuildResult buildResult,
+    long bepBytesConsumed,
+    ImmutableSet<Label> targetsWithErrors) {
     this.buildId = buildId;
     this.localExecRoot = localExecRoot;
-    this.sourceUri = sourceUri;
+    this.workspaceStatus = workspaceStatus;
     this.fileSets = fileSets;
     this.targetFileSets = targetFileSets;
     this.syncStartTimeMillis = syncStartTimeMillis;
@@ -296,8 +288,8 @@ public final class ParsedBepOutput {
    * specific. If present, the value will be can be used with {@link
    * com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler#vcsStateForSourceUri(String)}.
    */
-  public Optional<String> getSourceUri() {
-    return sourceUri;
+  public ImmutableMap<String, String> getWorkspaceStatus() {
+    return workspaceStatus;
   }
 
   /** Returns the build result. */
