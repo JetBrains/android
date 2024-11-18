@@ -37,17 +37,16 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.SlowOperations
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -208,16 +207,16 @@ private class RenderingBuildStatusManagerImpl(
             }
 
 
-            fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
-              SlowOperations.allowSlowOperations(ThrowableComputable {
-                preparedMarkUpToDateAction.markUpToDate(scope)
-              })
+            suspend fun handleSuccess(searchScope: GlobalSearchScope): ProjectBuildStatus {
+              withContext(workerThread) {
+                readAction { preparedMarkUpToDateAction.markUpToDate(searchScope) }
+              }
               // Clear the resources out of date flag
               areResourcesOutOfDateFlow.value = false
               return ProjectBuildStatus.Built
             }
 
-            fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
+            suspend fun handleBuildResult(result: BuildListener.BuildResult): ProjectBuildStatus =
               when (result.status) {
                 BuildStatus.SUCCESS -> handleSuccess(result.scope)
                 BuildStatus.FAILED -> handleFailure()
