@@ -21,6 +21,7 @@ import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Expect;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
 import com.google.idea.blaze.qsync.testdata.BuildGraphs;
@@ -29,17 +30,82 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class BuildGraphDataTest {
-
   private static final Path TEST_ROOT =
       Path.of("tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync");
 
   private static final Path TESTDATA_ROOT = TEST_ROOT.resolve("testdata");
+
+  @Rule
+  public Expect expect = Expect.createAndEnableStackTrace();
+
+  @Test
+  public void pathToLabel() {
+    BuildGraphData.Builder builder = BuildGraphData.builder();
+    builder.sourceFileLabelsBuilder()
+      .add(Label.of("//:BUILD"))
+      .add(Label.of("//nested:BUILD"))
+      .add(Label.of("//nested:file.txt"))
+      .add(Label.of("//nested/inner:BUILD"))
+      .add(Label.of("//nested/inner:deep/file.txt"));
+
+    builder.allTargetsBuilder()
+      .add(Label.of("//:target"))
+      .add(Label.of("//nested:nested"))
+      .add(Label.of("//nested/inner:inner"));
+
+    builder.projectDeps(ImmutableSet.of());
+    BuildGraphData graph = builder.build();
+    expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Optional.of(Label.of("//:abc.txt")));
+    expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Optional.of(Label.of("//:BUILD")));
+    expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Optional.of(Label.of("//nested:abc.txt")));
+    expect.that(graph.pathToLabel(Path.of("nested/file.txt"))).isEqualTo(Optional.of(Label.of("//nested:file.txt")));
+    expect.that(graph.pathToLabel(Path.of("nested/BUILD"))).isEqualTo(Optional.of(Label.of("//nested:BUILD")));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/abc.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:abc.txt")));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:deep/file.txt")));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//nested/inner:BUILD")));
+    expect.that(graph.pathToLabel(Path.of("other/abc.txt"))).isEqualTo(Optional.of(Label.of("//:other/abc.txt")));
+    expect.that(graph.pathToLabel(Path.of("other/BUILD"))).isEqualTo(Optional.of(Label.of("//:other/BUILD")));
+    expect.that(graph.pathToLabel(Path.of("other/inner/abc.txt"))).isEqualTo(Optional.of(Label.of("//:other/inner/abc.txt")));
+    expect.that(graph.pathToLabel(Path.of("other/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//:other/inner/BUILD")));
+  }
+
+  @Test
+  public void sourceFileToLabel() {
+    BuildGraphData.Builder builder = BuildGraphData.builder();
+    builder.sourceFileLabelsBuilder()
+      .add(Label.of("//:BUILD"))
+      .add(Label.of("//nested:BUILD"))
+      .add(Label.of("//nested:file.txt"))
+      .add(Label.of("//nested/inner:BUILD"))
+      .add(Label.of("//nested/inner:deep/file.txt"));
+
+    builder.allTargetsBuilder()
+      .add(Label.of("//:target"))
+      .add(Label.of("//nested:nested"))
+      .add(Label.of("//nested/inner:inner"));
+
+    builder.projectDeps(ImmutableSet.of());
+    BuildGraphData graph = builder.build();
+    expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Optional.of(Label.of("//:BUILD")));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("nested/file.txt"))).isEqualTo(Optional.of(Label.of("//nested:file.txt")));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/BUILD"))).isEqualTo(Optional.of(Label.of("//nested:BUILD")));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/abc.txt"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:deep/file.txt")));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//nested/inner:BUILD")));
+    expect.that(graph.sourceFileToLabel(Path.of("other/abc.txt"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("other/BUILD"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("other/inner/abc.txt"))).isEqualTo(Optional.empty());
+    expect.that(graph.sourceFileToLabel(Path.of("other/inner/BUILD"))).isEqualTo(Optional.empty());
+  }
 
   @Test
   public void testJavaLibraryNoDeps() throws Exception {
@@ -51,14 +117,14 @@ public class BuildGraphDataTest {
             .parse();
     assertThat(graph.allTargets())
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"));
-    assertThat(graph.getAllSourceFiles())
+    assertThat(graph.sourceFileLabels())
         .containsExactly(
-            TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"),
-            TESTDATA_ROOT.resolve("nodeps/BUILD"));
+            Label.of("//" + TESTDATA_ROOT + "/nodeps:TestClassNoDeps.java"),
+                     Label.of("//" + TESTDATA_ROOT + "/nodeps:BUILD"));
     assertThat(graph.getJavaSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"));
     assertThat(graph.getAndroidSourceFiles()).isEmpty();
-    assertThat(graph.getTargetOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
+    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"));
     assertThat(graph.getFileDependencies(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java")))
         .isEmpty();
@@ -89,8 +155,8 @@ public class BuildGraphDataTest {
                 ImmutableSet.of())
             .parse();
     // Sanity check:
-    assertThat(graph.getAllSourceFiles())
-        .contains(TESTDATA_ROOT.resolve("nodeps/TestClassNoDeps.java"));
+    assertThat(graph.sourceFileLabels())
+        .contains(Label.of("//" + TESTDATA_ROOT + "/nodeps:TestClassNoDeps.java"));
     assertThat(
             graph.getFileDependencies(
                 TESTDATA_ROOT.resolve("internaldep/TestClassInternalDep.java")))
@@ -106,8 +172,8 @@ public class BuildGraphDataTest {
                 ImmutableSet.of())
             .parse();
     // Sanity check:
-    assertThat(graph.getAllSourceFiles())
-        .contains(TESTDATA_ROOT.resolve("externaldep/TestClassExternalDep.java"));
+    assertThat(graph.sourceFileLabels())
+        .contains(Label.of("//" + TESTDATA_ROOT + "/externaldep:TestClassExternalDep.java"));
     assertThat(
             graph.getFileDependencies(
                 TESTDATA_ROOT.resolve("transitivedep/TestClassTransitiveDep.java")))
@@ -221,7 +287,7 @@ public class BuildGraphDataTest {
     assertThat(graph.getJavaSourceFiles())
         .contains(TESTDATA_ROOT.resolve("multitarget/TestClassSingleTarget.java"));
     assertThat(
-            graph.getTargetOwners(TESTDATA_ROOT.resolve("multitarget/TestClassMultiTarget.java")))
+            graph.getSourceFileOwners(TESTDATA_ROOT.resolve("multitarget/TestClassMultiTarget.java")))
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/multitarget:nodeps"),
             Label.of("//" + TESTDATA_ROOT + "/multitarget:externaldep"));
@@ -249,16 +315,16 @@ public class BuildGraphDataTest {
         new BlazeQueryParser(
                 getQuerySummary(TestData.ANDROID_LIB_QUERY), NOOP_CONTEXT, ImmutableSet.of())
             .parse();
-    assertThat(graph.getAllSourceFiles())
+    assertThat(graph.sourceFileLabels())
         .containsExactly(
-            TESTDATA_ROOT.resolve("android/TestAndroidClass.java"),
-            TESTDATA_ROOT.resolve("android/BUILD"),
-            TESTDATA_ROOT.resolve("android/AndroidManifest.xml"));
+            Label.of("//" + TESTDATA_ROOT + "/android:TestAndroidClass.java"),
+            Label.of("//" + TESTDATA_ROOT + "/android:BUILD"),
+            Label.of("//" + TESTDATA_ROOT + "/android:AndroidManifest.xml"));
     assertThat(graph.getJavaSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"));
     assertThat(graph.getAndroidSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("android/TestAndroidClass.java"));
-    assertThat(graph.getTargetOwners(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
+    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/android:android"));
     assertThat(graph.getFileDependencies(TESTDATA_ROOT.resolve("android/TestAndroidClass.java")))
         .isEmpty();
@@ -273,11 +339,11 @@ public class BuildGraphDataTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parse();
-    assertThat(graph.getAllSourceFiles())
-        .containsExactly(
-            TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"),
-            TESTDATA_ROOT.resolve("aidl/TestAidlService.aidl"),
-            TESTDATA_ROOT.resolve("aidl/BUILD"));
+    assertThat(graph.sourceFileLabels())
+      .containsExactly(
+        Label.of("//" + TESTDATA_ROOT + "/aidl:TestAndroidAidlClass.java"),
+        Label.of("//" + TESTDATA_ROOT + "/aidl:TestAidlService.aidl"),
+        Label.of("//" + TESTDATA_ROOT + "/aidl:BUILD"));
     assertThat(graph.getJavaSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
     assertThat(graph.getAndroidSourceFiles())
@@ -309,14 +375,14 @@ public class BuildGraphDataTest {
         new BlazeQueryParser(
                 getQuerySummary(TestData.CC_LIBRARY_QUERY), NOOP_CONTEXT, ImmutableSet.of())
             .parse();
-    assertThat(graph.getAllSourceFiles())
+    assertThat(graph.sourceFileLabels())
         .containsExactly(
-            TESTDATA_ROOT.resolve("cc/TestClass.cc"),
-            TESTDATA_ROOT.resolve("cc/TestClass.h"),
-            TESTDATA_ROOT.resolve("cc/BUILD"));
+            Label.of("//" + TESTDATA_ROOT + "/cc:TestClass.cc"),
+            Label.of("//" + TESTDATA_ROOT + "/cc:TestClass.h"),
+            Label.of("//" + TESTDATA_ROOT + "/cc:BUILD"));
     assertThat(graph.getJavaSourceFiles()).isEmpty();
     assertThat(graph.getAndroidSourceFiles()).isEmpty();
-    assertThat(graph.getTargetOwners(TESTDATA_ROOT.resolve("cc/TestClass.cc")))
+    assertThat(graph.getSourceFileOwners(TESTDATA_ROOT.resolve("cc/TestClass.cc")))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/cc:cc"));
     assertThat(graph.getFileDependencies(TESTDATA_ROOT.resolve("cc/TestClass.cc"))).isEmpty();
     assertThat(graph.targetMap().get(Label.of("//" + TESTDATA_ROOT + "/cc:cc")).languages())

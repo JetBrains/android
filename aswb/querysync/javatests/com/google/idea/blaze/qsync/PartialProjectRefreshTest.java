@@ -46,17 +46,13 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package1:Class1.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/Class1.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .putRules(
                 Label.of("//my/build/package2:rule"),
                 QueryData.Rule.builder()
@@ -65,12 +61,10 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package2:Class2.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package2/Class2.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package2:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -85,12 +79,10 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package1:NewClass.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/NewClass.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD").build())
+                Query.SourceFile.newBuilder().build())
             .build();
 
     PartialProjectRefresh queryStrategy =
@@ -125,17 +117,13 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package1:Class1.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/Class1.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:subpackage/AnotherClass.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/subpackage/AnotherClass.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .putRules(
                 Label.of("//my/build/package2:rule"),
                 QueryData.Rule.builder()
@@ -144,12 +132,10 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package2:Class2.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package2/Class2.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package2:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -183,12 +169,10 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package1:Class1.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package1/Class1.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package1:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package1/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .build();
     PostQuerySyncData baseProject =
         PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -202,12 +186,10 @@ public class PartialProjectRefreshTest {
                     .build())
             .putSourceFiles(
                 Label.of("//my/build/package2:Class2.java"),
-                Query.SourceFile.newBuilder()
-                    .setLocation("my/build/package2/Class2.java:1:1")
-                    .build())
+                Query.SourceFile.newBuilder().build())
             .putSourceFiles(
                 Label.of("//my/build/package2:BUILD"),
-                Query.SourceFile.newBuilder().setLocation("my/build/package2/BUILD:1:1").build())
+                Query.SourceFile.newBuilder().build())
             .build();
 
     PartialProjectRefresh queryStrategy =

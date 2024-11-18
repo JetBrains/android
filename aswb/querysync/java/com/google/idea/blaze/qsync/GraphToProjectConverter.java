@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.RuleKinds;
 import com.google.idea.blaze.exception.BuildException;
@@ -517,7 +518,7 @@ public class GraphToProjectConverter {
               .collect(toImmutableSet());
     } else {
       // TODO(mathewi) Remove this and the corresponding experiment once the logic has been proven.
-      androidResDirs = computeAndroidResourceDirectories(graph.getAllSourceFiles());
+      androidResDirs = computeAndroidResourceDirectories(graph.sourceFileLabels());
     }
     ImmutableSet<String> androidResPackages;
     if (guessAndroidResPackages.get()) {
@@ -603,19 +604,18 @@ public class GraphToProjectConverter {
 
   /**
    * Heuristic for determining Android resource directories, by searching for .xml source files with
-   * /res/ somewhere in the path. To be replaced by a more robust implementation.
+   * /res/ somewhere in the path under a build package. To be replaced by a more robust implementation.
    */
   @VisibleForTesting
   public static ImmutableSet<Path> computeAndroidResourceDirectories(
-      ImmutableSet<Path> sourceFiles) {
+      ImmutableSet<Label> sourceFiles) {
     Set<Path> directories = new HashSet<>();
-    for (Path sourceFile : sourceFiles) {
-
-      if (sourceFile.getFileName().toString().endsWith(".xml")) {
-        List<Path> pathParts = Lists.newArrayList(sourceFile);
+    for (var sourceFile : sourceFiles) {
+      if (sourceFile.getName().toString().endsWith(".xml")) {
+        List<Path> pathParts = Lists.newArrayList(sourceFile.getName());
         int resPos = pathParts.indexOf(Path.of("res"));
-        if (resPos > 0) {
-          directories.add(sourceFile.subpath(0, resPos + 1));
+        if (resPos >= 0) {
+          directories.add(sourceFile.getPackage().resolve(sourceFile.getName().subpath(0, resPos + 1)));
         }
       }
     }
