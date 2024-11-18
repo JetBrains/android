@@ -151,12 +151,8 @@ internal class AndroidExtraModelProviderWorker(
   private fun ProjectImportModelProvider.runModelProvider(
     controller: BuildController,
     buildInfo: BuildInfo,
-    modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+    modelConsumer: GradleModelConsumer,
   ) {
-    for (gradleProject in buildInfo.projects) {
-      populateProjectModels(controller, gradleProject, modelConsumer)
-    }
-    populateBuildModels(controller, buildInfo.rootBuild, modelConsumer)
     populateModels(controller, listOf(buildInfo.rootBuild), modelConsumer)
   }
 
