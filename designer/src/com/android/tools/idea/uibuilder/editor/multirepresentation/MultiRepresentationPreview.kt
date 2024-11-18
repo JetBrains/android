@@ -45,10 +45,8 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -368,7 +366,7 @@ open class MultiRepresentationPreview(
       .forEach { it.updateNotifications(this) }
   }
 
-  suspend fun registerShortcuts(appliedTo: JComponent) {
+  fun registerShortcuts(appliedTo: JComponent) {
     shortcutsApplicableComponent = appliedTo
     synchronized(representations) { representations.values.toList() }
       .forEach { it.registerShortcuts(appliedTo) }
