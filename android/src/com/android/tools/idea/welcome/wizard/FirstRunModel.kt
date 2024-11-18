@@ -47,7 +47,7 @@ import java.nio.file.Path
 import java.util.function.Supplier
 
 // Contains all the data which Studio should collect in the First Run Wizard
-class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
+class FirstRunModel(private val mode: FirstRunWizardMode, private val componentInstallerProvider: ComponentInstallerProvider): WizardModel() {
   enum class InstallationType {
     STANDARD,
     CUSTOM
@@ -101,7 +101,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
   fun getPackagesToInstallSupplier(): Supplier<Collection<RemotePackage>?> = Supplier {
     val components: Iterable<InstallableComponent> = componentTree.childrenToInstall
     try {
-      ComponentInstaller(localHandler).getPackagesToInstall(components)
+      componentInstallerProvider.getComponentInstaller(localHandler).getPackagesToInstall(components)
     }
     catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)

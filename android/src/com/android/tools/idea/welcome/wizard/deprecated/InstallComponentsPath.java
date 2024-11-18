@@ -49,6 +49,7 @@ import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.install.Platform;
 import com.android.tools.idea.welcome.install.WizardException;
+import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
@@ -82,6 +83,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private ComponentTreeNode myComponentTree;
   private final ProgressStep myProgressStep;
+  @NotNull private final ComponentInstallerProvider myComponentInstallerProvider;
   private final boolean myInstallUpdates;
   private SdkComponentsStep myComponentsStep;
   @Nullable private LicenseAgreementStep myLicenseAgreementStep;
@@ -89,6 +91,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
                                @NotNull ProgressStep progressStep,
+                               @NotNull ComponentInstallerProvider componentInstallerProvider,
                                boolean installUpdates) {
     myMode = mode;
 
@@ -96,6 +99,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandlerProperty = new ObjectValueProperty<>(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkLocation.toPath()));
 
     myProgressStep = progressStep;
+    myComponentInstallerProvider = componentInstallerProvider;
     myInstallUpdates = installUpdates;
   }
 
@@ -155,7 +159,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Supplier<Collection<RemotePackage>> supplier = () -> {
       Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
       try {
-        return new ComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
+        return myComponentInstallerProvider.getComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
       }
       catch (SdkQuickfixUtils.PackageResolutionException e) {
         Logger.getInstance(InstallComponentsPath.class).warn(e);
@@ -204,8 +208,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     final Collection<? extends InstallableComponent> selectedComponents = myComponentTree.getChildrenToInstall();
     CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
+    ComponentInstaller componentInstaller = myComponentInstallerProvider.getComponentInstaller(localHandler);
     InstallComponentsOperation install =
-      new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(localHandler), INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+      new InstallComponentsOperation(installContext, selectedComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
     if (myLicenseAgreementStep != null) {
       myLicenseAgreementStep.performFinishingActions();
@@ -213,7 +218,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
                                                     ModalityState.stateForComponent(myWizard.getContentPane()));
-
     if (selectedComponents.isEmpty()) {
       myProgressStep.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
     }

@@ -47,12 +47,12 @@ import javax.swing.JPanel
  * Android Studio to ask them to pick from some initial, useful options. Once the wizard is complete, it will bring the  user to the
  * initial "Welcome Screen" UI (with a list of projects and options to start a new project, etc.)
  */
-class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : WelcomeScreen {
+class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private val componentInstallerProvider: ComponentInstallerProvider) : WelcomeScreen {
   private lateinit var modelWizard: ModelWizard
   private var mainPanel: JComponent? = null
 
   private fun setupWizard() {
-    val model = FirstRunModel(mode)
+    val model = FirstRunModel(mode, componentInstallerProvider)
 
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
     modelWizard = ModelWizard.Builder().apply {

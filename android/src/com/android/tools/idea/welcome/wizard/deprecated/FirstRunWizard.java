@@ -24,6 +24,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -51,12 +52,15 @@ public class FirstRunWizard extends DynamicWizard {
    * Second attempt will close the wizard.
    */
   private final AtomicInteger myFinishClicks = new AtomicInteger(0);
+  private final @NotNull ComponentInstallerProvider myComponentInstallerProvider;
   private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
-                        @NotNull FirstRunWizardMode mode) {
+                        @NotNull FirstRunWizardMode mode,
+                        @NotNull ComponentInstallerProvider componentInstallerProvider) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
+    myComponentInstallerProvider = componentInstallerProvider;
     setTitle(WIZARD_TITLE);
   }
 
@@ -78,7 +82,7 @@ public class FirstRunWizard extends DynamicWizard {
     }
 
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, true);
+    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, myComponentInstallerProvider, true);
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 

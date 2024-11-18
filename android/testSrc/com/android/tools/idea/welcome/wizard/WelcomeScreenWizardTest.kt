@@ -38,7 +38,6 @@ import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
@@ -404,10 +403,11 @@ class WelcomeScreenWizardTest {
     return AndroidSdks.getInstance().allAndroidSdks.firstOrNull()?.homeDirectory?.toIoFile()!!
   }
 
-  private fun createWizard(wizardMode: FirstRunWizardMode, sdkPath: File? = null): FakeUi {
+  private fun createWizard(wizardMode: FirstRunWizardMode, sdkPath: File? = null, componentInstallerProvider: ComponentInstallerProvider? = null): FakeUi {
     installerData = InstallerData(sdkPath ?: IdeSdks.getInstance().getAndroidSdkPath(), true, "timestamp", "1234")
 
-    val welcomeScreen = if (isTestingLegacyWizard == true) FirstRunWizardHost(wizardMode) else StudioFirstRunWelcomeScreen(wizardMode)
+    val installer = componentInstallerProvider ?: ComponentInstallerProvider()
+    val welcomeScreen = AndroidStudioWelcomeScreenProvider().createWelcomeScreen(useNewWizard = !isTestingLegacyWizard!!, wizardMode, installer)
     Disposer.register(projectRule.testRootDisposable, welcomeScreen)
 
     val welcomePanel = welcomeScreen.welcomePanel

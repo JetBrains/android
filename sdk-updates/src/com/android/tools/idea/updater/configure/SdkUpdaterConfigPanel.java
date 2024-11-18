@@ -42,6 +42,7 @@ import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -331,7 +332,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
             }
 
             InstallComponentsPath path =
-              new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, false);
+              new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, new ComponentInstallerProvider(), false);
 
             progressStep.setInstallComponentsPath(path);
 

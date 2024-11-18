@@ -23,6 +23,7 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
@@ -45,10 +46,18 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       checkInternetConnection()
     }
     val wizardMode = wizardMode!!
-    // This means isAvailable was false! Why are we even called?
+    val componentInstallerProvider = ComponentInstallerProvider()
 
+    val useNewWizard = StudioFlags.NPW_FIRST_RUN_WIZARD.get()
+    return createWelcomeScreen(useNewWizard, wizardMode, componentInstallerProvider)
+  }
+
+  @VisibleForTesting
+  fun createWelcomeScreen(useNewWizard: Boolean, wizardMode: FirstRunWizardMode, componentInstallerProvider: ComponentInstallerProvider): WelcomeScreen {
+    // This means isAvailable was false! Why are we even called?
     ourWasShown = true
-    return if (StudioFlags.NPW_FIRST_RUN_WIZARD.get()) StudioFirstRunWelcomeScreen(wizardMode) else FirstRunWizardHost(wizardMode)
+    return if (useNewWizard)
+      StudioFirstRunWelcomeScreen(wizardMode, componentInstallerProvider) else FirstRunWizardHost(wizardMode, componentInstallerProvider)
   }
 
   override fun isAvailable(): Boolean {

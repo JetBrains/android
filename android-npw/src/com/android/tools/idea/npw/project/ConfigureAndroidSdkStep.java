@@ -4,6 +4,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -23,7 +24,7 @@ public class ConfigureAndroidSdkStep extends ModelWizardStep.WithoutModel {
     super("Configure Android SDK");
     myInstallSDKButton.addActionListener(e -> {
       DialogWrapperHost host = new DialogWrapperHost(null);
-      FirstRunWizard wizard = new FirstRunWizard(host, FirstRunWizardMode.MISSING_SDK);
+      FirstRunWizard wizard = new FirstRunWizard(host, FirstRunWizardMode.MISSING_SDK, new ComponentInstallerProvider());
       wizard.setTitle("SDK Setup");
       wizard.init();
       wizard.show();
