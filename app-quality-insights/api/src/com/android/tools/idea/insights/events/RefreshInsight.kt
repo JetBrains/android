@@ -43,9 +43,9 @@ class RefreshInsight(private val regenerateWithContext: Boolean) : ChangeEvent {
         ),
         Action.FetchInsight(
           issue.id,
+          state.selectedVariant?.id,
           issue.issueDetails.fatality,
           issue.sampleEvent,
-          regenerateWithContext,
         ),
       )
     }

@@ -677,6 +677,7 @@ class AppInsightsProjectLevelControllerTest {
               )
             ),
           detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+          eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
           notesState = LoadingState.Ready(emptyList()),
         )
       )
@@ -686,6 +687,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
           permission = Permission.FULL,
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
@@ -1010,6 +1012,7 @@ class AppInsightsProjectLevelControllerTest {
           ),
         issueVariantsState = LoadingState.Ready(emptyList()),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
       )
     assertThat(newModel)
       .isEqualTo(
@@ -1019,6 +1022,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
         )
       )
 
@@ -1028,6 +1032,7 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         newModel.copy(
           issues = LoadingState.UnknownFailure(null),
+          currentEvents = LoadingState.Ready(null),
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),

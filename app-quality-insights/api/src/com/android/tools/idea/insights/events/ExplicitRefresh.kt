@@ -31,8 +31,13 @@ object ExplicitRefresh : ChangeEvent {
     tracker: AppInsightsTracker,
     key: InsightsProviderKey,
     cache: AppInsightsCache,
-  ): StateTransition<Action> =
-    StateTransition(
+  ): StateTransition<Action> {
+    val selectedIssue = state.selectedIssue
+    val selectedConnection = state.connections.selected
+    if (selectedIssue != null && selectedConnection != null) {
+      cache.removeIssue(state.connections.selected, selectedIssue.id)
+    }
+    return StateTransition(
       state.copy(
         issues = LoadingState.Loading,
         currentIssueVariants = LoadingState.Ready(null),
@@ -41,4 +46,5 @@ object ExplicitRefresh : ChangeEvent {
       ),
       action = Action.Refresh,
     )
+  }
 }

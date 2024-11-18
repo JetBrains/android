@@ -286,10 +286,10 @@ class ActionDispatcher(
             if (connectionMode == ConnectionMode.ONLINE && state.mode == ConnectionMode.OFFLINE) {
               eventEmitter(EnterOnlineMode)
             }
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
           }
           is LoadingState.Failure -> {
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
           }
         }
       }
@@ -363,11 +363,11 @@ class ActionDispatcher(
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
+                action.variantId,
                 action.issueFatality,
                 action.event,
                 timeFilter,
                 codeContextData,
-                action.forceFetch,
               )
             }
           }

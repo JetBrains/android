@@ -483,6 +483,7 @@ class VitalsClientTest {
       client.fetchInsight(
         TEST_CONNECTION_1,
         ISSUE1.id,
+        null,
         ISSUE1.issueDetails.fatality,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
@@ -558,20 +559,22 @@ class VitalsClientTest {
     client.fetchInsight(
       TEST_CONNECTION_1,
       ISSUE1.id,
+      null,
       ISSUE1.issueDetails.fatality,
       ISSUE1.sampleEvent,
       TimeIntervalFilter.ONE_DAY,
       CodeContextData.UNASSIGNED,
-      false,
     )
-    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id))
+    assertThat(
+        cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, DEFAULT_AI_INSIGHT.experiment)
+      )
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test
-  fun `fetch insight uses cached insight when not forced to refetch`() = runBlocking {
+  fun `fetch insight uses cached insight when cached value is available`() = runBlocking {
     val cache = AppInsightsCacheImpl()
-    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
+    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     val client =
       VitalsClient(
         projectRule.project,
@@ -586,53 +589,14 @@ class VitalsClientTest {
         client.fetchInsight(
           TEST_CONNECTION_1,
           ISSUE1.id,
+          null,
           ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
           CodeContextData.UNASSIGNED,
-          false,
         )
       )
       .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(isCached = true)))
-  }
-
-  @Test
-  fun `fetch insight is forced to call API when forceFetch is true`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
-    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, DEFAULT_AI_INSIGHT)
-
-    val newInsight = AiInsight("new")
-    val fakeAiClient =
-      object : AiInsightClient {
-        override suspend fun fetchCrashInsight(
-          projectId: String,
-          additionalContextMsg: Message,
-        ): AiInsight {
-          return newInsight
-        }
-      }
-    val client =
-      VitalsClient(
-        projectRule.project,
-        projectRule.disposable,
-        cache,
-        ForwardingInterceptor,
-        TestVitalsGrpcClient(),
-        fakeAiClient,
-      )
-
-    assertThat(
-        client.fetchInsight(
-          TEST_CONNECTION_1,
-          ISSUE1.id,
-          ISSUE1.issueDetails.fatality,
-          ISSUE1.sampleEvent,
-          TimeIntervalFilter.ONE_DAY,
-          CodeContextData.UNASSIGNED,
-          true,
-        )
-      )
-      .isEqualTo(LoadingState.Ready(newInsight))
   }
 
   @Test
@@ -651,6 +615,7 @@ class VitalsClientTest {
       client.fetchInsight(
         TEST_CONNECTION_1,
         ISSUE1.id,
+        null,
         FailureType.ANR,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
@@ -709,6 +674,7 @@ class VitalsClientTest {
       client.fetchInsight(
         TEST_CONNECTION_1,
         ISSUE1.id,
+        null,
         FailureType.FATAL,
         Event(stacktraceGroup = stackTraceGroup),
         TimeIntervalFilter.ONE_DAY,
@@ -742,6 +708,7 @@ class VitalsClientTest {
       client.fetchInsight(
         TEST_CONNECTION_1,
         ISSUE1.id,
+        null,
         ISSUE1.issueDetails.fatality,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,

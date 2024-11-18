@@ -54,8 +54,8 @@ class SelectedIssueVariantChangedTest {
         .isEqualTo(
           LoadingState.Ready(Selection(ISSUE_VARIANT2, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
         )
-      assertThat(transition.newState.currentIssueDetails)
-        .isInstanceOf(LoadingState.Loading::class.java)
+      assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentInsight).isEqualTo(LoadingState.Loading)
 
       assertThat(action)
         .isEqualTo(

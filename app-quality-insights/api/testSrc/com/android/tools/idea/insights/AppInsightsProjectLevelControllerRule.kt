@@ -33,7 +33,6 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
-import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
@@ -156,8 +155,9 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
-        client.completeFetchInsightCallWith(insightState)
-        if (key != VITALS_KEY) {
+        if (key == VITALS_KEY) {
+          client.completeFetchInsightCallWith(insightState)
+        } else {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
         }
@@ -166,7 +166,10 @@ class AppInsightsProjectLevelControllerRule(
         consumeNext()
         consumeNext()
         consumeNext()
-        consumeNext()
+        if (eventsState is LoadingState.Ready && eventsState.value.events.isNotEmpty()) {
+          client.completeFetchInsightCallWith(insightState)
+          consumeNext()
+        }
         client.completeListNotesCallWith(notesState)
       }
       resultState = consumeNext()
@@ -387,11 +390,11 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    variantId: String?,
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
-    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

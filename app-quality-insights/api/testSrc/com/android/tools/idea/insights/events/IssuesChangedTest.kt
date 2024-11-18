@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
@@ -41,12 +42,18 @@ import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.selectionOf
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.ProjectRule
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 private val fetchedVersion =
@@ -69,6 +76,18 @@ private val fetchedOs =
   )
 
 class IssuesChangedTest {
+
+  @get:Rule val projectRule = ProjectRule()
+
+  @Before
+  fun setUp() {
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(FakeGeminiPluginApi()),
+      projectRule.disposable,
+    )
+  }
+
   @Test
   fun `empty issues result in no action`() {
     val currentState =
@@ -132,7 +151,6 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent) and
             Action.FetchIssueVariants(ISSUE1.id) and
             Action.FetchNotes(ISSUE1.id) and
             Action.ListEvents(ISSUE1.id, null, null)
@@ -174,7 +192,6 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE2.id) and
-            Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent) and
             Action.FetchIssueVariants(ISSUE2.id) and
             Action.FetchNotes(ISSUE2.id) and
             Action.ListEvents(ISSUE2.id, null, null)
@@ -321,7 +338,7 @@ class IssuesChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE1.id) and
-            Action.FetchInsight(ISSUE1.id, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+            Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
         )
     }
   }

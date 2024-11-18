@@ -42,6 +42,7 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
         currentIssueDetails =
           if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
+        currentInsight = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
       ),
       if (shouldFetchDetails)
         (Action.FetchDetails(selectedIssueId!!, variant?.id) and

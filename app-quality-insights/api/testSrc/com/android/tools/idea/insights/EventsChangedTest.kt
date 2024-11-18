@@ -41,7 +41,10 @@ class EventsChangedTest {
       event.transition(currentState, TestAppInsightsTracker, TEST_KEY, AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(eventList, 0, "")))
-    assertThat(transition.action).isEqualTo(Action.NONE)
+    assertThat(transition.action)
+      .isEqualTo(
+        Action.FetchInsight(ISSUE1.id, null, ISSUE1.issueDetails.fatality, eventList.first())
+      )
   }
 
   @Test

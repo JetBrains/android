@@ -35,7 +35,6 @@ import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.AiInsightsOptInStatus
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import java.time.Clock
 
 /** List of issues changed(fetched). */
@@ -43,7 +42,6 @@ data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
   private val previousGoodState: AppInsightsState?,
-  private val source: FetchSource = FetchSource.UNKNOWN_SOURCE,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
@@ -152,7 +150,6 @@ data class IssuesChanged(
             newSelectedIssue.id,
             newSelectedIssue.issueDetails.fatality,
             newSelectedIssue.sampleEvent,
-            source == FetchSource.REFRESH,
           )
         else Action.NONE,
     )

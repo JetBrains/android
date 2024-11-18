@@ -63,7 +63,6 @@ class SelectedIssueChangedTest {
           Action.FetchDetails(ISSUE2.id),
           Action.FetchNotes(ISSUE2.id),
           Action.ListEvents(ISSUE2.id, null, null),
-          Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent),
         )
     }
   }
@@ -109,7 +108,7 @@ class SelectedIssueChangedTest {
       assertThat(action)
         .isEqualTo(
           Action.FetchDetails(ISSUE2.id) and
-            Action.FetchInsight(ISSUE2.id, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent)
+            Action.FetchInsight(ISSUE2.id, null, ISSUE2.issueDetails.fatality, ISSUE2.sampleEvent)
         )
     }
   }

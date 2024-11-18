@@ -37,30 +37,42 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
       return StateTransition(state.copy(currentEvents = eventPage), Action.NONE)
     }
     val newEvents = (eventPage as LoadingState.Ready).value
+    val events =
+      if (state.currentEvents is LoadingState.Ready) {
+        state.currentEvents.map { currentEvents ->
+          if (currentEvents == null) {
+            Logger.getInstance(this::class.java)
+              .warn(
+                "currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready"
+              )
+            DynamicEventGallery(newEvents.events, 0, newEvents.token)
+          } else {
+            currentEvents.appendEventPage(newEvents)
+          }
+        }
+      } else {
+        eventPage.map {
+          if (it == EventPage.EMPTY) null
+          else DynamicEventGallery(newEvents.events, 0, newEvents.token)
+        }
+      }
+    val selectedIssue = state.selectedIssue
+    val eventGallery = events.value
+    val shouldFetchInsight =
+      selectedIssue != null &&
+        eventGallery?.selected != null &&
+        state.currentInsight is LoadingState.Loading
     return StateTransition(
-        newState =
-          state.copy(
-            currentEvents =
-              if (state.currentEvents is LoadingState.Ready) {
-                state.currentEvents.map { currentEvents ->
-                  if (currentEvents == null) {
-                    Logger.getInstance(this::class.java)
-                      .warn(
-                        "currentEvents is null when it's expected to be LoadingState.Loading or LoadingState.Ready"
-                      )
-                    DynamicEventGallery(newEvents.events, 0, newEvents.token)
-                  } else {
-                    currentEvents.appendEventPage(newEvents)
-                  }
-                }
-              } else {
-                eventPage.map {
-                  if (it == EventPage.EMPTY) null
-                  else DynamicEventGallery(newEvents.events, 0, newEvents.token)
-                }
-              }
-          ),
-        action = Action.NONE,
+        newState = state.copy(currentEvents = events),
+        action =
+          if (shouldFetchInsight) {
+            Action.FetchInsight(
+              selectedIssue!!.id,
+              state.selectedVariant?.id,
+              selectedIssue.issueDetails.fatality,
+              eventGallery!!.selected!!,
+            )
+          } else Action.NONE,
       )
       .also { trackEventFetched(tracker, it.newState, state.currentEvents is LoadingState.Loading) }
   }

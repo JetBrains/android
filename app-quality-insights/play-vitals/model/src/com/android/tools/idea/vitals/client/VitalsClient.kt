@@ -221,11 +221,11 @@ class VitalsClient(
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    variantId: String?,
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
-    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
     when {
       failureType != FailureType.FATAL ->
@@ -235,10 +235,11 @@ class VitalsClient(
           "Insights are currently not available for native crashes"
         )
     }
-    val cachedInsight = cache.getAiInsight(connection, issueId)
+    val cachedInsight =
+      cache.getAiInsight(connection, issueId, variantId, codeContextData.experimentType)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     return runGrpcCatchingWithSupervisorScope(failure) {
-      if (cachedInsight == null || forceFetch) {
+      if (cachedInsight == null) {
         val insight =
           aiInsightClient
             .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
@@ -246,7 +247,7 @@ class VitalsClient(
               experiment = codeContextData.experimentType,
               codeContextTrackingDetails = codeContextData.codeContextTrackingInfo,
             )
-        cache.putAiInsight(connection, issueId, insight)
+        cache.putAiInsight(connection, issueId, variantId, insight)
         LoadingState.Ready(insight)
       } else {
         LoadingState.Ready(cachedInsight)
