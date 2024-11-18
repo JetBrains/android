@@ -1417,10 +1417,8 @@ class ComposePreviewRepresentation(
     }
   }
 
-  override fun registerShortcuts(applicableTo: JComponent) {
-    val psiFile =
-      SlowOperations.knownIssue("IDEA-359563").use { runReadAction { psiFilePointer.element } }
-        ?: return
+  override suspend fun registerShortcuts(applicableTo: JComponent) {
+    val psiFile = withContext(workerThread) { runReadAction { psiFilePointer.element } } ?: return
     BuildAndRefresh { psiFile }
       .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }

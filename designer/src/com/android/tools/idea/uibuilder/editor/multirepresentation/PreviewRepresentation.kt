@@ -69,7 +69,7 @@ interface PreviewRepresentation : Disposable {
    * to be applicable in a context outside of the [PreviewRepresentation] (e.g. in the entire editor
    * or its parents).
    */
-  fun registerShortcuts(applicableTo: JComponent) {}
+  suspend fun registerShortcuts(applicableTo: JComponent) {}
 
   /**
    * Returns whether this [PreviewRepresentation] has previews to show.

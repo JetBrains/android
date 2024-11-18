@@ -293,12 +293,8 @@ open class MultiRepresentationPreview(
         return
       }
       shortcutsApplicableComponent?.let {
-        launch(uiThread) {
-          SlowOperations.allowSlowOperations(
-            ThrowableComputable {
-              if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
-            }
-          )
+        launch(workerThread) {
+          if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
         }
       }
       newRepresentations[provider.displayName] = representation
@@ -376,7 +372,7 @@ open class MultiRepresentationPreview(
       .forEach { it.updateNotifications(this) }
   }
 
-  fun registerShortcuts(appliedTo: JComponent) {
+  suspend fun registerShortcuts(appliedTo: JComponent) {
     shortcutsApplicableComponent = appliedTo
     synchronized(representations) { representations.values.toList() }
       .forEach { it.registerShortcuts(appliedTo) }
