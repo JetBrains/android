@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.validator
 
 import com.android.tools.adtui.validation.Validator
+import java.util.Optional
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -30,27 +32,28 @@ class MultiplatformKgpMinVersionValidatorTest {
 
   @Test
   fun testValidKgpVersion() {
-    assertValidVersion("1.9.20")
-    assertValidVersion("2.0.0")
-    assertValidVersion("2.0.0-Beta")
-    assertValidVersion("2.0.0-Beta2")
-    assertValidVersion("2.0.0-RC")
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.20")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta2")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-RC")!!))
   }
 
   @Test
   fun testInvalidKgpVersion() {
-    assertInvalidVersion("1.9.10")
-    assertInvalidVersion("1.9.0")
-    assertInvalidVersion("1.8.20")
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.10")!!))
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.0")!!))
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.8.20")!!))
+    assertInvalidVersion(Optional.ofNullable(null))
   }
 
-  private fun assertValidVersion(name: String) {
-    val result = moduleValidator.validate(name)
+  private fun assertValidVersion(version: Optional<KotlinGradlePluginVersion>) {
+    val result = moduleValidator.validate(version)
     Assert.assertSame(Validator.Severity.OK, result.severity)
   }
 
-  private fun assertInvalidVersion(name: String) {
-    val result = moduleValidator.validate(name)
+  private fun assertInvalidVersion(version: Optional<KotlinGradlePluginVersion>) {
+    val result = moduleValidator.validate(version)
     Assert.assertSame(result.message, Validator.Severity.ERROR, result.severity)
     Assert.assertEquals(
       "Kotlin Gradle Plugin version should be higher than or equal to 1.9.20",
