@@ -81,6 +81,9 @@
   implements("assignable_property")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
   ]
+  implements("property|assignable_property|factory")=[
+    "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed"
+  ]
 }
 
 entries ::= one_line_entries*

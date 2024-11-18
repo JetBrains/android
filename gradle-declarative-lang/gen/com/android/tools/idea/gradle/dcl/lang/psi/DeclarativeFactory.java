@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativeFactory extends DeclarativeEntry, DeclarativeIdentifierOwner, DeclarativeValue, DeclarativeAbstractFactory {
+public interface DeclarativeFactory extends DeclarativeEntry, DeclarativeIdentifierOwner, DeclarativeValue, DeclarativeAbstractFactory, DeclarativeReceiverPrefixed<DeclarativeFactory> {
 
   @Nullable
   DeclarativeFactory getReceiver();

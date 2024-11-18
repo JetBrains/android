@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
-interface DeclarativeIdentifierOwner: DeclarativeElement {
-  val identifier: DeclarativeIdentifier?
+// Introduced to simplify navigation to root element.
+// To make sure we read elements from right to left
+interface DeclarativeReceiverPrefixed<T: DeclarativeReceiverPrefixed<T>> : DeclarativeIdentifierOwner {
+  fun getReceiver(): T?
 }
