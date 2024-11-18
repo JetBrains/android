@@ -140,11 +140,8 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     final ArtifactDependencySpec newDependency =
       ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
 
-    WriteCommandAction.runWriteCommandAction(project, () -> {
-      String compactNotation = newDependency.compactNotation();
-      DependenciesHelper.withModel(projectModel).addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
-      projectModel.applyChanges();
-    });
+    String compactNotation = newDependency.compactNotation();
+    DependenciesHelper.withModel(projectModel).addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
   }
 
   @Override
@@ -179,6 +176,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
           }
           addDependency(project, projectModel, buildModel, (String)selectedValue);
         }
+        WriteCommandAction.runWriteCommandAction(project, () -> { projectModel.applyChanges(); });
       }
     }).createPopup();
     popup.showInBestPositionFor(editor);
