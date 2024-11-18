@@ -16,11 +16,27 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 /**
  * We assume for now that declarative project is pure (no non-declarative modules)
  * and no version catalog in it.
  */
-class DeclarativeInserter(projectModel: ProjectBuildModel): DependenciesInserter(projectModel) {
+class DeclarativeInserter(private val projectModel: ProjectBuildModel): DependenciesInserter(projectModel) {
 
+  override fun applySettingsPlugin(pluginId: String,
+                               version: String): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
+    val settingsFile = projectModel.declarativeSettingsModel
+    if (settingsFile == null)
+      log.warn("Settings file does not exist so cannot insert declaration into plugin{} block")
+
+    settingsFile?.plugins()?.let {
+      it.applyPlugin(pluginId, version)
+      changedFiles.addIfNotNull(projectModel.projectSettingsModel?.psiFile)
+    }
+
+    return changedFiles
+  }
 }

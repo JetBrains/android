@@ -24,7 +24,7 @@ enum class AddDependencyPolicy {
   companion object {
     @JvmStatic
     fun calculateAddDependencyPolicy(projectModel: ProjectBuildModel): AddDependencyPolicy {
-      if (DependenciesHelper.isDeclarativeModel(projectModel.projectSettingsModel)) {
+      if (DependenciesHelper.isDeclarativeModel(projectModel.declarativeSettingsModel)) {
         return DECLARATIVE
       }
       val catalog = DependenciesHelper.getDefaultCatalogModel(projectModel)

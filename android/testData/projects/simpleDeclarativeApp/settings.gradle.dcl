@@ -1,20 +1,20 @@
 pluginManagement {
-  repositories {
-  }
+    repositories {
+    }
 }
 plugins {
-  id("com.android.ecosystem").version("dcl_plugin_version")
+    id("com.android.ecosystem").version("dcl_plugin_version")
 }
 dependencyResolutionManagement {
-  repositories {
-  }
+    repositories {
+    }
 }
 
 
 defaults {
-  androidApp {
-    compileSdk = 34
-  }
+    androidApp {
+        compileSdk = 34
+    }
 }
 
 include(":app")

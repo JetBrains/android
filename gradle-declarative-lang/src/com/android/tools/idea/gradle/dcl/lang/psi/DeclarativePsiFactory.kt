@@ -95,6 +95,7 @@ class DeclarativePsiFactory(private val project: Project) {
   fun createNewline(): PsiElement = createToken("\n")
 
   fun createComma(): LeafPsiElement = createFile(",").descendantOfType()!!
+  fun createDot(): LeafPsiElement = createFile(".").descendantOfType()!!
 
   private fun createToken(token: String): PsiElement =
     PsiParserFacade.getInstance(project).createWhiteSpaceFromText(token)
@@ -122,6 +123,13 @@ class DeclarativePsiFactory(private val project: Project) {
 
   private fun String.maybeAddBackticks(): String =
     if (this.matches("[a-zA-Z0-9_]+".toRegex())) this else "`$this`"
+
+  fun createPrefixedFactory(): DeclarativeReceiverPrefixedFactory {
+    val prefixedFactory: DeclarativeReceiverPrefixedFactory = createFromText("fun().fun()") ?: error(
+      "Failed to create DeclarativeReceiverPrefixedFactory")
+    prefixedFactory.children.forEach { it.delete() }
+    return prefixedFactory
+  }
 
   fun createArgument(value: DeclarativeValue, identifier: String? = null): DeclarativeArgument =
     (if (identifier == null)
