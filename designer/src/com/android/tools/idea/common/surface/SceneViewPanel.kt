@@ -51,8 +51,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -102,6 +106,11 @@ class SceneViewPanel(
         .map { it.positionableAdapter }
         .toList()
 
+  private val _organizationState: MutableSharedFlow<Unit> = MutableSharedFlow()
+
+  /** Called if any of the [OrganizationGroup]s states has changed. */
+  val organizationState: SharedFlow<Unit> = _organizationState.asSharedFlow()
+
   /** Called everytime when the list of [components] is updated. */
   val componentsUpdated: MutableSharedFlow<Unit> = MutableSharedFlow()
 
@@ -116,7 +125,24 @@ class SceneViewPanel(
 
   init {
     launchOrganizationUpdate()
+    launchOrganizationStateUpdate()
     launchLayoutUpdate()
+  }
+
+  /** Listen for changes in [activeGroups] to update [organizationState]. */
+  private fun launchOrganizationStateUpdate() {
+    scope.launch {
+      activeGroups.collectLatest {
+        val isOpenedFlow = combine(it.map { it.isOpened }) {}.conflate()
+        isOpenedFlow.collect {
+          // Wait for the first layoutContainerFlow before calling _organizationState.
+          launch {
+            layoutManager.layoutContainerFlow.first().apply { _organizationState.emit(Unit) }
+          }
+          revalidate()
+        }
+      }
+    }
   }
 
   /**
