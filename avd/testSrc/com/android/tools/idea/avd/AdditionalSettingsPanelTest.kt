@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -27,15 +25,11 @@ import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,18 +73,9 @@ class AdditionalSettingsPanelTest {
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), image, fileSystem)
 
-    rule.setContent {
-      CompositionLocalProvider(
-        LocalFileSystem provides fileSystem,
-        @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
-        LocalProject provides null,
-      ) {
-        Column { AdditionalSettingsPanel(state) }
-      }
-    }
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
     val mySdCardFileImg = fileSystem.getPath(home, "mySdCardFile.img")
-
     Files.createDirectories(mySdCardFileImg.parent)
     Files.createFile(mySdCardFileImg)
 

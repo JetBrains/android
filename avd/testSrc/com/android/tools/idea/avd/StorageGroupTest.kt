@@ -16,7 +16,6 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -41,12 +40,9 @@ import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -310,14 +306,7 @@ class StorageGroupTest {
   }
 
   private fun setContent(composable: @Composable () -> Unit) {
-    composeRule.setContent {
-      CompositionLocalProvider(
-        @OptIn(ExperimentalJewelApi::class) LocalComponent provides mock(),
-        LocalProject provides mock(),
-      ) {
-        composable()
-      }
-    }
+    composeRule.setContent { provideCompositionLocals { composable() } }
   }
 
   private companion object {
