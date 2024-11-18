@@ -28,7 +28,6 @@ class CommonPreviewModeManager : PreviewModeManager {
 
   private fun getStoredDefaultValue() =
     when (AndroidEditorSettings.getInstance().globalState.preferredPreviewLayoutMode) {
-      AndroidEditorSettings.LayoutType.LIST -> PreviewMode.Default(LIST_LAYOUT_OPTION)
       AndroidEditorSettings.LayoutType.GRID -> PreviewMode.Default(GRID_LAYOUT_OPTION)
       AndroidEditorSettings.LayoutType.GALLERY -> PreviewMode.Gallery(null)
       else -> PreviewMode.Default()

@@ -62,12 +62,10 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
   /**
    * The different layouts to organise the way to show previews:
-   * - List: organises the previews in a vertical oriented list.
    * - Grid: organises the previews into a grid.
    * - Gallery: shows one single preview at a time.
    */
   public enum LayoutType {
-    LIST("List"),
     GRID("Grid"),
     GALLERY("Gallery");
 

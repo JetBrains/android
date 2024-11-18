@@ -151,8 +151,6 @@ class NlSurfaceBuilder(
       ViewVisualLintIssueProvider(it)
     }
 
-  private var _shouldShowLayoutDeprecationBanner: (SurfaceLayoutOption) -> Boolean = { false }
-
   /** Allows customizing the [SurfaceLayoutOption]. */
   @Suppress("deprecation")
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
@@ -279,17 +277,6 @@ class NlSurfaceBuilder(
     return this
   }
 
-  /**
-   * Consumer of [SurfaceLayoutOption] that will be used to determine if a deprecation banner should
-   * be displayed on top of the [NlDesignSurface] if the current mode is deprecated.
-   */
-  fun setShouldShowLayoutDeprecationBanner(
-    shouldShowLayoutDeprecationBanner: (SurfaceLayoutOption) -> Boolean
-  ): NlSurfaceBuilder {
-    _shouldShowLayoutDeprecationBanner = shouldShowLayoutDeprecationBanner
-    return this
-  }
-
   fun build(): NlDesignSurface {
     val nlDesignSurfacePositionableContentLayoutManager =
       NlDesignSurfacePositionableContentLayoutManager(surfaceLayoutOption ?: DEFAULT_OPTION)
@@ -317,7 +304,6 @@ class NlSurfaceBuilder(
     AndroidCoroutineScope(surface).launch(uiThread) {
       nlDesignSurfacePositionableContentLayoutManager.currentLayout.collect {
         surface.onLayoutUpdated(it)
-        surface.updateLayoutDeprecationBannerVisibility(_shouldShowLayoutDeprecationBanner(it))
       }
     }
 

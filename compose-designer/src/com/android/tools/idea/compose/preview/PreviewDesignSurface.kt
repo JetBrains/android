@@ -23,9 +23,6 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -84,10 +81,6 @@ private fun createPreviewDesignSurfaceBuilder(
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
-    .setShouldShowLayoutDeprecationBanner {
-      listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
-        .contains(it)
-    }
 
 /**
  * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]

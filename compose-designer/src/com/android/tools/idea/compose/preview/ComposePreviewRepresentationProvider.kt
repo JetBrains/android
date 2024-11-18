@@ -43,7 +43,6 @@ import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -109,7 +108,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
-            layoutOptions = listOf(LIST_NO_GROUP_LAYOUT_OPTION, GRID_NO_GROUP_LAYOUT_OPTION),
+            layoutOptions = listOf(GRID_NO_GROUP_LAYOUT_OPTION),
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(
                 it.dataContext

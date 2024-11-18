@@ -22,8 +22,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
 import com.android.tools.idea.uibuilder.layout.padding.PREVIEW_FRAME_PADDING_PROVIDER
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
@@ -34,7 +32,6 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
   listOf(PositionableGroup(it.toList()))
 }
 
-private val listPadding = GroupPadding(5, 25, PREVIEW_FRAME_PADDING_PROVIDER)
 private val gridPadding = GroupPadding(5, 0, PREVIEW_FRAME_PADDING_PROVIDER)
 
 /** [PreviewMode.Gallery] layout option which shows once centered element. */
@@ -42,17 +39,6 @@ val GALLERY_LAYOUT_OPTION =
   SurfaceLayoutOption(
     message("gallery.mode.title"),
     GalleryLayoutManager(NO_GROUP_TRANSFORM),
-    false,
-    SceneViewAlignment.LEFT,
-  )
-
-/** List layout option which doesn't group elements. */
-val LIST_NO_GROUP_LAYOUT_OPTION =
-  SurfaceLayoutOption(
-    message("new.list.layout.title"),
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      ListLayoutManager(transform = NO_GROUP_TRANSFORM)
-    else GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
     false,
     SceneViewAlignment.LEFT,
   )
@@ -65,24 +51,6 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
       GridLayoutManager(transform = NO_GROUP_TRANSFORM)
     else GroupedGridSurfaceLayoutManager(gridPadding, NO_GROUP_TRANSFORM),
     false,
-    SceneViewAlignment.LEFT,
-  )
-
-/** List layout option without grouping. */
-val LIST_LAYOUT_OPTION =
-  SurfaceLayoutOption(
-    message("new.list.layout.title"),
-    GroupedListSurfaceLayoutManager(listPadding, NO_GROUP_TRANSFORM),
-    false,
-    SceneViewAlignment.LEFT,
-  )
-
-/** List layout which groups elements with [GROUP_BY_BASE_COMPONENT] into organization groups. */
-val LIST_EXPERIMENTAL_LAYOUT_OPTION =
-  SurfaceLayoutOption(
-    message("new.list.experimental.layout.title"),
-    ListLayoutManager(transform = GROUP_BY_BASE_COMPONENT),
-    true,
     SceneViewAlignment.LEFT,
   )
 
@@ -109,7 +77,6 @@ val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION
 
 /** List of available layouts for the Preview Surface. */
 val PREVIEW_LAYOUT_OPTIONS =
-  listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION) +
-    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get())
-      listOf(LIST_EXPERIMENTAL_LAYOUT_OPTION, GRID_EXPERIMENTAL_LAYOUT_OPTION)
+  listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION) +
+    if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) listOf(GRID_EXPERIMENTAL_LAYOUT_OPTION)
     else emptyList()

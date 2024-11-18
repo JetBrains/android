@@ -21,7 +21,6 @@ import com.android.tools.idea.preview.TestPreviewElement
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
@@ -51,9 +50,7 @@ class SwitchSurfaceLayoutManagerActionTest {
       setupTestData(listOf(previewElement1, previewElement2))
 
     val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(
-        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-      )
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
 
     val setGalleryOption =
       actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GALLERY_LAYOUT_OPTION)
@@ -74,8 +71,7 @@ class SwitchSurfaceLayoutManagerActionTest {
   @Test
   fun testPreviewModeIsUpdatedWithoutGalleryModeOption() {
     val (dataContext, previewModeManager, _) = setupTestData()
-    val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION))
+    val actionWithGalleryModeOption = SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION))
 
     val setGridOption =
       actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
@@ -104,26 +100,15 @@ class SwitchSurfaceLayoutManagerActionTest {
       )
 
     val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(
-        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-      )
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
 
-    val setListLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_OPTION)
     val setGridLayoutOption =
       actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
-      setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
       setGridLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
       verifyNoInteractions(previewModeManager)
-    }
-
-    // check that the default mode is set with the list layout option
-    run {
-      setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      verify(previewModeManager, times(1)).setMode(PreviewMode.Default(LIST_LAYOUT_OPTION))
     }
 
     // check that the default mode is set with the grid layout option
@@ -146,23 +131,21 @@ class SwitchSurfaceLayoutManagerActionTest {
       setupTestData(listOf(previewElement1, previewElement2), currentPreviewMode = uiCheckMode)
 
     val actionWithGalleryModeOption =
-      SwitchSurfaceLayoutManagerAction(
-        listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-      )
+      SwitchSurfaceLayoutManagerAction(listOf(GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION))
 
-    val setListLayoutOption =
-      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(LIST_LAYOUT_OPTION)
+    val setGridLayoutOption =
+      actionWithGalleryModeOption.SetSurfaceLayoutManagerAction(GRID_LAYOUT_OPTION)
 
     // check that no mode is set when the state is false
     run {
-      setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
+      setGridLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = false)
       verifyNoInteractions(previewModeManager)
     }
 
     // check that the current mode is derived with the selected layout option
     run {
-      setListLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
-      val derivedOption = uiCheckMode.deriveWithLayout(LIST_LAYOUT_OPTION)
+      setGridLayoutOption.setSelected(TestActionEvent.createTestEvent(dataContext), state = true)
+      val derivedOption = uiCheckMode.deriveWithLayout(GRID_LAYOUT_OPTION)
       verify(previewModeManager, times(1)).setMode(derivedOption)
     }
   }
