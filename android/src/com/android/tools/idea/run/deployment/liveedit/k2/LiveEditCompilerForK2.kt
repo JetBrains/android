@@ -20,13 +20,12 @@ import com.android.tools.idea.run.deployment.liveedit.IrClassCache
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
-import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
+import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilderWithBytecodeAnalysis
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
-import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
@@ -39,7 +38,6 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
-import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
@@ -49,7 +47,7 @@ internal class LiveEditCompilerForK2(
   private val project: Project,
   private val inlineCandidateCache: SourceInlineCandidateCache,
   private val irClassCache: IrClassCache,
-  private val outputBuilder: LiveEditOutputBuilder,
+  private val outputBuilder: LiveEditOutputBuilderWithBytecodeAnalysis,
   private val module: Module,
 ): LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 

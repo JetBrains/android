@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComme
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import kotlin.system.measureTimeMillis
 
-private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
+private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilderWithBytecodeAnalysis::class.java))
 
 @RequiresReadLock
 fun getPsiValidationState(psiFile: PsiFile): PsiState {

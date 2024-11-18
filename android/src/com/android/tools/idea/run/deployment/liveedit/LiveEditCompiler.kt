@@ -56,7 +56,6 @@ class LiveEditCompiler(val project: Project,
   var inlineCandidateCache = SourceInlineCandidateCache()
 
   private var desugarer = LiveEditDesugar()
-  private val outputBuilder = LiveEditOutputBuilder(apkClassProvider)
   private val outputBuilderWithAnalysis = LiveEditOutputBuilderWithBytecodeAnalysis(apkClassProvider)
   private val logger = LiveEditLogger("LE Compiler")
 
@@ -96,8 +95,8 @@ class LiveEditCompiler(val project: Project,
         try {
           // Compiler pass
           when (KotlinPluginModeProvider.isK2Mode()) {
-            true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder, file.module!!)
-            false -> LiveEditCompilerForK1(project, inlineCandidateCache, irClassCache, this.outputBuilder, this.outputBuilderWithAnalysis)
+            true -> LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilderWithAnalysis, file.module!!)
+            false -> LiveEditCompilerForK1(project, inlineCandidateCache, irClassCache, this.outputBuilderWithAnalysis)
           }.compileKtFile(applicationLiveEditServices(), file, input, outputBuilder)
 
           val outputs = outputBuilder.build()
