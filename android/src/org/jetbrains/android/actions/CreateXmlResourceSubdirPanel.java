@@ -34,11 +34,16 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.containers.ContainerUtil;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.*;
 
 /**
  * List of subdirectories where a new XML resource should be added.
@@ -176,7 +181,7 @@ public class CreateXmlResourceSubdirPanel {
       directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
-    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+    directories = ContainerUtil.sorted(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();
