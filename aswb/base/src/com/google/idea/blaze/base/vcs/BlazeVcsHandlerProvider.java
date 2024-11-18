@@ -31,6 +31,7 @@ import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -122,7 +123,7 @@ public interface BlazeVcsHandlerProvider {
                   executor));
     }
 
-    Optional<VcsState> vcsStateForSourceUri(String sourceUri) throws BuildException;
+    Optional<VcsState> vcsStateForWorkspaceStatus(Map<String, String> workspaceStatus) throws BuildException;
 
     /**
      * Diffs two VCS states from different points in time.
