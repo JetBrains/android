@@ -1383,13 +1383,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER = new BooleanFlag(
-    COMPOSE, "deploy.live.edit.deploy.differ",
-    "LiveEdit: Resolve changed classes and group IDs with the class differ.",
-    "If enabled, the class differ will be used inside of the LE compiler",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.confined.analysis",
     "LiveEdit: Limit compilation error analysis to only the current file",

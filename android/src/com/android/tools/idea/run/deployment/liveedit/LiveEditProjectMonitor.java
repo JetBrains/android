@@ -804,16 +804,7 @@ public class LiveEditProjectMonitor implements Disposable {
         useDebugMode,
         useStructureRedefintion);
 
-    LiveUpdateDeployer.UpdateLiveEditResult result = null;
-
-    // Sometimes we get a PSI event for a top-level file when no top-level class exists. In this
-    // case, just treat it as a no-op success. This isn't an issue with the class differ
-    // as we would no longer get spurious PSI update events anymore.
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get() && param.classes.isEmpty()) {
-      result = new LiveUpdateDeployer.UpdateLiveEditResult();
-    } else {
-      result = deployer.updateLiveEdit(installer, adb, applicationId, param);
-    }
+    LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
 
     if (filesWithCompilationErrors.isEmpty() || StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
       updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
