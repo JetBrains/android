@@ -37,8 +37,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />

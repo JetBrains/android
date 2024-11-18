@@ -39,7 +39,6 @@ iml_module(
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
         "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
         "//tools/vendor/google/android-ndk:android-ndk",
-        "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
