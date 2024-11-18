@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.model.InspectorModel.ConnectionListener
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.ui.AttachProgressProvider
@@ -55,7 +55,7 @@ class RootPanel(
     get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
 
   private var layoutInspectorLoadingObserver: LayoutInspectorLoadingObserver? = null
-  private val connectionListener: (InspectorClient?) -> Unit = { inspectorClient ->
+  private val connectionListener: ConnectionListener = ConnectionListener { inspectorClient ->
     if (inspectorClient == null || inspectorClient == DisconnectedClient) {
       updateUiState(UiState.WAITING_TO_CONNECT)
     } else if (inspectorClient.isConnected) {

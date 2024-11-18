@@ -30,6 +30,8 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorModel.ConnectionListener
+import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
@@ -116,11 +118,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       modelModified(oldWindow, newWindow, isStructuralChange)
       componentTreePanel.repaint()
     }
-  private val selectionChangedListener: (ViewNode?, ViewNode?, SelectionOrigin) -> Unit =
-    { oldView, newView, origin ->
+  private val selectionChangedListener: SelectionListener =
+    SelectionListener { oldView, newView, origin ->
       selectionChanged(oldView, newView, origin)
     }
-  private val connectionListener: (InspectorClient?) -> Unit = { inspectorClient ->
+  private val connectionListener: ConnectionListener = ConnectionListener { inspectorClient ->
     handleConnectionChange(inspectorClient)
   }
   private val componentTreeSelectionListener: (List<Any>) -> Unit = {

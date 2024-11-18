@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorModel.ModificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -197,9 +198,7 @@ class AppInspectionInspectorClient(
         enableXrInspectionDeferred.await()
 
         val viewUpdateDeferred = CompletableDeferred<Unit>()
-        val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
-          viewUpdateDeferred.complete(Unit)
-        }
+        val updateListener = ModificationListener { _, _, _ -> viewUpdateDeferred.complete(Unit) }
 
         model.addModificationListener(updateListener)
 
