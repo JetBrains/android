@@ -24,7 +24,7 @@ import com.android.tools.idea.avdmanager.ElevatedCommandLine
 import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
+import com.android.tools.idea.welcome.wizard.IProgressStep
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
@@ -109,12 +109,12 @@ class Aehd(
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set
 
-  private lateinit var progressStep: ProgressStep
+  private lateinit var progressStep: IProgressStep
 
   public override val requiredSdkPackages
     get() = listOf("extras;google;Android_Emulator_Hypervisor_Driver")
 
-  override fun init(progressStep: ProgressStep) {
+  override fun init(progressStep: IProgressStep) {
     this.progressStep = progressStep
   }
 

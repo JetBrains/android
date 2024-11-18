@@ -30,6 +30,7 @@ import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallOperation;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
+import com.android.tools.idea.welcome.wizard.IProgressStep;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -113,7 +114,7 @@ public class AehdWizard extends DynamicWizard {
     return "AEHD Installation";
   }
 
-  private static class SetupProgressStep extends ProgressStep {
+  private static class SetupProgressStep extends ProgressStep implements IProgressStep {
     @NotNull private Aehd myAehd;
     @NotNull private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     @NotNull private DynamicWizardHost myHost;

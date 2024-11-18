@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 import static com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis;
 
 import com.android.tools.idea.welcome.wizard.ConsoleHighlighter;
+import com.android.tools.idea.welcome.wizard.IProgressStep;
 import com.intellij.execution.impl.ConsoleViewUtil;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.ProgressStep}
  */
-public abstract class ProgressStep extends FirstRunWizardStep {
+public abstract class ProgressStep extends FirstRunWizardStep implements IProgressStep {
   private final ConsoleHighlighter myHighlighter;
   private final EditorEx myConsoleEditor;
   private JPanel myRoot;
@@ -103,6 +104,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   /**
    * @return progress indicator that will report the progress to this wizard step.
    */
+  @Override
   @NotNull
   public synchronized ProgressIndicator getProgressIndicator() {
     if (myProgressIndicator == null) {
@@ -117,6 +119,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    * @param s           text to print
    * @param contentType attributes of the text to output
    */
+  @Override
   public void print(@NotNull String s, @NotNull ConsoleViewContentType contentType) {
     myHighlighter.setModalityState(ModalityState.stateForComponent(myConsole));
     myHighlighter.print(s + (s.endsWith("\n") ? "" : "\n"), contentType.getAttributes());
@@ -130,10 +133,12 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    *
    * @param processHandler process to track
    */
-  public void attachToProcess(ProcessHandler processHandler) {
+  @Override
+  public void attachToProcess(@NotNull ProcessHandler processHandler) {
     myHighlighter.attachToProcess(processHandler);
   }
 
+  @Override
   public boolean isCanceled() {
     return getProgressIndicator().isCanceled();
   }
@@ -154,7 +159,8 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   /**
    * Runs the computable under progress manager but only gives a portion of the progress bar to it.
    */
-  public void run(final Runnable runnable, double progressPortion) {
+  @Override
+  public void run(final @NotNull Runnable runnable, double progressPortion) {
     ProgressIndicator progress =
       new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressPortionReporter(getProgressIndicator(), myFraction, progressPortion);
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress);

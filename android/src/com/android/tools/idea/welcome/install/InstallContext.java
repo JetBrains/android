@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
+import com.android.tools.idea.welcome.wizard.IProgressStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +26,9 @@ import java.io.File;
  * Keeps installation process state.
  */
 public class InstallContext {
-  @NotNull private final ProgressStep myProgressStep;
+  @NotNull private final IProgressStep myProgressStep;
 
-  public InstallContext(@NotNull File tempDirectory, @NotNull ProgressStep progressStep) {
+  public InstallContext(@NotNull File tempDirectory, @NotNull IProgressStep progressStep) {
     myProgressStep = progressStep;
   }
 

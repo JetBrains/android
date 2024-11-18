@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
+import com.android.tools.idea.welcome.wizard.IProgressStep
 import com.android.tools.idea.wizard.model.ModelWizardStep
 
 /**
@@ -30,7 +30,7 @@ class ComponentCategory(
   override val isChecked: Boolean get() = components.none (ComponentTreeNode::isChecked)
   override val immediateChildren: Collection<ComponentTreeNode> get() = components
 
-  override fun init(progressStep: ProgressStep) = components.forEach { it.init(progressStep) }
+  override fun init(progressStep: IProgressStep) = components.forEach { it.init(progressStep) }
   override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }
   override fun createSteps() = components.flatMap(ComponentTreeNode::createSteps)
