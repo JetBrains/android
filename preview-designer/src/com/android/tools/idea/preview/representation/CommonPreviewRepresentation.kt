@@ -89,7 +89,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.defaultSceneManagerProvider
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.ide.ActivityTracker
@@ -491,7 +490,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         previewElementModelAdapter,
         modelUpdater,
         navigationHandler,
-        this::configureLayoutlibSceneManager,
+        { _, layoutLibSceneManager -> configureLayoutlibSceneManager(layoutLibSceneManager) },
         refreshEventBuilder,
       )
 
@@ -553,7 +552,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
             previewElementModelAdapter::modelToElement,
-            this@CommonPreviewRepresentation::configureLayoutlibSceneManager,
+            { _, layoutLibSceneManager -> configureLayoutlibSceneManager(layoutLibSceneManager) },
             refreshFilter = { sceneManager ->
               // For quality change requests, only re-render those that need a quality change.
               // For other types of requests, re-render every preview.
@@ -690,10 +689,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     }
   }
 
-  private fun configureLayoutlibSceneManager(
-    displaySettings: PreviewDisplaySettings,
-    layoutlibSceneManager: LayoutlibSceneManager,
-  ) =
+  private fun configureLayoutlibSceneManager(layoutlibSceneManager: LayoutlibSceneManager) =
     layoutlibSceneManager.apply {
       sceneRenderConfiguration.let { config ->
         config.cacheSuccessfulRenderImage =
