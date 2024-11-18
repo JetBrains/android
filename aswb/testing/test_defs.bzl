@@ -287,6 +287,7 @@ def intellij_integration_test_suite(
     target_compatible_with = kwargs.get("target_compatible_with", None)
     kotlin_library(
         name = name + ".testlib",
+        jvm_target = "17",
         srcs = srcs + [suite_class_name],
         deps = deps,
         lint_enabled = False,
