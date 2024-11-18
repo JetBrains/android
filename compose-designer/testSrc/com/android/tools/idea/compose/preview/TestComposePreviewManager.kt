@@ -28,7 +28,7 @@ open class TestComposePreviewManager : ComposePreviewManager {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      previewedFile = null,
+      psiFilePointer = null,
     )
 
   override fun status(): ComposePreviewManager.Status = currentStatus

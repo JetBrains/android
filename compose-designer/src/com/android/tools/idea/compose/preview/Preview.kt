@@ -125,7 +125,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
@@ -133,7 +132,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.AncestorListenerAdapter
-import com.intellij.util.SlowOperations
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -964,17 +962,17 @@ class ComposePreviewRepresentation(
     // preview is out of date.
     val newStatus =
       ComposePreviewManager.Status(
-        !isRefreshing && hasErrorsAndNeedsBuild(),
-        !isRefreshing && hasSyntaxErrors(),
-        !isRefreshing &&
-          (projectBuildStatus is RenderingBuildStatus.OutOfDate ||
-            projectBuildStatus is RenderingBuildStatus.NeedsBuild),
-        !isRefreshing &&
-          (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
-        isRefreshing,
-        SlowOperations.allowSlowOperations(
-          ThrowableComputable { runReadAction { psiFilePointer.element } }
-        ),
+        hasErrorsAndNeedsBuild = !isRefreshing && hasErrorsAndNeedsBuild(),
+        hasSyntaxErrors = !isRefreshing && hasSyntaxErrors(),
+        isOutOfDate =
+          !isRefreshing &&
+            (projectBuildStatus is RenderingBuildStatus.OutOfDate ||
+              projectBuildStatus is RenderingBuildStatus.NeedsBuild),
+        areResourcesOutOfDate =
+          !isRefreshing &&
+            (projectBuildStatus as? RenderingBuildStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
+        isRefreshing = isRefreshing,
+        psiFilePointer = psiFilePointer,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
