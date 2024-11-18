@@ -45,10 +45,10 @@ import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 
-private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilderWithBytecodeAnalysis ::class.java))
+private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder ::class.java))
 private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
-internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassProvider: ApkClassProvider) {
+internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
   // The outputs builder is *cumulative* and will include the outputs from *all previously compiled files* during this LiveEdit operation
   // Be extremely careful if you use the state inside the outputs object for any reason (or better yet, don't) - it's very easy to
   // inadvertently re-process classes and break things, especially when running in manual mode

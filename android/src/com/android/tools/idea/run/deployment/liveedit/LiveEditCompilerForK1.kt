@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
@@ -27,7 +26,7 @@ internal class LiveEditCompilerForK1(
   private val project: Project,
   private val inlineCandidateCache: SourceInlineCandidateCache,
   private val irClassCache: IrClassCache,
-  private val outputBuilder: LiveEditOutputBuilderWithBytecodeAnalysis
+  private val outputBuilder: LiveEditOutputBuilder
 ) : LiveEditCompiler.LiveEditCompilerForKotlinVersion {
 
   override fun compileKtFile(
