@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.android.tools.adtui.compose.WizardPageScope
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
 import kotlin.time.Duration

@@ -21,9 +21,9 @@ import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.adtui.compose.WizardAction
+import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.adddevicedialog.LoadingState
-import com.android.tools.idea.adddevicedialog.WizardAction
-import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector

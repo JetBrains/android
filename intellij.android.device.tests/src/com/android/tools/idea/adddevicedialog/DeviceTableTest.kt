@@ -40,6 +40,7 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.tools.adtui.compose.keyPress
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat

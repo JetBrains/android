@@ -26,6 +26,9 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.tools.adtui.compose.TestComposeWizard
+import com.android.tools.adtui.compose.WizardAction
+import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.jewel.ui.component.Text

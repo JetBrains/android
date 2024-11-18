@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog
+package com.android.tools.adtui.compose
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,8 +36,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.adtui.compose.catchAndShowErrors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBUI
@@ -60,9 +58,6 @@ import org.jetbrains.jewel.ui.component.Text
  *
  * Pages are implemented by composable functions of the type `@Composable WizardPageScope.() ->
  * Unit`.
- *
- * TODO(b/361168375): Consider making this more broadly available. If parts of Studio unrelated to
- *   the Add Device Dialog want to use this, it should be moved to adt.ui.compose.
  */
 class ComposeWizard(
   val project: Project?,

@@ -25,8 +25,8 @@ import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.uniquifyAvdFolder
 import com.android.sdklib.internal.avd.uniquifyAvdName
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.adddevicedialog.ComposeWizard
-import com.android.tools.idea.adddevicedialog.WizardPageScope
+import com.android.tools.adtui.compose.ComposeWizard
+import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin

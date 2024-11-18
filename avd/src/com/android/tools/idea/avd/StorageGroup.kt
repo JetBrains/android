@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
-import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
 import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
