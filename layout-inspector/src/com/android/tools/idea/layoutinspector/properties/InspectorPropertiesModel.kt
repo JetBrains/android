@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorModel.ConnectionListener
+import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -43,15 +45,17 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> =
     ContainerUtil.createConcurrentList()
   private var provider: PropertiesProvider? = null
-  private val selectionListener: (ViewNode?, ViewNode?, SelectionOrigin) -> Unit =
-    { oldView, newView, selectionOrigin ->
+  private val selectionListener: SelectionListener =
+    SelectionListener { oldView, newView, selectionOrigin ->
       handleNewSelection(oldView, newView, selectionOrigin)
     }
   private val modificationListener =
     InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       handleModelChange(oldWindow, newWindow, isStructuralChange)
     }
-  private val connectionListener: (InspectorClient?) -> Unit = { handleConnectionChange(it) }
+  private val connectionListener: ConnectionListener = ConnectionListener {
+    handleConnectionChange(it)
+  }
   private val propertiesListener = ResultListener { propertiesProvider, viewNode, propertiesTable ->
     updateProperties(propertiesProvider, viewNode, propertiesTable)
   }

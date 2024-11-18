@@ -18,8 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.tree.createCenterTextPanel
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.google.common.html.HtmlEscapers
@@ -43,7 +42,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   private val cardView = JPanel(cardLayout)
   private val properties = PropertiesPanel<InspectorPropertyItem>(this)
   private val filterKeyListener = createFilterKeyListener()
-  private val selectionListener: (ViewNode?, ViewNode?, SelectionOrigin) -> Unit
+  private val selectionListener: SelectionListener
 
   init {
     properties.component.name = PROPERTIES_COMPONENT_NAME
@@ -57,7 +56,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
     cardView.add(infoPanel, NO_SELECTION_CARD)
     cardView.add(properties.component, SELECTED_VIEW_CARD)
     Disposer.register(parentDisposable, this)
-    selectionListener = { _, newView, _ ->
+    selectionListener = SelectionListener { _, newView, _ ->
       cardLayout.show(cardView, if (newView == null) NO_SELECTION_CARD else SELECTED_VIEW_CARD)
     }
     cardLayout.show(cardView, NO_SELECTION_CARD)

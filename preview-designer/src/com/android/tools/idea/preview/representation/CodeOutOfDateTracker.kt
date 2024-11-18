@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.BuildListener
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.setupBuildListener
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.util.androidFacet
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.Disposable
@@ -94,19 +95,18 @@ private class CodeOutOfDateTrackerImpl(
       lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
     }
 
-  private val resourceChangeListener: ((Set<ResourceNotificationManager.Reason>) -> Unit) =
-    { reasons ->
-      // If this listener was triggered by any reason but a project build or a configuration change,
-      // then we need to refresh the previews on the next successful build.
-      if (
-        reasons.any {
-          it != ResourceNotificationManager.Reason.PROJECT_BUILD &&
-            it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED
-        }
-      ) {
-        invalidateSavedBuildStatus()
+  private val resourceChangeListener: ResourceChangeListener = ResourceChangeListener { reasons ->
+    // If this listener was triggered by any reason but a project build or a configuration change,
+    // then we need to refresh the previews on the next successful build.
+    if (
+      reasons.any {
+        it != ResourceNotificationManager.Reason.PROJECT_BUILD &&
+          it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED
       }
+    ) {
+      invalidateSavedBuildStatus()
     }
+  }
 
   init {
     // TODO: Remove this code. This is a workaround for setupBuildListener not supporting multiple
