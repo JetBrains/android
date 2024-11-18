@@ -18,14 +18,12 @@ import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.SlowOperations;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -214,8 +212,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     if (action != null) {
       try {
         final Module module = myFacet.getModule();
-        final List<String> allowedTagNames =
-          SlowOperations.allowSlowOperations((ThrowableComputable<List<String>, Throwable>)() -> action.getSortedAllowedTagNames(myFacet));
+        final List<String> allowedTagNames = action.getSortedAllowedTagNames(myFacet);
         myRootElementField = new TextFieldWithAutoCompletion<>(
           module.getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null) {
           @Override
