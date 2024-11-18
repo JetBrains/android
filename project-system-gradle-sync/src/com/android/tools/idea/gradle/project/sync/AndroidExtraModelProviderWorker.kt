@@ -34,7 +34,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModel
 import java.io.File
 
 internal class BuildInfo(
-  buildModels: List<GradleBuild>, // Always not empty.
+  val buildModels: List<GradleBuild>, // Always not empty.
   buildMap: IdeCompositeBuildMap,
   val buildFolderPaths: BuildFolderPaths,
 ) {
@@ -151,13 +151,9 @@ internal class AndroidExtraModelProviderWorker(
   private fun ProjectImportModelProvider.runModelProvider(
     controller: BuildController,
     buildInfo: BuildInfo,
-    modelConsumer: ProjectImportModelProvider.GradleModelConsumer,
+    modelConsumer: GradleModelConsumer,
   ) {
-    for (gradleProject in buildInfo.projects) {
-      populateProjectModels(controller, gradleProject, modelConsumer)
-    }
-    populateBuildModels(controller, buildInfo.rootBuild, modelConsumer)
-    populateModels(controller, listOf(buildInfo.rootBuild), modelConsumer)
+    populateModels(controller, buildInfo.buildModels, modelConsumer)
   }
 
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
