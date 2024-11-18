@@ -706,8 +706,7 @@ public class RenderTaskTest extends AndroidTestCase {
     @Language("XML")
     final String content= "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "    android:layout_height=\"match_parent\"\n" +
-                          "    android:layout_width=\"match_parent\"\n" +
-                          "    android:background=\"#FFF\">\n" +
+                          "    android:layout_width=\"match_parent\">\n" +
                           "\n" +
                           "    <ImageView\n" +
                           "        android:layout_width=\"240dp\"\n" +
