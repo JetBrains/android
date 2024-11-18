@@ -127,11 +127,7 @@ open class MultiRepresentationPreview(
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer = runReadAction {
-    SlowOperations.allowSlowOperations(
-      ThrowableComputable { SmartPointerManager.createPointer(psiFile) }
-    )
-  }
+  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private var shortcutsApplicableComponent: JComponent? = null
 
   private var representationNeverShown = true
