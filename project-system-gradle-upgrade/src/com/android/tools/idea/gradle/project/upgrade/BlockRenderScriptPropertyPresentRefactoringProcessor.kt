@@ -31,8 +31,7 @@ class BlockRenderScriptPropertyPresentRefactoringProcessor: AbstractBlockPropert
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val necessityInfo = PointNecessity(propertyRemovedVersion)
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_RENDER_SCRIPT_PROPERTY_PRESENT
-  // This version has to match when the default of render script property was changed in [RenderScriptDefaultRefactoringProcessor]
-  override val defaultChangedVersion = AgpVersion.parse("8.0.0-alpha02")
+  override val defaultChangedVersion = RenderScriptDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.renderScriptBlockProperty"
 }
