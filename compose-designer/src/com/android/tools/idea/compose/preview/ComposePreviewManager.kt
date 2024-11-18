@@ -16,13 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.PreviewInvalidationManager
-import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
@@ -67,34 +64,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   /** Flag to indicate if the UI Check filter is enabled or not. */
   var isUiCheckFilterEnabled: Boolean
-}
-
-class NopComposePreviewManager : ComposePreviewManager {
-  override fun status() =
-    ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
-      hasSyntaxErrors = false,
-      isOutOfDate = false,
-      areResourcesOutOfDate = false,
-      isRefreshing = false,
-      previewedFile = null,
-    )
-
-  override var isInspectionTooltipEnabled: Boolean = false
-  override var isFilterEnabled: Boolean = false
-  override var isUiCheckFilterEnabled: Boolean = false
-  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
-  override val mode = _mode.asStateFlow()
-
-  override fun invalidate() {}
-
-  override fun restorePrevious() {}
-
-  override fun dispose() {}
-
-  override fun setMode(mode: PreviewMode) {
-    _mode.value = mode
-  }
 }
 
 /**
