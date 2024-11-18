@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.tools.idea.uibuilder.surface.NlBuilderKt.defaultActionHandlerProvider;
+
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
 import com.android.tools.adtui.actions.ZoomType;
@@ -180,6 +182,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     handler.performPaste(dataContext);
     NlComponent button3 = model.getTreeReader().find("cuteLittleButton3");
     assertNotNull(button3);
+  }
+
+  public void testHandlerIsDisposedWhenSurfaceIsDisposed() {
+    DesignSurfaceActionHandler handler = defaultActionHandlerProvider(mySurface);
+    assertFalse(Disposer.isDisposed(handler));
+    Disposer.dispose(mySurface);
+    assertTrue(Disposer.isDisposed(handler));
   }
 
   /**

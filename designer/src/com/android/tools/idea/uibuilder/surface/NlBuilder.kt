@@ -65,7 +65,7 @@ fun defaultSceneManagerProvider(surface: NlDesignSurface, model: NlModel): Layou
 fun defaultActionHandlerProvider(
   surface: DesignSurface<LayoutlibSceneManager>
 ): NlDesignSurfaceActionHandler {
-  return NlDesignSurfaceActionHandler(surface)
+  return NlDesignSurfaceActionHandler(surface).also { Disposer.tryRegister(surface, it) }
 }
 
 class NlSurfaceBuilder(

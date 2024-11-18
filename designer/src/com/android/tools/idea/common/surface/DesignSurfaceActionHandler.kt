@@ -25,6 +25,7 @@ import com.intellij.ide.CopyProvider
 import com.intellij.ide.CutProvider
 import com.intellij.ide.DeleteProvider
 import com.intellij.ide.PasteProvider
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
@@ -35,7 +36,7 @@ abstract class DesignSurfaceActionHandler
 protected constructor(
   protected val mySurface: DesignSurface<*>,
   private val myCopyPasteManager: CopyPasteManager,
-) : DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+) : DeleteProvider, CutProvider, CopyProvider, PasteProvider, Disposable.Default {
   constructor(surface: DesignSurface<*>) : this(surface, CopyPasteManager.getInstance())
 
   protected abstract val flavor: DataFlavor
