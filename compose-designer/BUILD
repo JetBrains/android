@@ -175,7 +175,6 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
     ],
 )
 
