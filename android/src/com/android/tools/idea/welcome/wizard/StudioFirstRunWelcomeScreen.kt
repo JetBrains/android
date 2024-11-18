@@ -15,29 +15,25 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.repository.api.RemotePackage
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.install.ComponentInstaller
-import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.idea.util.application.isHeadlessEnvironment
 import java.awt.Window
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
-import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -50,9 +46,13 @@ import javax.swing.JPanel
 class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private val componentInstallerProvider: ComponentInstallerProvider) : WelcomeScreen {
   private lateinit var modelWizard: ModelWizard
   private var mainPanel: JComponent? = null
+  private var frame: JFrame? = null
 
   private fun setupWizard() {
     val model = FirstRunModel(mode, componentInstallerProvider)
+
+    val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
+    val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, this@StudioFirstRunWelcomeScreen)
 
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
     modelWizard = ModelWizard.Builder().apply {
@@ -69,7 +69,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
       }
 
       val supplier = model.getPackagesToInstallSupplier()
-      val licenseAgreementStep = LicenseAgreementStep(LicenseAgreementModel(model.sdkInstallLocationProperty), supplier)
+      val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
 
       addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,this@StudioFirstRunWelcomeScreen))
 
@@ -84,13 +84,15 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
         addStep(LinuxKvmInfoStep())
       }
 
-      // TODO: addStep(ProgressStep(model))
+      addStep(progressStep)
     }.build()
+
+    modelWizard.setCancelInterceptor { shouldPreventWizardCancel(progressStep) }
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog
     // (which inherits from IntelliJ's DialogWrapper class, which we can't refactor here).
-    val modelWizardDialog = StudioWizardDialogBuilder(modelWizard, "").build()
+    val modelWizardDialog = StudioWizardDialogBuilder(modelWizard, "").setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH).build()
     mainPanel = modelWizardDialog.contentPanel
 
     // Replace Content Panel with dummy version, as we are going to return its original value to the welcome frame
@@ -112,6 +114,8 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
   }
 
   override fun setupFrame(frame: JFrame) {
+    this.frame = frame
+
     // Intercept windowClosing event, to show the closing confirmation dialog
     val oldIdeaListeners = removeAllWindowListeners(frame)
     frame.run {
@@ -126,35 +130,45 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
 
     modelWizard.addResultListener(object : ModelWizard.WizardListener {
       override fun onWizardFinished(wizardResult: ModelWizard.WizardResult) {
-        closeDialog(frame)
+        closeDialog()
       }
     })
-
-    modelWizard.setCancelInterceptor { shouldPreventWizardCancel(frame) }
   }
 
   override fun dispose() {}
 
-  private fun closeDialog(frame: Window) {
-    frame.isVisible = false
-    frame.dispose()
-    WelcomeFrame.showNow()
+  private fun closeDialog() {
+    frame?.isVisible = false
+    frame?.dispose()
+
+    if (isHeadlessEnvironment()) {
+      // No UI should be shown when IDE is running in this mode.
+    } else {
+      WelcomeFrame.showNow()
+    }
   }
 
-  private fun shouldPreventWizardCancel(frame: Window) = when (ConfirmFirstRunWizardCloseDialog.show()) {
-    ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
-      AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
-      closeDialog(frame)
-      false
+  private fun shouldPreventWizardCancel(progressStep: ProgressStep): Boolean {
+    if (progressStep.isRunning()) {
+      progressStep.getProgressIndicator().cancel()
+      return true
+    } else {
+      return when (ConfirmFirstRunWizardCloseDialog.show()) {
+        ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
+          AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
+          closeDialog()
+          false
+        }
+        ConfirmFirstRunWizardCloseDialog.Result.Rerun -> {
+          closeDialog()
+          false
+        }
+        ConfirmFirstRunWizardCloseDialog.Result.DoNotClose -> {
+          true
+        }
+        else -> throw RuntimeException("Invalid Close result") // Unknown option
+      }
     }
-    ConfirmFirstRunWizardCloseDialog.Result.Rerun -> {
-      closeDialog(frame)
-      false
-    }
-    ConfirmFirstRunWizardCloseDialog.Result.DoNotClose -> {
-      true
-    }
-    else -> throw RuntimeException("Invalid Close result") // Unknown option
   }
 
   private fun removeAllWindowListeners(frame: Window): Array<WindowListener> {

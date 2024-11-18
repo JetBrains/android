@@ -45,7 +45,9 @@ class LicenseAgreementModel: WizardModel {
     sdkRoot = sdkLocation
   }
 
-  override fun handleFinished() {
+  override fun handleFinished() = acceptLicenses()
+
+  fun acceptLicenses() {
     if (!sdkRoot.get().isPresent) {
       log.error("The wizard could not find the SDK repository folder and will not complete. Please report this error.")
       return

@@ -26,20 +26,21 @@ import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
+import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.AndroidSdk
 import com.android.tools.idea.welcome.install.AndroidVirtualDevice
 import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
-import com.android.tools.idea.welcome.install.Platform
-import com.android.tools.idea.welcome.install.Aehd
-import com.android.tools.idea.welcome.install.ComponentInstaller
+import com.android.tools.idea.welcome.install.InstallContext
 import com.android.tools.idea.welcome.install.InstallableComponent
+import com.android.tools.idea.welcome.install.Platform
+import com.android.tools.idea.welcome.install.WizardException
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
+import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath
 import com.android.tools.idea.wizard.model.WizardModel
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.containers.orNull
 import java.io.File
@@ -58,7 +59,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode, private val componentI
     if (sdkLocation.path.isEmpty()) InstallationType.CUSTOM else InstallationType.STANDARD
   )
   val customInstall: Boolean get() = installationType.get() == InstallationType.CUSTOM
-  val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
+
   val sdkExists = if (sdkLocation.isDirectory) {
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val progress = StudioLoggerProgressIndicator(javaClass)
@@ -89,7 +90,11 @@ class FirstRunModel(private val mode: FirstRunWizardMode, private val componentI
   val componentTree = createComponentTree(true)
 
   init {
-    val mockProgressStep = object : ProgressStep(this, "loading component tree") {
+    // Some `InstallableComponent`s need a `ProgressStep` to report on progress during the configuration
+    // stage - since we're passing in a mock object here the progress isn't reported correctly
+    // TODO - refactor `InstallableComponent` classes to use the progress step stored in the
+    // `InstallContext` object - this will fix this issue
+    val mockProgressStep = object : com.android.tools.idea.welcome.wizard.deprecated.ProgressStep(this, "loading component tree") {
       override fun execute() {
         // TODO (doing nothing)
       }
@@ -140,6 +145,37 @@ class FirstRunModel(private val mode: FirstRunWizardMode, private val componentI
     return ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components)
   }
 
-  override fun handleFinished() {
+  /**
+   * Installs all components in the `componentTree` that are configured to be installed.
+   * Once the components have been installed, the SDK path and installer timestamp are
+   * stored in preferences.
+   *
+   * @param progressStep used to provide feedback on installation progress
+   */
+  @Throws(WizardException::class)
+  fun installComponents(progressStep: ProgressStep) {
+    val sdkHandler = localHandler
+    InstallComponentsPath.installComponents(
+      componentTree.childrenToInstall,
+      InstallContext(InstallComponentsPath.createTempDir(), progressStep),
+      componentInstallerProvider.getComponentInstaller(sdkHandler),
+      mode.installerTimestamp,
+      ModalityState.stateForComponent(progressStep.component),
+      sdkHandler,
+      getDestination()
+    )
   }
+
+  @Throws(WizardException::class)
+  private fun getDestination(): File {
+    val destinationPath = sdkInstallLocation ?: throw WizardException("SDK install path is null")
+
+    val destination = destinationPath.toFile()
+    if (destination.isFile) {
+      throw WizardException("Path $destinationPath does not point to a directory")
+    }
+    return destination
+  }
+
+  override fun handleFinished() {}
 }

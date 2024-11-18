@@ -261,11 +261,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return true;
   }
 
-  @Override
-  public boolean isPathVisible() {
-    return true;
-  }
-
   public boolean shouldDownloadingComponentsStepBeShown() {
     String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert path != null;
@@ -315,7 +310,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  private static File createTempDir() throws WizardException {
+  public static File createTempDir() throws WizardException {
     File tempDirectory;
     try {
       tempDirectory = FileUtil.createTempDirectory("AndroidStudio", "FirstRun", true);

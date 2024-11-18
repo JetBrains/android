@@ -15,30 +15,15 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis;
-
-import com.android.tools.idea.welcome.wizard.ConsoleHighlighter;
 import com.android.tools.idea.welcome.wizard.IProgressStep;
-import com.intellij.execution.impl.ConsoleViewUtil;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import java.awt.BorderLayout;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,34 +32,15 @@ import org.jetbrains.annotations.Nullable;
  *
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.ProgressStep}
  */
+@Deprecated
 public abstract class ProgressStep extends FirstRunWizardStep implements IProgressStep {
-  private final ConsoleHighlighter myHighlighter;
-  private final EditorEx myConsoleEditor;
-  private JPanel myRoot;
-  private JProgressBar myProgressBar;
-  private JButton myShowDetailsButton;
-  private JLabel myLabel;
-  private JPanel myConsole;
-  private JLabel myLabel2;
+  private final ProgressStepForm myForm;
   private ProgressIndicator myProgressIndicator;
-  private double myFraction = 0;
 
   public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
     super(name);
-    setComponent(myRoot);
-    myLabel.setText("Installing");
-    myConsoleEditor = ConsoleViewUtil.setupConsoleEditor((Project)null, false, false);
-    myConsoleEditor.getSettings().setUseSoftWraps(true);
-    myConsoleEditor.reinitSettings();
-    myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 0));
-    Disposer.register(parent, () -> EditorFactory.getInstance().releaseEditor(myConsoleEditor));
-    myHighlighter = new ConsoleHighlighter();
-    myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));
-    myConsoleEditor.setHighlighter(myHighlighter);
-    JComponent editorComponent = myConsoleEditor.getComponent();
-    myConsole.add(editorComponent, BorderLayout.CENTER);
-    editorComponent.setVisible(false);
-    myShowDetailsButton.addActionListener(e -> showConsole());
+    myForm = new ProgressStepForm(parent);
+    setComponent(myForm.getRoot());
   }
 
   @Override
@@ -98,7 +64,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myShowDetailsButton;
+    return myForm.getShowDetailsButton();
   }
 
   /**
@@ -108,7 +74,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
   @NotNull
   public synchronized ProgressIndicator getProgressIndicator() {
     if (myProgressIndicator == null) {
-      myProgressIndicator = new ProgressIndicatorIntegration();
+      myProgressIndicator = new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressIndicatorIntegration(myForm);
     }
     return myProgressIndicator;
   }
@@ -121,8 +87,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
    */
   @Override
   public void print(@NotNull String s, @NotNull ConsoleViewContentType contentType) {
-    myHighlighter.setModalityState(ModalityState.stateForComponent(myConsole));
-    myHighlighter.print(s + (s.endsWith("\n") ? "" : "\n"), contentType.getAttributes());
+    myForm.print(s, contentType);
   }
 
   /**
@@ -135,7 +100,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
    */
   @Override
   public void attachToProcess(@NotNull ProcessHandler processHandler) {
-    myHighlighter.attachToProcess(processHandler);
+    myForm.attachToProcess(processHandler);
   }
 
   @Override
@@ -147,13 +112,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
    * Displays console widget if one was not visible already
    */
   public void showConsole() {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      JComponent editorComponent = myConsoleEditor.getComponent();
-      if (!editorComponent.isVisible()) {
-        myShowDetailsButton.getParent().remove(myShowDetailsButton);
-        editorComponent.setVisible(true);
-      }
-    });
+    myForm.showConsole();
   }
 
   /**
@@ -162,54 +121,7 @@ public abstract class ProgressStep extends FirstRunWizardStep implements IProgre
   @Override
   public void run(final @NotNull Runnable runnable, double progressPortion) {
     ProgressIndicator progress =
-      new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressPortionReporter(getProgressIndicator(), myFraction, progressPortion);
+      new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressPortionReporter(getProgressIndicator(), myForm.getFraction(), progressPortion);
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress);
-  }
-
-  private void setFraction(double fraction) {
-    myFraction = fraction;
-    myProgressBar.setMaximum(1000);
-    myProgressBar.setValue((int)(1000 * fraction));
-  }
-
-  /**
-   * Progress indicator integration for this wizard step
-   */
-  private class ProgressIndicatorIntegration extends ProgressIndicatorBase {
-    @Override
-    public void start() {
-      super.start();
-      setIndeterminate(false);
-    }
-
-    @Override
-    public void setText(final String text) {
-      ApplicationManager.getApplication().invokeLater(() -> myLabel.setText(text));
-    }
-
-    @Override
-    public void setText2(@Nullable String text) {
-      ApplicationManager.getApplication().invokeLater(() -> myLabel2.setText(text == null ? "" : shortenTextWithEllipsis(text, 80, 10)));
-    }
-
-    @Override
-    public void stop() {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        myLabel.setText(null);
-        myProgressBar.setVisible(false);
-        showConsole();
-      }, ModalityState.stateForComponent(myProgressBar));
-      super.stop();
-    }
-
-    @Override
-    public void setIndeterminate(final boolean indeterminate) {
-      ApplicationManager.getApplication().invokeLater(() -> myProgressBar.setIndeterminate(indeterminate));
-    }
-
-    @Override
-    public void setFraction(final double fraction) {
-      ApplicationManager.getApplication().invokeLater(() -> ProgressStep.this.setFraction(fraction));
-    }
   }
 }

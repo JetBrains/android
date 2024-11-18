@@ -36,9 +36,11 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
+import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
@@ -56,8 +58,9 @@ import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.table.JBTable
 import com.intellij.ui.treeStructure.Tree
-import junit.framework.Assert.assertFalse
+import org.jetbrains.eval4j.checkNull
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -68,6 +71,7 @@ import org.junit.runners.Parameterized.Parameter
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.MockedStatic
 import org.mockito.Mockito.CALLS_REAL_METHODS
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -146,7 +150,6 @@ class WelcomeScreenWizardTest {
   @Test
   fun welcomeStep_showsWelcomeBackMessageForExistingUsers() {
     `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL)).thenReturn(getExistingSdkPath())
-
     val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
 
     val welcomeLabel = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Welcome back! This setup wizard will") })
@@ -314,14 +317,14 @@ class WelcomeScreenWizardTest {
     val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("License Agreement") })
     assertTrue(fakeUi.isShowing(title))
 
-    val proceedButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepProceedButtonText()) })
+    val proceedButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepNextText()) })
     assertTrue(fakeUi.isShowing(proceedButton))
     assertFalse(proceedButton.isEnabled)
 
     // Click accept on all licenses
     val tree = checkNotNull(fakeUi.findComponent<Tree>())
     val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
-    for (i in 0..<tree.rowCount) {
+    for (i in 0..< tree.rowCount) {
       tree.setSelectionRow(i)
       acceptButton.doClick()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -390,13 +393,71 @@ class WelcomeScreenWizardTest {
       assertFalse(acceptButton.isSelected)
     }
 
-    val proceedButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepProceedButtonText()) })
+    val proceedButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepNextText()) })
     assertFalse(proceedButton.isEnabled)
   }
 
   @Test
-  fun licenseStep_licensesAcceptedWhenWizardFinished() {
-    // TODO will implement once the progress step has been migrated
+  fun progressStep_cancelInstallationAndFinish() {
+    val mockInstaller = mock(ComponentInstaller::class.java)
+    val remotePackage = createFakeRemotePackageWithLicense("platforms;android-35")
+    whenever(mockInstaller.getPackagesToInstall(any())).thenReturn(listOf(remotePackage))
+
+    val installerStarted = CompletableFuture<Boolean>()
+    val cancelTriggered = CompletableFuture<Boolean>()
+    whenever(mockInstaller.installPackages(any(), any(), any())).then {
+      // Pause the installer to allow us to check the UI and to cancel the task
+      installerStarted.complete(true)
+
+      // Resume once cancel has been triggered
+      cancelTriggered.get()
+    }
+    val mockInstallerProvider = mock(ComponentInstallerProvider::class.java)
+    whenever(mockInstallerProvider.getComponentInstaller(any())).thenReturn(mockInstaller)
+
+    val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL, componentInstallerProvider = mockInstallerProvider)
+    navigateToProgressStep(fakeUi)
+
+    val progressLabel = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Downloading Components") })
+    assertTrue(fakeUi.isShowing(progressLabel))
+
+    // Details hidden by default
+    fakeUi.findComponent<EditorComponentImpl>().checkNull()
+
+    // Click 'More details' button
+    val showDetailsButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Show Details") })
+    assertTrue(fakeUi.isShowing(showDetailsButton))
+    showDetailsButton.doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Check that console output is showing
+    val consoleOutput = checkNotNull(fakeUi.findComponent<EditorComponentImpl>())
+    assertTrue(fakeUi.isShowing(consoleOutput))
+
+    // Check that the finish button is not enabled
+    val finishButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Finish") })
+    assertTrue(fakeUi.isShowing(finishButton))
+    assertFalse(finishButton.isEnabled)
+
+    // Wait for install task to start
+    installerStarted.get()
+
+    // Check that the license has been accepted
+    assertTrue(remotePackage.license!!.checkAccepted(sdkPath.toPath()))
+
+    // Click 'Cancel' button
+    val cancelButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Cancel") })
+    assertTrue(fakeUi.isShowing(cancelButton))
+    assertTrue(cancelButton.isEnabled)
+    cancelButton.doClick()
+    cancelTriggered.complete(true)
+    PlatformTestUtil.waitForAllBackgroundActivityToCalmDown()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Click 'Finish'
+    assertTrue(finishButton.isEnabled)
+    finishButton.doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   private fun getExistingSdkPath(): File {
@@ -446,6 +507,42 @@ class WelcomeScreenWizardTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
+  private fun navigateToProgressStep(fakeUi: FakeUi) {
+    navigateToLicenseAgreementStep(fakeUi)
+
+    // Accept all licenses
+    val tree = checkNotNull(fakeUi.findComponent<Tree>())
+    val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
+    for (i in 0..< tree.rowCount) {
+      tree.setSelectionRow(i)
+      acceptButton.doClick()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepNextText()) }).doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    if (willShowKvmStep()) {
+      checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getKvmStepNextText()) }).doClick()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+  }
+
+  private fun getLicenseStepNextText(): String {
+    if (willShowKvmStep()) {
+      return "Next"
+    }
+    // TODO - get the new wizard to show 'Finish' instead of 'Next'
+    return if (isTestingLegacyWizard == true) "Finish" else "Next"
+  }
+
+  private fun willShowKvmStep() = SystemInfo.isLinux && !HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated()
+
+  private fun getKvmStepNextText(): String {
+    // TODO - get the new wizard to show 'Finish' instead of 'Next'
+    return if (isTestingLegacyWizard == true) "Finish" else "Next"
+  }
+
   private fun createFakeRemotePackageWithLicense(path: String): RemotePackage {
     val remotePackage = FakeRemotePackage(path)
     remotePackage.setCompleteUrl("http://www.example.com/package.zip")
@@ -456,6 +553,4 @@ class WelcomeScreenWizardTest {
 
     return remotePackage
   }
-
-  private fun getLicenseStepProceedButtonText() = if (SystemInfo.isLinux && !HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated()) "Next" else "Finish"
 }
