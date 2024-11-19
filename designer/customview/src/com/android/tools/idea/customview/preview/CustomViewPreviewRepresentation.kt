@@ -64,7 +64,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.BiFunction
 import javax.swing.JComponent
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -409,11 +408,9 @@ class CustomViewPreviewRepresentation(
               customPreviewXml,
               config,
             )
-            .withXmlProvider(
-              BiFunction { project, _ ->
-                AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
-              }
-            )
+            .withXmlProvider { project, _ ->
+              AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
+            }
             .withComponentRegistrar(NlComponentRegistrar)
             .build()
             .apply { displaySettings.setDisplayName(className) }
