@@ -56,7 +56,7 @@ public class LaunchApkViewerTest {
   @Test
   public void launchApkViewer() throws Exception {
     EditorFixture myEditor = guiTest.importSimpleApplication()
-                                     .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Generate App Bundle(s) / APK(s)", "Generate APK(s)")
+                                     .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Generate App Bundles / APKs", "Generate APKs")
                                      .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
                                      .clickOK()
                                      .getEditor();
