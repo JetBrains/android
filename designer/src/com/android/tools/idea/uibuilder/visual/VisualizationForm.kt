@@ -36,6 +36,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
@@ -68,12 +69,10 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
-import com.intellij.util.SlowOperations
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
@@ -292,7 +291,7 @@ class VisualizationForm(
       myResourceNotifyingFilesLock.unlock()
     }
     for (file in registeredFiles) {
-      unregisterResourceNotification(file)
+      scope.launch(workerThread) { unregisterResourceNotification(file) }
     }
     removeAndDisposeModels(surface.models)
     surface.removeIssueListener(issueListener)
@@ -390,7 +389,7 @@ class VisualizationForm(
         } ?: emptyList()
       if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
       if (models.isEmpty() || isRequestCancelled.get()) {
-        unregisterResourceNotification(myFile)
+        withContext(workerThread) { unregisterResourceNotification(myFile) }
       } else {
         myWorkBench.showContent()
         interruptRendering()
@@ -461,7 +460,7 @@ class VisualizationForm(
     removeAndDisposeModels(surface.models)
   }
 
-  private fun activateEditor(hasModel: Boolean) {
+  private suspend fun activateEditor(hasModel: Boolean) {
     myCancelPendingModelLoad.set(true)
     if (!hasModel) {
       editor = null
@@ -469,7 +468,7 @@ class VisualizationForm(
     } else {
       editor = myPendingEditor
       myPendingEditor = null
-      registerResourceNotification(myFile)
+      withContext(workerThread) { registerResourceNotification(myFile) }
       myWorkBench.setFileEditor(myEditor)
     }
   }
@@ -478,10 +477,7 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable { AndroidFacet.getInstance(file, project) }
-      )
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -501,10 +497,7 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable { AndroidFacet.getInstance(file, project) }
-      )
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -603,18 +596,26 @@ class VisualizationForm(
     if (isActive) {
       return
     }
-    registerResourceNotification(myFile)
-    isActive = true
-    if (myContentPanel == null) {
-      initializer.initContent(project, this) { initModel() }
-    } else {
-      initModel()
+    scope.launch { onActivate() }
+  }
+
+  private suspend fun onActivate() {
+    withContext(workerThread) {
+      registerResourceNotification(myFile)
+      isActive = true
     }
-    surface.activate()
-    analyticsManager.trackVisualizationToolWindow(true)
-    visualLintHandler.onActivate()
-    IssuePanelService.getDesignerCommonIssuePanel(project)
-      ?.addIssueSelectionListener(surface.issueListener, surface)
+    withContext(uiThread) {
+      if (myContentPanel == null) {
+        initializer.initContent(project, this@VisualizationForm) { initModel() }
+      } else {
+        initModel()
+      }
+      surface.activate()
+      analyticsManager.trackVisualizationToolWindow(true)
+      visualLintHandler.onActivate()
+      IssuePanelService.getDesignerCommonIssuePanel(project)
+        ?.addIssueSelectionListener(surface.issueListener, surface)
+    }
   }
 
   /**
@@ -629,7 +630,7 @@ class VisualizationForm(
     myCancelPendingModelLoad.set(true)
     surface.deactivate()
     isActive = false
-    unregisterResourceNotification(myFile)
+    scope.launch(workerThread) { unregisterResourceNotification(myFile) }
     if (myContentPanel != null) {
       setNoActiveModel()
     }
