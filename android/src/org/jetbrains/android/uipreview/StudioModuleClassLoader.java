@@ -7,6 +7,7 @@ import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PAC
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.rendering.classloading.StringReplaceTransform;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ClassBinaryCache;
@@ -32,6 +33,7 @@ import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -46,6 +48,7 @@ import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -100,6 +103,24 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   );
 
   /**
+   * Map containing which classes we should look into and do string replacements. The map is of the form:
+   * <code>class name -> map of constants</code>
+   * If we find the class name while processing the class transformations, we use the map of constants of the form:
+   * <code>old name -> new name</code>
+   * <br />
+   * If we find in the class any string using the "old name", it will be replaced with the "new name" one.
+   */
+  private static final Map<String,? extends Map<String, String>> STRING_REPLACEMENTS = ImmutableMap.of(
+    INTERNAL_PACKAGE + "kotlin.reflect.jvm.internal.impl.load.java.JvmAnnotationNames", ImmutableMap.of(
+      "kotlin.Metadata", INTERNAL_PACKAGE + "kotlin.Metadata",
+      "kotlin.annotations.jvm.ReadOnly", INTERNAL_PACKAGE + "kotlin.annotations.jvm.ReadOnly",
+      "kotlin.annotations.jvm.Mutable", INTERNAL_PACKAGE + "kotlin.annotations.jvm.Mutable",
+      "kotlin.jvm.internal", INTERNAL_PACKAGE + "kotlin.jvm.internal",
+      "kotlin.jvm.internal.EnhancedNullability", INTERNAL_PACKAGE + "kotlin.jvm.internal.EnhancedNullability",
+      "kotlin.jvm.internal.SerializedIr", INTERNAL_PACKAGE + "kotlin.jvm.internal.SerializedIr"
+    ));
+
+  /**
    * Classes are rewritten by applying the following transformations:
    * <ul>
    *   <li>Updates the class file version with a version runnable in the current JDK
@@ -144,6 +165,9 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
     SdkIntReplacer::new,
+    // Because of the use of RepackageTransform, we also need to ensure that certain internal constants are correctly renamed
+    // so they point to the new repackaged classes.
+    visitor -> new StringReplaceTransform(visitor, STRING_REPLACEMENTS),
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
