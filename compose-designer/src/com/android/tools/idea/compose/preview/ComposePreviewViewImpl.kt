@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -62,6 +61,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -72,19 +72,18 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.SlowOperations
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -336,6 +335,15 @@ internal class ComposePreviewViewImpl(
 
   private val actionsToolbar: ActionsToolbar
 
+  /**
+   * This [kotlinx.coroutines.flow.Flow] stores requests to update the visibility and notifications
+   * of the Preview view. These requests are created when calling
+   * [updateVisibilityAndNotificationsRequestFlow] and handled by
+   * [handleUpdateVisibilityAndNotificationsRequest]. A request mechanism is used to ensure that the
+   * requests are handled sequentially.
+   */
+  private val updateVisibilityAndNotificationsRequestFlow = MutableSharedFlow<Unit>(replay = 1)
+
   val content = JPanel(BorderLayout())
 
   init {
@@ -385,6 +393,12 @@ internal class ComposePreviewViewImpl(
     }
     workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     workbench.isFocusCycleRoot = true
+
+    scope.launch(workerThread) {
+      updateVisibilityAndNotificationsRequestFlow.collect {
+        handleUpdateVisibilityAndNotificationsRequest()
+      }
+    }
 
     DataManager.registerDataProvider(workbench) { getData(it) }
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
@@ -451,8 +465,12 @@ internal class ComposePreviewViewImpl(
    * build state. This method is called after certain updates like a build or a preview refresh has
    * happened. Calling this method will also update the FileEditor notifications.
    */
-  override fun updateVisibilityAndNotifications() =
-    UIUtil.invokeLaterIfNeeded {
+  override fun updateVisibilityAndNotifications() {
+    scope.launch { updateVisibilityAndNotificationsRequestFlow.emit(Unit) }
+  }
+
+  private suspend fun handleUpdateVisibilityAndNotificationsRequest() =
+    withContext(uiThread) {
       if (
         workbench.isMessageVisible &&
           renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild
@@ -466,20 +484,23 @@ internal class ComposePreviewViewImpl(
       } else {
         if (hasRendered) {
           log.debug("Show content")
-          workbench.hideLoading()
           if (hasContent) {
+            workbench.hideLoading()
             workbench.showContent()
           } else {
+            val generatePreviewsActionData =
+              withContext(workerThread) {
+                if (StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.get())
+                  createGeneratePreviewsActionData()
+                else null
+              }
+            workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(
               message("panel.no.previews.defined"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
-                SlowOperations.allowSlowOperations(
-                  ThrowableComputable { createGeneratePreviewsActionData() }
-                )
-              },
+              generatePreviewsActionData,
             )
           }
         }
@@ -492,7 +513,7 @@ internal class ComposePreviewViewImpl(
    * Creates an [ActionData] to invoke [GenerateComposePreviewsForFileAction]. The action should
    * only be visible if the containing file has Composables.
    */
-  private fun createGeneratePreviewsActionData(): ActionData? {
+  private suspend fun createGeneratePreviewsActionData(): ActionData? {
     if (
       !GeminiPluginApi.getInstance().isAvailable() ||
         !GeminiPluginApi.getInstance().isContextAllowed(project)
@@ -505,12 +526,13 @@ internal class ComposePreviewViewImpl(
 
     try {
       ProgressManager.checkCanceled()
-      if (
+      val hasComposables = readAction {
         psiFilePointer.element
           ?.collectDescendantsOfType<KtNamedFunction>()
           ?.flatMap { it.annotationEntries }
-          ?.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
-      ) {
+          ?.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
+      }
+      if (!hasComposables) {
         // Don't show the action if there are no Composables in the file
         return null
       }
