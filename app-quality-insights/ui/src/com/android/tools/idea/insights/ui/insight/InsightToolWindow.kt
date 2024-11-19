@@ -37,7 +37,7 @@ object InsightToolWindow {
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Insights",
-      StudioIcons.StudioBot.LOGO,
+      StudioIcons.StudioBot.LOGO_MONOCHROME,
       "APP_INSIGHTS_INSIGHTS",
       Side.RIGHT,
       Split.TOP,
