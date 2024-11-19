@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
@@ -60,7 +61,7 @@ internal fun AdditionalSettingsPanel(
         state.device.skin,
         state.skins,
         onSelectedItemChange = { state.device = state.device.copy(skin = it) },
-        Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
+        Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
         !hasPlayStore && !state.device.isFoldable,
       )
     }

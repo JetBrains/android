@@ -15,8 +15,19 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.resources.ScreenOrientation
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceParser
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
+import com.android.sdklib.internal.avd.AvdCamera
+import com.android.sdklib.internal.avd.AvdNetworkLatency
+import com.android.sdklib.internal.avd.AvdNetworkSpeed
+import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import java.io.ByteArrayInputStream
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 fun readTestDevices() =
   DeviceParser.parse(ByteArrayInputStream(testDeviceXml.encodeToByteArray())).values().toList()
@@ -98,3 +109,71 @@ val testDeviceXml =
     </d:device>
 </d:devices>
 """
+
+internal object TestDevices {
+  internal fun pixel6(): VirtualDevice {
+    val hardware = mock<Hardware>()
+    whenever(hardware.screen).thenReturn(mock())
+
+    val device = mock<Device>()
+    whenever(device.defaultHardware).thenReturn(hardware)
+
+    return VirtualDevice(
+      name = "Pixel 6",
+      device = device,
+      skin =
+        DefaultSkin(
+          createInMemoryFileSystem()
+            .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
+        ),
+      frontCamera = AvdCamera.EMULATED,
+      rearCamera = AvdCamera.VIRTUAL_SCENE,
+      speed = AvdNetworkSpeed.FULL,
+      latency = AvdNetworkLatency.NONE,
+      orientation = ScreenOrientation.PORTRAIT,
+      defaultBoot = Boot.QUICK,
+      internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB),
+      expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
+      cpuCoreCount = 4,
+      graphicsMode = GraphicsMode.AUTO,
+      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
+      vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB),
+      preferredAbi = null,
+    )
+  }
+
+  internal fun pixel9ProFold(): VirtualDevice {
+    val screen = mock<Screen>()
+    whenever(screen.isFoldable).thenReturn(true)
+
+    val hardware = mock<Hardware>()
+    whenever(hardware.screen).thenReturn(screen)
+
+    val device = mock<Device>()
+    whenever(device.defaultHardware).thenReturn(hardware)
+    whenever(device.hasPlayStore()).thenReturn(true)
+
+    return VirtualDevice(
+      name = "Pixel 9 Pro Fold",
+      device = device,
+      skin =
+        DefaultSkin(
+          createInMemoryFileSystem()
+            .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold")
+        ),
+      frontCamera = AvdCamera.EMULATED,
+      rearCamera = AvdCamera.VIRTUAL_SCENE,
+      speed = AvdNetworkSpeed.FULL,
+      latency = AvdNetworkLatency.NONE,
+      orientation = ScreenOrientation.LANDSCAPE,
+      defaultBoot = Boot.QUICK,
+      internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB),
+      expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
+      cpuCoreCount = 4,
+      graphicsMode = GraphicsMode.AUTO,
+      ram = StorageCapacity(2, StorageCapacity.Unit.GB),
+      vmHeapSize = StorageCapacity(288, StorageCapacity.Unit.MB),
+      preferredAbi = null,
+    )
+  }
+}

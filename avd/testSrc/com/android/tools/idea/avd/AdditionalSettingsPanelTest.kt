@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
@@ -39,33 +36,34 @@ import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
+  private val fileSystem = createInMemoryFileSystem()
   @get:Rule val rule = createStudioComposeTestRule()
+
+  @Test
+  fun deviceSkinDropdownIsEnabledHasPlayStoreAndIsFoldable() {
+    // Arrange
+    val image = mock<ISystemImage>()
+    whenever(image.hasPlayStore()).thenReturn(true)
+
+    val state =
+      ConfigureDevicePanelState(
+        TestDevices.pixel9ProFold(),
+        emptyList<Skin>().toImmutableList(),
+        image,
+        fileSystem,
+      )
+
+    // Act
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Assert
+    rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
+  }
 
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
-    val fileSystem = createInMemoryFileSystem()
-    val home = System.getProperty("user.home")
-
-    val device =
-      VirtualDevice(
-        device = readTestDevices().first { it.id == "pixel_8" },
-        name = "Pixel 8 API 34",
-        skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_8")),
-        frontCamera = AvdCamera.EMULATED,
-        rearCamera = AvdCamera.VIRTUAL_SCENE,
-        speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
-        latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-        orientation = ScreenOrientation.PORTRAIT,
-        defaultBoot = Boot.QUICK,
-        internalStorage = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        graphicsMode = GraphicsMode.AUTO,
-        ram = StorageCapacity(2_048, StorageCapacity.Unit.MB),
-        vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-        preferredAbi = null,
-      )
+    val device = TestDevices.pixel6()
 
     val image = mock<ISystemImage>()
     whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
@@ -75,7 +73,7 @@ class AdditionalSettingsPanelTest {
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
 
-    val mySdCardFileImg = fileSystem.getPath(home, "mySdCardFile.img")
+    val mySdCardFileImg = fileSystem.getPath(System.getProperty("user.home"), "mySdCardFile.img")
     Files.createDirectories(mySdCardFileImg.parent)
     Files.createFile(mySdCardFileImg)
 
