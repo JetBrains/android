@@ -477,7 +477,7 @@ class CustomViewPreviewRepresentation(
     view.notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
   }
 
-  override suspend fun registerShortcuts(applicableTo: JComponent) {
+  override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface)
       .registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
