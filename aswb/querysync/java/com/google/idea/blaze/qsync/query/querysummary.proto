@@ -35,7 +35,7 @@ message StringStorage {
 }
 
 message SourceFile {
-  string location = 1;
+  reserved 1;
   // Subincludes of a source file, taken from blaze_query.SourceFile.subinclude
   repeated string subinclude = 2;
 }

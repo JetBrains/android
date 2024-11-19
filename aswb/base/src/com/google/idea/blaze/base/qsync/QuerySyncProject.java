@@ -551,7 +551,7 @@ public class QuerySyncProject {
     Path workspaceRelative = workspaceRoot.path().relativize(absolutePath);
     if (snapshotHolder
         .getCurrent()
-        .map(s -> s.graph().getAllSourceFiles().contains(workspaceRelative))
+        .map(s -> s.graph().sourceFileToLabel(workspaceRelative).isPresent())
         .orElse(false)) {
       return Optional.of(false);
     }

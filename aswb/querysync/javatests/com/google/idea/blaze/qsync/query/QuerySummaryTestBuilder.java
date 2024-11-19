@@ -80,7 +80,6 @@ public class QuerySummaryTestBuilder {
                     l -> QueryData.Rule.builder().ruleClass("java_library").build())));
     builder.putAllSourceFiles(
       sourceFiles.stream().collect(toImmutableMap(src -> src, src -> SourceFile.newBuilder()
-        .setLocation(src + ":1:1")
         .addAllSubinclude(includes.get(src.toString()))
         .build()))
     );

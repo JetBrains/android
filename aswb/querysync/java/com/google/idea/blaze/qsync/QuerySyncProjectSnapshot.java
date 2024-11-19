@@ -103,7 +103,7 @@ public abstract class QuerySyncProjectSnapshot {
    * @param path a workspace relative path.
    */
   public ImmutableSet<Label> getTargetOwners(Path path) {
-    return graph().getTargetOwners(path);
+    return graph().getSourceFileOwners(path);
   }
 
   /**
@@ -118,7 +118,7 @@ public abstract class QuerySyncProjectSnapshot {
   @Nullable
   @Deprecated
   public Label getTargetOwner(Path path) {
-    return graph().selectLabelWithLeastDeps(graph().getTargetOwners(path));
+    return graph().selectLabelWithLeastDeps(graph().getSourceFileOwners(path));
   }
 
   /** Returns mapping of targets to {@link BuildTarget} */

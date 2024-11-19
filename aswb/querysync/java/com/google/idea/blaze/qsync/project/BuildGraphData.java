@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static java.util.Arrays.stream;
@@ -24,12 +25,10 @@ import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
@@ -69,29 +68,51 @@ import javax.annotation.Nullable;
 public abstract class BuildGraphData {
 
   /** A map from target to file on disk for all source files */
-  public abstract ImmutableBiMap<Label, Location> locations();
+  public abstract ImmutableSet<Label> sourceFileLabels();
 
   /** A set of all the BUILD files */
   @Memoized
   public PackageSet packages() {
     PackageSet.Builder packages = new PackageSet.Builder();
-    for (Location location : locations().values()) {
-      if (location.file.endsWith(Path.of("BUILD")) || location.file.endsWith(Path.of("BUILD.bazel"))) {
-        if (location.file.getParent() == null) {
-          // to support the `directories: .` case
-          packages.add(Path.of(""));
-        } else {
-          packages.add(location.file.getParent());
-        }
+    for (Label sourceFile : sourceFileLabels()) {
+      if (sourceFile.getName().equals(Path.of("BUILD")) || sourceFile.getName().equals(Path.of("BUILD.bazel"))) {
+        // TODO: b/334110669 - support Bazel workspaces.
+        packages.add(sourceFile.getPackage());
       }
     }
     return packages.build();
   }
 
-  /** A map from a file path to its target */
-  @Memoized
-  ImmutableMap<Path, Label> fileToTarget() {
-    return ImmutableBiMap.copyOf(Maps.transformValues(locations(), l -> l.file)).inverse();
+  /**
+   * Returns a {@link Label} representing the given path in the workspace with the current build packages. The file does not need to exist.
+   */
+  @VisibleForTesting
+  public Optional<Label> pathToLabel(Path file) {
+    var path = file;
+    do {
+      path = path.getParent();
+      final var probe = path != null ? path : Path.of("");
+      final var probeNameCount = path != null ? path.getNameCount() : 0;
+      if (packages().contains(probe)) {
+        return Optional.of(Label.of("//" + probe.toString() + ":" + file.subpath(probeNameCount, file.getNameCount()).toString()));
+      }
+    } while (path != null);
+    return Optional.empty();
+  }
+
+  /**
+   * If the given path represents a currently known source file returns a {@link Label} representing the given path in the workspace with
+   * the current build packages.
+   */
+  public Optional<Label> sourceFileToLabel(Path sourceFile) {
+    final var sourceFileLabel = pathToLabel(sourceFile);
+    if (sourceFileLabel.isEmpty()) {
+      return Optional.empty();
+    }
+    if (sourceFileLabels().contains(sourceFileLabel.get())) {
+      return sourceFileLabel;
+    }
+    return Optional.empty();
   }
 
   /**
@@ -161,7 +182,7 @@ public abstract class BuildGraphData {
    */
   public Collection<ProjectTarget> getFirstReverseDepsOfType(
       Path sourcePath, Set<String> ruleKinds) {
-    ImmutableSet<Label> targetOwners = getTargetOwners(sourcePath);
+    ImmutableSet<Label> targetOwners = getSourceFileOwners(sourcePath);
 
     if (targetOwners == null || targetOwners.isEmpty()) {
       return ImmutableList.of();
@@ -196,7 +217,7 @@ public abstract class BuildGraphData {
    */
   public Collection<ProjectTarget> getReverseDepsForSource(Path sourcePath) {
 
-    ImmutableSet<Label> targetOwners = getTargetOwners(sourcePath);
+    ImmutableSet<Label> targetOwners = getSourceFileOwners(sourcePath);
 
     if (targetOwners == null || targetOwners.isEmpty()) {
       return ImmutableList.of();
@@ -217,12 +238,12 @@ public abstract class BuildGraphData {
    */
   public boolean doesDependencyPathContainRules(
       Path sourcePath, Path consumingSourcePath, Set<String> ruleKinds) {
-    ImmutableSet<Label> sourceTargets = getTargetOwners(sourcePath);
+    ImmutableSet<Label> sourceTargets = getSourceFileOwners(sourcePath);
     if (sourceTargets == null || sourceTargets.isEmpty()) {
       return false;
     }
 
-    ImmutableSet<Label> consumingTargetLabels = getTargetOwners(consumingSourcePath);
+    ImmutableSet<Label> consumingTargetLabels = getSourceFileOwners(consumingSourcePath);
     if (consumingTargetLabels == null || consumingTargetLabels.isEmpty()) {
       return false;
     }
@@ -273,9 +294,8 @@ public abstract class BuildGraphData {
         .map(ProjectTarget::sourceLabels)
         .flatMap(m -> stream(types).map(m::get))
         .flatMap(Set::stream)
-        .map(locations()::get)
-        .filter(Objects::nonNull) // filter out generated sources
-        .map(l -> l.file)
+        .filter(sourceFileLabels()::contains) // filter out generated sources
+        .map(Label::toFilePath)
         .collect(toImmutableSet());
   }
 
@@ -303,7 +323,7 @@ public abstract class BuildGraphData {
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract ImmutableBiMap.Builder<Label, Location> locationsBuilder();
+    public abstract ImmutableSet.Builder<Label> sourceFileLabelsBuilder();
 
     public abstract ImmutableMap.Builder<Label, ProjectTarget> targetMapBuilder();
 
@@ -359,9 +379,12 @@ public abstract class BuildGraphData {
     return transitiveExternalDeps().get(target);
   }
 
-  public ImmutableSet<Label> getTargetOwners(Path path) {
-    Label syncTarget = fileToTarget().get(path);
-    return sourceOwners().get(syncTarget);
+  public ImmutableSet<Label> getSourceFileOwners(Path path) {
+    return sourceFileToLabel(path).map(this::getSourceFileOwners).orElse(ImmutableSet.of());
+  }
+
+  public ImmutableSet<Label> getSourceFileOwners(Label label) {
+    return sourceOwners().get(label);
   }
 
   /**
@@ -380,7 +403,7 @@ public abstract class BuildGraphData {
   @VisibleForTesting
   @Nullable
   Set<Label> getFileDependencies(Path path) {
-    ImmutableSet<Label> targets = getTargetOwners(path);
+    ImmutableSet<Label> targets = getSourceFileOwners(path);
     if (targets == null) {
       return null;
     }
@@ -398,7 +421,7 @@ public abstract class BuildGraphData {
 
   /** Returns a list of all the java source files of the project, relative to the workspace root. */
   public List<Path> getJavaSourceFiles() {
-    return pathListFromLabels(javaSources());
+    return pathListFromSourceFileLabelsOnly(javaSources());
   }
 
   /**
@@ -417,7 +440,7 @@ public abstract class BuildGraphData {
 
   public List<Path> getSourceFilesByRuleKindAndType(
       Predicate<String> ruleKindPredicate, SourceType... sourceTypes) {
-    return pathListFromLabels(sourcesByRuleKindAndType(ruleKindPredicate, sourceTypes));
+    return pathListFromSourceFileLabelsOnly(sourcesByRuleKindAndType(ruleKindPredicate, sourceTypes));
   }
 
   private ImmutableSet<Label> sourcesByRuleKindAndType(
@@ -430,20 +453,8 @@ public abstract class BuildGraphData {
         .collect(toImmutableSet());
   }
 
-  private List<Path> pathListFromLabels(Collection<Label> labels) {
-    List<Path> paths = new ArrayList<>();
-    for (Label src : labels) {
-      Location location = locations().get(src);
-      if (location == null) {
-        continue;
-      }
-      paths.add(location.file);
-    }
-    return paths;
-  }
-
-  public ImmutableSet<Path> getAllSourceFiles() {
-    return fileToTarget().keySet();
+  private List<Path> pathListFromSourceFileLabelsOnly(Collection<Label> labels) {
+    return labels.stream().filter(sourceFileLabels()::contains).map(Label::toFilePath).collect(toImmutableList());
   }
 
   /**
@@ -497,8 +508,9 @@ public abstract class BuildGraphData {
       }
     }
     // Now a build file or a directory containing packages.
-    if (getAllSourceFiles().contains(workspaceRelativePath)) {
-      ImmutableSet<Label> targetOwner = getTargetOwners(workspaceRelativePath);
+    Optional<Label> fileLabel = sourceFileToLabel(workspaceRelativePath);
+    if (fileLabel.isPresent()) {
+      ImmutableSet<Label> targetOwner = getSourceFileOwners(workspaceRelativePath);
       if (!targetOwner.isEmpty()) {
         return TargetsToBuild.forSourceFile(targetOwner, workspaceRelativePath);
       }

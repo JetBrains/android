@@ -260,7 +260,6 @@ public abstract class QuerySummary {
         case SOURCE_FILE:
           Query.SourceFile sourceFile =
               Query.SourceFile.newBuilder()
-                  .setLocation(intern(target.getSourceFile().getLocation()))
                   .addAllSubinclude(intern(target.getSourceFile().getSubincludeList()))
                   .build();
           String sourceFileName = intern(target.getSourceFile().getName());
