@@ -59,7 +59,7 @@ class ComposePreviewStatusIconActionTest {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      previewedFile = null,
+      psiFilePointer = null,
     )
 
   private val tf = listOf(true, false)

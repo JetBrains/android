@@ -203,7 +203,7 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = true,
         areResourcesOutOfDate = false,
-        previewedFile = null,
+        psiFilePointer = null,
       )
     val nonRefreshingStatus =
       ComposePreviewManager.Status(
@@ -212,7 +212,7 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = false,
         areResourcesOutOfDate = false,
-        previewedFile = null,
+        psiFilePointer = null,
       )
     val context = DataContext {
       when {

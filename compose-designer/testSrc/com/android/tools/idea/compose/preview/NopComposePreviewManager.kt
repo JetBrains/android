@@ -27,7 +27,7 @@ class NopComposePreviewManager : ComposePreviewManager {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      previewedFile = null,
+      psiFilePointer = null,
     )
 
   override var isInspectionTooltipEnabled: Boolean = false
