@@ -307,6 +307,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myDetachedToolWindowManager.unregister(myFileEditor);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
     setToolContext(null);
+    myModel.clearContextAndTools();
 
     // Clean up all the children panels to avoid accidental memory leaks.
     myMainPanel.removeAll();
@@ -752,6 +753,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void minimizeAllAttachedToolWindows() {
     myModel.getAllTools().forEach((window) -> window.setMinimized(true));
     updateModel();
+  }
+
+  @TestOnly
+  public T getModelContext() {
+    return myModel.getContext();
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {
