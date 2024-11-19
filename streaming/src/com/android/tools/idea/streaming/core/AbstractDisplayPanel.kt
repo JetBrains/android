@@ -22,7 +22,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
@@ -40,6 +39,7 @@ import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
 import javax.swing.border.Border
+import javax.swing.border.EmptyBorder
 import javax.swing.plaf.ScrollBarUI
 
 /**
@@ -87,7 +87,9 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
     val zoomControlsLayerPane = JPanel().apply {
       layout = BorderLayout()
-      border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
+      val scrollBarWidth = UIUtil.getScrollBarWidth()
+      @Suppress("UseDPIAwareBorders") // scrollBarWidth is scaled already.
+      border = EmptyBorder(scrollBarWidth, scrollBarWidth, scrollBarWidth, scrollBarWidth)
       isOpaque = false
       isFocusable = true
     }
