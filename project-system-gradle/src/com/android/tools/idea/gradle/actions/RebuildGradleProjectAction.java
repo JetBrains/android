@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RebuildGradleProjectAction extends AndroidStudioGradleAction {
   public RebuildGradleProjectAction() {
-    super("Rebuild Project");
+    super("Clean and Assemble Project");
   }
 
   @Override
