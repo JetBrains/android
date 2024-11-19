@@ -36,9 +36,11 @@ public final class KotlinBlazeRules implements Kind.Provider {
     KT_JVM_LIBRARY_HELPER("kt_jvm_library_helper", LanguageClass.KOTLIN, RuleType.LIBRARY),
     // bazel only kotlin rules:
     KT_JVM_LIBRARY("kt_jvm_library", LanguageClass.KOTLIN, RuleType.LIBRARY),
+    KT_NATIVE_LIBRARY("kt_native_library", LanguageClass.KOTLIN, RuleType.LIBRARY),
     KT_JVM_BINARY("kt_jvm_binary", LanguageClass.KOTLIN, RuleType.BINARY),
     KT_JVM_TEST("kt_jvm_test", LanguageClass.KOTLIN, RuleType.TEST),
     KT_JVM_IMPORT("kt_jvm_import", LanguageClass.KOTLIN, RuleType.UNKNOWN),
+    J2KT_NATIVE_IMPORT("j2kt_native_import", LanguageClass.KOTLIN, RuleType.UNKNOWN),
     KOTLIN_STDLIB("kotlin_stdlib", LanguageClass.KOTLIN, RuleType.UNKNOWN);
 
     private final String name;
@@ -68,6 +70,7 @@ public final class KotlinBlazeRules implements Kind.Provider {
     return proto ->
         proto.getKindString().startsWith("kt_jvm_")
                 || proto.getKindString().startsWith("kt_android_")
+                || proto.getKindString().startsWith("kt_native_")
             ? Kind.Provider.create(proto.getKindString(), LanguageClass.KOTLIN, RuleType.UNKNOWN)
             : null;
   }
