@@ -96,7 +96,7 @@ internal class EmptyStatePanel(
       }
     })
 
-    val messageBusConnection = project.messageBus.connect(this)
+    val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, EmulatorSettingsListener { updateContent() })
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateContent() })
 
