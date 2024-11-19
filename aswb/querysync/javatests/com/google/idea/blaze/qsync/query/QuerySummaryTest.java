@@ -21,10 +21,10 @@ import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProto
 import com.google.common.base.Preconditions;
 import com.google.common.truth.Truth8;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.query.Query.SourceFile;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,8 +32,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class QuerySummaryTest {
 
-  private String targetName(String buildTarget) {
-    return buildTarget.substring(buildTarget.indexOf(':') + 1);
+  private String targetName(Label buildTarget) {
+    return buildTarget.name();
   }
 
   @Test
@@ -81,7 +81,7 @@ public class QuerySummaryTest {
     assertThat(qs.getRulesMap().keySet()).contains(android);
     QueryData.Rule rule = qs.getRulesMap().get(android);
     assertThat(rule.manifest())
-        .isEqualTo(android.siblingWithName("AndroidManifest.xml").toString());
+        .isEqualTo(Optional.of(android.siblingWithName("AndroidManifest.xml")));
   }
 
   @Test
@@ -142,9 +142,9 @@ public class QuerySummaryTest {
         QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
     Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
-    SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
-    assertThat(buildSrc.getSubincludeList())
-        .containsExactly(TestData.ROOT_PACKAGE + "/buildincludes:includes.bzl");
+    QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
+    assertThat(buildSrc.subincliudes())
+        .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/buildincludes:includes.bzl"));
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
             TestData.ROOT.resolve("buildincludes/includes.bzl"),

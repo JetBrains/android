@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Interner;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -35,37 +34,23 @@ import java.util.List;
  * <p>Note that this class only supports labels in the current workspace, i.e. not labels of the
  * form {@code @repo//pkg/foo:abc}.
  */
-public class Label {
+public record Label(String workspace, String buildPackage, String name) {
 
   public final static String ROOT_WORKSPACE = "";
 
-  private static final Interner<Label> interner =
-      com.google.common.collect.Interners.newWeakInterner();
-
-  private final String label;
-
   public static Label of(String label) {
-    if (label.startsWith("@")) {
-      int doubleSlash = label.indexOf("//");
-      Preconditions.checkArgument(doubleSlash > 0, label);
-      int colon = label.indexOf(":");
-      Preconditions.checkArgument(colon > doubleSlash, label);
-      if (!label.startsWith("@@")) {
-        // Normalize `label` to either start with double-at or start with double-slash.
-        label = '@' + label;
-      }
-      if (label.startsWith("@@//")) {
-        label = label.substring(2);
-      }
-    } else {
-      Preconditions.checkArgument(label.startsWith("//"), label);
-      Preconditions.checkArgument(label.contains(":"), label);
-    }
-    return new Label(Interners.STRING.intern(label));
-  }
+    final var workspacePosition = label.startsWith("@") ? (label.startsWith("@@") ? 2 : 1) : 0;
+    final var workspaceEnd = label.indexOf("//", workspacePosition);
+    final var buildPackagePosition =  workspaceEnd + 2;
+    Preconditions.checkArgument(buildPackagePosition >= 2);
+    final var buildPackageEnd = label.indexOf(":", buildPackagePosition);
+    final var namePosition = buildPackageEnd + 1;
+    Preconditions.checkArgument(namePosition >= 1);
 
-  public static Label createLabelWithoutValidation(String label) {
-    return new Label(label);
+    final var workspace = label.substring(workspacePosition, workspaceEnd);
+    final var buildPackage = label.substring(buildPackagePosition, buildPackageEnd);
+    final var name = label.substring(namePosition);
+    return new Label(Interners.STRING.intern(workspace), Interners.STRING.intern(buildPackage), Interners.STRING.intern(name));
   }
 
   public static Label fromWorkspacePackageAndName(String workspace, Path packagePath, Path name) {
@@ -81,26 +66,16 @@ public class Label {
     return labels.stream().map(Label::of).collect(toImmutableList());
   }
 
-  private Label(String label) {
-    this.label = label;
-  }
-
   public Path getPackage() {
-    // this should be safe thanks to the asserts in the constructor.
-    return Path.of(label.substring(label.indexOf("//") + 2, label.indexOf(":")));
+    return Path.of(buildPackage);
   }
 
   public Path getName() {
-    // this should be safe thanks to the asserts in the constructor.
-    return Path.of(label.substring(label.indexOf(':') + 1));
+    return Path.of(name);
   }
 
   public String getWorkspaceName() {
-    if (label.startsWith("@@")) {
-      return label.substring(2, label.indexOf("//"));
-    } else {
-      return "";
-    }
+    return workspace;
   }
 
   public Label siblingWithName(String name) {
@@ -123,19 +98,15 @@ public class Label {
 
   @Override
   public String toString() {
-    return label;
-  }
-
-  @Override
-  public boolean equals(Object that) {
-    if (!(that instanceof Label)) {
-      return false;
+    final var result = new StringBuilder(5 + workspace.length() + buildPackage.length() + name.length());
+    if (!workspace.isEmpty()) {
+      result.append("@@");
+      result.append(workspace);
     }
-    return ((Label) that).label.equals(this.label);
-  }
-
-  @Override
-  public int hashCode() {
-    return label.hashCode();
+    result.append("//");
+    result.append(buildPackage);
+    result.append(":");
+    result.append(name);
+    return result.toString();
   }
 }

@@ -16,7 +16,10 @@
 package com.google.idea.blaze.qsync.query;
 
 import com.google.auto.value.AutoBuilder;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.idea.blaze.common.Label;
+import java.util.Optional;
 
 /** Contains records for storing query summary data, as an alternative to protos. */
 public class QueryData {
@@ -26,63 +29,66 @@ public class QueryData {
    * com.google.devtools.build.lib.query2.proto.proto2api.Build.Rule}.
    */
   public record Rule(
+      Label label,
       String ruleClass,
-      ImmutableList<String> sources,
-      ImmutableList<String> deps,
-      ImmutableList<String> idlSources,
-      ImmutableList<String> runtimeDeps,
-      ImmutableList<String> resourceFiles,
-      String manifest,
+      ImmutableList<Label> sources,
+      ImmutableList<Label> deps,
+      ImmutableList<Label> idlSources,
+      ImmutableList<Label> runtimeDeps,
+      ImmutableList<Label> resourceFiles,
+      Optional<Label> manifest,
       String testApp,
       String instruments,
       String customPackage,
-      ImmutableList<String> hdrs,
+      ImmutableList<Label> hdrs,
       ImmutableList<String> copts,
       ImmutableList<String> tags,
       String mainClass) {
-
-    public static final Rule EMPTY =
-        new AutoBuilder_QueryData_Rule_Builder()
-            .ruleClass("")
-            .sources(ImmutableList.of())
-            .deps(ImmutableList.of())
-            .idlSources(ImmutableList.of())
-            .runtimeDeps(ImmutableList.of())
-            .resourceFiles(ImmutableList.of())
-            .manifest("")
-            .testApp("")
-            .instruments("")
-            .customPackage("")
-            .hdrs(ImmutableList.of())
-            .copts(ImmutableList.of())
-            .tags(ImmutableList.of())
-            .mainClass("")
-            .build();
 
     public Builder toBuilder() {
       return new AutoBuilder_QueryData_Rule_Builder(this);
     }
 
     public static Builder builder() {
-      return EMPTY.toBuilder();
+      return new AutoBuilder_QueryData_Rule_Builder();
     }
+
+    public static Builder builderForTests() {
+      return new AutoBuilder_QueryData_Rule_Builder()
+        .ruleClass("")
+        .sources(ImmutableList.of())
+        .deps(ImmutableList.of())
+        .idlSources(ImmutableList.of())
+        .runtimeDeps(ImmutableList.of())
+        .resourceFiles(ImmutableList.of())
+        .manifest(Optional.empty())
+        .testApp("")
+        .instruments("")
+        .customPackage("")
+        .hdrs(ImmutableList.of())
+        .copts(ImmutableList.of())
+        .tags(ImmutableList.of())
+        .mainClass("");
+    }
+
 
     @AutoBuilder
     public interface Builder {
+      Builder label(Label value);
 
       Builder ruleClass(String value);
 
-      Builder sources(ImmutableList<String> value);
+      Builder sources(ImmutableList<Label> value);
 
-      Builder deps(ImmutableList<String> value);
+      Builder deps(ImmutableList<Label> value);
 
-      Builder idlSources(ImmutableList<String> sources);
+      Builder idlSources(ImmutableList<Label> sources);
 
-      Builder runtimeDeps(ImmutableList<String> sources);
+      Builder runtimeDeps(ImmutableList<Label> sources);
 
-      Builder resourceFiles(ImmutableList<String> sources);
+      Builder resourceFiles(ImmutableList<Label> sources);
 
-      Builder manifest(String value);
+      Builder manifest(Optional<Label> value);
 
       Builder testApp(String value);
 
@@ -90,7 +96,7 @@ public class QueryData {
 
       Builder customPackage(String value);
 
-      Builder hdrs(ImmutableList<String> sources);
+      Builder hdrs(ImmutableList<Label> sources);
 
       Builder copts(ImmutableList<String> sources);
 
@@ -101,4 +107,6 @@ public class QueryData {
       Rule build();
     }
   }
+
+  public record SourceFile(Label label, ImmutableCollection<Label> subincliudes) {}
 }

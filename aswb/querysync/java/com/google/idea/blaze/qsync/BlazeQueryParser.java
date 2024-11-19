@@ -134,7 +134,7 @@ public class BlazeQueryParser {
 
     long now = System.nanoTime();
     final var visitors = new RuleVisitors();
-    for (Map.Entry<Label, Query.SourceFile> sourceFileEntry :
+    for (Map.Entry<Label, QueryData.SourceFile> sourceFileEntry :
         query.getSourceFilesMap().entrySet()) {
       if (sourceFileEntry.getKey().getWorkspaceName().isEmpty()) {
         graphBuilder
@@ -206,7 +206,7 @@ public class BlazeQueryParser {
         .sourceLabelsBuilder()
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.deps()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
   }
 
@@ -219,10 +219,10 @@ public class BlazeQueryParser {
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
         .putAll(SourceType.ANDROID_RESOURCES, expandFileGroupValues(rule.resourceFiles()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.deps()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
 
-    targetBuilder.runtimeDepsBuilder().addAll(toLabelList(rule.runtimeDeps()));
+    targetBuilder.runtimeDepsBuilder().addAll(rule.runtimeDeps());
     javaDeps.addAll(thisDeps);
 
     if (RuleKinds.isAndroid(rule.ruleClass())) {
@@ -231,10 +231,10 @@ public class BlazeQueryParser {
       if (!rule.idlSources().isEmpty()) {
         projectTargetsToBuild.add(label);
       }
-      if (!rule.manifest().isEmpty()) {
+      if (rule.manifest().isPresent()) {
         targetBuilder
             .sourceLabelsBuilder()
-            .put(SourceType.ANDROID_MANIFEST, Label.of(rule.manifest()));
+            .put(SourceType.ANDROID_MANIFEST, rule.manifest().get());
       }
     }
   }
@@ -248,7 +248,7 @@ public class BlazeQueryParser {
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
         .putAll(SourceType.CC_HEADERS, expandFileGroupValues(rule.hdrs()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.deps()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
   }
 
@@ -260,10 +260,8 @@ public class BlazeQueryParser {
   }
 
   /** Returns a set of sources for a rule, expanding any in-project {@code filegroup} rules */
-  private ImmutableSet<Label> expandFileGroupValues(List<String>... labelLists) {
-    return stream(labelLists)
-        .map(Label::toLabelList)
-        .flatMap(List::stream)
+  private ImmutableSet<Label> expandFileGroupValues(List<Label> labelLists) {
+    return labelLists.stream()
         .map(this::expandSourceLabel)
         .flatMap(Set::stream)
         .collect(toImmutableSet());
@@ -276,10 +274,9 @@ public class BlazeQueryParser {
     Set<Label> visited = Sets.newHashSet();
     ImmutableSet.Builder<Label> result = ImmutableSet.builder();
 
-    for (String source : requireNonNull(query.getRulesMap().get(label)).sources()) {
-      Label asLabel = Label.of(source);
-      if (visited.add(asLabel)) {
-        result.addAll(expandSourceLabel(asLabel));
+    for (Label source : requireNonNull(query.getRulesMap().get(label)).sources()) {
+      if (visited.add(source)) {
+        result.addAll(expandSourceLabel(source));
       }
     }
 
