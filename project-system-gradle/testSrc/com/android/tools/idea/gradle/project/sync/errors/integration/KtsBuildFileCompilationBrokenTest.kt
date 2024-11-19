@@ -29,8 +29,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore("b/379853239")
 class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(
@@ -39,7 +41,9 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
+      // Expect single MessageEvent on Sync Output
       buildEvents.filterIsInstance<MessageEvent>().let { events ->
+        expect.that(events).hasSize(1)
         events.firstOrNull()?.let { expectedErrorNodeNameVerifier(it.message) }
       }
       // Make sure no additional error events are generated
@@ -71,10 +75,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
           }
         }
       """.trimIndent())
-    },
-    // Due to KTIJ-31334 the KotlinDslScriptModelResolver specifies the jvmArgument: '-Dorg.gradle.kotlin.dsl.provider.mode=classpath'
-    // to the build causing Gradle to not report a single failure
-    hasSingleFailureReported = false
+    }
 
   )
 
@@ -88,7 +89,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unresolved reference: abcd")
+        expect.that(it).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -103,7 +104,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unresolved reference: abcd")
+        expect.that(it).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -118,7 +119,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unresolved reference: abcd")
+        expect.that(it).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
