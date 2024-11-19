@@ -93,6 +93,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "CONSTRAINT"                        { return CONSTRAINT; }
   "CREATE"                            { return CREATE; }
   "CROSS"                             { return CROSS; }
+  "CURRENT"                           { return CURRENT; }
   "CURRENT_DATE"                      { return CURRENT_DATE; }
   "CURRENT_TIME"                      { return CURRENT_TIME; }
   "CURRENT_TIMESTAMP"                 { return CURRENT_TIMESTAMP; }
@@ -110,17 +111,21 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "END"                               { return END; }
   "ESCAPE"                            { return ESCAPE; }
   "EXCEPT"                            { return EXCEPT; }
+  "EXCLUDE"                           { return EXCLUDE; }
   "EXCLUSIVE"                         { return EXCLUSIVE; }
   "EXISTS"                            { return EXISTS; }
   "EXPLAIN"                           { return EXPLAIN; }
   "FAIL"                              { return FAIL; }
   "FALSE"                             { return FALSE; }
+  "FILTER"                            { return FILTER; }
+  "FOLLOWING"                         { return FOLLOWING; }
   "FOR"                               { return FOR; }
   "FOREIGN"                           { return FOREIGN; }
   "FROM"                              { return FROM; }
   "FULL"                              { return FULL; }
   "GLOB"                              { return GLOB; }
   "GROUP"                             { return GROUP; }
+  "GROUPS"                            { return GROUPS; }
   "HAVING"                            { return HAVING; }
   "IF"                                { return IF; }
   "IGNORE"                            { return IGNORE; }
@@ -147,17 +152,23 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "NOT"                               { return NOT; }
   "NOTNULL"                           { return NOTNULL; }
   "NULL"                              { return NULL; }
+  "NUMBERED_PARAMETER"                { return NUMBERED_PARAMETER; }
   "OF"                                { return OF; }
   "OFFSET"                            { return OFFSET; }
   "ON"                                { return ON; }
   "OR"                                { return OR; }
   "ORDER"                             { return ORDER; }
+  "OTHERS"                            { return OTHERS; }
   "OUTER"                             { return OUTER; }
+  "OVER"                              { return OVER; }
+  "PARTITION"                         { return PARTITION; }
   "PLAN"                              { return PLAN; }
   "PRAGMA"                            { return PRAGMA; }
+  "PRECEDING"                         { return PRECEDING; }
   "PRIMARY"                           { return PRIMARY; }
   "QUERY"                             { return QUERY; }
   "RAISE"                             { return RAISE; }
+  "RANGE"                             { return RANGE; }
   "RECURSIVE"                         { return RECURSIVE; }
   "REFERENCES"                        { return REFERENCES; }
   "REGEXP"                            { return REGEXP; }
@@ -169,6 +180,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "RIGHT"                             { return RIGHT; }
   "ROLLBACK"                          { return ROLLBACK; }
   "ROW"                               { return ROW; }
+  "ROWS"                              { return ROWS; }
   "SAVEPOINT"                         { return SAVEPOINT; }
   "SELECT"                            { return SELECT; }
   "SET"                               { return SET; }
@@ -176,10 +188,12 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "TEMP"                              { return TEMP; }
   "TEMPORARY"                         { return TEMPORARY; }
   "THEN"                              { return THEN; }
+  "TIES"                              { return TIES; }
   "TO"                                { return TO; }
   "TRANSACTION"                       { return TRANSACTION; }
   "TRIGGER"                           { return TRIGGER; }
   "TRUE"                              { return TRUE; }
+  "UNBOUNDED"                         { return UNBOUNDED; }
   "UNION"                             { return UNION; }
   "UNIQUE"                            { return UNIQUE; }
   "UPDATE"                            { return UPDATE; }
@@ -190,6 +204,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "VIRTUAL"                           { return VIRTUAL; }
   "WHEN"                              { return WHEN; }
   "WHERE"                             { return WHERE; }
+  "WINDOW"                            { return WINDOW; }
   "WITH"                              { return WITH; }
   "WITHOUT"                           { return WITHOUT; }
   "|"                                 { return BAR; }

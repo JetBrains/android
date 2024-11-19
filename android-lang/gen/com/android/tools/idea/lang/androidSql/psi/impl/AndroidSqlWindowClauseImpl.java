@@ -25,17 +25,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.androidSql.psi.*;
 
-public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionImpl implements AndroidSqlFunctionCallExpression {
+public class AndroidSqlWindowClauseImpl extends ASTWrapperPsiElement implements AndroidSqlWindowClause {
 
-  public AndroidSqlFunctionCallExpressionImpl(@NotNull ASTNode node) {
+  public AndroidSqlWindowClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
-    visitor.visitFunctionCallExpression(this);
+    visitor.visitWindowClause(this);
   }
 
   @Override
@@ -46,26 +46,8 @@ public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionIm
 
   @Override
   @NotNull
-  public List<AndroidSqlExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlExpression.class);
-  }
-
-  @Override
-  @Nullable
-  public AndroidSqlFilterClause getFilterClause() {
-    return findChildByClass(AndroidSqlFilterClause.class);
-  }
-
-  @Override
-  @Nullable
-  public AndroidSqlOrderClause getOrderClause() {
-    return findChildByClass(AndroidSqlOrderClause.class);
-  }
-
-  @Override
-  @Nullable
-  public AndroidSqlOverClause getOverClause() {
-    return findChildByClass(AndroidSqlOverClause.class);
+  public List<AndroidSqlWindowDefinition> getWindowDefinitionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlWindowDefinition.class);
   }
 
 }

@@ -25,17 +25,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.androidSql.psi.*;
 
-public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionImpl implements AndroidSqlFunctionCallExpression {
+public class AndroidSqlOverClauseImpl extends ASTWrapperPsiElement implements AndroidSqlOverClause {
 
-  public AndroidSqlFunctionCallExpressionImpl(@NotNull ASTNode node) {
+  public AndroidSqlOverClauseImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
-    visitor.visitFunctionCallExpression(this);
+    visitor.visitOverClause(this);
   }
 
   @Override
@@ -45,27 +45,39 @@ public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionIm
   }
 
   @Override
-  @NotNull
-  public List<AndroidSqlExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlExpression.class);
+  @Nullable
+  public AndroidSqlWindowDefinition getWindowDefinition() {
+    return findChildByClass(AndroidSqlWindowDefinition.class);
   }
 
   @Override
   @Nullable
-  public AndroidSqlFilterClause getFilterClause() {
-    return findChildByClass(AndroidSqlFilterClause.class);
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
   }
 
   @Override
   @Nullable
-  public AndroidSqlOrderClause getOrderClause() {
-    return findChildByClass(AndroidSqlOrderClause.class);
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
   }
 
   @Override
   @Nullable
-  public AndroidSqlOverClause getOverClause() {
-    return findChildByClass(AndroidSqlOverClause.class);
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

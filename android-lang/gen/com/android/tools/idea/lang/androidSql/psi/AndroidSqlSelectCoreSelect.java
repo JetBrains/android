@@ -36,4 +36,7 @@ public interface AndroidSqlSelectCoreSelect extends PsiElement {
   @Nullable
   AndroidSqlWhereClause getWhereClause();
 
+  @Nullable
+  AndroidSqlWindowClause getWindowClause();
+
 }
