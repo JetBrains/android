@@ -886,7 +886,8 @@ public final class StudioIcons {
 
   public static final class StudioBot {
     /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", -2146507028, 2);
-    /** 16x16 */ public static final @NotNull Icon LOGO = load("studio/icons/studio-bot/logo.svg", -272236555, 2);
+    /** 16x16 */ public static final @NotNull Icon LOGO_MONOCHROME = load("studio/icons/studio-bot/logo-monochrome.svg", -1548631275, 2);
+    /** 16x16 */ public static final @NotNull Icon LOGO = load("studio/icons/studio-bot/logo.svg", 1473884075, 2);
   }
 
   public static final class Test {
