@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -97,6 +98,24 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
+  }
+
+  @Test
+  fun deviceSkinDropdownIsEnabledDoesntHavePlayStoreAndIsntFoldable() {
+    // Arrange
+    val state =
+      ConfigureDevicePanelState(
+        TestDevices.pixel9Pro(),
+        emptyList<Skin>().toImmutableList(),
+        mock(),
+        fileSystem,
+      )
+
+    // Act
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Assert
+    rule.onNodeWithTag("DeviceSkinDropdown").assertIsEnabled()
   }
 
   @Test
