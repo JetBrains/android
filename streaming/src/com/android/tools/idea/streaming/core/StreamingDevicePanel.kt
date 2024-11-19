@@ -68,9 +68,10 @@ abstract class StreamingDevicePanel(
 
   init {
     background = primaryPanelBackground
-
-    mainToolbar = createToolbar(mainToolbarId, IS_TOOLBAR_HORIZONTAL)
-    secondaryToolbar = createToolbar(secondaryToolbarId, IS_TOOLBAR_HORIZONTAL)
+    val layoutStrategy =
+      if (StudioFlags.RUNNING_DEVICES_WRAP_TOOLBAR.get()) ToolbarLayoutStrategy.WRAP_STRATEGY else ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+    mainToolbar = createToolbar(mainToolbarId, layoutStrategy, IS_TOOLBAR_HORIZONTAL)
+    secondaryToolbar = createToolbar(secondaryToolbarId, ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY, IS_TOOLBAR_HORIZONTAL)
     secondaryToolbar.isReservePlaceAutoPopupIcon = false
 
     addToCenter(centerPanel)
@@ -126,11 +127,10 @@ abstract class StreamingDevicePanel(
   }
 
   @Suppress("SameParameterValue")
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
+  private fun createToolbar(toolbarId: String, strategy: ToolbarLayoutStrategy, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutStrategy =
-      if (StudioFlags.RUNNING_DEVICES_WRAP_TOOLBAR.get()) ToolbarLayoutStrategy.WRAP_STRATEGY else ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+    toolbar.layoutStrategy = strategy
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
