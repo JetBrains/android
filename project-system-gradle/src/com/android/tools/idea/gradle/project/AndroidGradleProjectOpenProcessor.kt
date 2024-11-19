@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.featureStatistics.fusCollectors.LifecycleUsageTriggerCollector
@@ -34,6 +35,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.ui.IdeUICustomization
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * A project open processor to open Gradle projects in Android Studio.
@@ -52,6 +54,12 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     val adjustedOpenTarget =
         if (importTarget.isDirectory) importTarget
         else importTarget.parent
+
+    if (!adjustedOpenTarget.toIoFile().canWrite()) {
+      Messages.showErrorDialog(AndroidBundle.message("android.project.open.permission.readonly.message"),
+                               AndroidBundle.message("android.project.open.permission.readonly.title"))
+      return null
+    }
 
     val gradleImporter = GradleProjectImporter.getInstance()
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
