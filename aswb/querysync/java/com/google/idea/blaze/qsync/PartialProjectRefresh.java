@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
-import com.google.idea.blaze.qsync.query.Query.SourceFile;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
@@ -99,8 +98,8 @@ class PartialProjectRefresh implements RefreshOperation {
   @VisibleForTesting
   QuerySummary applyDelta(QuerySummary partialQuery) {
     // copy all unaffected rules / source files to result:
-    Map<Label, SourceFile> newSourceFiles = Maps.newHashMap();
-    for (Map.Entry<Label, SourceFile> sfEntry :
+    Map<Label, QueryData.SourceFile> newSourceFiles = Maps.newHashMap();
+    for (Map.Entry<Label, QueryData.SourceFile> sfEntry :
         previousState.querySummary().getSourceFilesMap().entrySet()) {
       Path buildPackage = sfEntry.getKey().getPackage();
       if (!(deletedPackages.contains(buildPackage)
@@ -122,7 +121,7 @@ class PartialProjectRefresh implements RefreshOperation {
     newRules.putAll(partialQuery.getRulesMap());
     return QuerySummary.newBuilder()
         .putAllSourceFiles(newSourceFiles)
-        .putAllRules(newRules)
+        .putAllRules(newRules.values())
         .putAllPackagesWithErrors(partialQuery.getPackagesWithErrors())
         .build();
   }
