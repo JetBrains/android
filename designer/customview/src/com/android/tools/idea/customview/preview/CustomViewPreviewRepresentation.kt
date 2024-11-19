@@ -430,7 +430,7 @@ class CustomViewPreviewRepresentation(
 
       // Load and set preview size if exists for this custom view
       withContext(uiThread) {
-        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let {
+        persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let {
           previewDimensions ->
           configuration.updateScreenSize(
             previewDimensions[0].toInt(),
