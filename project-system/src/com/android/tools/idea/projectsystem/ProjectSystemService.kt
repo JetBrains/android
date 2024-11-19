@@ -19,8 +19,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ModuleRootListener
-import com.intellij.openapi.roots.impl.ModuleRootEventImpl
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx
+import com.intellij.openapi.util.EmptyRunnable
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -121,10 +123,7 @@ class ProjectSystemService(val project: Project) {
   }
 
   private fun sendRootsChangedEvents(project: Project) {
-    val publisher = project.messageBus.syncPublisher(ModuleRootListener.TOPIC)
-    val rootChangedEvent = ModuleRootEventImpl(project, false)
-    publisher.beforeRootsChange(rootChangedEvent)
-    publisher.rootsChanged(rootChangedEvent)
+    ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(EmptyRunnable.INSTANCE, RootsChangeRescanningInfo.TOTAL_RESCAN)
   }
 
   /**
