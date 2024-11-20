@@ -16,8 +16,10 @@
 package com.android.tools.idea.common.editor
 
 import com.android.tools.adtui.TreeWalker
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.LayoutActionsFloatingToolbar
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
@@ -59,16 +61,26 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
     // super.getComponent() initializes toolbar and sets true visibility values for
     val mainComponent = super.getComponent()
     if (toolbarComponent == null) {
+      val toolbarFilter: (Component) -> Boolean =
+        if (UISettings.instanceOrNull?.editorTabPlacement != UISettings.TABS_NONE) {
+          { it is SplitEditorToolbar }
+        } else {
+          // When there are no tabs, SplitEditor will use a floating toolbar
+          { it is LayoutActionsFloatingToolbar }
+        }
       toolbarComponent =
-        TreeWalker(mainComponent)
-          .descendantStream()
-          .filter { it is SplitEditorToolbar }
-          .findFirst()
-          .orElseThrow { IllegalStateException("TextEditorWithPreview should have a toolbar.") }
+        TreeWalker(mainComponent).descendantStream().filter(toolbarFilter).findFirst().orElseThrow {
+          IllegalStateException("TextEditorWithPreview should have a toolbar.")
+        }
       // Apply visibility values overridden by this
       if (isPureTextEditor) {
         setPureTextEditorVisibility()
       }
+    } else {
+      // Hide the toolbar when isPureTextEditor is true. This needs to be done here and not only in
+      // the isPureTextEditor setter because LayoutActionsFloatingToolbar will keep setting its
+      // visibility, so we need to override it.
+      toolbarComponent?.isVisible = !isPureTextEditor
     }
     return mainComponent
   }

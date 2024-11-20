@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -78,7 +79,9 @@ abstract class SplitEditor<P : FileEditor>(
     }
 
   override val isShowFloatingToolbar: Boolean
-    get() = false
+    // If there are no editor tabs, we should show the split controls as a floating
+    // toolbar, so the user can still switch between modes.
+    get() = UISettings.instanceOrNull?.editorTabPlacement == UISettings.TABS_NONE
 
   private val navigateRightAction =
     object : AnAction() {
@@ -94,9 +97,11 @@ abstract class SplitEditor<P : FileEditor>(
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
-    // If displaying the split controls in the editor tabs, we should make sure the legacy toolbar
-    // is not visible.
-    if (isShowActionsInTabs) {
+    // If displaying the split controls in the editor tabs, i.e. when using the new UI but not
+    // when editor tabs are hidden, we should make sure the legacy toolbar is not visible.
+    if (
+      NewUI.isEnabled() && UISettings.instanceOrNull?.editorTabPlacement != UISettings.TABS_NONE
+    ) {
       TreeWalker(thisComponent)
         .descendantStream()
         .filter { it is SplitEditorToolbar }
