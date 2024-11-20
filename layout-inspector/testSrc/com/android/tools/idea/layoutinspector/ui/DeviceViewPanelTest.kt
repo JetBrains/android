@@ -92,6 +92,8 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
@@ -105,6 +107,16 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
+import junit.framework.TestCase
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -119,17 +131,7 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
-import junit.framework.TestCase
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestScope
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -256,12 +258,11 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { dataId ->
-      when {
-        LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId) -> inspectorRule.inspector
-        else -> panel.getData(dataId)
-      }
+    val provider = EdtNoGetDataProvider { sink ->
+      sink[LAYOUT_INSPECTOR_DATA_KEY] = inspectorRule.inspector
+      DataSink.uiDataSnapshot(sink, panel)
     }
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(provider)
   }
 
   @Test

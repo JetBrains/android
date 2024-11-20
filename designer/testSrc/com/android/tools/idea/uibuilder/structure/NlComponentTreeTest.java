@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
-import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
-import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.BUTTON;
 import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN;
 import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
 import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.AndroidXConstants.COLLAPSING_TOOLBAR_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
 import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
@@ -45,8 +45,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.ComponentStack;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.actions.GotoComponentAction;
+import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -55,8 +57,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.LayoutTestUtilities;
-import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;

@@ -45,15 +45,15 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.nio.file.Paths
-import javax.swing.JPanel
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.nio.file.Paths
+import javax.swing.JPanel
 
 class NavDesignSurfaceZoomControlsTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.withSdk()
@@ -275,9 +275,7 @@ class NavDesignSurfaceZoomControlsTest {
       fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
 
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Verify zoom in
     run {
@@ -364,9 +362,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
 
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Verify zoom out
     run {
@@ -409,10 +405,10 @@ class NavDesignSurfaceZoomControlsTest {
 
     val model =
       NlModel.Builder(
-          androidProjectRule.testRootDisposable,
-          AndroidBuildTargetReference.gradleOnly(facet),
-          navGraph.virtualFile,
-          configuration,
+        androidProjectRule.testRootDisposable,
+        AndroidBuildTargetReference.gradleOnly(facet),
+        navGraph.virtualFile,
+        configuration,
         )
         .withComponentRegistrar(NavComponentRegistrar)
         .build()
@@ -454,9 +450,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
 
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val event = TestActionEvent.createTestEvent(dataContext)
+    val event = TestActionEvent.createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 

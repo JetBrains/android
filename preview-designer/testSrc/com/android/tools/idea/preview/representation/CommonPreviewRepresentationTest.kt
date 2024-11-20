@@ -92,11 +92,6 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.concurrent.CountDownLatch
-import javax.swing.JPanel
-import kotlin.test.assertFails
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -117,6 +112,11 @@ import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.util.concurrent.CountDownLatch
+import javax.swing.JPanel
+import kotlin.test.assertFails
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
@@ -306,13 +306,12 @@ class CommonPreviewRepresentationTest {
     runBlocking(workerThread) {
       val preview = createPreviewRepresentation()
       val surface = preview.previewView.mainSurface
-      val context =
-        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+      val context = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
 
       assertTrue(PreviewModeManager.KEY.getData(context) is PreviewModeManager)
-      assertTrue(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
-      assertTrue(PreviewGroupManager.KEY.getData(context) is PreviewGroupManager)
-      assertTrue(PreviewFlowManager.KEY.getData(context) is PreviewFlowManager<*>)
+      assertThat(PREVIEW_VIEW_MODEL_STATUS.getData(context) is PreviewViewModelStatus)
+      assertThat(PreviewGroupManager.KEY.getData(context) is PreviewGroupManager)
+      assertThat(PreviewFlowManager.KEY.getData(context) is PreviewFlowManager<*>)
       assertTrue(FastPreviewSurface.KEY.getData(context) is FastPreviewSurface)
       assertTrue(PreviewInvalidationManager.KEY.getData(context) is PreviewInvalidationManager)
 

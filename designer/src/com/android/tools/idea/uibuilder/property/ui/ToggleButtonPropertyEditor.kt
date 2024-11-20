@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.DataManager
@@ -25,7 +26,8 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAwareToggleAction
@@ -35,7 +37,7 @@ import javax.swing.JPanel
 
 /** Button with icon that is either pressed (on) or unchanged (off). */
 class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
-  JPanel(BorderLayout()), DataProvider {
+  JPanel(BorderLayout()), UiDataProvider {
 
   init {
     val action = ButtonAction(model)
@@ -73,8 +75,8 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
     )
   }
 
-  override fun getData(dataId: String): Any? {
-    return model.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = model.property
   }
 
   private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) :

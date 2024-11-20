@@ -44,11 +44,14 @@ import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -67,7 +70,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.psi.PsiManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -315,8 +317,10 @@ class LiveEditServiceImpl(val project: Project,
   private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
     object : ContentManagerHierarchyAdapter(runningDevicesWindow) {
       override fun contentAdded(event: ContentManagerEvent) {
-        val dataProvider = event.content.component as? DataProvider ?: return
-        val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+        val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
+          DataSink.Companion.uiDataSnapshot(sink, event.content.component)
+        })
+        val serial = dataContext.getData(SERIAL_NUMBER_KEY)
         serial?.let { adapter.register(it) }
       }
 
@@ -325,15 +329,19 @@ class LiveEditServiceImpl(val project: Project,
         if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
           return
         }
-        val dataProvider = event.content.component as? DataProvider ?: return
-        val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+        val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
+          DataSink.Companion.uiDataSnapshot(sink, event.content.component)
+        })
+        val serial = dataContext.getData(SERIAL_NUMBER_KEY)
         serial?.let { adapter.unregister(it) }
       }
     }
 
-    runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach {
-      val dataProvider = it.component as? DataProvider ?: return@forEach
-      val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+    runningDevicesWindow.contentManagerIfCreated?.contentsRecursively?.forEach { content ->
+      val dataContext = IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink ->
+        DataSink.Companion.uiDataSnapshot(sink, content.component)
+      })
+      val serial = dataContext.getData(SERIAL_NUMBER_KEY)
       serial?.let { s -> adapter.register(s) }
     }
   }

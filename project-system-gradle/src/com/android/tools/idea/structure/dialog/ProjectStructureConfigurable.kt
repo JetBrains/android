@@ -16,10 +16,10 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -30,9 +30,10 @@ import com.intellij.ide.JavaUiBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.options.Configurable
@@ -504,9 +505,10 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   fun remove(listener: ProjectStructureListener) = myProjectStructureEventDispatcher.removeListener(listener)
 
-  private inner class MyPanel internal constructor() : JPanel(BorderLayout()), DataProvider {
-    override fun getData(@NonNls dataId: String): Any? = if (History.KEY.`is`(dataId)) getHistory() else null
-
+  private inner class MyPanel internal constructor() : JPanel(BorderLayout()), UiDataProvider {
+    override fun uiDataSnapshot(sink: DataSink) {
+      sink[History.KEY] = getHistory()
+    }
   }
 
   private class UIState {

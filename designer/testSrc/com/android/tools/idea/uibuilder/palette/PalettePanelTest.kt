@@ -40,12 +40,11 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.CopyProvider
 import com.intellij.ide.browsers.BrowserLauncher
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
@@ -64,6 +63,23 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import org.intellij.lang.annotations.Language
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyCollection
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.isNull
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
 import java.awt.Point
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
@@ -76,23 +92,6 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.KeyStroke
 import javax.swing.TransferHandler
-import org.intellij.lang.annotations.Language
-import org.junit.After
-import org.junit.Assert.assertFalse
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyCollection
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 
 private const val BUTTON_CATEGORY_INDEX = 2
 private const val CHECKBOX_ITEM_INDEX = 2
@@ -136,8 +135,8 @@ class PalettePanelTest {
 
   @Test
   fun testCopyIsUnavailableWhenNothingIsSelected() {
-    val context: DataContext = mock()
-    val provider = myPanel!!.getData(PlatformDataKeys.COPY_PROVIDER.name) as CopyProvider?
+    val context = IdeUiService.getInstance().createUiDataContext(myPanel)
+    val provider = PlatformDataKeys.COPY_PROVIDER.getData(context)
     assertThat(provider).isNotNull()
     assertThat(provider!!.isCopyVisible(context)).isTrue()
     assertThat(provider.isCopyEnabled(context)).isFalse()
@@ -146,8 +145,8 @@ class PalettePanelTest {
   @Test
   fun testCopy() {
     myPanel!!.setToolContext(createDesignSurface(LayoutFileType))
-    val context: DataContext = mock()
-    val provider = myPanel!!.getData(PlatformDataKeys.COPY_PROVIDER.name) as CopyProvider?
+    val context = IdeUiService.getInstance().createUiDataContext(myPanel)
+    val provider = PlatformDataKeys.COPY_PROVIDER.getData(context)
     assertThat(provider).isNotNull()
     assertThat(provider!!.isCopyVisible(context)).isTrue()
     assertThat(provider.isCopyEnabled(context)).isTrue()

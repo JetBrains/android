@@ -17,11 +17,13 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
 import com.android.tools.property.panel.api.EditorContext
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.util.ui.UIUtil
 import javax.swing.JCheckBox
 
@@ -45,7 +47,7 @@ class PropertyCheckBox(model: BooleanPropertyEditorModel, context: EditorContext
 }
 
 private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) :
-  JCheckBox(), DataProvider {
+  JCheckBox(), UiDataProvider {
   private var stateChangeFromModel = false
 
   @VisibleForTesting
@@ -85,8 +87,8 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     return propertyModel.tooltip
   }
 
-  override fun getData(dataId: String): Any? {
-    return propertyModel.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = propertyModel.property
   }
 
   private fun toStateValue(value: String?) =

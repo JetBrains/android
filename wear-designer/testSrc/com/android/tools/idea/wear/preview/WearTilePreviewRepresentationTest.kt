@@ -52,9 +52,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -67,6 +64,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -125,7 +125,7 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val dataContext = preview.mainSurfaceDataContext
+      val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
       val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
@@ -417,10 +417,10 @@ class WearTilePreviewRepresentationTest {
         .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
 
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = PreviewModeManager.KEY.getData(mainSurfaceDataContext)!!
+    get() = PreviewModeManager.KEY.getData(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = PreviewFlowManager.KEY.getData(mainSurfaceDataContext)!!
+    get() = PreviewFlowManager.KEY.getData(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface))!!
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {

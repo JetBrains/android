@@ -18,13 +18,15 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -32,7 +34,7 @@ import javax.swing.JComponent
 
 /** A standard control for editing a text property. */
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) :
-  CommonTextField<TextFieldPropertyEditorModel>(editorModel), DataProvider {
+  CommonTextField<TextFieldPropertyEditorModel>(editorModel), UiDataProvider {
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -89,8 +91,8 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) :
     return null
   }
 
-  override fun getData(dataId: String): Any? {
-    return editorModel.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = editorModel.property
   }
 
   private fun enter() {

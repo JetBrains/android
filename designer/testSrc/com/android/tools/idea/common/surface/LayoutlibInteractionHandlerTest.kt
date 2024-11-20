@@ -26,11 +26,11 @@ import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.assertInstanceOf
-import java.awt.event.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.event.KeyEvent
 
 private class TestInteractableSurface(private val sceneView: SceneView? = null) :
   InteractableScenesSurface {

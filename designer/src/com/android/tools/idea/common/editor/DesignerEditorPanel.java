@@ -23,7 +23,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -46,7 +45,6 @@ import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.UiDataProvider;
@@ -554,32 +552,26 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
     }
   }
 
-  private class MyContentPanel extends AdtPrimaryPanel implements DataProvider {
+  private class MyContentPanel extends AdtPrimaryPanel implements UiDataProvider {
     private MyContentPanel() {
       super(new BorderLayout());
     }
 
-    @Nullable
     @Override
-    public Object getData(@NotNull String dataId) {
+    public void uiDataSnapshot(@NotNull DataSink sink) {
       // This class is the parent of ActionToolBar, DesignSurface, and Accessory Panel. The data of editor actions should be provided here.
       // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
-      if (DesignerDataKeys.DESIGN_SURFACE.is(dataId)) {
-        return getSurface();
-      }
-      else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
-        DesignSurface<?> surface = getSurface();
-        if (surface instanceof NlDesignSurface) {
-          ScreenViewProvider mode = ((NlDesignSurface)surface).getScreenViewProvider();
-          if (mode == NlScreenViewProvider.RENDER ||
-              mode == NlScreenViewProvider.BLUEPRINT ||
-              mode == NlScreenViewProvider.RENDER_AND_BLUEPRINT) {
-            // This editor is Layout Editor. TODO: Can we have better condition to know if it is Layout Editor?
-            return surface;
-          }
+      DesignSurface<?> surface = getSurface();
+      DataSink.uiDataSnapshot(sink, surface);
+      if (surface instanceof NlDesignSurface o) {
+        ScreenViewProvider mode = o.getScreenViewProvider();
+        if (mode == NlScreenViewProvider.RENDER ||
+            mode == NlScreenViewProvider.BLUEPRINT ||
+            mode == NlScreenViewProvider.RENDER_AND_BLUEPRINT) {
+          // This editor is Layout Editor. TODO: Can we have better condition to know if it is Layout Editor?
+          sink.set(NlActionManager.LAYOUT_EDITOR, o);
         }
       }
-      return null;
     }
   }
 }

@@ -66,11 +66,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -82,6 +77,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class RenderErrorTest {
 
@@ -316,19 +316,9 @@ class RenderErrorTest {
     actions: List<AnAction>,
     sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
-    val dataContext = runInEdtAndGet {
-      IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel)
-    }
-
-    val visibleActions =
-      Utils.expandActionGroup(
-        DefaultActionGroup(actions),
-        PresentationFactory(),
-        dataContext,
-        ActionPlaces.UNKNOWN,
-        ActionUiKind.NONE,
-      )
-
+    val dataContext = runInEdtAndGet { IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel) }
+    val visibleActions = Utils.expandActionGroup(DefaultActionGroup(actions), PresentationFactory(),
+                                                 dataContext, ActionPlaces.UNKNOWN, ActionUiKind.TOOLBAR)
     return visibleActions.size
   }
 
