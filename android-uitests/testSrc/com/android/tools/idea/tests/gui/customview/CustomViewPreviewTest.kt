@@ -53,7 +53,7 @@ class CustomViewPreviewTest {
   }
 
   private fun importProject(): IdeFrameFixture =
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication", "35")
 
   @Throws(Exception::class)
   private fun openBuildAndClosePreview(fixture: IdeFrameFixture) {

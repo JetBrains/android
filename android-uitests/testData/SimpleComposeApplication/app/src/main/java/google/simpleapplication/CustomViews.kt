@@ -2,16 +2,17 @@ package google.simpleapplication
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
+import androidx.appcompat.widget.AppCompatButton
 
-class CustomButton : Button {
+class CustomButton : AppCompatButton {
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
     text = "Custom Button"
   }
 }
 
-class AnotherCustomButton : Button {
+class AnotherCustomButton : AppCompatButton {
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
     text = "Another Custom Button"
   }
 }
+

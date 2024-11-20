@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
@@ -71,7 +72,6 @@ class ComposePreviewTest {
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    fixture.invokeProjectMake(null)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
     editor.waitUntilErrorAnalysisFinishes()
@@ -84,11 +84,15 @@ class ComposePreviewTest {
   }
 
   private fun getSyncedProjectFixture() =
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication" , "35").also {
+      it.buildToolWindow.activate()
+      assertThat(it.invokeProjectMake().isBuildSuccessful).isTrue()
+      guiTest.ideFrame().buildToolWindow.hide()
+    }
 
   @Test
   @Throws(Exception::class)
-  fun testOpenAndClosePreview() {
+  fun testOpenAndClosePreview2() {
     openAndClosePreview(getSyncedProjectFixture())
   }
 
@@ -241,6 +245,9 @@ class ComposePreviewTest {
       }
 
     val fixture = getSyncedProjectFixture()
+
+    assertThat(fixture.invokeProjectMake().isBuildSuccessful).isTrue()
+
     val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
       .waitForRenderToFinish()
       .waitForSceneViewsCount(3)
