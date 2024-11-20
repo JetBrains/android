@@ -404,7 +404,11 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
   @Override
   public void clean(long maxTargetSizeBytes, Duration minKeepDuration) throws BuildException {
     // Ensure that no artifacts are added or read from the cache while we're cleaning:
-    long stamp = lock.writeLock();
+    long stamp = lock.tryWriteLock();
+    if (stamp == 0) {
+      logger.warning("Failed to clean the build cache at " + cacheDir + " Failed to obtain the write lock");
+      return; // Just exit. WE will clean the cache next time.
+    }
     try {
       needClean = false;
       clean(maxTargetSizeBytes, Instant.now().minus(minKeepDuration));
@@ -467,7 +471,11 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
 
   public void purge() throws BuildException {
     // Ensure that no artifacts are added or read from the cache while we're cleaning:
-    long stamp = lock.writeLock();
+    long stamp = lock.tryWriteLock();
+    if (stamp == 0) {
+      // TODO: b/373957467 - Report this error to the user properly.
+      throw new BuildException("Failed to purge the build artifact cache. Cannot obtain the write lock.");
+    }
     try {
       MoreFiles.deleteDirectoryContents(cacheDir);
     } catch (IOException e) {
