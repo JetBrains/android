@@ -128,16 +128,18 @@ abstract class SplitEditor<P : FileEditor>(
   override val showPreviewAction: SplitEditorAction
     get() = previewViewAction
 
-  private fun getFakeActionEvent() =
-    AnActionEvent.createEvent(
-      CustomizedDataContext.withSnapshot(DataManager.getInstance().getDataContext(component)) { sink ->
+  private fun getFakeActionEvent(): AnActionEvent {
+    val parentContext = DataManager.getInstance().getDataContext(component)
+    return AnActionEvent.createEvent(
+      CustomizedDataContext.withSnapshot(parentContext) { sink ->
         sink[PlatformCoreDataKeys.FILE_EDITOR] = this
       },
       null,
       ActionPlaces.UNKNOWN,
       ActionUiKind.NONE,
-      null
+      null,
     )
+  }
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
   // backed by an enum.
