@@ -46,6 +46,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
@@ -132,7 +133,12 @@ open class NlPropertiesModel(
 
   var surface: DesignSurface<*>?
     get() = activeSurface
-    set(value) = useDesignSurface(value)
+    set(value) {
+      value?.let {
+        Disposer.register(it, WeakReferenceDisposableWrapper { useDesignSurface(null) })
+      }
+      useDesignSurface(value)
+    }
 
   val selection: List<NlComponent>
     get() = surface?.selectionModel?.selection ?: emptyList()
@@ -313,6 +319,9 @@ open class NlPropertiesModel(
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
       activeSceneView = surface?.focusedSceneView
+      activeSceneView?.let {
+        Disposer.register(it, WeakReferenceDisposableWrapper { activeSceneView = null })
+      }
     }
     makeInitialSelection(surface, activePanel)
   }
