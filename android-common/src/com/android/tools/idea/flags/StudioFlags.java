@@ -1739,6 +1739,15 @@ public final class StudioFlags {
       true
     );
 
+  public static final Flag<Integer> CODE_CONTEXT_EXPERIMENT_OVERRIDE =
+    new IntFlag(
+      APP_INSIGHTS,
+      "code.context.experiment.override",
+      "Code context experiment override",
+      "Overrides Studio's assigned experiment with this flag's value",
+      0
+    );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
