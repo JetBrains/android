@@ -42,6 +42,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import junit.framework.TestCase.assertTrue
 
+internal const val SDK_VERSION_FOR_TEMPLATE_TESTS = 35
+
 internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
   // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave
   // locked directories on Windows
@@ -55,7 +57,7 @@ internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
   val wrongLanguageExtension = if (language == Language.Kotlin) ".java" else ".kt"
   assertTrue(
     "Wrong language extension",
-    allPaths.none { it.toString().endsWith(wrongLanguageExtension) }
+    allPaths.none { it.toString().endsWith(wrongLanguageExtension) },
   )
 }
 
@@ -86,7 +88,7 @@ internal fun getDefaultModuleState(
   return ModuleTemplateDataBuilder(
       projectStateBuilder,
       isNewModule = true,
-      viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
+      viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE,
     )
     .apply {
       name = defaultModuleName
@@ -104,7 +106,7 @@ internal fun getDefaultModuleState(
           buildApi = ApiVersion(versions.compileSdk.toInt(), versions.compileSdk),
           targetApi = ApiVersion(versions.targetSdk.toInt(), versions.targetSdk),
           minApi = ApiVersion(minSdk, minSdk.toString()),
-          // The highest supported/recommended appCompact version is P(28)
+          // The highest supported/recommended appCompat version is P(28)
           appCompatVersion =
             SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
         )

@@ -123,6 +123,9 @@ fun AgpVersionSoftwareEnvironment.withKotlin(kotlinVersion: String?): CustomAgpV
 fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: String): CustomAgpVersionSoftwareEnvironment =
   CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
 
+fun AgpVersionSoftwareEnvironment.withTargetSdk(targetSdk: String): CustomAgpVersionSoftwareEnvironment =
+  CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, jdkVersion, kotlinVersion, compileSdk, targetSdk, modelVersion)
+
 @JvmName("resolveAgpVersionSoftwareEnvironment")
 fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironment {
   val buildEnvironment = BuildEnvironment.getInstance()

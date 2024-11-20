@@ -3,17 +3,6 @@
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
     <issue
-        id="OldTargetApi"
-        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
-        errorLine1="        targetSdk 34"
-        errorLine2="        ~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="12"
-            column="9"/>
-    </issue>
-
-    <issue
         id="UnusedResources"
         message="The resource `R.layout.layout` appears to be unused"
         errorLine1="&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"

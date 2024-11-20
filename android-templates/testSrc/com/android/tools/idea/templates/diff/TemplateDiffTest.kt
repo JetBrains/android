@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.BooleanParameter
@@ -34,7 +33,6 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import kotlin.system.measureTimeMillis
-import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -56,7 +54,9 @@ import org.junit.runners.Parameterized.Parameters
 class TemplateDiffTest(private val testMode: TestMode) {
   @get:Rule
   val projectRule: TestRule =
-    if (shouldUseGradle()) AndroidGradleProjectRule() else AndroidProjectRule.withAndroidModels()
+    if (shouldUseGradle())
+      AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getPinnedAgpVersion())
+    else AndroidProjectRule.withAndroidModels()
 
   @get:Rule val disposableRule = DisposableRule()
 
@@ -160,7 +160,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
     category: Category? = null,
     formFactor: FormFactor? = null,
   ) {
-    AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     val goldenDirName = findEnclosingTestMethodName()
@@ -188,7 +187,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectRenderer.renderProject(project, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, *customizers)
+      projectRenderer.renderProject(project, getPinnedAgpVersion(), *customizers)
 
       if (testMode == TestMode.GENERATING) {
         printUnzipInstructions()
@@ -770,10 +769,10 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   // TODO(b/377918259): XR template requires API 35
-  //@Test
-  //fun testXRBasicHeadsetActivity() {
+  // @Test
+  // fun testXRBasicHeadsetActivity() {
   //  checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
-  //}
+  // }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>

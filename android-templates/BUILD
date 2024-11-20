@@ -58,7 +58,7 @@ iml_module(
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-35",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
