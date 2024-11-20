@@ -73,7 +73,6 @@ import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 public class MoreFontsDialog extends DialogWrapper {
   public static final String ACTION_NAME = "More Fonts...";
 
-  private static final float FONT_SIZE_IN_LIST = 16f;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
 
@@ -240,7 +239,7 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static int computeFontHeightInFontList(@NotNull JComponent component) {
-    return component.getFontMetrics(component.getFont().deriveFont(FONT_SIZE_IN_LIST)).getHeight();
+    return component.getFontMetrics(component.getFont().deriveFont(getFontSizeInList())).getHeight();
   }
 
   private LayoutManager createGroupLayoutForCreateParams() {
@@ -388,6 +387,10 @@ public class MoreFontsDialog extends DialogWrapper {
     return builder.toString();
   }
 
+  private static float getFontSizeInList() {
+    return JBUI.scaleFontSize(16f);
+  }
+
   private static int getDefaultHeight() {
     return JBUI.scale(400);
   }
@@ -473,7 +476,7 @@ public class MoreFontsDialog extends DialogWrapper {
         font = myFontService.loadMenuFont(fontFamily);
         String text = fontFamily.getMenuName();
         if (font != null && font.canDisplayUpTo(text) < 0) {
-          font = font.deriveFont(FONT_SIZE_IN_LIST);
+          font = font.deriveFont(getFontSizeInList());
           myMenuFontCache.put(fontFamily, font);
         }
       }
@@ -540,7 +543,7 @@ public class MoreFontsDialog extends DialogWrapper {
       String text = fontDetail.getStyleName();
       Font font = myFontService.loadDetailFont(fontDetail);
       if (font != null) {
-        setFont(font.deriveFont(FONT_SIZE_IN_LIST));
+        setFont(font.deriveFont(getFontSizeInList()));
         text = findDisplayableTextForFont(font, text);
       }
       mySelectionForeground = myForeground;
