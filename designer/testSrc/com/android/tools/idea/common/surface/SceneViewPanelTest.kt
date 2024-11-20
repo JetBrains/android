@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -319,6 +320,39 @@ class SceneViewPanelTest {
     assertEquals(0, panel.findAllDescendants<SceneViewPeerPanel>().count())
 
     sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+  }
+
+  @Test
+  fun headersAreNotNullWhenGetPositionableContent() = runBlocking {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("1", "1")
+    val layoutManager = TestLayoutManager(organizationEnabled = true)
+    val sceneViews =
+      mutableListOf(
+        createSceneView(group1),
+        createSceneView(group1),
+        createSceneView(group2),
+        createSceneView(group2),
+      )
+    val panel =
+      SceneViewPanel(
+          sceneViewProvider = { sceneViews },
+          interactionLayersProvider = { emptyList() },
+          actionManagerProvider = { TestActionManager(Mockito.mock()) },
+          shouldRenderErrorsPanel = { false },
+          layoutManager = layoutManager,
+        )
+        .apply {
+          setNoComposeHeadersForTests()
+          size = Dimension(300, 300)
+        }
+    panel.doLayout()
+    delayUntilCondition(100, 1.seconds) { panel.positionableContent.isNotEmpty() }
+    val headers = panel.positionableContent.filterIsInstance<HeaderPositionableContent>()
+    assertTrue { headers.isNotEmpty() }
+    assertEquals(2, headers.size)
+    sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+    Disposer.dispose(panel)
   }
 
   private class TestLayoutManager(organizationEnabled: Boolean) :
