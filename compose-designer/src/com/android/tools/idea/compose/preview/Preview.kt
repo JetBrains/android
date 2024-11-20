@@ -816,7 +816,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
     withContext(uiThread) {
-      surface.layoutManagerSwitcher?.currentLayout?.value = mode.layoutOption
+      surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
     }
   }
 

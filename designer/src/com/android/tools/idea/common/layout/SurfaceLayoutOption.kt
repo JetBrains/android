@@ -24,16 +24,26 @@ import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManag
  * Wrapper class to define the options available for layout.
  *
  * @param displayName Name to be shown for this option.
- * @param layoutManager [SurfaceLayoutManager] to switch to when this option is selected.
+ * @param createLayoutManager creates [SurfaceLayoutManager] to switch to when this option is
+ *   selected.
  * @param organizationEnabled if layout has organization
  * @param sceneViewAlignment scenes alignment
  */
 data class SurfaceLayoutOption(
   val displayName: String,
-  val layoutManager: SurfaceLayoutManager,
+  val createLayoutManager: () -> SurfaceLayoutManager,
   val organizationEnabled: Boolean = false,
   val sceneViewAlignment: SceneViewAlignment = SceneViewAlignment.CENTER,
+  val layoutType: LayoutType = LayoutType.Default,
 ) {
+
+  enum class LayoutType {
+    Default,
+    Gallery,
+    OrganizationGrid,
+    SingleDirection,
+  }
+
   companion object {
 
     /** Distance between blueprint screen and regular screen */
@@ -42,13 +52,16 @@ data class SurfaceLayoutOption(
     val DEFAULT_OPTION =
       SurfaceLayoutOption(
         "Layout",
-        SingleDirectionLayoutManager(
-          NlConstants.DEFAULT_SCREEN_OFFSET_X,
-          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-          SCREEN_DELTA,
-          SCREEN_DELTA,
-          SingleDirectionLayoutManager.Alignment.CENTER,
-        ),
+        {
+          SingleDirectionLayoutManager(
+            NlConstants.DEFAULT_SCREEN_OFFSET_X,
+            NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+            SCREEN_DELTA,
+            SCREEN_DELTA,
+            SingleDirectionLayoutManager.Alignment.CENTER,
+          )
+        },
+        layoutType = LayoutType.SingleDirection,
       )
   }
 }

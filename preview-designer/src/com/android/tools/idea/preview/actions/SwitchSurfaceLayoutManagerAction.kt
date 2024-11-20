@@ -65,7 +65,7 @@ class SwitchSurfaceLayoutManagerAction(
 
     private fun updateMode(dataContext: DataContext) {
       dataContext.getData(DESIGN_SURFACE)?.let {
-        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutManager)
+        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutType)
       }
       val manager = dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return
 

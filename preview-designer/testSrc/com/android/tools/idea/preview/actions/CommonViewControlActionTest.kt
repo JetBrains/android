@@ -107,5 +107,5 @@ private fun createOption(
   displayText: String,
   layoutManager: SurfaceLayoutManager,
 ): SurfaceLayoutOption {
-  return SurfaceLayoutOption(displayText, layoutManager)
+  return SurfaceLayoutOption(displayText, { layoutManager })
 }

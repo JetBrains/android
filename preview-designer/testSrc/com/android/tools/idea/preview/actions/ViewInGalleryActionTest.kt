@@ -16,8 +16,6 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.layout.LayoutManagerSwitcher
-import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
@@ -57,17 +55,12 @@ class ViewInGalleryActionTest {
   private val dataContext: DataContext = mock()
   private val designSurface: NlDesignSurface = mock()
   private val modeManager: PreviewModeManager = mock()
-  private val surfaceLayoutOption: SurfaceLayoutOption = mock()
 
   @Before
   fun setUp() {
     StudioFlags.VIEW_IN_GALLERY.override(true)
     whenever(dataContext.getData(DESIGN_SURFACE)).thenReturn(designSurface)
     whenever(dataContext.getData(PreviewModeManager.KEY)).thenReturn(modeManager)
-
-    val layoutManagerSwitcher: LayoutManagerSwitcher = mock()
-    whenever(designSurface.layoutManagerSwitcher).thenReturn(layoutManagerSwitcher)
-    whenever(layoutManagerSwitcher.currentLayout).thenReturn(MutableStateFlow(surfaceLayoutOption))
   }
 
   @After

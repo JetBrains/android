@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.preview.analytics
 
-import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import java.util.LinkedList
@@ -33,12 +31,8 @@ class PreviewCanvasTrackerTest {
 
   @Test
   fun testSetLayout() {
-    val groupedGridLayout = GridLayoutManager { content ->
-      listOf(PositionableGroup(content.toList()))
-    }
-    previewCanvasTracker.logSwitchLayout(groupedGridLayout)
-    val galleryLayoutManager = GalleryLayoutManager()
-    previewCanvasTracker.logSwitchLayout(galleryLayoutManager)
+    previewCanvasTracker.logSwitchLayout(SurfaceLayoutOption.LayoutType.OrganizationGrid)
+    previewCanvasTracker.logSwitchLayout(SurfaceLayoutOption.LayoutType.Gallery)
 
     assertEquals(2, trackedEvents.size)
     trackedEvents.poll().let { event ->

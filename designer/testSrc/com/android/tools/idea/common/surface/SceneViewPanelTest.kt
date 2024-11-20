@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.util.Disposer
@@ -357,11 +358,25 @@ class SceneViewPanelTest {
 
   private class TestLayoutManager(organizationEnabled: Boolean) :
     PositionableContentLayoutManager(), LayoutManagerSwitcher {
-    override val currentLayout =
-      MutableStateFlow(SurfaceLayoutOption("", Mockito.mock(), organizationEnabled))
+
+    override val currentLayoutOption =
+      MutableStateFlow(
+        SurfaceLayoutOption(
+          "",
+          { GridLayoutManager() },
+          organizationEnabled,
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
+      )
 
     fun setOrganization(enabled: Boolean) {
-      currentLayout.value = SurfaceLayoutOption("", Mockito.mock(), enabled)
+      currentLayoutOption.value =
+        SurfaceLayoutOption(
+          "",
+          { GridLayoutManager() },
+          enabled,
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
     }
 
     override fun layoutContainer(

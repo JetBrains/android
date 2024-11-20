@@ -625,7 +625,7 @@ class CommonPreviewRepresentationTest {
       retryUntilPassing(1.seconds) {
         assertThat(
             persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayout
+              ?.currentLayoutOption
               ?.value
           )
           .isEqualTo(GALLERY_LAYOUT_OPTION)
@@ -644,7 +644,7 @@ class CommonPreviewRepresentationTest {
       retryUntilPassing(1.seconds) {
         assertThat(
             restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayout
+              ?.currentLayoutOption
               ?.value
           )
           .isEqualTo(GALLERY_LAYOUT_OPTION)
@@ -670,7 +670,7 @@ class CommonPreviewRepresentationTest {
       retryUntilPassing(1.seconds) {
         assertThat(
             persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayout
+              ?.currentLayoutOption
               ?.value
           )
           .isEqualTo(GALLERY_LAYOUT_OPTION)
@@ -688,7 +688,7 @@ class CommonPreviewRepresentationTest {
       retryUntilPassing(1.seconds) {
         assertThat(
             restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
-              ?.currentLayout
+              ?.currentLayoutOption
               ?.value
           )
           .isEqualTo(GALLERY_LAYOUT_OPTION)

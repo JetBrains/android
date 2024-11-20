@@ -16,11 +16,8 @@
 package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
-import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
+import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.SingleDirectionLayoutManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import com.intellij.openapi.Disposable
@@ -35,7 +32,7 @@ private val LOG: Logger
 /** Interface for usage tracking in the compose preview canvas event. */
 interface PreviewCanvasTracker {
   /** Logs the selection of layout in compose preview. */
-  fun logSwitchLayout(layout: SurfaceLayoutManager)
+  fun logSwitchLayout(layoutType: SurfaceLayoutOption.LayoutType)
 
   companion object {
     private val NOP_TRACKER = PreviewCanvasNopTracker
@@ -53,14 +50,17 @@ class PreviewCanvasTrackerImpl(
   private val myExecutor: Executor,
   private val myEventLogger: Consumer<AndroidStudioEvent.Builder>,
 ) : PreviewCanvasTracker {
-  override fun logSwitchLayout(layout: SurfaceLayoutManager) {
+  override fun logSwitchLayout(layoutType: SurfaceLayoutOption.LayoutType) {
     try {
       val layoutName =
-        when (layout) {
-          is GalleryLayoutManager -> ComposePreviewCanvasEvent.LayoutName.GALLERY
-          is SingleDirectionLayoutManager -> ComposePreviewCanvasEvent.LayoutName.LIST
-          is GridLayoutManager -> ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
-          else -> ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
+        when (layoutType) {
+          SurfaceLayoutOption.LayoutType.Gallery -> ComposePreviewCanvasEvent.LayoutName.GALLERY
+          SurfaceLayoutOption.LayoutType.SingleDirection ->
+            ComposePreviewCanvasEvent.LayoutName.LIST
+          SurfaceLayoutOption.LayoutType.OrganizationGrid ->
+            ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID
+          SurfaceLayoutOption.LayoutType.Default ->
+            ComposePreviewCanvasEvent.LayoutName.UNKNOWN_LAYOUT_NAME
         }
       myExecutor.execute {
         val event =
@@ -84,5 +84,5 @@ class PreviewCanvasTrackerImpl(
 }
 
 object PreviewCanvasNopTracker : PreviewCanvasTracker {
-  override fun logSwitchLayout(layout: SurfaceLayoutManager) = Unit
+  override fun logSwitchLayout(layoutType: SurfaceLayoutOption.LayoutType) = Unit
 }

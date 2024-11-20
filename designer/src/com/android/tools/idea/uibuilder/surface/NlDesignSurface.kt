@@ -54,7 +54,6 @@ import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -527,10 +526,10 @@ internal constructor(
     val scrollPosition = pannable.scrollPosition
     var focusPoint = update.focusPoint
 
-    val layoutManager = sceneViewLayoutManager.currentLayout.value.layoutManager
-
     // If layout is grouped grid layout.
-    val isGroupedGridLayout = layoutManager is GridLayoutManager
+    val isGroupedGridLayout =
+      sceneViewLayoutManager.currentLayoutOption.value.layoutType ==
+        SurfaceLayoutOption.LayoutType.OrganizationGrid
 
     if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =

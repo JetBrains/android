@@ -152,7 +152,7 @@ class SceneViewPanel(
   private fun launchOrganizationUpdate() {
     (layoutManager as? LayoutManagerSwitcher)?.let {
       scope.launch {
-        it.currentLayout.collect { layoutOption ->
+        it.currentLayoutOption.collect { layoutOption ->
           isOrganizationEnabled.value = layoutOption.organizationEnabled
         }
       }

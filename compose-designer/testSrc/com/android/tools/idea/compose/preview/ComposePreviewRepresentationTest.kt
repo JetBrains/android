@@ -304,7 +304,7 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
     delayUntilCondition(250) {
-      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
@@ -409,7 +409,7 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
     delayUntilCondition(250) {
-      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
     // Check that the surface zoom stays unchanged when exiting UI check mode.
@@ -446,7 +446,7 @@ class ComposePreviewRepresentationTest {
     setModeAndWaitForRefresh(
       PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
     ) {
-      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
     // Check that the UI Check tab is being reused
@@ -505,7 +505,7 @@ class ComposePreviewRepresentationTest {
     }
 
     setModeAndWaitForRefresh(PreviewMode.Default()) {
-      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
   }
 
@@ -803,7 +803,7 @@ class ComposePreviewRepresentationTest {
         preview.uiCheckFilterFlow.value
       )
       delayUntilCondition(250) {
-        UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+        UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
       }
 
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })

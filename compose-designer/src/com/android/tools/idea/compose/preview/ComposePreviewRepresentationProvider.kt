@@ -130,7 +130,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         if (isEssentialsModeSelected) {
           val layoutSwitcher = e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher
           ApplicationManager.getApplication().invokeLater {
-            layoutSwitcher?.currentLayout?.value = GALLERY_LAYOUT_OPTION
+            layoutSwitcher?.currentLayoutOption?.value = GALLERY_LAYOUT_OPTION
           }
         }
       }

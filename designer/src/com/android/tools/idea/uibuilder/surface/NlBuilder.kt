@@ -154,7 +154,6 @@ class NlSurfaceBuilder(
     }
 
   /** Allows customizing the [SurfaceLayoutOption]. */
-  @Suppress("deprecation")
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
     surfaceLayoutOption = layoutOption
     return this
@@ -304,10 +303,11 @@ class NlSurfaceBuilder(
       )
 
     Disposer.register(parentDisposable, surface)
+    Disposer.register(surface, nlDesignSurfacePositionableContentLayoutManager)
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
     AndroidCoroutineScope(surface).launch(uiThread) {
-      nlDesignSurfacePositionableContentLayoutManager.currentLayout.collect {
+      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect {
         surface.onLayoutUpdated(it)
       }
     }

@@ -126,7 +126,13 @@ class VisualizationForm(
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
   private val myLayoutOption =
-    SurfaceLayoutOption("Layout", GridLayoutManager(), false, SceneViewAlignment.LEFT)
+    SurfaceLayoutOption(
+      "Layout",
+      { GridLayoutManager() },
+      false,
+      SceneViewAlignment.LEFT,
+      SurfaceLayoutOption.LayoutType.OrganizationGrid,
+    )
   private val myUpdateQueue: MergingUpdateQueue
 
   private var myCancelPendingModelLoad = AtomicBoolean(false)
@@ -637,7 +643,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      surface.layoutManagerSwitcher?.currentLayout?.value = myLayoutOption
+      surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
       refresh()
     }
   }

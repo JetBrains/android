@@ -61,7 +61,7 @@ class CommonPreviewStateManager<T : PsiPreviewElementInstance>(
   fun getState(): PreviewRepresentationState {
     val selectedGroupName = currentGroupFilterProvider()?.filterGroup?.name ?: ""
     val selectedLayoutName =
-      surfaceProvider().layoutManagerSwitcher?.currentLayout?.value?.displayName ?: ""
+      surfaceProvider().layoutManagerSwitcher?.currentLayoutOption?.value?.displayName ?: ""
     return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)
   }
 

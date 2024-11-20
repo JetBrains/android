@@ -62,13 +62,27 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val layoutManager1 = GridLayoutManager()
       val layoutManager2 = GridLayoutManager()
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
-          .apply { surface = mockedSurface }
+        NlDesignSurfacePositionableContentLayoutManager(
+            SurfaceLayoutOption(
+              "",
+              { layoutManager1 },
+              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+            )
+          )
+          .apply {
+            surface = mockedSurface
+            Disposer.register(parentDisposable, this)
+          }
       assertEquals(0, layoutUpdates)
       AndroidCoroutineScope(parentDisposable).launch(uiThread) {
-        contentLayoutManager.currentLayout.collect { mockedSurface.onLayoutUpdated(it) }
+        contentLayoutManager.currentLayoutOption.collect { mockedSurface.onLayoutUpdated(it) }
       }
-      contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
+      contentLayoutManager.currentLayoutOption.value =
+        SurfaceLayoutOption(
+          "",
+          { layoutManager2 },
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
       delayUntilCondition(250) { layoutUpdates == 1 }
       assertEquals(1, layoutUpdates)
     }
@@ -82,9 +96,23 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
       val layoutManager1 = GridLayoutManager()
       val layoutManager2 = GridLayoutManager()
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
-          .apply { surface = mockedSurface }
-      contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
+        NlDesignSurfacePositionableContentLayoutManager(
+            SurfaceLayoutOption(
+              "",
+              { layoutManager1 },
+              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+            )
+          )
+          .apply {
+            surface = mockedSurface
+            Disposer.register(parentDisposable, this)
+          }
+      contentLayoutManager.currentLayoutOption.value =
+        SurfaceLayoutOption(
+          "",
+          { layoutManager2 },
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
 
       val content1 = TestPositionableContent(width = 80, height = 80)
       val content2 = TestPositionableContent(width = 80, height = 80)

@@ -66,9 +66,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(false)
     val options =
       listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
       )
 
     val viewControlAction =
@@ -107,9 +107,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
       )
 
     val viewControlAction =
@@ -152,9 +152,9 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
       )
 
     val viewControlAction =
@@ -217,7 +217,9 @@ class ComposeViewControlActionTest {
       )
     lateinit var event: AnActionEvent
     val viewControlAction =
-      ComposeViewControlAction(listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager())))
+      ComposeViewControlAction(
+        listOf(SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }))
+      )
     fun ComposePreviewManager.Status.setAndUpdate() {
       manager.currentStatus =
         this.also {
