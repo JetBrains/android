@@ -71,6 +71,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -249,6 +250,10 @@ class FastPreviewManagerGradleTest {
   // Regression test for b/228168101
   @Test
   fun `test parallel compilations`() {
+    // b/379711028
+    // Somehow we are getting multiple keymeta output classes in K2 mode occasionally.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     var compile = true
     val startCountDownLatch = CountDownLatch(1)
 
