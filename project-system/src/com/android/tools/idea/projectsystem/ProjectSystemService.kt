@@ -18,7 +18,10 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ModuleRootListener
@@ -28,7 +31,8 @@ import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service(Service.Level.PROJECT)
-class ProjectSystemService(val project: Project) {
+@State(name = "AndroidProjectSystem", storages = [Storage("AndroidProjectSystem.xml")], reloadable = false)
+class ProjectSystemService(val project: Project): PersistentStateComponent<ProjectSystemService.State> {
   /**
    * A state for the mini state machine around updating the view of the project system:
    *
@@ -59,6 +63,8 @@ class ProjectSystemService(val project: Project) {
   private val cachedDefaultProjectSystem by cachedDefaultProjectSystemDelegate
   private val cachedProjectSystem by cachedProjectSystemDelegate
   private var projectSystemForTests: AndroidProjectSystem? = null
+
+  private var state: State? = null
 
   companion object {
     private const val NORMAL_STATE = 0
@@ -95,6 +101,9 @@ class ProjectSystemService(val project: Project) {
 
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
     val extensions = EP_NAME.extensionList
+    getState()?.providerId?.let { providerId ->
+      extensions.find { it.id == providerId }?.also { return it.projectSystemFactory(project) }
+    }
     val application = ApplicationManagerEx.getApplicationEx()
     var result: AndroidProjectSystem? = null
     // In principle:
@@ -109,7 +118,14 @@ class ProjectSystemService(val project: Project) {
     // write means that we can avoid the deadlock, at the cost of sometimes returning a DefaultProjectSystem when that
     // is wrong.  We maintain two separate caches in order to detect and correct for that.
     application.tryRunReadAction {
-      result = extensions.find { it.isApplicable(project) }?.projectSystemFactory(project) ?: defaultProjectSystem(project, extensions)
+      val provider = extensions.find { it.isApplicable(project) }
+      if (provider != null) {
+        result = provider.projectSystemFactory(project)
+        state = State(provider.id)
+      }
+      else {
+        result = defaultProjectSystem(project, extensions)
+      }
     }
     return result ?: throw ReadLockUnavailable()
   }
@@ -138,5 +154,18 @@ class ProjectSystemService(val project: Project) {
         sendRootsChangedEvents(project)
       }
     }
+  }
+
+  class State(id: String? = null) {
+    var providerId: String? = id
+  }
+
+  // Do not serialize default project system provider if it somehow ends up getting to be our state: if we have fallen back
+  // to the default provider, give detection another chance when re-opening the project (for example, opening a Bazel-based
+  // project in Android Studio with Bazel support after once opening it in vanilla Android Studio).
+  override fun getState(): State? = state?.takeIf { it.providerId.orEmpty() != "" }
+
+  override fun loadState(state: State) {
+    this.state = state
   }
 }
