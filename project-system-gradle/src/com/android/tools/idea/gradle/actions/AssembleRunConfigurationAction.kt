@@ -41,10 +41,8 @@ class AssembleRunConfigurationAction : AbstractBuildRunConfigurationAction()
 abstract class AbstractBuildRunConfigurationAction :
   AndroidStudioGradleAction("Build Selected Run Configuration", "Build selected Run Configuration", BUILD_RUN_CONFIGURATION) {
 
-  open fun getRunConfigNameToBuild(e: AnActionEvent, project: Project): String? = extractRunConfigurationName(project)
-
   final override fun doUpdate(e: AnActionEvent, project: Project) {
-    val runConfigurationName = getRunConfigNameToBuild(e, project)
+    val runConfigurationName = getCurrentRunConfiguration(project)
 
     updatePresentation(e, runConfigurationName)
   }
@@ -108,24 +106,30 @@ abstract class AbstractBuildRunConfigurationAction :
     return ActionUpdateThread.BGT
   }
 
-  companion object {
-    @JvmStatic
-    fun updatePresentation(e: AnActionEvent, project: Project) {
-      updatePresentation(e, extractRunConfigurationName(project))
-    }
+  private fun getCurrentRunConfiguration(project: Project): RunConfiguration? =
+    RunManager.getInstance(project).selectedConfiguration?.configuration
 
-    private fun extractRunConfigurationName(project: Project): String? =
-      RunManager.getInstance(project).selectedConfiguration?.name
-
-    private fun updatePresentation(e: AnActionEvent, runConfigurationName: String?) {
-      val presentation = e.presentation
-      presentation.isEnabled = runConfigurationName != null
-      val presentationText = if (!presentation.isEnabled) {
-        "Assemble Run Configuration (No Configuration Selected)"
-      } else {
-        "Assemble '$runConfigurationName' Run Configuration"
-      }
-      presentation.text = presentationText
+  private fun isValidRunConfigurationToBuild(runConfiguration: RunConfiguration?): Boolean {
+    if (runConfiguration == null) return false
+    return when (runConfiguration) {
+      // ModuleBasedConfiguration includes Android (including Android Test) and JUnit run configurations,
+      // which is AbstractRerunFailedTestsAction.MyRunProfile.
+      is ModuleRunProfile -> true
+      // This is for Run configurations that are not module based like GradleRunConfiguration.
+      is ExternalSystemRunConfiguration -> runConfiguration is GradleRunConfiguration && runConfiguration.isRunAsTest
+      else -> return false
     }
+  }
+
+  private fun updatePresentation(e: AnActionEvent, runConfiguration: RunConfiguration?) {
+    val presentation = e.presentation
+    val runConfigurationName = runConfiguration?.name
+    presentation.isEnabled = runConfigurationName != null && isValidRunConfigurationToBuild(runConfiguration)
+    val presentationText = if (!presentation.isEnabled && runConfigurationName == null) {
+      "Assemble Run Configuration (No Configuration Selected)"
+    } else {
+      "Assemble '$runConfigurationName' Run Configuration"
+    }
+    presentation.text = presentationText
   }
 }
