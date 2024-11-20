@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GenerateBundleAction extends DumbAwareAction {
-  private static final String ACTION_TEXT = "Generate Bundle(s)";
+  private static final String ACTION_TEXT = "Generate Bundles";
 
   public GenerateBundleAction() {
     super(ACTION_TEXT);
