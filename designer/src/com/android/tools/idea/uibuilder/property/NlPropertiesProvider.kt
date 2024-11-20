@@ -46,8 +46,8 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
@@ -105,11 +105,12 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
       return PropertiesTable.emptyTable()
     }
 
-    val dumbService = DumbService.getInstance(project)
-    return dumbService.runReadActionInSmartMode<PropertiesTable<NlPropertyItem>> {
-      val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
-      PropertiesTable.create(generator.generate())
-    }
+    return ReadAction.nonBlocking<PropertiesTable<NlPropertyItem>> {
+        val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
+        PropertiesTable.create(generator.generate())
+      }
+      .inSmartMode(project)
+      .executeSynchronously()
   }
 
   override fun createEmptyTable(): PropertiesTable<NlPropertyItem> =
