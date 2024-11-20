@@ -163,9 +163,47 @@ open class PreviewMultipleParameterProvidersInspection :
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+}
 
-  override fun getStaticDescription() =
-    message("inspection.no.multiple.preview.provider.description")
+/**
+ * Inspection that checks that any existing @PreviewParameter is used in the first argument of a
+ * method
+ */
+open class PreviewParameterProviderOnFirstParameterInspection :
+  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    function: KtNamedFunction,
+    previewAnnotation: KtAnnotationEntry,
+  ) {
+    // Find the first PreviewParameter annotation if any
+    val firstPreviewParameter =
+      function.valueParameters
+        .mapNotNull {
+          it.annotationEntries.firstOrNull { annotation ->
+            annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
+          }
+        }
+        .firstOrNull() ?: return // If no @PreviewParameter, then ok
+
+    // If first parameter contains the first @PreviewParameter, then ok
+    if (function.valueParameters.first().annotationEntries.contains(firstPreviewParameter)) return
+    // Flag the first @PreviewParameter as the error
+    holder.registerProblem(
+      firstPreviewParameter as PsiElement,
+      message("inspection.parameter.provider.on.first.parameter.description"),
+      ProblemHighlightType.ERROR,
+    )
+  }
+
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    annotationClass: KtClass,
+    previewAnnotation: KtAnnotationEntry,
+  ) {
+    // This inspection only applies for functions, not for Annotation classes
+    return
+  }
 }
 
 open class ComposePreviewNeedsComposableAnnotationInspection :
