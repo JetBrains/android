@@ -270,6 +270,66 @@ iml_test(
 )
 
 iml_test(
+    name = "StartupSystemTraceTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupSystemTraceTaskTest",
+)
+
+iml_test(
+    name = "StartupJavaKotlinMethodRecordingTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupJavaKotlinMethodRecordingTaskTest",
+)
+
+iml_test(
+    name = "StartupNativeAllocationsTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupNativeAllocationsTaskTest",
+)
+
+iml_test(
     name = "SessionBasedProfilingWithApkTest",
     timeout = "long",
     data = profilers_test_common_data + [
