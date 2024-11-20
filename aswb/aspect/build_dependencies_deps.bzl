@@ -10,6 +10,23 @@ ZIP_TOOL_LABEL = "@bazel_tools//tools/zip:zipper"
 
 ANDROID_IDE_INFO = None
 
+# JAVA
+
+def _get_java_info(target, rule):
+    if not JavaInfo in target:
+        return None
+    p = target[JavaInfo]
+    return struct(
+        compile_jars = p.compile_jars,
+        transitive_compile_time_jars = p.transitive_compile_time_jars,
+        java_outputs = p.java_outputs,
+    )
+
+IDE_JAVA = struct(
+    srcs_attributes = ["java_srcs", "java_test_srcs"],
+    get_java_info = _get_java_info,
+)
+
 # KOTLIN
 
 def _get_dependency_attribute(rule, attr):
