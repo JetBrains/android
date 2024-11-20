@@ -38,6 +38,7 @@ import java.nio.file.FileSystem
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.TreeSet
+import kotlin.math.max
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -199,6 +200,7 @@ internal constructor(
   skins: ImmutableCollection<Skin>,
   image: ISystemImage?,
   fileSystem: FileSystem,
+  internal val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
 ) {
   internal var device by mutableStateOf(device)
 
