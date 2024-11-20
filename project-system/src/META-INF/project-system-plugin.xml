@@ -40,7 +40,6 @@
                     interface="org.jetbrains.android.facet.ResourceFolderManagerToken"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
     <projectService
         serviceInterface="com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider"
