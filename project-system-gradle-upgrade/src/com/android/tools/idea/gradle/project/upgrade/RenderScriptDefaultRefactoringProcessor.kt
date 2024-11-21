@@ -35,7 +35,7 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override val necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha02"))
+  override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -96,6 +96,7 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
 
   companion object {
     val INSERT_RENDER_SCRIPT_DIRECTIVE = UsageType(AndroidBundle.messagePointer("project.upgrade.renderScriptDefaultRefactoringProcessor.enable.usageType"))
+    val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha02")
   }
 }
 

@@ -31,7 +31,7 @@ class BlockAidlPropertyPresentRefactoringProcessor: AbstractBlockPropertyUnlessN
   override val propertyRemovedVersion = AgpVersion.parse("9.0.0-alpha01")
   override val necessityInfo = PointNecessity(propertyRemovedVersion)
   override val componentKind = UpgradeAssistantComponentKind.BLOCK_AIDL_PROPERTY_PRESENT
-  override val defaultChangedVersion = AgpVersion.parse("8.0.0-alpha04")
+  override val defaultChangedVersion = AidlDefaultRefactoringProcessor.DEFAULT_CHANGED
   override val noOpValue = false
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.aidlBlockProperty"
 }
