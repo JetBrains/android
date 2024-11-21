@@ -62,6 +62,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -482,10 +483,11 @@ class ComposePreviewViewImplTest {
       previewView.onRefreshCancelledByTheUser()
       fakeUi.root.validate()
     }
+    val shortcut = if (SystemInfo.isMac) "⌥⇧⌘R" else "Ctrl+Shift+F5"
     assertEquals(
       """
       Refresh was cancelled and needs to be completed before the preview can be displayed
-      [Build & Refresh... (Ctrl+Shift+F5)]
+      [Build & Refresh... ($shortcut)]
     """
         .trimIndent(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
