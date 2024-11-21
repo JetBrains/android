@@ -56,10 +56,13 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.ex.ActionUtil.invokeAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -550,14 +553,18 @@ internal class ComposePreviewViewImpl(
         SimpleDataContext.builder()
           .add(CommonDataKeys.PSI_FILE, psiFile)
           .add(CommonDataKeys.EDITOR, selectedEditor)
+          .add(CommonDataKeys.PROJECT, psiFile.project)
           .build()
-      ActionUtil.invokeAction(
-        previewGeneratorFactory.createPreviewGenerator(),
-        simpleContext,
-        ActionPlaces.UNKNOWN,
-        null,
-        null,
-      )
+      val event =
+        AnActionEvent.createEvent(
+          previewGeneratorFactory.createPreviewGenerator(),
+          simpleContext,
+          null,
+          ActionPlaces.UNKNOWN,
+          ActionUiKind.NONE,
+          null,
+        )
+      ActionUtil.invokeAction(previewGeneratorFactory.createPreviewGenerator(), event, null)
     }
   }
 
