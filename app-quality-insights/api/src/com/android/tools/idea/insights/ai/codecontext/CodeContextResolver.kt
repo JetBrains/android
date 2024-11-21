@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
@@ -90,7 +91,17 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
   ): CodeContextData {
-    val experiment = experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+    val flagValue =
+      Experiment.entries[
+          StudioFlags.CODE_CONTEXT_EXPERIMENT_OVERRIDE.get().takeIf { i ->
+            i in 0 until Experiment.entries.size
+          } ?: 0]
+    val experiment =
+      if (flagValue != Experiment.UNKNOWN) {
+        flagValue
+      } else {
+        experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+      }
     val fileLimit =
       when (experiment) {
         Experiment.TOP_SOURCE -> 1
