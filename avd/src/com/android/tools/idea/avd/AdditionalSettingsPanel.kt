@@ -38,7 +38,6 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
-import kotlin.math.max
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -75,6 +74,7 @@ internal fun AdditionalSettingsPanel(
       state.device,
       state.emulatedPerformanceGroupState,
       hasPlayStore,
+      state.maxCpuCoreCount,
       state::device::set,
     )
 
@@ -252,6 +252,7 @@ private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
   state: EmulatedPerformanceGroupState,
   hasGooglePlayStore: Boolean,
+  maxCpuCoreCount: Int,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -259,15 +260,14 @@ private fun EmulatedPerformanceGroup(
 
     Row {
       Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
-      val cpuCoreCount = device.cpuCoreCount ?: 1
 
       Dropdown(
         Modifier.alignByBaseline(),
-        device.cpuCoreCount != null && !hasGooglePlayStore,
+        !hasGooglePlayStore,
         menuContent = {
-          for (count in 1..max(1, Runtime.getRuntime().availableProcessors() / 2)) {
+          for (count in 1..maxCpuCoreCount) {
             selectableItem(
-              cpuCoreCount == count,
+              device.cpuCoreCount == count,
               onClick = { onDeviceChange(device.copy(cpuCoreCount = count)) },
             ) {
               Text(count.toString())
@@ -275,7 +275,7 @@ private fun EmulatedPerformanceGroup(
           }
         },
       ) {
-        Text(cpuCoreCount.toString())
+        Text(device.cpuCoreCount.toString())
       }
     }
 

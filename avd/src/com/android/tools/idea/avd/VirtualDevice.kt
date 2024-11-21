@@ -57,7 +57,7 @@ internal constructor(
   internal val internalStorage: StorageCapacity?,
   internal val expandedStorage: ExpandedStorage?,
   internal val existingCustomExpandedStorage: Custom? = null,
-  internal val cpuCoreCount: Int?,
+  internal val cpuCoreCount: Int,
   internal val graphicsMode: GraphicsMode,
   internal val ram: StorageCapacity?,
   internal val vmHeapSize: StorageCapacity?,
@@ -142,7 +142,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
   skin = device.skin.toAvdSkin()
 
   screenOrientation = device.orientation
-  cpuCoreCount = device.cpuCoreCount ?: 1
+  cpuCoreCount = device.cpuCoreCount
   ram = requireNotNull(device.ram).toStorage()
   vmHeap = requireNotNull(device.vmHeapSize).toStorage()
   internalStorage = requireNotNull(device.internalStorage).toStorage()

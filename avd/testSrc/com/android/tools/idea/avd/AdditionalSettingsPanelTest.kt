@@ -214,4 +214,22 @@ class AdditionalSettingsPanelTest {
     // Assert
     assertThat(state.device).isEqualTo(device)
   }
+
+  @Test
+  fun cpuCoresDropdownOnClick() {
+    // Arrange
+    val device = TestDevices.pixel9Pro()
+
+    val state =
+      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem, 4)
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Act
+    rule.onNodeWithText("4").performClick()
+    rule.onNodeWithText("3").performClick()
+
+    // Assert
+    assertThat(state.device).isEqualTo(device.copy(cpuCoreCount = 3))
+  }
 }
