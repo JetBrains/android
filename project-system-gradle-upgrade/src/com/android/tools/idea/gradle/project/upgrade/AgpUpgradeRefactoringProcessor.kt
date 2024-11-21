@@ -304,6 +304,7 @@ class AgpUpgradeRefactoringProcessor(
     ExcludeLibraryDefaultRefactoringProcessor(this),
     ResValuesDefaultRefactoringProcessor(this),
     BlockAidlPropertyPresentRefactoringProcessor(this),
+    BlockRenderScriptPropertyPresentRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
