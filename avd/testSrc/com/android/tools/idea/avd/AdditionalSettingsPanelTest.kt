@@ -18,12 +18,16 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
@@ -39,6 +43,29 @@ import org.mockito.kotlin.whenever
 class AdditionalSettingsPanelTest {
   private val fileSystem = createInMemoryFileSystem()
   @get:Rule val rule = createStudioComposeTestRule()
+
+  @Test
+  fun deviceSkinDropdownOnSelectedItemChange() {
+    // Arrange
+    val device = TestDevices.pixel9Pro()
+
+    val state =
+      ConfigureDevicePanelState(
+        device,
+        listOf(NoSkin.INSTANCE, device.skin).toImmutableList(),
+        null,
+        fileSystem,
+      )
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Act
+    rule.onNodeWithTag("DeviceSkinDropdown").performClick()
+    rule.onNodeWithText("No Skin").performClick()
+
+    // Assert
+    assertThat(state.device).isEqualTo(device.copy(skin = NoSkin.INSTANCE))
+  }
 
   @Test
   fun deviceSkinDropdownIsEnabledHasPlayStoreAndIsFoldable() {
@@ -89,7 +116,7 @@ class AdditionalSettingsPanelTest {
       ConfigureDevicePanelState(
         TestDevices.pixel9ProFold(),
         emptyList<Skin>().toImmutableList(),
-        mock(),
+        null,
         fileSystem,
       )
 
@@ -107,7 +134,7 @@ class AdditionalSettingsPanelTest {
       ConfigureDevicePanelState(
         TestDevices.pixel9Pro(),
         emptyList<Skin>().toImmutableList(),
-        mock(),
+        null,
         fileSystem,
       )
 
@@ -116,6 +143,42 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithTag("DeviceSkinDropdown").assertIsEnabled()
+  }
+
+  @Test
+  fun speedDropdownOnSelectedItemChange() {
+    // Arrange
+    val device = TestDevices.pixel9Pro()
+
+    val state =
+      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Act
+    rule.onNodeWithText("Full").performClick()
+    rule.onNodeWithText("LTE").performClick()
+
+    // Assert
+    assertThat(state.device).isEqualTo(device.copy(speed = AvdNetworkSpeed.LTE))
+  }
+
+  @Test
+  fun orientationDropdownOnClick() {
+    // Arrange
+    val device = TestDevices.pixel9Pro()
+
+    val state =
+      ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Act
+    rule.onNodeWithText("Portrait").performClick()
+    rule.onNodeWithText("Landscape").performClick()
+
+    // Assert
+    assertThat(state.device).isEqualTo(device.copy(orientation = ScreenOrientation.LANDSCAPE))
   }
 
   @Test
