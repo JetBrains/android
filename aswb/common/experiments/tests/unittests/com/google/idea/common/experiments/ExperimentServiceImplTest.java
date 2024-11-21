@@ -21,15 +21,24 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.common.experiments.FeatureRolloutExperiment.UsernameProvider;
 import com.google.idea.testing.IntellijRule;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.util.BuildNumber;
+import com.intellij.openapi.util.NlsSafe;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.CoroutineScopeKt;
-import kotlin.coroutines.EmptyCoroutineContext;
 
 /**
  * Tests for {@link ExperimentServiceImpl}.
@@ -45,6 +54,11 @@ public class ExperimentServiceImplTest {
 
   @Rule
   public IntellijRule intellij = new IntellijRule();
+
+  @Before
+  public void setUp() {
+    intellij.registerApplicationService(ApplicationInfo.class, new TestApplicationInfo());
+  }
 
   @Test
   public void testEmptyLoadersList() {
@@ -87,11 +101,10 @@ public class ExperimentServiceImplTest {
   }
 
   @Test
-  public void testChannelProperty() {
+  public void testBuildProperty() {
     ExperimentService experimentService =
         new ExperimentServiceImpl(DUMMY_SCOPE,
-            () -> "beta",
-            new MapExperimentLoader("id", "beta." + STRING_EXPERIMENT.getKey(), "hi"));
+            new MapExperimentLoader("id", "12345." + STRING_EXPERIMENT.getKey(), "hi"));
     assertThat(experimentService.getExperimentString(STRING_EXPERIMENT, null)).isEqualTo("hi");
     assertThat(experimentService.getAllQueriedExperiments())
         .containsExactly(STRING_EXPERIMENT.getKey(), STRING_EXPERIMENT);
@@ -289,6 +302,113 @@ public class ExperimentServiceImplTest {
     @Override
     public String getId() {
       return id;
+    }
+  }
+
+  private static class TestApplicationInfo extends ApplicationInfo {
+    @Override
+    public Calendar getBuildDate() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull ZonedDateTime getBuildTime() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull BuildNumber getBuild() {
+      return new BuildNumber("AI", 2024, 12345);
+    }
+
+    @Override
+    public @NotNull String getApiVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getMajorVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getMinorVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getMicroVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getPatchVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NlsSafe String getVersionName() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NlsSafe String getCompanyName() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NlsSafe String getShortCompanyName() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getCompanyURL() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Nullable String getProductUrl() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @Nullable String getJetBrainsTvUrl() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasHelp() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasContextHelp() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NlsSafe @NotNull String getFullVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NlsSafe @NotNull String getStrictVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getFullApplicationName() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEssentialPlugin(@NotNull String pluginId) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEssentialPlugin(@NotNull PluginId pluginId) {
+      throw new UnsupportedOperationException();
     }
   }
 }

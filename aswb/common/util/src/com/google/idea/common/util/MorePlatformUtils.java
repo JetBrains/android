@@ -15,6 +15,8 @@
  */
 package com.google.idea.common.util;
 
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PlatformUtils;
 
 /** Additional helpers for {@link PlatformUtils}. */
@@ -46,7 +48,10 @@ public final class MorePlatformUtils {
    * Returns the channel that the IDE was built from, either {@code stable}, {@code beta} or {@code
    * canary}.
    */
-  public static String getIdeChannel() {
-    return "canary";  // TODO: b/336527210 - Return the correct channel based on the new release process.
+
+
+  public static String getIdeAbBuildNumber() {
+    String fullVersion = ApplicationInfo.getInstance().getBuild().toString();
+    return StringUtil.substringAfterLast(fullVersion, ".");
   }
 }
