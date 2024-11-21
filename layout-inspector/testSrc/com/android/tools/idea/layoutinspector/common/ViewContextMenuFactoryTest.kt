@@ -30,7 +30,6 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
-import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -167,40 +166,10 @@ class ViewContextMenuFactoryTest {
   @Test
   fun testActionsVisibility() = withEmbeddedLayoutInspector {
     val model = inspectorModel!!
-
-    enableEmbeddedLayoutInspector = false
-
     showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
     val actions = createdGroup?.getChildren(event)?.toList()
 
     actions?.forEach {
-      val event = createFakeEvent()
-      it.update(event)
-      assertThat(event.presentation.isVisible).isTrue()
-    }
-
-    enableEmbeddedLayoutInspector = true
-
-    actions?.forEach {
-      val event = createFakeEvent()
-      it.update(event)
-
-      when (it.templateText) {
-        "Show All" -> assertThat(event.presentation.isVisible).isFalse()
-        "Hide Subtree" -> assertThat(event.presentation.isVisible).isFalse()
-        "Show Only Subtree" -> assertThat(event.presentation.isVisible).isFalse()
-        "Show Only Parents" -> assertThat(event.presentation.isVisible).isFalse()
-        else -> assertThat(event.presentation.isVisible).isTrue()
-      }
-    }
-
-    val fileEditorClient = FileEditorInspectorClient(model, mock(), mock())
-    whenever(mockLayoutInspector.currentClient).thenReturn(fileEditorClient)
-
-    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
-    val newActions = createdGroup?.getChildren(event)?.toList()
-
-    newActions?.forEach {
       val event = createFakeEvent()
       it.update(event)
 

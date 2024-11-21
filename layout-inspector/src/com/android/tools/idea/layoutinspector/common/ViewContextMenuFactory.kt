@@ -24,8 +24,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
-import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -121,9 +119,6 @@ private class ShowAllAction(
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible =
-      client is FileEditorInspectorClient ||
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     e.presentation.isEnabled = inspectorModel.hasHiddenNodes()
   }
 }
@@ -139,13 +134,6 @@ private class HideSubtreeAction(
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isVisible =
-      client is FileEditorInspectorClient ||
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  }
 }
 
 private class ShowOnlySubtreeAction(
@@ -159,13 +147,6 @@ private class ShowOnlySubtreeAction(
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isVisible =
-      client is FileEditorInspectorClient ||
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  }
 }
 
 private class ShowOnlyParentsAction(
@@ -179,13 +160,6 @@ private class ShowOnlyParentsAction(
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isVisible =
-      client is FileEditorInspectorClient ||
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  }
 }
 
 private fun generateText(viewNode: ViewNode) =
