@@ -87,7 +87,7 @@ class ToggleButtonTest {
         emptySet(),
         "https://url.for-crash.com",
         0,
-        annotations = emptyList(),
+        emptyList(),
       ),
       Event(),
     )

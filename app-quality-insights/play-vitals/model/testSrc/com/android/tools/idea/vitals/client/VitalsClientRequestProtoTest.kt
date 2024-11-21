@@ -85,7 +85,8 @@ class VitalsClientRequestProtoTest {
       val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
       assertThat(errorReportRequest.interval)
         .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-      assertThat(errorReportRequest.filter).isEqualTo("(errorIssueId = ${TEST_ISSUE1.id.value})")
+      assertThat(errorReportRequest.filter)
+        .isEqualTo("(errorReportId = ${TEST_ISSUE1.issueDetails.sampleEvent.split("/").last()})")
 
       val releaseFilteringRequest =
         events.filterIsInstance<FetchReleaseFilterOptionsRequest>().single()

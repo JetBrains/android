@@ -65,15 +65,11 @@ interface VitalsGrpcClient {
   /** Returns versions that are part of the releases. */
   suspend fun getReleases(connection: Connection): List<Version>
 
-  /**
-   * Returns error reports (sample events) based on the passed-in issue id and other general
-   * searching criteria.
-   */
+  /** Returns error reports (sample events) based on the list of report ids */
   suspend fun searchErrorReports(
     connection: Connection,
     filters: QueryFilters,
-    issueId: IssueId,
-    maxNumResults: Int,
+    reportIds: List<String>,
   ): List<Event>
 
   /** Returns top issues based on the passed-in searching criteria. */

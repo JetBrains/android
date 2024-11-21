@@ -241,14 +241,14 @@ class FakeErrorsService(
     responseObserver: StreamObserver<SearchErrorReportsResponse>,
   ) {
     requestChannel?.trySend(request)
-    val regex = Regex(".*errorIssueId = (\\w+).*")
-    val errorIssueId = regex.matchEntire(request.filter)!!.groupValues[1]
+    val regex = Regex("errorReportId = (\\w+)")
+    val errorReportId = regex.findAll(request.filter).map { it.groupValues[1] }.toSet()
     responseObserver.onNext(
       SearchErrorReportsResponse.newBuilder()
         .apply {
           addErrorReports(
             ErrorReport.newBuilder().apply {
-              database.getReportForIssue(errorIssueId)?.let { addErrorReports(it) }
+              addAllErrorReports(database.getReportsForIds(errorReportId))
             }
           )
         }

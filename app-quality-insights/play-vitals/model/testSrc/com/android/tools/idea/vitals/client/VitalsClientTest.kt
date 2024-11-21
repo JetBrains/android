@@ -81,6 +81,7 @@ import com.google.type.DateTime
 import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule
+import junit.framework.TestCase.fail
 import kotlin.collections.listOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -191,9 +192,8 @@ class VitalsClientTest {
         override suspend fun searchErrorReports(
           connection: Connection,
           filters: QueryFilters,
-          issueId: IssueId,
-          maxNumResults: Int,
-        ) = listOf(ISSUE1.sampleEvent)
+          reportIds: List<String>,
+        ): List<Event> = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(
           connection: Connection,
@@ -295,6 +295,52 @@ class VitalsClientTest {
 
     assertThat(responseIssue).isEqualTo(ISSUE1.copy(sampleEvent = Event.EMPTY))
   }
+
+  @Test
+  fun `client does not search error reports for empty issue list`() =
+    runBlocking<Unit> {
+      val cache = AppInsightsCacheImpl()
+      val grpcClient =
+        object : TestVitalsGrpcClient() {
+          override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection) =
+            listOf(Freshness(TimeGranularity.FULL_RANGE, DateTime.getDefaultInstance()))
+
+          override suspend fun listTopIssues(
+            connection: Connection,
+            filters: QueryFilters,
+            maxNumResults: Int,
+            pageTokenFromPreviousCall: String?,
+          ): List<IssueDetails> = emptyList()
+
+          override suspend fun searchErrorReports(
+            connection: Connection,
+            filters: QueryFilters,
+            reportIds: List<String>,
+          ): List<Event> {
+            fail("Test should not call searchErrorReports")
+            return emptyList()
+          }
+        }
+      val client =
+        VitalsClient(
+          projectRule.project,
+          projectRule.disposable,
+          cache,
+          ForwardingInterceptor,
+          grpcClient,
+        )
+      client.listTopOpenIssues(
+        IssueRequest(
+          TEST_CONNECTION_1,
+          QueryFilters(
+            interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
+            eventTypes = listOf(FailureType.FATAL),
+          ),
+        ),
+        null,
+        ConnectionMode.ONLINE,
+      )
+    }
 
   @Test
   fun `list top open issues returns correct issues, events, versions, oses, and devices`() =
@@ -429,9 +475,8 @@ class VitalsClientTest {
         override suspend fun searchErrorReports(
           connection: Connection,
           filters: QueryFilters,
-          issueId: IssueId,
-          maxNumResults: Int,
-        ) = listOf(ISSUE1.sampleEvent)
+          reportIds: List<String>,
+        ): List<Event> = listOf(ISSUE1.sampleEvent)
 
         override suspend fun listTopIssues(
           connection: Connection,

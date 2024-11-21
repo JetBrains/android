@@ -55,8 +55,7 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
   override suspend fun searchErrorReports(
     connection: Connection,
     filters: QueryFilters,
-    issueId: IssueId,
-    maxNumResults: Int,
+    reportIds: List<String>,
   ): List<Event> {
     return emptyList()
   }

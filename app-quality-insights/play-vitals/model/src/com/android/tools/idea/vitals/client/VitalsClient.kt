@@ -60,13 +60,10 @@ import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 private const val MAX_CONCURRENT_CALLS = 10
@@ -271,41 +268,23 @@ class VitalsClient(
             .toMap()
         topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
       }
+    val sampleErrorReportIdList = requestIssues.map { it.sampleEvent.split("/").last() }
+    val fetchedErrorReportMap =
+      if (sampleErrorReportIdList.isNotEmpty()) {
+        grpcClient
+          .searchErrorReports(request.connection, request.filters, sampleErrorReportIdList)
+          .associateBy { it.name }
+      } else {
+        emptyMap()
+      }
 
-    // TODO: revisit once we have a new API.
-    val requestedEventsByIssue =
-      requestIssues
-        .map { issueDetails ->
-          async {
-            // Here we restrict number of concurrent calls as a short-term fix while waiting for
-            // b/287461357 being resolved. Limiting calls are to address high chances of
-            // 'UNAVAILABLE' errors to some extent.
-            val reports =
-              concurrentCallLimit.withPermit {
-                grpcClient.searchErrorReports(
-                  request.connection,
-                  request.filters,
-                  issueDetails.id,
-                  1,
-                )
-              }
-
-            reports.firstOrNull()
-              ?: Event.EMPTY.also {
-                thisLogger().warn("No sample report got for $issueDetails by request: $request.")
-              }
-          }
-        }
-        .awaitAll()
-        .mapIndexed { index, event -> requestIssues[index] to event }
-        .toMap()
-
-    return@coroutineScope topIssues
+    topIssues
       .map { issueDetails ->
-        AppInsightsIssue(
-          issueDetails,
-          cachedSampleEvents[issueDetails] ?: requestedEventsByIssue[issueDetails]!!,
-        )
+        val event =
+          cachedSampleEvents[issueDetails]
+            ?: fetchedErrorReportMap[issueDetails.sampleEvent]
+            ?: Event.EMPTY
+        AppInsightsIssue(issueDetails, event)
       }
       .also { cache.populateIssues(request.connection, it) }
   }

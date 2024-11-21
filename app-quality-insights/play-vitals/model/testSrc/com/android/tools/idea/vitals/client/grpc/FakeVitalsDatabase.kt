@@ -44,6 +44,8 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
 
   private val database = ConcurrentHashMap<String, Cluster>()
 
+  private val reportDatabase = ConcurrentHashMap<String, ErrorReport>()
+
   fun addIssue(issue: AppInsightsIssue) {
     addIssueWithCustomStackTrace(
       issue,
@@ -66,7 +68,30 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
 
   fun getIssues() = database.values.map { it.issue }
 
-  fun getReportForIssue(errorIssueId: String) = database[errorIssueId]?.report
+  fun getReportsForIds(errorIssueIds: Set<String>): List<ErrorReport> {
+    return database.values
+      .filter { it.report.name.split("/").last() in errorIssueIds }
+      .map { it.report }
+  }
+
+  private fun IssueDetails.toErrorIssue(): ErrorIssue =
+    ErrorIssue.newBuilder()
+      .apply {
+        name = "apps/${connection.appId}/errorIssues/${id.value}"
+        type = fatality.toErrorType()
+        cause = subtitle
+        location = title
+        errorReportCount = eventsCount
+        distinctUsers = impactedDevicesCount
+        issueUri = uri
+        firstOsVersion = toOsVersion(lowestAffectedApiLevel)
+        lastOsVersion = toOsVersion(highestAffectedApiLevel)
+        firstAppVersion = toAppVersion(firstSeenVersion)
+        lastAppVersion = toAppVersion(lastSeenVersion)
+        addAllAnnotations(annotations.map { it.toProto() })
+        addAllSampleErrorReports(listOf(sampleEvent))
+      }
+      .build()
 
   private fun eventToProto(
     issue: AppInsightsIssue,
@@ -75,7 +100,7 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
   ): ErrorReport =
     ErrorReport.newBuilder()
       .apply {
-        name = "apps/${connection.appId}/errorReports/dummy_report_id"
+        name = issue.sampleEvent.name
         type = ErrorType.CRASH
         reportText = stacktrace
         this.issue = issue.id.value
@@ -94,24 +119,6 @@ class FakeVitalsDatabase(private val connection: VitalsConnection) {
             }
             .build()
         osVersion = toOsVersion(eventData.operatingSystemInfo.displayVersion.toLong())
-      }
-      .build()
-
-  private fun IssueDetails.toErrorIssue(): ErrorIssue =
-    ErrorIssue.newBuilder()
-      .apply {
-        name = "apps/${connection.appId}/errorIssues/${id.value}"
-        type = fatality.toErrorType()
-        cause = subtitle
-        location = title
-        errorReportCount = eventsCount
-        distinctUsers = impactedDevicesCount
-        issueUri = uri
-        firstOsVersion = toOsVersion(lowestAffectedApiLevel)
-        lastOsVersion = toOsVersion(highestAffectedApiLevel)
-        firstAppVersion = toAppVersion(firstSeenVersion)
-        lastAppVersion = toAppVersion(lastSeenVersion)
-        addAllAnnotations(annotations.map { it.toProto() })
       }
       .build()
 }

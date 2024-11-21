@@ -191,6 +191,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
           parent = connection.clientId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
           pageSize = maxNumResults
+          sampleErrorReportLimit = 1
           filter =
             FilterBuilder()
               .apply {
@@ -212,31 +213,24 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   override suspend fun searchErrorReports(
     connection: Connection,
     filters: QueryFilters,
-    issueId: IssueId,
-    maxNumResults: Int,
+    reportIds: List<String>,
   ): List<Event> {
-    val searchErrorReportsRequest =
-      SearchErrorReportsRequest.newBuilder()
-        .apply {
-          parent = connection.clientId
-          interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-          filter =
-            FilterBuilder()
-              .apply {
-                addErrorIssue(issueId)
-                addVersions(filters.versions)
-                addVisibilityType(filters.visibilityType)
-                addDevices(filters.devices)
-                addOperatingSystems(filters.operatingSystems)
-              }
-              .build()
-          pageSize = maxNumResults
-        }
-        .build()
+    val errorReports = mutableListOf<Event>()
+    val requestBase =
+      SearchErrorReportsRequest.newBuilder().apply {
+        parent = connection.clientId
+        interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+        filter = FilterBuilder().apply { addReportIds(reportIds) }.build()
+      }
 
-    return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest).await() }
-      .errorReportsList
-      .map { it.toSampleEvent() }
+    var nextPageToken = ""
+    do {
+      val request = requestBase.apply { pageToken = nextPageToken }.build()
+      val response = retryRpc { vitalsErrorGrpcClient.searchErrorReports(request).await() }
+      errorReports.addAll(response.errorReportsList.map { it.toSampleEvent() })
+      nextPageToken = response.nextPageToken
+    } while (nextPageToken.isNotEmpty())
+    return errorReports
   }
 
   companion object {
