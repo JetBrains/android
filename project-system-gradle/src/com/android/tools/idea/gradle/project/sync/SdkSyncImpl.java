@@ -50,15 +50,11 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SdkSync {
+public class SdkSyncImpl implements SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
   static final String ANDROID_MANIFEST_PATH = "/app/src/main/AndroidManifest.xml";
 
-  @NotNull
-  public static SdkSync getInstance() {
-    return ApplicationManager.getApplication().getService(SdkSync.class);
-  }
-
+  @Override
   public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties, @Nullable Project project) {
     syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
     syncIdeAndProjectAndroidNdk(localProperties);

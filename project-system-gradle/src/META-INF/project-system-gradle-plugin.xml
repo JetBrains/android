@@ -46,7 +46,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.SupportedModuleChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
+    <applicationService
+        serviceInterface="com.android.tools.idea.gradle.project.sync.SdkSync"
+        serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSyncImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
@@ -401,5 +403,7 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.androidModuleDataService"
+                    interface="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceExtension"/>
   </extensionPoints>
 </idea-plugin>

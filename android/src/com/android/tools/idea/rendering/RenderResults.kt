@@ -41,7 +41,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
     }
   }
   val result = RenderResult(
-    { StudioEnvironmentContext(module).getOriginalFile(file) },
+    { EnvironmentContextFactory.create(module).getOriginalFile(file) },
     module.project,
     { module },
     errorLogger,

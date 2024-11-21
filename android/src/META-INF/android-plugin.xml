@@ -285,6 +285,8 @@
     <projectService serviceInterface="com.android.tools.idea.res.AppLanguageService"
                     serviceImplementation="com.android.tools.idea.res.AppLanguageServiceImpl" />
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurationsManager"/>
+    <projectService serviceInterface="com.android.tools.idea.rendering.EnvironmentContextFactory"
+                    serviceImplementation="com.android.tools.idea.rendering.StudioEnvironmentContextFactory"/>
     <registryKey key="ide.essentials.mode"
                  description="Essentials Mode is a lighter-weight version of the editor, which turns some features off until receiving an explicit SaveAll command"
                  defaultValue="false"
