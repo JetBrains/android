@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.Camera
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
@@ -62,15 +63,17 @@ internal constructor(
   internal val ram: StorageCapacity?,
   internal val vmHeapSize: StorageCapacity?,
   internal val preferredAbi: String?,
+  private val hasPlaystore: Boolean = device.hasPlayStore(),
+  internal val isFoldable: Boolean = device.defaultHardware.screen.isFoldable,
+  internal val cameraLocations: Collection<CameraLocation> =
+    device.defaultHardware.cameras.map(Camera::getLocation),
+  internal val formFactor: String = device.formFactor,
 ) {
-  internal val isFoldable = device.defaultHardware.screen.isFoldable
-  internal val formFactor = device.formFactor
-
   internal val isValid =
     internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
 
   internal fun hasPlayStore(image: ISystemImage) =
-    device.hasPlayStore() && image.getServices() == Services.GOOGLE_PLAY_STORE
+    hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
   companion object {
     internal val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)

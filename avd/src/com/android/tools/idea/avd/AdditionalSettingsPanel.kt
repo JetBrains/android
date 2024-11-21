@@ -88,14 +88,13 @@ internal fun AdditionalSettingsPanel(
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
-  val cameraLocations = device.device.defaultHardware.cameras.map { it.location }
-  if (cameraLocations.isEmpty()) {
+  if (device.cameraLocations.isEmpty()) {
     return
   }
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Camera")
 
-    if (CameraLocation.FRONT in cameraLocations) {
+    if (CameraLocation.FRONT in device.cameraLocations) {
       Row {
         Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
@@ -118,7 +117,7 @@ private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -
       }
     }
 
-    if (CameraLocation.BACK in cameraLocations) {
+    if (CameraLocation.BACK in device.cameraLocations) {
       Row {
         Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
