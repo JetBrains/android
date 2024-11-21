@@ -913,6 +913,7 @@ object StudioIconsCompose {
 
   object StudioBot {
     val Ask: IntelliJIconKey = IntelliJIconKey("/studio/icons/studio-bot/ask.svg", "/studio/icons/studio-bot/ask.svg", StudioIconsCompose.javaClass) // 16x16
+    val LogoMonochrome: IntelliJIconKey = IntelliJIconKey("/studio/icons/studio-bot/logo-monochrome.svg", "/studio/icons/studio-bot/logo-monochrome.svg", StudioIconsCompose.javaClass) // 16x16
     val Logo: IntelliJIconKey = IntelliJIconKey("/studio/icons/studio-bot/logo.svg", "/studio/icons/studio-bot/logo.svg", StudioIconsCompose.javaClass) // 16x16
   }
 
