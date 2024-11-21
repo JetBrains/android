@@ -42,9 +42,3 @@ fun Presentation.enableRichTooltip(action: AnAction, detailText: String? = descr
 fun Presentation.disableRichTooltip() {
   putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, null);
 }
-
-/** Enables action tooltip that includes the name and description of the action. */
-@Deprecated("Use Presentation.enableRichTooltip instead", ReplaceWith("presentation.enableRichTooltip(this)"))
-fun AnAction.enableRichTooltip(presentation: Presentation) {
-  presentation.enableRichTooltip(this)
-}
