@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.serverflags.protos.ServerFlag
+import com.android.tools.idea.serverflags.protos.FlagValue
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Any
@@ -26,35 +26,35 @@ import org.junit.Test
 private val FLAGS =
   mapOf(
     "boolean" to
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 0
           booleanValue = true
         }
         .build(),
     "int" to
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 25
           intValue = 1
         }
         .build(),
     "float" to
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 50
           floatValue = 1f
         }
         .build(),
     "string" to
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 75
           stringValue = "foo"
         }
         .build(),
     "proto" to
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 100
           protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
@@ -116,7 +116,7 @@ class ServerFlagServiceTest {
   @Test
   fun testInvalidProto() {
     val proto =
-      ServerFlag.newBuilder()
+      FlagValue.newBuilder()
         .apply {
           percentEnabled = 100
           protoValue =

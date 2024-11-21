@@ -20,7 +20,6 @@ import com.android.flags.Flag
 import com.android.flags.ImmutableFlagOverrides
 import com.android.flags.IntFlag
 import com.android.tools.idea.serverflags.ServerFlagService
-import org.jetbrains.annotations.VisibleForTesting
 
 /*
 ServerFlagOverrides is used to override StudioFlags from
@@ -34,7 +33,7 @@ class ServerFlagOverrides : ImmutableFlagOverrides {
     val name = "studio_flags/$id"
 
     // Currently, only boolean and integer flag overrides are supported.
-    return when(flag) {
+    return when (flag) {
       is BooleanFlag -> service.getBoolean(name)?.toString()
       is IntFlag -> service.getInt(name)?.toString()
       else -> null

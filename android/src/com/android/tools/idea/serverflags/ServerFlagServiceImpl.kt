@@ -16,15 +16,17 @@
 
 package com.android.tools.idea.serverflags
 
+import com.android.tools.analytics.CommonMetricsData
+import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.serverflags.protos.AndroidSdkSupportConfiguration
-import com.android.tools.idea.serverflags.protos.ServerFlag
+import com.android.tools.idea.serverflags.protos.FlagValue
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.Message
 import com.google.protobuf.TextFormat
 
 class ServerFlagServiceImpl : ServerFlagService {
   override val configurationVersion: Long
-  val flags: Map<String, ServerFlag>
+  val flags: Map<String, FlagValue>
 
   init {
     val data = initializer()
@@ -97,7 +99,7 @@ class ServerFlagServiceImpl : ServerFlagService {
     return sb.toString()
   }
 
-  private fun prettyPrint(name: String, flag: ServerFlag): String =
+  private fun prettyPrint(name: String, flag: FlagValue): String =
     when {
       flag.hasStringValue() -> flag.stringValue
       flag.hasBooleanValue() -> flag.booleanValue.toString()
@@ -118,8 +120,21 @@ class ServerFlagServiceImpl : ServerFlagService {
   }
 
   companion object {
+    private const val ENABLED_OVERRIDE_KEY = "studio.server.flags.enabled.override"
+
     var initializer: () -> ServerFlagInitializationData = {
-      ServerFlagInitializer.initializeService()
+      val overrideParser = OverridePropertyParserImpl(SUPPORTS_MULTI_VALUE_FLAGS)
+      val overriddenFlags =
+        System.getProperty(ENABLED_OVERRIDE_KEY)?.let { overrideParser.parseProperty(it) }
+          ?: emptyMap()
+      ServerFlagInitializer.initializeService(
+        localCacheDirectory,
+        flagsVersion,
+        CommonMetricsData.osName,
+        currentIdeBrand(),
+        overriddenFlags,
+        SUPPORTS_MULTI_VALUE_FLAGS,
+      )
     }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.idea.serverflags.protos.Brand
+import com.android.tools.idea.serverflags.protos.MultiValueServerFlag
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
@@ -31,7 +32,7 @@ private const val FILE_NAME = "serverflaglist.protobuf"
 val serverFlagTestData: ServerFlagList
   get() {
     val flags =
-      mutableListOf(
+      listOf(
         ServerFlag.newBuilder()
           .apply {
             percentEnabled = 0
@@ -128,6 +129,14 @@ private fun makeServerFlagData(flagName: String, flag: ServerFlag): ServerFlagDa
     }
     .build()
 }
+
+fun makeServerFlagData(flagName: String, flag: MultiValueServerFlag): ServerFlagData =
+  ServerFlagData.newBuilder()
+    .apply {
+      name = flagName
+      multiValueServerFlag = flag
+    }
+    .build()
 
 fun loadServerFlagList(path: Path, version: String): ServerFlagList {
   val filePath = path.resolve("$version/$FILE_NAME")
