@@ -366,16 +366,22 @@ mul_expression ::= expression ( '*' | '/' | '%' ) expression
 concat_expression ::= expression '||' expression
 unary_expression ::= ('-' | '+' | '~' | NOT) expression
 literal_expression ::= literal_value | bind_parameter
-paren_expression ::= '(' expression ( ',' expression )* ')'
+paren_expression ::= '(' expression_list ')'
 collate_expression ::= expression COLLATE collation_name
 between_expression ::= expression NOT? BETWEEN expression AND expression
 cast_expression ::= CAST '(' expression AS type_name ')'
 case_expression ::= CASE expression? ( WHEN expression THEN expression )+ ( ELSE expression )? END
 like_expression ::= expression NOT? ( LIKE | GLOB | REGEXP | MATCH ) expression ( ESCAPE expression )?
 isnull_expression ::= expression ( ISNULL | NOTNULL | NOT NULL )
-in_expression ::=  expression ( NOT )? IN ( '(' ( expression_subquery | expression ( ',' expression )* )? ')' | ( database_name '.' )? defined_table_name )
+in_expression ::=  expression ( NOT )? IN ( '(' ( expression_subquery | expression_list )? ')' | ( database_name '.' )? defined_table_name )
 exists_expression ::= ( ( NOT )? EXISTS )? '(' expression_subquery ')'
-function_call_expression ::= function_name '(' ( ( DISTINCT )? expression ( ',' expression )* | '*' )? ')'
+function_call_expression ::=
+  // We use two different parts to match https://www.sqlite.org/lang_expr.html#functions.
+  // The first matches window functions while the second matches simple and aggregate
+  // functions. It's important it happen in this order or else the parser may break when
+  // it completes parsing what it thinks is a simple function, only to encounter an over_clause.
+  function_name LPAREN ( STAR | expression_list )? RPAREN filter_clause? over_clause
+  | function_name LPAREN DISTINCT? ( STAR | expression_list order_clause? ) ? RPAREN filter_clause?
 
 private expression_subquery ::= &(WITH|SELECT|VALUES) subquery_greedy {pin=1}
 
@@ -431,24 +437,26 @@ select_statement ::= select_core (compound_operator select_core)* order_clause? 
 
 limit_clause ::= LIMIT expression ( ( OFFSET | ',' ) expression )?
 
-order_clause ::= ORDER BY ordering_term ( ',' ordering_term )*
+order_clause ::= ORDER BY ordering_term ( COMMA ordering_term )*
 
 select_core ::= select_core_select | select_core_values
 
-select_core_select ::= SELECT ( DISTINCT | ALL )? result_columns from_clause? where_clause? group_by_clause?
+select_core_select ::= SELECT ( DISTINCT | ALL )? result_columns from_clause? where_clause? group_by_clause? window_clause?
 
-group_by_clause ::= GROUP BY expression ( ',' expression )* ( HAVING expression )?
+group_by_clause ::= GROUP BY expression_list ( HAVING expression )?
 
 where_clause ::= WHERE expression
 
 from_clause ::= FROM table_or_subquery ( join_operator table_or_subquery join_constraint? )*
+
+window_clause ::= WINDOW window_name AS window_definition ( COMMA window_name AS window_definition )*
 
 result_columns ::= result_column ( ',' result_column )* {
   implements="com.android.tools.idea.lang.androidSql.psi.AndroidSqlTableElement"
   methods=[getSqlTable]
 }
 
-select_core_values ::= VALUES '(' expression ( ',' expression )* ')' ( ',' '(' expression ( ',' expression )* ')' )*
+select_core_values ::= VALUES '(' expression_list ')' ( ',' '(' expression_list ')' )*
 
 table_or_subquery ::= from_table | select_subquery | '(' table_or_subquery ')'
 
@@ -497,6 +505,42 @@ single_table_statement_table ::= ( database_name '.' )? defined_table_name {
 }
 
 vacuum_statement ::= VACUUM
+
+private expression_list ::= expression ( COMMA expression )*
+
+// See https://www.sqlite.org/windowfunctions.html
+
+filter_clause ::= FILTER LPAREN WHERE expression RPAREN
+
+over_clause ::= OVER ( window_name | window_definition )
+
+partition_clause ::= PARTITION BY expression_list
+
+window_definition ::=
+  LPAREN base_window_name? partition_clause? order_clause? frame_spec? RPAREN
+
+frame_spec ::= frame_clause (EXCLUDE ( NO OTHERS | CURRENT ROW | GROUP | TIES))?
+
+frame_clause ::=
+  (RANGE | ROWS | GROUPS) (frame_single | BETWEEN frame_left AND frame_right)
+
+private frame_left ::= expression PRECEDING
+    | expression FOLLOWING
+    | CURRENT ROW
+    | UNBOUNDED PRECEDING
+
+private frame_right ::= expression PRECEDING
+    | expression FOLLOWING
+    | CURRENT ROW
+    | UNBOUNDED FOLLOWING
+
+private frame_single ::= expression PRECEDING
+    | UNBOUNDED PRECEDING
+    | CURRENT ROW
+
+private window_name ::= name
+
+private base_window_name ::= name
 
 private name ::= IDENTIFIER | BRACKET_LITERAL | BACKTICK_LITERAL | string_literal
 private string_literal ::= SINGLE_QUOTE_STRING_LITERAL | DOUBLE_QUOTE_STRING_LITERAL

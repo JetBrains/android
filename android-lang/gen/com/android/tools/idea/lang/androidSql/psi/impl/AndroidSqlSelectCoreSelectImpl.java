@@ -68,4 +68,10 @@ public class AndroidSqlSelectCoreSelectImpl extends ASTWrapperPsiElement impleme
     return findChildByClass(AndroidSqlWhereClause.class);
   }
 
+  @Override
+  @Nullable
+  public AndroidSqlWindowClause getWindowClause() {
+    return findChildByClass(AndroidSqlWindowClause.class);
+  }
+
 }

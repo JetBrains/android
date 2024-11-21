@@ -199,11 +199,23 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFilterClause(@NotNull AndroidSqlFilterClause o) {
+    visitPsiElement(o);
+  }
+
   public void visitForeignKeyClause(@NotNull AndroidSqlForeignKeyClause o) {
     visitPsiElement(o);
   }
 
   public void visitForeignTable(@NotNull AndroidSqlForeignTable o) {
+    visitPsiElement(o);
+  }
+
+  public void visitFrameClause(@NotNull AndroidSqlFrameClause o) {
+    visitPsiElement(o);
+  }
+
+  public void visitFrameSpec(@NotNull AndroidSqlFrameSpec o) {
     visitPsiElement(o);
   }
 
@@ -287,8 +299,16 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitOverClause(@NotNull AndroidSqlOverClause o) {
+    visitPsiElement(o);
+  }
+
   public void visitParenExpression(@NotNull AndroidSqlParenExpression o) {
     visitExpression(o);
+  }
+
+  public void visitPartitionClause(@NotNull AndroidSqlPartitionClause o) {
+    visitPsiElement(o);
   }
 
   public void visitPragmaName(@NotNull AndroidSqlPragmaName o) {
@@ -414,6 +434,14 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
   }
 
   public void visitWhereClause(@NotNull AndroidSqlWhereClause o) {
+    visitPsiElement(o);
+  }
+
+  public void visitWindowClause(@NotNull AndroidSqlWindowClause o) {
+    visitPsiElement(o);
+  }
+
+  public void visitWindowDefinition(@NotNull AndroidSqlWindowDefinition o) {
     visitPsiElement(o);
   }
 

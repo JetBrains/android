@@ -22,18 +22,24 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface AndroidSqlFunctionCallExpression extends AndroidSqlExpression {
-
-  @NotNull
-  List<AndroidSqlExpression> getExpressionList();
+public interface AndroidSqlOverClause extends PsiElement {
 
   @Nullable
-  AndroidSqlFilterClause getFilterClause();
+  AndroidSqlWindowDefinition getWindowDefinition();
 
   @Nullable
-  AndroidSqlOrderClause getOrderClause();
+  PsiElement getBacktickLiteral();
 
   @Nullable
-  AndroidSqlOverClause getOverClause();
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

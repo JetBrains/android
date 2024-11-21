@@ -22,18 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface AndroidSqlFunctionCallExpression extends AndroidSqlExpression {
+public interface AndroidSqlPartitionClause extends PsiElement {
 
   @NotNull
   List<AndroidSqlExpression> getExpressionList();
-
-  @Nullable
-  AndroidSqlFilterClause getFilterClause();
-
-  @Nullable
-  AndroidSqlOrderClause getOrderClause();
-
-  @Nullable
-  AndroidSqlOverClause getOverClause();
 
 }
