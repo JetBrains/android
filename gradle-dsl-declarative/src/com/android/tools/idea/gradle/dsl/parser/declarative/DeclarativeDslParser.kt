@@ -116,8 +116,9 @@ class DeclarativeDslParser(
         override fun visitReceiverPrefixedFactory(factory: DeclarativeReceiverPrefixedFactory) {
           val expression = GradleDslInfixExpression(context, factory)
           //parse factory if expression consists only one element
-          if (factory.receiver != null && factory.receiver!!.receiver == null) {
-            val list = listOf(factory.receiver!!, factory)
+          factory.getReceiver()?.let { receiver ->
+            if (receiver.getReceiver() != null) return // handle only two call a().b() max
+            val list = listOf(receiver, factory)
             if (list.any { it.argumentsList?.arguments?.size == 1 }) {
               list.forEach { factoryElement ->
                 val name = factoryElement.identifier.name

@@ -39,6 +39,7 @@ public class DeclarativeVisitor extends PsiElementVisitor {
 
   public void visitAssignableProperty(@NotNull DeclarativeAssignableProperty o) {
     visitContributedReferenceHost(o);
+    // visitReceiverPrefixed(o);
   }
 
   public void visitAssignableQualified(@NotNull DeclarativeAssignableQualified o) {
@@ -72,6 +73,7 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     // visitIdentifierOwner(o);
     // visitValue(o);
     // visitAbstractFactory(o);
+    // visitReceiverPrefixed(o);
   }
 
   public void visitIdentifier(@NotNull DeclarativeIdentifier o) {
@@ -86,6 +88,7 @@ public class DeclarativeVisitor extends PsiElementVisitor {
   public void visitProperty(@NotNull DeclarativeProperty o) {
     visitValue(o);
     // visitContributedReferenceHost(o);
+    // visitReceiverPrefixed(o);
   }
 
   public void visitQualified(@NotNull DeclarativeQualified o) {

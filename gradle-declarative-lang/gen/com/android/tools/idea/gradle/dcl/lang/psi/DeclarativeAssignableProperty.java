@@ -23,7 +23,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.ContributedReferenceHost;
 import com.intellij.psi.PsiReference;
 
-public interface DeclarativeAssignableProperty extends ContributedReferenceHost, DeclarativeElement {
+public interface DeclarativeAssignableProperty extends ContributedReferenceHost, DeclarativeElement, DeclarativeReceiverPrefixed<DeclarativeAssignableProperty> {
 
   @NotNull
   DeclarativeIdentifier getField();

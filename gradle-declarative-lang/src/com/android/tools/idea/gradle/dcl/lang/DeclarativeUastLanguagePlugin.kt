@@ -134,7 +134,7 @@ class DeclarativeUFactory(
   override val methodIdentifier: UIdentifier = UIdentifier(sourcePsi.identifier, this)
   override val methodName: String? = sourcePsi.identifier.name
   override val psi: PsiElement = sourcePsi
-  override val receiver: UExpression? = sourcePsi.receiver?.let { DeclarativeUFactory(it) { this } }
+  override val receiver: UExpression? = sourcePsi.getReceiver()?.let { DeclarativeUFactory(it) { this } }
   override val receiverType: PsiType? = null
   override val returnType: PsiType? = null
   override val typeArgumentCount: Int = 0
@@ -216,13 +216,13 @@ fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpressio
   when (this) {
     is DeclarativeLiteral -> DeclarativeULiteral(this, uastParent)
     is DeclarativeFactory -> DeclarativeUFactory(this) { uastParent }
-    is DeclarativeProperty -> receiver?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
+    is DeclarativeProperty -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
 
     else -> error("Unexpected DeclarativeValue: $this")
   }
 
-fun DeclarativeAssignableProperty.toDeclarativeUExpression(uastParent: UElement?): UExpression = receiver?.let {
+fun DeclarativeAssignableProperty.toDeclarativeUExpression(uastParent: UElement?): UExpression = getReceiver()?.let {
   DeclarativeUAssignableProperty(this, uastParent, it)
 } ?: DeclarativeUSimpleProperty(this.field, uastParent)
 
