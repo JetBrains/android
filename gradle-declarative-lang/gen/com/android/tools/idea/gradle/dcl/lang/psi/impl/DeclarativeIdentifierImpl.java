@@ -52,7 +52,7 @@ public class DeclarativeIdentifierImpl extends DeclarativeIdentifierMixin implem
   }
 
   @Override
-  @NotNull
+  @Nullable
   public String getName() {
     return PsiImplUtil.getName(this);
   }

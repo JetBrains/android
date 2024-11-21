@@ -73,8 +73,9 @@ class PsiImplUtil {
     fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
+    // Name should be nullable to agree with CompositePsiElement.getName() in PSI impl classes
     @JvmStatic
-    fun getName(property: DeclarativeIdentifier): String {
+    fun getName(property: DeclarativeIdentifier): String? {
       var text = property.text
       if (text.startsWith("`") && text.endsWith("`"))
         text = text.drop(1).dropLast(1)
