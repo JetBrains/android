@@ -152,37 +152,37 @@
     <group id="Blaze.MainMenuActionGroup" class="com.google.idea.blaze.base.actions.BlazeMenuGroup" popup="true">
       <add-to-group group-id="MainMenu" anchor="before" relative-to-action="HelpMenu"/>
       <group id ="Blaze.SyncMenuGroup" text="_Sync" popup="true">
-        <reference id="Blaze.IncrementalSyncProject"/>
-        <reference id="Blaze.FullSyncProject"/>
-        <reference id="Blaze.SyncWorkingSet"/>
-        <reference id="Blaze.PartialSync"/>
-        <reference id="Blaze.UpdateDirectories"/>
-        <reference id="Blaze.CleanProjectTargets"/>
-        <reference id="Blaze.ExpandSyncToWorkingSet"/>
-        <reference id="Blaze.ShowPerformanceWarnings"/>
+        <reference ref="Blaze.IncrementalSyncProject"/>
+        <reference ref="Blaze.FullSyncProject"/>
+        <reference ref="Blaze.SyncWorkingSet"/>
+        <reference ref="Blaze.PartialSync"/>
+        <reference ref="Blaze.UpdateDirectories"/>
+        <reference ref="Blaze.CleanProjectTargets"/>
+        <reference ref="Blaze.ExpandSyncToWorkingSet"/>
+        <reference ref="Blaze.ShowPerformanceWarnings"/>
       </group>
       <group id="Blaze.EnableAnalysisGroup" text="Enable _Analysis" popup="true">
-        <reference id="Blaze.BuildDependencies" />
-        <reference id="Blaze.BuildReverseDependencies" />
-        <reference id="Blaze.BuildOpenFileDependencies" />
-        <reference id="Blaze.BuildDependenciesForWorkingSet"/>
-        <reference id="Blaze.BuildDependenciesForProject" />
+        <reference ref="Blaze.BuildDependencies" />
+        <reference ref="Blaze.BuildReverseDependencies" />
+        <reference ref="Blaze.BuildOpenFileDependencies" />
+        <reference ref="Blaze.BuildDependenciesForWorkingSet"/>
+        <reference ref="Blaze.BuildDependenciesForProject" />
       </group>
       <group id="Blaze.BuildMenuGroup" text="_Build" popup="true">
-        <reference id="MakeBlazeProject"/>
-        <reference id="MakeBlazeModule"/>
+        <reference ref="MakeBlazeProject"/>
+        <reference ref="MakeBlazeModule"/>
       </group>
       <group id="Blaze.Project" text="_Project" popup="true">
-        <reference id="Blaze.EditProjectView"/>
-        <reference id="Blaze.AddDirectoryToProjectView"/>
-        <reference id="Blaze.AddSourceToProject"/>
+        <reference ref="Blaze.EditProjectView"/>
+        <reference ref="Blaze.AddDirectoryToProjectView"/>
+        <reference ref="Blaze.AddSourceToProject"/>
       </group>
       <!--Add popup groups anchored after this bookmark-->
       <group id="Blaze.MenuGroupsBookmark"/>
       <separator/>
-      <reference id="Blaze.ExportRunConfigurations"/>
-      <reference id="Blaze.ResetQuerySync" />
-      <reference id="Blaze.FileGitHubIssueAction"/>
+      <reference ref="Blaze.ExportRunConfigurations"/>
+      <reference ref="Blaze.ResetQuerySync" />
+      <reference ref="Blaze.FileGitHubIssueAction"/>
       <!--Add single menu items anchored after this bookmark-->
       <group id="Blaze.MenuFooter"/>
     </group>
@@ -190,7 +190,7 @@
     <group id="Blaze.MainToolBarActionGroup">
       <add-to-group group-id="MainToolbarRight" anchor="before" relative-to-action="HelpTopics" />
       <add-to-group group-id="NavBarToolBarOthers" anchor="last"/>
-      <reference id="Blaze.IncrementalSyncProject"/>
+      <reference ref="Blaze.IncrementalSyncProject"/>
     </group>
 
     <group id="Blaze.PerFileContextMenu">

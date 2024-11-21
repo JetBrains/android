@@ -41,10 +41,10 @@
 
     <group id="Blaze.Java.ProjectViewPopupMenu">
       <add-to-group group-id="Blaze.PerFileContextMenu"/>
-      <reference id="Blaze.ExcludeLibraryAction"/>
-      <reference id="Blaze.AttachSourceJarAction"/>
-      <reference id="Blaze.AddLibraryTargetDirectoryToProjectView"/>
-      <reference id="Blaze.DescribeLibraryAction"/>
+      <reference ref="Blaze.ExcludeLibraryAction"/>
+      <reference ref="Blaze.AttachSourceJarAction"/>
+      <reference ref="Blaze.AddLibraryTargetDirectoryToProjectView"/>
+      <reference ref="Blaze.DescribeLibraryAction"/>
     </group>
   </actions>
 
