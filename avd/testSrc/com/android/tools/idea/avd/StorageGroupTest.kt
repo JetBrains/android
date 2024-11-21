@@ -32,15 +32,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
-import com.android.resources.ScreenOrientation
-import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.Hardware
-import com.android.sdklib.internal.avd.AvdCamera
-import com.android.sdklib.internal.avd.AvdNetworkLatency
-import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
@@ -48,13 +41,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 @RunWith(JUnit4::class)
 class StorageGroupTest {
-  private var device by mutableStateOf(pixel6())
+  private var device by mutableStateOf(TestDevices.pixel6())
   private val state = StorageGroupState(device, createInMemoryFileSystem())
 
   @get:Rule val composeRule = createStudioComposeTestRule()
@@ -310,37 +301,6 @@ class StorageGroupTest {
   }
 
   private companion object {
-    private fun pixel6(): VirtualDevice {
-      val hardware = mock<Hardware>()
-      whenever(hardware.screen).thenReturn(mock())
-
-      val device = mock<Device>()
-      whenever(device.defaultHardware).thenReturn(hardware)
-
-      return VirtualDevice(
-        name = "Pixel 6",
-        device = device,
-        skin =
-          DefaultSkin(
-            createInMemoryFileSystem()
-              .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
-          ),
-        frontCamera = AvdCamera.EMULATED,
-        rearCamera = AvdCamera.VIRTUAL_SCENE,
-        speed = AvdNetworkSpeed.FULL,
-        latency = AvdNetworkLatency.NONE,
-        orientation = ScreenOrientation.PORTRAIT,
-        defaultBoot = Boot.QUICK,
-        internalStorage = StorageCapacity(2, StorageCapacity.Unit.GB),
-        expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB)),
-        cpuCoreCount = 4,
-        graphicsMode = GraphicsMode.AUTO,
-        ram = StorageCapacity(2, StorageCapacity.Unit.GB),
-        vmHeapSize = StorageCapacity(228, StorageCapacity.Unit.MB),
-        preferredAbi = null,
-      )
-    }
-
     private fun SemanticsNodeInteractionsProvider.onInternalStorageTextField() =
       onNodeWithTag("InternalStorageRow").onChildren().filterToOne(hasSetTextAction())
 
