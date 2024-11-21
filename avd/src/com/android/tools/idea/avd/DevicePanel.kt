@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
@@ -82,12 +84,14 @@ internal fun DevicePanel(
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val nameFocusRequester = remember { FocusRequester() }
   Column(modifier) {
     Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
     var nameError by remember { mutableStateOf<String?>(null) }
     val nameState = rememberTextFieldState(configureDevicePanelState.device.name)
     LaunchedEffect(Unit) {
+      nameFocusRequester.requestFocus()
       snapshotFlow { nameState.text.toString() }
         .collect {
           configureDevicePanelState.setDeviceName(it)
@@ -99,7 +103,7 @@ internal fun DevicePanel(
     ErrorTooltip(nameError) {
       TextField(
         nameState,
-        Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE).focusRequester(nameFocusRequester),
         outline = if (nameError == null) Outline.None else Outline.Error,
       )
     }
