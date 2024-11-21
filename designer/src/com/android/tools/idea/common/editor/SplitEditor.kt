@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.ui.NewUI
 import com.intellij.util.containers.orNull
@@ -116,7 +117,7 @@ abstract class SplitEditor<P : FileEditor>(
     return thisComponent
   }
 
-  override fun getFile() = myEditor.file
+  override fun getFile(): VirtualFile? = myEditor.file
 
   override fun getEditor() = myEditor.editor
 
