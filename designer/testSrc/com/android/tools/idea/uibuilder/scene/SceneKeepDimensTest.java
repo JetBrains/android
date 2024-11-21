@@ -128,6 +128,7 @@ public class SceneKeepDimensTest extends SceneTest {
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
     when(configuration.getSettings()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
+    when(configuration.getTheme()).thenReturn("@android:style/Theme");
     myModel.setConfiguration(configuration);
   }
 

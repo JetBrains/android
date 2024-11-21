@@ -74,7 +74,7 @@ class LayoutHandlerTest : SceneTest() {
   fun testNotSnappableWithAnyRootView() {
     val model =
       model(
-          "layout.xml",
+          "layout2.xml",
           component(SdkConstants.TAG_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
             .children(
@@ -95,7 +95,7 @@ class LayoutHandlerTest : SceneTest() {
   fun testSnappableWithOnlyDataTag() {
     val model =
       model(
-          "layout.xml",
+          "layout2.xml",
           component(SdkConstants.TAG_LAYOUT)
             .withBounds(0, 0, 1000, 1000)
             .children(component(SdkConstants.TAG_DATA).withBounds(0, 0, 0, 0)),

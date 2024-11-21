@@ -16,7 +16,12 @@
 package com.android.tools.idea.common.model
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.rendering.api.ResourceNamespace.ANDROID
+import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
+import com.android.ide.common.rendering.api.ResourceReference.style
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.lint.LintAnnotationsModel
@@ -74,7 +79,6 @@ protected constructor(
   val treeWriter =
     NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
-  val themeUpdater = NlThemeUpdater({ configuration }, this)
 
   /**
    * Adds information to the model from a render result. A given model can use different updaters
@@ -158,7 +162,7 @@ protected constructor(
       // update
 
       if (configuration.modificationCount != configurationModificationCount) {
-        themeUpdater.updateTheme()
+        updateTheme()
       }
       listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
       if (notifyModificationWhenActivated.getAndSet(false))
@@ -267,6 +271,19 @@ protected constructor(
     return component
   }
 
+  private fun updateTheme() {
+    val themeUrl = ResourceUrl.parse(configuration.theme) ?: return
+    if (themeUrl.type != ResourceType.STYLE) {
+      return
+    }
+    val resolver = configuration.resourceItemResolver
+    val themeReference = style(if (themeUrl.isFramework) ANDROID else RES_AUTO, themeUrl.name)
+    if (resolver.getStyle(themeReference) == null) {
+      val theme = configuration.preferredTheme
+      configuration.setTheme(theme)
+    }
+  }
+
   override fun dispose() {
     isDisposed = true
     var shouldDeactivate: Boolean
@@ -309,7 +326,7 @@ protected constructor(
 
   private fun fireNotifyModified(reason: ChangeType) {
     modelVersion.increase(reason)
-    themeUpdater.updateTheme()
+    updateTheme()
     lastChangeType = reason
     listeners.forEach { listener: ModelListener -> listener.modelChanged(this) }
   }
