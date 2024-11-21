@@ -223,7 +223,7 @@ class CustomViewPreviewRepresentation(
   private val surface = view.surface
 
   /** [WorkBench] used to contain all the preview elements. */
-  private val workbench = view.workbench
+  @VisibleForTesting val workbench = view.workbench
 
   @Volatile private var lastBuildStartedNanos = 0L
 

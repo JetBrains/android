@@ -66,6 +66,11 @@ class SideModel<T> {
     return myContext;
   }
 
+  public void clearContextAndTools() {
+    myContext = null;
+    myAllTools.clear();
+  }
+
   public void addListener(@NotNull Listener<T> listener) {
     myListeners.add(listener);
   }
