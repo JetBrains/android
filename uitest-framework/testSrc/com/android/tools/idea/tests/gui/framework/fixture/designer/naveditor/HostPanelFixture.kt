@@ -29,10 +29,10 @@ import org.fest.swing.fixture.JListFixture
 class HostPanelFixture(robot: Robot, private val list: HostPanel) :
   JListFixture(robot, list.list) {
 
-  val selectedComponents: List<SmartPsiElementPointer<XmlTag>>
+  val selectedComponents: List<HostPanel.HostItem>
     get() = list.list.selectedValuesList
 
-  val components: List<SmartPsiElementPointer<XmlTag>>
+  val components: List<HostPanel.HostItem>
     get() = ApplicationManager.getApplication().runReadAction(Computable {
       (0 until list.list.model.size).map { list.list.model.getElementAt(it) }
     })

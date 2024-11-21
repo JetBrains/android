@@ -42,12 +42,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -58,7 +56,6 @@ import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.Query
-import com.intellij.util.SlowOperations
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -102,7 +99,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
 
-  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
+  @VisibleForTesting val list = JBList<HostItem>(DefaultListModel())
   private val cardLayout = layout as CardLayout
   private var resourceVersion = 0L
 
@@ -156,28 +153,16 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         }
     }
     list.cellRenderer =
-      object : ColoredListCellRenderer<SmartPsiElementPointer<XmlTag>>() {
+      object : ColoredListCellRenderer<HostItem>() {
         override fun customizeCellRenderer(
-          list: JList<out SmartPsiElementPointer<XmlTag>>,
-          value: SmartPsiElementPointer<XmlTag>?,
+          list: JList<out HostItem>,
+          value: HostItem?,
           index: Int,
           selected: Boolean,
           hasFocus: Boolean,
         ) {
-          if (value == null) {
-            return
-          }
+          value?.let { append(it.displayName) } ?: return
           icon = StudioIcons.NavEditor.Tree.ACTIVITY
-          val containingFile = value.containingFile?.name ?: "Unknown File"
-          val id = runReadAction {
-            SlowOperations.allowSlowOperations(
-              ThrowableComputable {
-                value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
-              }
-            )
-          }
-          append(FileUtil.getNameWithoutExtension(containingFile))
-          append(" (${id ?: "no id"})")
         }
       }
     list.addMouseListener(
@@ -227,7 +212,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
 
   private fun activate(index: Int) {
     if (index != -1) {
-      val containingFile = list.model.getElementAt(index).containingFile
+      val containingFile = list.model.getElementAt(index).tagPointer.containingFile
       if (containingFile != null) {
         FileEditorManager.getInstance(surface.project).openFile(containingFile.virtualFile, true)
       }
@@ -268,9 +253,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         val newReferences =
           ProgressManager.getInstance()
             .runProcess(
-              Computable {
-                findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
-              },
+              Computable { findReferences(psiFile, module).map { HostItem(it) } },
               EmptyProgressIndicator(),
             )
 
@@ -283,6 +266,20 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
           "LIST"
         }
       cardLayout.show(this, name)
+    }
+  }
+
+  @VisibleForTesting
+  class HostItem(tag: XmlTag) {
+    val tagPointer = runReadAction { SmartPointerManager.createPointer(tag) }
+    val displayName: String
+
+    init {
+      val containingFile = tag.containingFile?.name ?: "Unknown File"
+      val id = runReadAction {
+        tag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
+      }
+      displayName = "${FileUtil.getNameWithoutExtension(containingFile)} (${id ?: "no id"})"
     }
   }
 }
