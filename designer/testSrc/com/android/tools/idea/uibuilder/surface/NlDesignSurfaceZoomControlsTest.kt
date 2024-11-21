@@ -26,6 +26,7 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -60,6 +61,7 @@ import java.nio.file.Paths
 import javax.swing.JPanel
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
@@ -158,7 +160,12 @@ class NlDesignSurfaceZoomControlsTest {
       FakeUi(outerPanel, 1.0, true).apply {
         updateToolbars()
         layoutAndDispatchEvents()
+        render()
       }
+    }
+
+    delayUntilCondition(100, 2.seconds) {
+      fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2
     }
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
