@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.SdkConstants
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
@@ -337,22 +338,21 @@ class ComposePreviewViewImplTest {
   @Test
   fun `empty preview state when generate all previews is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(false)
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    runBlocking { previewView.updateVisibilityAndNotifications() }
 
-    assertEquals(
+    retryUntilPassing(2.seconds) {
+      assertEquals(
+        """
+        No preview found.
+        Add preview by annotating Composables with @Preview
+        [Using the Compose preview]
       """
-      No preview found.
-      Add preview by annotating Composables with @Preview
-      [Using the Compose preview]
-    """
-        .trimIndent(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
-    )
+          .trimIndent(),
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+      )
+    }
   }
 
   @Test
@@ -368,49 +368,49 @@ class ComposePreviewViewImplTest {
   private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
     geminiPluginApi.contextAllowed = contextSharingEnabled
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
 
-    assertEquals(
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    runBlocking { previewView.updateVisibilityAndNotifications() }
+
+    retryUntilPassing(2.seconds) {
+      assertEquals(
+        """
+        No preview found.
+        Add preview by annotating Composables with @Preview
+        [Using the Compose preview]
+        ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
       """
-      No preview found.
-      Add preview by annotating Composables with @Preview
-      [Using the Compose preview]
-      ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
-    """
-        .trimIndent()
-        .trim(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
-    )
+          .trimIndent()
+          .trim(),
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+      )
+    }
   }
 
   @Test
   fun `test compilation error state`() {
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
-    val shortcutRegEx = Regex("\\(.+.\\)")
-    val instructionsText =
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!
-        .toDisplayText()
-        .replace(shortcutRegEx, "(shortcut)")
-    assertEquals(
+    runBlocking { previewView.updateVisibilityAndNotifications() }
+
+    retryUntilPassing(2.seconds) {
+      val shortcutRegEx = Regex("\\(.+.\\)")
+      val instructionsText =
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+          ?.toDisplayText()
+          ?.replace(shortcutRegEx, "(shortcut)")
+      assertEquals(
+        """
+        A successful build is needed before the preview can be displayed
+        [Build & Refresh... (shortcut)]
       """
-      A successful build is needed before the preview can be displayed
-      [Build & Refresh... (shortcut)]
-    """
-        .trimIndent(),
-      instructionsText,
-    )
+          .trimIndent(),
+        instructionsText,
+      )
+    }
   }
 
   @Test
