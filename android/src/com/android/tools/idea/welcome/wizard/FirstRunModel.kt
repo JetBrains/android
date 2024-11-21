@@ -37,7 +37,6 @@ import com.android.tools.idea.welcome.install.InstallContext
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.welcome.install.Platform
 import com.android.tools.idea.welcome.install.WizardException
-import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.application.ModalityState
@@ -124,7 +123,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode, private val componentI
       if (installUpdates) Aehd.InstallationIntention.INSTALL_WITH_UPDATES
       else Aehd.InstallationIntention.INSTALL_WITHOUT_UPDATES
     if (mode === FirstRunWizardMode.NEW_INSTALL && Aehd.canRun()) {
-      components.add(Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
+      components.add(Aehd(installationIntention))
     }
     if (createAvd) {
       val avdCreator = AndroidVirtualDevice(remotePackages, installUpdates)

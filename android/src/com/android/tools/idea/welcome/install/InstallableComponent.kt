@@ -23,8 +23,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
-import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.diagnostic.thisLogger
 
 private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent::class.java)
@@ -94,11 +92,6 @@ abstract class InstallableComponent(
 
   override val childrenToInstall: Collection<InstallableComponent>
     get() = if (!willBeInstalled.get()) setOf() else setOf(this)
-
-  override val steps: Collection<ModelWizardStep<*>> = setOf()
-
-  @Deprecated("this is for the old welcome wizard", replaceWith = ReplaceWith("step"))
-  override fun createSteps(): Collection<DynamicWizardStep> = emptySet()
 
   override fun updateState(handler: AndroidSdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.

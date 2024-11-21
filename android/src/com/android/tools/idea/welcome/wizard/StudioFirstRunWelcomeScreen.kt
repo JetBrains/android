@@ -74,9 +74,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
       addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,this@StudioFirstRunWelcomeScreen))
 
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        model.componentTree.steps.forEach { addStep(it) }
         addStep(InstallSummaryStep(model, supplier))
-
         addStep(licenseAgreementStep)
       }
 

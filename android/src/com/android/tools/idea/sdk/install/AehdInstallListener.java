@@ -27,7 +27,7 @@ import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link VmWizard} instead of the normal quickfix wizard.
+ * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link AehdWizard} instead of the normal quickfix wizard.
  */
 public class AehdInstallListener implements PackageOperation.StatusChangeListener {
   @Override

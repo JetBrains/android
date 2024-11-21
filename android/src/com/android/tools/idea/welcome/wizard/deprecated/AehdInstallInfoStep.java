@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -32,17 +30,15 @@ import org.jetbrains.annotations.Nullable;
 @Deprecated
 public class AehdInstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
-  private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
 
-  public AehdInstallInfoStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
+  public AehdInstallInfoStep() {
     super("Installing Android Emulator hypervisor driver");
-    myKeyCustomInstall = keyCustomInstall;
     setComponent(myRoot);
   }
 
   @Override
   public boolean isStepVisible() {
-    return SystemInfo.isWindows && Boolean.TRUE.equals(myState.get(myKeyCustomInstall));
+    return SystemInfo.isWindows;
   }
 
   @Override
@@ -58,5 +54,4 @@ public class AehdInstallInfoStep extends FirstRunWizardStep {
   public JComponent getPreferredFocusedComponent() {
     return myRoot;
   }
-
 }

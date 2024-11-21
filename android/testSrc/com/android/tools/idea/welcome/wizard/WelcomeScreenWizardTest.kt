@@ -37,7 +37,6 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.install.ComponentInstaller
-import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.impl.EditorComponentImpl
@@ -350,10 +349,6 @@ class WelcomeScreenWizardTest {
     // Navigate back
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Previous") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    if (willShowAehdStep()) {
-      checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Previous") }).doClick()
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Previous") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -379,10 +374,6 @@ class WelcomeScreenWizardTest {
     // Navigate back to license step
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    if (willShowAehdStep()) {
-      checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -491,14 +482,7 @@ class WelcomeScreenWizardTest {
 
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    if (willShowAehdStep()) {
-      checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") }).doClick()
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
   }
-
-  private fun willShowAehdStep() = Aehd.canRun()
 
   private fun navigateToLicenseAgreementStep(fakeUi: FakeUi) {
     navigateToInstallSummaryStep(fakeUi)

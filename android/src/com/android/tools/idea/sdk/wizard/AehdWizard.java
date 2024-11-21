@@ -32,12 +32,13 @@ import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.wizard.IProgressStep;
 import com.android.tools.idea.welcome.install.WizardException;
+import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep;
+import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStep;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
@@ -217,15 +218,10 @@ public class AehdWizard extends DynamicWizard {
 
     @Override
     protected void init() {
-      final String key = "ShowAehdSteps";
-      ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey(key, ScopedStateStore.Scope.PATH, Boolean.class);
-      myState.put(canShow, true);
-      myAehd = new Aehd(myInstallationIntention, canShow);
+      myAehd = new Aehd(myInstallationIntention);
 
-      // This is currently just the "We're about to (un)install" page.
-      for (DynamicWizardStep step : myAehd.createSteps()) {
-        addStep(step);
-      }
+      addStep(getInfoStep(myInstallationIntention));
+
       if (myInstallationIntention != Aehd.InstallationIntention.UNINSTALL) {
         addStep(
           myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myAehd.getRequiredSdkPackages(),
@@ -251,6 +247,13 @@ public class AehdWizard extends DynamicWizard {
         myLicenseAgreementStep.performFinishingActions();
       }
       return true;
+    }
+
+    private DynamicWizardStep getInfoStep(Aehd.InstallationIntention installationIntention) {
+      return switch (installationIntention) {
+        case UNINSTALL -> new AehdUninstallInfoStep();
+        case INSTALL_WITH_UPDATES, INSTALL_WITHOUT_UPDATES, CONFIGURE_ONLY -> new AehdInstallInfoStep();
+      };
     }
   }
 }

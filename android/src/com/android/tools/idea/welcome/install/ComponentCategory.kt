@@ -31,7 +31,4 @@ class ComponentCategory(
 
   override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }
-  @Deprecated("this is for the old welcome wizard", replaceWith = ReplaceWith("step"))
-  override fun createSteps() = components.flatMap(ComponentTreeNode::createSteps)
-  override val steps: Collection<ModelWizardStep<*>> get() = components.flatMap(ComponentTreeNode::steps)
 }

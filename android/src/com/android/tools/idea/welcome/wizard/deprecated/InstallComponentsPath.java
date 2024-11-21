@@ -52,7 +52,6 @@ import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.google.common.base.Function;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
@@ -122,7 +121,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                    myInstallUpdates ? Aehd.InstallationIntention.INSTALL_WITH_UPDATES
                                                     : Aehd.InstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && Aehd.InstallerInfo.canRun()) {
-      components.add(new Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
+      components.add(new Aehd(installationIntention));
     }
     if (createAvd) {
       AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotePackages, myInstallUpdates);
@@ -172,9 +171,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     );
     addStep(myComponentsStep);
 
-    for (DynamicWizardStep step : myComponentTree.createSteps()) {
-      addStep(step);
-    }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
       addStep(myLicenseAgreementStep);
