@@ -137,8 +137,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private val myListener: ExternalSystemTaskNotificationListener,
     private val myResultFuture: SettableFuture<GradleInvocationResult>
   ) : Task.Backgroundable(myRequest.project, "Gradle Build Running", true) {
-    private val myHelper = GradleExecutionHelper()
-
     @Volatile
     private var myErrorCount = 0
 
@@ -380,7 +378,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         }
       }
       return try {
-        myHelper.execute(
+        GradleExecutionHelper.execute(
           gradleRootProjectPath, executionSettings,
           myRequest.taskId, myListener, null, executeTasksFunction
         )
