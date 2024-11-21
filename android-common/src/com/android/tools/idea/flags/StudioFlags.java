@@ -2140,7 +2140,7 @@ public final class StudioFlags {
   // TODO(b/341816638): delete in L
   public static final Flag<Boolean> SHOW_CLOUD_DEPRECATION_MESSAGES =
     new BooleanFlag(CLOUD_INTEGRATION, "enabled", "Show bundled cloud plugin deprecation messages",
-                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", false);
+                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", true);
 
   // endregion Cloud Integration
 
