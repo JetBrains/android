@@ -1670,6 +1670,13 @@
     },
     {
       "groupId": "androidx.collection",
+      "artifactId": "collection-js",
+      "version": "1.5.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.collection",
       "artifactId": "collection-jvm",
       "version": "1.4.5",
       "ktxTargets": [],
@@ -2005,7 +2012,7 @@
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-mingwx64",
-      "version": "1.5.0-alpha05",
+      "version": "1.5.0-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -2027,6 +2034,13 @@
       "groupId": "androidx.collection",
       "artifactId": "collection-tvosx64",
       "version": "1.4.5",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.collection",
+      "artifactId": "collection-wasm-js",
+      "version": "1.5.0-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -2068,21 +2082,21 @@
     {
       "groupId": "androidx.compose",
       "artifactId": "compose-bom",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose",
       "artifactId": "compose-bom-alpha",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose",
       "artifactId": "compose-bom-beta",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -2782,6 +2796,272 @@
     },
     {
       "groupId": "androidx.compose.animation",
+      "artifactId": "animation-core-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.core.lint.AnimationCoreIssueRegistry",
+        "androidx.compose.animation.core.lint.ArcAnimationSpecTypeDetector",
+        "androidx.compose.animation.core.lint.TransitionDetector",
+        "androidx.compose.animation.core.lint.UnrememberedAnimatableDetector",
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.animation",
       "artifactId": "animation-core-linuxx64stubs",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -3191,6 +3471,272 @@
         {
           "xfqn": "androidx.compose.animation.AnimationModifierKt.animateContentSize",
           "rcvr": "androidx.compose.ui.Modifier"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.animation",
+      "artifactId": "animation-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.lint.AnimatedContentDetector",
+        "androidx.compose.animation.lint.AnimationIssueRegistry",
+        "androidx.compose.animation.lint.CrossfadeDetector",
+        "androidx.compose.animation.lint.SharedTransitionScopeDetector",
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
         }
       ]
     },
@@ -6254,6 +6800,274 @@
     },
     {
       "groupId": "androidx.compose.foundation",
+      "artifactId": "foundation-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.foundation.lint.BoxWithConstraintsDetector",
+        "androidx.compose.foundation.lint.FoundationIssueRegistry",
+        "androidx.compose.foundation.lint.FoundationNames",
+        "androidx.compose.foundation.lint.LazyLayoutStateReadInCompositionDetector",
+        "androidx.compose.foundation.lint.NonLambdaOffsetModifierDetector",
+        "androidx.compose.foundation.lint.UnrememberedMutableInteractionSourceDetector",
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-linuxx64stubs",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -6364,6 +7178,13 @@
     },
     {
       "groupId": "androidx.compose.material",
+      "artifactId": "material-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.material",
       "artifactId": "material-linuxx64stubs",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -6372,7 +7193,7 @@
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-navigation",
-      "version": "1.8.0-alpha05",
+      "version": "1.8.0-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -6601,7 +7422,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-adaptive-navigation-suite-jvmstubs",
-      "version": "1.4.0-alpha03",
+      "version": "1.4.0-alpha04",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi",
@@ -7868,7 +8689,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-jvmstubs",
-      "version": "1.4.0-alpha03",
+      "version": "1.4.0-alpha04",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.AlertDialogDefaults",
@@ -7905,13 +8726,11 @@
         "androidx.compose.material3.DatePickerState",
         "androidx.compose.material3.DateRangePickerDefaults",
         "androidx.compose.material3.DateRangePickerState",
-        "androidx.compose.material3.DismissibleModalWideNavigationRailDefaults",
-        "androidx.compose.material3.DismissibleModalWideNavigationRailState",
-        "androidx.compose.material3.DismissibleModalWideNavigationRailValue",
+        "androidx.compose.material3.DefaultNavigationBarComponentOverride",
+        "androidx.compose.material3.DefaultNavigationRailComponentOverride",
         "androidx.compose.material3.DisplayMode",
         "androidx.compose.material3.DividerDefaults",
         "androidx.compose.material3.DragHandleColors",
-        "androidx.compose.material3.DragHandleDefaults",
         "androidx.compose.material3.DragHandleShapes",
         "androidx.compose.material3.DragHandleSizes",
         "androidx.compose.material3.DrawerDefaults",
@@ -7951,9 +8770,13 @@
         "androidx.compose.material3.MinimumInteractiveModifierNode",
         "androidx.compose.material3.ModalBottomSheetDefaults",
         "androidx.compose.material3.ModalBottomSheetProperties",
+        "androidx.compose.material3.ModalWideNavigationRailDefaults",
         "androidx.compose.material3.ModalWideNavigationRailProperties",
+        "androidx.compose.material3.ModalWideNavigationRailState",
         "androidx.compose.material3.MotionScheme",
         "androidx.compose.material3.MultiChoiceSegmentedButtonRowScope",
+        "androidx.compose.material3.NavigationBarComponentOverride",
+        "androidx.compose.material3.NavigationBarComponentOverrideContext",
         "androidx.compose.material3.NavigationBarDefaults",
         "androidx.compose.material3.NavigationBarItemColors",
         "androidx.compose.material3.NavigationBarItemDefaults",
@@ -7961,6 +8784,8 @@
         "androidx.compose.material3.NavigationDrawerItemDefaults",
         "androidx.compose.material3.NavigationItemColors",
         "androidx.compose.material3.NavigationItemIconPosition",
+        "androidx.compose.material3.NavigationRailComponentOverride",
+        "androidx.compose.material3.NavigationRailComponentOverrideContext",
         "androidx.compose.material3.NavigationRailDefaults",
         "androidx.compose.material3.NavigationRailItemColors",
         "androidx.compose.material3.NavigationRailItemDefaults",
@@ -7974,6 +8799,8 @@
         "androidx.compose.material3.RippleConfiguration",
         "androidx.compose.material3.RippleDefaults",
         "androidx.compose.material3.ScaffoldDefaults",
+        "androidx.compose.material3.SearchBarColors",
+        "androidx.compose.material3.SearchBarDefaults",
         "androidx.compose.material3.SegmentedButtonColors",
         "androidx.compose.material3.SegmentedButtonContentMeasurePolicy",
         "androidx.compose.material3.SegmentedButtonDefaults",
@@ -8037,11 +8864,14 @@
         "androidx.compose.material3.TopAppBarState",
         "androidx.compose.material3.TopAppBarTitleAlignment",
         "androidx.compose.material3.Typography",
+        "androidx.compose.material3.VerticalDragHandleDefaults",
         "androidx.compose.material3.WavyProgressIndicatorDefaults",
         "androidx.compose.material3.WideNavigationRailArrangement",
         "androidx.compose.material3.WideNavigationRailColors",
         "androidx.compose.material3.WideNavigationRailDefaults",
         "androidx.compose.material3.WideNavigationRailItemDefaults",
+        "androidx.compose.material3.WideNavigationRailState",
+        "androidx.compose.material3.WideNavigationRailValue",
         "androidx.compose.material3.carousel.Arrangement",
         "androidx.compose.material3.carousel.CarouselAlignment",
         "androidx.compose.material3.carousel.CarouselDefaults",
@@ -8062,7 +8892,11 @@
         "androidx.compose.material3.tokens.BaselineButtonTokens",
         "androidx.compose.material3.tokens.BottomAppBarTokens",
         "androidx.compose.material3.tokens.ButtonGroupSmallTokens",
+        "androidx.compose.material3.tokens.ButtonLargeTokens",
+        "androidx.compose.material3.tokens.ButtonMediumTokens",
         "androidx.compose.material3.tokens.ButtonSmallTokens",
+        "androidx.compose.material3.tokens.ButtonXLargeTokens",
+        "androidx.compose.material3.tokens.ButtonXSmallTokens",
         "androidx.compose.material3.tokens.CheckboxTokens",
         "androidx.compose.material3.tokens.CircularProgressIndicatorTokens",
         "androidx.compose.material3.tokens.ColorDarkTokens",
@@ -8072,6 +8906,7 @@
         "androidx.compose.material3.tokens.DatePickerModalTokens",
         "androidx.compose.material3.tokens.DialogTokens",
         "androidx.compose.material3.tokens.DividerTokens",
+        "androidx.compose.material3.tokens.DragHandleTokens",
         "androidx.compose.material3.tokens.ElevatedButtonTokens",
         "androidx.compose.material3.tokens.ElevatedCardTokens",
         "androidx.compose.material3.tokens.ElevationTokens",
@@ -8294,6 +9129,9 @@
           "fqn": "androidx.compose.material3.DividerKt.VerticalDivider"
         },
         {
+          "fqn": "androidx.compose.material3.DragHandleKt.VerticalDragHandle"
+        },
+        {
           "fqn": "androidx.compose.material3.FloatingActionButtonKt.ExtendedFloatingActionButton"
         },
         {
@@ -8438,6 +9276,12 @@
           "fqn": "androidx.compose.material3.ScaffoldKt.Scaffold"
         },
         {
+          "fqn": "androidx.compose.material3.SearchBarKt.DockedSearchBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.SearchBarKt.SearchBar"
+        },
+        {
           "fqn": "androidx.compose.material3.SecureTextFieldKt.OutlinedSecureTextField"
         },
         {
@@ -8561,9 +9405,6 @@
           "fqn": "androidx.compose.material3.WavyProgressIndicatorKt.LinearWavyProgressIndicator"
         },
         {
-          "fqn": "androidx.compose.material3.WideNavigationRailKt.DismissibleModalWideNavigationRail"
-        },
-        {
           "fqn": "androidx.compose.material3.WideNavigationRailKt.ModalWideNavigationRail"
         },
         {
@@ -8573,7 +9414,7 @@
           "fqn": "androidx.compose.material3.WideNavigationRailKt.WideNavigationRailItem"
         },
         {
-          "fqn": "androidx.compose.material3.WideNavigationRailStateKt.rememberDismissibleModalWideNavigationRailState"
+          "fqn": "androidx.compose.material3.WideNavigationRailStateKt.rememberWideNavigationRailState"
         },
         {
           "fqn": "androidx.compose.material3.carousel.CarouselKt.HorizontalMultiBrowseCarousel"
@@ -8629,8 +9470,274 @@
     },
     {
       "groupId": "androidx.compose.material3",
+      "artifactId": "material3-lint",
+      "version": "1.4.0-alpha04",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.compose.material3.lint.Material3IssueRegistry",
+        "androidx.compose.material3.lint.Material3Names",
+        "androidx.compose.material3.lint.MaterialImportDetector",
+        "androidx.compose.material3.lint.ScaffoldPaddingDetector",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.material3",
       "artifactId": "material3-linuxx64stubs",
-      "version": "1.4.0-alpha03",
+      "version": "1.4.0-alpha04",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8673,7 +9780,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-window-size-class-jvmstubs",
-      "version": "1.4.0-alpha03",
+      "version": "1.4.0-alpha04",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi",
@@ -8686,7 +9793,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-window-size-class-linuxx64stubs",
-      "version": "1.4.0-alpha03",
+      "version": "1.4.0-alpha04",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -8743,7 +9850,7 @@
     {
       "groupId": "androidx.compose.material3.adaptive",
       "artifactId": "adaptive-jvmstubs",
-      "version": "1.1.0-alpha06",
+      "version": "1.1.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi",
@@ -8881,7 +9988,7 @@
     {
       "groupId": "androidx.compose.material3.adaptive",
       "artifactId": "adaptive-layout-jvmstubs",
-      "version": "1.1.0-alpha06",
+      "version": "1.1.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.adaptive.layout.AdaptStrategy",
@@ -8895,9 +10002,10 @@
         "androidx.compose.material3.adaptive.layout.HingePolicy",
         "androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldDefaults",
         "androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole",
+        "androidx.compose.material3.adaptive.layout.MinTouchTargetSizeElement",
+        "androidx.compose.material3.adaptive.layout.MinTouchTargetSizeNode",
         "androidx.compose.material3.adaptive.layout.MutableThreePaneScaffoldState",
         "androidx.compose.material3.adaptive.layout.PaneAdaptedValue",
-        "androidx.compose.material3.adaptive.layout.PaneAnimationSpecs",
         "androidx.compose.material3.adaptive.layout.PaneExpansionAnchor",
         "androidx.compose.material3.adaptive.layout.PaneExpansionState",
         "androidx.compose.material3.adaptive.layout.PaneExpansionStateData",
@@ -8906,6 +10014,7 @@
         "androidx.compose.material3.adaptive.layout.PaneMargins",
         "androidx.compose.material3.adaptive.layout.PaneMotion",
         "androidx.compose.material3.adaptive.layout.PaneMotionData",
+        "androidx.compose.material3.adaptive.layout.PaneMotionDefaults",
         "androidx.compose.material3.adaptive.layout.PaneScaffoldDirective",
         "androidx.compose.material3.adaptive.layout.PaneScaffoldHorizontalOrder",
         "androidx.compose.material3.adaptive.layout.PaneScaffoldMotionScope",
@@ -8917,7 +10026,6 @@
         "androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults",
         "androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole",
         "androidx.compose.material3.adaptive.layout.ThreePaneMotion",
-        "androidx.compose.material3.adaptive.layout.ThreePaneMotionDefaults",
         "androidx.compose.material3.adaptive.layout.ThreePaneScaffoldAdaptStrategies",
         "androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDefaults",
         "androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem",
@@ -8944,12 +10052,6 @@
         },
         {
           "fqn": "androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldKt.SupportingPaneScaffold"
-        },
-        {
-          "fqn": "androidx.compose.material3.adaptive.layout.ThreePaneMotionKt.calculateListDetailPaneScaffoldMotion"
-        },
-        {
-          "fqn": "androidx.compose.material3.adaptive.layout.ThreePaneMotionKt.calculateSupportingPaneScaffoldMotion"
         },
         {
           "fqn": "androidx.compose.material3.adaptive.layout.ThreePaneScaffoldValueKt.calculateThreePaneScaffoldValue"
@@ -9010,7 +10112,7 @@
     {
       "groupId": "androidx.compose.material3.adaptive",
       "artifactId": "adaptive-navigation-jvmstubs",
-      "version": "1.1.0-alpha06",
+      "version": "1.1.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.adaptive.navigation.BackNavigationBehavior",
@@ -10134,6 +11236,282 @@
     },
     {
       "groupId": "androidx.compose.runtime",
+      "artifactId": "runtime-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.compose.runtime.lint.AutoboxingStateCreationDetector",
+        "androidx.compose.runtime.lint.AutoboxingStateValuePropertyDetector",
+        "androidx.compose.runtime.lint.ComposableCoroutineCreationDetector",
+        "androidx.compose.runtime.lint.ComposableFlowOperatorDetector",
+        "androidx.compose.runtime.lint.ComposableLambdaParameterDetector",
+        "androidx.compose.runtime.lint.ComposableNamingDetector",
+        "androidx.compose.runtime.lint.ComposableStateFlowValueDetector",
+        "androidx.compose.runtime.lint.CompositionLocalNamingDetector",
+        "androidx.compose.runtime.lint.MutableCollectionMutableStateDetector",
+        "androidx.compose.runtime.lint.OpaqueUnitKeyDetector",
+        "androidx.compose.runtime.lint.ProduceStateDetector",
+        "androidx.compose.runtime.lint.RememberDetector",
+        "androidx.compose.runtime.lint.RuntimeIssueRegistry",
+        "androidx.compose.runtime.lint.UnrememberedStateDetector",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-linuxx64stubs",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -10319,6 +11697,270 @@
         },
         {
           "fqn": "androidx.compose.runtime.saveable.SaverKt.autoSaver"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.runtime",
+      "artifactId": "runtime-saveable-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.compose.runtime.saveable.lint.RememberSaveableDetector",
+        "androidx.compose.runtime.saveable.lint.RuntimeSaveableIssueRegistry",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
         }
       ]
     },
@@ -12302,6 +13944,270 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-graphics-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.compose.ui.graphics.lint.ColorDetector",
+        "androidx.compose.ui.graphics.lint.UiGraphicsIssueRegistry",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-graphics-linuxx64stubs",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -12708,6 +14614,277 @@
         {
           "xfqn": "androidx.compose.ui.layout.ScaleFactorKt.times",
           "rcvr": "androidx.compose.ui.geometry.Size"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
+      "artifactId": "ui-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.lint.Name",
+        "androidx.compose.lint.Names",
+        "androidx.compose.lint.PackageName",
+        "androidx.compose.lint.UnreferencedParameter",
+        "androidx.compose.ui.lint.ComposedModifierDetector",
+        "androidx.compose.ui.lint.ModifierDeclarationDetector",
+        "androidx.compose.ui.lint.ModifierNodeInspectablePropertiesDetector",
+        "androidx.compose.ui.lint.ModifierParameterDetector",
+        "androidx.compose.ui.lint.MultipleAwaitPointerEventScopesDetector",
+        "androidx.compose.ui.lint.ReturnFromAwaitPointerEventScopeDetector",
+        "androidx.compose.ui.lint.SuspiciousCompositionLocalModifierReadDetector",
+        "androidx.compose.ui.lint.SuspiciousModifierThenDetector",
+        "androidx.compose.ui.lint.UiIssueRegistry",
+        "androidx.lint.kotlin.metadata.ClassKind",
+        "androidx.lint.kotlin.metadata.ExperimentalContextReceivers",
+        "androidx.lint.kotlin.metadata.InconsistentKotlinMetadataException",
+        "androidx.lint.kotlin.metadata.KmAnnotation",
+        "androidx.lint.kotlin.metadata.KmAnnotationArgument",
+        "androidx.lint.kotlin.metadata.KmClass",
+        "androidx.lint.kotlin.metadata.KmClassifier",
+        "androidx.lint.kotlin.metadata.KmConstantValue",
+        "androidx.lint.kotlin.metadata.KmConstructor",
+        "androidx.lint.kotlin.metadata.KmContract",
+        "androidx.lint.kotlin.metadata.KmDeclarationContainer",
+        "androidx.lint.kotlin.metadata.KmEffect",
+        "androidx.lint.kotlin.metadata.KmEffectExpression",
+        "androidx.lint.kotlin.metadata.KmEffectInvocationKind",
+        "androidx.lint.kotlin.metadata.KmEffectType",
+        "androidx.lint.kotlin.metadata.KmFlexibleTypeUpperBound",
+        "androidx.lint.kotlin.metadata.KmFunction",
+        "androidx.lint.kotlin.metadata.KmLambda",
+        "androidx.lint.kotlin.metadata.KmPackage",
+        "androidx.lint.kotlin.metadata.KmProperty",
+        "androidx.lint.kotlin.metadata.KmPropertyAccessorAttributes",
+        "androidx.lint.kotlin.metadata.KmType",
+        "androidx.lint.kotlin.metadata.KmTypeAlias",
+        "androidx.lint.kotlin.metadata.KmTypeParameter",
+        "androidx.lint.kotlin.metadata.KmTypeProjection",
+        "androidx.lint.kotlin.metadata.KmValueParameter",
+        "androidx.lint.kotlin.metadata.KmVariance",
+        "androidx.lint.kotlin.metadata.KmVersion",
+        "androidx.lint.kotlin.metadata.KmVersionRequirement",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementLevel",
+        "androidx.lint.kotlin.metadata.KmVersionRequirementVersionKind",
+        "androidx.lint.kotlin.metadata.MemberKind",
+        "androidx.lint.kotlin.metadata.Modality",
+        "androidx.lint.kotlin.metadata.Visibility",
+        "androidx.lint.kotlin.metadata.jvm.JvmFieldSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMemberSignature",
+        "androidx.lint.kotlin.metadata.jvm.JvmMetadataVersion",
+        "androidx.lint.kotlin.metadata.jvm.JvmMethodSignature",
+        "androidx.lint.kotlin.metadata.jvm.KmModule",
+        "androidx.lint.kotlin.metadata.jvm.KmPackageParts",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassHeader",
+        "androidx.lint.kotlin.metadata.jvm.KotlinClassMetadata",
+        "androidx.lint.kotlin.metadata.jvm.KotlinModuleMetadata",
+        "androidx.lint.kotlin.metadata.jvm.UnstableMetadataApi"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Name"
+        },
+        {
+          "fqn": "androidx.compose.lint.NamesKt.Package"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.FlagDelegatesImplKt._flagAccess"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isKotlin1Dot4OrLater"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.VersionSpecificBehaviorKt.isVersionRequirementTableWrittenCorrectly"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.bytesToStrings"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.UtfEncodingKt.stringsToBytes"
+        },
+        {
+          "fqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.Metadata"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.WritersKt.writeProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.WriteContext"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.extensions.ExtensionNodesKt.getExtension",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.common.KmModuleFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotation",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadUtilsKt.readAnnotationArgument",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Annotation.Argument.Value"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmClass",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.inlineClassUnderlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.supertypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Class"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.isInstanceType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Expression"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmLambda",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Function"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmPackage",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Package"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmModuleFragment",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.PackageFragment"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertyGetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.getPropertySetterFlags",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.ReadersKt.toKmProperty",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.contextReceiverTypes",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.hasReceiver",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.receiverType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.returnType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Property"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.abbreviatedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.flexibleUpperBound",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.outerType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.Type.Argument"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.expandedType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.underlyingType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeAlias"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.upperBounds",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.TypeParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.type",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.deserialization.ProtoTypeTableUtilKt.varargElementType",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.ProtoBuf.ValueParameter"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.ModuleMappingKt.serializeToByteArray",
+          "rcvr": "androidx.lint.kotlin.metadata.internal.metadata.jvm.JvmModuleProtoBuf.Module"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiClass"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinMetadataUtilsKt.toKmFunction",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.isInPackageName",
+          "rcvr": "com.intellij.psi.PsiMethod"
+        },
+        {
+          "xfqn": "androidx.compose.lint.PsiUtilsKt.inheritsFrom",
+          "rcvr": "com.intellij.psi.PsiType"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.builtins.ReadPackageFragmentKt.readBuiltinsPackageFragment",
+          "rcvr": "java.io.InputStream"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.ClassNameKt.isLocalClassName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.jvm.JvmMetadataUtil.toJvmInternalName",
+          "rcvr": "kotlin.String"
+        },
+        {
+          "xfqn": "androidx.lint.kotlin.metadata.internal.metadata.jvm.deserialization.JvmNameResolverKt.toExpandedRecordsList",
+          "rcvr": "kotlin.collections.List"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRemembered",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isNotRememberedWithKeys",
+          "rcvr": "org.jetbrains.uast.UCallExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.ComposableUtilsKt.isInvokedWithinComposable",
+          "rcvr": "org.jetbrains.uast.UExpression"
+        },
+        {
+          "xfqn": "androidx.compose.lint.KotlinUtilsKt.findUnreferencedParameters",
+          "rcvr": "org.jetbrains.uast.ULambdaExpression"
         }
       ]
     },
@@ -13454,6 +15631,16 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-test-manifest-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.test.manifest.lint.GradleDebugConfigurationDetector",
+        "androidx.compose.ui.test.manifest.lint.TestManifestIssueRegistry"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-text",
       "version": "1.7.5",
       "ktxTargets": [],
@@ -14144,6 +16331,16 @@
           "xfqn": "androidx.compose.ui.text.StringKt.toUpperCase",
           "rcvr": "kotlin.String"
         }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
+      "artifactId": "ui-text-lint",
+      "version": "1.8.0-alpha06",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.text.lint.LocaleInvalidLanguageTagDetector",
+        "androidx.compose.ui.text.lint.UiTextIssueRegistry"
       ]
     },
     {
@@ -17670,21 +19867,21 @@
     {
       "groupId": "androidx.gradle",
       "artifactId": "gradle-version-catalog",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.gradle",
       "artifactId": "gradle-version-catalog-alpha",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.gradle",
       "artifactId": "gradle-version-catalog-beta",
-      "version": "2024.10.01",
+      "version": "2024.11.00",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -18638,7 +20835,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-common-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -19080,7 +21277,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -19117,7 +21314,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-android",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.testing.TestLifecycleOwner"
@@ -19126,7 +21323,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-desktop",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.testing.TestLifecycleOwner"
@@ -19135,49 +21332,49 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-iosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-iossimulatorarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-iosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-linuxx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-macosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-runtime-testing-macosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -19314,7 +21511,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -19367,7 +21564,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-android",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.AbstractSavedStateViewModelFactory",
@@ -19392,70 +21589,86 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-desktop",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
-      "fqcns": []
+      "fqcns": [
+        "androidx.lifecycle.SavedStateHandle",
+        "androidx.lifecycle.SavedStateHandleAttacher",
+        "androidx.lifecycle.SavedStateHandleController",
+        "androidx.lifecycle.SavedStateHandlesProvider",
+        "androidx.lifecycle.SavedStateHandlesVM",
+        "androidx.lifecycle.SavedStateViewModelFactory"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.lifecycle.SavedStateHandleSupport.enableSavedStateHandles"
+        },
+        {
+          "xfqn": "androidx.lifecycle.SavedStateHandleSupport.createSavedStateHandle",
+          "rcvr": "androidx.lifecycle.viewmodel.CreationExtras"
+        }
+      ]
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-iosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-iossimulatorarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-iosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-linuxx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-macosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-savedstate-macosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-android",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.viewmodel.testing.ViewModelScenario"
@@ -19469,7 +21682,7 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-desktop",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.lifecycle.viewmodel.testing.ViewModelScenario"
@@ -19483,49 +21696,49 @@
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-iosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-iossimulatorarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-iosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-linuxarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-linuxx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-macosarm64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.lifecycle",
       "artifactId": "lifecycle-viewmodel-testing-macosx64",
-      "version": "2.9.0-alpha06",
+      "version": "2.9.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -19755,7 +21968,7 @@
     {
       "groupId": "androidx.media3",
       "artifactId": "media3-common-ktx",
-      "version": "1.5.0-beta01",
+      "version": "1.5.0-rc02",
       "ktxTargets": [
         "androidx.media3:media3-common"
       ],
@@ -20759,7 +22972,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-common",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ActionOnlyNavDirections",
@@ -20832,7 +23045,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-common-ktx",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [
         "androidx.navigation:navigation-common"
       ],
@@ -20841,7 +23054,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-compose",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.compose.BackStackEntryIdViewModel",
@@ -20886,7 +23099,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-dynamic-features-fragment",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.dynamicfeatures.fragment.DynamicFragmentNavigator",
@@ -20900,7 +23113,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-dynamic-features-runtime",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.dynamicfeatures.DynamicActivityNavigator",
@@ -20917,7 +23130,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-fragment",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.fragment.AbstractListDetailFragment",
@@ -20940,7 +23153,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-fragment-compose",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.fragment.compose.ComposableFragment",
@@ -20951,7 +23164,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-fragment-ktx",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [
         "androidx.navigation:navigation-fragment"
       ],
@@ -20960,7 +23173,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-runtime",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ActivityNavigator",
@@ -20992,7 +23205,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-runtime-ktx",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [
         "androidx.navigation:navigation-runtime"
       ],
@@ -21001,7 +23214,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-safe-args-generator",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.safe.args.generator.BoolArrayType",
@@ -21094,7 +23307,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-safe-args-gradle-plugin",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.safeargs.gradle.ArgumentsGenerationTask",
@@ -21106,7 +23319,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-testing",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.testing.TestNavHostController",
@@ -21123,7 +23336,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-ui",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ui.AbstractAppBarOnDestinationChangedListener",
@@ -21168,7 +23381,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-ui-ktx",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [
         "androidx.navigation:navigation-ui"
       ],
@@ -21177,28 +23390,28 @@
     {
       "groupId": "androidx.navigation.safeargs",
       "artifactId": "androidx.navigation.safeargs.gradle.plugin",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.navigation.safeargs.kotlin",
       "artifactId": "androidx.navigation.safeargs.kotlin.gradle.plugin",
-      "version": "2.8.3",
+      "version": "2.8.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-android",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.ActiveFlowTracker",
@@ -21260,28 +23473,28 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-iosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-iossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-iosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-jvm",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.ActiveFlowTracker",
@@ -21343,98 +23556,98 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-ktx",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-linuxarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-linuxx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-macosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-macosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-tvosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-tvossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-tvosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-watchosarm32",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-watchosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-watchossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-common-watchosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-compose",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-compose-android",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.compose.LazyPagingItems",
@@ -21444,7 +23657,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-guava",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.AdjacentItems",
@@ -21455,7 +23668,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-runtime",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.AsyncPagingDataDiffer",
@@ -21471,7 +23684,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-runtime-ktx",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [
         "androidx.paging:paging-runtime"
       ],
@@ -21480,7 +23693,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava2",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.ScheduledExecutor",
@@ -21491,7 +23704,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava2-ktx",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [
         "androidx.paging:paging-rxjava2"
       ],
@@ -21500,7 +23713,7 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-rxjava3",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.rxjava3.RxPagingSource",
@@ -21511,14 +23724,14 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-android",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.testing.CompletablePagingDataPresenter",
@@ -21535,28 +23748,28 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-iosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-iossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-iosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-jvm",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.paging.testing.CompletablePagingDataPresenter",
@@ -21573,77 +23786,77 @@
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-linuxarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-linuxx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-macosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-macosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-tvosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-tvossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-tvosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-watchosarm32",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-watchosarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-watchossimulatorarm64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.paging",
       "artifactId": "paging-testing-watchosx64",
-      "version": "3.3.2",
+      "version": "3.3.4",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -21669,7 +23882,7 @@
     {
       "groupId": "androidx.pdf",
       "artifactId": "pdf-viewer",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-alpha04",
       "ktxTargets": [],
       "fqcns": [],
       "ktlfns": [
@@ -21686,10 +23899,11 @@
     {
       "groupId": "androidx.pdf",
       "artifactId": "pdf-viewer-fragment",
-      "version": "1.0.0-alpha03",
+      "version": "1.0.0-alpha04",
       "ktxTargets": [],
       "fqcns": [
-        "androidx.pdf.viewer.fragment.PdfViewerFragment"
+        "androidx.pdf.viewer.fragment.PdfViewerFragment",
+        "androidx.pdf.viewer.fragment.insets.TranslateInsetsAnimationCallback"
       ]
     },
     {
@@ -21869,7 +24083,7 @@
     {
       "groupId": "androidx.privacysandbox.sdkruntime",
       "artifactId": "sdkruntime-client",
-      "version": "1.0.0-alpha14",
+      "version": "1.0.0-alpha15",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.sdkruntime.client.SdkSandboxManagerCompat",
@@ -21903,7 +24117,7 @@
     {
       "groupId": "androidx.privacysandbox.sdkruntime",
       "artifactId": "sdkruntime-core",
-      "version": "1.0.0-alpha14",
+      "version": "1.0.0-alpha15",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.sdkruntime.core.AppOwnedSdkSandboxInterfaceCompat",
@@ -21919,7 +24133,7 @@
     {
       "groupId": "androidx.privacysandbox.sdkruntime",
       "artifactId": "sdkruntime-provider",
-      "version": "1.0.0-alpha14",
+      "version": "1.0.0-alpha15",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.sdkruntime.provider.SandboxedSdkProviderAdapter"
@@ -22078,10 +24292,12 @@
     {
       "groupId": "androidx.privacysandbox.ui",
       "artifactId": "ui-client",
-      "version": "1.0.0-alpha10",
+      "version": "1.0.0-alpha11",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.privacysandbox.ui.client.ClientDelegatingAdapter",
         "androidx.privacysandbox.ui.client.SandboxedUiAdapterFactory",
+        "androidx.privacysandbox.ui.client.view.RefreshableSessionClient",
         "androidx.privacysandbox.ui.client.view.SandboxedSdkUiSessionState",
         "androidx.privacysandbox.ui.client.view.SandboxedSdkUiSessionStateChangedListener",
         "androidx.privacysandbox.ui.client.view.SandboxedSdkView",
@@ -22091,9 +24307,11 @@
     {
       "groupId": "androidx.privacysandbox.ui",
       "artifactId": "ui-core",
-      "version": "1.0.0-alpha10",
+      "version": "1.0.0-alpha11",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.privacysandbox.ui.core.DelegatingSandboxedUiAdapter",
+        "androidx.privacysandbox.ui.core.ExperimentalFeatures",
         "androidx.privacysandbox.ui.core.SandboxedSdkViewUiInfo",
         "androidx.privacysandbox.ui.core.SandboxedUiAdapter",
         "androidx.privacysandbox.ui.core.SdkRuntimeUiLibVersions",
@@ -22105,7 +24323,7 @@
     {
       "groupId": "androidx.privacysandbox.ui",
       "artifactId": "ui-provider",
-      "version": "1.0.0-alpha10",
+      "version": "1.0.0-alpha11",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.ui.provider.AbstractSandboxedUiAdapter",
@@ -25044,7 +27262,7 @@
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-android",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": [
         "androidx.savedstate.Recreator",
@@ -25078,7 +27296,7 @@
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-desktop",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": [
         "androidx.savedstate.SavedState",
@@ -25092,21 +27310,21 @@
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-iosarm64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-iossimulatorarm64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-iosx64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -25122,28 +27340,28 @@
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-linuxarm64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-linuxx64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-macosarm64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.savedstate",
       "artifactId": "savedstate-macosx64",
-      "version": "1.3.0-alpha04",
+      "version": "1.3.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -27406,7 +29624,7 @@
     {
       "groupId": "androidx.wear.compose",
       "artifactId": "compose-material3",
-      "version": "1.0.0-alpha28",
+      "version": "1.0.0-alpha29",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.compose.material3.AlertDialogDefaults",
@@ -27889,7 +30107,7 @@
     {
       "groupId": "androidx.wear.protolayout",
       "artifactId": "protolayout-material3",
-      "version": "1.3.0-alpha03",
+      "version": "1.3.0-alpha04",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -27910,7 +30128,7 @@
     {
       "groupId": "androidx.wear.protolayout",
       "artifactId": "protolayout-testing",
-      "version": "1.3.0-alpha03",
+      "version": "1.3.0-alpha04",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -28962,14 +31180,14 @@
     {
       "groupId": "com.android.compose.screenshot",
       "artifactId": "com.android.compose.screenshot.gradle.plugin",
-      "version": "0.0.1-alpha07",
+      "version": "0.0.1-alpha08",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.compose.screenshot",
       "artifactId": "screenshot-test-gradle-plugin",
-      "version": "0.0.1-alpha07",
+      "version": "0.0.1-alpha08",
       "ktxTargets": [],
       "fqcns": [
         "com.android.compose.screenshot.PreviewScreenshotGradlePlugin",
@@ -29147,14 +31365,14 @@
     {
       "groupId": "com.android.identity",
       "artifactId": "identity",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-android",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.android.mdoc.deviceretrieval.DeviceRetrievalHelper",
@@ -29192,7 +31410,7 @@
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-android-legacy",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.android.legacy.AccessControlProfile",
@@ -29322,40 +31540,41 @@
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-doctypes",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-doctypes-iosarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-doctypes-iossimulatorarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-doctypes-iosx64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-doctypes-jvm",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.documenttype.knowntypes.DrivingLicense",
         "com.android.identity.documenttype.knowntypes.EUPersonalID",
         "com.android.identity.documenttype.knowntypes.Options",
+        "com.android.identity.documenttype.knowntypes.PhotoID",
         "com.android.identity.documenttype.knowntypes.SampleData",
         "com.android.identity.documenttype.knowntypes.VaccinationDocument",
         "com.android.identity.documenttype.knowntypes.VehicleRegistration"
@@ -29364,28 +31583,28 @@
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-iosarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-iossimulatorarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-iosx64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-jvm",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.cbor.ArrayBuilder",
@@ -29443,6 +31662,7 @@
         "com.android.identity.documenttype.DocumentType",
         "com.android.identity.documenttype.DocumentTypeRepository",
         "com.android.identity.documenttype.DocumentWellKnownRequest",
+        "com.android.identity.documenttype.Icon",
         "com.android.identity.documenttype.IntegerOption",
         "com.android.identity.documenttype.MdocDataElement",
         "com.android.identity.documenttype.MdocDocumentType",
@@ -29451,6 +31671,7 @@
         "com.android.identity.documenttype.MdocRequest",
         "com.android.identity.documenttype.StringOption",
         "com.android.identity.documenttype.VcDocumentType",
+        "com.android.identity.documenttype.VcRequest",
         "com.android.identity.securearea.AttestationExtension",
         "com.android.identity.securearea.CreateKeySettings",
         "com.android.identity.securearea.KeyAttestation",
@@ -29484,35 +31705,35 @@
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-mdoc",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-mdoc-iosarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-mdoc-iossimulatorarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-mdoc-iosx64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "identity-mdoc-jvm",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.mdoc.connectionmethod.ConnectionMethod",
@@ -29535,41 +31756,44 @@
         "com.android.identity.mdoc.response.DeviceResponseParser",
         "com.android.identity.mdoc.response.DocumentGenerator",
         "com.android.identity.mdoc.sessionencryption.SessionEncryption",
-        "com.android.identity.mdoc.util.MdocUtil"
+        "com.android.identity.mdoc.util.MdocUtil",
+        "com.android.identity.mdoc.vical.SignedVical",
+        "com.android.identity.mdoc.vical.Vical",
+        "com.android.identity.mdoc.vical.VicalCertificateInfo"
       ]
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "processor-annotations",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "processor-annotations-iosarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "processor-annotations-iossimulatorarm64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "processor-annotations-iosx64",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.identity",
       "artifactId": "processor-annotations-jvm",
-      "version": "202408.1",
+      "version": "202411.1",
       "ktxTargets": [],
       "fqcns": [
         "com.android.identity.cbor.annotation.CborMerge",
@@ -30627,21 +32851,21 @@
     {
       "groupId": "com.android.tools.adblib",
       "artifactId": "adblib",
-      "version": "8.8.0-alpha09",
+      "version": "8.9.0-alpha02",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.adblib",
       "artifactId": "adblib-ddmlibcompatibility",
-      "version": "8.8.0-alpha09",
+      "version": "8.9.0-alpha02",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.adblib",
       "artifactId": "adblib-tools",
-      "version": "8.8.0-alpha09",
+      "version": "8.9.0-alpha02",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -30697,7 +32921,7 @@
     {
       "groupId": "com.android.tools.apkdeployer",
       "artifactId": "apkdeployer",
-      "version": "8.8.0-alpha09",
+      "version": "8.9.0-alpha02",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -30718,7 +32942,7 @@
     {
       "groupId": "com.android.tools.build",
       "artifactId": "aapt2",
-      "version": "8.8.0-alpha09-12006047",
+      "version": "8.9.0-alpha02-12634980",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -30865,14 +33089,14 @@
     {
       "groupId": "com.android.tools.compose",
       "artifactId": "compose-preview-renderer",
-      "version": "0.0.1-alpha07",
+      "version": "0.0.1-alpha08",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.android.tools.compose",
       "artifactId": "compose-preview-renderer-model",
-      "version": "0.0.1-alpha07",
+      "version": "0.0.1-alpha08",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -31082,7 +33306,7 @@
     {
       "groupId": "com.android.tools.screenshot",
       "artifactId": "screenshot-validation-junit-engine",
-      "version": "0.0.1-alpha07",
+      "version": "0.0.1-alpha08",
       "ktxTargets": [],
       "fqcns": [
         "com.android.tools.screenshot.ClassSelectorResolver",
@@ -31103,6 +33327,27 @@
         },
         {
           "fqn": "com.android.tools.screenshot.SaveResultsUtilKt.saveResults"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.SaveResultsUtilKt.saveTestSuiteResults"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.createError"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.createTestCase"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.createTestDetailsEntry"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.createTestSuiteMetadata"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.createTimestampFromMillis"
+        },
+        {
+          "fqn": "com.android.tools.screenshot.UtpProtoUtilKt.isValid"
         },
         {
           "xfqn": "com.android.tools.screenshot.PreviewResultKt.toPreviewResponse",
@@ -31497,7 +33742,7 @@
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "fyber",
-      "version": "8.3.2.0",
+      "version": "8.3.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -31602,7 +33847,7 @@
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "vungle",
-      "version": "7.4.1.0",
+      "version": "7.4.2.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -35173,7 +37418,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-tflite-acceleration-service",
-      "version": "16.0.0-beta01",
+      "version": "16.3.0-beta01",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.tflite.acceleration.AccelerationConfig",
@@ -35193,7 +37438,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-tflite-gpu",
-      "version": "16.2.0",
+      "version": "16.3.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.tflite.gpu.GpuDelegate",
@@ -35204,7 +37449,7 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-tflite-impl",
-      "version": "16.1.0",
+      "version": "16.3.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.tflite.client.TfLiteClient",
@@ -35219,16 +37464,17 @@
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-tflite-java",
-      "version": "16.1.0",
+      "version": "16.3.0",
       "ktxTargets": [],
       "fqcns": [
-        "com.google.android.gms.tflite.java.TfLite"
+        "com.google.android.gms.tflite.java.TfLite",
+        "com.google.android.gms.tflite.java.TfLiteNative"
       ]
     },
     {
       "groupId": "com.google.android.gms",
       "artifactId": "play-services-tflite-support",
-      "version": "16.1.0",
+      "version": "16.3.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.gms.tflite.support.Empty"
@@ -35859,10 +38105,11 @@
     {
       "groupId": "com.google.android.libraries.places",
       "artifactId": "places",
-      "version": "4.0.0",
+      "version": "4.1.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.android.libraries.places.api.Places",
+        "com.google.android.libraries.places.api.auth.PlacesAppCheckTokenProvider",
         "com.google.android.libraries.places.api.model.AccessibilityOptions",
         "com.google.android.libraries.places.api.model.AddressComponent",
         "com.google.android.libraries.places.api.model.AddressComponents",
@@ -35875,8 +38122,11 @@
         "com.google.android.libraries.places.api.model.DayOfWeek",
         "com.google.android.libraries.places.api.model.EVChargeOptions",
         "com.google.android.libraries.places.api.model.EVConnectorType",
+        "com.google.android.libraries.places.api.model.EVSearchOptions",
+        "com.google.android.libraries.places.api.model.EncodedPolyline",
         "com.google.android.libraries.places.api.model.FuelOptions",
         "com.google.android.libraries.places.api.model.FuelPrice",
+        "com.google.android.libraries.places.api.model.Leg",
         "com.google.android.libraries.places.api.model.LocalDate",
         "com.google.android.libraries.places.api.model.LocalTime",
         "com.google.android.libraries.places.api.model.LocationBias",
@@ -35891,8 +38141,13 @@
         "com.google.android.libraries.places.api.model.PlaceLikelihood",
         "com.google.android.libraries.places.api.model.PlaceTypes",
         "com.google.android.libraries.places.api.model.PlusCode",
+        "com.google.android.libraries.places.api.model.Polyline",
         "com.google.android.libraries.places.api.model.RectangularBounds",
         "com.google.android.libraries.places.api.model.Review",
+        "com.google.android.libraries.places.api.model.RouteModifiers",
+        "com.google.android.libraries.places.api.model.RoutingParameters",
+        "com.google.android.libraries.places.api.model.RoutingSummary",
+        "com.google.android.libraries.places.api.model.SearchAlongRouteParameters",
         "com.google.android.libraries.places.api.model.SpecialDay",
         "com.google.android.libraries.places.api.model.SubDestination",
         "com.google.android.libraries.places.api.model.TimeOfWeek",
@@ -38236,7 +40491,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-bom",
-      "version": "33.5.1",
+      "version": "33.6.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -39657,7 +41912,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-dataconnect",
-      "version": "16.0.0-beta02",
+      "version": "16.0.0-beta03",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.dataconnect.AnyValue",
@@ -39667,7 +41922,9 @@
         "com.google.firebase.dataconnect.DataConnectSettings",
         "com.google.firebase.dataconnect.DataConnectUntypedData",
         "com.google.firebase.dataconnect.DataConnectUntypedVariables",
+        "com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect",
         "com.google.firebase.dataconnect.FirebaseDataConnect",
+        "com.google.firebase.dataconnect.LocalDate",
         "com.google.firebase.dataconnect.LogLevel",
         "com.google.firebase.dataconnect.MutationRef",
         "com.google.firebase.dataconnect.MutationResult",
@@ -39701,6 +41958,7 @@
         "com.google.firebase.dataconnect.querymgr.RegisteredDataDeserializer",
         "com.google.firebase.dataconnect.serializers.AnyValueSerializer",
         "com.google.firebase.dataconnect.serializers.DateSerializer",
+        "com.google.firebase.dataconnect.serializers.LocalDateSerializer",
         "com.google.firebase.dataconnect.serializers.TimestampSerializer",
         "com.google.firebase.dataconnect.serializers.UUIDSerializer",
         "com.google.firebase.dataconnect.util.AlphanumericStringUtil",
@@ -39729,6 +41987,14 @@
         {
           "xfqn": "com.google.firebase.dataconnect.FirebaseDataConnectKt.getInstance",
           "rcvr": "com.google.firebase.dataconnect.FirebaseDataConnect.Companion"
+        },
+        {
+          "xfqn": "com.google.firebase.dataconnect.LocalDateKt.toDataConnectLocalDate",
+          "rcvr": "java.time.LocalDate"
+        },
+        {
+          "xfqn": "com.google.firebase.dataconnect.LocalDateKt.toDataConnectLocalDate",
+          "rcvr": "kotlinx.datetime.LocalDate"
         }
       ]
     },
@@ -40252,20 +42518,28 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-functions",
-      "version": "21.0.0",
+      "version": "21.1.0",
       "ktxTargets": [],
       "fqcns": [
+        "com.google.firebase.functions.ContextProvider",
+        "com.google.firebase.functions.DaggerFunctionsComponent",
+        "com.google.firebase.functions.FirebaseContextProvider",
         "com.google.firebase.functions.FirebaseContextProvider_Factory",
         "com.google.firebase.functions.FirebaseFunctions",
         "com.google.firebase.functions.FirebaseFunctionsException",
         "com.google.firebase.functions.FirebaseFunctionsKtxRegistrar",
         "com.google.firebase.functions.FirebaseFunctions_Factory",
-        "com.google.firebase.functions.FunctionsComponent_MainModule_BindProjectIdFactory",
+        "com.google.firebase.functions.FunctionsComponent",
+        "com.google.firebase.functions.FunctionsComponent_MainModule_Companion_BindProjectIdFactory",
+        "com.google.firebase.functions.FunctionsMultiResourceComponent",
         "com.google.firebase.functions.FunctionsMultiResourceComponent_Factory",
         "com.google.firebase.functions.FunctionsRegistrar",
+        "com.google.firebase.functions.HttpsCallOptions",
+        "com.google.firebase.functions.HttpsCallableContext",
         "com.google.firebase.functions.HttpsCallableOptions",
         "com.google.firebase.functions.HttpsCallableReference",
         "com.google.firebase.functions.HttpsCallableResult",
+        "com.google.firebase.functions.Serializer",
         "com.google.firebase.functions.dagger.Binds",
         "com.google.firebase.functions.dagger.BindsInstance",
         "com.google.firebase.functions.dagger.Component",
@@ -40290,7 +42564,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-functions-ktx",
-      "version": "21.0.0",
+      "version": "21.1.0",
       "ktxTargets": [
         "com.google.firebase:firebase-functions"
       ],
@@ -40503,7 +42777,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging",
-      "version": "24.0.3",
+      "version": "24.1.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.iid.FirebaseInstanceIdReceiver",
@@ -40534,7 +42808,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging-directboot",
-      "version": "24.0.3",
+      "version": "24.1.0",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.messaging.directboot.FirebaseMessagingDirectBootReceiver"
@@ -40543,7 +42817,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-messaging-ktx",
-      "version": "24.0.3",
+      "version": "24.1.0",
       "ktxTargets": [
         "com.google.firebase:firebase-messaging"
       ],
@@ -41069,7 +43343,7 @@
     {
       "groupId": "com.google.firebase",
       "artifactId": "firebase-vertexai",
-      "version": "16.0.1",
+      "version": "16.0.2",
       "ktxTargets": [],
       "fqcns": [
         "com.google.firebase.vertexai.Chat",
@@ -41533,14 +43807,14 @@
     {
       "groupId": "com.google.firebase.testlab",
       "artifactId": "com.google.firebase.testlab.gradle.plugin",
-      "version": "0.0.1-alpha08",
+      "version": "0.0.1-alpha09",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.firebase.testlab",
       "artifactId": "testlab-gradle-plugin",
-      "version": "0.0.1-alpha08",
+      "version": "0.0.1-alpha09",
       "ktxTargets": [],
       "fqcns": []
     },
