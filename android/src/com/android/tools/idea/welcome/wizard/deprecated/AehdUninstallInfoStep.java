@@ -18,7 +18,6 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,13 +29,11 @@ import org.jetbrains.annotations.Nullable;
  */
 @Deprecated
 public class AehdUninstallInfoStep extends FirstRunWizardStep {
-  private JPanel myRoot;
-  private JLabel mUninstallText;
+  private final AehdUninstallInfoStepForm myForm = new AehdUninstallInfoStepForm();
 
   public AehdUninstallInfoStep() {
     super("Uninstalling Android Emulator hypervisor driver");
-    mUninstallText.setText("This wizard will execute Android Emulator hypervisor driver stand-alone uninstaller. This is an additional step required to remove this package.");
-    setComponent(myRoot);
+    setComponent(myForm.getRoot());
   }
 
   @Override
@@ -50,7 +47,7 @@ public class AehdUninstallInfoStep extends FirstRunWizardStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myRoot;
+    return myForm.getRoot();
   }
 
   @Override

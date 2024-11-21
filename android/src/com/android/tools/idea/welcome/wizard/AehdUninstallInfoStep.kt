@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.openapi.util.SystemInfo
+import javax.swing.JComponent
 
 /**
  * This is to be shown as the first AEHD Wizard step just to inform the user that AEHD uninstallation is about to start.
@@ -26,18 +27,9 @@ import com.intellij.ui.dsl.builder.panel
  */
 class AehdUninstallInfoStep(
 ) : ModelWizardStep.WithoutModel("Uninstalling Android Emulator hypervisor driver") {
+  private val form = AehdUninstallInfoStepForm()
 
-  private val infoText = """
-This wizard will execute Android Emulator hypervisor driver stand-alone uninstaller. This is an additional step required to remove this package<br><br>
-Click 'Next' to proceed
-"""
-
-  private val myPanel = panel {
-    row { text(infoText) }
-  }
-
-  private val root = wrapWithVScroll(myPanel)
-
-  override fun getComponent() = root
-  override fun getPreferredFocusComponent() = myPanel
+  override fun getComponent(): JComponent = form.root
+  override fun getPreferredFocusComponent(): JComponent = form.root
+  override fun shouldShow(): Boolean = SystemInfo.isWindows
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -29,11 +28,11 @@ import org.jetbrains.annotations.Nullable;
  */
 @Deprecated
 public class AehdInstallInfoStep extends FirstRunWizardStep {
-  private JPanel myRoot;
+  private final AehdInstallInfoStepForm myForm = new AehdInstallInfoStepForm();
 
   public AehdInstallInfoStep() {
     super("Installing Android Emulator hypervisor driver");
-    setComponent(myRoot);
+    setComponent(myForm.getRoot());
   }
 
   @Override
@@ -52,6 +51,6 @@ public class AehdInstallInfoStep extends FirstRunWizardStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myRoot;
+    return myForm.getRoot();
   }
 }
