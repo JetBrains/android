@@ -50,6 +50,7 @@ SocketReader::Result SocketReader::Read(void* buf, size_t size) {
         case 0:
         case EBADF:
         case EPIPE:
+        case ENOENT:
           return Result(Status::DISCONNECTED);
 
         case EAGAIN: {
