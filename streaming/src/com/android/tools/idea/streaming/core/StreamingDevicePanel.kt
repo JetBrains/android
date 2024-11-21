@@ -71,7 +71,7 @@ abstract class StreamingDevicePanel(
     val layoutStrategy =
       if (StudioFlags.RUNNING_DEVICES_WRAP_TOOLBAR.get()) ToolbarLayoutStrategy.WRAP_STRATEGY else ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
     mainToolbar = createToolbar(mainToolbarId, layoutStrategy, IS_TOOLBAR_HORIZONTAL)
-    secondaryToolbar = createToolbar(secondaryToolbarId, ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY, IS_TOOLBAR_HORIZONTAL)
+    secondaryToolbar = createToolbar(secondaryToolbarId, ToolbarLayoutStrategy.NOWRAP_STRATEGY, IS_TOOLBAR_HORIZONTAL)
     secondaryToolbar.isReservePlaceAutoPopupIcon = false
 
     addToCenter(centerPanel)
