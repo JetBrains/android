@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.preview.analytics
 
-import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.padding.GroupPadding
+import com.android.tools.idea.uibuilder.layout.option.GalleryLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import java.util.LinkedList
@@ -34,30 +33,27 @@ class PreviewCanvasTrackerTest {
 
   @Test
   fun testSetLayout() {
-    val emptyPadding = GroupPadding(0, 0) { 0 }
-    val groupedGridLayout =
-      GroupedGridSurfaceLayoutManager(emptyPadding) { content ->
-        listOf(PositionableGroup(content.toList()))
-      }
+    val groupedGridLayout = GridLayoutManager { content ->
+      listOf(PositionableGroup(content.toList()))
+    }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
-    val groupedListLayout =
-      GroupedListSurfaceLayoutManager(emptyPadding) { content ->
-        listOf(PositionableGroup(content.toList()))
-      }
-    previewCanvasTracker.logSwitchLayout(groupedListLayout)
+    val galleryLayoutManager = GalleryLayoutManager { content ->
+      listOf(PositionableGroup(content.toList()))
+    }
+    previewCanvasTracker.logSwitchLayout(galleryLayoutManager)
 
     assertEquals(2, trackedEvents.size)
     trackedEvents.poll().let { event ->
       assertEquals(event.kind, AndroidStudioEvent.EventKind.COMPOSE_PREVIEW_CANVAS_EVENT)
       val canvasEvent = event.composePreviewCanvasEvent
       assertEquals(canvasEvent.eventType, ComposePreviewCanvasEvent.EventType.SELECT_LAYOUT)
-      assertEquals(canvasEvent.layoutName, ComposePreviewCanvasEvent.LayoutName.GROUPED_GRID)
+      assertEquals(canvasEvent.layoutName, ComposePreviewCanvasEvent.LayoutName.ORGANIZATION_GRID)
     }
     trackedEvents.poll().let { event ->
       assertEquals(event.kind, AndroidStudioEvent.EventKind.COMPOSE_PREVIEW_CANVAS_EVENT)
       val canvasEvent = event.composePreviewCanvasEvent
       assertEquals(canvasEvent.eventType, ComposePreviewCanvasEvent.EventType.SELECT_LAYOUT)
-      assertEquals(canvasEvent.layoutName, ComposePreviewCanvasEvent.LayoutName.GROUPED_LIST)
+      assertEquals(canvasEvent.layoutName, ComposePreviewCanvasEvent.LayoutName.GALLERY)
     }
   }
 }
