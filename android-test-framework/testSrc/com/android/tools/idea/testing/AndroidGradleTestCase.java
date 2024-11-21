@@ -35,6 +35,7 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
@@ -109,9 +110,16 @@ import org.jetbrains.annotations.SystemIndependent;
 public abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIntegrationTest {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
+  private final @NotNull AgpVersionSoftwareEnvironment myAgpVersionSoftwareEnvironment;
+
   protected AndroidFacet myAndroidFacet;
 
   public AndroidGradleTestCase() {
+    this(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT);
+  }
+
+  public AndroidGradleTestCase(@NotNull AgpVersionSoftwareEnvironment agpVersionSoftwareEnvironment) {
+    myAgpVersionSoftwareEnvironment = agpVersionSoftwareEnvironment;
   }
 
   protected boolean createDefaultProject() {
@@ -151,7 +159,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     TestApplicationManager.getInstance();
 
-    ensureSdkManagerAvailable();
+    ensureSdkManagerAvailable(new AndroidVersion(myAgpVersionSoftwareEnvironment.getCompileSdk()));
     AndroidTestCase.registerLongRunningThreads();
     if (createDefaultProject()) {
       setUpFixture();
@@ -191,7 +199,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
     fixture.setTestDataPath(TestUtils.getWorkspaceRoot().toRealPath().resolve(getTestDataDirectoryWorkspaceRelativePath()).toString());
-    ensureSdkManagerAvailable();
+    ensureSdkManagerAvailable(new AndroidVersion(myAgpVersionSoftwareEnvironment.getCompileSdk()));
 
     Project project = fixture.getProject();
     FileUtil.ensureExists(new File(toSystemDependentName(project.getBasePath())));
@@ -261,12 +269,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected final File loadProject(@NotNull String relativePath) throws Exception {
-    return loadProject(relativePath, null, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
+    return loadProject(relativePath, null, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
   }
 
   protected final File loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName) throws Exception {
-    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
+    return loadProject(relativePath, chosenModuleName, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
   }
 
   protected final File loadProject(@NotNull String relativePath,
@@ -318,7 +326,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT),
+    return prepareProjectForImport(relativePath, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment),
                                    null);
   }
 
@@ -326,7 +334,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath)
     throws IOException {
     return prepareProjectForImport(relativePath, targetPath,
-                                   resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), null);
+                                   resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
   }
 
   /**
@@ -432,7 +440,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected final void importProject() {
-    importProject(resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT).getJdkVersion());
+    importProject(resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment).getJdkVersion());
   }
 
   protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {

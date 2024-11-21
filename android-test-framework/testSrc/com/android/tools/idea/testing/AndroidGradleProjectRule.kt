@@ -42,7 +42,9 @@ import org.junit.runner.Description
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
 class AndroidGradleProjectRule(
-  val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData"
+  val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData",
+  private val agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment =
+    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
 ) : NamedExternalResource() {
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
@@ -51,7 +53,8 @@ class AndroidGradleProjectRule(
   @Ignore(
     "TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule."
   )
-  private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
+  private inner class DelegateGradleTestCase :
+    AndroidGradleTestCase(agpVersionSoftwareEnvironment) {
     val fixture: CodeInsightTestFixture
       get() = myFixture
 
