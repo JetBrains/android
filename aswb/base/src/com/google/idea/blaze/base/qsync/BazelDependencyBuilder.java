@@ -256,7 +256,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   protected Path getBundledAspectPath(String dir, String filename) {
-    String aspectPath = System.getProperty(String.format("blaze.idea.%s.file", filename));
+    String aspectPath = System.getProperty(String.format("qsync.aspect.%s.file", filename));
     if (aspectPath != null) {
       return Path.of(aspectPath);
     }
