@@ -71,18 +71,20 @@ import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompila
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.StringExperiment;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtilRt;
+import com.jgoodies.common.base.Strings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Collection;
@@ -94,9 +96,13 @@ import java.util.concurrent.ExecutionException;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder {
+  private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
   public static final BoolExperiment buildGeneratedSrcJars =
       new BoolExperiment("qsync.build.generated.src.jars", true);
+
+  public static final StringExperiment aspectLocation =
+    new StringExperiment("qsync.build.aspect.location");
 
   /**
    * Logs message if the number of artifact info files fetched is greater than
@@ -255,7 +261,17 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       return Path.of(aspectPath);
     }
     PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
-    return Paths.get(plugin.getPluginPath().toString(), dir, filename);
+    Path rootAspectDirectory;
+    if (Strings.isNotEmpty(aspectLocation.getValue())) {
+      Path workspaceAbsolutePath = workspaceRoot.absolutePathFor("");
+      // NOTE: aspectLocation allows both relative and absolute paths.
+      rootAspectDirectory = workspaceAbsolutePath.resolve(aspectLocation.getValue());
+      logger.info("Using build aspect from: " + rootAspectDirectory);
+    }
+    else{
+      rootAspectDirectory = plugin.getPluginPath();
+    }
+    return rootAspectDirectory.resolve(dir).resolve(filename);
   }
 
   protected Path getBundledAspectPath(String filename) {
