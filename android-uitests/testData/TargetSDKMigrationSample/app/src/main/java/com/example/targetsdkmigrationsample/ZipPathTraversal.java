@@ -23,15 +23,12 @@ import java.io.*;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-
-
 /**
  * This class provides functionality to traverse and process entries within a ZIP file.
  * It utilizes Java's built-in ZIP handling classes to open, read, and iterate
  * through the contents of a ZIP archive.
  */
 public class ZipPathTraversal{
-
 
     /**
      * Verified behavior changes in API 34 for Zip path traversal.More details below
@@ -63,6 +60,5 @@ public class ZipPathTraversal{
         UUID uuid = UUID.fromString("f81d4fae-7dec-11d0-a765-00a0c91e6bf6");
         System.out.println("Validated UUID: " + uuid);
     }
-
 }
 
