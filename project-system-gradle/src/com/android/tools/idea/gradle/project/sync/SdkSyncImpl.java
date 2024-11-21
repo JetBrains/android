@@ -45,16 +45,11 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SdkSync {
+public class SdkSyncImpl implements SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
-
-  @NotNull
-  public static SdkSync getInstance() {
-    return ApplicationManager.getApplication().getService(SdkSync.class);
-  }
-
-  public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
-    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), null);
+  @Override
+  public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties, @Nullable Project project) {
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 

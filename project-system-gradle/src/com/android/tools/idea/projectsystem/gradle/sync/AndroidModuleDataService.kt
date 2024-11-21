@@ -282,6 +282,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val message = "Could not find compile target $compileTarget for modules ${modules.joinToString(", ")}"
       NotificationGroupManager.getInstance()
         .getNotificationGroup("Android SDK Setup Issues").createNotification(message, MessageType.ERROR).notify(project)
+      AndroidModuleDataServiceExtension.EP_NAME.extensionList.forEach {
+        it.onFailedToFindCompileTarget(project, compileTarget, modules)
+      }
     }
   }
 }
