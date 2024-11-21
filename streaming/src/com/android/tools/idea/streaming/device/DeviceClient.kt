@@ -38,6 +38,7 @@ import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -245,7 +246,7 @@ internal class DeviceClient(
         connection.audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
 
         if (isAudioStreamingSupported() && !isRemoteDevice()) {
-          val messageBusConnection = project.messageBus.connect(this)
+          val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
           messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
         }
       }
