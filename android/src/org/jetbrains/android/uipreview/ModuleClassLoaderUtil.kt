@@ -73,7 +73,7 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
 
 private val additionalLibraries: List<Path>
   get() {
-    val layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath()
+    val layoutlibDistributionPath = StudioEmbeddedRenderTarget.ourEmbeddedLayoutlibPath
                                     ?: return emptyList() // Error is already logged by getEmbeddedLayoutLibPath
     val relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar")
     return arrayListOf(File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath())
