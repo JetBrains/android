@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.tools.idea.welcome.wizard.deprecated.LinuxKvmInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.ui.dsl.builder.panel
-
-private const val KVM_DOCUMENTATION_URL = "https://developer.android.com/r/studio-ui/emulator-kvm-setup.html"
+import com.intellij.openapi.util.SystemInfo
+import javax.swing.JComponent
 
 /**
  * Provides guidance for setting up KVM on Linux platform.
  */
 class LinuxKvmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
-    private val infoText = """
-We have detected that your system can run the Android emulator in an accelerated performance mode.<br><br>
-Linux-based systems support virtual machine acceleration through the KVM (Kernel-based Virtual Machine) software package.<br><br>
-Search for install instructions for your particular Linux configuration 
-(<a href='$KVM_DOCUMENTATION_URL'>Android KVM Linux Installation</a>) that KVM is enabled for faster Android emulator performance.
-"""
+  private val form = LinuxKvmInfoStepForm()
 
-  override fun getComponent() = panel { row { text(infoText) } }
+  override fun getComponent(): JComponent = form.root
+  override fun getPreferredFocusComponent(): JComponent? = form.urlPane
+  override fun shouldShow(): Boolean = SystemInfo.isLinux
 }

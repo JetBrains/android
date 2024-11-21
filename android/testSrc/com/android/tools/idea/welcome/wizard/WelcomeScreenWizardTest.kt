@@ -38,6 +38,7 @@ import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
+import com.android.tools.idea.welcome.wizard.deprecated.LinuxKvmInfoStepForm
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.ui.Messages
@@ -80,6 +81,7 @@ import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JRadioButton
 import javax.swing.JTextPane
@@ -389,6 +391,22 @@ class WelcomeScreenWizardTest {
   }
 
   @Test
+  fun linuxKvmInfoStep_shownOnLinux() {
+    if (!SystemInfo.isLinux) {
+      return
+    }
+
+    val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
+    navigateToLinuxKvmInfoStep(fakeUi)
+
+    val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Emulator Settings") })
+    assertTrue(fakeUi.isShowing(title))
+
+    val linkLabel = checkNotNull(fakeUi.findComponent<JEditorPane> { it.text.contains("Follow <a href=\"${LinuxKvmInfoStepForm.KVM_DOCUMENTATION_URL}\">") })
+    assertTrue(fakeUi.isShowing(linkLabel))
+  }
+
+  @Test
   fun progressStep_cancelInstallationAndFinish() {
     val mockInstaller = mock(ComponentInstaller::class.java)
     val remotePackage = createFakeRemotePackageWithLicense("platforms;android-35")
@@ -491,23 +509,31 @@ class WelcomeScreenWizardTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
+  private fun navigateToLinuxKvmInfoStep(fakeUi: FakeUi) {
+    navigateToLicenseAgreementStep(fakeUi)
+    acceptAllLicenses(fakeUi)
+    checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepNextText()) }).doClick()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
   private fun navigateToProgressStep(fakeUi: FakeUi) {
     navigateToLicenseAgreementStep(fakeUi)
-
-    // Accept all licenses
-    val tree = checkNotNull(fakeUi.findComponent<Tree>())
-    val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
-    for (i in 0..< tree.rowCount) {
-      tree.setSelectionRow(i)
-      acceptButton.doClick()
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
-
+    acceptAllLicenses(fakeUi)
     checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getLicenseStepNextText()) }).doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     if (willShowKvmStep()) {
       checkNotNull(fakeUi.findComponent<JButton> { it.text.contains(getKvmStepNextText()) }).doClick()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+  }
+
+  private fun acceptAllLicenses(fakeUi: FakeUi) {
+    val tree = checkNotNull(fakeUi.findComponent<Tree>())
+    val acceptButton = checkNotNull(fakeUi.findComponent<JBRadioButton> { it.text.contains("Accept") })
+    for (i in 0..< tree.rowCount) {
+      tree.setSelectionRow(i)
+      acceptButton.doClick()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
   }
