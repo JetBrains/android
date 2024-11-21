@@ -286,11 +286,7 @@ open class MultiRepresentationPreview(
         Disposer.dispose(representation)
         return
       }
-      shortcutsApplicableComponent?.let {
-        launch(workerThread) {
-          if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
-        }
-      }
+      shortcutsApplicableComponent?.let { representation.registerShortcuts(it) }
       newRepresentations[provider.displayName] = representation
 
       // Restore the state of the representation
