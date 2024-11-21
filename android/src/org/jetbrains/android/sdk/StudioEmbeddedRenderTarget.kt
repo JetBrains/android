@@ -36,6 +36,7 @@ class StudioEmbeddedRenderTarget {
     private val LOG = Logger.getInstance(StudioEmbeddedRenderTarget::class.java)
 
     private var ourDisableEmbeddedTargetForTesting = false
+    val ourEmbeddedLayoutlibPath = getEmbeddedLayoutLibPath()
 
     /**
      * Method that allows to disable the use of the embedded render target. Only for testing.
@@ -58,23 +59,20 @@ class StudioEmbeddedRenderTarget {
         return CompatibilityRenderTarget (target, target.version.apiLevel, target)
       }
 
-      return EmbeddedRenderTarget.getCompatibilityTarget(target) { getEmbeddedLayoutLibPath() }
+      return EmbeddedRenderTarget.getCompatibilityTarget(target) { ourEmbeddedLayoutlibPath }
     }
 
     /**
      * Returns the URL for the embedded layoutlib distribution.
      */
-    @JvmStatic
-    fun getEmbeddedLayoutLibPath(): String? {
+    private fun getEmbeddedLayoutLibPath(): String? {
       val homePath = FileUtil.toSystemIndependentName(PluginPathManager.getPluginHomePath("design-tools"))
       var path = FileUtil.join(homePath, "/resources/layoutlib/")
       if (StudioPathManager.isRunningFromSources()) {
         path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString()
       }
       val root =
-        SlowOperations.allowSlowOperations(ThrowableComputable {
           VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
-        })
       if (root != null) {
         val rootFile = VfsUtilCore.virtualToIoFile(root)
         if (rootFile.exists() && rootFile.isDirectory) {
@@ -82,7 +80,9 @@ class StudioEmbeddedRenderTarget {
           return rootFile.absolutePath + File.separator
         }
       }
-      LOG.error("Unable to find embedded layoutlib in path: $path")
+      if (!ApplicationManager.getApplication().isUnitTestMode) {
+        LOG.error("Unable to find embedded layoutlib in path: $path")
+      }
       return null
     }
   }
