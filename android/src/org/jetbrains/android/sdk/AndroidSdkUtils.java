@@ -93,6 +93,10 @@ public final class AndroidSdkUtils {
   // Default install location from users home dir.
   @NonNls
   private static String getAndroidSdkDefaultInstallDir() {
+    // Workaround until b/383645908 is resolved
+    if (!StudioFlags.NPW_CUSTOM_LOCAL_APP_DATA.get().isEmpty() && SystemInfo.isWindows) {
+      return FileUtil.join(StudioFlags.NPW_CUSTOM_LOCAL_APP_DATA.get(), "Android", "Sdk");
+    }
     return SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
                                 : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
                                                    : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");

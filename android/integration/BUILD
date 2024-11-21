@@ -707,6 +707,40 @@ iml_test(
     test_class = "com.android.tools.idea.MultiProjectSameWindowTest",
 )
 
+first_launch_test_data = [
+    ":buildproject_deps",
+    ":minapp",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/3534162-studio.sdk-patcher.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/addon2-3.xml",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/android-ndk-r23-beta4-linux-x86_64.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/build-tools_r35_linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/build-tools_r35_windows.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/cmake-3.22.1-linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/google_apis-24_r1.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-24_r02.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-35_r01.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-tools_r35.0.2-linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-tools_r35.0.2-win.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/source-35_r01.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/emulator-linux_x64-12234444.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/emulator-windows_x64-12234444.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/repository2-3.xml",
+    INTEGRATION_TEST_GRADLE_VERSION,
+]
+
+iml_test(
+    name = "FirstLaunchTest",
+    timeout = "moderate",
+    data = first_launch_test_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+    ],
+    test_class = "com.android.tools.idea.FirstLaunchTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier

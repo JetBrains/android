@@ -174,6 +174,20 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return system;
   }
 
+  public static AndroidSystem basicRemoteSDK(Display display, Path root) throws IOException {
+    TestFileSystem fileSystem = new TestFileSystem(root);
+
+    AndroidSystem system = new AndroidSystem(fileSystem, display, null);
+    AndroidStudioInstallation.Options options = new AndroidStudioInstallation.Options(system.fileSystem);
+    options.disableFirstRun = false;
+    system.install = AndroidStudioInstallation.fromZip(options);
+    system.setEnv("SDK_TEST_BASE_URL", String.format("file:///%s/",TestUtils.getRemoteSdk()));
+
+    createRemediationShutdownHook();
+
+    return system;
+  }
+
   public static void createRemediationShutdownHook() {
     // When running from Bazel on Windows, the JVM isn't terminated in such a way that the shutdown
     // hook is triggered, so we have to emit the remediation steps ahead of time (without knowing

@@ -43,7 +43,9 @@ val log = logger<AndroidStudioWelcomeScreenProvider>()
 class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   override fun createWelcomeScreen(rootPane: JRootPane): WelcomeScreen {
     ApplicationManager.getApplication().executeOnPooledThread {
-      checkInternetConnection()
+      if (!StudioFlags.NPW_OFFLINE.get()) {
+        checkInternetConnection()
+      }
     }
     val wizardMode = wizardMode!!
     val sdkComponentInstallerProvider = SdkComponentInstallerProvider()

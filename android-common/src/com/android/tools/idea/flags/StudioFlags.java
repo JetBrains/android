@@ -112,6 +112,21 @@ public final class StudioFlags {
     "Show the Welcome Wizard when Studio starts",
     false);
 
+  public static final Flag<Boolean> NPW_OFFLINE = new BooleanFlag(
+    NPW, "first.run.offline", "Start Welcome Wizard Offline",
+    "Start the welcome wizard without internet connection",
+    false);
+
+  public static final Flag<Boolean> NPW_ACCEPT_ALL_LICENSES = new BooleanFlag(
+    NPW,"first.run.accept.sdk.license", "Auto Accepts SDK license",
+    "Auto Accepts SDK license for testing",
+    false);
+
+  public static final Flag<String> NPW_CUSTOM_LOCAL_APP_DATA = new StringFlag(
+    NPW,"first.run.local.app.data", "Set custom local app data",
+    "Sets custom location for sdk install directory",
+    "");
+
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = new BooleanFlag(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",

@@ -22,6 +22,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.android.utils.FileUtils;
+import com.esotericsoftware.kryo.NotNull;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -58,11 +59,18 @@ public class AndroidStudioInstallation {
   private final Path telemetryJsonFile;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
-    return fromZip(testFileSystem, AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+    Options options = new Options(testFileSystem);
+    return fromZip(options);
   }
 
-  public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem, AndroidStudioFlavor androidStudioFlavor) throws IOException {
-    Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
+  public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem, AndroidStudioFlavor androidStudioFlavor)
+    throws IOException {
+    Options options = new Options(testFileSystem, androidStudioFlavor);
+    return fromZip(options);
+  }
+
+  public static AndroidStudioInstallation fromZip(Options options) throws IOException {
+    Path workDir = Files.createTempDirectory(options.testFileSystem.getRoot(), "android-studio");
     System.out.println("workDir: " + workDir);
     String platform = "linux";
     String studioDir = "android-studio";
@@ -79,7 +87,7 @@ public class AndroidStudioInstallation {
     }
 
     String zipPath;
-    switch (androidStudioFlavor) {
+    switch (options.androidStudioFlavor) {
       case FOR_EXTERNAL_USERS:
         zipPath = String.format("tools/adt/idea/studio/android-studio.%s.zip", platform);
         break;
@@ -90,20 +98,24 @@ public class AndroidStudioInstallation {
         zipPath = String.format("tools/vendor/google/asfp/studio/asfp.%s.zip", platform);
         break;
       default:
-        throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + androidStudioFlavor);
+        throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + options.androidStudioFlavor);
     }
     Path studioZip = TestUtils.getBinPath(zipPath);
     unzip(studioZip, workDir);
 
-    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir), androidStudioFlavor);
+    return new AndroidStudioInstallation(options.testFileSystem, workDir, workDir.resolve(studioDir), options.androidStudioFlavor, options.disableFirstRun);
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
-    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN);
+    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN, true);
   }
 
-  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir, AndroidStudioFlavor androidStudioFlavor) throws IOException {
+  private AndroidStudioInstallation(TestFileSystem testFileSystem,
+                                    Path workDir,
+                                    Path studioDir,
+                                    AndroidStudioFlavor androidStudioFlavor,
+                                    Boolean disableFirstRun) throws IOException {
     this.fileSystem = testFileSystem;
     this.workDir = workDir;
     this.studioDir = studioDir;
@@ -123,7 +135,7 @@ public class AndroidStudioInstallation {
     telemetryJsonFile = logsDir.resolve("opentelemetry.json");
 
     setConsentGranted(true);
-    createVmOptionsFile();
+    createVmOptionsFile(disableFirstRun);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
 
     System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
@@ -158,7 +170,7 @@ public class AndroidStudioInstallation {
     }
   }
 
-  private void createVmOptionsFile() throws IOException {
+  private void createVmOptionsFile(Boolean disableFirstRun) throws IOException {
     Path threadingCheckerAgentZip = TestUtils.getBinPath("tools/base/threading-agent/threading_agent.jar");
     if (!Files.exists(threadingCheckerAgentZip)) {
       // Threading agent can be built using 'bazel build //tools/base/threading-agent:threading_agent'
@@ -168,7 +180,9 @@ public class AndroidStudioInstallation {
     StringBuilder vmOptions = new StringBuilder();
     vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
     // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
-    vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));
+    if (disableFirstRun) {
+      vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));
+    }
     vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
     vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
     vmOptions.append(String.format("-Didea.plugins.path=%s/plugins%n", configDir));
@@ -578,5 +592,20 @@ public class AndroidStudioInstallation {
     // This indicates that some operation will need to be performed to determine which flavor is
     // being used.
     UNKNOWN,
+  }
+
+  public static class Options {
+    @NotNull public TestFileSystem testFileSystem;
+    AndroidStudioFlavor androidStudioFlavor = AndroidStudioFlavor.FOR_EXTERNAL_USERS;
+    boolean disableFirstRun = true;
+
+    public Options(TestFileSystem system) {
+      testFileSystem = system;
+    }
+
+    public Options(TestFileSystem system, AndroidStudioFlavor flavor) {
+      testFileSystem = system;
+      androidStudioFlavor = flavor;
+    }
   }
 }

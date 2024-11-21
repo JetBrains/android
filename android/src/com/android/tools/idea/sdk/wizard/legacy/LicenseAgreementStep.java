@@ -22,6 +22,7 @@ import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -291,7 +292,11 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
           firstChild = n;
         }
         licenseNodeMap.put(licenseRef, n);
-        myAcceptances.put(licenseRef, Boolean.FALSE);
+        Boolean accept = Boolean.FALSE;
+        if (StudioFlags.NPW_ACCEPT_ALL_LICENSES.get()) {
+          accept = Boolean.TRUE;
+        }
+        myAcceptances.put(licenseRef, accept);
         root.add(n);
       }
       licenseNodeMap.get(licenseRef).add(new DefaultMutableTreeNode(change));
