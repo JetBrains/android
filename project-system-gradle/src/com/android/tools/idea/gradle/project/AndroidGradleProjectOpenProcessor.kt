@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
@@ -72,10 +74,15 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, adjustedOpenTarget)
     }
     return ProjectManagerEx.getInstanceEx().openProject(
-      adjustedOpenTarget.toNioPath(), OpenProjectTask(
-        forceOpenInNewFrame = forceOpenInNewFrame,
-        projectToClose = projectToClose,
-      )
+      adjustedOpenTarget.toNioPath(),
+      OpenProjectTask {
+        this.forceOpenInNewFrame = forceOpenInNewFrame
+        this.projectToClose = projectToClose
+        beforeOpen = { project ->
+          ProjectSystemService.getInstance(project).setProviderId(GradleProjectSystemProvider.ID)
+          true
+        }
+      }
     )
   }
 
