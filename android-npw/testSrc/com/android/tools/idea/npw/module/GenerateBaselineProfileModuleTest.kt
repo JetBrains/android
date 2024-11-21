@@ -16,12 +16,12 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.ApiTemplateData
@@ -61,7 +61,7 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Kotlin,
         useGradleKts = true,
         useGmd = true,
-        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+        projectRuleAgpVersion = AGP_CURRENT,
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
@@ -111,7 +111,7 @@ class GenerateBaselineProfileModuleTest {
         sourceCodeLanguage = Language.Java,
         useGradleKts = false,
         useGmd = false,
-        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+        projectRuleAgpVersion = AGP_CURRENT,
       )
 
     val buildGradleContent = rootDir.resolve("build.gradle").readText()
@@ -260,7 +260,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk ${AGP_CURRENT.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -269,7 +269,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+        targetSdk ${AGP_CURRENT.targetSdk}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -308,7 +308,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk = ${AGP_CURRENT.compileSdk}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -321,7 +321,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+        targetSdk = ${AGP_CURRENT.targetSdk}
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -332,9 +332,9 @@ android {
     // To use GMD please invoke generation through the command line:
     // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}") {
+        create<ManagedVirtualDevice>("pixel6Api${AGP_CURRENT.compileSdk}") {
             device = "Pixel 6"
-            apiLevel = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+            apiLevel = ${AGP_CURRENT.compileSdk}
             systemImageSource = "google"
         }
     }
@@ -343,7 +343,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-managedDevices += "pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"
+managedDevices += "pixel6Api${AGP_CURRENT.compileSdk}"
 useConnectedDevices = false
 }
 
@@ -696,7 +696,7 @@ plugins {
 
 android {
   namespace 'com.test.packagename'
-  compileSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk 34
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -705,7 +705,7 @@ android {
 
   defaultConfig {
         minSdk 34
-        targetSdk ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -734,7 +734,7 @@ plugins {
 
 android {
   namespace = "com.test.packagename"
-  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk = 34
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -747,7 +747,7 @@ android {
 
   defaultConfig {
         minSdk = 34
-        targetSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+        targetSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -758,9 +758,9 @@ android {
     // To use GMD please invoke generation through the command line:
     // ./gradlew :app:generateBaselineProfile
     testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}") {
+        create<ManagedVirtualDevice>("pixel6Api34") {
             device = "Pixel 6"
-            apiLevel = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+            apiLevel = 34
             systemImageSource = "google"
         }
     }
@@ -769,7 +769,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-managedDevices += "pixel6Api${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"
+managedDevices += "pixel6Api34"
 useConnectedDevices = false
 }
 
