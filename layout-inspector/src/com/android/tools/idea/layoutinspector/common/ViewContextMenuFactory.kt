@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -129,7 +130,9 @@ private class HideSubtreeAction(
   val topView: ViewNode,
 ) : AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
-    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    }
     inspectorModel.hideSubtree(topView)
   }
 
@@ -142,7 +145,9 @@ private class ShowOnlySubtreeAction(
   val topView: ViewNode,
 ) : AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
-    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    }
     inspectorModel.showOnlySubtree(topView)
   }
 
@@ -155,7 +160,9 @@ private class ShowOnlyParentsAction(
   val topView: ViewNode,
 ) : AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
-    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    }
     inspectorModel.showOnlyParents(topView)
   }
 
