@@ -29,10 +29,13 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   public static final String DATA_BINDING_RUNTIME_ZIP = "tools/data-binding/data_binding_runtime.zip";
+  private static final String ANDROID_GRADLE_PLUGIN_ZIP = "tools/base/build-system/android_gradle_plugin.zip";
 
   static {
     try {
-      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+      if (TestUtils.workspaceFileExists(ANDROID_GRADLE_PLUGIN_ZIP)) {
+        unzipIntoOfflineMavenRepo(ANDROID_GRADLE_PLUGIN_ZIP);
+      }
       linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
       linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
