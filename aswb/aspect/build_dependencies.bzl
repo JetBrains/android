@@ -389,10 +389,14 @@ def _target_within_project_scope(label, include, exclude):
     package = label.package
     result = False
     if include:
-        for inc in [Label(i) for i in include.split(",")]:
-            if _get_repo_name(inc) == repo and _package_prefix_match(package, inc.package):
-                result = True
-                break
+        if include == "//":
+            # when workspace root is included
+            result = True
+        else:
+            for inc in [Label(i) for i in include.split(",")]:
+                if _get_repo_name(inc) == repo and _package_prefix_match(package, inc.package):
+                    result = True
+                    break
     if result and len(exclude) > 0:
         for exc in [Label(i) for i in exclude.split(",")]:
             if _get_repo_name(exc) == repo and _package_prefix_match(package, exc.package):

@@ -96,4 +96,15 @@ public class AspectUnitTest {
       assertWithMessage("targets for jar " + jarPath).that(jarToTarget.get(jarPath)).hasSize(1);
     }
   }
+
+  @Test
+  public void workspaceRootIncluded_getTargetSources() throws IOException {
+    ImmutableMap<Label, JavaTargetArtifacts> byTarget =
+        Maps.uniqueIndex(
+            JavaInfoTxt.WORKSPACE_ROOT_INCLUDED.readOnlyProto().getArtifactsList(),
+            t -> Label.of(t.getTarget()));
+    TestData target = TestData.WORKSPACE_ROOT_INCLUDED_QUERY;
+    // no sources should be there for a target within project scope.
+    assertThat(byTarget.get(target.getAssumedOnlyLabel()).getSrcsList()).isEmpty();
+  }
 }
