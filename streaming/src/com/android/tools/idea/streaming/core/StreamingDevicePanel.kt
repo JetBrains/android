@@ -78,16 +78,12 @@ abstract class StreamingDevicePanel(
 
     val toolbarPanel = BorderLayoutPanel()
     if (IS_TOOLBAR_HORIZONTAL) {
-      mainToolbar.orientation = SwingConstants.HORIZONTAL
-      secondaryToolbar.orientation = SwingConstants.HORIZONTAL
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
       addToTop(toolbarPanel)
     }
     else {
-      mainToolbar.orientation = SwingConstants.VERTICAL
-      secondaryToolbar.orientation = SwingConstants.VERTICAL
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.RIGHT)
