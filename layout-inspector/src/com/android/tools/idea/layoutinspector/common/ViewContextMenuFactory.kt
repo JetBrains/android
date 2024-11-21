@@ -66,6 +66,7 @@ fun showViewContextMenu(
           if (views.isNotEmpty()) {
             val topView = views.first()
             result.add(HideSubtreeAction(inspectorModel, client, topView))
+            result.add(ShowSubtreeAction(inspectorModel, client, topView))
             result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
             result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
           }
@@ -167,6 +168,26 @@ private class ShowOnlyParentsAction(
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
+}
+
+private class ShowSubtreeAction(
+  val inspectorModel: InspectorModel,
+  val client: InspectorClient,
+  val topView: ViewNode,
+) : AnAction("Show Subtree") {
+  override fun actionPerformed(event: AnActionEvent) {
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    }
+    inspectorModel.showSubtree(topView)
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = inspectorModel.hasHiddenSubtreeNodes(topView)
+  }
 }
 
 private fun generateText(viewNode: ViewNode) =
