@@ -102,7 +102,7 @@
       <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
-    <reference id="Android.SyncProject">
+    <reference ref="Android.SyncProject">
       <add-to-group group-id="Android.NavBarToolBar" anchor="first"/>
       <add-to-group group-id="Android.MainToolbarRight" anchor="last"/>
     </reference>

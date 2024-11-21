@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <actions>
-    <reference id="Android.SyncProject">
+    <reference ref="Android.SyncProject">
       <add-to-group group-id="AndroidToolsGroup" anchor="before" relative-to-action="AndroidDeviceManagerPlaceholder"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </reference>
