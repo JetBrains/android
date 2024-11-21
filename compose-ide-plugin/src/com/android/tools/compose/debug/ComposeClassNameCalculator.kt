@@ -15,15 +15,13 @@ class ComposeClassNameCalculator : ClassNameCalculator {
     val result = mutableMapOf<KtElement, String>()
 
     val className by lazy(NONE) { computeComposableSingletonsClassName(file) }
-    var lambdaIndex = 0
 
     val visitor = object : KtTreeVisitorVoid() {
       override fun visitLambdaExpression(lambdaExpression: KtLambdaExpression) {
         try {
           val argument = lambdaExpression.parent as? KtLambdaArgument ?: return
           if (!argument.isComposableLambdaArgument()) return
-          result[lambdaExpression] = computeComposableSingletonsLambdaClassName(className, lambdaIndex)
-          lambdaIndex++
+          result[lambdaExpression] = className
         }
         finally {
           super.visitLambdaExpression(lambdaExpression)
