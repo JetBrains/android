@@ -134,6 +134,7 @@ class ViewContextMenuFactoryTest {
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly(
         "Hide Subtree",
+        "Show Subtree",
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
@@ -147,16 +148,22 @@ class ViewContextMenuFactoryTest {
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
       .containsExactly(ROOT, VIEW1, -1L)
 
+    val showSubTree = createdGroup?.getChildren(event)?.get(1)!!
+    showSubTree.actionPerformed(mock())
+
+    assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
+      .containsExactly(ROOT, VIEW1, VIEW2, VIEW3, -1L)
+
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
-    val showOnlySubtree = createdGroup?.getChildren(event)?.get(1)!!
+    val showOnlySubtree = createdGroup?.getChildren(event)?.get(2)!!
     showOnlySubtree.actionPerformed(mock())
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
       .containsExactly(VIEW2, VIEW3)
 
     model.showAll()
-    val showOnlyParents = createdGroup?.getChildren(event)?.get(2)!!
+    val showOnlyParents = createdGroup?.getChildren(event)?.get(3)!!
     showOnlyParents.actionPerformed(mock())
 
     assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList())
@@ -178,6 +185,7 @@ class ViewContextMenuFactoryTest {
         "Hide Subtree" -> assertThat(event.presentation.isVisible).isTrue()
         "Show Only Subtree" -> assertThat(event.presentation.isVisible).isTrue()
         "Show Only Parents" -> assertThat(event.presentation.isVisible).isTrue()
+        "Show Subtree" -> assertThat(event.presentation.isVisible).isTrue()
         else -> assertThat(event.presentation.isVisible).isTrue()
       }
     }
@@ -197,6 +205,7 @@ class ViewContextMenuFactoryTest {
       .containsExactly(
         "Select View",
         "Hide Subtree",
+        "Show Subtree",
         "Show Only Subtree",
         "Show Only Parents",
         "Show All",
@@ -216,6 +225,35 @@ class ViewContextMenuFactoryTest {
     assertThat(model.selection).isEqualTo(model[VIEW2])
     views[2].actionPerformed(mock())
     assertThat(model.selection).isEqualTo(model[ROOT])
+  }
+
+  @Test
+  fun testShowSubtreeActionEnablement() {
+    val model = inspectorModel!!
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
+      .containsExactly(
+        "Hide Subtree",
+        "Show Subtree",
+        "Show Only Subtree",
+        "Show Only Parents",
+        "Show All",
+        "Go To Declaration",
+      )
+      .inOrder()
+    val showSubTree = createdGroup?.getChildren(event)?.get(1)!!
+
+    model.hideSubtree(model[VIEW3]!!)
+
+    val fakeEvent1 = createFakeEvent()
+    showSubTree.update(fakeEvent1)
+    assertThat(fakeEvent1.presentation.isEnabled).isTrue()
+
+    model.showSubtree(model[VIEW2]!!)
+
+    val fakeEvent2 = createFakeEvent()
+    showSubTree.update(fakeEvent2)
+    assertThat(fakeEvent2.presentation.isEnabled).isFalse()
   }
 }
 

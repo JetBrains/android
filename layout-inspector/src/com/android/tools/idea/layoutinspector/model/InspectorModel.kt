@@ -518,6 +518,18 @@ class InspectorModel(
     notifyModified()
   }
 
+  fun showSubtree(node: ViewNode) {
+    ViewNode.readAccess { hiddenNodes.removeAll(node.flatten().toSet()) }
+    notifyModified()
+  }
+
+  fun hasHiddenSubtreeNodes(node: ViewNode): Boolean {
+    return ViewNode.readAccess {
+      val subtreeNodes = node.flatten().toSet()
+      hiddenNodes.firstOrNull() { subtreeNodes.contains(it) } != null
+    }
+  }
+
   fun isVisible(node: ViewNode) = !hiddenNodes.contains(node)
 
   fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
