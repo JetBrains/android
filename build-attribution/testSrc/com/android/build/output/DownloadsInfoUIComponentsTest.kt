@@ -197,7 +197,7 @@ class DownloadsInfoExecutionConsoleTest {
   @Test
   fun testUiUpdated() {
     val downloadProcessKey = DownloadRequestKey(1000, url1)
-    executionConsole.uiModel.updateDownloadRequest(DownloadRequestItem(downloadProcessKey, GOOGLE))
+    executionConsole.uiModel.updateDownloadRequests(listOf(DownloadRequestItem(downloadProcessKey, GOOGLE)))
 
     assertWithMessage("Components should become visible on data arrival.")
       .that(executionConsole.component.components.all { it.isVisible }).isTrue()
@@ -209,8 +209,31 @@ class DownloadsInfoExecutionConsoleTest {
   fun testRequestsUpdatedOnRepoSelection() {
     val downloadProcessKey1 = DownloadRequestKey(1000, url1)
     val downloadProcessKey2 = DownloadRequestKey(1150, url3)
-    executionConsole.uiModel.updateDownloadRequest(DownloadRequestItem(downloadProcessKey1, GOOGLE))
-    executionConsole.uiModel.updateDownloadRequest(DownloadRequestItem(downloadProcessKey2, MAVEN_CENTRAL))
+    executionConsole.uiModel.updateDownloadRequests(listOf(DownloadRequestItem(downloadProcessKey1, GOOGLE)))
+    executionConsole.uiModel.updateDownloadRequests(listOf(DownloadRequestItem(downloadProcessKey2, MAVEN_CENTRAL)))
+
+    assertThat(reposTable.rowCount).isEqualTo(3)
+    assertThat(requestsTable.rowCount).isEqualTo(2)
+
+    reposTable.setRowSelectionInterval(1,1)
+
+    assertThat(reposTable.rowCount).isEqualTo(3)
+    assertThat(requestsTable.rowCount).isEqualTo(1)
+
+    val interactions = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.SELECT_REPOSITORY_ROW))
+  }
+
+  @Test
+  fun testRequestsUpdatedOnRepoSelectionWithBulkUpdate() {
+    val downloadProcessKey1 = DownloadRequestKey(1000, url1)
+    val downloadProcessKey2 = DownloadRequestKey(1150, url3)
+    executionConsole.uiModel.updateDownloadRequests(listOf(
+      DownloadRequestItem(downloadProcessKey1, GOOGLE),
+      DownloadRequestItem(downloadProcessKey2, MAVEN_CENTRAL)
+    ))
 
     assertThat(reposTable.rowCount).isEqualTo(3)
     assertThat(requestsTable.rowCount).isEqualTo(2)
@@ -270,9 +293,9 @@ class DownloadsInfoExecutionConsoleTest {
     val downloadProcess1 = DownloadRequestItem(DownloadRequestKey(1000, url1), GOOGLE, completed = true, duration = 200)
     val downloadProcess2 = DownloadRequestItem(DownloadRequestKey(2000, url2), GOOGLE, completed = true, duration = 100)
     val downloadProcess3 = DownloadRequestItem(DownloadRequestKey(3000, url3), MAVEN_CENTRAL, completed = true, duration = 300)
-    executionConsole.uiModel.updateDownloadRequest(downloadProcess1)
-    executionConsole.uiModel.updateDownloadRequest(downloadProcess2)
-    executionConsole.uiModel.updateDownloadRequest(downloadProcess3)
+    executionConsole.uiModel.updateDownloadRequests(listOf(downloadProcess1))
+    executionConsole.uiModel.updateDownloadRequests(listOf(downloadProcess2))
+    executionConsole.uiModel.updateDownloadRequests(listOf(downloadProcess3))
 
     // Test three-state-sorting based on duration column.
     // First toggle should sort by duration in ascending order
