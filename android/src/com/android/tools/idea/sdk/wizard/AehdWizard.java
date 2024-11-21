@@ -234,7 +234,6 @@ public class AehdWizard extends DynamicWizard {
       }
       mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myAehd, AehdWizard.this.myHost);
       addStep(mySetupProgressStep);
-      myAehd.init(mySetupProgressStep);
     }
 
     @NotNull

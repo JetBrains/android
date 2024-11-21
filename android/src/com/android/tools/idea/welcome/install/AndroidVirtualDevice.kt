@@ -42,7 +42,6 @@ import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.IdeAvdManagers
-import com.android.tools.idea.welcome.wizard.IProgressStep
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
@@ -70,7 +69,6 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
     }, installUpdates)
 
   private val IS_ARM64_HOST_OS = CpuArch.isArm64() || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
-  private lateinit var myProgressStep: IProgressStep
 
   // After this we use x86-64 system images
   private val MAX_X86_API_LEVEL = 30
@@ -148,14 +146,10 @@ class AndroidVirtualDevice(private val androidVersion: AndroidVersion?, installU
       if (androidVersion == null) emptyList()
       else listOf(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, androidVersion, ID_ADDON_GOOGLE_API_IMG))
 
-  override fun init(progressStep: IProgressStep) {
-    myProgressStep = progressStep
-  }
-
   override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {
     try {
-      myProgressStep.getProgressIndicator().isIndeterminate = true
-      myProgressStep.getProgressIndicator().text = "Creating Android virtual device"
+      installContext.progressIndicator.isIndeterminate = true
+      installContext.progressIndicator.text = "Creating Android virtual device"
       installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT)
       val avdManager = AvdManagerConnection.getAvdManagerConnection(sdkHandler)
       val avd = createAvd(sdkHandler) ?: throw WizardException("Unable to create Android virtual device")

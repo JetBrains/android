@@ -90,16 +90,6 @@ class FirstRunModel(private val mode: FirstRunWizardMode, private val componentI
   val componentTree = createComponentTree(true)
 
   init {
-    // Some `InstallableComponent`s need a `ProgressStep` to report on progress during the configuration
-    // stage - since we're passing in a mock object here the progress isn't reported correctly
-    // TODO - refactor `InstallableComponent` classes to use the progress step stored in the
-    // `InstallContext` object - this will fix this issue
-    val mockProgressStep = object : com.android.tools.idea.welcome.wizard.deprecated.ProgressStep(this, "loading component tree") {
-      override fun execute() {
-        // TODO (doing nothing)
-      }
-    }
-    componentTree.init(mockProgressStep)
     componentTree.updateState(localHandler)
   }
 

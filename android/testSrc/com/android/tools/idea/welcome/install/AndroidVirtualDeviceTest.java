@@ -43,7 +43,6 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.NioFiles;
@@ -391,7 +390,6 @@ public final class AndroidVirtualDeviceTest {
     AvdManagerConnection connection =
       new AvdManagerConnection(sdkHandler, IdeAvdManagers.INSTANCE.getAvdManager(sdkHandler), Dispatchers.getUnconfined());
     Set<AvdInfo> existingAvds = new HashSet<>(connection.getAvds(true));
-    avdCreator.init(progressStep);
     InstallContext context = new InstallContext(tempDirectoryRule.newPath().toFile(), progressStep);
     avdCreator.configure(context, sdkHandler);
     List<AvdInfo> newAvds = connection.getAvds(true);

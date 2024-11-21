@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.welcome.wizard.IProgressStep
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
 import com.android.tools.idea.wizard.model.ModelWizardStep
 
@@ -45,9 +44,8 @@ abstract class ComponentTreeNode(val description: String) {
   abstract val steps: Collection<ModelWizardStep<*>>
 
   override fun toString(): String = label
-  open fun init(progressStep: IProgressStep) {  }
   abstract fun updateState(handler: AndroidSdkHandler)
-  @Deprecated("this is for an old welcome wizard", ReplaceWith("step"))
+  @Deprecated("this is for the old welcome wizard", ReplaceWith("step"))
   abstract fun createSteps(): Collection<DynamicWizardStep>
   abstract fun toggle(isSelected: Boolean)
 }

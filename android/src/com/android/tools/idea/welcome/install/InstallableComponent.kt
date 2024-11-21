@@ -97,6 +97,7 @@ abstract class InstallableComponent(
 
   override val steps: Collection<ModelWizardStep<*>> = setOf()
 
+  @Deprecated("this is for the old welcome wizard", replaceWith = ReplaceWith("step"))
   override fun createSteps(): Collection<DynamicWizardStep> = emptySet()
 
   override fun updateState(handler: AndroidSdkHandler) {

@@ -142,7 +142,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
 
     myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
-    myComponentTree.init(myProgressStep);
     myComponentTree.updateState(localHandler);
 
     Supplier<Collection<RemotePackage>> supplier = () -> {

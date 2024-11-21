@@ -24,7 +24,6 @@ import com.android.tools.idea.avdmanager.ElevatedCommandLine
 import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.welcome.wizard.IProgressStep
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
@@ -102,6 +101,7 @@ class Aehd(
            com.android.tools.idea.welcome.wizard.AehdUninstallInfoStep()
       else com.android.tools.idea.welcome.wizard.AehdInstallInfoStep())
 
+  @Deprecated("this is for the old welcome wizard", replaceWith = ReplaceWith("step"))
   override fun createSteps() =
     setOf(if (installationIntention === InstallationIntention.UNINSTALL) AehdUninstallInfoStep()
           else AehdInstallInfoStep(isCustomInstall))
@@ -109,14 +109,8 @@ class Aehd(
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set
 
-  private lateinit var progressStep: IProgressStep
-
   public override val requiredSdkPackages
     get() = listOf("extras;google;Android_Emulator_Hypervisor_Driver")
-
-  override fun init(progressStep: IProgressStep) {
-    this.progressStep = progressStep
-  }
 
   /**
    * Create a platform-dependant command line for running the silent installer.
@@ -269,7 +263,7 @@ class Aehd(
           super.onTextAvailable(event, outputType)
         }
       })
-      progressStep.attachToProcess(process)
+      installContext.attachToProcess(process)
       val exitCode = process.runProcess().exitCode
       // More testing of bash scripts invocation with intellij process wrappers might be useful.
       if (exitCode != INSTALLER_EXIT_CODE_SUCCESS) {

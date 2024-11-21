@@ -16,7 +16,9 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.tools.idea.welcome.wizard.IProgressStep;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.ThrowableComputable;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +32,14 @@ public class InstallContext {
 
   public InstallContext(@NotNull File tempDirectory, @NotNull IProgressStep progressStep) {
     myProgressStep = progressStep;
+  }
+
+  public void attachToProcess(ProcessHandler processHandler) {
+    myProgressStep.attachToProcess(processHandler);
+  }
+
+  public ProgressIndicator getProgressIndicator() {
+    return myProgressStep.getProgressIndicator();
   }
 
   public void checkCanceled() throws InstallationCancelledException {
