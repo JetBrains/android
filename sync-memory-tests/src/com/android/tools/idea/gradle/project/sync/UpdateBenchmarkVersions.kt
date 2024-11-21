@@ -59,7 +59,7 @@ fun main(args: Array<String>) {
 
     to $gradleVersion
 
-    Bug: N/A
+    Bug: 365508657
     Test: N/A
   """.trimIndent()
     println("Creating tools/external/gradle change")
@@ -100,7 +100,7 @@ fun main(args: Array<String>) {
 
     to $kotlinVersion
 
-    Bug: N/A
+    Bug: 365509858
     Test: N/A
   """.trimIndent()
 
