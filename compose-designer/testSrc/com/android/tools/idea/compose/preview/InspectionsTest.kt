@@ -217,6 +217,78 @@ class InspectionsTest {
   }
 
   @Test
+  fun testParameterProviderOnFirstParameterOnly() {
+    fixture.enableInspections(
+      PreviewParameterProviderOnFirstParameterInspection() as InspectionProfileEntry
+    )
+
+    @Suppress("TestFunctionName", "ClassName")
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      class IntProvider: PreviewParameterProvider<Int> {
+          override val values: Sequence<Int> = sequenceOf(1, 2)
+      }
+
+      @Preview
+      @Composable
+      fun PreviewWithProviderOnSecondParam(a: Int,
+                                           @PreviewParameter(IntProvider::class) b: Int, // ERROR
+                                           c: Int) {
+      }
+
+      @Preview
+      annotation class MyAnnotation
+
+      @MyAnnotation
+      @Composable
+      fun PreviewWithProviderOnThirdParam(a: Int,
+                                          b: Int,
+                                          @PreviewParameter(IntProvider::class) c: Int, // ERROR
+                                          d: Int) {
+      }
+
+      @MyAnnotation
+      @Preview
+      @Composable
+      fun PreviewWithProviderOnFirstParam(@PreviewParameter(IntProvider::class) a: Int, // OK
+                                          b: Int) {
+      }
+
+      @MyAnnotation
+      @Preview
+      @Composable
+      fun PreviewWithoutProvider(a: Int, // OK
+                                 b: Int) {
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
+        // sequence and sequenceOf are not available. We can safely ignore them.
+        .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
+
+    assertEquals(
+      """12: @PreviewParameter is only allowed in the first parameter of a Composable function
+        |23: @PreviewParameter is only allowed in the first parameter of a Composable function
+      """
+        .trimMargin(),
+      inspections,
+    )
+  }
+
+  @Test
   fun testPreviewMustBeTopLevel() {
     fixture.enableInspections(ComposePreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 

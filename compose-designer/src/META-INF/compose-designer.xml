@@ -85,6 +85,14 @@
                      key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewParameterProviderOnFirstParameterInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.parameter.provider.on.first.parameter.description"
+                     level="ERROR"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
