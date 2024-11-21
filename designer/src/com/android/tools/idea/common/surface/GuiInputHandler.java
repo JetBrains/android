@@ -340,7 +340,7 @@ public class GuiInputHandler implements Disposable {
       myCurrentInteraction = null;
       myLastModifiersEx = 0;
       myInteractionHandler.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
-      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      updateCursor();
       myInteractable.repaintComponent();
     }
   }
@@ -428,14 +428,14 @@ public class GuiInputHandler implements Disposable {
       // TODO: move this logic into InteractionHandler.createInteractionOnPressed()
       if (myCurrentInteraction instanceof PanInteraction) {
         myCurrentInteraction.update(new MousePressedEvent(event, getInteractionInformation()));
-        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        updateCursor();
         return;
       }
       else if (SwingUtilities.isMiddleMouseButton(event)) {
         Pannable pannable = myInteractable.getPannable();
         startInteraction(new MousePressedEvent(event, getInteractionInformation()),
                          new PanInteraction(pannable));
-        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        updateCursor();
         return;
       }
 
@@ -467,7 +467,7 @@ public class GuiInputHandler implements Disposable {
         else {
           myCurrentInteraction.update(
             new MouseReleasedEvent(event, new InteractionInformation(event.getX(), event.getY(), event.getModifiersEx())));
-          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          updateCursor();
         }
         return;
       }
@@ -626,7 +626,7 @@ public class GuiInputHandler implements Disposable {
         if (myCurrentInteraction instanceof PanInteraction && event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
           // TODO (b/142953949): this should be handled by PanInteraction itself.
           setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
-          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          updateCursor();
         }
         else {
           myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
@@ -760,11 +760,11 @@ public class GuiInputHandler implements Disposable {
     Pannable pannable = myInteractable.getPannable();
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
       startInteraction(new InteractionNonInputEvent(getInteractionInformation()), new PanInteraction(pannable));
-      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      updateCursor();
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
       finishInteraction(new InteractionNonInputEvent(getInteractionInformation()), false);
-      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      updateCursor();
     }
   }
 
@@ -772,11 +772,11 @@ public class GuiInputHandler implements Disposable {
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
       Pannable pannable = myInteractable.getPannable();
       startInteraction(event, new PanInteraction(pannable));
-      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      updateCursor();
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
       finishInteraction(event, false);
-      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      updateCursor();
     }
   }
 
@@ -819,5 +819,12 @@ public class GuiInputHandler implements Disposable {
   @VisibleForTesting
   public Object getListener() {
     return myListener;
+  }
+
+  /**
+   * Updates the cursor with the latest mouse coordinates and mask.
+   */
+  private void updateCursor() {
+    updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
   }
 }
