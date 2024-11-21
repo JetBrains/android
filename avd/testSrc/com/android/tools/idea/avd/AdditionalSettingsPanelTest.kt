@@ -82,6 +82,24 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
+  fun deviceSkinDropdownIsEnabledDoesntHavePlayStoreAndIsFoldable() {
+    // Arrange
+    val state =
+      ConfigureDevicePanelState(
+        TestDevices.pixel9ProFold(),
+        emptyList<Skin>().toImmutableList(),
+        mock(),
+        fileSystem,
+      )
+
+    // Act
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    // Assert
+    rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
+  }
+
+  @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
     val device = TestDevices.pixel6()
