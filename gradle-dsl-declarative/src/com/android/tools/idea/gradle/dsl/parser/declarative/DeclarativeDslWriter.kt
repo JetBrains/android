@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
@@ -275,12 +276,22 @@ class DeclarativeDslWriter(private val context: BuildModelContext) : GradleDslWr
             return
           }
         }
+        is DeclarativeArgumentsList ->
+          if (element.arguments.isEmpty())
+            element.delete()
+          else return
+
+        is DeclarativeSimpleFactory ->
+          if (element.argumentsList == null || element.argumentsList?.arguments?.isEmpty() == true)
+            element.delete()
+          else return
+
         is DeclarativeFile -> return
       }
     }
 
     val dslParent = getNextValidParent(dslElement)
-    if (dslParent != null && dslParent.isInsignificantIfEmpty) {
+    if (dslParent != null && dslParent != dslElement && dslParent.isInsignificantIfEmpty) {
       maybeDeleteIfEmpty(dslParent)
     }
   }
