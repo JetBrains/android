@@ -147,9 +147,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     val northToolbarComponent = northToolbar!!.component
     val northEastToolbarComponent = northEastToolbar!!.component
 
-    if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
+    val toolbarPanel =
       object : AdtPrimaryPanel(BorderLayout()) {
           override fun getBackground() = surface.background
+
+          override fun isVisible(): Boolean =
+            northToolbarComponent.isVisible || northEastToolbarComponent.isVisible
         }
         .apply {
           // set background to null to use the parent's background
@@ -158,9 +161,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
           this.add(northToolbarComponent, BorderLayout.CENTER)
           this.add(northEastToolbarComponent, BorderLayout.EAST)
           this.border = BORDER
-          toolbarComponent.add(this, BorderLayout.NORTH)
         }
-    }
+    toolbarComponent.add(toolbarPanel, BorderLayout.NORTH)
   }
 
   /**
