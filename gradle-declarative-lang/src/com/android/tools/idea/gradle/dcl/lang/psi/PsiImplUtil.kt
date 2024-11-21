@@ -37,7 +37,7 @@ class PsiImplUtil {
     @JvmStatic
     fun getField(property: DeclarativeProperty): DeclarativeIdentifier = when (property) {
       is DeclarativeBare -> property.identifier
-      is DeclarativeQualified -> property.identifier!!
+      is DeclarativeQualified -> property.identifier
       else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
     }
 
@@ -58,7 +58,7 @@ class PsiImplUtil {
     @JvmStatic
     fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier = when (property) {
       is DeclarativeAssignableBare -> property.identifier
-      is DeclarativeAssignableQualified -> property.identifier!!
+      is DeclarativeAssignableQualified -> property.identifier
       else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
     }
 
@@ -98,8 +98,10 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier? {
-      return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java) ?: block.embeddedFactory?.identifier
+    fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier {
+      return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java)
+             ?: block.embeddedFactory?.identifier
+             ?: throw IllegalStateException("DeclarativeBlock `${block.text}` does not have identifier")
     }
 
     @JvmStatic

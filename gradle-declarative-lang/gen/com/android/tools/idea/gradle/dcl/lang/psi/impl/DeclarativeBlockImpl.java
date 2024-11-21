@@ -57,7 +57,7 @@ public class DeclarativeBlockImpl extends CompositePsiElement implements Declara
   }
 
   @Override
-  @Nullable
+  @NotNull
   public DeclarativeIdentifier getIdentifier() {
     return PsiImplUtil.getIdentifier(this);
   }
