@@ -53,6 +53,7 @@ import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -61,6 +62,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -392,6 +394,10 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(
     // [Example: foo in `fun f(block: (foo: Any) -> Unit))`.]
     // Skip these elements and let the fallback handling take care of them.
     this is KtParameter && isFunctionTypeParameter -> null
+    // b/377254250 and https://youtrack.jetbrains.com/issue/KT-73195
+    // Annotations on function literal may be dropped from AA symbol.
+    // Skip and handle that in the fallback, which also requires a workaround...
+    this is KtFunctionLiteral -> null
     else -> {
       allowAnalysisOnEdt {
         @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
@@ -415,7 +421,17 @@ private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): K
     @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {
       analyze(this) {
-        annotationEntries.find { annotationEntry ->
+        val ktAnnotated = this@findAnnotationEntryByClassId
+        val annotationEntries = when (ktAnnotated) {
+          is KtFunctionLiteral -> {
+            // https://youtrack.jetbrains.com/issue/KT-73195
+            // Annotations on function literal may belong to the enclosing annotated expression
+            ktAnnotated.annotationEntries.takeIf { it.isNotEmpty() }
+              ?: ktAnnotated.parentOfType<KtAnnotatedExpression>()?.annotationEntries
+          }
+          else -> ktAnnotated.annotationEntries
+        }
+        annotationEntries?.find { annotationEntry ->
           val annotationConstructorCall =
             annotationEntry.resolveToCall()?.singleConstructorCallOrNull() ?: return null
           annotationConstructorCall.symbol.containingClassId == classId
