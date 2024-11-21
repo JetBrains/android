@@ -122,7 +122,7 @@ class WelcomeScreenWizardTest {
     TestDialogManager.setTestDialog(dialog)
 
     sdkPath = FileUtil.createTempDirectory("sdk", null)
-    mockFirstRunWizardDefaults = mockStatic(FirstRunWizardDefaults::class.java)
+    mockFirstRunWizardDefaults = mockStatic(FirstRunWizardDefaults::class.java, CALLS_REAL_METHODS)
     `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL)).thenReturn(sdkPath)
 
     mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
@@ -467,6 +467,17 @@ class WelcomeScreenWizardTest {
     assertTrue(finishButton.isEnabled)
     finishButton.doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
+  @Test
+  fun missingSdkComponentStep_shownWhenInstallTypeMissingSdk() {
+    val fakeUi = createWizard(FirstRunWizardMode.MISSING_SDK)
+
+    val title = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("Missing SDK") })
+    assertTrue(fakeUi.isShowing(title))
+
+    val missingSdkLabel = checkNotNull(fakeUi.findComponent<JLabel> { it.text.contains("No Android SDK found") })
+    assertTrue(fakeUi.isShowing(missingSdkLabel))
   }
 
   private fun getExistingSdkPath(): File {
