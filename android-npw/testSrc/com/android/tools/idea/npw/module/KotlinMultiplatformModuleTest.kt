@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -97,20 +97,9 @@ class KotlinMultiplatformModuleTest {
   ): File {
     val name = "shared"
     val buildApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
-    val targetApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
-    val minApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
+      ApiVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), StudioFlags.NPW_COMPILE_SDK_VERSION.get().toString())
+    val targetApi = buildApi
+    val minApi = ApiVersion(34, "34")
     val kotlinVersion = "1.9.20"
     val agpVersion = AgpVersion(8, 3, 0)
     val packageName = "com.kmplib.packagename"
@@ -213,7 +202,7 @@ plugins {
 // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
   namespace = "com.kmplib.packagename"
-  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk = ${StudioFlags.NPW_COMPILE_SDK_VERSION.get()}
   minSdk = 34
 
   withHostTestBuilder {
