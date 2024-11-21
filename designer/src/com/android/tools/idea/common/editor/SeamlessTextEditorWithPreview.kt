@@ -116,9 +116,7 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
         setEditorLayout(Layout.SHOW_EDITOR)
       } else {
         // Restore the visibility of the components depending on the current layout.
-        getLayout()?.let {
-          setEditorLayout(it)
-        }
+        getLayout()?.let { setEditorLayout(it) }
       }
       field = value
     }
