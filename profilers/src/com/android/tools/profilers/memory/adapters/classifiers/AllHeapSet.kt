@@ -26,7 +26,6 @@ class AllHeapSet(obj: CaptureObject, private val subHeaps: Array<HeapSet>): Heap
 
   override fun setClassGrouping(classGrouping: ClassGrouping) {
     subHeaps?.forEach { it.setClassGrouping(classGrouping) }
-    super.setClassGrouping(classGrouping)
   }
 
   override fun createSubClassifier() = Classifier.of(InstanceObject::getHeapId, { subHeaps.first { h -> h.id == it } })
