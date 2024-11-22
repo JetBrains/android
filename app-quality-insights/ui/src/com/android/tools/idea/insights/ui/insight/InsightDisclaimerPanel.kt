@@ -21,13 +21,18 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.mapReadyOrDefault
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.ui.HyperlinkAdapter
+import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
@@ -35,6 +40,7 @@ import com.intellij.util.ui.NamedColorUtil
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Dimension
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -86,7 +92,30 @@ class InsightDisclaimerPanel(
       text =
         "<html>This insight was generated without code context because your current settings do not allow Gemini to use code context. You can change it via <a href='GeminiContextSettings'>Settings > Gemini > Context Awareness</a>.</html>",
       hyperlinkActivated = {
-        ShowSettingsUtil.getInstance().showSettingsDialog(controller.project, "Gemini")
+        ShowSettingsUtil.getInstance().showSettingsDialog(
+          controller.project,
+          { c: Configurable -> c.displayName == "Gemini" },
+        ) { configurable ->
+          val runnableReference = AtomicReference<Runnable>()
+          val component = configurable.createComponent()
+          val runnable = {
+            if (component?.parent == null) {
+              // The component isn't completely set up right away, and we need to be able to iterate
+              // up the hierarchy to get the search box. Reschedule the runnable until it's
+              // attached.
+              ApplicationManager.getApplication().invokeLater(runnableReference.get())
+            } else {
+              // shouldn't be null, but at least don't blow up if it is. We just won't get
+              // highlighting.
+              DataManager.getInstance()
+                .getDataContext(component)
+                .getData(SearchTextField.KEY)
+                ?.text = "Use context from this project to improve responses"
+            }
+          }
+          runnableReference.set(runnable)
+          ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any())
+        }
       },
     )
 
