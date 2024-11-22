@@ -237,8 +237,7 @@ private fun UMethod.toMultiPreviewNode(
     // the assertions are not enabled.
     assert(isComposable())
   }
-  val nonPreviewChildNodes =
-    runReadAction { getUAnnotations() }.nonPreviewNodes(multiPreviewNodesByFqn)
+  val nonPreviewChildNodes = getUAnnotations().nonPreviewNodes(multiPreviewNodesByFqn)
 
   return MultiPreviewNodeImpl(
     MultiPreviewNodeInfo(
