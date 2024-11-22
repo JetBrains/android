@@ -63,7 +63,7 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
  * preview annotations that are indirectly referenced through the annotation graph.
  */
 fun UElement.directPreviewChildrenCount(isPreviewAnnotation: UElement?.() -> Boolean) =
-  runReadAction { getUAnnotations() }.count { it.isPreviewAnnotation() }
+  getUAnnotations().count { it.isPreviewAnnotation() }
 
 private fun buildParentAnnotationInfo(
   parent: NodeInfo<UAnnotationSubtreeInfo>?,
