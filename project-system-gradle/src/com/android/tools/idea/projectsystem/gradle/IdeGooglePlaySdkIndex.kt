@@ -29,6 +29,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_IN
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_DEFAULT_DATA_ERROR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_DEPRECATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_NON_COMPLIANT
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_UPDATED
@@ -42,6 +43,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectForFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.jetbrains.cef.remote.thrift_codegen.Server
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -97,6 +99,14 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_HAS_VULNERABILITY_ISSUES)
   }
 
+  override fun logDeprecated(groupId: String, artifactId: String, versionString: String, file: File?) {
+    super.logDeprecated(groupId, artifactId, versionString, file)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
+    val warnMsg = generateDeprecatedMessage(groupId, artifactId)
+    logger.warn(warnMsg)
+    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_DEPRECATED)
+  }
+
   override fun logIndexLoadedCorrectly(dataSourceType: DataSourceType) {
     super.logIndexLoadedCorrectly(dataSourceType)
     logger.info("SDK Index data loaded correctly from $dataSourceType")
@@ -139,6 +149,7 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     initialize()
     showNotesFromDeveloper = StudioFlags.SHOW_SDK_INDEX_NOTES_FROM_DEVELOPER.get()
     showRecommendedVersions = StudioFlags.SHOW_SDK_INDEX_RECOMMENDED_VERSIONS.get()
+    showDeprecationIssues = StudioFlags.SHOW_SDK_INDEX_DEPRECATION_ISSUES.get()
   }
 
   /**

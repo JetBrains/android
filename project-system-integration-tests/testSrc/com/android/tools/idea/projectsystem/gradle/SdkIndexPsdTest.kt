@@ -23,12 +23,13 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon")
     system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.notes=true")
     system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.recommended.versions=true")
+    system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.deprecation.issues=true")
     verifySdkIndexIsInitializedAndUsedWhen(
       showFunction = { studio, _ ->
         openAndClosePSD(studio)
       },
       beforeClose = {
-        verifyPsdIssues(numErrors = 5, numWarnings = 4)
+        verifyPsdIssues(numErrors = 6, numWarnings = 4)
       },
       expectedIssues = listOf(
         // Error
@@ -58,6 +59,16 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
         // Error
         listOf(
           "com.startapp:inapp-sdk version 3.9.1 contains unsafe unzipping patterns.",
+        ),
+        // Error
+        listOf(
+          "**[Prevents app release in Google Play Console]** com.google.android.play:core version 1.10.3 has been reported as problematic by its author and will block publishing of your app to Play Console.",
+          // Yes, there is a space at the end, the message comes like that from the SDK Index snapshot
+          "**Note:** Update your Play Core Maven dependency to an Android 14 compatible version! ",
+          "Your current Play Core library is incompatible with targetSdkVersion 34 (Android 14), which introduces a " +
+          "backwards-incompatible change to broadcast receivers to improve user security. As a reminder, from August 31, Google Play " +
+          "requires all new app releases to target Android 14. Update to the latest Play Core library version dependency to avoid app " +
+          "crashes: https://developer.android.com/guide/playcore#playcore-migration"
         ),
         // Warning
         listOf(

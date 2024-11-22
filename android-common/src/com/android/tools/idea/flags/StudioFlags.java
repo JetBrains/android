@@ -2223,6 +2223,11 @@ public final class StudioFlags {
     "Show a notification after initial sync when there are blocking SDK Index issues",
     true
   );
+  public static final Flag<Boolean> SHOW_SDK_INDEX_DEPRECATION_ISSUES = new BooleanFlag(
+    GOOGLE_PLAY_SDK_INDEX, "show.sdk.index.deprecation.issues", "Show library deprecation issues",
+    "Show issues related to deprecated libraries from SDK Index in Lint and PSD",
+    ChannelDefault.enabledUpTo(CANARY)
+  );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
   // region DEV_SERVICES_DEPRECATION_SUPPORT

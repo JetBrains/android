@@ -507,6 +507,7 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-safetynet_10.0.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.android.play.app-update_2.0.0",
+        "@maven//:com.google.android.play.core_1.10.3",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
