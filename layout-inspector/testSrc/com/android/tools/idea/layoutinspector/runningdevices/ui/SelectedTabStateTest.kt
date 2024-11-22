@@ -42,9 +42,11 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import java.awt.Rectangle
 import javax.swing.JPanel
 import kotlin.test.assertNotNull
@@ -128,6 +130,11 @@ class SelectedTabStateTest {
         orientationQuadrantProvider = { 0 },
         currentSessionStatistics = { SessionStatisticsImpl(DisconnectedClient.clientType) },
       )
+  }
+
+  @After
+  fun tearDown() {
+    PropertiesComponent.getInstance().unsetValue(UI_CONFIGURATION_KEY)
   }
 
   @Test
@@ -284,7 +291,7 @@ class SelectedTabStateTest {
         ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector1).isNotNull()
 
-    Disposer.dispose(selectedTabState)
+    Disposer.dispose(selectedTabState.tabComponents)
 
     val inspector2 =
       DataManager.getDataProvider(selectedTabState.layoutInspectorRenderer)

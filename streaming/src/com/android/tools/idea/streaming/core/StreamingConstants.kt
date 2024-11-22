@@ -19,14 +19,14 @@ package com.android.tools.idea.streaming.core
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import javax.swing.JComponent
 
 /** Constants for the Running Devices tool window. */
 
 @JvmField val DISPLAY_VIEW_KEY = DataKey.create<AbstractDisplayView>("DisplayView")
 
-@JvmField val STREAMING_CONTENT_PANEL_KEY = DataKey.create<BorderLayoutPanel>("StreamingContentPanel")
+@JvmField val STREAMING_CONTENT_PANEL_KEY = DataKey.create<JComponent>("StreamingContentPanel")
 
 @JvmField val DEVICE_ID_KEY = DataKey.create<DeviceId>("DeviceId")
 
