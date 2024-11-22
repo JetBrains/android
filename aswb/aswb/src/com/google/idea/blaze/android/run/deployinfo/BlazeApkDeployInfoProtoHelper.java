@@ -49,7 +49,8 @@ public class BlazeApkDeployInfoProtoHelper {
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
     try {
-      outputArtifacts = buildResultHelper.getBuildArtifactsForTarget(target, pathFilter);
+      outputArtifacts =
+        buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING).getDirectArtifactsForTarget(target, pathFilter).asList();
     } catch (GetArtifactsException e) {
       throw new GetDeployInfoException(e.getMessage());
     }
@@ -65,7 +66,7 @@ public class BlazeApkDeployInfoProtoHelper {
         }
         log.warn("All local artifacts for " + target + ":");
         List<OutputArtifact> allBuildArtifacts =
-            buildResultHelper.getBuildArtifactsForTarget(target, path -> true);
+          buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING).getDirectArtifactsForTarget(target, path1 -> true).asList();
         List<File> allLocalFiles = LocalFileArtifact.getLocalFiles(allBuildArtifacts);
         for (File file : allLocalFiles) {
           String path = file.getPath();

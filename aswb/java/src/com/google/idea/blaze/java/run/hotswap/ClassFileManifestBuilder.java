@@ -34,6 +34,7 @@ import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfiguration
 import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.common.Interners;
 import com.intellij.debugger.impl.HotSwapProgress;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunCanceledByUserException;
@@ -41,6 +42,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.io.File;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
@@ -133,8 +135,8 @@ public class ClassFileManifestBuilder {
       try {
         jars =
             LocalFileArtifact.getLocalFiles(
-                    buildResultHelper.getArtifactsForOutputGroup(
-                        JavaClasspathAspectStrategy.OUTPUT_GROUP, file -> true))
+                buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)
+                  .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP, file -> true))
                 .stream()
                 .filter(f -> f.getName().endsWith(".jar"))
                 .collect(toImmutableList());
