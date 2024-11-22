@@ -1,4 +1,4 @@
-<idea-plugin package="com.android.tools.idea.flags">
+<idea-plugin package="com.android.tools.idea.gradle.feature.flags">
   <extensions defaultExtensionNs="com.intellij">
     <registryKey key="gradle.declarative.studio.support" defaultValue="false" description="Declarative IDE support"/>
   </extensions>

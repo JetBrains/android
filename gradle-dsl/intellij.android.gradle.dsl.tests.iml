@@ -46,6 +46,5 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="TEST" />
   </component>
 </module>
