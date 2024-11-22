@@ -35,7 +35,6 @@ import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.model.WizardModel
-import com.intellij.openapi.Disposable
 import java.io.File
 
 // Contains all the data which Studio should collect in the First Run Wizard
@@ -68,8 +67,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
   val componentTree = createComponentTree(true)
 
   init {
-    val mockDisposable = Disposable { }
-    val mockProgressStep = object : ProgressStep(mockDisposable, "loading component tree") {
+    val mockProgressStep = object : ProgressStep(this, "loading component tree") {
       override fun execute() {
         // TODO (doing nothing)
       }

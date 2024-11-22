@@ -71,7 +71,7 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
     panel.apply()
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = standardRadioBtn
+  override fun getPreferredFocusComponent(): JComponent? = null
 
   override fun getComponent(): JComponent = rootPanel
 
