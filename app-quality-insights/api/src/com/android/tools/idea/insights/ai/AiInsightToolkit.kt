@@ -30,12 +30,10 @@ interface AiInsightToolkit {
    * Gets the source files for the given [stack].
    *
    * @param stack [StacktraceGroup] for which the files are needed.
-   * @param contextSharingOverride one time override to access source files.
    * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
    */
   suspend fun getSource(
     stack: StacktraceGroup,
-    contextSharingOverride: Boolean = false,
     overrideSourceLimit: Boolean = false,
   ): CodeContextData
 }
@@ -50,11 +48,9 @@ class AiInsightToolkitImpl(
 
   override suspend fun getSource(
     stack: StacktraceGroup,
-    contextSharingOverride: Boolean,
     overrideSourceLimit: Boolean,
   ): CodeContextData {
-    if (!GeminiPluginApi.getInstance().isContextAllowed(project) && !contextSharingOverride)
-      return CodeContextData.UNASSIGNED
+    if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.UNASSIGNED
     return codeContextResolver.getSource(stack, overrideSourceLimit)
   }
 }
