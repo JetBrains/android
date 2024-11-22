@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.annotations
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -125,9 +126,10 @@ class AnnotationsGraphTest {
   private val annotationsGraph = AnnotationsGraph(TestNodeInfoFactory, TestResultFactory)
 
   @Test
-  fun testTraverse_backEdge() {
-    val fileContent =
-      """
+  fun testTraverse_backEdge() =
+    runBlocking<Unit> {
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      ^-----------'
@@ -147,28 +149,29 @@ class AnnotationsGraphTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
+      // Results are computed in post-order
+      assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(4, edgesResult.treeEdgesCount)
+      assertEquals(1, edgesResult.backEdgesCount)
+      assertEquals(0, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
     }
-    val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
-    // Results are computed in post-order
-    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(4, edgesResult.treeEdgesCount)
-    assertEquals(1, edgesResult.backEdgesCount)
-    assertEquals(0, edgesResult.forwardEdgesCount)
-    assertEquals(0, edgesResult.crossEdgesCount)
-  }
 
   @Test
-  fun testTraverse_forwardEdge() {
-    val fileContent =
-      """
+  fun testTraverse_forwardEdge() =
+    runBlocking<Unit> {
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '-----------^
@@ -188,28 +191,29 @@ class AnnotationsGraphTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
+      // Results are computed in post-order
+      assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(4, edgesResult.treeEdgesCount)
+      assertEquals(0, edgesResult.backEdgesCount)
+      assertEquals(1, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
     }
-    val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
-    // Results are computed in post-order
-    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(4, edgesResult.treeEdgesCount)
-    assertEquals(0, edgesResult.backEdgesCount)
-    assertEquals(1, edgesResult.forwardEdgesCount)
-    assertEquals(0, edgesResult.crossEdgesCount)
-  }
 
   @Test
-  fun testTraverse_crossEdge() {
-    val fileContent =
-      """
+  fun testTraverse_crossEdge() =
+    runBlocking<Unit> {
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '---> 4 ----^
@@ -232,23 +236,23 @@ class AnnotationsGraphTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
+      // Results are computed in post-order
+      assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(5, edgesResult.treeEdgesCount)
+      assertEquals(0, edgesResult.backEdgesCount)
+      assertEquals(0, edgesResult.forwardEdgesCount)
+      assertEquals(1, edgesResult.crossEdgesCount)
     }
-    val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
-    // Results are computed in post-order
-    assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(5, edgesResult.treeEdgesCount)
-    assertEquals(0, edgesResult.backEdgesCount)
-    assertEquals(0, edgesResult.forwardEdgesCount)
-    assertEquals(1, edgesResult.crossEdgesCount)
-  }
 
   private val fileContentWithAllEdgeTypes =
     """
@@ -277,82 +281,85 @@ class AnnotationsGraphTest {
       .trimIndent()
 
   @Test
-  fun testTraverse_allEdges() {
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+  fun testTraverse_allEdges() =
+    runBlocking<Unit> {
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
+      // Results are computed in post-order
+      assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(5, edgesResult.treeEdgesCount)
+      assertEquals(1, edgesResult.backEdgesCount)
+      assertEquals(1, edgesResult.forwardEdgesCount)
+      assertEquals(1, edgesResult.crossEdgesCount)
     }
-    val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
-    // Results are computed in post-order
-    assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(5, edgesResult.treeEdgesCount)
-    assertEquals(1, edgesResult.backEdgesCount)
-    assertEquals(1, edgesResult.forwardEdgesCount)
-    assertEquals(1, edgesResult.crossEdgesCount)
-  }
 
   @Test
-  fun testIsLeafAnnotation() {
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+  fun testIsLeafAnnotation() =
+    runBlocking<Unit> {
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult =
+        annotationsGraph
+          .traverse(
+            listOf(rootMethod),
+            isLeafAnnotation = { annotation ->
+              runReadAction { annotation.qualifiedName!!.contains("node3") }
+            },
+          )
+          .toList()
+      // Results are computed in post-order, and 3 is a "leaf", so its visited many times
+      assertEquals(
+        listOf("3", "2", "3", "4", "3", "1", "0"),
+        traverseResult.filterIsInstance<String>(),
+      )
+      // As node3 is a leaf annotation, then:
+      // 1- All its incoming edges should be tree edges (the forward and cross edges become tree
+      // edges),
+      // 2- All its outgoing edges should be ignored (the back edge is ignored)
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(7, edgesResult.treeEdgesCount)
+      assertEquals(0, edgesResult.backEdgesCount)
+      assertEquals(0, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
     }
-    val traverseResult =
-      annotationsGraph
-        .traverse(
-          listOf(rootMethod),
-          isLeafAnnotation = { annotation ->
-            runReadAction { annotation.qualifiedName!!.contains("node3") }
-          },
-        )
-        .toList()
-    // Results are computed in post-order, and 3 is a "leaf", so its visited many times
-    assertEquals(
-      listOf("3", "2", "3", "4", "3", "1", "0"),
-      traverseResult.filterIsInstance<String>(),
-    )
-    // As node3 is a leaf annotation, then:
-    // 1- All its incoming edges should be tree edges (the forward and cross edges become tree
-    // edges),
-    // 2- All its outgoing edges should be ignored (the back edge is ignored)
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(7, edgesResult.treeEdgesCount)
-    assertEquals(0, edgesResult.backEdgesCount)
-    assertEquals(0, edgesResult.forwardEdgesCount)
-    assertEquals(0, edgesResult.crossEdgesCount)
-  }
 
   @Test
-  fun testAnnotationFilter() {
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
-    val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
-        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
-      }!!
+  fun testAnnotationFilter() =
+    runBlocking<Unit> {
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult =
+        annotationsGraph
+          .traverse(
+            listOf(rootMethod),
+            annotationFilter = { _, annotation ->
+              runReadAction { !annotation.qualifiedName!!.contains("node4") }
+            },
+          )
+          .toList()
+      // Results are computed in post-order, and node4 is filtered out due to the annotationFilter
+      assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
+      // As node4 is filtered out, then:
+      // 1- All its incoming edges should be ignored (a tree edge is ignored),
+      // 2- All its outgoing edges should be ignored (the cross edge is ignored)
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(4, edgesResult.treeEdgesCount)
+      assertEquals(1, edgesResult.backEdgesCount)
+      assertEquals(1, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
     }
-    val traverseResult =
-      annotationsGraph
-        .traverse(
-          listOf(rootMethod),
-          annotationFilter = { _, annotation ->
-            runReadAction { !annotation.qualifiedName!!.contains("node4") }
-          },
-        )
-        .toList()
-    // Results are computed in post-order, and node4 is filtered out due to the annotationFilter
-    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
-    // As node4 is filtered out, then:
-    // 1- All its incoming edges should be ignored (a tree edge is ignored),
-    // 2- All its outgoing edges should be ignored (the cross edge is ignored)
-    val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
-    assertEquals(4, edgesResult.treeEdgesCount)
-    assertEquals(1, edgesResult.backEdgesCount)
-    assertEquals(1, edgesResult.forwardEdgesCount)
-    assertEquals(0, edgesResult.crossEdgesCount)
-  }
 }

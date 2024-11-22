@@ -21,6 +21,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UAnnotation
@@ -40,10 +41,11 @@ class AnnotationsGraphFinderTest {
     get() = projectRule.fixture
 
   @Test
-  fun testTraverse_backEdge() {
-    @Language("kotlin")
-    val fileContent =
-      """
+  fun testTraverse_backEdge() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      ^-----------'
@@ -63,24 +65,25 @@ class AnnotationsGraphFinderTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("node0")
 
-    val annotations =
-      rootMethod
-        .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
-        .toList()
-    assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
-      .containsExactly("node3")
-  }
+      val annotations =
+        rootMethod
+          .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
+          .toList()
+      assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
+        .containsExactly("node3")
+    }
 
   @Test
-  fun testTraverse_forwardEdge() {
-    @Language("kotlin")
-    val fileContent =
-      """
+  fun testTraverse_forwardEdge() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '-----------^
@@ -100,24 +103,25 @@ class AnnotationsGraphFinderTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("node0")
 
-    val annotations =
-      rootMethod
-        .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
-        .toList()
-    assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
-      .containsExactly("node3", "node3")
-  }
+      val annotations =
+        rootMethod
+          .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
+          .toList()
+      assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
+        .containsExactly("node3", "node3")
+    }
 
   @Test
-  fun testTraverse_crossEdge() {
-    @Language("kotlin")
-    val fileContent =
-      """
+  fun testTraverse_crossEdge() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '---> 4 ----^
@@ -140,24 +144,25 @@ class AnnotationsGraphFinderTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("node0")
 
-    val annotations =
-      rootMethod
-        .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
-        .toList()
-    assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
-      .containsExactly("node3", "node3")
-  }
+      val annotations =
+        rootMethod
+          .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
+          .toList()
+      assertThat(annotations.map { (it.element as UAnnotation).qualifiedName })
+        .containsExactly("node3", "node3")
+    }
 
   @Test
-  fun testTraverse_differentParameters() {
-    @Language("kotlin")
-    val fileContent =
-      """
+  fun testTraverse_differentParameters() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3(name"1")
       //                      '---> 3(name="2")
@@ -180,30 +185,31 @@ class AnnotationsGraphFinderTest {
       @node0
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("node0")
 
-    val annotations =
-      rootMethod
-        .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
-        .toList()
-    runReadAction {
-      assertThat(
-          annotations
-            .map { it.element as UAnnotation }
-            .map { it.qualifiedName to it.findAttributeValue("name")?.evaluateString() }
-        )
-        .containsExactly("node3" to "1", "node3" to "2")
+      val annotations =
+        rootMethod
+          .findAllAnnotationsInGraph { runReadAction { it.qualifiedName == "node3" } }
+          .toList()
+      runReadAction {
+        assertThat(
+            annotations
+              .map { it.element as UAnnotation }
+              .map { it.qualifiedName to it.findAttributeValue("name")?.evaluateString() }
+          )
+          .containsExactly("node3" to "1", "node3" to "2")
+      }
     }
-  }
 
   @Test
-  fun testFindMultiPreviewsExample() {
-    @Language("kotlin")
-    val fileContent =
-      """
+  fun testFindMultiPreviewsExample() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
       // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
       annotation class MyTestPreview
 
@@ -227,116 +233,119 @@ class AnnotationsGraphFinderTest {
       @EmptyAnnotation
       fun rootMethod(){}
     """
-        .trimIndent()
+          .trimIndent()
 
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("Intermediate1")
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("Intermediate1")
 
-    val previews =
+      val previews =
+        rootMethod
+          .findAllAnnotationsInGraph {
+            runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
+          }
+          .toList()
+
+      assertThat(previews).hasSize(4)
+
+      val topLevelAnnotationsToDepth =
+        previews.map {
+          val topLevelAnnotationName = runReadAction {
+            (it.subtreeInfo?.topLevelAnnotation?.tryResolve() as PsiClass).name
+          }
+          val depth = it.subtreeInfo?.depth ?: -1
+          topLevelAnnotationName to depth
+        }
+      assertEquals(
+        listOf(
+          "Intermediate1" to 2,
+          "Intermediate2" to 2,
+          "Intermediate2" to 2,
+          "MyTestPreview" to 1,
+        ),
+        topLevelAnnotationsToDepth.sortedBy { it.first },
+      )
+    }
+
+  @Test
+  fun testOnTraversalIsInvokedOnAllTraversedNodesPostOrder() =
+    runBlocking<Unit> {
+      @Language("kotlin")
+      val fileContent =
+        """
+      // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
+      annotation class MyTestPreview
+
+      // Using this annotation shouldn't have any effect
+      annotation class EmptyAnnotation
+
+      @MyTestPreview
+      annotation class NotReachableFromSourceElements
+
+      @MyTestPreview
+      @EmptyAnnotation
+      annotation class Intermediate1 // with 1 direct Preview
+
+      @MyTestPreview
+      @MyTestPreview
+      annotation class Intermediate2 // with 2 direct Previews
+
+      @MyTestPreview // direct preview
+      @Intermediate1
+      @Intermediate2
+      @EmptyAnnotation
+      fun rootMethod(){}
+    """
+          .trimIndent()
+
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = psiFile.getMethodAnnotatedBy("Intermediate1")
+
+      val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
       rootMethod
-        .findAllAnnotationsInGraph {
+        .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
           runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
         }
         .toList()
 
-    assertThat(previews).hasSize(4)
-
-    val topLevelAnnotationsToDepth =
-      previews.map {
-        val topLevelAnnotationName = runReadAction {
-          (it.subtreeInfo?.topLevelAnnotation?.tryResolve() as PsiClass).name
-        }
-        val depth = it.subtreeInfo?.depth ?: -1
-        topLevelAnnotationName to depth
-      }
-    assertEquals(
-      listOf(
-        "Intermediate1" to 2,
-        "Intermediate2" to 2,
-        "Intermediate2" to 2,
-        "MyTestPreview" to 1,
-      ),
-      topLevelAnnotationsToDepth.sortedBy { it.first },
-    )
-  }
+      val traversedNodeNames =
+        traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
+      // the order should be post-order
+      assertEquals(
+        //
+        listOf(
+          "MyTestPreview",
+          "MyTestPreview",
+          "EmptyAnnotation",
+          "Intermediate1",
+          "MyTestPreview",
+          "MyTestPreview",
+          "Intermediate2",
+        ),
+        traversedNodeNames,
+      )
+    }
 
   @Test
-  fun testOnTraversalIsInvokedOnAllTraversedNodesPostOrder() {
-    @Language("kotlin")
-    val fileContent =
-      """
-      // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
-      annotation class MyTestPreview
-
-      // Using this annotation shouldn't have any effect
-      annotation class EmptyAnnotation
-
-      @MyTestPreview
-      annotation class NotReachableFromSourceElements
-
-      @MyTestPreview
-      @EmptyAnnotation
-      annotation class Intermediate1 // with 1 direct Preview
-
-      @MyTestPreview
-      @MyTestPreview
-      annotation class Intermediate2 // with 2 direct Previews
-
-      @MyTestPreview // direct preview
-      @Intermediate1
-      @Intermediate2
-      @EmptyAnnotation
-      fun rootMethod(){}
-    """
-        .trimIndent()
-
-    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
-    val rootMethod = psiFile.getMethodAnnotatedBy("Intermediate1")
-
-    val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
-    rootMethod
-      .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
-        runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
-      }
-      .toList()
-
-    val traversedNodeNames =
-      traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
-    // the order should be post-order
-    assertEquals(
-      //
-      listOf(
-        "MyTestPreview",
-        "MyTestPreview",
-        "EmptyAnnotation",
-        "Intermediate1",
-        "MyTestPreview",
-        "MyTestPreview",
-        "Intermediate2",
-      ),
-      traversedNodeNames,
-    )
-  }
-
-  @Test
-  fun testFindMultiPreviewsInAndroidx() {
-    fixture.addFileToProjectAndInvalidate(
-      "src/ThePreview.kt",
-      // language=kotlin
-      """
+  fun testFindMultiPreviewsInAndroidx() =
+    runBlocking<Unit> {
+      fixture.addFileToProjectAndInvalidate(
+        "src/ThePreview.kt",
+        // language=kotlin
+        """
         package androidx
 
         // This annotation class is the "Preview" in this context (see TestMultiPreviewNodeInfo.isPreview)
         annotation class MyTestPreview
         """
-        .trimIndent(),
-    )
-    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with a valid
-    // package name.
-    fixture.addFileToProjectAndInvalidate(
-      "src/File1.kt",
-      // language=kotlin
-      """
+          .trimIndent(),
+      )
+      // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with a
+      // valid
+      // package name.
+      fixture.addFileToProjectAndInvalidate(
+        "src/File1.kt",
+        // language=kotlin
+        """
         package androidx.preview.valid.somepackage
 
         import androidx.MyTestPreview
@@ -344,12 +353,12 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyValidAnnotation1
         """
-        .trimIndent(),
-    )
-    fixture.addFileToProjectAndInvalidate(
-      "src/File2.kt",
-      // language=kotlin
-      """
+          .trimIndent(),
+      )
+      fixture.addFileToProjectAndInvalidate(
+        "src/File2.kt",
+        // language=kotlin
+        """
         package androidx.valid.preview.somepackage
 
         import androidx.MyTestPreview
@@ -357,12 +366,12 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyValidAnnotation2
         """
-        .trimIndent(),
-    )
-    fixture.addFileToProjectAndInvalidate(
-      "src/File3.kt",
-      // language=kotlin
-      """
+          .trimIndent(),
+      )
+      fixture.addFileToProjectAndInvalidate(
+        "src/File3.kt",
+        // language=kotlin
+        """
         package androidx.valid.somepackage.preview
 
         import androidx.MyTestPreview
@@ -370,15 +379,15 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyValidAnnotation3
         """
-        .trimIndent(),
-    )
+          .trimIndent(),
+      )
 
-    // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with an
-    // invalid package name.
-    fixture.addFileToProjectAndInvalidate(
-      "src/File4.kt",
-      // language=kotlin
-      """
+      // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with an
+      // invalid package name.
+      fixture.addFileToProjectAndInvalidate(
+        "src/File4.kt",
+        // language=kotlin
+        """
         // Doesn't contain preview
         package androidx.invalid.somepackage
 
@@ -387,12 +396,12 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyInvalidAnnotation1
         """
-        .trimIndent(),
-    )
-    fixture.addFileToProjectAndInvalidate(
-      "src/File5.kt",
-      // language=kotlin
-      """
+          .trimIndent(),
+      )
+      fixture.addFileToProjectAndInvalidate(
+        "src/File5.kt",
+        // language=kotlin
+        """
         // 'mypreview' is not valid
         package androidx.invalid.mypreview.somepackage
 
@@ -401,12 +410,12 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyInvalidAnnotation2
         """
-        .trimIndent(),
-    )
-    fixture.addFileToProjectAndInvalidate(
-      "src/File6.kt",
-      // language=kotlin
-      """
+          .trimIndent(),
+      )
+      fixture.addFileToProjectAndInvalidate(
+        "src/File6.kt",
+        // language=kotlin
+        """
         // 'pre.view' is not valid
         package androidx.invalid.pre.view.somepackage
 
@@ -415,14 +424,14 @@ class AnnotationsGraphFinderTest {
         @MyTestPreview
         annotation class MyInvalidAnnotation3
         """
-        .trimIndent(),
-    )
+          .trimIndent(),
+      )
 
-    val previewTest =
-      fixture.addFileToProjectAndInvalidate(
-        "src/Test.kt",
-        // language=kotlin
-        """
+      val previewTest =
+        fixture.addFileToProjectAndInvalidate(
+          "src/Test.kt",
+          // language=kotlin
+          """
         package com.example.test
 
         import androidx.MyTestPreview
@@ -443,35 +452,35 @@ class AnnotationsGraphFinderTest {
         fun Preview1() {
         }
         """
-          .trimIndent(),
+            .trimIndent(),
+        )
+
+      val rootMethod = previewTest.getMethodAnnotatedBy("MyTestPreview")
+
+      val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
+      rootMethod
+        .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
+          runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
+        }
+        .toList()
+
+      val traversedNodeNames =
+        traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
+      // the order should be post-order
+      assertEquals(
+        //
+        listOf(
+          "MyTestPreview",
+          "MyTestPreview",
+          "MyValidAnnotation1",
+          "MyTestPreview",
+          "MyValidAnnotation2",
+          "MyTestPreview",
+          "MyValidAnnotation3",
+        ),
+        traversedNodeNames,
       )
-
-    val rootMethod = previewTest.getMethodAnnotatedBy("MyTestPreview")
-
-    val traversedNodes = mutableListOf<NodeInfo<UAnnotationSubtreeInfo>>()
-    rootMethod
-      .findAllAnnotationsInGraph(onTraversal = { traversedNodes += it }) {
-        runReadAction { (it.tryResolve() as PsiClass).name == "MyTestPreview" }
-      }
-      .toList()
-
-    val traversedNodeNames =
-      traversedNodes.mapNotNull { runReadAction { (it.element.tryResolve() as? PsiClass)?.name } }
-    // the order should be post-order
-    assertEquals(
-      //
-      listOf(
-        "MyTestPreview",
-        "MyTestPreview",
-        "MyValidAnnotation1",
-        "MyTestPreview",
-        "MyValidAnnotation2",
-        "MyTestPreview",
-        "MyValidAnnotation3",
-      ),
-      traversedNodeNames,
-    )
-  }
+    }
 
   private fun PsiFile.getMethodAnnotatedBy(annotationShortName: String) = runReadAction {
     findAnnotations(project, virtualFile, annotationShortName).firstNotNullOf {

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.preview.annotations
 
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.utils.ifEmpty
 import org.jetbrains.uast.UAnnotation
@@ -201,14 +203,17 @@ class AnnotationsGraph<S, T>(
  * correctly when this element is a [UMethod] or a [UAnnotation], but it is not guaranteed that it
  * will work with other types of elements.
  */
-fun UElement.getUAnnotations() = runReadAction {
+fun UElement.getUAnnotations(): List<UAnnotation> {
   val annotations =
-    (this as? UMethod)?.uAnnotations
-      ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
-        it.toUElementOfType() as? UAnnotation
+    runBlockingCancellable {
+      readAction {
+        (this@getUAnnotations as? UMethod)?.uAnnotations
+          ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
+            it.toUElementOfType() as? UAnnotation
+          }
       }
-      ?: emptyList()
-  annotations.flatMap { annotation ->
+    } ?: emptyList()
+  return annotations.flatMap { annotation ->
     annotation.extractFromContainer().ifEmpty { listOf(annotation) }
   }
 }
@@ -221,8 +226,10 @@ fun UElement.getUAnnotations() = runReadAction {
  *
  * When the annotation is not a container it returns an empty list.
  */
-private fun UAnnotation.extractFromContainer() = runReadAction {
-  findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull {
-    it.toUElement() as? UAnnotation
-  } ?: emptyList()
+private fun UAnnotation.extractFromContainer() = runBlockingCancellable {
+  readAction {
+    findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull {
+      it.toUElement() as? UAnnotation
+    } ?: emptyList()
+  }
 }
