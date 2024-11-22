@@ -66,7 +66,7 @@ class TraceProcessorDaemonManager(
           "prebuilts/tools/common/trace-processor-daemon/windows"
         }
         SystemInfo.isMac -> {
-          "prebuilts/tools/common/trace-processor-daemon/darwin"
+          "prebuilts/tools/common/trace-processor-daemon/${if (SystemInfo.isAarch64) "darwin-arm64" else "darwin-x86_64"}"
         }
         SystemInfo.isLinux -> {
           "prebuilts/tools/common/trace-processor-daemon/linux"
