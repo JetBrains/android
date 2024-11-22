@@ -72,6 +72,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
     ],
 )
 

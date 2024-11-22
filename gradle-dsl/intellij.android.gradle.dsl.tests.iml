@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
     <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" scope="TEST" />
   </component>
 </module>
