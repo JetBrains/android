@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -34,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import com.jetbrains.rd.util.first
-import junit.framework.TestCase
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -163,6 +163,24 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
+  fun testRemoveLastFunctionArgument() {
+    val file = """
+     androidApp {
+       dependenciesDcl {
+         compile("org.example:1.0")
+       }
+     }
+    """.trimIndent()
+    doTest(file, "") {
+      val android = (elements.first().value as AndroidDslElement)
+      val dependencies = (android.elements.first().value as DependenciesDslElement)
+      val compile =  (dependencies.elements.first().value as GradleDslMethodCall)
+      assertThat(compile.arguments).hasSize(1)
+      compile.arguments[0].delete()
+    }
+  }
+
 
   @Test
   @Ignore("Dependencies fo android element will be added in future")
@@ -202,8 +220,8 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     expected: String
   ) {
     dslFile.parse()
-    changer(dslFile)
     WriteCommandAction.runWriteCommandAction(project) {
+      changer(dslFile)
       dslFile.applyChanges()
       dslFile.saveAllChanges()
     }
