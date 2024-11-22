@@ -28,12 +28,13 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withKotlin
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
@@ -139,20 +140,22 @@ private fun validatePreview(
 
   val vFile =
     VfsUtil.findRelativeFile(filePath, ProjectRootManager.getInstance(project).contentRoots[0])!!
-  return runReadAction {
-    val file = vFile.toPsiFile(project)
-    // Always picking the last function in the file
-    val previewFun = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).last()
-    val context = ConfigurationContext(previewFun)
 
-    val setupResult =
-      previewRunConfigurationProducer.setupConfigurationFromContext(
-        previewRunConfiguration,
-        context,
-        Ref(previewFun),
-      )
-    assertEquals(expectedSetupResult, setupResult)
+  return runBlocking {
+    readAction {
+      val file = vFile.toPsiFile(project)
+      // Always picking the last function in the file
+      val previewFun = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).last()
+      val context = ConfigurationContext(previewFun)
 
-    previewRunConfiguration.validate(null)
+      val setupResult =
+        previewRunConfigurationProducer.setupConfigurationFromContext(
+          previewRunConfiguration,
+          context,
+          Ref(previewFun),
+        )
+      assertEquals(expectedSetupResult, setupResult)
+      previewRunConfiguration.validate(null)
+    }
   }
 }
