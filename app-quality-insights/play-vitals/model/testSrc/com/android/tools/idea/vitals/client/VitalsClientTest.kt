@@ -16,6 +16,7 @@
 package com.android.tools.idea.vitals.client
 
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.insights.Caption
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
@@ -23,9 +24,11 @@ import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DeviceType
 import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeTimeProvider
+import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
@@ -34,6 +37,8 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.Stacktrace
+import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.StatsGroup
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
@@ -653,8 +658,66 @@ class VitalsClientTest {
       )
 
     assertThat(insight)
+      .isEqualTo(LoadingState.UnsupportedOperation("Insights are currently not available for ANRs"))
+  }
+
+  @Test
+  fun `test fetch insight on native crash returns unsupported operation`() = runBlocking {
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        FakeAiInsightClient,
+      )
+
+    val stackTraceGroup =
+      StacktraceGroup(
+        listOf(
+          ExceptionStack(
+            Stacktrace(Caption("*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***")),
+            "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
+            "",
+            "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***",
+          ),
+          ExceptionStack(
+            Stacktrace(Caption("pid", "0, tid: 2526 >>> com.android.vending <<<")),
+            "pid",
+            "0, tid: 2526 >>> com.android.vending <<<",
+            "pid: 0, tid: 2526 >>> com.android.vending <<<",
+          ),
+          ExceptionStack(
+            Stacktrace(
+              Caption("backtrace", ")"),
+              frames =
+                listOf(
+                  Frame(
+                    rawSymbol = "#00  pc 0x00000000001f4cdc",
+                    symbol = "#00  pc 0x00000000001f4cdc",
+                  )
+                ),
+            ),
+            type = "backtrace",
+            rawExceptionMessage = "backtrace:",
+          ),
+        )
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        FailureType.FATAL,
+        Event(stacktraceGroup = stackTraceGroup),
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData.UNASSIGNED,
+      )
+
+    assertThat(insight)
       .isEqualTo(
-        LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+        LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
       )
   }
 
