@@ -43,6 +43,7 @@ def debugger_test(
             "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "com.google.android.tools.debugger.test.ArtAttacher",
             "INTELLIJ_DEBUGGER_TESTS_DEX_CACHE": "$PWD/dex_cache",
             "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT": "$PWD",
+            "INTELLIJ_DEBUGGER_TESTS_TIMEOUT_MILLIS": "60000",
         },
         module = "kotlin.jvm-debugger.test",
         tags = art_tags,
@@ -68,6 +69,9 @@ def debugger_test(
         test_exclude_filter = test_exclude_filter,
         expected_failures_file = expected_to_fail_jvm,
         download_cache = "prebuilts/tools/jps-build-caches/kotlin.jvm-debugger.test_tests",
+        env = {
+            "INTELLIJ_DEBUGGER_TESTS_VM_ATTACHER": "jvm",
+        },
         module = "kotlin.jvm-debugger.test",
         tags = jvm_tags,
         test_suite = "com.android.tools.test.ModuleTestSuite",

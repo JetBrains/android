@@ -30,7 +30,7 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.SmartStepInto#"],
 )
 
-# 25 tests
+# 26 tests
 debugger_test(
     name = "k1k2-kotlin-stepping-step-into-only",
     expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_into_only.txt",
@@ -50,6 +50,13 @@ debugger_test(
 debugger_test(
     name = "k1k2-kotlin-stepping-step-over",
     expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_step_over.txt",
+    test_exclude_filter = [
+        # TODO(b/380457951): Investigate why these tests hang but work in AS on a real device.
+        "Coroutines#testSequenceNested$",
+        "Coroutines#testSequenceNested2$",
+        "Coroutines#testSequenceSimple$",
+        "Coroutines#testSequenceTake2$",
+    ],
     test_include_filter = [
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Coroutines#",
         "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.SteppingThroughInlineLambdas#",
@@ -72,13 +79,56 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.Filters#"],
 )
 
-# 145 tests
+# 161 tests
 debugger_test(
     name = "k1k2-kotlin-stepping-custom",
     expected_to_fail_art = "art_k1k2_kotlin_stepping_expected_failures_custom.txt",
     expected_to_fail_jvm = "jvm_k1k2_kotlin_stepping_expected_failures_custom.txt",
     shard_count = 20,
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.Custom#"],
+)
+
+test_suite(
+    name = "stepping-jvm",
+    tests = [
+        "k1k2-kotlin-stepping-custom-jvm",
+        "k1k2-kotlin-stepping-filters-jvm",
+        "k1k2-kotlin-stepping-smart-step-into-jvm",
+        "k1k2-kotlin-stepping-step-into-jvm",
+        "k1k2-kotlin-stepping-step-into-only-jvm",
+        "k1k2-kotlin-stepping-step-out-jvm",
+        "k1k2-kotlin-stepping-step-over-jvm",
+        "k1k2-kotlin-stepping-step-over-uncategorized-jvm",
+    ],
+)
+
+test_suite(
+    name = "stepping-art",
+    tests = [
+        "k1k2-kotlin-stepping-custom-art",
+        "k1k2-kotlin-stepping-filters-art",
+        "k1k2-kotlin-stepping-smart-step-into-art",
+        "k1k2-kotlin-stepping-step-into-art",
+        "k1k2-kotlin-stepping-step-into-only-art",
+        "k1k2-kotlin-stepping-step-out-art",
+        "k1k2-kotlin-stepping-step-over-art",
+        "k1k2-kotlin-stepping-step-over-uncategorized-art",
+    ],
+)
+
+test_suite(
+    name = "stepping",
+    tests = [
+        "stepping-art",
+        "stepping-jvm",
+    ],
+)
+
+# A convenience target for running a single test for debugging. To use this, replace the filter
+# with whatever test desired.
+debugger_test(
+    name = "single",
+    test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Coroutines.testSequenceNested2"],
 )
 
 maven_repository(
