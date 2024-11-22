@@ -36,7 +36,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.SwingConstants
 
 private const val IS_TOOLBAR_HORIZONTAL = true
 
