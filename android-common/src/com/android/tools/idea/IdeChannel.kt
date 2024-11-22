@@ -56,7 +56,7 @@ object IdeChannel {
   fun getChannel(versionProvider: (() -> String)? = null): Channel {
     val versionName = when {
       versionProvider != null -> versionProvider()
-      ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
+      ApplicationManager.getApplication() == null || ApplicationManager.getApplication().getServiceIfCreated(ApplicationInfo::class.java) == null -> "dev"
       else -> ApplicationInfo.getInstance().fullVersion
     }
     return when {
