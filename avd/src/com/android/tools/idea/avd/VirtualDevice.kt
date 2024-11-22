@@ -49,6 +49,15 @@ internal constructor(
   val name: String,
   val device: Device,
   internal val skin: Skin,
+  /**
+   * The value of the [skin] property after it is initialized by [ConfigurationPage] via
+   * [ConfigureDevicePanelState]. [ConfigureDevicePanelState] uses this to reset [skin] to the
+   * default when a user selects a Play system image. It also uses this to generate the restricted
+   * list of skins for the skin drop down for Play.
+   *
+   * It's its own property for ease of testing, like [VirtualDevice.hasPlaystore], [isFoldable], etc
+   */
+  internal val defaultSkin: Skin,
   internal val frontCamera: AvdCamera,
   internal val rearCamera: AvdCamera,
   internal val speed: AvdNetworkSpeed,
@@ -90,6 +99,7 @@ internal constructor(
         name = device.displayName,
         device = device,
         skin = NoSkin.INSTANCE,
+        defaultSkin = NoSkin.INSTANCE,
         frontCamera = if (device.hasFrontCamera()) AvdCamera.EMULATED else AvdCamera.NONE,
         rearCamera = if (device.hasRearCamera()) AvdCamera.VIRTUAL_SCENE else AvdCamera.NONE,
         speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,

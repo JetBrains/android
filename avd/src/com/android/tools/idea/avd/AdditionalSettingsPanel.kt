@@ -58,10 +58,10 @@ internal fun AdditionalSettingsPanel(
 
       Dropdown(
         state.device.skin,
-        state.skins,
+        state.skins().toImmutableList(),
         onSelectedItemChange = { state.device = state.device.copy(skin = it) },
         Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
-        !hasPlayStore && !state.device.isFoldable,
+        !state.device.isFoldable,
       )
     }
 

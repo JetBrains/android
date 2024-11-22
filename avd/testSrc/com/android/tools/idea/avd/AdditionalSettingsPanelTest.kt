@@ -22,7 +22,6 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasSetTextAction
@@ -61,7 +60,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun deviceSkinDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel9Pro()
+    val device = TestDevices.pixel9Pro(fileSystem)
 
     val state =
       ConfigureDevicePanelState(
@@ -82,53 +81,11 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
-  fun deviceSkinDropdownIsEnabledHasPlayStoreAndIsFoldable() {
-    // Arrange
-    val image = mock<ISystemImage>()
-    whenever(image.hasPlayStore()).thenReturn(true)
-
-    val state =
-      ConfigureDevicePanelState(
-        TestDevices.pixel9ProFold(),
-        emptyList<Skin>().toImmutableList(),
-        image,
-        fileSystem,
-      )
-
-    // Act
-    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
-
-    // Assert
-    rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
-  }
-
-  @Test
-  fun deviceSkinDropdownIsEnabledHasPlayStoreAndIsntFoldable() {
-    // Arrange
-    val image = mock<ISystemImage>()
-    whenever(image.hasPlayStore()).thenReturn(true)
-
-    val state =
-      ConfigureDevicePanelState(
-        TestDevices.pixel9Pro(),
-        emptyList<Skin>().toImmutableList(),
-        image,
-        fileSystem,
-      )
-
-    // Act
-    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
-
-    // Assert
-    rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
-  }
-
-  @Test
-  fun deviceSkinDropdownIsEnabledDoesntHavePlayStoreAndIsFoldable() {
+  fun deviceSkinDropdownIsEnabledIsFoldable() {
     // Arrange
     val state =
       ConfigureDevicePanelState(
-        TestDevices.pixel9ProFold(),
+        TestDevices.pixel9ProFold(fileSystem),
         emptyList<Skin>().toImmutableList(),
         null,
         fileSystem,
@@ -139,30 +96,12 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     rule.onNodeWithTag("DeviceSkinDropdown").assertIsNotEnabled()
-  }
-
-  @Test
-  fun deviceSkinDropdownIsEnabledDoesntHavePlayStoreAndIsntFoldable() {
-    // Arrange
-    val state =
-      ConfigureDevicePanelState(
-        TestDevices.pixel9Pro(),
-        emptyList<Skin>().toImmutableList(),
-        null,
-        fileSystem,
-      )
-
-    // Act
-    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
-
-    // Assert
-    rule.onNodeWithTag("DeviceSkinDropdown").assertIsEnabled()
   }
 
   @Test
   fun speedDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel9Pro()
+    val device = TestDevices.pixel9Pro(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -180,7 +119,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun orientationDropdownOnClick() {
     // Arrange
-    val device = TestDevices.pixel9Pro()
+    val device = TestDevices.pixel9Pro(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -198,7 +137,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun radioButtonRowOnClicksChangeDevice() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val image = mock<ISystemImage>()
     whenever(image.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
@@ -232,7 +171,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun cpuCoresDropdownOnClick() {
     // Arrange
-    val device = TestDevices.pixel9Pro()
+    val device = TestDevices.pixel9Pro(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem, 4)
@@ -250,7 +189,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun graphicsAccelerationDropdownOnSelectedItemChange() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -268,7 +207,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsValid() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -289,7 +228,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsEmpty() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -308,7 +247,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsLessThanMin() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -328,7 +267,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun ramIsOverflow() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -347,7 +286,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsValid() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -370,7 +309,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsEmpty() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -391,7 +330,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsLessThanMin() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)
@@ -412,7 +351,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun vmHeapSizeIsOverflow() {
     // Arrange
-    val device = TestDevices.pixel6()
+    val device = TestDevices.pixel6(fileSystem)
 
     val state =
       ConfigureDevicePanelState(device, emptyList<Skin>().toImmutableList(), null, fileSystem)

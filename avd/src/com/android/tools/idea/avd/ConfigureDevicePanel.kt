@@ -29,17 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.adddevicedialog.DeviceDetails
-import com.android.tools.idea.adddevicedialog.TableSelectionState
-import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
-import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.FileSystem
-import java.nio.file.Path
 import java.util.EnumSet
 import java.util.TreeSet
-import kotlin.math.max
-import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
@@ -192,106 +184,6 @@ private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<Android
   return (previewVersions.filter { it > latestStableVersion } + stableVersions)
     .sortedDescending()
     .toImmutableList()
-}
-
-internal class ConfigureDevicePanelState
-internal constructor(
-  device: VirtualDevice,
-  skins: ImmutableCollection<Skin>,
-  image: ISystemImage?,
-  fileSystem: FileSystem,
-  internal val maxCpuCoreCount: Int = max(1, Runtime.getRuntime().availableProcessors() / 2),
-) {
-  internal var device by mutableStateOf(device)
-
-  internal var skins by mutableStateOf(skins)
-    private set
-
-  internal val systemImageTableSelectionState = TableSelectionState(image)
-  internal val storageGroupState = StorageGroupState(device, fileSystem)
-  internal val emulatedPerformanceGroupState = EmulatedPerformanceGroupState(device)
-
-  internal val isValid
-    get() = device.isValid && validity.isValid
-
-  internal var validity by mutableStateOf(Validity())
-    private set
-
-  internal fun hasPlayStore(): Boolean {
-    val image = systemImageTableSelectionState.selection
-    return if (image == null) false else device.hasPlayStore(image)
-  }
-
-  internal fun setDeviceName(deviceName: String) {
-    device = device.copy(name = deviceName)
-  }
-
-  internal fun setSystemImageSelection(systemImage: ISystemImage) {
-    systemImageTableSelectionState.selection = systemImage
-    updatePreferredAbiValidity()
-  }
-
-  internal fun setPreferredAbi(preferredAbi: String?) {
-    device = device.copy(preferredAbi = preferredAbi)
-    updatePreferredAbiValidity()
-  }
-
-  private fun updatePreferredAbiValidity() {
-    validity =
-      validity.copy(
-        isPreferredAbiValid =
-          device.preferredAbi == null ||
-            systemImageTableSelectionState.selection == null ||
-            systemImageTableSelectionState.selection.allAbiTypes().contains(device.preferredAbi)
-      )
-  }
-
-  internal fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
-    validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
-  }
-
-  internal fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
-    validity = validity.copy(isDeviceNameValid = isDeviceNameValid)
-  }
-
-  internal fun setSkin(path: Path) {
-    device = device.copy(skin = getSkin(path))
-  }
-
-  private fun getSkin(path: Path): Skin {
-    var skin = skins.firstOrNull { it.path() == path }
-
-    if (skin == null) {
-      skin = DefaultSkin(path)
-      skins = (skins + skin).sorted().toImmutableList()
-    }
-
-    return skin
-  }
-
-  internal fun resetPlayStoreFields(skin: Path) {
-    if (!hasPlayStore()) return
-
-    device =
-      device.copy(
-        skin = getSkin(skin),
-        expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit()),
-        cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES,
-        graphicsMode = GraphicsMode.AUTO,
-        ram = EmulatedProperties.defaultRamSize(device.device).toStorageCapacity(),
-        vmHeapSize = EmulatedProperties.defaultVmHeapSize(device.device).toStorageCapacity(),
-      )
-  }
-}
-
-internal data class Validity
-internal constructor(
-  private val isDeviceNameValid: Boolean = true,
-  internal val isSystemImageTableSelectionValid: Boolean = true,
-  val isPreferredAbiValid: Boolean = true,
-) {
-  internal val isValid
-    get() = isDeviceNameValid && isSystemImageTableSelectionValid && isPreferredAbiValid
 }
 
 private enum class Tab(val text: String) {

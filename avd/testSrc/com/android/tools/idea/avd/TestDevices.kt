@@ -21,10 +21,10 @@ import com.android.sdklib.devices.DeviceParser
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
-import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import java.io.ByteArrayInputStream
+import java.nio.file.FileSystem
 import org.mockito.kotlin.mock
 
 fun readTestDevices() =
@@ -109,15 +109,17 @@ private const val testDeviceXml =
 """
 
 internal object TestDevices {
-  internal fun pixel6() =
-    VirtualDevice(
+  internal fun pixel6(fileSystem: FileSystem): VirtualDevice {
+    val skin =
+      DefaultSkin(
+        fileSystem.getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
+      )
+
+    return VirtualDevice(
       name = "Pixel 6",
       device = mock(),
-      skin =
-        DefaultSkin(
-          createInMemoryFileSystem()
-            .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_6")
-        ),
+      skin = skin,
+      defaultSkin = skin,
       frontCamera = AvdCamera.EMULATED,
       rearCamera = AvdCamera.VIRTUAL_SCENE,
       speed = AvdNetworkSpeed.FULL,
@@ -135,16 +137,25 @@ internal object TestDevices {
       cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
       formFactor = FormFactors.PHONE,
     )
+  }
 
-  internal fun pixel9Pro() =
-    VirtualDevice(
+  internal fun pixel9Pro(fileSystem: FileSystem): VirtualDevice {
+    val skin =
+      DefaultSkin(
+        fileSystem.getPath(
+          System.getProperty("user.home"),
+          "Android",
+          "Sdk",
+          "skins",
+          "pixel_9_pro",
+        )
+      )
+
+    return VirtualDevice(
       name = "Pixel 9 Pro",
       device = mock(),
-      skin =
-        DefaultSkin(
-          createInMemoryFileSystem()
-            .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro")
-        ),
+      skin = skin,
+      defaultSkin = skin,
       frontCamera = AvdCamera.EMULATED,
       rearCamera = AvdCamera.VIRTUAL_SCENE,
       speed = AvdNetworkSpeed.FULL,
@@ -163,16 +174,25 @@ internal object TestDevices {
       cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
       formFactor = FormFactors.PHONE,
     )
+  }
 
-  internal fun pixel9ProFold() =
-    VirtualDevice(
+  internal fun pixel9ProFold(fileSystem: FileSystem): VirtualDevice {
+    val skin =
+      DefaultSkin(
+        fileSystem.getPath(
+          System.getProperty("user.home"),
+          "Android",
+          "Sdk",
+          "skins",
+          "pixel_9_pro_fold",
+        )
+      )
+
+    return VirtualDevice(
       name = "Pixel 9 Pro Fold",
       device = mock(),
-      skin =
-        DefaultSkin(
-          createInMemoryFileSystem()
-            .getPath(System.getProperty("user.home"), "Android", "Sdk", "skins", "pixel_9_pro_fold")
-        ),
+      skin = skin,
+      defaultSkin = skin,
       frontCamera = AvdCamera.EMULATED,
       rearCamera = AvdCamera.VIRTUAL_SCENE,
       speed = AvdNetworkSpeed.FULL,
@@ -191,4 +211,5 @@ internal object TestDevices {
       cameraLocations = listOf(CameraLocation.BACK, CameraLocation.FRONT),
       formFactor = FormFactors.PHONE,
     )
+  }
 }
