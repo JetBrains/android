@@ -22,7 +22,8 @@ import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -193,8 +194,11 @@ class RunningDevicesStateObserver(
     val tabIds =
       contents
         .map { it.component }
-        .filterIsInstance<DataProvider>()
-        .mapNotNull { dataProvider -> dataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId }
+        .filterIsInstance<UiDataProvider>()
+        .mapNotNull { dataProvider ->
+          val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
+          DEVICE_ID_KEY.getData(dataContext)
+        }
 
     return tabIds
   }
@@ -215,5 +219,6 @@ class RunningDevicesStateObserver(
 
 private val Content.deviceId: DeviceId?
   get() {
-    return DataManager.getInstance().getDataContext(component).getData(DEVICE_ID_KEY)
+    val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
+    return DEVICE_ID_KEY.getData(dataContext)
   }
