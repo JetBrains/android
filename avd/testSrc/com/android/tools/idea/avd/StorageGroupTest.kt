@@ -25,7 +25,6 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -306,7 +305,5 @@ class StorageGroupTest {
 
     private fun SemanticsNodeInteractionsProvider.onCustomTextField() =
       onNodeWithTag("CustomRow").onChildren().filterToOne(hasSetTextAction())
-
-    private fun SemanticsNodeInteractionsProvider.onTooltips() = onNode(isPopup()).onChildren()
   }
 }

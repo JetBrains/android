@@ -20,6 +20,8 @@ import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isPopup
+import androidx.compose.ui.test.onChildren
 
 internal fun SemanticsNodeInteractionsProvider.onNodeWithEditableText(
   text: String,
@@ -36,3 +38,5 @@ internal fun SemanticsNodeInteractionsProvider.onNodeWithClickableText(
   useUnmergedTree: Boolean = false,
 ): SemanticsNodeInteraction =
   onNode(hasClickAction() and hasText(text, substring, ignoreCase), useUnmergedTree)
+
+internal fun SemanticsNodeInteractionsProvider.onTooltips() = onNode(isPopup()).onChildren()

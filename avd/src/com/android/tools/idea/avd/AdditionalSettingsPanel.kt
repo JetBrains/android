@@ -292,7 +292,7 @@ private fun EmulatedPerformanceGroup(
 
     @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
 
-    Row {
+    Row(Modifier.testTag("RamRow")) {
       Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
@@ -313,7 +313,7 @@ private fun EmulatedPerformanceGroup(
       )
     }
 
-    Row {
+    Row(Modifier.testTag("VMHeapSizeRow")) {
       Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
