@@ -29,8 +29,12 @@ import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPointerManager;
@@ -40,6 +44,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import kotlin.Pair;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -52,10 +57,7 @@ import org.jetbrains.annotations.NotNull;
 public class ModelLintIssueAnnotator {
   private final WeakReference<DesignSurface<?>> mySurfaceRef;
   private final Executor myExecutor;
-
-  private final Object myRunningTaskLock = new Object();
-  @GuardedBy("myRunningTaskLock")
-  private Runnable myRunningTask;
+  private final AtomicReference<Disposable> annotationComputation = new AtomicReference<>();
 
   /**
    * @param surface the surface to add the lint annotations to. This class will keep a {@link WeakReference} to the
@@ -76,25 +78,27 @@ public class ModelLintIssueAnnotator {
       // The surface is gone, no need to keep going
       return;
     }
-    Runnable annotatingTask = () -> {
-      LintAnnotationsModel lintAnnotationsModel;
-      try {
-        lintAnnotationsModel =
-          ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
-      }
-      finally {
-        synchronized (myRunningTaskLock) {
-          myRunningTask = null;
-        }
-      }
-      UIUtil.invokeLaterIfNeeded(() -> updateLintAnnotationsModelToSurface(surface, model, lintAnnotationsModel));
-    };
-    synchronized (myRunningTaskLock) {
-      if (myRunningTask == null) {
-        myRunningTask = annotatingTask;
-        myExecutor.execute(annotatingTask);
-      }
+    Disposable computationToken = Disposer.newDisposable();
+    Disposer.register(model, computationToken);
+    Disposable oldComputation = annotationComputation.getAndSet(computationToken);
+    if (oldComputation != null) {
+      Disposer.dispose(oldComputation);
     }
+    ReadAction.nonBlocking(() -> {
+        if (annotationComputation.get() != computationToken) {
+          return null;
+        }
+        return getAnnotations(model);
+      })
+      .finishOnUiThread(ModalityState.defaultModalityState(),
+                        lintAnnotationsModel -> updateLintAnnotationsModelToSurface(surface, model, lintAnnotationsModel))
+      .expireWith(computationToken)
+      .submit(myExecutor)
+      .onProcessed(lintAnnotationsModel -> {
+        if (annotationComputation.compareAndSet(computationToken, null)) {
+          Disposer.dispose(computationToken);
+        }
+      });
   }
 
   private static void updateLintAnnotationsModelToSurface(@NotNull DesignSurface<?> surface,
