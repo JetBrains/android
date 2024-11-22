@@ -228,6 +228,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
         val buildState = GradleBuildState.getInstance(myProject!!)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
+        var buildEnvironment: BuildEnvironment? = null
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(myProject!!)
         val invocationResult = try {
@@ -302,7 +303,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          GradleExecutionHelper.prepareForExecution(connection, operation, cancellationToken, id, executionSettings, listener)
+          buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationToken, executionSettings)
+          GradleExecutionHelper.prepareForExecution(operation, cancellationToken, id, executionSettings, listener, buildEnvironment)
           if (enableBuildAttribution) {
             buildAttributionManager = myProject!!.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
@@ -358,8 +360,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
             else -> {
               buildCompleter.buildFinished(BuildStatus.FAILED)
-              val buildEnvironment: BuildEnvironment? = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener,
-                                                                                                  cancellationToken, executionSettings)
               taskListener.onFailure(
                 gradleRootProjectPath, id,
                 GradleProjectResolver.createProjectResolverChain()
