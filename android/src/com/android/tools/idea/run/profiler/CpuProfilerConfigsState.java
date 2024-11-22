@@ -21,11 +21,10 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -105,11 +104,8 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
     var nativeAllocationsConfig =
       myTaskConfigs.stream().filter(x -> CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS.getName().equals(x.getName())).findFirst();
 
-    if (!nativeAllocationsConfig.isPresent()) {
-      // Task config should always have Native allocations config
-      return new CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS);
-    }
-    return nativeAllocationsConfig.get();
+    // Task config should always have Native allocations config
+    return nativeAllocationsConfig.orElseGet(() -> new CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS));
   }
 
   @NotNull

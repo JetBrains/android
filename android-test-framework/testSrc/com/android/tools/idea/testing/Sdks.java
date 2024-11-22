@@ -153,7 +153,7 @@ public final class Sdks {
     Optional<IAndroidTarget> found =
       Arrays.stream(targets).filter(target -> target.hashString().equals(versionHashString)).findFirst();
 
-    IAndroidTarget target = found.isPresent() ? found.get() : null;
+    IAndroidTarget target = found.orElse(null);
     assertNotNull(target);
     return target;
   }
