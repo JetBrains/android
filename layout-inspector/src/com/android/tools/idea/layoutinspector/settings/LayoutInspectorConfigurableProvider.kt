@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
@@ -51,10 +52,14 @@ class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: ()
   SearchableConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnectCheckBox =
-    JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
+    JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect")
+                 .replace("Android Studio", ApplicationNamesInfo.getInstance().fullProductName)
+    )
   private val embeddedLayoutInspectorSettingPanel = JPanel()
   private val enableEmbeddedLayoutInspectorCheckBox =
-    JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
+    JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector")
+                 .replace("Android Studio", ApplicationNamesInfo.getInstance().fullProductName)
+    )
 
   private val settings = LayoutInspectorSettings.getInstance()
   private val autoConnectSettingControl =
