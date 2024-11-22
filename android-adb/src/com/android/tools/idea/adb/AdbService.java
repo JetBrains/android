@@ -82,8 +82,7 @@ import org.jetbrains.annotations.TestOnly;
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 @Service
-public final class AdbService implements Disposable,
-                                         AdbOptionsService.AdbOptionsListener {
+public final class AdbService implements Disposable {
   @TestOnly
   public static boolean disabled = false;
 
@@ -143,6 +142,8 @@ public final class AdbService implements Disposable,
   private final @NotNull MyDebugBridgeChangeListener myDebugBridgeChangeListener = new MyDebugBridgeChangeListener();
 
   private final @NotNull MyDeviceChangeListener myDeviceChangeListener = new MyDeviceChangeListener();
+
+  private final @NotNull MyAdbOptionsListener myAdbOptionsListener = new MyAdbOptionsListener();
 
   private void logDeviceConnectionStatus(@NotNull IDevice device) {
     if (device.isOnline()) {
@@ -257,7 +258,7 @@ public final class AdbService implements Disposable,
     LOG.info("Disposing AdbService");
     AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
     AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
-    AdbOptionsService.getInstance().removeListener(this);
+    AdbOptionsService.getInstance().removeListener(myAdbOptionsListener);
     try {
       mySequentialExecutor.submit(() -> {
         myImplementation.terminate();
@@ -283,17 +284,6 @@ public final class AdbService implements Disposable,
     }
   }
 
-  /**
-   * Queues an options changed notification on EXECUTOR. Only called by {@link AdbOptionsService}.
-   */
-  @Override
-  public void optionsChanged() {
-    if (disabled) {
-      return;
-    }
-    mySequentialExecutor.execute(myImplementation::optionsChanged);
-  }
-
   private AdbService() {
     // Synchronize ddmlib log level with the corresponding IDEA log level
     String defaultLogLevel = AdbLogOutput.SystemLogRedirecter.getLogger().isTraceEnabled()
@@ -306,7 +296,7 @@ public final class AdbService implements Disposable,
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
-    AdbOptionsService.getInstance().addListener(this);
+    AdbOptionsService.getInstance().addListener(myAdbOptionsListener);
     AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener);
     AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
@@ -621,6 +611,19 @@ public final class AdbService implements Disposable,
       if ((changeMask & IDevice.CHANGE_STATE) != 0) {
         logDeviceConnectionStatus(device);
       }
+    }
+  }
+
+  private class MyAdbOptionsListener implements AdbOptionsService.AdbOptionsListener {
+    /**
+     * Queues an options changed notification on EXECUTOR. Only called by {@link AdbOptionsService}.
+     */
+    @Override
+    public void optionsChanged() {
+      if (disabled) {
+        return;
+      }
+      mySequentialExecutor.execute(myImplementation::optionsChanged);
     }
   }
 }
