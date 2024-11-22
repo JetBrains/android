@@ -86,8 +86,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
               .orElse(null);
       ParsedBepOutput buildOutput = buildResultHelper.getBuildOutput(stringInterner);
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
-      return BlazeBuildOutputs.fromParsedBepOutput(
-          buildResult, buildResultHelper.getBuildOutput(stringInterner));
+      return BlazeBuildOutputs.fromParsedBepOutput(buildResult, buildOutput);
     } catch (GetArtifactsException e) {
       context.output(PrintOutput.log("Failed to get build outputs: " + e.getMessage()));
       context.setHasError();
