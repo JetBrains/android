@@ -235,13 +235,19 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testAnimationInspector() {
-    fun SplitEditorFixture.findAnimationInspector() =
-      try {
-        guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Preview")
+    /**
+     *  Wait 10 seconds for a given state (open or closed) of the Animation Inspector.
+     */
+    fun SplitEditorFixture.waitForAnimationInspectorState(isOpen: Boolean) {
+      val expectationMessage = "Animation preview to be ${if (isOpen) "open" else "closed"}"
+      Wait.seconds(10).expecting(expectationMessage).until {
+        val animationInspector = try {
+          guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Preview")
+        } catch (e: ComponentLookupException) { null }
+        // If the inspector is expected to be open, we want it to be non-null
+        isOpen == (animationInspector != null)
       }
-      catch (e: ComponentLookupException) {
-        null
-      }
+    }
 
     val fixture = getSyncedProjectFixture()
 
@@ -278,9 +284,8 @@ class ComposePreviewTest {
       .first()
       .toolbar()
       .clickActionByIcon("GestureAnimationSample", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    Wait.seconds(10).expecting("Animation preview to be opened").until {
-      composePreview.findAnimationInspector() != null
-    }
+    composePreview.waitForAnimationInspectorState(isOpen = true)
+
     // Open the Animation preview in another file
     val otherComposePreview = openComposePreview(fixture, "Animations2.kt")
       .waitForRenderToFinish()
@@ -292,24 +297,19 @@ class ComposePreviewTest {
       .first()
       .toolbar()
       .clickActionByIcon("VerySimpleAnimation", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    Wait.seconds(10).expecting("Animation preview to be opened").until {
-      otherComposePreview.findAnimationInspector() != null
-    }
+    otherComposePreview.waitForAnimationInspectorState(isOpen = true)
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
     fixture.editor.open(animations1Relative)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
-    Wait.seconds(10).expecting("Animation preview is closed").until {
-      composePreview.findAnimationInspector() == null
-    }
+    composePreview.waitForAnimationInspectorState(isOpen = false)
 
     // Return to Animations2.kt, where the Animation Preview should still be open
     fixture.editor.closeFile(animations1Relative)
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
-    Wait.seconds(10).expecting("Animation preview to be opened").until {
-      otherComposePreview.findAnimationInspector() != null
-    }
+    otherComposePreview.waitForAnimationInspectorState(isOpen = true)
+
     // Clicking on the "Stop Animation Preview" button should close the animation preview panel
     otherComposePreview
       .waitForRenderToFinish()
@@ -317,9 +317,7 @@ class ComposePreviewTest {
       .findActionButtonByText("Stop Animation Preview")
       .waitUntilEnabledAndShowing()
       .click()
-    Wait.seconds(10).expecting("Animation preview to be closed").until {
-      otherComposePreview.findAnimationInspector() == null
-    }
+    otherComposePreview.waitForAnimationInspectorState(isOpen = false)
 
     fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations2.kt")
   }
