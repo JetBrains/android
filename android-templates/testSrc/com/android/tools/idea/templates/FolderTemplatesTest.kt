@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.StringParameter
@@ -56,7 +57,7 @@ class FolderTemplatesTest {
     (locationParam as StringParameter).value = location
 
     // The default module state and template
-    val moduleStateBuilder = getDefaultModuleState(projectRule.project, template)
+    val moduleStateBuilder = getDefaultModuleState(projectRule.project, template, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT)
     val projectRoot = moduleStateBuilder.projectTemplateDataBuilder.topOut!!
     val moduleRoot =
       GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, defaultModuleName))

@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.BooleanParameter
@@ -187,7 +188,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectRenderer.renderProject(project, *customizers)
+      projectRenderer.renderProject(project, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, *customizers)
 
       if (testMode == TestMode.GENERATING) {
         printUnzipInstructions()

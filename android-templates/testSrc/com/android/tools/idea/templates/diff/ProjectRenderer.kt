@@ -29,6 +29,8 @@ import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRo
 import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.wizard.template.FormFactor
@@ -57,8 +59,8 @@ val FILES_TO_IGNORE = emptyArray<String>()
 abstract class ProjectRenderer(protected val template: Template, val goldenDirName: String) {
   protected lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(project: Project, vararg customizers: ProjectStateCustomizer) {
-    moduleState = getDefaultModuleState(project, template)
+  fun renderProject(project: Project, agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment, vararg customizers: ProjectStateCustomizer) {
+    moduleState = getDefaultModuleState(project, template, agpVersionSoftwareEnvironment)
     customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
     try {

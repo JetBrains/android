@@ -18,14 +18,16 @@
 
 package com.android.tools.idea.templates
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
-import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
 import com.android.tools.idea.templates.KeystoreUtils.sha1
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
@@ -62,12 +64,14 @@ internal const val defaultModuleName = "Template test module"
 
 internal fun getDefaultModuleState(
   project: Project,
-  template: Template
+  template: Template,
+  agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment,
 ): ModuleTemplateDataBuilder {
+  val versions = agpVersionSoftwareEnvironment.resolve();
   // TODO(qumeric): is always new?
   val projectStateBuilder =
     ProjectTemplateDataBuilder(true).apply {
-      agpVersion = AgpVersions.newProject
+      agpVersion = AgpVersion.parse(versions.agpVersion)
       androidXSupport = true
       setProjectDefaults(project)
       language = Language.Java
@@ -97,16 +101,8 @@ internal fun getDefaultModuleState(
       themesData = ThemesData("App")
       apis =
         ApiTemplateData(
-          buildApi =
-            ApiVersion(
-              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()
-            ),
-          targetApi =
-            ApiVersion(
-              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()
-            ),
+          buildApi = ApiVersion(versions.compileSdk.toInt(), versions.compileSdk),
+          targetApi = ApiVersion(versions.targetSdk.toInt(), versions.targetSdk),
           minApi = ApiVersion(minSdk, minSdk.toString()),
           // The highest supported/recommended appCompact version is P(28)
           appCompatVersion =
