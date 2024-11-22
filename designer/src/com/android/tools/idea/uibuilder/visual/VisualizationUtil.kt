@@ -21,14 +21,6 @@ package com.android.tools.idea.uibuilder.visual
  */
 object VisualizationUtil {
 
-  /** Helper function to get the custom configuration set for the given id. */
-  fun getCustomConfigurationSet(id: String): CustomConfigurationSet? {
-    return VisualizationToolSettings.getInstance()
-      .globalState
-      .customConfigurationSets
-      .getOrDefault(id, null)
-  }
-
   /** Helper function to update custom configuration set for the given id. */
   fun setCustomConfigurationSet(id: String, customConfigurationSet: CustomConfigurationSet?) {
     val sets = VisualizationToolSettings.getInstance().globalState.customConfigurationSets
