@@ -208,6 +208,7 @@ studio_plugin(
             "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor",
             "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
+            "//tools/adt/idea/journeys-with-gemini:intellij.android.journeys-with-gemini",
             "//tools/adt/idea/ml-api:intellij.android.ml-api",
             "//tools/adt/idea/streaming:intellij.android.streaming",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",

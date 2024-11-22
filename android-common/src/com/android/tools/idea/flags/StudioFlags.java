@@ -2303,6 +2303,15 @@ public final class StudioFlags {
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
+  // region JOURNEYS_WITH_GEMINI
+  private static final FlagGroup JOURNEYS_WITH_GEMINI = new FlagGroup(FLAGS, "journeys.with.gemini", "Journeys with Gemini");
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EDITOR = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.editor", "Enable Journeys with Gemini Editor",
+    "Use Journeys with Gemini Editor when editing journey files (.journey.xml extensions)",
+    enabledUpTo(DEV)
+  );
+  // endregion JOURNEYS_WITH_GEMINI
+
   // region DEV_SERVICES_DEPRECATION_SUPPORT
   // See go/android-studio-developer-services-compat-policy and go/as-kill-feature-past-deadline
   // These flags are mostly meant to be changed via server flags.

@@ -98,4 +98,5 @@
   <xi:include href="/META-INF/server-flags.xml"/>
   <xi:include href="/META-INF/studio-labs.xml" />
   <xi:include href="/META-INF/settings-sync.xml" />
+  <xi:include href="/META-INF/intellij.android.journeys-with-gemini.xml"/>
 </idea-plugin>
