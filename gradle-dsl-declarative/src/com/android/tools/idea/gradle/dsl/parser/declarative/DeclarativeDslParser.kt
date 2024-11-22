@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixedFac
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.kind
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
@@ -127,6 +128,7 @@ class DeclarativeDslParser(
                   arg.value?.let {
                     GradleDslLiteral(context, factoryElement, GradleNameElement.from(factoryElement.identifier, this@DeclarativeDslParser), arg, LITERAL).also {
                       it.externalSyntax = ExternalNameInfo.ExternalNameSyntax.METHOD
+                      it.setElementType(PropertyType.REGULAR)
                       expression.addParsedElement(it)
                     }
                   }
@@ -196,6 +198,7 @@ class DeclarativeDslParser(
     object : DeclarativeRecursiveVisitor() {
       override fun visitLiteral(psi: DeclarativeLiteral) {
         val literal = GradleDslLiteral(list, psi, GradleNameElement.empty(), psi, LITERAL)
+        literal.setElementType(PropertyType.REGULAR)
         list.addParsedExpression(literal)
       }
 

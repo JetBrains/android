@@ -1318,10 +1318,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ArtifactDependencyModel artifact = artifacts.get(0);
     assertMissingProperty(artifact.extension());
     assertMissingProperty(artifact.classifier());
+    assertThat(artifact.configurationName()).isEqualTo("compile");
     verifyPropertyModel(artifact.name(), STRING_TYPE, "appcompat-v7", STRING, FAKE, 0, "name");
     verifyPropertyModel(artifact.group(), STRING_TYPE, "com.android.support", STRING, FAKE, 0, "group");
     verifyPropertyModel(artifact.version(), STRING_TYPE, "22.1.1", STRING, FAKE, 0, "version");
-    verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, REGULAR, 0, "compile");
+    verifyPropertyModel(artifact.completeModel(), STRING_TYPE, "com.android.support:appcompat-v7:22.1.1", STRING, REGULAR, 0);
   }
 
   @Test
