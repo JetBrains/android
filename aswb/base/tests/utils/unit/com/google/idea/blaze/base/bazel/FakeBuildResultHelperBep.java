@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.bazel;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Interner;
 import com.google.idea.blaze.base.command.buildresult.BuildFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
@@ -49,7 +50,7 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId)
+  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId, Interner<String> stringInterner)
       throws GetArtifactsException {
     if (parsedBepOutput == null) {
       throw new GetArtifactsException("Could not get artifacts from null bep");

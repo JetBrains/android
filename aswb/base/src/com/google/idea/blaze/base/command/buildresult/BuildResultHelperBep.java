@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
+import com.google.common.collect.Interner;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.io.InputStreamProvider;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
@@ -55,7 +56,7 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId)
+  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId, Interner<String> stringInterner)
       throws GetArtifactsException {
     try (InputStream inputStream = new BufferedInputStream(new FileInputStream(outputFile))) {
       return ParsedBepOutput.parseBepArtifacts(inputStream);

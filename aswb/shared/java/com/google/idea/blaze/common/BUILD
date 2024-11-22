@@ -4,8 +4,7 @@ java_library(
     name = "common",
     srcs = glob(["*.java"]),
     visibility = [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:__subpackages__",
-        "//tools/adt/idea/aswb/shared:__subpackages__",
+        "//visibility:public",
     ],
     deps = [
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
