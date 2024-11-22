@@ -27,7 +27,6 @@ open class FakeAiInsightToolkit(
 ) : AiInsightToolkit {
   override suspend fun getSource(
     stack: StacktraceGroup,
-    contextSharingOverride: Boolean,
     overrideSourceLimit: Boolean,
   ): CodeContextData = codeContextResolver.getSource(stack, overrideSourceLimit)
 }
