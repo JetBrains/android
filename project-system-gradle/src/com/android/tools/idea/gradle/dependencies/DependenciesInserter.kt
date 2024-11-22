@@ -39,7 +39,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
    *
    * The plugin is applied to each of the modules in [buildModels]
    */
-  fun addPlugin(pluginId: String,
+  open fun addPlugin(pluginId: String,
                 classpathDependency: String,
                 buildModels: List<GradleBuildModel>,
                 pluginMatcher: PluginMatcher = IdPluginMatcher(pluginId),
@@ -352,7 +352,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
   /**
    * Adds plugin without version - it adds plugin declaration directly to build script file.
    */
-  fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)): PsiFile? =
+  open fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)): PsiFile? =
     if (!buildModel.hasPlugin(matcher)) {
       buildModel.applyPlugin(pluginId)
       buildModel.psiFile

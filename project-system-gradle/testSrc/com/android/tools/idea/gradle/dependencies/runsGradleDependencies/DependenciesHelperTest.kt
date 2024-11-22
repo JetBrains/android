@@ -426,6 +426,25 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testAddPluginToDeclarative() {
+    doDeclarativeTest(SIMPLE_APPLICATION_DECLARATIVE,
+           { projectBuildModel, model, helper ->
+             val plugins = projectBuildModel.declarativeSettingsModel!!.plugins()
+             val changed = helper.addPlugin("com.example.foo", "10.0", null, plugins, model)
+             assertThat(changed.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("app/build.gradle.dcl")
+             assertThat(projectBuildContent).doesNotContain("example")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle.dcl")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+             assertThat(pluginsBlockContent).contains("id(\"com.example.foo\").version(\"10.0\")")
+             assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+           })
+  }
+
+  @Test
   fun testAddPluginToSettingsPluginManagementWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { projectBuildModel, _, helper ->
