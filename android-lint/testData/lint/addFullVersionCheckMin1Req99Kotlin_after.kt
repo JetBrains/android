@@ -5,7 +5,7 @@ import android.os.Build
 annotation class RequiresApi(val api: Int)
 internal class SdkExtensionsTest {
     fun test() {
-        if (<caret>Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && Build.VERSION.SDK_INT_FULL >= 99_000_09) {
+        if (<caret>Build.VERSION.SDK_INT_FULL >= 99_000_09) {
             requiresFutureMinor()
         }
     }

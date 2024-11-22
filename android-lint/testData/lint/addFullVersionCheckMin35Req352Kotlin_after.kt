@@ -6,7 +6,7 @@ annotation class RequiresApi(val api: Int)
 internal class SdkExtensionsTest {
     @RequiresApi(35)
     fun test() {
-        if (<caret>Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) {
+        if (<caret>Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) {
             requires352()
         }
     }
