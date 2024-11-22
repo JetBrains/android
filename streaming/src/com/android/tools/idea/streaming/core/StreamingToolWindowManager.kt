@@ -82,6 +82,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -429,6 +430,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
+    thisLogger().info("$simpleId.onToolWindowShown()") // b/364541401
     deviceClientRegistry.forEachClient { deviceClient ->
       val serialNumber = deviceClient.deviceSerialNumber
       if (serialNumber !in deviceClients) {
@@ -583,6 +585,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun removePhysicalDevicePanel(serialNumber: String) {
+    thisLogger().info("$simpleId.removePhysicalDevicePanel($serialNumber)") // b/364541401
     deviceClients.remove(serialNumber)?.let {
       deviceClientRegistry.removeDeviceClient(serialNumber, this@StreamingToolWindowManager)
       updateMirroringHandlesFlow()
@@ -707,6 +710,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   override fun deviceClientAdded(client: DeviceClient, requester: Any?) {
+    thisLogger().info("$simpleId.deviceClientAdded(${client.simpleId}, ${requester.simpleId})") // b/364541401
     if (requester != this) {
       val serialNumber = client.deviceSerialNumber
       if (findContentBySerialNumberOfPhysicalDevice(serialNumber) == null) {
@@ -718,8 +722,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   override fun deviceClientRemoved(client: DeviceClient, requester: Any?) {
-    if (requester != this && deviceClients[client.deviceSerialNumber]?.client == client) {
-      deactivateMirroring(client.deviceSerialNumber)
+    thisLogger().info("$simpleId.deviceClientRemoved(${client.simpleId}, ${requester.simpleId})") // b/364541401
+    val serialNumber = client.deviceSerialNumber
+    if (requester != this && deviceClients[serialNumber]?.client == client) {
+      deactivateMirroring(serialNumber)
     }
   }
 
@@ -732,6 +738,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun deactivateMirroring(serialNumber: String) {
+    thisLogger().info("$simpleId.deactivateMirroring($serialNumber)") // b/364541401
     if (contentShown) {
       val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
       content.removeAndDispose()
@@ -742,6 +749,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun stopMirroring(serialNumber: String) {
+    thisLogger().info("$simpleId.stopMirroring($serialNumber)") // b/364541401
     deviceClients.remove(serialNumber)?.let {
       devicesExcludedFromMirroring[serialNumber] = DeviceDescription(it.client.deviceName, serialNumber, it.handle, it.client.deviceConfig)
       deviceClientRegistry.removeDeviceClient(serialNumber, this@StreamingToolWindowManager)
@@ -818,12 +826,17 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun startMirroring(serialNumber: String, deviceClient: DeviceClient, deviceHandle: DeviceHandle, activation: ActivationLevel,
                              contentManager: ContentManager? = null) {
+    thisLogger().info( // b/364541401
+        "$simpleId.startMirroring($serialNumber, ${deviceClient.simpleId}, ${deviceHandle.simpleId}, $activation, ...)")
     if (serialNumber in onlineDevices) {
       showLiveIndicator()
       if (contentShown) {
         updateMirroringHandlesFlow()
         deviceClient.establishAgentConnectionWithoutVideoStreamAsync(project) // Start the agent and connect to it proactively.
         val panel = DeviceToolWindowPanel(toolWindow.disposable, project, deviceHandle, deviceClient)
+        thisLogger().info( // b/364541401
+           "$simpleId.startMirroring($serialNumber, ${deviceClient.simpleId}, ${deviceHandle.simpleId}, $activation, ...):" +
+           " Created ${panel.simpleId}")
         val content = addPanel(panel, contentManager)
         if (activation >= ActivationLevel.SELECT_TAB && content != null) {
           content.select(activation)
@@ -898,6 +911,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
+    thisLogger().info("$simpleId.getOrCreateDeviceClient($serialNumber, ...)") // b/364541401
     return adoptDeviceClient(serialNumber, deviceHandle) {
       deviceClientRegistry.getOrCreateDeviceClient(serialNumber, this@StreamingToolWindowManager) {
         DeviceClient(serialNumber, config, config.deviceProperties.primaryAbi.toString()).apply {
@@ -913,8 +927,14 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (clientWithHandle == null) {
       clientWithHandle = DeviceClientWithHandle(clientSupplier.get(), deviceHandle)
       deviceClients[serialNumber] = clientWithHandle
+      thisLogger().info( // b/364541401
+          "$simpleId.adoptDeviceClient($serialNumber, ...): Added ${clientWithHandle.client.simpleId} to deviceClients")
       devicesExcludedFromMirroring.remove(serialNumber)
       updateMirroringHandlesFlow()
+    }
+    else {
+      thisLogger().info( // b/364541401
+          "$simpleId.adoptDeviceClient($serialNumber, ...): ${clientWithHandle.client.simpleId} is already in deviceClients")
     }
     return clientWithHandle
   }
@@ -1363,6 +1383,7 @@ internal class DeviceClientRegistry : Disposable {
     return clientsBySerialNumber.computeIfAbsent(serialNumber) { serial ->
       clientCreator(serial).also { client ->
         Disposer.register(this, client)
+        thisLogger().info("$simpleId.getOrCreateDeviceClient($serialNumber, $requester, ...): Created ${client.simpleId}") // b/364541401
         for (listener in listeners) {
           try {
             listener.deviceClientAdded(client, requester)
