@@ -275,6 +275,7 @@ public class GuiInputHandler implements Disposable {
 
     if (interaction != null) {
       myCurrentInteraction = interaction;
+      updateCursor();
       myCurrentInteraction.begin(event);
       myLayers = interaction.createOverlays();
     }
@@ -760,7 +761,6 @@ public class GuiInputHandler implements Disposable {
     Pannable pannable = myInteractable.getPannable();
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
       startInteraction(new InteractionNonInputEvent(getInteractionInformation()), new PanInteraction(pannable));
-      updateCursor();
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
       finishInteraction(new InteractionNonInputEvent(getInteractionInformation()), false);
