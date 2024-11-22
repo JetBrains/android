@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -31,6 +32,8 @@
         <service android:name=".services.MyDataSyncService"
                  android:foregroundServiceType="dataSync"
                  android:exported="true"/>
+        <service android:name=".services.AudioFocusService"/>
+        <service android:name=".services.DNDUpdateService" />
         <receiver android:name=".broadcastrecievers.MyBootReceiver"
                   android:enabled="true"
                   android:exported="true">
@@ -52,5 +55,4 @@
     </application>
 
 </manifest>
-
 

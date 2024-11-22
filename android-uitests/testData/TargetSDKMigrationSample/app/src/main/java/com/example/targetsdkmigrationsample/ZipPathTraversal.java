@@ -17,6 +17,8 @@ package com.example.targetsdkmigrationsample;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Random;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.io.*;
@@ -59,6 +61,19 @@ public class ZipPathTraversal{
         // Example of strict validation using UUID
         UUID uuid = UUID.fromString("f81d4fae-7dec-11d0-a765-00a0c91e6bf6");
         System.out.println("Validated UUID: " + uuid);
+    }
+
+    /**
+     * Verified behavior changes in API 35 related to OpenJDK. More details in below link
+     * <a href="https://developer.android.com/about/versions/15/behavior-changes-15#openjdk-api-changes">...</a>
+     */
+    public static void openJDKAPI35Changes(){
+        int number1 = 10;
+        int number2 = 5;
+        String message = String.format("The number is: %0$03d", number1,number2);
+        String[] elements = (String[]) Arrays.asList("one", "two").toArray();
+        Random random = new Random();
+        random.ints();
     }
 }
 
