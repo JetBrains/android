@@ -317,7 +317,7 @@ class ComposePreviewTest {
       .findActionButtonByText("Stop Animation Preview")
       .waitUntilEnabledAndShowing()
       .click()
-    Wait.seconds(10).expecting("Animation preview to be opened").until {
+    Wait.seconds(10).expecting("Animation preview to be closed").until {
       otherComposePreview.findAnimationInspector() == null
     }
 
