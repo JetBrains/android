@@ -20,7 +20,7 @@
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
     <group id="Android.SyncProject.ActionGroup">
-      <reference id="Android.SyncProject"/>
+      <reference ref="Android.SyncProject"/>
       <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
     </group>
   </actions>
