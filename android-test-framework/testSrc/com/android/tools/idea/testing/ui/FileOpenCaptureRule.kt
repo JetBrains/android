@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -89,7 +90,7 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
-    val text = FileDocumentManager.getInstance().getDocument(file)!!.text
+    val text = ReadAction.compute<String, Throwable> {  FileDocumentManager.getInstance().getDocument(file)!!.text }
     val line = StringUtil.offsetToLineColumn(text, offset)
     val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
     return Pair(line, lineText.trim())
