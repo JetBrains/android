@@ -21,7 +21,7 @@ fun Preview2() {
     }
 }
 
-@Preview()
+@Preview
 @Composable
 fun Preview3() {
     MaterialTheme {
