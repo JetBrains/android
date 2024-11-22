@@ -26,6 +26,8 @@ import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 private const val DEFAULT_DENSITY = 160 // Same as Density.MEDIUM.dpiValue
 private const val DEFAULT_DENSITY_FLOAT = 160.0f
@@ -172,7 +174,7 @@ open class InspectorPropertyItem(
     ) {
       val spFactor = pixelsToSpFactor
       if (spFactor != null) {
-        return "${DecimalFormat("0.0").format(pixels * spFactor)}sp"
+        return "${DecimalFormat("0.0", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(pixels * spFactor)}sp"
       }
     }
     return when (PropertiesSettings.dimensionUnits) {
@@ -221,7 +223,7 @@ open class InspectorPropertyItem(
     }
 
   private fun formatFloat(value: Float): String =
-    if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
+    if (value == 0.0f) "0" else DecimalFormat("0.0##", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value)
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {
