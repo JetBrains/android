@@ -29,7 +29,7 @@ class SdkIndexPsdWithoutNotesTest : SdkIndexTestBase() {
         openAndClosePSD(studio)
       },
       beforeClose = {
-        verifyPsdIssues(numErrors = 6, numWarnings = 4)
+        verifyPsdIssues(numErrors = 7, numWarnings = 4)
       },
       expectedIssues = listOf(
         // Error
@@ -61,6 +61,17 @@ class SdkIndexPsdWithoutNotesTest : SdkIndexTestBase() {
         // Error
         listOf(
           "**[Prevents app release in Google Play Console]** com.google.android.play:core version 1.10.3 has been reported as problematic by its author and will block publishing of your app to Play Console",
+        ),
+        // Error
+        listOf(
+          "Google Play Core (com.google.android.play:core) has been deprecated by its developer. Consider updating to an alternative SDK before publishing a new release.",
+          "The developer has recommended these alternatives:",
+          "```",
+          " - Google Play Feature Delivery (com.google.android.play:feature-delivery)",
+          " - Google Play Asset Delivery (com.google.android.play:asset-delivery)",
+          " - Google Play In-App Updates (com.google.android.play:app-update)",
+          " - Google Play In-App Reviews (com.google.android.play:review)",
+          "```",
         ),
         // Warning
         listOf(

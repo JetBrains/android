@@ -52,6 +52,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
+import com.intellij.util.containers.addIfNotNull
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.VisibleForTesting
@@ -334,69 +335,112 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   val artifactId = dependencySpec.name
 
   // Report all SDK Index issues without grouping them(b/316038712):
-  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
-  val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
-  val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
-  val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
-  val isVulnerability = sdkIndex.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, parentModuleRootDir)
-
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
+  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
+  foundIssues.addIfNotNull(generateDeprecatedLibraryIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, sdkIndex))
+  foundIssues.addAll(generatePolicyIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  var criticalIssue = generateCriticalIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
   if (isBlocking) {
-    if (isNonCompliant) {
-      sdkIndex.generateBlockingPolicyMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, updateFixes))
-      }
-    }
-    if (isCritical) {
-      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, updateFixes))
-    }
-    if (isVulnerability) {
-      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
-        val fixes = mutableListOf<PsQuickFix>()
-        fixes.addAll(updateFixes)
-        createVulnerabilityQuickFix(message)?.let { fixes.add(it) }
-        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, fixes))
-      }
-    }
-    if (isOutdated) {
-      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, updateFixes))
-    }
+    // Critical issues are added before vulnerability issues if they are blocking
+    foundIssues.addIfNotNull(criticalIssue)
+    // Set to null so it is not added multiple times
+    criticalIssue = null
   }
-  else {
-    if (isNonCompliant) {
-      sdkIndex.generatePolicyMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex, updateFixes))
-      }
-    }
-    if (isVulnerability) {
-      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
-        val fixes = mutableListOf<PsQuickFix>()
-        fixes.addAll(updateFixes)
-        createVulnerabilityQuickFix(message)?.let { fixes.add(it) }
-        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex, fixes))
-      }
-    }
-    if (isOutdated) {
-      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex, updateFixes))
-    }
-    if (isCritical) {
-      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO, sdkIndex, updateFixes))
-    }
-  }
+  foundIssues.addAll(generateVulnerabilityIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  foundIssues.addIfNotNull(generateOutdatedIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  foundIssues.addIfNotNull(criticalIssue)
   return foundIssues
 }
 
-fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
-  return if (vulnerability.link.isNullOrBlank()) {
-    null
+private fun generateDeprecatedLibraryIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.isLibraryDeprecated(groupId, artifactId, versionString, file)) {
+    return null
   }
-  else {
-    SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
+  val severity = if (isBlocking) ERROR else WARNING
+  val message = index.generateDeprecatedMessage(groupId, artifactId)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, listOf())
+}
+
+private fun generatePolicyIssues(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  if (!index.isLibraryNonCompliant(groupId, artifactId, versionString, file)) {
+    return listOf()
   }
+  val severity = if (isBlocking) ERROR else WARNING
+  val messages = if (isBlocking) index.generateBlockingPolicyMessages(groupId, artifactId, versionString) else index.generatePolicyMessages(groupId, artifactId, versionString)
+  return messages.map { message->
+    createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
+  }
+}
+
+private fun generateCriticalIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.hasLibraryCriticalIssues(groupId, artifactId, versionString, file)) {
+    return null
+  }
+  val severity = if (isBlocking) ERROR else INFO
+  val message = if (isBlocking) index.generateBlockingCriticalMessage(groupId, artifactId, versionString) else index.generateCriticalMessage(groupId, artifactId, versionString)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
+}
+
+fun generateVulnerabilityIssues(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  if (!index.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, file)) {
+    return listOf()
+  }
+  val severity = if (isBlocking) ERROR else WARNING
+  val messages = index.generateVulnerabilityMessages(groupId, artifactId, versionString)
+  return messages.map { message->
+    val fixes = mutableListOf<PsQuickFix>()
+    fixes.addAll(updateFixes)
+    createVulnerabilityQuickFix(message)?.let { fixes.add(it) }
+    createIndexIssue(message.description, groupId, artifactId, versionString, path, severity, index, fixes)
+  }
+}
+
+private fun generateOutdatedIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.isLibraryOutdated(groupId, artifactId, versionString, file)) {
+    return null
+  }
+  val severity = if (isBlocking) ERROR else WARNING
+  val message = if (isBlocking) index.generateBlockingOutdatedMessage(groupId, artifactId, versionString) else index.generateOutdatedMessage(groupId, artifactId, versionString)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
 private fun createIndexIssue(
@@ -424,6 +468,15 @@ private fun createIndexIssue(
     severity,
     fixes
   )
+}
+
+private fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
+  return if (vulnerability.link.isNullOrBlank()) {
+    null
+  }
+  else {
+    SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
+  }
 }
 
 /**

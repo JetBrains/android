@@ -2,9 +2,11 @@ package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.TestPath
+import com.android.tools.lint.checks.AlternativeLibrary
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.Index
 import com.android.tools.lint.checks.Library
+import com.android.tools.lint.checks.LibraryDeprecation
 import com.android.tools.lint.checks.LibraryIdentifier
 import com.android.tools.lint.checks.LibraryVersion
 import com.android.tools.lint.checks.LibraryVersionLabels
@@ -12,6 +14,7 @@ import com.android.tools.lint.checks.LibraryVersionLabels.PolicyIssuesInfo.SdkPo
 import com.android.tools.lint.checks.MavenIdentifier
 import com.android.tools.lint.checks.Sdk
 import com.google.common.truth.Truth.assertThat
+import kotlinx.datetime.Instant
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
@@ -27,12 +30,13 @@ class PsAnalyzerDaemonKtTest {
                                private val critical: Boolean,
                                private val showNotes: Boolean,
                                private val vulnerability: Boolean,
+                               private val deprecated: Boolean,
                                private val violations: List<SdkPolicy>,
                                private val expectedMessages: List<String>) {
 
     @Test
     fun `Expected issue`() {
-      val sdkIndex = TestGooglePlaySdkIndex(blocking, nonCompliant, outdated, critical, showNotes, vulnerability, violations)
+      val sdkIndex = TestGooglePlaySdkIndex(blocking, nonCompliant, outdated, critical, showNotes, vulnerability, deprecated, violations)
       sdkIndex.prepareForTest()
       val issues = getSdkIndexIssueFor(PsArtifactDependencySpec.Companion.create(LIBRARY_GROUP, LIBRARY_ARTIFACT, LIBRARY_VERSION),
                                       TestPath("testPath"), parentModuleRootDir = null, sdkIndex = sdkIndex)
@@ -89,57 +93,78 @@ class PsAnalyzerDaemonKtTest {
                                                 "unspecified vulnerability issues."
       private const val MESSAGE_VULNERABILITY_BLOCKING = "test-group:test-artifact version test-version has<br/>\n" +
                                                          "unspecified vulnerability issues."
+      private const val MESSAGE_DEPRECATED = "SDK Name (test-group:test-artifact) has been deprecated<br/>\n" +
+                                             "by its developer. Consider updating to an alternative<br/>\n" +
+                                             "SDK before publishing a new release.<br/>\n" +
+                                             "<br/>\n" +
+                                             "The developer has recommended these alternatives:<br/>\n" +
+                                             "\n" +
+                                             "<pre>\n" +
+                                             "\n" +
+                                             " - Alternative 1 (first:alternative)\n" +
+                                             "\n" +
+                                             " - second:alternative\n" +
+                                             "\n" +
+                                             "</pre>\n"
 
 
       @JvmStatic
-      @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, notes={4}, vulnerability={5}")
+      @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, notes={4}, vulnerability={5}, deprecated={6}")
       fun data() = listOf(
         // No issues
-        arrayOf(false, false, false, false, true, false, emptyList<SdkPolicy>(), emptyList<String>()),
+        arrayOf(false, false, false, false, true, false, false, emptyList<SdkPolicy>(), emptyList<String>()),
         // Policy
-        arrayOf(false, true, false, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY)),
+        arrayOf(false, true, false, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY)),
         // Outdated
-        arrayOf(false, false, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED)),
+        arrayOf(false, false, true, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED)),
         // Critical (with notes)
-        arrayOf(false, false, false, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_WITH_NOTE)),
+        arrayOf(false, false, false, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_WITH_NOTE)),
         // Critical (without notes)
-        arrayOf(false, false, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL)),
+        arrayOf(false, false, false, true, false, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL)),
         // Vulnerability
-        arrayOf(false, false, false, false, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_VULNERABILITY)),
+        arrayOf(false, false, false, false, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_VULNERABILITY)),
+        // Deprecated
+        arrayOf(false, false, false, false, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED)),
         // Two types
-        arrayOf(false, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED)),
+        arrayOf(false, true, true, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED)),
         // Three types (with notes)
-        arrayOf(false, true, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
+        arrayOf(false, true, true, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
         // Three types (without notes)
-        arrayOf(false, true, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
+        arrayOf(false, true, true, true, false, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
         // Four types (with notes)
-        arrayOf(false, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
+        arrayOf(false, true, true, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
         // Four types (without notes)
-        arrayOf(false, true, true, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
+        arrayOf(false, true, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
         // Two policies
-        arrayOf(false, true, false, false, true, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER, MESSAGE_POLICY_PERMISSIONS)),
+        arrayOf(false, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER, MESSAGE_POLICY_PERMISSIONS)),
+        // All types (including deprecated)
+        arrayOf(false, true, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED, MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
         // Policy BLOCKING
-        arrayOf(true, true, false, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING)),
+        arrayOf(true, true, false, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING)),
         // Outdated BLOCKING
-        arrayOf(true, false, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, false, true, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_OUTDATED_BLOCKING)),
         // Critical BLOCKING (with notes)
-        arrayOf(true, false, false, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING_WITH_NOTE)),
+        arrayOf(true, false, false, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING_WITH_NOTE)),
         // Critical BLOCKING (without notes)
-        arrayOf(true, false, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING)),
+        arrayOf(true, false, false, true, false, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_CRITICAL_BLOCKING)),
         // Vulnerability BLOCKING
-        arrayOf(true, false, false, false, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_VULNERABILITY_BLOCKING)),
+        arrayOf(true, false, false, false, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_VULNERABILITY_BLOCKING)),
+        // Deprecated BLOCKING
+        arrayOf(true, false, false, false, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED)),
         // Two types BLOCKING
-        arrayOf(true, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, false, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Three types BLOCKING (with notes)
-        arrayOf(true, true, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_OUTDATED_BLOCKING)),
         // Three types BLOCKING (without notes)
-        arrayOf(true, true, true, true, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, true, false, false, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Four types BLOCKING (with notes)
-        arrayOf(true, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, true, true, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Four types BLOCKING (without notes)
-        arrayOf(true, true, true, true, false, true, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
+        arrayOf(true, true, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Two policies BLOCKING
-        arrayOf(true, true, false, false, true, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_BLOCKING, MESSAGE_POLICY_PERMISSIONS_BLOCKING)),
+        arrayOf(true, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_BLOCKING, MESSAGE_POLICY_PERMISSIONS_BLOCKING)),
+        // All types (including deprecated) BLOCKING
+        arrayOf(true, true, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED, MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
       )
     }
 
@@ -150,6 +175,7 @@ class PsAnalyzerDaemonKtTest {
       private val critical: Boolean,
       private val showNotes: Boolean,
       private val vulnerability: Boolean,
+      private val deprecated: Boolean,
       private val violations: List<SdkPolicy>,
     ) : GooglePlaySdkIndex(null) {
       override fun readUrlData(url: String, timeout: Int, lastModified: Long) = ReadUrlDataResult(null, true)
@@ -174,10 +200,33 @@ class PsAnalyzerDaemonKtTest {
         if (vulnerability) {
           labels.setSecurityVulnerabilitiesInfo(LibraryVersionLabels.SecurityVulnerabilitiesInfo.newBuilder())
         }
+        val libraryDeprecation = LibraryDeprecation.newBuilder()
+        if (deprecated) {
+          libraryDeprecation
+            .setDeprecationTimestampSeconds(Instant.parse("2024-11-20T10:00:00Z").epochSeconds)
+            .addAlternativeLibraries(
+              AlternativeLibrary.newBuilder()
+                .setSdkName("Alternative 1")
+                .setMavenSdkId(
+                  MavenIdentifier.newBuilder()
+                    .setGroupId("first")
+                    .setArtifactId("alternative")
+                )
+            )
+            .addAlternativeLibraries(
+              AlternativeLibrary.newBuilder()
+                .setMavenSdkId(
+                  MavenIdentifier.newBuilder()
+                    .setGroupId("second")
+                    .setArtifactId("alternative")
+                )
+            )
+        }
         val proto = Index.newBuilder()
           .addSdks(
             Sdk.newBuilder()
               .setIndexUrl("http://index.example.url/")
+              .setSdkName("SDK Name")
               .addLibraries(
                 Library.newBuilder()
                   .setLibraryId(
@@ -196,6 +245,7 @@ class PsAnalyzerDaemonKtTest {
                       .setVersionLabels(labels)
                       .build()
                   )
+                  .setLibraryDeprecation(libraryDeprecation)
               )
               .build()
           )
