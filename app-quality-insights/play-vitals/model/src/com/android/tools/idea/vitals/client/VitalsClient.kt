@@ -227,8 +227,13 @@ class VitalsClient(
     codeContextData: CodeContextData,
     forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
-    if (failureType != FailureType.FATAL) {
-      return LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+    when {
+      failureType != FailureType.FATAL ->
+        return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
+      event.isNativeCrash() ->
+        return LoadingState.UnsupportedOperation(
+          "Insights are currently not available for native crashes"
+        )
     }
     val cachedInsight = cache.getAiInsight(connection, issueId)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
@@ -421,3 +426,13 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     }
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
+
+private const val ANDROID_NATIVE_CRASH_HEADER =
+  "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
+private val PID_REGEX = Regex("^pid: (\\d+), tid: (\\d+) >>> (.+?) <<<$")
+
+private fun Event.isNativeCrash() =
+  stacktraceGroup.exceptions.any { it.rawExceptionMessage.isNativeCrashHeader() }
+
+private fun String.isNativeCrashHeader() =
+  equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")
