@@ -175,6 +175,10 @@ class SdkComponentsStep(
 
   override fun getComponent(): JComponent = root
 
+  override fun shouldShow(): Boolean {
+    return super.shouldShow() && model.customInstall
+  }
+
   inner class SdkPathValidator : Validator<String> {
     override fun validate(value: String): Validator.Result {
       val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(Paths.get(value))
