@@ -40,7 +40,6 @@ import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -279,9 +278,10 @@ class ComposePreviewTest {
       .first()
       .toolbar()
       .clickActionByIcon("GestureAnimationSample", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertNotNull(composePreview.findAnimationInspector())
-
-    // Open the animation inspector in another file
+    Wait.seconds(10).expecting("Animation preview to be opened").until {
+      composePreview.findAnimationInspector() != null
+    }
+    // Open the Animation preview in another file
     val otherComposePreview = openComposePreview(fixture, "Animations2.kt")
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
@@ -292,19 +292,24 @@ class ComposePreviewTest {
       .first()
       .toolbar()
       .clickActionByIcon("VerySimpleAnimation", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertNotNull(otherComposePreview.findAnimationInspector())
+    Wait.seconds(10).expecting("Animation preview to be opened").until {
+      otherComposePreview.findAnimationInspector() != null
+    }
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
     fixture.editor.open(animations1Relative)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
-    assertNull(composePreview.findAnimationInspector())
+    Wait.seconds(10).expecting("Animation preview is closed").until {
+      composePreview.findAnimationInspector() == null
+    }
 
     // Return to Animations2.kt, where the Animation Preview should still be open
     fixture.editor.closeFile(animations1Relative)
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
-    assertNotNull(otherComposePreview.findAnimationInspector())
-
+    Wait.seconds(10).expecting("Animation preview to be opened").until {
+      otherComposePreview.findAnimationInspector() != null
+    }
     // Clicking on the "Stop Animation Preview" button should close the animation preview panel
     otherComposePreview
       .waitForRenderToFinish()
@@ -312,7 +317,9 @@ class ComposePreviewTest {
       .findActionButtonByText("Stop Animation Preview")
       .waitUntilEnabledAndShowing()
       .click()
-    assertNull(otherComposePreview.findAnimationInspector())
+    Wait.seconds(10).expecting("Animation preview to be opened").until {
+      otherComposePreview.findAnimationInspector() == null
+    }
 
     fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations2.kt")
   }
