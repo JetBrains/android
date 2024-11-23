@@ -726,6 +726,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val serialNumber = client.deviceSerialNumber
     if (requester != this && deviceClients[serialNumber]?.client == client) {
       deactivateMirroring(serialNumber)
+      deviceClients.remove(serialNumber)
     }
   }
 
