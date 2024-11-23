@@ -15,19 +15,14 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
-import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.common.Interners;
-import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /** Assists in getting build artifacts from a build operation. */
 public interface BuildResultHelper extends AutoCloseable {
@@ -93,44 +88,6 @@ public interface BuildResultHelper extends AutoCloseable {
    */
   default InputStream getStderr(String completedBuildId) throws BuildException {
     return InputStream.nullInputStream();
-  }
-
-  /**
-   * Parses the BEP output data to collect all build flags used. Return all flags that pass filters
-   */
-  default BuildFlags getBlazeFlags() throws GetFlagsException {
-    return getBlazeFlags(Optional.empty());
-  }
-
-  /**
-   * Returns the build result. May only be called once, after the build is complete, or no artifacts
-   * will be returned.
-   *
-   * @return The build artifacts from the build operation.
-   */
-  default ImmutableList<OutputArtifact> getAllOutputArtifacts(Predicate<String> pathFilter)
-      throws GetArtifactsException {
-    return getBuildOutput(Optional.empty(), Interners.STRING).getAllOutputArtifacts(pathFilter).asList();
-  }
-
-  /**
-   * Returns the build artifacts, filtering out all artifacts not directly produced by the specified
-   * target.
-   *
-   * <p>May only be called once, after the build is complete, or no artifacts will be returned.
-   */
-  default ImmutableList<OutputArtifact> getBuildArtifactsForTarget(
-      Label target, Predicate<String> pathFilter) throws GetArtifactsException {
-    return getBuildOutput(Optional.empty(), Interners.STRING).getDirectArtifactsForTarget(target, pathFilter).asList();
-  }
-
-  /**
-   * Returns all build artifacts belonging to the given output groups. May only be called once,
-   * after the build is complete, or no artifacts will be returned.
-   */
-  default ImmutableList<OutputArtifact> getArtifactsForOutputGroup(
-      String outputGroup, Predicate<String> pathFilter) throws GetArtifactsException {
-    return getBuildOutput(Optional.empty(), Interners.STRING).getOutputGroupArtifacts(outputGroup, pathFilter);
   }
 
   @Override

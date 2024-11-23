@@ -46,6 +46,7 @@ import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.ProcessGroupUtil;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.python.PySdkUtils;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -79,6 +80,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -340,7 +342,8 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
       try {
         candidateFiles =
             LocalFileArtifact.getLocalFiles(
-                    buildResultHelper.getBuildArtifactsForTarget(target, file -> true))
+                buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)
+                  .getDirectArtifactsForTarget(target, file -> true).asList())
                 .stream()
                 .filter(File::canExecute)
                 .collect(Collectors.toList());
