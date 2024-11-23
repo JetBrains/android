@@ -84,7 +84,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
           Optional.ofNullable(context.getScope(SharedStringPoolScope.class))
               .map(SharedStringPoolScope::getStringInterner)
               .orElse(null);
-      ParsedBepOutput buildOutput = buildResultHelper.getBuildOutput(stringInterner);
+      ParsedBepOutput buildOutput = buildResultHelper.getBuildOutput(Optional.empty(), stringInterner);
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
       return BlazeBuildOutputs.fromParsedBepOutput(buildResult, buildOutput);
     } catch (GetArtifactsException e) {

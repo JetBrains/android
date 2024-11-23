@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtif
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
 import com.google.idea.blaze.base.model.primitives.Label;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,7 +57,7 @@ public class BlazeApkDeployInfoProtoHelper {
     if (outputArtifacts.isEmpty()) {
       Logger log = Logger.getInstance(BlazeApkDeployInfoProtoHelper.class.getName());
       try {
-        ParsedBepOutput bepOutput = buildResultHelper.getBuildOutput();
+        ParsedBepOutput bepOutput = buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING);
         log.warn("Local execroot: " + bepOutput.getLocalExecRoot());
         log.warn("All output artifacts:");
         for (OutputArtifact outputArtifact : bepOutput.getAllOutputArtifacts(path -> true)) {

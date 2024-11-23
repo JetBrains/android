@@ -20,6 +20,7 @@ import com.google.common.collect.Interner;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.InputStream;
@@ -46,46 +47,9 @@ public interface BuildResultHelper extends AutoCloseable {
    * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
    * (e.g. remote builds).
    */
-  default ParsedBepOutput getBuildOutput() throws GetArtifactsException {
-    return getBuildOutput(Optional.empty());
-  }
-
-  /**
-   * Parses the BEP output data and returns the corresponding {@link ParsedBepOutput}. May only be
-   * called once, after the build is complete.
-   *
-   * <p>As BEP retrieval can be memory-intensive for large projects, implementations of
-   * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
-   * (e.g. remote builds).
-   */
-  default ParsedBepOutput getBuildOutput(Interner<String> stringInterner)
-      throws GetArtifactsException {
-    return getBuildOutput(Optional.empty(), stringInterner);
-  }
-
-  /**
-   * Parses the BEP output data and returns the corresponding {@link ParsedBepOutput}. May only be
-   * called once, after the build is complete.
-   *
-   * <p>As BEP retrieval can be memory-intensive for large projects, implementations of
-   * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
-   * (e.g. remote builds).
-   */
-  default ParsedBepOutput getBuildOutput(
+  ParsedBepOutput getBuildOutput(
       Optional<String> completionBuildId, Interner<String> stringInterner)
-      throws GetArtifactsException {
-    return getBuildOutput(completionBuildId);
-  }
-
-  /**
-   * Retrieves BEP build events according to given id, parses them and returns the corresponding
-   * {@link ParsedBepOutput}. May only be called once, after the build is complete.
-   *
-   * <p>As BEP retrieval can be memory-intensive for large projects, implementations of
-   * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
-   * (e.g. remote builds).
-   */
-  ParsedBepOutput getBuildOutput(Optional<String> completedBuildId) throws GetArtifactsException;
+      throws GetArtifactsException;
 
   /**
    * Retrieves test results, parses them and returns the corresponding {@link BlazeTestResults}. May
@@ -146,7 +110,7 @@ public interface BuildResultHelper extends AutoCloseable {
    */
   default ImmutableList<OutputArtifact> getAllOutputArtifacts(Predicate<String> pathFilter)
       throws GetArtifactsException {
-    return getBuildOutput().getAllOutputArtifacts(pathFilter).asList();
+    return getBuildOutput(Optional.empty(), Interners.STRING).getAllOutputArtifacts(pathFilter).asList();
   }
 
   /**
@@ -157,7 +121,7 @@ public interface BuildResultHelper extends AutoCloseable {
    */
   default ImmutableList<OutputArtifact> getBuildArtifactsForTarget(
       Label target, Predicate<String> pathFilter) throws GetArtifactsException {
-    return getBuildOutput().getDirectArtifactsForTarget(target, pathFilter).asList();
+    return getBuildOutput(Optional.empty(), Interners.STRING).getDirectArtifactsForTarget(target, pathFilter).asList();
   }
 
   /**
@@ -166,7 +130,7 @@ public interface BuildResultHelper extends AutoCloseable {
    */
   default ImmutableList<OutputArtifact> getArtifactsForOutputGroup(
       String outputGroup, Predicate<String> pathFilter) throws GetArtifactsException {
-    return getBuildOutput().getOutputGroupArtifacts(outputGroup, pathFilter);
+    return getBuildOutput(Optional.empty(), Interners.STRING).getOutputGroupArtifacts(outputGroup, pathFilter);
   }
 
   @Override

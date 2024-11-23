@@ -27,9 +27,11 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * A fake for {@link BlazeCommandRunner} that doesn't execute the build, but returns results from
@@ -49,7 +51,7 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
     this(
         buildResultHelper ->
             BlazeBuildOutputs.fromParsedBepOutput(
-                BuildResult.SUCCESS, buildResultHelper.getBuildOutput()));
+                BuildResult.SUCCESS, buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)));
   }
 
   public FakeBlazeCommandRunner(BuildFunction buildFunction) {
