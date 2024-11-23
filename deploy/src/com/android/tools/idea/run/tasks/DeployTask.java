@@ -134,7 +134,7 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     boolean useAssumeVerified = myAllowAssumeVerified && device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM);
-    options.setAssumeVerified(useAssumeVerified);
+    options.setShouldUseAssumeVerified(useAssumeVerified);
 
     // We can just append this, since all these options get string-joined in the end anyways.
     if (userInstallOptions != null) {
