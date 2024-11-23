@@ -43,6 +43,8 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import java.nio.file.Files
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +56,9 @@ import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class LocalVirtualDeviceSourceTest {
+  @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
