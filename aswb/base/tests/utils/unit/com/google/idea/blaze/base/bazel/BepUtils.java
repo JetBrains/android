@@ -31,6 +31,7 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Con
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.NamedSetOfFiles;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.OutputGroup;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.TargetComplete;
+import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
 import java.io.ByteArrayInputStream;
@@ -127,6 +128,6 @@ public final class BepUtils {
 
   public static ParsedBepOutput parsedBep(List<BuildEvent> events)
       throws IOException, BuildEventStreamException {
-    return ParsedBepOutput.parseBepArtifacts(asInputStream(events));
+    return ParsedBepOutput.parseBepArtifacts(BuildEventStreamProvider.fromInputStream(asInputStream(events)));
   }
 }

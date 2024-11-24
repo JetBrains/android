@@ -17,6 +17,8 @@ package com.google.idea.blaze.base.bazel;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
+import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
+import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
@@ -49,8 +51,36 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
     return ImmutableList.of();
   }
 
+
   @Override
-  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId, Interner<String> stringInterner)
+  public BuildEventStreamProvider getBepStream(Optional<String> completionBuildId)
+    throws GetArtifactsException {
+    return new BuildEventStreamProvider() {
+      @Override
+      public Object getId() {
+        return Optional.empty();
+      }
+
+      @Nullable
+      @Override
+      public BuildEventStreamProtos.BuildEvent getNext() throws BuildEventStreamException {
+        return null;
+      }
+
+      @Override
+      public long getBytesConsumed() {
+        return 0;
+      }
+
+      @Override
+      public void close() {
+
+      }
+    };
+  }
+
+  @Override
+  public ParsedBepOutput getBuildOutput(BuildEventStreamProvider bepStream, Interner<String> stringInterner)
       throws GetArtifactsException {
     if (parsedBepOutput == null) {
       throw new GetArtifactsException("Could not get artifacts from null bep");
@@ -60,12 +90,12 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public BlazeTestResults getTestResults(Optional<String> completedBuildId) {
+  public BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) {
     return BlazeTestResults.NO_RESULTS;
   }
 
   @Override
-  public BuildFlags getBlazeFlags(Optional<String> completedBuildId) throws GetFlagsException {
+  public BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws GetFlagsException {
     return new BuildFlags(startupOptions.build(), cmdlineOptions.build());
   }
 

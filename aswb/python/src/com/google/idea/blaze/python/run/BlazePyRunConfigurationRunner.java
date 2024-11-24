@@ -339,10 +339,10 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
         throw new ExecutionException(e);
       }
       List<File> candidateFiles;
-      try {
+      try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         candidateFiles =
             LocalFileArtifact.getLocalFiles(
-                buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)
+                buildResultHelper.getBuildOutput(bepStream, Interners.STRING)
                   .getDirectArtifactsForTarget(target, file -> true).asList())
                 .stream()
                 .filter(File::canExecute)

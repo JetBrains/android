@@ -84,7 +84,10 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
           Optional.ofNullable(context.getScope(SharedStringPoolScope.class))
               .map(SharedStringPoolScope::getStringInterner)
               .orElse(null);
-      ParsedBepOutput buildOutput = buildResultHelper.getBuildOutput(Optional.empty(), stringInterner);
+      ParsedBepOutput buildOutput;
+      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+        buildOutput = buildResultHelper.getBuildOutput(bepStream, stringInterner);
+      }
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
       return BlazeBuildOutputs.fromParsedBepOutput(buildResult, buildOutput);
     } catch (GetArtifactsException e) {
@@ -112,8 +115,8 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
       return BlazeTestResults.NO_RESULTS;
     }
     context.output(PrintOutput.log("Build command finished. Retrieving BEP outputs..."));
-    try {
-      return buildResultHelper.getTestResults(Optional.empty());
+    try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+      return buildResultHelper.getTestResults(bepStream);
     } catch (GetArtifactsException e) {
       context.output(PrintOutput.log("Failed to get build outputs: " + e.getMessage()));
       context.setHasError();

@@ -211,8 +211,10 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         if (retVal != 0) {
                           context.setHasError();
                         } else {
-                          testResultsHolder.setTestResults(
-                              buildResultHelper.getTestResults(Optional.empty()));
+                          try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+                            testResultsHolder.setTestResults(
+                              buildResultHelper.getTestResults(bepStream));
+                          }
                         }
                         ListenableFuture<Void> unusedFuture =
                             FileCaches.refresh(

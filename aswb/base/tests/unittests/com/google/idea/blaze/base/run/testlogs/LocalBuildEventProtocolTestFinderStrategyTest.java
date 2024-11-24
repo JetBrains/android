@@ -23,46 +23,35 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.TestResultId;
 import com.google.idea.blaze.base.BlazeTestCase;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolOutputReader;
+import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
-import com.google.idea.blaze.base.io.InputStreamProvider;
-import com.google.idea.blaze.base.io.MockInputStreamProvider;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.rules.TempDirectory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 
 /** Unit tests for {@link LocalBuildEventProtocolTestFinderStrategy}. */
 @RunWith(JUnit4.class)
 public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase {
 
-  private MockInputStreamProvider inputStreamProvider;
-  private final Set<File> deletedFiles = new HashSet<>();
-
-  @After
-  public void clearState() {
-    deletedFiles.clear();
-  }
-
-  @Override
-  protected void initTest(Container applicationServices, Container projectServices) {
-    inputStreamProvider = new MockInputStreamProvider();
-    applicationServices.register(InputStreamProvider.class, inputStreamProvider);
-  }
+  @Rule
+  public TempDirectory tempDirectory = new TempDirectory();
 
   @Test
   public void testFinder_fileDeletedAfterCleanup() throws GetArtifactsException {
-    File file = createMockFile("/tmp/bep_output.txt", new byte[0]);
+    File file = tempDirectory.newFile("tmp/bep_output.txt", new byte[0]);
 
     LocalBuildEventProtocolTestFinderStrategy testFinder =
         new LocalBuildEventProtocolTestFinderStrategy(new BuildResultHelperBep(file));
@@ -72,7 +61,7 @@ public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase
       testFinder.deleteTemporaryOutputFiles();
     }
 
-    assertThat(deletedFiles).contains(file);
+    assertThat(file.exists()).isFalse();
   }
 
   @Test
@@ -89,29 +78,16 @@ public class LocalBuildEventProtocolTestFinderStrategyTest extends BlazeTestCase
             BuildEventStreamProtos.TestStatus.INCOMPLETE,
             ImmutableList.of("/usr/local/tmp/_cache/second_result.xml"));
     File bepOutputFile =
-        createMockFile("/tmp/bep_output.txt", asByteArray(ImmutableList.of(test1, test2)));
+        tempDirectory.newFile("tmp/bep_output.txt", asByteArray(ImmutableList.of(test1, test2)));
     LocalBuildEventProtocolTestFinderStrategy strategy =
         new LocalBuildEventProtocolTestFinderStrategy(new BuildResultHelperBep(bepOutputFile));
 
-    InputStream inputStream = inputStreamProvider.forFile(bepOutputFile);
-    BlazeTestResults results = BuildEventProtocolOutputReader.parseTestResults(inputStream);
+    BlazeTestResults results = BuildEventProtocolOutputReader.parseTestResults(BuildEventStreamProvider.fromInputStream(
+      Files.newInputStream(bepOutputFile.toPath())));
     BlazeTestResults finderStrategyResults = strategy.findTestResults();
 
     assertThat(finderStrategyResults.perTargetResults.entries())
         .containsExactlyElementsIn(results.perTargetResults.entries());
-  }
-
-  private File createMockFile(String path, byte[] contents) {
-    File org = new File(path);
-    File spy = Mockito.spy(org);
-    inputStreamProvider.addFile(path, contents);
-    Mockito.when(spy.delete())
-        .then(
-            invocationOnMock -> {
-              deletedFiles.add(spy);
-              return true;
-            });
-    return spy;
   }
 
   private static byte[] asByteArray(Iterable<BuildEventStreamProtos.BuildEvent.Builder> events)
