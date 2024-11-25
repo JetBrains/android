@@ -111,12 +111,6 @@ public final class ParsedBepOutput {
           ImmutableSet.of());
 
   /** Parses BEP events into {@link ParsedBepOutput} */
-  public static ParsedBepOutput parseBepArtifacts(InputStream bepStream)
-      throws BuildEventStreamException {
-    return parseBepArtifacts(BuildEventStreamProvider.fromInputStream(bepStream));
-  }
-
-  /** Parses BEP events into {@link ParsedBepOutput} */
   public static ParsedBepOutput parseBepArtifacts(BuildEventStreamProvider stream)
       throws BuildEventStreamException {
     return parseBepArtifacts(stream, null);

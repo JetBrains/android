@@ -132,10 +132,10 @@ public class ClassFileManifestBuilder {
         throw new ExecutionException(e);
       }
       ImmutableList<File> jars;
-      try {
+      try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         jars =
             LocalFileArtifact.getLocalFiles(
-                buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)
+                buildResultHelper.getBuildOutput(bepStream, Interners.STRING)
                   .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP, file -> true))
                 .stream()
                 .filter(f -> f.getName().endsWith(".jar"))

@@ -43,11 +43,6 @@ import javax.annotation.Nullable;
 public final class BuildEventProtocolOutputReader {
 
   private BuildEventProtocolOutputReader() {}
-  /** Returns all test results from a BEP-formatted {@link InputStream}. */
-  public static BlazeTestResults parseTestResults(InputStream inputStream)
-      throws BuildEventStreamException {
-    return parseTestResults(BuildEventStreamProvider.fromInputStream(inputStream));
-  }
   /**
    * Returns all test results from {@link BuildEventStreamProvider}.
    *

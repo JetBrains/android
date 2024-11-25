@@ -17,15 +17,13 @@ package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.collect.Interner;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
-import com.google.idea.blaze.base.io.InputStreamProvider;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -56,22 +54,32 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId, Interner<String> stringInterner)
-      throws GetArtifactsException {
-    try (InputStream inputStream = new BufferedInputStream(new FileInputStream(outputFile))) {
-      return ParsedBepOutput.parseBepArtifacts(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
+  public BuildEventStreamProvider getBepStream(Optional<String> completionBuildId) throws GetArtifactsException {
+    try {
+      return BuildEventStreamProvider.fromInputStream(new BufferedInputStream(new FileInputStream(outputFile)));
+    }
+    catch (FileNotFoundException e) {
       logger.error(e);
       throw new GetArtifactsException(e.getMessage());
     }
   }
 
   @Override
-  public BlazeTestResults getTestResults(Optional<String> completedBuildId) {
-    try (InputStream inputStream =
-        new BufferedInputStream(InputStreamProvider.getInstance().forFile(outputFile))) {
-      return BuildEventProtocolOutputReader.parseTestResults(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
+  public ParsedBepOutput getBuildOutput(BuildEventStreamProvider bepStream, Interner<String> stringInterner)
+      throws GetArtifactsException {
+    try {
+      return ParsedBepOutput.parseBepArtifacts(bepStream, stringInterner);
+    } catch (BuildEventStreamException e) {
+      logger.error(e);
+      throw new GetArtifactsException(e.getMessage());
+    }
+  }
+
+  @Override
+  public BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) {
+    try  {
+      return BuildEventProtocolOutputReader.parseTestResults(bepStream);
+    } catch (BuildEventStreamException e) {
       logger.warn(e);
       return BlazeTestResults.NO_RESULTS;
     }
@@ -85,10 +93,10 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public BuildFlags getBlazeFlags(Optional<String> completedBuildId) throws GetFlagsException {
-    try (InputStream inputStream = new BufferedInputStream(new FileInputStream(outputFile))) {
-      return BuildFlags.parseBep(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
+  public BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws GetFlagsException {
+    try {
+      return BuildFlags.parseBep(bepStream);
+    } catch (BuildEventStreamException e) {
       throw new GetFlagsException(e);
     }
   }

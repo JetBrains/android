@@ -49,8 +49,8 @@ public class BlazeApkDeployInfoProtoHelper {
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
     ParsedBepOutput bepOutput;
-    try {
-      bepOutput = buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING);
+    try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+      bepOutput = buildResultHelper.getBuildOutput(bepStream, Interners.STRING);
       outputArtifacts = bepOutput.getDirectArtifactsForTarget(target, pathFilter).asList();
     } catch (GetArtifactsException e) {
       throw new GetDeployInfoException(e.getMessage());

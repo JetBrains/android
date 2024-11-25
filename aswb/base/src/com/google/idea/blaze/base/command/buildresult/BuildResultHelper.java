@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.command.buildresult;
 
 import com.google.common.collect.Interner;
+import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.exception.BuildException;
@@ -34,31 +35,38 @@ public interface BuildResultHelper extends AutoCloseable {
    */
   List<String> getBuildFlags();
 
+
   /**
-   * Parses the BEP output data and returns the corresponding {@link ParsedBepOutput}. May only be
-   * called once, after the build is complete.
+   * Gets the BEP stream for the build. May only be called once. May only be called after the build is complete.
+   */
+  @MustBeClosed
+  BuildEventStreamProvider getBepStream(Optional<String> completionBuildId) throws GetArtifactsException;
+
+  /**
+   * Parses the BEP stream and returns the corresponding {@link ParsedBepOutput}. May only be
+   * called once on a given stream.
    *
    * <p>As BEP retrieval can be memory-intensive for large projects, implementations of
    * getBuildOutput may restrict parallelism for cases in which many builds are executed in parallel
    * (e.g. remote builds).
    */
   ParsedBepOutput getBuildOutput(
-      Optional<String> completionBuildId, Interner<String> stringInterner)
+    BuildEventStreamProvider bepStream, Interner<String> stringInterner)
       throws GetArtifactsException;
 
   /**
-   * Retrieves test results, parses them and returns the corresponding {@link BlazeTestResults}. May
-   * only be called once, after the build is complete.
+   * Parses BEP stream and returns the corresponding {@link BlazeTestResults}. May
+   * only be called once on a given stream.
    */
-  BlazeTestResults getTestResults(Optional<String> completedBuildId) throws GetArtifactsException;
+  BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) throws GetArtifactsException;
 
   /** Deletes the local BEP output file associated with the test results */
   default void deleteTemporaryOutputFiles() {}
 
   /**
-   * Parses the BEP output data to collect all build flags used. Return all flags that pass filters
+   * Parses the BEP stream and  collects all build flags used. Return all flags that pass filters
    */
-  BuildFlags getBlazeFlags(Optional<String> completedBuildId) throws GetFlagsException;
+  BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws GetFlagsException;
 
   /**
    * Parses the BEP output data to collect message on stdout.

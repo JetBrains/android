@@ -21,10 +21,11 @@ import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.Bui
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Provides {@link BuildEventStreamProtos.BuildEvent} */
-public interface BuildEventStreamProvider {
+public interface BuildEventStreamProvider extends AutoCloseable {
 
   /** An exception parsing a stream of build events. */
   class BuildEventStreamException extends BuildException {
@@ -47,9 +48,29 @@ public interface BuildEventStreamProvider {
     }
   }
 
+  /**
+   * Creates a {@link BuildEventStreamProvider} from the given {@code stream}.
+   *
+   * <p>Note: takes ownership of the {@code stream} and closes it when is being closed.
+   */
   static BuildEventStreamProvider fromInputStream(InputStream stream) {
     CountingInputStream countingStream = new CountingInputStream(stream);
     return new BuildEventStreamProvider() {
+      @Override
+      public void close() {
+        try {
+          stream.close();
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      @Override
+      public Object getId() {
+        return Optional.empty();
+      }
+
       @Nullable
       @Override
       public BuildEvent getNext() throws BuildEventStreamException {
@@ -63,9 +84,17 @@ public interface BuildEventStreamProvider {
     };
   }
 
+  /**
+   * @return an object that represents the identity of the build to the user.
+   */
+  Object getId();
+
   /** Returns the next build event in the stream, or null if there are none remaining. */
   @Nullable
   BuildEventStreamProtos.BuildEvent getNext() throws BuildEventStreamException;
 
   long getBytesConsumed();
+
+  @Override
+  void close();
 }

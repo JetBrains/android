@@ -49,9 +49,12 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
 
   public FakeBlazeCommandRunner() {
     this(
-        buildResultHelper ->
-            BlazeBuildOutputs.fromParsedBepOutput(
-                BuildResult.SUCCESS, buildResultHelper.getBuildOutput(Optional.empty(), Interners.STRING)));
+        buildResultHelper -> {
+          try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+            return BlazeBuildOutputs.fromParsedBepOutput(
+              BuildResult.SUCCESS, buildResultHelper.getBuildOutput(bepStream, Interners.STRING));
+          }
+        });
   }
 
   public FakeBlazeCommandRunner(BuildFunction buildFunction) {
