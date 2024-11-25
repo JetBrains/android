@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import java.util.concurrent.CancellationException
@@ -144,7 +145,9 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         runningFirstConfigurationCacheBuild = false
         testConfigurationCacheBuildRequest = null
         if (t !is CancellationException) {
-          throw t // TODO(b/376340244) Throwing any exception from FutureCallback.onFailure is wrong
+          // All build errors should be part of the normal execution and handled by 'onSuccess' above.
+          // Ending up here probably means bugs in gradle executing infrastructure.
+          Logger.getInstance("Build Analyzer").error("Unexpected error on running Configuration Cache trial build.", t)
         }
       }
     }, MoreExecutors.directExecutor())
