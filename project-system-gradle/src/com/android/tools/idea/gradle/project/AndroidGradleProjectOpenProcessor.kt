@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemService.Companion.projectSystemOpenProjectTask
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
@@ -26,7 +26,6 @@ import com.android.tools.idea.util.toVirtualFile
 import com.intellij.featureStatistics.fusCollectors.LifecycleUsageTriggerCollector
 import com.intellij.ide.GeneralSettings
 import com.intellij.ide.IdeBundle
-import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectNewWindowDoNotAskOption
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -75,14 +74,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     }
     return ProjectManagerEx.getInstanceEx().openProject(
       adjustedOpenTarget.toNioPath(),
-      OpenProjectTask {
-        this.forceOpenInNewFrame = forceOpenInNewFrame
-        this.projectToClose = projectToClose
-        beforeOpen = { project ->
-          ProjectSystemService.getInstance(project).setProviderId(GradleProjectSystemProvider.ID)
-          true
-        }
-      }
+      projectSystemOpenProjectTask(GradleProjectSystemProvider.ID, forceOpenInNewFrame, projectToClose)
     )
   }
 

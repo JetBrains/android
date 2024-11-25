@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.base.project;
+package com.google.idea.blaze.android.project;
 
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import icons.BlazeIcons;
@@ -28,7 +30,7 @@ import javax.swing.Icon;
 import org.jdom.JDOMException;
 
 /** Allows directly opening a project with project data directory embedded within the project. */
-public class BlazeProjectOpenProcessor extends ProjectOpenProcessor {
+public class AndroidBlazeProjectOpenProcessor extends ProjectOpenProcessor {
   @Override
   public String getName() {
     return Blaze.defaultBuildSystemName() + " Project";
@@ -81,19 +83,15 @@ public class BlazeProjectOpenProcessor extends ProjectOpenProcessor {
   @Override
   public Project doOpenProject(
       VirtualFile file, @Nullable Project projectToClose, boolean forceOpenInNewFrame) {
-    ProjectManager pm = ProjectManager.getInstance();
-    if (projectToClose != null) {
-      pm.closeProject(projectToClose);
-    }
-    try {
-      VirtualFile ideaSubdirectory = getIdeaSubdirectory(file);
-      if (ideaSubdirectory == null) {
-        return null;
-      }
-      VirtualFile projectSubdirectory = ideaSubdirectory.getParent();
-      return pm.loadAndOpenProject(projectSubdirectory.getPath());
-    } catch (IOException | JDOMException e) {
+    ProjectManagerEx pm = ProjectManagerEx.getInstanceEx();
+    VirtualFile ideaSubdirectory = getIdeaSubdirectory(file);
+    if (ideaSubdirectory == null) {
       return null;
     }
+    VirtualFile projectSubdirectory = ideaSubdirectory.getParent();
+    return pm.openProject(
+      projectSubdirectory.toNioPath(),
+      ProjectSystemService.Companion.projectSystemOpenProjectTask(BlazeProjectSystemProvider.ID, forceOpenInNewFrame, projectToClose)
+    );
   }
 }
