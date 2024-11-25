@@ -37,9 +37,7 @@ class PreviewCanvasTrackerTest {
       listOf(PositionableGroup(content.toList()))
     }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
-    val galleryLayoutManager = GalleryLayoutManager { content ->
-      listOf(PositionableGroup(content.toList()))
-    }
+    val galleryLayoutManager = GalleryLayoutManager()
     previewCanvasTracker.logSwitchLayout(galleryLayoutManager)
 
     assertEquals(2, trackedEvents.size)
