@@ -18,8 +18,8 @@ package com.android.tools.idea.preview.annotations
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiModifierListOwner
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.ifEmpty
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -204,8 +204,9 @@ class AnnotationsGraph<S, T>(
  * will work with other types of elements.
  */
 fun UElement.getUAnnotations(): List<UAnnotation> {
+  // TODO: b/380834710 use runBlockingCancellable
   val annotations =
-    runBlockingCancellable {
+    runBlocking {
       readAction {
         (this@getUAnnotations as? UMethod)?.uAnnotations
           ?: (this@getUAnnotations.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
@@ -226,7 +227,8 @@ fun UElement.getUAnnotations(): List<UAnnotation> {
  *
  * When the annotation is not a container it returns an empty list.
  */
-private fun UAnnotation.extractFromContainer() = runBlockingCancellable {
+// TODO: b/380834710 use runBlockingCancellable
+private fun UAnnotation.extractFromContainer() = runBlocking {
   readAction {
     findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull {
       it.toUElement() as? UAnnotation
