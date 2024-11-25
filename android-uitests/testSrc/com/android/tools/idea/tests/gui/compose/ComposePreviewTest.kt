@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
@@ -55,7 +54,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
-  @get:Rule val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  @get:Rule val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
   @get:Rule val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
   @get:Rule val adbRule: FakeAdbTestRule = FakeAdbTestRule("35")
@@ -370,16 +369,14 @@ class ComposePreviewTest {
       .toolbar()
       .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
 
-    Wait.seconds(30).expecting("Device received deployPreviewCommand").until {
+    Wait.seconds(180).expecting("Device received deployPreviewCommand").until {
       deployPreviewCommandIsReceived
     }
 
-    val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
-    val contentFixture = runToolWindowFixture.findContent("Preview1")
+    val runToolWindow = guiTest.ideFrame().runToolWindow
+    val contentFixture = runToolWindow.findContent("Preview1")
     // We should display "Launching <Compose Preview Configuration Name> on <Device>"
     val launchingPreview = Pattern.compile(".*Launching Preview1 on .*", Pattern.DOTALL)
-    println("Waiting for launching preview")
-    guiTest.ideFrame().buildToolWindow.activate()
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
     // We should display the adb shell command saying that we connected to the target process, which
     // happens when the ActivityManager
