@@ -1854,14 +1854,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> IMPACT_TRACKING =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
                 "Impact tracking for the App Links Assistant", false);
-  public static final Flag<Boolean> JSON_GENERATION =
-    new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.json.generation", "App Links Assistant JSON generation",
-                    "JSON generation (i.e. automated assistance with fixing web issues) in the App Links Assistant",
-                    true);
-  public static final Flag<Boolean> PLAY_DYNAMIC_FILTERS =
-    new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.play.dynamic.filters", "App Links Assistant Play Dynamic Filters support",
-                    "Support for apps that opted in to using Play Dynamic Filters to manage their app links",
-                    true);
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
