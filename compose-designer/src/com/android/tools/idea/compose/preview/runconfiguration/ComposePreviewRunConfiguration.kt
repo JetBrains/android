@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Pair
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.uast.UMethod
@@ -178,6 +179,7 @@ open class ComposePreviewRunConfiguration(
     return computeValidComposableSet()
   }
 
+  @RequiresBackgroundThread
   private fun computeValidComposableSet(): Boolean {
     val composableFqn = composableMethodFqn ?: return false
 

@@ -34,9 +34,15 @@ import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -94,27 +100,25 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
 /** Common class to find Glance preview elements. */
 open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePreviewElement> {
   /**
-   * Returns a [Sequence] of all the Glance Preview elements in the [vFile]. Glance Preview elements
-   * are `@Composable` functions that are also tagged with `@Preview` or a MultiPreview. A
+   * Returns a [Collection] of all the Glance Preview elements in the [vFile]. Glance Preview
+   * elements are `@Composable` functions that are also tagged with `@Preview` or a MultiPreview. A
    * `@Composable` function tagged with many `@Preview` or with a MultiPreview annotation can return
    * multiple preview elements.
    */
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile) =
     findAnnotatedMethodsValues(
-      project,
-      vFile,
-      COMPOSABLE_ANNOTATION_FQ_NAME,
-      COMPOSABLE_ANNOTATION_NAME,
-    ) { methods ->
-      methods
-        .asSequence()
-        .flatMap { method ->
+        project,
+        vFile,
+        COMPOSABLE_ANNOTATION_FQ_NAME,
+        COMPOSABLE_ANNOTATION_NAME,
+      ) { methods ->
+        methods.asFlow().flatMapConcat { method ->
           method.findAllAnnotationsInGraph(filter = ::isGlancePreview).mapNotNull {
             it.asGlancePreviewNode(method)
           }
         }
-        .distinct()
-    }
+      }
+      .distinct()
 
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile) =
     findPreviewElements(project, vFile).any()
@@ -128,7 +132,11 @@ object AppWidgetPreviewElementFinder : GlancePreviewElementFinder()
  * annotation that is annotated with @Preview or with other MultiPreview.
  */
 @RequiresReadLock
+@RequiresBackgroundThread
 fun isMultiPreviewAnnotation(annotation: UAnnotation) =
   !isGlancePreview(annotation) &&
     annotation.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME) != null &&
-    annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null
+    // TODO(b/381827960): avoid using runBlockingCancellable
+    runBlockingCancellable {
+      annotation.findAllAnnotationsInGraph(filter = ::isGlancePreview).firstOrNull() != null
+    }

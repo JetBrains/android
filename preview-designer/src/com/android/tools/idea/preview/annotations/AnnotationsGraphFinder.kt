@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.annotations
 import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.application.runReadAction
 import com.intellij.util.containers.sequenceOfNotNull
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 
@@ -117,7 +118,7 @@ fun UElement.findAllAnnotationsInGraph(
   shouldTraverse: (UAnnotation) -> Boolean = ::shouldTraverse,
   onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
   filter: (UAnnotation) -> Boolean,
-): Sequence<NodeInfo<UAnnotationSubtreeInfo>> {
+): Flow<NodeInfo<UAnnotationSubtreeInfo>> {
   val annotationsGraph =
     AnnotationsGraph(
       UAnnotationNodeInfoFactory(onTraversal),

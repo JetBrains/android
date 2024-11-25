@@ -41,6 +41,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -55,13 +56,14 @@ import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
@@ -128,7 +130,7 @@ internal class WearTilePreviewElementFinder(
           project.javaKotlinAndDumbChangeTrackers(),
         ) {
           findUMethodsWithTilePreviewSignature(project, vFile, findMethods).any {
-            it.findAllTilePreviewAnnotations().any()
+            it.findAllTilePreviewAnnotations().firstOrNull() != null
           }
         }
       }
@@ -160,7 +162,6 @@ internal class WearTilePreviewElementFinder(
               ProgressManager.checkCanceled()
               method
                 .findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
-                .asFlow()
                 .mapNotNull { it.asTilePreviewNode(method) }
                 .toList()
             }
@@ -178,11 +179,16 @@ internal class WearTilePreviewElementFinder(
  * Returns true if a [UMethod] or [UAnnotation] is not null is annotated with a Tile Preview
  * annotation, either directly or through a Multi-Preview annotation.
  */
+@RequiresBackgroundThread
 fun UElement?.hasTilePreviewAnnotation(): Boolean {
   assert(this is UMethod? || this is UAnnotation?) {
     "The UElement should be either a UMethod or a UAnnotation"
   }
-  return this?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }?.any() ?: false
+  // TODO(b/381827960): avoid using runBlockingCancellable
+  return runBlockingCancellable {
+    this@hasTilePreviewAnnotation?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
+      ?.firstOrNull() != null
+  }
 }
 
 internal fun UAnnotation.isTilePreviewAnnotation() = runReadAction {

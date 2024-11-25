@@ -45,6 +45,7 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
@@ -75,7 +76,7 @@ class ComposeVisualLintSuppressTaskTest {
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
                 .mapNotNull { it.getContainingUMethod() }
                 .toSet()
-                .flatMap { getPreviewNodes(it, null, false) }
+                .flatMap { runBlocking { getPreviewNodes(it, null, false).toList() } }
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }
@@ -178,7 +179,7 @@ class ComposeVisualLintSuppressTaskTest {
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
                 .mapNotNull { it.getContainingUMethod() }
                 .toSet()
-                .flatMap { getPreviewNodes(it, null, false) }
+                .flatMap { runBlocking { getPreviewNodes(it, null, false).toList() } }
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }

@@ -21,6 +21,7 @@ import com.intellij.psi.PsiClass
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.idea.KotlinFileType

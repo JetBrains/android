@@ -19,6 +19,8 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiModifierListOwner
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.utils.ifEmpty
@@ -125,11 +127,14 @@ class AnnotationsGraph<S, T>(
     sourceElements: List<UElement>,
     annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
     isLeafAnnotation: (UAnnotation) -> Boolean = { false },
-  ): Sequence<T> {
+  ): Flow<T> {
     val visitedAnnotationClasses: MutableMap<String, NodeInfo<S>> = mutableMapOf()
 
-    return sourceElements.asSequence().flatMap {
-      iterativeDfs(it, visitedAnnotationClasses, annotationFilter, isLeafAnnotation)
+    return flow {
+      sourceElements
+        .asSequence()
+        .flatMap { iterativeDfs(it, visitedAnnotationClasses, annotationFilter, isLeafAnnotation) }
+        .forEach { emit(it) }
     }
   }
 

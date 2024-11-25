@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.DumbModeTestUtils
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -29,10 +30,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-private fun identity(methods: List<UMethod>) = methods.asSequence()
+private fun identity(methods: List<UMethod>) = methods.asFlow()
 
-private fun nameLetters(methods: List<UMethod>) =
-  methods.asSequence().flatMap { it.name.asSequence() }
+private fun nameLetters(methods: List<UMethod>) = methods.flatMap { it.name.toList() }.asFlow()
 
 class AnnotatedMethodsFinderTest {
 

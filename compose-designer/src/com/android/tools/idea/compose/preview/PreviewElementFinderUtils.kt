@@ -40,7 +40,14 @@ import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
@@ -59,17 +66,22 @@ private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewA
  * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration
  * indirect annotations with MultiPreview.
  */
+@RequiresBackgroundThread
 internal fun UMethod?.hasPreviewElements() =
-  this?.let { getPreviewElements(it).firstOrNull() } != null
+  // TODO(b/381827960): avoid using runBlockingCancellable
+  this?.let { runBlockingCancellable { getPreviewElements(it).firstOrNull() } } != null
 
 /**
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
  * annotation that is annotated with @Preview or with other MultiPreview.
  */
 @RequiresReadLock
+@RequiresBackgroundThread
 fun UAnnotation?.isMultiPreviewAnnotation() =
   this?.let {
-    !it.isPreviewAnnotation() && it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null
+    !it.isPreviewAnnotation() &&
+      // TODO(b/381827960): avoid using runBlockingCancellable
+      runBlockingCancellable { it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null }
   } == true
 
 /**
@@ -113,12 +125,12 @@ private fun getPreviewNodes(
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
   rootSearchElement: UElement,
-): Sequence<PreviewNode> {
-  if (!composableMethod.isComposable()) return emptySequence()
+): Flow<PreviewNode> {
+  if (!composableMethod.isComposable()) return emptyFlow()
   val composableFqn = runReadAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
 
-  return sequence {
+  return flow {
     rootSearchElement
       .findAllAnnotationsInGraph(
         onTraversal =
@@ -141,12 +153,11 @@ private fun getPreviewNodes(
           overrideGroupName = overrideGroupName,
         )
       }
-      .forEach { yield(it) }
+      .collect { emit(it) }
 
     if (includeAllNodes) {
-      val multiPreviewNodes = multiPreviewNodesByFqn.values
-      val composableMethodNode = composableMethod.toMultiPreviewNode(multiPreviewNodesByFqn)
-      yieldAll(multiPreviewNodes + composableMethodNode)
+      multiPreviewNodesByFqn.values.forEach { emit(it) }
+      emit(composableMethod.toMultiPreviewNode(multiPreviewNodesByFqn))
     }
   }
 }
@@ -164,8 +175,8 @@ private fun getPreviewNodes(
 private fun UAnnotation.getPreviewNodes(
   overrideGroupName: String? = null,
   includeAllNodes: Boolean,
-): Sequence<PreviewNode> {
-  val composableMethod = getContainingComposableUMethod() ?: return emptySequence()
+): Flow<PreviewNode> {
+  val composableMethod = getContainingComposableUMethod() ?: return emptyFlow()
   return getPreviewNodes(
     composableMethod = composableMethod,
     overrideGroupName = overrideGroupName,

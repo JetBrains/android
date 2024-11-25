@@ -24,6 +24,9 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import kotlinx.coroutines.flow.firstOrNull
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 
@@ -87,8 +90,12 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePrevie
     message("inspection.preview.annotation.not.from.tile.package")
 }
 
-private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() =
-  findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.any()
+@RequiresBackgroundThread
+// TODO(b/381827960): avoid using runBlockingCancellable
+private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() = runBlockingCancellable {
+  findAllAnnotationsInGraph { it.qualifiedName.isPreviewFqnFromDifferentPackage() }.firstOrNull() !=
+    null
+}
 
 private fun String?.isPreviewFqnFromDifferentPackage() =
   this?.endsWith(".Preview") == true && this != TILE_PREVIEW_ANNOTATION_FQ_NAME

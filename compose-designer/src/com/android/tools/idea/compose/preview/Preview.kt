@@ -150,9 +150,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -1388,7 +1390,7 @@ class ComposePreviewRepresentation(
         COMPOSABLE_ANNOTATION_FQ_NAME,
         COMPOSABLE_ANNOTATION_NAME,
       ) { methods ->
-        methods.asSequence()
+        methods.asFlow()
       }
       .forEach { composableMethod ->
         if (composableMethod.hasPreviewElements()) {
