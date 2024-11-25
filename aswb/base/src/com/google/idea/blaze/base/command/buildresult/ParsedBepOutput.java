@@ -43,6 +43,10 @@ import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.B
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.IntExperiment;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,9 +55,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +65,37 @@ import javax.annotation.Nullable;
 
 /** A data class representing blaze's build event protocol (BEP) output for a build. */
 public final class ParsedBepOutput {
+  private static final BoolExperiment parallelBepPoolingEnabled =
+    new BoolExperiment("bep.parsing.pooling.enabled", true);
+
+  // Maximum number of concurrent BEP parsing operations to allow.
+  // For large projects, BEP parsing of a single shard can consume several hundred Mb of memory
+  private static final IntExperiment maxThreads =
+    new IntExperiment("bep.parsing.concurrency.limit", 5);
+
+  @Service(Service.Level.APP)
+  public static final class BepParserSemaphore {
+
+    public Semaphore parallelParsingSemaphore = parallelBepPoolingEnabled.getValue() ? new Semaphore(maxThreads.getValue()) : null;
+
+    public void start() throws BuildEventStreamException {
+      if (parallelParsingSemaphore != null) {
+        try {
+          parallelParsingSemaphore.acquire();
+        }
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new BuildEventStreamException("Failed to acquire a parser semphore permit", e);
+        }
+      }
+    }
+
+    public void end() {
+      if (parallelParsingSemaphore != null) {
+        parallelParsingSemaphore.release();
+      }
+    }
+  }
 
   @VisibleForTesting
   public static final ParsedBepOutput EMPTY =
@@ -97,95 +132,97 @@ public final class ParsedBepOutput {
   public static ParsedBepOutput parseBepArtifacts(
       BuildEventStreamProvider stream, @Nullable Interner<String> interner)
       throws BuildEventStreamException {
+    final var semaphore = ApplicationManager.getApplication().getService(BepParserSemaphore.class);
+    semaphore.start();
+    try {
+      if (interner == null) {
+        interner = Interners.newStrongInterner();
+      }
 
-    if (interner == null) {
-      interner = Interners.newStrongInterner();
-    }
+      BuildEvent event;
+      Map<String, String> configIdToMnemonic = new HashMap<>();
+      Set<String> topLevelFileSets = new HashSet<>();
+      Map<String, FileSet.Builder> fileSets = new LinkedHashMap<>();
+      ImmutableSetMultimap.Builder<String, String> targetToFileSets = ImmutableSetMultimap.builder();
+      ImmutableSet.Builder<Label> targetsWithErrors = ImmutableSet.builder();
+      String localExecRoot = null;
+      String buildId = null;
+      ImmutableMap<String, String> workspaceStatus = ImmutableMap.of();
+      long startTimeMillis = 0L;
+      BuildResult buildResult = BuildResult.SUCCESS;
+      boolean emptyBuildEventStream = true;
 
-    BuildEvent event;
-    Map<String, String> configIdToMnemonic = new HashMap<>();
-    Set<String> topLevelFileSets = new HashSet<>();
-    Map<String, FileSet.Builder> fileSets = new LinkedHashMap<>();
-    ImmutableSetMultimap.Builder<String, String> targetToFileSets = ImmutableSetMultimap.builder();
-    ImmutableSet.Builder<Label> targetsWithErrors = ImmutableSet.builder();
-    String localExecRoot = null;
-    String buildId = null;
-    ImmutableMap<String, String> workspaceStatus = ImmutableMap.of();
-    long startTimeMillis = 0L;
-    BuildResult buildResult = BuildResult.SUCCESS;
-    boolean emptyBuildEventStream = true;
-
-    while ((event = stream.getNext()) != null) {
-      emptyBuildEventStream = false;
-      switch (event.getId().getIdCase()) {
-        case WORKSPACE:
-          localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
-          continue;
-        case WORKSPACE_STATUS:
-          workspaceStatus =
-            event.getWorkspaceStatus().getItemList().stream().collect(toImmutableMap(Item::getKey, Item::getValue));
-          continue;
-        case CONFIGURATION:
-          configIdToMnemonic.put(
+      while ((event = stream.getNext()) != null) {
+        emptyBuildEventStream = false;
+        switch (event.getId().getIdCase()) {
+          case WORKSPACE:
+            localExecRoot = event.getWorkspaceInfo().getLocalExecRoot();
+            continue;
+          case WORKSPACE_STATUS:
+            workspaceStatus =
+              event.getWorkspaceStatus().getItemList().stream().collect(toImmutableMap(Item::getKey, Item::getValue));
+            continue;
+          case CONFIGURATION:
+            configIdToMnemonic.put(
               event.getId().getConfiguration().getId(), event.getConfiguration().getMnemonic());
-          continue;
-        case NAMED_SET:
-          NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
-          fileSets.compute(
+            continue;
+          case NAMED_SET:
+            NamedSetOfFiles namedSet = internNamedSet(event.getNamedSetOfFiles(), interner);
+            fileSets.compute(
               event.getId().getNamedSet().getId(),
               (k, v) ->
-                  v != null ? v.setNamedSet(namedSet) : FileSet.builder().setNamedSet(namedSet));
-          continue;
-        case ACTION_COMPLETED:
-          Preconditions.checkState(event.hasAction());
-          if (!event.getAction().getSuccess()) {
-            targetsWithErrors.add(Label.create(event.getId().getActionCompleted().getLabel()));
-          }
-          break;
-        case TARGET_COMPLETED:
-          String label = event.getId().getTargetCompleted().getLabel();
-          String configId = event.getId().getTargetCompleted().getConfiguration().getId();
+                v != null ? v.setNamedSet(namedSet) : FileSet.builder().setNamedSet(namedSet));
+            continue;
+          case ACTION_COMPLETED:
+            Preconditions.checkState(event.hasAction());
+            if (!event.getAction().getSuccess()) {
+              targetsWithErrors.add(Label.create(event.getId().getActionCompleted().getLabel()));
+            }
+            break;
+          case TARGET_COMPLETED:
+            String label = event.getId().getTargetCompleted().getLabel();
+            String configId = event.getId().getTargetCompleted().getConfiguration().getId();
 
-          event
+            event
               .getCompleted()
               .getOutputGroupList()
               .forEach(
-                  o -> {
-                    List<String> sets = getFileSets(o);
-                    targetToFileSets.putAll(label, sets);
-                    topLevelFileSets.addAll(sets);
-                    for (String id : sets) {
-                      fileSets.compute(
-                          id,
-                          (k, v) -> {
-                            FileSet.Builder builder = (v != null) ? v : FileSet.builder();
-                            return builder
-                                .setConfigId(configId)
-                                .addOutputGroups(ImmutableSet.of(o.getName()))
-                                .addTargets(ImmutableSet.of(label));
-                          });
-                    }
-                  });
-          continue;
-        case STARTED:
-          buildId = Strings.emptyToNull(event.getStarted().getUuid());
-          startTimeMillis = event.getStarted().getStartTimeMillis();
-          continue;
-        case BUILD_FINISHED:
-          buildResult = BuildResult.fromExitCode(event.getFinished().getExitCode().getCode());
-          continue;
-        default: // continue
+                o -> {
+                  List<String> sets = getFileSets(o);
+                  targetToFileSets.putAll(label, sets);
+                  topLevelFileSets.addAll(sets);
+                  for (String id : sets) {
+                    fileSets.compute(
+                      id,
+                      (k, v) -> {
+                        FileSet.Builder builder = (v != null) ? v : FileSet.builder();
+                        return builder
+                          .setConfigId(configId)
+                          .addOutputGroups(ImmutableSet.of(o.getName()))
+                          .addTargets(ImmutableSet.of(label));
+                      });
+                  }
+                });
+            continue;
+          case STARTED:
+            buildId = Strings.emptyToNull(event.getStarted().getUuid());
+            startTimeMillis = event.getStarted().getStartTimeMillis();
+            continue;
+          case BUILD_FINISHED:
+            buildResult = BuildResult.fromExitCode(event.getFinished().getExitCode().getCode());
+            continue;
+          default: // continue
+        }
       }
-    }
-    // If stream is empty, it means that service failed to retrieve any blaze build event from build
-    // event stream. This should not happen if a build start correctly.
-    if (emptyBuildEventStream) {
-      throw new BuildEventStreamException("No build events found");
-    }
-    ImmutableMap<String, FileSet> filesMap =
+      // If stream is empty, it means that service failed to retrieve any blaze build event from build
+      // event stream. This should not happen if a build start correctly.
+      if (emptyBuildEventStream) {
+        throw new BuildEventStreamException("No build events found");
+      }
+      ImmutableMap<String, FileSet> filesMap =
         fillInTransitiveFileSetData(
-            fileSets, topLevelFileSets, configIdToMnemonic, startTimeMillis);
-    return new ParsedBepOutput(
+          fileSets, topLevelFileSets, configIdToMnemonic, startTimeMillis);
+      return new ParsedBepOutput(
         buildId,
         localExecRoot,
         workspaceStatus,
@@ -195,6 +232,10 @@ public final class ParsedBepOutput {
         buildResult,
         stream.getBytesConsumed(),
         targetsWithErrors.build());
+    }
+    finally {
+      semaphore.end();
+    }
   }
 
   private static List<String> getFileSets(OutputGroup group) {
