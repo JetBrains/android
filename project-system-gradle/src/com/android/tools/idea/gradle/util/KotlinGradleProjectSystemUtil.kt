@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleProjectData
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
 import org.jetbrains.kotlin.idea.gradleTooling.compareTo
@@ -42,6 +43,10 @@ object KotlinGradleProjectSystemUtil {
         if (kotlinPluginVersion != null) {
           KotlinGradlePluginVersion.parse(kotlinPluginVersion)?.let { kotlinVersions.add(it) }
         }
+      }
+      if (node.key == KotlinGradleProjectData.Companion.KEY) {
+        val data = node.data as KotlinGradleProjectData
+        data.kotlinGradlePluginVersion?.let { kotlinVersions.add(it) }
       }
     }
 
