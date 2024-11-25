@@ -31,13 +31,13 @@ import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link SdkSync}.
+ * Tests for {@link SdkSyncImpl}.
  */
-public class SdkSyncTest extends HeavyPlatformTestCase {
+public class SdkSyncImplTest extends HeavyPlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;
-  private SdkSync mySdkSync;
+  private SdkSyncImpl mySdkSync;
 
   @Override
   protected void setUp() throws Exception {
@@ -46,7 +46,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     myAndroidSdkPath = TestUtils.getSdk().toFile();
     myIdeSdks = IdeSdks.getInstance();
     ApplicationManager.getApplication().runWriteAction(() -> AndroidSdkPathStore.getInstance().setAndroidSdkPath(null));
-    mySdkSync = new SdkSync();
+    mySdkSync = new SdkSyncImpl();
     assertNull(myIdeSdks.getAndroidSdkPath());
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
@@ -57,7 +57,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     });
 
     createEmptyLocalPropertiesFile();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     assertProjectSdkSet();
   }
@@ -68,7 +68,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     });
 
     assertNoLocalPropertiesExists();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertProjectSdkSet();
@@ -87,7 +87,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     assertProjectSdkSet();
   }
@@ -96,14 +96,14 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     assertDefaultSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenNoLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
     Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+    SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {
@@ -126,7 +126,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+    SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {
@@ -142,7 +142,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+    SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {

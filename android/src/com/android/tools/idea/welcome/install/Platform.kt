@@ -89,8 +89,7 @@ class Platform(
   public override fun isSelectedByDefault(): Boolean = false
 
   companion object {
-    private fun getPlatformToInstall(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): Platform {
-      val api: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+    private fun getPlatformToInstall(remotePackages: Collection<RemotePackage>, installUpdates: Boolean, api: Int): Platform {
       val version =  AndroidVersion(api, null, AndroidVersion.getBaseExtensionLevel(api).takeIf { it > 0 }, true)
       val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
       val description = "Android platform libraries for targeting platform: $versionName"
@@ -110,8 +109,9 @@ class Platform(
       return result
     }
 
-    fun createSubtree(remotePackages: Collection<RemotePackage>, installUpdates: Boolean): ComponentTreeNode {
-      val platformToInstall = getPlatformToInstall(remotePackages, installUpdates)
+    @JvmOverloads
+    fun createSubtree(remotePackages: Collection<RemotePackage>, installUpdates: Boolean, api: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()): ComponentTreeNode {
+      val platformToInstall = getPlatformToInstall(remotePackages, installUpdates, api)
       return ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms", listOf(platformToInstall))
     }
   }

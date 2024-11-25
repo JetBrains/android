@@ -38,7 +38,6 @@ import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.IncludeReference
 import com.android.tools.rendering.api.NavGraphResolver
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform

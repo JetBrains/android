@@ -20,10 +20,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.rendering.EnvironmentContextFactory;
 import com.android.tools.idea.rendering.RenderErrorContributor;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderIssueCollectionConsumer;
 import com.android.tools.idea.rendering.RenderResults;
+import com.android.tools.idea.rendering.StudioEnvironmentContextFactory;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableCollection;
@@ -110,8 +112,8 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     projectServices.register(BuildReferenceManager.class, new MockBuildReferenceManager(project));
     projectServices.register(TransitiveDependencyMap.class, new TransitiveDependencyMap(project));
     projectServices.register(ProjectScopeBuilder.class, new ProjectScopeBuilderImpl(project));
-    projectServices.register(
-        AndroidResourceModuleRegistry.class, new AndroidResourceModuleRegistry());
+    projectServices.register(AndroidResourceModuleRegistry.class, new AndroidResourceModuleRegistry());
+    projectServices.register(EnvironmentContextFactory.class, new StudioEnvironmentContextFactory());
 
     ExtensionPointImpl<Kind.Provider> kindProvider =
         registerExtensionPoint(Kind.Provider.EP_NAME, Kind.Provider.class);
