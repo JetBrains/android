@@ -140,8 +140,8 @@ class DownloadEventsProcessorTest {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       val modelUpdates = mutableListOf<DownloadRequestItem>()
       val fakeUiModel = object : DownloadInfoDataModel.Listener {
-        override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
-          modelUpdates.add(downloadRequest)
+        override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
+          modelUpdates.addAll(downloadRequests)
         }
       }
       dataModel.subscribeUiModel(fakeUiModel)

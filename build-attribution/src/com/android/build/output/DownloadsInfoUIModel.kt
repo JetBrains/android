@@ -54,10 +54,14 @@ class DownloadsInfoUIModel : DownloadInfoDataModel.Listener {
    * Requests table is updated only if updated [downloadRequest] belongs to the repository selected at the moment.
    */
   @UiThread
-  override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
-    repositoriesTableModel.update(downloadRequest)
-    if (selectedRepoItem.repository == null || selectedRepoItem.repository == downloadRequest.repository) {
-      requestsTableModel.addOrUpdate(downloadRequest)
+  override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
+    if (downloadRequests.isEmpty()) return
+    repositoriesTableModel.bulkUpdate(downloadRequests)
+    if (selectedRepoItem.repository == null) {
+      requestsTableModel.addOrUpdate(downloadRequests)
+    }
+    else {
+      requestsTableModel.addOrUpdate(downloadRequests.filter { selectedRepoItem.repository == it.repository })
     }
     dataUpdatedListeners.forEach { it.invoke() }
   }
@@ -107,8 +111,10 @@ class RepositoryTableItem(
   var timeOfFailed: Long = 0L
     private set
 
-  fun updateRequest(downloadRequest: DownloadRequestItem) {
-    requestsMap[downloadRequest.requestKey] = downloadRequest
+  fun updateRequests(downloadRequests: List<DownloadRequestItem>) {
+    downloadRequests.forEach {
+      requestsMap[it.requestKey] = it
+    }
     totalNumberOfRequests = requestsMap.size
     runningNumberOfRequests = requestsMap.values.count { !it.completed }
     totalAmountOfData = requestsMap.values.sumOf { it.receivedBytes }
@@ -164,20 +170,24 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
     )
   }
 
-  fun update(downloadRequest: DownloadRequestItem) {
+  fun bulkUpdate(downloadRequests: List<DownloadRequestItem>) {
     if (items.isEmpty()) addRow(summaryItem)
-    val repository = downloadRequest.repository
-    val repoTableItem = reposData.computeIfAbsent(repository) { RepositoryTableItem(it) }
-    repoTableItem.updateRequest(downloadRequest)
-    summaryItem.updateRequest(downloadRequest)
 
+    summaryItem.updateRequests(downloadRequests)
     fireTableCellUpdated(0, TableModelEvent.ALL_COLUMNS)
-    val updatedRepoRowIndex = items.indexOfFirst { it.repository == repository }
-    if (updatedRepoRowIndex == -1) {
-      addRow(repoTableItem)
-    }
-    else {
-      fireTableCellUpdated(updatedRepoRowIndex, TableModelEvent.ALL_COLUMNS)
+
+    downloadRequests.groupBy { it.repository }.forEach { (repository, requests) ->
+      val repoTableItem = reposData.computeIfAbsent(repository) { RepositoryTableItem(it) }
+
+      repoTableItem.updateRequests(requests)
+
+      val updatedRepoRowIndex = items.indexOfFirst { it.repository == repository }
+      if (updatedRepoRowIndex == -1) {
+        addRow(repoTableItem)
+      }
+      else {
+        fireTableCellUpdated(updatedRepoRowIndex, TableModelEvent.ALL_COLUMNS)
+      }
     }
   }
 }
@@ -259,13 +269,16 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     isSortable = true
   }
 
-  fun addOrUpdate(requestItem: DownloadRequestItem) {
-    val itemIndex = items.indexOfFirst { requestItem.requestKey == it.requestKey }
-    if (itemIndex == -1) {
-      addRow(requestItem)
-    }
-    else {
-      setItem(itemIndex, requestItem)
+  fun addOrUpdate(requestItems: List<DownloadRequestItem>) {
+    val indexes = items.mapIndexed { index, item -> item.requestKey to index }.toMap()
+    requestItems.forEach { requestItem ->
+      val itemIndex = indexes[requestItem.requestKey]
+      if (itemIndex == null) {
+        addRow(requestItem)
+      }
+      else {
+        setItem(itemIndex, requestItem)
+      }
     }
   }
 }
