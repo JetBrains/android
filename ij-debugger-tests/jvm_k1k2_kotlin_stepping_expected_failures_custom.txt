@@ -1,4 +1,2 @@
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Custom.testBreakpointInFlowLambda
 org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Custom.testSmartStepIntoAsyncLambda
-org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Custom.testSmartStepIntoSuspendFunInterface
 org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated$Custom.testKt14057
