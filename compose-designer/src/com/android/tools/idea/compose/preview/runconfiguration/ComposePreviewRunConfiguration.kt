@@ -163,7 +163,7 @@ open class ComposePreviewRunConfiguration(
       .findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
       ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
       ?.forEach { method ->
-        if (method.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true)
+        if (method.toUElementOfType<UMethod>()?.hasPreviewElements() == true)
           return@isValidComposableSet true
       }
 
