@@ -20,14 +20,17 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import java.util.LinkedList
 import java.util.concurrent.Executor
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 class ModelLintIssueAnnotatorTest {
 
@@ -60,28 +63,37 @@ class ModelLintIssueAnnotatorTest {
     annotator.annotateRenderInformationToLint(model)
     annotator.annotateRenderInformationToLint(model)
     executor.resume()
-    // Only the first added task is executed.
-    assertEquals(2, executor.getTaskCount())
+    // All tasks are executed, but only the first two added ones return early and do not trigger a
+    // surface repaint.
+    assertEquals(4, executor.getTaskCount())
+    verify(surface, times(2)).repaint()
   }
 
   @Test
   fun testClearTaskWhenExceptionHappens() {
     val model = mock<NlModel>()
     `when`(model.file).thenAnswer { throw Exception() }
+    Disposer.register(rule.testRootDisposable, model)
     val surface = mock<DesignSurface<*>>()
     `when`(surface.repaint()).then {}
 
     val executor = CountableExecutor()
     val annotator = ModelLintIssueAnnotator(surface, executor)
 
-    annotator.annotateRenderInformationToLint(model)
+    runAnnotatorAndIgnoreException(annotator, model)
     assertEquals(1, executor.getTaskCount())
     // An exception has happened when executing.
     // The annotator can still add more task into executor because the pending task is cleared.
-    annotator.annotateRenderInformationToLint(model)
+    runAnnotatorAndIgnoreException(annotator, model)
     assertEquals(2, executor.getTaskCount())
-    annotator.annotateRenderInformationToLint(model)
+    runAnnotatorAndIgnoreException(annotator, model)
     assertEquals(3, executor.getTaskCount())
+  }
+
+  private fun runAnnotatorAndIgnoreException(annotator: ModelLintIssueAnnotator, model: NlModel) {
+    try {
+      annotator.annotateRenderInformationToLint(model)
+    } catch (ignore: Throwable) {}
   }
 }
 
