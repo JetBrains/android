@@ -28,6 +28,7 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidxSupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
+    <debugger.fieldVisibilityProvider implementation="com.android.tools.idea.debug.AndroidFieldVisibilityProvider"/>
 
     <debuggerClassFilterProvider implementation="com.android.tools.idea.debug.AndroidDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.idea.debug.AndroidDebuggerSettings"/>
