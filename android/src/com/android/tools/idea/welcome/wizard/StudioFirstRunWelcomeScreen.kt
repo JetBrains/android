@@ -67,7 +67,11 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       if (mode == FirstRunWizardMode.MISSING_SDK) {
         addStep(MissingSdkAlertStep())
       }
-      addStep(SdkComponentsStep(model))
+
+      val licenseAgreementStep = LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation.toPath()), listOf())
+
+      addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,this@StudioFirstRunWelcomeScreen))
+
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
         val supplier = Supplier<Collection<RemotePackage>?> {
           val components: Iterable<InstallableComponent> = model.componentTree.childrenToInstall
@@ -88,7 +92,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       }
 
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        addStep(LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation.toPath()), listOf()))
+        addStep(licenseAgreementStep)
       }
 
       // TODO: addStep(ProgressStep(model))

@@ -165,6 +165,13 @@ public abstract class SdkComponentsStepController {
   public void onPathUpdated(@NotNull String sdkPath) {
     File sdkLocation = new File(sdkPath);
     if (!FileUtil.filesEqual(myLocalSdkHandlerProperty.get().getLocation().toFile(), sdkLocation)) {
+      if (sdkPath.isEmpty()) {
+        // When setting the SDK location in tests, it first triggers the state update with an empty string
+        // before triggering it with the updated value. If we try to load the SDK manager with an empty string,
+        // it hangs for a long time (40+ seconds), making the tests slow.
+        return;
+      }
+
       AndroidSdkHandler localHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, myLocalSdkHandlerProperty.get().toCompatiblePath(sdkLocation));
       myLocalSdkHandlerProperty.set(localHandler);
 

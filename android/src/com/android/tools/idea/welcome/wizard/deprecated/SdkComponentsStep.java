@@ -90,14 +90,14 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
       @Override
       public void onLoadingFinished() {
-        myForm.stopLoading();
         invokeUpdate(null);
+        myForm.stopLoading();
       }
 
       @Override
       public void onLoadingError() {
-        myForm.setLoadingText("Error loading components");
         invokeUpdate(null);
+        myForm.setLoadingText("Error loading components");
       }
 
       @Override
