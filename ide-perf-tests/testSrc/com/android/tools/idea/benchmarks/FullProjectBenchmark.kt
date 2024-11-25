@@ -24,8 +24,9 @@ import com.android.tools.perflogger.Metric
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
-import com.intellij.codeInspection.ex.GlobalInspectionContextBase
 import com.intellij.codeInspection.ex.InspectionToolWrapper
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.undo.UndoManager
@@ -119,11 +120,9 @@ abstract class FullProjectBenchmark {
     }
   }
 
-  open fun fullProjectLintInspection(fileTypes: List<FileType>, projectName: String) {
+  open fun fullProjectLintInspection(projectName: String) {
     runInEdtAndWait {
-      for (fileType in fileTypes) {
-        measureLintInspections(fileType, projectName)
-      }
+      measureLintInspections(projectName)
     }
   }
 
@@ -448,16 +447,11 @@ abstract class FullProjectBenchmark {
     gradleRule.project.modules.asList().forEach { TagToClassMapper.getInstance(it).resetAllClassMaps() }
   }
 
-  fun measureLintInspections(fileType: FileType,
-                             projectName: String,
-                             maxFiles: Int = Int.MAX_VALUE,
+  fun measureLintInspections(projectName: String,
                              doWarmup: Boolean = true,
                              doLogging: Boolean = true) {
     // Setup
     val project = gradleRule.project
-    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).take(maxFiles)
-    assert(files.isNotEmpty())
-
     val profileManager = InspectionProjectProfileManager.getInstance(project)
     val toolWrappers = mutableListOf<InspectionToolWrapper<*, *>>()
     for (tool in profileManager.currentProfile.getAllEnabledInspectionTools(project)) {
@@ -466,41 +460,33 @@ abstract class FullProjectBenchmark {
       }
     }
     val context = createGlobalContextForTool(AnalysisScope(project), project, toolWrappers)
+
     // Warmup
     if (doWarmup) {
-      for (file in files) {
-        val psiFile = gradleRule.fixture.psiManager.findFile(file)!!
-        (context as GlobalInspectionContextBase).doInspections(AnalysisScope(psiFile))
+      @Suppress("UnstableApiUsage")
+      context.doInspections(AnalysisScope(project))
 
-        do {
-          UIUtil.dispatchAllInvocationEvents()
-        }
-        while (!context.isFinished)
+      do {
+        UIUtil.dispatchAllInvocationEvents()
       }
+      while (!context.isFinished)
     }
 
     // Reset
     clearCaches()
 
     // Measure
-    var totalTimeMs = 0L
-    val samples = mutableListOf<Metric.MetricSample>()
-    val timePerFile = mutableListOf<Pair<String, Long>>()
-
-    for (file in files) {
-      val psiFile = gradleRule.fixture.psiManager.findFile(file)!!
-      val timeMs = measureElapsedMillis {
-        (context as GlobalInspectionContextBase).doInspections(AnalysisScope(psiFile))
-
-        do {
-          UIUtil.dispatchAllInvocationEvents()
-        }
-        while (!context.isFinished)
-      }
-      samples.add(Metric.MetricSample(System.currentTimeMillis(), timeMs))
-      timePerFile.add(Pair(file.name, timeMs))
-      totalTimeMs += timeMs
+    val timeMs = measureElapsedMillis {
+      @Suppress("UnstableApiUsage")
+      context.doInspections(AnalysisScope(project))
     }
+
+    do {
+      UIUtil.dispatchAllInvocationEvents()
+    }
+    while (!context.isFinished)
+
+    val samples = listOf(Metric.MetricSample(System.currentTimeMillis(), timeMs))
 
     if (!doLogging) return
 
@@ -508,29 +494,24 @@ abstract class FullProjectBenchmark {
     println("""
       ===
       Project: $projectName
-      File type: ${fileType.description}
-      Total files: ${files.size}
-      Total time: $totalTimeMs ms
-      Average time: ${totalTimeMs / files.size} ms
+      Java files: ${FileTypeIndex.getFiles(JavaFileType.INSTANCE, ProjectScope.getContentScope(project)).size}
+      Kotlin files: ${FileTypeIndex.getFiles(KotlinFileType.INSTANCE, ProjectScope.getContentScope(project)).size}
+      XML files: ${FileTypeIndex.getFiles(XmlFileType.INSTANCE, ProjectScope.getContentScope(project)).size}
+      Total time: $timeMs ms
       ===
     """.trimIndent())
 
-    timePerFile.sortByDescending { (_, timeMs) -> timeMs }
-    for ((fileName, timeMs) in timePerFile) {
-      println("$timeMs ms --- $fileName")
-    }
-
     writeCsv(
-      timePerFile,
+      samples,
       projectName,
       lintInspectionBenchmark,
-      resultName = fileType.name,
-      columns = listOf("fileName", "time"),
-      values = { toList() }
+      resultName = "Lint Analysis",
+      columns = listOf("time"),
+      values = { samples }
     )
 
     // Perfgate
-    val metric = Metric("${projectName}_Lint_Inspection_${fileType.description}")
+    val metric = Metric("${projectName}_Lint_Inspection")
     metric.addSamples(lintInspectionBenchmark, *samples.toTypedArray())
     metric.commit()
   }
