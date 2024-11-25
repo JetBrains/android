@@ -596,6 +596,11 @@ class ComposePreviewRepresentation(
   }
 
   private fun updateAnimationPanelVisibility() {
+    // Always hide currentAnimationPreview if it's not PreviewMode.AnimationInspection even if
+    // preview is not rendered yet.
+    if (mode.value !is PreviewMode.AnimationInspection) {
+      composeWorkBench.bottomPanel = null
+    }
     if (!hasRenderedAtLeastOnce.get()) return
     composeWorkBench.bottomPanel =
       when {
