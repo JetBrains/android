@@ -63,7 +63,7 @@ class ComposePreviewTest {
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
   @get:Rule
-  val adbRule: FakeAdbTestRule = FakeAdbTestRule()
+  val adbRule: FakeAdbTestRule = FakeAdbTestRule("35")
 
   private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"):
     SplitEditorFixture {
@@ -352,6 +352,8 @@ class ComposePreviewTest {
     val contentFixture = runToolWindowFixture.findContent("Preview1")
     // We should display "Launching <Compose Preview Configuration Name> on <Device>"
     val launchingPreview = Pattern.compile(".*Launching Preview1 on .*", Pattern.DOTALL)
+    println("Waiting for launching preview")
+    guiTest.ideFrame().buildToolWindow.activate()
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
     // We should display the adb shell command saying that we connected to the target process, which happens when the ActivityManager
     // processes the command to start the PreviewActivity (see [deviceState.setActivityManager] above)
