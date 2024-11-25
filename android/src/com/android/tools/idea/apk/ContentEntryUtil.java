@@ -35,7 +35,7 @@ public final class ContentEntryUtil {
   @Nullable
   public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull Stream<ContentEntry> contentEntries) {
     Optional<ContentEntry> optional = contentEntries.filter(contentEntry -> isPathInContentEntry(path, contentEntry)).findFirst();
-    return optional.orElse(null);
+    return optional.isPresent() ? optional.get() : null;
   }
 
   @VisibleForTesting
