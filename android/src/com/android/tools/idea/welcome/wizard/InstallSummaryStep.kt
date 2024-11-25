@@ -119,8 +119,9 @@ class InstallSummaryStep(
       form.summaryText.text = "An error occurred while trying to compute required packages."
       return
     }
+    val installationType = model.installationType ?: FirstRunModel.InstallationType.STANDARD
     val sections = listOf(
-      getSetupTypeSection(StringUtil.capitalize(model.installationType.get().name.lowercase())),
+      getSetupTypeSection(StringUtil.capitalize(installationType.name.lowercase())),
       getSdkFolderSection(model.sdkInstallLocation?.toFile()),
       getDownloadSizeSection(packages),
       getPackagesSection(packages)

@@ -128,11 +128,11 @@ abstract class ProgressStep(model: FirstRunModel, parent: Disposable, name: Stri
       isIndeterminate = false
     }
 
-    override fun setText(text: String) = invokeLater {
+    override fun setText(text: String) = invokeLater(ModalityState.stateForComponent(form.label)) {
       form.label.text = text
     }
 
-    override fun setText2(text: String?) = invokeLater {
+    override fun setText2(text: String?) = invokeLater(ModalityState.stateForComponent(form.label)) {
       form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10)
     }
 
@@ -146,11 +146,11 @@ abstract class ProgressStep(model: FirstRunModel, parent: Disposable, name: Stri
     }
 
     override fun setIndeterminate(indeterminate: Boolean) {
-      invokeLater { form.progressBar.isIndeterminate = indeterminate }
+      invokeLater(ModalityState.stateForComponent(form.progressBar)) { form.progressBar.isIndeterminate = indeterminate }
     }
 
     override fun setFraction(fraction: Double) {
-      invokeLater { form.fraction = fraction }
+      invokeLater(ModalityState.stateForComponent(form.root)) { form.fraction = fraction }
     }
   }
 }

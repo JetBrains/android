@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
+import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
@@ -49,7 +50,8 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
   private var frame: JFrame? = null
 
   private fun setupWizard() {
-    val model = FirstRunModel(mode, componentInstallerProvider)
+    val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
+    val model = FirstRunModel(mode, initialSdkLocation.toPath(), componentInstallerProvider)
 
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
     val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, this@StudioFirstRunWelcomeScreen)
@@ -59,7 +61,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
       if (mode == FirstRunWizardMode.NEW_INSTALL) {
         addStep(FirstRunWelcomeStep(model))
 
-        if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
+        if (model.isStandardInstallSupported) {
           addStep(InstallationTypeWizardStep(model))
         }
       }

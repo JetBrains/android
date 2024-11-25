@@ -131,7 +131,8 @@ class SdkComponentsStep(
   }
 
   override fun shouldShow(): Boolean {
-    return controller.isStepVisible(model.customInstall, model.sdkInstallLocation?.toFile()?.absolutePath ?: "")
+    val installationType = model.installationType ?: FirstRunModel.InstallationType.CUSTOM
+    return controller.isStepVisible(installationType == FirstRunModel.InstallationType.CUSTOM, model.sdkInstallLocation?.toFile()?.absolutePath ?: "")
   }
 
   override fun canGoForward() = isValid

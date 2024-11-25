@@ -41,13 +41,14 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
   override fun onEntering() {
     super.onEntering()
 
-    myForm.standardRadioButton.isSelected = model.installationType.get() == FirstRunModel.InstallationType.STANDARD
-    myForm.customRadioButton.isSelected = model.installationType.get() == FirstRunModel.InstallationType.CUSTOM
+    val installationType = model.installationType ?: FirstRunModel.InstallationType.STANDARD
+    myForm.standardRadioButton.isSelected = installationType == FirstRunModel.InstallationType.STANDARD
+    myForm.customRadioButton.isSelected = installationType == FirstRunModel.InstallationType.CUSTOM
   }
 
   override fun onProceeding() {
     super.onProceeding()
 
-    model.installationType.set(if (myForm.standardRadioButton.isSelected) FirstRunModel.InstallationType.STANDARD else FirstRunModel.InstallationType.CUSTOM)
+    model.installationType = if (myForm.standardRadioButton.isSelected) FirstRunModel.InstallationType.STANDARD else FirstRunModel.InstallationType.CUSTOM
   }
 }
