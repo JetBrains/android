@@ -290,7 +290,6 @@ class ComposePreviewRepresentationGradleTest {
 
       projectRule.validate()
 
-      fakeUi.render()
       delayUntilCondition(100, 2.seconds) {
         fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 6
       }
