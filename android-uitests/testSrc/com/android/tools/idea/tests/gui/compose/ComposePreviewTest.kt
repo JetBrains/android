@@ -40,7 +40,6 @@ import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
@@ -327,14 +326,17 @@ class ComposePreviewTest {
   fun testDeployPreview() {
     val composablePackageName = "google.simpleapplication"
     val composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+    val deployPreviewCommand = "start -n $composablePackageName/$COMPOSE_PREVIEW_ACTIVITY_FQN -a android.intent.action.MAIN -c" +
+                               " android.intent.category.LAUNCHER --es composable $composableFqn --splashscreen-show-icon"
     val processId = 42
 
     val deviceState = adbRule.connectAndWaitForDevice()
+    var deployPreviewCommandIsReceived = false
     deviceState.setActivityManager { args, _ ->
       val command = args.joinToString(" ")
-      val deployPreviewCommand = "start -n $composablePackageName/$COMPOSE_PREVIEW_ACTIVITY_FQN -a android.intent.action.MAIN -c" +
-                                 " android.intent.category.LAUNCHER --es composable $composableFqn"
+
       if (command == deployPreviewCommand) {
+        deployPreviewCommandIsReceived = true
         deviceState.startClient(processId, 111, composablePackageName, false)
       }
     }
@@ -347,6 +349,10 @@ class ComposePreviewTest {
       .first()
       .toolbar()
       .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
+
+    Wait.seconds(30).expecting("Device received deployPreviewCommand").until {
+      deployPreviewCommandIsReceived
+    }
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
