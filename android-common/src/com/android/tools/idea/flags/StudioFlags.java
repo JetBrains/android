@@ -1843,7 +1843,7 @@ public final class StudioFlags {
   private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "app.links.assistant", "App Links Assistant");
   public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
     new BooleanFlag(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
-                "Improvements to Website Association Generator.", false);
+                "Improvements to Website Association Generator.", ChannelDefault.enabledUpTo(CANARY));
   public static final Flag<String> DEEPLINKS_GRPC_SERVER =
     new StringFlag(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
                 "Deep links gRPC server address. Use a non-default value for testing purposes.",
