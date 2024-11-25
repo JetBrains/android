@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.annotations
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.DumbModeTestUtils
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
@@ -176,15 +177,27 @@ class AnnotatedMethodsFinderTest {
       )
 
     assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(2, findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size)
+    assertEquals(
+      2,
+      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size },
+    )
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(2, findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size)
+    assertEquals(
+      2,
+      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA").size },
+    )
     // Check that call with the same args combination does not create a new key and reuses the
     // cache:
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(1, findAnnotations(project, sourceFile.virtualFile, "MyAnnotationB").size)
+    assertEquals(
+      1,
+      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationB").size },
+    )
     assertEquals(2, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(0, findAnnotations(project, sourceFile.virtualFile, "MyAnnotationC").size)
+    assertEquals(
+      0,
+      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationC").size },
+    )
     assertEquals(3, CacheKeysManager.getInstance(project).map().size)
   }
 
@@ -468,5 +481,27 @@ class AnnotatedMethodsFinderTest {
         "IDoNotExist",
       )
     )
+  }
+
+  @Test
+  fun `findAnnotation requires read lock`() {
+    val sourceFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFile.kt",
+        // language=kotlin
+        """
+        @MyAnnotationA
+        fun FooA1() { }
+        """
+          .trimIndent(),
+      )
+    val withoutReadLock = runCatching {
+      findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA")
+    }
+    val withReadLock = runCatching {
+      runReadAction { findAnnotations(project, sourceFile.virtualFile, "MyAnnotationA") }
+    }
+    assertTrue(withoutReadLock.isFailure)
+    assertTrue(withReadLock.isSuccess)
   }
 }

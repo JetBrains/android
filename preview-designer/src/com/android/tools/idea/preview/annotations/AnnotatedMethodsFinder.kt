@@ -200,7 +200,9 @@ suspend fun hasAnnotation(
 }
 
 /** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
-fun findAnnotations(
+@RequiresReadLock
+@VisibleForTesting
+internal fun findAnnotations(
   project: Project,
   vFile: VirtualFile,
   shortAnnotationName: String,
@@ -218,25 +220,20 @@ fun findAnnotations(
     psiFile,
     CacheKeysManager.getInstance(project).getKey(shortAnnotationName),
   ) {
-    val scope = runReadAction { GlobalSearchScope.fileScope(project, vFile) }
+    val scope = GlobalSearchScope.fileScope(project, vFile)
     val annotations =
       if (psiFile.language == KotlinLanguage.INSTANCE) {
-        runReadAction { KotlinAnnotationsIndex[shortAnnotationName, project, scope] }
-          .asSequence()
-          .map { it.psiOrParent }
-      } else {
-        runReadAction {
-          JavaAnnotationIndex.getInstance()
-            .getAnnotations(shortAnnotationName, project, scope)
-            .asSequence()
+        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence().map {
+          it.psiOrParent
         }
+      } else {
+        JavaAnnotationIndex.getInstance()
+          .getAnnotations(shortAnnotationName, project, scope)
+          .asSequence()
       }
 
     CachedValueProvider.Result.create(
-      annotations
-        .toList()
-        .mapNotNull { runReadAction { it.toUElementOfType<UAnnotation>() } }
-        .distinct(),
+      annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(),
       psiFile,
     )
   }
