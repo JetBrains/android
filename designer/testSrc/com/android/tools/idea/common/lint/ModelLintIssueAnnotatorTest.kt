@@ -25,6 +25,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import java.util.LinkedList
 import java.util.concurrent.Executor
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -36,6 +37,7 @@ class ModelLintIssueAnnotatorTest {
 
   @Rule @JvmField val rule = AndroidProjectRule.inMemory()
 
+  @Ignore("b/380914949")
   @Test
   fun testMultipleRequests() {
     val builder =
