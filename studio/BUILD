@@ -2,7 +2,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 app_icon(
@@ -796,12 +795,6 @@ android_studio(
         ":com.google.targetsdkversionassistant",
         ":com.android.tools.gradle.dcl",
     ],
-    properties = select({
-        "//conditions:default": [],
-        "//tools/adt/idea/studio:nightly-build": [
-            "gradle.ide.agp.version.to.use=" + LAST_STABLE_BUILD_VERSION,
-        ],
-    }),
     searchable_options = "//tools/adt/idea/searchable-options",
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
