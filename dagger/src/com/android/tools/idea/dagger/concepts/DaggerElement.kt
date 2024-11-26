@@ -18,6 +18,7 @@ package com.android.tools.idea.dagger.concepts
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
+import com.android.tools.idea.dagger.index.getValuesFromIndex
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -89,7 +90,7 @@ sealed class DaggerElement {
     return indexKeys
       .asSequence()
       // Look up the keys in the index
-      .flatMap { DaggerIndex.getValues(it, scope) }
+      .flatMap { getValuesFromIndex(it, scope) }
       // Remove types we aren't interested in before resolving
       .filter { indexValue ->
         val daggerElementJavaType = indexValue.dataType.daggerElementType.java
