@@ -39,3 +39,11 @@ internal fun PsiElement?.getPsiClass(): PsiClass? {
     else -> null
   }
 }
+
+internal fun PsiElement?.getClassQualifiedName(): String? {
+  return when (val parent = this?.parent) {
+    is KtClass -> parent.fqName?.asString()
+    is PsiClass -> parent.qualifiedName
+    else -> null
+  }
+}
