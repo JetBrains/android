@@ -8,7 +8,7 @@ public @interface RequiresApi {
 
 class RequiresApiTest {
     public void test() {
-        if (<caret>Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && Build.VERSION.SDK_INT_FULL >= 9900009) {
+        if (<caret>Build.VERSION.SDK_INT_FULL >= 9900009) {
             requiresFutureMinor();
         }
     }
