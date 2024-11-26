@@ -71,7 +71,6 @@ import javax.swing.JTextPane
 import javax.swing.KeyStroke
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
-import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 
@@ -375,48 +374,6 @@ class SdkComponentsStep(
         super.requestFocus()
       }
     }
-  }
-
-  // TODO(qumeric): make private
-  class ComponentsTableModel(component: ComponentTreeNode) : AbstractTableModel() {
-    private val components: List<Pair<ComponentTreeNode, Int>>
-
-    init {
-      val components = ImmutableList.builder<Pair<ComponentTreeNode, Int>>()
-      // Note that root component is not present in the table model so the tree appears to have multiple roots
-      traverse(component.immediateChildren, 0, components)
-      this.components = components.build()
-    }
-
-    private fun traverse(
-      children: Collection<ComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<ComponentTreeNode, Int>>
-    ) {
-      for (child in children) {
-        components.add(Pair.create(child, indent))
-        traverse(child.immediateChildren, indent + 1, components)
-      }
-    }
-
-    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = columnIndex == 0 && getInstallableComponent(rowIndex).isEnabled
-
-    override fun getRowCount(): Int = components.size
-
-    override fun getColumnCount(): Int = 1
-
-    override fun getValueAt(rowIndex: Int, columnIndex: Int): Any = components[rowIndex]
-
-    private fun getInstallableComponent(rowIndex: Int): ComponentTreeNode = components[rowIndex].getFirst()
-
-    override fun setValueAt(aValue: Any?, row: Int, column: Int) {
-      val node = getInstallableComponent(row)
-      node.toggle(aValue as Boolean)
-      // We need to repaint as a change in a single row may affect the state of
-      // our parent and/or children in other rows.
-      // Note: Don't use fireTableDataChanged to avoid clearing the selection.
-      fireTableRowsUpdated(0, rowCount)
-    }
-
-    fun getComponentDescription(index: Int): String = getInstallableComponent(index).description
   }
 }
 

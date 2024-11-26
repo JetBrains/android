@@ -24,6 +24,16 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
  * Component that may be installed by the first run wizard.
  */
 abstract class ComponentTreeNode(val description: String) {
+  companion object {
+    @JvmStatic
+    fun someRequiredComponentsUnavailable(rootNode: ComponentTreeNode): Boolean {
+      return rootNode.allChildren.stream().anyMatch { node: ComponentTreeNode? ->
+        node is InstallableComponent &&
+        !node.unavailablePackages.isEmpty()
+      }
+    }
+  }
+
   abstract val label: String
   abstract val childrenToInstall: Collection<InstallableComponent>
   abstract val isChecked: Boolean
