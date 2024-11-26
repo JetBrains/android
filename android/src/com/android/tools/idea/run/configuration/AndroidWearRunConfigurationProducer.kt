@@ -23,7 +23,6 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.openapi.util.Ref
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 
 /**
@@ -33,7 +32,7 @@ import com.intellij.psi.PsiElement
 abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>(val type: Class<out ConfigurationType>)
   : LazyRunConfigurationProducer<T>() {
 
-  abstract fun isValidService(psiClass: PsiClass): Boolean
+  abstract fun isValidService(psiElement: PsiElement): Boolean
 
   override fun getConfigurationFactory(): ConfigurationFactory =
     ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
@@ -46,7 +45,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
   public override fun setupConfigurationFromContext(configuration: T,
                                                     context: ConfigurationContext,
                                                     sourceElement: Ref<PsiElement>): Boolean {
-    val psiClass = context.psiLocation.getPsiClass()
+    val psiClass = context.psiLocation?.parent
     if (psiClass == null || !isValidService(psiClass)) {
       return false
     }

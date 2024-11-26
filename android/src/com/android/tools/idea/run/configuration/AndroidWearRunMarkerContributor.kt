@@ -42,7 +42,7 @@ class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
 
     if (!CommonAndroidUtil.getInstance().isAndroidProject(e.project)) return null
 
-    val psiClass = e.getPsiClass() ?: return null
+    val psiClass = e.parent ?: return null
     if (psiClass.isValidWatchFaceService() || psiClass.isValidTileService() || psiClass.isValidComplicationService()) {
       val serviceName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
