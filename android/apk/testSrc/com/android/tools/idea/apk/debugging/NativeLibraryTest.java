@@ -127,7 +127,7 @@ public class NativeLibraryTest extends HeavyPlatformTestCase {
 
   @NotNull
   private static List<String> getPaths(@NotNull Collection<VirtualFile> files) {
-    return ContainerUtil.map(files, VirtualFile::getPath);
+    return new ArrayList<>(ContainerUtil.map(files, VirtualFile::getPath));
   }
 
   public void testIsMissingPathMappingsWithLocalPaths() {
