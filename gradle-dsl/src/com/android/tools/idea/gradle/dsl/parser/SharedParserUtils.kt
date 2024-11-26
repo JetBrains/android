@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
@@ -220,3 +219,10 @@ fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: Gradle
   originalFile.hideProperty(propertyElement)
   addAppliedProperty(propertyElement)
 }
+
+/**
+ * Is this method name one that finds or creates an element of a NamedDomainObjectContainer and
+ * provides a configuration Action or Closure?
+ */
+fun isDomainObjectConfiguratorMethodName(methodName : String?) =
+  methodName != null && methodName in listOf("create", "getByName", "maybeCreate", "named", "register")

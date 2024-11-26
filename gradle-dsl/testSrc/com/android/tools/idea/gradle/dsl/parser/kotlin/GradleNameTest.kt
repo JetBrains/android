@@ -30,7 +30,7 @@ class GradleNameTest : HeavyPlatformTestCase() {
   fun testGradleName() {
     assertThat(gradleNameFromString("abc")).isEqualTo("abc")
     assertThat(gradleNameFromString("abc.def")).isEqualTo("abc.def")
-    assertThat(gradleNameFromString("abc.def.configure(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.named(\"foo\")")).isEqualTo("abc.def.foo")
     assertThat(gradleNameFromString("abc.def.create(\"foo\")")).isEqualTo("abc.def.foo")
     assertThat(gradleNameFromString("abc.def.maybeCreate(\"foo\")")).isEqualTo("abc.def.foo")
     assertThat(gradleNameFromString("abc.def.register(\"foo\")")).isEqualTo("abc.def.foo")

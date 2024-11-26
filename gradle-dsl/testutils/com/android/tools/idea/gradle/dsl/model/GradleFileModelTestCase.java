@@ -601,6 +601,10 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     assertEquals(propertyName, propertyModel.getFullyQualifiedName());
   }
 
+  public static void assertEquals(@NotNull String expected, @NotNull GradlePropertyModel actual) {
+    assertEquals(expected, expected, actual);
+  }
+
   public static void assertEquals(@NotNull String message, @Nullable String expected, @NotNull GradlePropertyModel actual) {
     assertEquals(message, expected, actual.getValue(STRING_TYPE));
   }
