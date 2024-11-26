@@ -111,6 +111,7 @@ class VirtualDeviceTest {
         name = "My Pixel",
         expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB)),
         skin = DefaultSkin(Paths.get("pixel_8")),
+        defaultSkin = DefaultSkin(Paths.get("pixel_8")),
         orientation = ScreenOrientation.LANDSCAPE,
         cpuCoreCount = 2,
         ram = StorageCapacity(16, StorageCapacity.Unit.GB),

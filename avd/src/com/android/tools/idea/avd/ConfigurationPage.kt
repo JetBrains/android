@@ -129,7 +129,7 @@ internal fun WizardPageScope.ConfigurationPage(
             fileSystem,
           )
 
-        state.setSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
+        state.initDeviceSkins(resolveDefaultSkin(device, sdkHandler, fileSystem))
         state
       } else {
         val copy =
@@ -139,7 +139,10 @@ internal fun WizardPageScope.ConfigurationPage(
             device
           }
 
-        ConfigureDevicePanelState(copy, skins, image, fileSystem)
+        val state = ConfigureDevicePanelState(copy, skins, image, fileSystem)
+        state.initDefaultSkin(resolveDefaultSkin(device, sdkHandler, fileSystem))
+
+        state
       }
     }
 
