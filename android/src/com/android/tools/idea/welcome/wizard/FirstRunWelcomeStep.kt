@@ -22,7 +22,7 @@ import javax.swing.JComponent
 /**
  * Welcome page for the first run wizard
  */
-class FirstRunWelcomeStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Android Studio") {
+class FirstRunWelcomeStep(model: FirstRunWizardModel) : ModelWizardStep<FirstRunWizardModel>(model, "Android Studio") {
   private val form = FirstRunWelcomeStepForm(model.sdkExists)
 
   override fun getComponent(): JComponent = form.root

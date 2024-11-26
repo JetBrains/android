@@ -22,7 +22,7 @@ import javax.swing.JComponent
 /**
  * Wizard step for selecting installation types
  */
-class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel?>(model, "Install Type") {
+class InstallationTypeWizardStep(model: FirstRunWizardModel) : ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
   private val myForm = InstallationTypeWizardStepForm()
 
   override fun getComponent(): JComponent {
@@ -41,14 +41,14 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
   override fun onEntering() {
     super.onEntering()
 
-    val installationType = model.installationType ?: FirstRunModel.InstallationType.STANDARD
-    myForm.standardRadioButton.isSelected = installationType == FirstRunModel.InstallationType.STANDARD
-    myForm.customRadioButton.isSelected = installationType == FirstRunModel.InstallationType.CUSTOM
+    val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.STANDARD
+    myForm.standardRadioButton.isSelected = installationType == FirstRunWizardModel.InstallationType.STANDARD
+    myForm.customRadioButton.isSelected = installationType == FirstRunWizardModel.InstallationType.CUSTOM
   }
 
   override fun onProceeding() {
     super.onProceeding()
 
-    model.installationType = if (myForm.standardRadioButton.isSelected) FirstRunModel.InstallationType.STANDARD else FirstRunModel.InstallationType.CUSTOM
+    model.installationType = if (myForm.standardRadioButton.isSelected) FirstRunWizardModel.InstallationType.STANDARD else FirstRunWizardModel.InstallationType.CUSTOM
   }
 }

@@ -15,27 +15,17 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.io.CancellableFileIo
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsRenderer
-import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStepController
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStepForm
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.sdk.AndroidSdkData
-import com.android.tools.sdk.isValid
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.DocumentAdapter
-import com.intellij.util.containers.isEmpty
-import com.intellij.util.containers.notNullize
-import org.jetbrains.annotations.Contract
-import java.io.File
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
@@ -44,12 +34,12 @@ import javax.swing.event.DocumentEvent
  * Wizard page for selecting SDK components to download.
  */
 class SdkComponentsStep(
-  model: FirstRunModel,
+  model: FirstRunWizardModel,
   val project: Project?,
   val mode: FirstRunWizardMode,
   val licenseAgreementStep: LicenseAgreementStep?,
   parent: Disposable
-) : ModelWizardStep<FirstRunModel>(model, "SDK Components Setup") {
+) : ModelWizardStep<FirstRunWizardModel>(model, "SDK Components Setup") {
   private val form = SdkComponentsStepForm()
   private val rootNode = model.componentTree
   private val controller = object : SdkComponentsStepController(project, mode, rootNode, model.localHandlerProperty) {
@@ -80,7 +70,7 @@ class SdkComponentsStep(
       licenseAgreementStep?.reload()
     }
   }
-  private val tableModel: ComponentsTableModel = ComponentsTableModel(model.componentTree).apply {
+  private val tableModel: SdkComponentsTableModel = SdkComponentsTableModel(model.componentTree).apply {
     form.setTableModel(this)
   }
   private val isValid = BoolValueProperty(false)
@@ -131,8 +121,8 @@ class SdkComponentsStep(
   }
 
   override fun shouldShow(): Boolean {
-    val installationType = model.installationType ?: FirstRunModel.InstallationType.CUSTOM
-    return controller.isStepVisible(installationType == FirstRunModel.InstallationType.CUSTOM, model.sdkInstallLocation?.toFile()?.absolutePath ?: "")
+    val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.CUSTOM
+    return controller.isStepVisible(installationType == FirstRunWizardModel.InstallationType.CUSTOM, model.sdkInstallLocation?.toFile()?.absolutePath ?: "")
   }
 
   override fun canGoForward() = isValid
@@ -142,7 +132,7 @@ class SdkComponentsStep(
   }
 
   private fun updateDiskSizes() {
-    form.setDiskSpace(getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath))
+    form.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(model.sdkInstallLocation?.toFile()?.absolutePath))
     form.setDownloadSize(controller.componentsSize)
   }
 
@@ -151,47 +141,3 @@ class SdkComponentsStep(
   }
 }
 
-// TODO(qumeric): make private
-@Contract("null->null")
-fun getExistingParentFile(path: String?): File? {
-  if (path.isNullOrEmpty()) {
-    return null
-  }
-
-  return generateSequence(File(path).absoluteFile) { it.parentFile }.firstOrNull(File::exists)
-}
-
-// TODO(qumeric): make private
-fun getDiskSpace(path: String?): String {
-  val file = getTargetFilesystem(path) ?: return ""
-  val available = getSizeLabel(file.freeSpace)
-  return if (SystemInfo.isWindows) {
-    val driveName = generateSequence(file, File::getParentFile).last().name
-    "$available (drive $driveName)"
-  }
-  else {
-    available
-  }
-}
-
-// TODO(qumeric): make private
-fun getTargetFilesystem(path: String?): File? = getExistingParentFile(path) ?: File.listRoots().firstOrNull()
-
-@Contract("null->false")
-// TODO(qumeric): make private
-fun isExistingSdk(path: String?): Boolean {
-  if (path.isNullOrBlank()) {
-    return false
-  }
-  return File(path).run { isDirectory && isValid(this) }
-}
-
-@Contract("null->false")
-// TODO(qumeric): make private
-fun isNonEmptyNonSdk(path: String?): Boolean {
-  if (path == null) {
-    return false
-  }
-  val file = File(path)
-  return file.exists() && !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() && AndroidSdkData.getSdkData(file) == null
-}

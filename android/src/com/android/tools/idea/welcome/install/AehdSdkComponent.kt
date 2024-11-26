@@ -47,17 +47,17 @@ private const val INSTALLER_EXIT_CODE_SUCCESS = 0
 private const val INSTALLER_EXIT_CODE_REBOOT_REQUIRED = 2
 private const val INSTALLER_EXIT_CODE_USER_CANCELLED = 1223
 private val LOG: Logger
-  get() = logger<Aehd>()
+  get() = logger<AehdSdkComponent>()
 
 /**
  * Google AEHD installable component
  */
-class Aehd(
+class AehdSdkComponent(
   @JvmField val installationIntention: InstallationIntention
-) : InstallableComponent("Performance (Android Emulator hypervisor visor})",
-                         "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+) : InstallableSdkComponentTreeNode("Performance (Android Emulator hypervisor visor})",
+                                    "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                          "Android app emulation on your development computer. (Recommended)",
-                         installationIntention == InstallationIntention.INSTALL_WITH_UPDATES) {
+                                    installationIntention == InstallationIntention.INSTALL_WITH_UPDATES) {
   /**
    * Specifies what to do with the AEHD package.
    *

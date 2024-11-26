@@ -24,7 +24,7 @@ import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.GlobalInstallerData;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.android.tools.idea.welcome.install.ComponentCategory;
+import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
@@ -61,7 +61,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     assertVisible(
       new SdkComponentsStep(
         null,
-        new ComponentCategory("test", "test", Collections.emptyList()),
+        new SdkComponentCategoryTreeNode("test", "test", Collections.emptyList()),
         KEY_TRUE,
         createKey(String.class),
         mode,

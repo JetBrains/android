@@ -21,7 +21,7 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
 import com.android.tools.idea.sdk.wizard.AehdWizard;
-import com.android.tools.idea.welcome.install.Aehd;
+import com.android.tools.idea.welcome.install.AehdSdkComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,7 +51,7 @@ public class AehdInstallListener implements PackageOperation.StatusChangeListene
         // Either we just installed the package and we need to "configure" it (run the installation script),
         // or we're about to uninstall it.
         AehdWizard wizard =
-          new AehdWizard(op instanceof Uninstaller ? Aehd.InstallationIntention.UNINSTALL : Aehd.InstallationIntention.CONFIGURE_ONLY);
+          new AehdWizard(op instanceof Uninstaller ? AehdSdkComponent.InstallationIntention.UNINSTALL : AehdSdkComponent.InstallationIntention.CONFIGURE_ONLY);
         wizard.init();
         result.set(wizard.showAndGet());
       }, ModalityState.any());

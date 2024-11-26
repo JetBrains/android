@@ -19,7 +19,6 @@ import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
-import com.android.tools.idea.avdmanager.CpuVendor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Test
@@ -27,7 +26,7 @@ import org.junit.Test
 class AndroidSdkTest {
   @Test
   fun `get required SDK packages doesn't return emulator on Chrome OS`() {
-    val sdk = AndroidSdk(true).apply {
+    val sdk = AndroidSdkComponent(true).apply {
       updateState(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, TestUtils.getSdk()))
     }
     val packages = sdk.getRequiredSdkPackages(true)
@@ -37,9 +36,9 @@ class AndroidSdkTest {
   @Test
   fun `AEHD is only compatible with Windows`() {
     if (SystemInfo.isWindows) {
-      assertThat(Aehd.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
+      assertThat(AehdSdkComponent.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     } else {
-      assertThat(Aehd.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
+      assertThat(AehdSdkComponent.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     }
   }
 }

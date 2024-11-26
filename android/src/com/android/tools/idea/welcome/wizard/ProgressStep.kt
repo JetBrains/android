@@ -31,7 +31,7 @@ import javax.swing.JComponent
 /**
  * Wizard step with progress bar and "more details" button.
  */
-abstract class ProgressStep(model: FirstRunModel, parent: Disposable, name: String) : ModelWizardStep<FirstRunModel>(model, name), IProgressStep {
+abstract class ProgressStep(model: FirstRunWizardModel, parent: Disposable, name: String) : ModelWizardStep<FirstRunWizardModel>(model, name), IProgressStep {
   private val form = ProgressStepForm(parent)
   private var myProgressIndicator: ProgressIndicator? = null
 

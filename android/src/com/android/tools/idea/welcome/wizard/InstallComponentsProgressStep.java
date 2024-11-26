@@ -50,7 +50,7 @@ public class InstallComponentsProgressStep extends ProgressStep {
   };
   private final LicenseAgreementModel licenseAgreementModel;
 
-  public InstallComponentsProgressStep(@NotNull FirstRunModel model, @NotNull LicenseAgreementModel licenseAgreementModel, @NotNull Disposable disposable) {
+  public InstallComponentsProgressStep(@NotNull FirstRunWizardModel model, @NotNull LicenseAgreementModel licenseAgreementModel, @NotNull Disposable disposable) {
     super(model, disposable, "Downloading Components");
     this.licenseAgreementModel = licenseAgreementModel;
   }

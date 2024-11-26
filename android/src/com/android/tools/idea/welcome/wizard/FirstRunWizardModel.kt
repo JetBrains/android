@@ -27,14 +27,15 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.install.Aehd
-import com.android.tools.idea.welcome.install.AndroidSdk
-import com.android.tools.idea.welcome.install.AndroidVirtualDevice
-import com.android.tools.idea.welcome.install.ComponentCategory
-import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.welcome.install.AehdSdkComponent
+import com.android.tools.idea.welcome.install.AndroidSdkComponent
+import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponent
+import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode
+import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.install.InstallContext
-import com.android.tools.idea.welcome.install.InstallableComponent
-import com.android.tools.idea.welcome.install.Platform
+import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode
+import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponent
 import com.android.tools.idea.welcome.install.WizardException
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath
 import com.android.tools.idea.wizard.model.WizardModel
@@ -47,7 +48,7 @@ import java.util.function.Supplier
 import kotlin.io.path.isDirectory
 
 // Contains all the data which Studio should collect in the First Run Wizard
-class FirstRunModel(private val mode: FirstRunWizardMode, initialSdkLocation: Path, private val componentInstallerProvider: ComponentInstallerProvider): WizardModel() {
+class FirstRunWizardModel(private val mode: FirstRunWizardMode, initialSdkLocation: Path, private val componentInstallerProvider: ComponentInstallerProvider): WizardModel() {
   enum class InstallationType {
     STANDARD,
     CUSTOM
@@ -90,7 +91,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode, initialSdkLocation: Pa
   }
 
   fun getPackagesToInstallSupplier(): Supplier<Collection<RemotePackage>?> = Supplier {
-    val components: Iterable<InstallableComponent> = componentTree.childrenToInstall
+    val components: Iterable<InstallableSdkComponentTreeNode> = componentTree.childrenToInstall
     try {
       componentInstallerProvider.getComponentInstaller(localHandler).getPackagesToInstall(components)
     }
@@ -100,9 +101,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode, initialSdkLocation: Pa
     }
   }
 
-  private fun createComponentTree(createAvd: Boolean): ComponentTreeNode {
+  private fun createComponentTree(createAvd: Boolean): SdkComponentTreeNode {
     val installUpdates = true // FIXME
-    val components: MutableList<ComponentTreeNode> = mutableListOf(AndroidSdk(installUpdates))
+    val components: MutableList<SdkComponentTreeNode> = mutableListOf(AndroidSdkComponent(installUpdates))
 
     val sdkManager = localHandler.getSdkManager(StudioLoggerProgressIndicator(javaClass)).apply {
       loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
@@ -112,23 +113,21 @@ class FirstRunModel(private val mode: FirstRunWizardMode, initialSdkLocation: Pa
 
     val remotePackages = sdkManager.packages.remotePackages.values
 
-    val platforms = Platform.createSubtree(remotePackages, installUpdates)
-    if (platforms != null) {
-      components.add(platforms)
-    }
+    components.add(AndroidPlatformSdkComponent.createSubtree(remotePackages, installUpdates))
+
     val installationIntention =
-      if (installUpdates) Aehd.InstallationIntention.INSTALL_WITH_UPDATES
-      else Aehd.InstallationIntention.INSTALL_WITHOUT_UPDATES
-    if (mode === FirstRunWizardMode.NEW_INSTALL && Aehd.canRun()) {
-      components.add(Aehd(installationIntention))
+      if (installUpdates) AehdSdkComponent.InstallationIntention.INSTALL_WITH_UPDATES
+      else AehdSdkComponent.InstallationIntention.INSTALL_WITHOUT_UPDATES
+    if (mode === FirstRunWizardMode.NEW_INSTALL && AehdSdkComponent.canRun()) {
+      components.add(AehdSdkComponent(installationIntention))
     }
     if (createAvd) {
-      val avdCreator = AndroidVirtualDevice(remotePackages, installUpdates)
-      if (avdCreator.isAvdCreationNeeded(localHandler)) {
-        components.add(avdCreator)
+      val avdSdkComponent = AndroidVirtualDeviceSdkComponent(remotePackages, installUpdates)
+      if (avdSdkComponent.isAvdCreationNeeded(localHandler)) {
+        components.add(avdSdkComponent)
       }
     }
-    return ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components)
+    return SdkComponentCategoryTreeNode("Root", "Root node that is not supposed to appear in the UI", components)
   }
 
   /**

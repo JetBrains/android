@@ -16,18 +16,17 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.wizard.model.ModelWizardStep
 
 /**
  * A non-leaf tree node. It is not possible to install it.
  */
-class ComponentCategory(
-  override val label: String, description: String, private val components: Collection<ComponentTreeNode>
-) : ComponentTreeNode(description) {
-  override val childrenToInstall: Collection<InstallableComponent> get() = components.flatMap(ComponentTreeNode::childrenToInstall)
-  override val isEnabled: Boolean get() = components.any(ComponentTreeNode::isEnabled)
-  override val isChecked: Boolean get() = components.none (ComponentTreeNode::isChecked)
-  override val immediateChildren: Collection<ComponentTreeNode> get() = components
+class SdkComponentCategoryTreeNode(
+  override val label: String, description: String, private val components: Collection<SdkComponentTreeNode>
+) : SdkComponentTreeNode(description) {
+  override val childrenToInstall: Collection<InstallableSdkComponentTreeNode> get() = components.flatMap(SdkComponentTreeNode::childrenToInstall)
+  override val isEnabled: Boolean get() = components.any(SdkComponentTreeNode::isEnabled)
+  override val isChecked: Boolean get() = components.none (SdkComponentTreeNode::isChecked)
+  override val immediateChildren: Collection<SdkComponentTreeNode> get() = components
 
   override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }

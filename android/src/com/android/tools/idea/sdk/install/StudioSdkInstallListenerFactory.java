@@ -21,7 +21,7 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.installer.SdkInstallListenerFactory;
-import com.android.tools.idea.welcome.install.Aehd;
+import com.android.tools.idea.welcome.install.AehdSdkComponent;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +39,7 @@ public class StudioSdkInstallListenerFactory extends SdkInstallListenerFactory {
   public List<PackageOperation.StatusChangeListener> createListeners(@NotNull RepoPackage p) {
     List<PackageOperation.StatusChangeListener> result = super.createListeners(p);
     result.add(new VfsInstallListener());
-    if (p.getPath().equals(Aehd.InstallerInfo.getRepoPackagePath())) {
+    if (p.getPath().equals(AehdSdkComponent.InstallerInfo.getRepoPackagePath())) {
       result.add(new AehdInstallListener());
     }
     if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {

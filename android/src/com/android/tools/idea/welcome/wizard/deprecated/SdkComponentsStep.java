@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.getDiskSpace;
-
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.ComponentTreeNode;
-import com.android.tools.idea.welcome.wizard.ComponentsTableModel;
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
+import com.android.tools.idea.welcome.wizard.SdkComponentsRenderer;
+import com.android.tools.idea.welcome.wizard.SdkComponentsStepController;
+import com.android.tools.idea.welcome.wizard.SdkComponentsStepUtils;
+import com.android.tools.idea.welcome.wizard.SdkComponentsTableModel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
@@ -43,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @Deprecated
 public class SdkComponentsStep extends FirstRunWizardStep {
-  @NotNull private final ComponentTreeNode myRootNode;
+  @NotNull private final SdkComponentTreeNode myRootNode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   @NotNull private final ScopedStateStore.Key<String> mySdkDownloadPathKey;
 
@@ -51,7 +52,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @NotNull private final SdkComponentsStepController myController;
 
   public SdkComponentsStep(@Nullable Project project,
-                           @NotNull ComponentTreeNode rootNode,
+                           @NotNull SdkComponentTreeNode rootNode,
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
                            @NotNull FirstRunWizardMode mode,
@@ -65,7 +66,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myKeyCustomInstall = keyCustomInstall;
     mySdkDownloadPathKey = sdkDownloadPathKey;
 
-    ComponentsTableModel tableModel = new ComponentsTableModel(rootNode);
+    SdkComponentsTableModel tableModel = new SdkComponentsTableModel(rootNode);
     myForm.setTableModel(tableModel);
 
     myForm.setCellRenderer(new SdkComponentsRenderer(tableModel, myForm.getComponentsTable()) {
@@ -131,7 +132,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         myController.onPathUpdated(sdkPath, ModalityState.stateForComponent(myForm.getContents()));
       }
     }
-    myForm.setDiskSpace(getDiskSpace(myState.get(mySdkDownloadPathKey)));
+    myForm.setDiskSpace(SdkComponentsStepUtils.getDiskSpace(myState.get(mySdkDownloadPathKey)));
     myForm.setDownloadSize(myController.getComponentsSize());
   }
 

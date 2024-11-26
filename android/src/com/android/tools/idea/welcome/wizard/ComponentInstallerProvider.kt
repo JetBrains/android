@@ -16,12 +16,12 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.welcome.install.ComponentInstaller
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 
 class ComponentInstallerProvider {
 
-  fun getComponentInstaller(handler: AndroidSdkHandler): ComponentInstaller {
-    return ComponentInstaller(handler)
+  fun getComponentInstaller(handler: AndroidSdkHandler): SdkComponentInstaller {
+    return SdkComponentInstaller(handler)
   }
 
 }

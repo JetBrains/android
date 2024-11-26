@@ -32,9 +32,9 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 /**
  * Installs SDK components.
  */
-class ComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
+class SdkComponentInstaller(private val sdkHandler: AndroidSdkHandler) {
   @Throws(PackageResolutionException::class)
-  fun getPackagesToInstall(components: Iterable<InstallableComponent>): List<RemotePackage> {
+  fun getPackagesToInstall(components: Iterable<InstallableSdkComponentTreeNode>): List<RemotePackage> {
     // TODO: Prompt about connection in handoff case?
     val progress = StudioLoggerProgressIndicator(javaClass)
     val sdkManager = sdkHandler.getSdkManager(progress)

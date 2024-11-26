@@ -66,9 +66,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-/** Tests for {@link AndroidVirtualDevice}. */
+/** Tests for {@link AndroidVirtualDeviceSdkComponent}. */
 @RunsInEdt
-public final class AndroidVirtualDeviceTest {
+public final class AndroidVirtualDeviceSdkComponentTest {
   private static final String DEVICE_SKIN =  "1080x2400";
 
   private static Map<String, String> getReferenceMap() {
@@ -161,7 +161,7 @@ public final class AndroidVirtualDeviceTest {
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(34);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(ImmutableList.of(remotePlatform), true);
+    AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(remotePlatform), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNotNull();
     Map<String, String> properties = avdInfo.getProperties();
@@ -188,14 +188,14 @@ public final class AndroidVirtualDeviceTest {
   public void testNoAvdIsCreatedIfThereAreExistingOnes() throws Exception {
     createPlaceholderAvd();
 
-    AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(new AndroidVersion(34), true);
+    AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
     AvdInfo avdInfo = createAvdIfNeeded(avdCreator, sdkHandler);
     assertThat(avdInfo).isNull();
   }
 
   @Test
   public void testRequiredSysimgPath() {
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(new AndroidVersion(34), true);
+    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
 
     assertEquals("system-images;android-34;google_apis_playstore;x86_64", avd.getRequiredSysimgPath(false));
@@ -221,7 +221,7 @@ public final class AndroidVirtualDeviceTest {
     platformDetailsType.setExtensionLevel(3);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
 
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
+    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(baseRemotePlatform, remotePlatform), true);
     avd.sdkHandler = sdkHandler;
 
     // The selected image should be the base one.
@@ -231,7 +231,7 @@ public final class AndroidVirtualDeviceTest {
 
   @Test
   public void testSelectedByDefault() throws Exception {
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(ImmutableList.of(), true);
+    AndroidVirtualDeviceSdkComponent avd = new AndroidVirtualDeviceSdkComponent(ImmutableList.of(), true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
@@ -241,7 +241,7 @@ public final class AndroidVirtualDeviceTest {
     assertTrue(avd.isSelectedByDefault());
 
     // SDK installed, System image, but no AVD -> Selected by default
-    avd = new AndroidVirtualDevice(new AndroidVersion(34), true);
+    avd = new AndroidVirtualDeviceSdkComponent(new AndroidVersion(34), true);
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 
@@ -387,7 +387,7 @@ public final class AndroidVirtualDeviceTest {
   }
 
   private @Nullable AvdInfo createAvdIfNeeded(
-      @NotNull AndroidVirtualDevice avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
+    @NotNull AndroidVirtualDeviceSdkComponent avdCreator, @NotNull AndroidSdkHandler sdkHandler) throws Exception {
     if (!avdCreator.isAvdCreationNeeded(sdkHandler)) {
       return null;
     }

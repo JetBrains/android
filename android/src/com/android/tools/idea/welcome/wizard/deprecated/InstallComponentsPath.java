@@ -36,18 +36,18 @@ import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.AndroidSdk;
-import com.android.tools.idea.welcome.install.AndroidVirtualDevice;
+import com.android.tools.idea.welcome.install.AndroidSdkComponent;
+import com.android.tools.idea.welcome.install.AndroidVirtualDeviceSdkComponent;
 import com.android.tools.idea.welcome.install.CheckSdkOperation;
-import com.android.tools.idea.welcome.install.ComponentCategory;
-import com.android.tools.idea.welcome.install.ComponentInstaller;
-import com.android.tools.idea.welcome.install.ComponentTreeNode;
-import com.android.tools.idea.welcome.install.Aehd;
-import com.android.tools.idea.welcome.install.InstallComponentsOperation;
+import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
+import com.android.tools.idea.welcome.install.AehdSdkComponent;
+import com.android.tools.idea.welcome.install.InstallSdkComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
-import com.android.tools.idea.welcome.install.InstallableComponent;
+import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.Platform;
+import com.android.tools.idea.welcome.install.AndroidPlatformSdkComponent;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -80,7 +80,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   // This will be different from the actual handler, since this will change as and when we change the path in the UI.
   private final ObjectValueProperty<AndroidSdkHandler> myLocalHandlerProperty;
 
-  private ComponentTreeNode myComponentTree;
+  private SdkComponentTreeNode myComponentTree;
   private final ProgressStep myProgressStep;
   @NotNull private final ComponentInstallerProvider myComponentInstallerProvider;
   private final boolean myInstallUpdates;
@@ -102,34 +102,33 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myInstallUpdates = installUpdates;
   }
 
-  private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
-                                                boolean createAvd) {
-    List<ComponentTreeNode> components = new ArrayList<>();
-    components.add(new AndroidSdk(myInstallUpdates));
+  private SdkComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
+                                                   boolean createAvd) {
+    List<SdkComponentTreeNode> components = new ArrayList<>();
+    components.add(new AndroidSdkComponent(myInstallUpdates));
 
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
     RepoManager sdkManager = localHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance());
+
     Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
-    ComponentTreeNode platforms = Platform.Companion.createSubtree(remotePackages, myInstallUpdates);
-    if (platforms != null) {
-      components.add(platforms);
-    }
-    Aehd.InstallationIntention installationIntention =
-                                   myInstallUpdates ? Aehd.InstallationIntention.INSTALL_WITH_UPDATES
-                                                    : Aehd.InstallationIntention.INSTALL_WITHOUT_UPDATES;
-    if (reason == FirstRunWizardMode.NEW_INSTALL && Aehd.InstallerInfo.canRun()) {
-      components.add(new Aehd(installationIntention));
+    components.add(AndroidPlatformSdkComponent.Companion.createSubtree(remotePackages, myInstallUpdates));
+
+    AehdSdkComponent.InstallationIntention installationIntention =
+      myInstallUpdates ? AehdSdkComponent.InstallationIntention.INSTALL_WITH_UPDATES
+                                                    : AehdSdkComponent.InstallationIntention.INSTALL_WITHOUT_UPDATES;
+    if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponent.InstallerInfo.canRun()) {
+      components.add(new AehdSdkComponent(installationIntention));
     }
     if (createAvd) {
-      AndroidVirtualDevice avdCreator = new AndroidVirtualDevice(remotePackages, myInstallUpdates);
+      AndroidVirtualDeviceSdkComponent avdCreator = new AndroidVirtualDeviceSdkComponent(remotePackages, myInstallUpdates);
       if (avdCreator.isAvdCreationNeeded(localHandler)) {
         components.add(avdCreator);
       }
     }
-    return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
+    return new SdkComponentCategoryTreeNode("Root", "Root node that is not supposed to appear in the UI", components);
   }
 
   @Override
@@ -144,7 +143,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myComponentTree.updateState(localHandler);
 
     Supplier<Collection<RemotePackage>> supplier = () -> {
-      Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+      Iterable<InstallableSdkComponentTreeNode> components = myComponentTree.getChildrenToInstall();
       try {
         return myComponentInstallerProvider.getComponentInstaller(myLocalHandlerProperty.get()).getPackagesToInstall(components);
       }
@@ -277,9 +276,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
    * @param destination The directory to save the SDK components in
    */
   public static void installComponents(
-    Collection<? extends InstallableComponent> installableSdkComponents,
+    Collection<? extends InstallableSdkComponentTreeNode> installableSdkComponents,
     InstallContext installContext,
-    ComponentInstaller componentInstaller,
+    SdkComponentInstaller componentInstaller,
     @Nullable String installerTimestamp,
     ModalityState modalityState,
     AndroidSdkHandler localHandler,
@@ -290,8 +289,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
 
     final double INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0;
-    InstallComponentsOperation install =
-      new InstallComponentsOperation(installContext, installableSdkComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+    InstallSdkComponentsOperation install =
+      new InstallSdkComponentsOperation(installContext, installableSdkComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
 
     try {
       install
@@ -340,11 +339,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private static class ConfigureComponents implements Function<File, File> {
     private final InstallContext myInstallContext;
-    private final Collection<? extends InstallableComponent> mySelectedComponents;
+    private final Collection<? extends InstallableSdkComponentTreeNode> mySelectedComponents;
     private final AndroidSdkHandler mySdkHandler;
 
     ConfigureComponents(InstallContext installContext,
-                        Collection<? extends InstallableComponent> selectedComponents,
+                        Collection<? extends InstallableSdkComponentTreeNode> selectedComponents,
                         AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;
       mySelectedComponents = selectedComponents;
@@ -354,7 +353,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     @Override
     public File apply(@Nullable File input) {
       assert input != null;
-      for (InstallableComponent component : mySelectedComponents) {
+      for (InstallableSdkComponentTreeNode component : mySelectedComponents) {
         component.configure(myInstallContext, mySdkHandler);
       }
       return input;

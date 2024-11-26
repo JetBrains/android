@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
 import com.android.repository.api.ProgressIndicatorAdapter
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.google.common.annotations.VisibleForTesting
@@ -25,7 +24,7 @@ import com.google.common.annotations.VisibleForTesting
 /**
  * Android SDK installable component.
  */
-class AndroidSdk(installUpdates: Boolean) : InstallableComponent(
+class AndroidSdkComponent(installUpdates: Boolean) : InstallableSdkComponentTreeNode(
   "Android SDK", """
     The collection of Android platform APIs, tools and utilities that enables you to debug, profile, and compile your apps.
     The setup wizard will update your current Android SDK installation (if necessary) or install a new version.

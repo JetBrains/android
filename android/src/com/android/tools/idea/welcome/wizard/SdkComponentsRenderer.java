@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard.deprecated;
+package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.welcome.install.ComponentTreeNode;
-import com.android.tools.idea.welcome.wizard.ComponentsTableModel;
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -52,10 +51,10 @@ public abstract class SdkComponentsRenderer extends AbstractCellEditor implement
   private final RendererCheckBox myCheckBox;
   private Border myEmptyBorder;
 
-  private final ComponentsTableModel myTableModel;
+  private final SdkComponentsTableModel myTableModel;
   private final JBTable myComponentsTable;
 
-  public SdkComponentsRenderer(ComponentsTableModel tableModel, JBTable componentsTable) {
+  public SdkComponentsRenderer(SdkComponentsTableModel tableModel, JBTable componentsTable) {
     myTableModel = tableModel;
     myComponentsTable = componentsTable;
 
@@ -104,10 +103,10 @@ public abstract class SdkComponentsRenderer extends AbstractCellEditor implement
     myCheckBox.setForeground(foreground);
     myPanel.remove(myCheckBox);
     //noinspection unchecked
-    Pair<ComponentTreeNode, Integer> pair = (Pair<ComponentTreeNode, Integer>)value;
+    Pair<SdkComponentTreeNode, Integer> pair = (Pair<SdkComponentTreeNode, Integer>)value;
     int indent = 0;
     if (pair != null) {
-      ComponentTreeNode node = pair.getFirst();
+      SdkComponentTreeNode node = pair.getFirst();
       myCheckBox.setEnabled(node.isEnabled());
       myCheckBox.setText(node.getLabel());
       myCheckBox.setSelected(node.isChecked());

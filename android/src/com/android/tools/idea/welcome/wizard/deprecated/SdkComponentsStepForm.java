@@ -16,7 +16,8 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.welcome.wizard.ComponentsTableModel;
+import com.android.tools.idea.welcome.wizard.SdkComponentsRenderer;
+import com.android.tools.idea.welcome.wizard.SdkComponentsTableModel;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
@@ -99,12 +100,12 @@ public class SdkComponentsStepForm implements Disposable {
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE));
   }
 
-  public void setTableModel(@NotNull ComponentsTableModel componentsTableModel) {
-    myComponentsTable.setModel(componentsTableModel);
+  public void setTableModel(@NotNull SdkComponentsTableModel sdkComponentsTableModel) {
+    myComponentsTable.setModel(sdkComponentsTableModel);
     myComponentsTable.setTableHeader(null);
     myComponentsTable.getSelectionModel().addListSelectionListener(e -> {
       int row = myComponentsTable.getSelectedRow();
-      myComponentDescription.setText(row < 0 ? "" : componentsTableModel.getComponentDescription(row));
+      myComponentDescription.setText(row < 0 ? "" : sdkComponentsTableModel.getComponentDescription(row));
     });
   }
 

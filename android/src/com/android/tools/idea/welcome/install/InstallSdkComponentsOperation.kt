@@ -26,17 +26,17 @@ import java.io.File
 /**
  * Install or updates SDK components if needed.
  */
-class InstallComponentsOperation(
+class InstallSdkComponentsOperation(
   context: InstallContext,
-  private val components: Collection<InstallableComponent>,
-  private val componentInstaller: ComponentInstaller,
+  private val components: Collection<InstallableSdkComponentTreeNode>,
+  private val sdkComponentInstaller: SdkComponentInstaller,
   progressRatio: Double
 ) : InstallOperation<File, File>(context, progressRatio) {
   @Throws(WizardException::class)
   override fun perform(indicator: ProgressIndicator, argument: File): File {
     indicator.text = "Checking for updated SDK components"
     var packages: List<RemotePackage> = try {
-      componentInstaller.getPackagesToInstall(components)
+      sdkComponentInstaller.getPackagesToInstall(components)
     }
     catch (e: PackageResolutionException) {
       throw WizardException("Failed to determine required packages", e)
@@ -44,11 +44,11 @@ class InstallComponentsOperation(
     while (packages.isNotEmpty()) {
       indicator.fraction = 0.0
       val logger = SdkManagerProgressIndicatorIntegration(indicator, context)
-      componentInstaller.installPackages(packages, StudioDownloader(), logger)
+      sdkComponentInstaller.installPackages(packages, StudioDownloader(), logger)
       // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
       packages = try {
-        componentInstaller.getPackagesToInstall(components)
+        sdkComponentInstaller.getPackagesToInstall(components)
       }
       catch (e: PackageResolutionException) {
         throw WizardException("Failed to determine required packages", e)

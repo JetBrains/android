@@ -15,23 +15,30 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.Pair
 import javax.swing.table.AbstractTableModel
 
-class ComponentsTableModel(component: ComponentTreeNode) : AbstractTableModel() {
-  private val components: List<Pair<ComponentTreeNode, Int>>
+/**
+ * The [AbstractTableModel] corresponding to a list of SDK components [SdkComponentTreeNode].
+ * The tree is traversed using depth-first search and each component is added to the table as a new
+ * row. Only optional components, where `isEnabled=true` are editable.
+ *
+ * @param rootNode The children of this node are used to construct the table (the root is discarded)
+ */
+internal class SdkComponentsTableModel(rootNode: SdkComponentTreeNode) : AbstractTableModel() {
+  private val components: List<Pair<SdkComponentTreeNode, Int>>
 
   init {
-    val components = ImmutableList.builder<Pair<ComponentTreeNode, Int>>()
+    val components = ImmutableList.builder<Pair<SdkComponentTreeNode, Int>>()
     // Note that root component is not present in the table model so the tree appears to have multiple roots
-    traverse(component.immediateChildren, 0, components)
+    traverse(rootNode.immediateChildren, 0, components)
     this.components = components.build()
   }
 
   private fun traverse(
-    children: Collection<ComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<ComponentTreeNode, Int>>
+    children: Collection<SdkComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<SdkComponentTreeNode, Int>>
   ) {
     for (child in children) {
       components.add(Pair.create(child, indent))
@@ -47,7 +54,7 @@ class ComponentsTableModel(component: ComponentTreeNode) : AbstractTableModel() 
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any = components[rowIndex]
 
-  private fun getInstallableComponent(rowIndex: Int): ComponentTreeNode = components[rowIndex].getFirst()
+  private fun getInstallableComponent(rowIndex: Int): SdkComponentTreeNode = components[rowIndex].getFirst()
 
   override fun setValueAt(aValue: Any?, row: Int, column: Int) {
     val node = getInstallableComponent(row)

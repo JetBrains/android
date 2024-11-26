@@ -51,7 +51,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
-    val model = FirstRunModel(mode, initialSdkLocation.toPath(), componentInstallerProvider)
+    val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), componentInstallerProvider)
 
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
     val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, this@StudioFirstRunWelcomeScreen)

@@ -36,7 +36,7 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.InstallerData
 import com.android.tools.idea.welcome.config.installerData
-import com.android.tools.idea.welcome.install.ComponentInstaller
+import com.android.tools.idea.welcome.install.SdkComponentInstaller
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.welcome.wizard.deprecated.LinuxKvmInfoStepForm
 import com.google.common.truth.Truth.assertThat
@@ -408,7 +408,7 @@ class WelcomeScreenWizardTest {
 
   @Test
   fun progressStep_cancelInstallationAndFinish() {
-    val mockInstaller = mock(ComponentInstaller::class.java)
+    val mockInstaller = mock(SdkComponentInstaller::class.java)
     val remotePackage = createFakeRemotePackageWithLicense("platforms;android-35")
     whenever(mockInstaller.getPackagesToInstall(any())).thenReturn(listOf(remotePackage))
 

@@ -23,7 +23,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.ComponentInstallerProvider
-import com.android.tools.idea.welcome.wizard.FirstRunModel
+import com.android.tools.idea.welcome.wizard.FirstRunWizardModel
 import com.android.tools.idea.welcome.wizard.InstallComponentsProgressStep
 import com.android.tools.idea.welcome.wizard.InstallSummaryStep
 import com.android.tools.idea.welcome.wizard.SdkComponentsStep
@@ -123,7 +123,7 @@ class SetupSdkApplicationService : Disposable {
   }
 
   private fun showNewWizard(sdkPath: File, sdkUpdatedCallback: SdkUpdatedCallback?) {
-    val model = FirstRunModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), ComponentInstallerProvider())
+    val model = FirstRunWizardModel(FirstRunWizardMode.MISSING_SDK, sdkPath.toPath(), ComponentInstallerProvider())
 
     val supplier = model.getPackagesToInstallSupplier()
     val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)

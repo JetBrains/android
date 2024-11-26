@@ -25,16 +25,16 @@ import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.intellij.openapi.diagnostic.thisLogger
 
-private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent::class.java)
+private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableSdkComponentTreeNode::class.java)
 
 /**
  * Base class for leaf components (the ones that are immediately installed).
  */
-abstract class InstallableComponent(
+abstract class InstallableSdkComponentTreeNode(
   private val name: String,
   description: String,
   @JvmField protected val installUpdates: Boolean
-) : ComponentTreeNode(description) {
+) : SdkComponentTreeNode(description) {
   protected var willBeInstalled: BoolProperty = BoolValueProperty(true)
   private var userSelection: Boolean? = null // null means default component enablement is used
   private var isOptional = true
@@ -90,7 +90,7 @@ abstract class InstallableComponent(
 
   override var isEnabled: Boolean = isOptional
 
-  override val childrenToInstall: Collection<InstallableComponent>
+  override val childrenToInstall: Collection<InstallableSdkComponentTreeNode>
     get() = if (!willBeInstalled.get()) setOf() else setOf(this)
 
   override fun updateState(handler: AndroidSdkHandler) {
@@ -121,7 +121,7 @@ abstract class InstallableComponent(
     }
   }
 
-  override val immediateChildren: Collection<ComponentTreeNode> get() = emptySet()
+  override val immediateChildren: Collection<SdkComponentTreeNode> get() = emptySet()
 
   override val isChecked: Boolean get() = willBeInstalled.get()
 }

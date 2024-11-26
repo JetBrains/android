@@ -18,24 +18,24 @@ package com.android.tools.idea.welcome.install
 import com.android.sdklib.repository.AndroidSdkHandler
 
 /**
- * Component that may be installed by the first run wizard.
+ * The [TreeNode] representation of an SDK component that may be installed by the first run wizard.
  */
-abstract class ComponentTreeNode(val description: String) {
+abstract class SdkComponentTreeNode(val description: String) {
   companion object {
     @JvmStatic
-    fun someRequiredComponentsUnavailable(rootNode: ComponentTreeNode): Boolean {
-      return rootNode.allChildren.stream().anyMatch { node: ComponentTreeNode? ->
-        node is InstallableComponent &&
+    fun areAllRequiredComponentsAvailable(rootNode: SdkComponentTreeNode): Boolean {
+      return !rootNode.allChildren.stream().anyMatch { node: SdkComponentTreeNode? ->
+        node is InstallableSdkComponentTreeNode &&
         !node.unavailablePackages.isEmpty()
       }
     }
   }
 
   abstract val label: String
-  abstract val childrenToInstall: Collection<InstallableComponent>
+  abstract val childrenToInstall: Collection<InstallableSdkComponentTreeNode>
   abstract val isChecked: Boolean
-  abstract val immediateChildren: Collection<ComponentTreeNode>
-  val allChildren: Collection<ComponentTreeNode>
+  abstract val immediateChildren: Collection<SdkComponentTreeNode>
+  val allChildren: Collection<SdkComponentTreeNode>
     get() = listOf(this).plus(immediateChildren.flatMap { it.allChildren })
 
   abstract val isEnabled: Boolean

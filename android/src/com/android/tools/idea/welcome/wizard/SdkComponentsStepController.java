@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard.deprecated;
-
-import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.getTargetFilesystem;
-import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isExistingSdk;
-import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isNonEmptyNonSdk;
+package com.android.tools.idea.welcome.wizard;
 
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RepoManager;
@@ -30,8 +26,8 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.ComponentTreeNode;
-import com.android.tools.idea.welcome.install.InstallableComponent;
+import com.android.tools.idea.welcome.install.SdkComponentTreeNode;
+import com.android.tools.idea.welcome.install.InstallableSdkComponentTreeNode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -48,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class SdkComponentsStepController {
   private final @Nullable Project myProject;
   private final @NotNull FirstRunWizardMode myMode;
-  private final @NotNull ComponentTreeNode myRootNode;
+  private final @NotNull SdkComponentTreeNode myRootNode;
   private final @NotNull ObjectValueProperty<AndroidSdkHandler> myLocalSdkHandlerProperty;
 
   private boolean myUserEditedPath = false;
@@ -59,7 +55,7 @@ public abstract class SdkComponentsStepController {
   public SdkComponentsStepController(
     @Nullable Project project,
     @NotNull FirstRunWizardMode mode,
-    @NotNull ComponentTreeNode rootNode,
+    @NotNull SdkComponentTreeNode rootNode,
     @NotNull ObjectValueProperty<AndroidSdkHandler> localHandlerProperty
   ) {
     myProject = project;
@@ -99,17 +95,17 @@ public abstract class SdkComponentsStepController {
     @Nullable String message = ok ? null : mySdkDirectoryValidationResult.getMessage();
 
     if (ok) {
-      File filesystem = getTargetFilesystem(path);
+      File filesystem = SdkComponentsStepUtils.getTargetFilesystem(path);
 
       if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
         severity = Validator.Severity.ERROR;
         message = "Target drive does not have enough free space.";
       }
-      else if (isNonEmptyNonSdk(path)) {
+      else if (SdkComponentsStepUtils.isNonEmptyNonSdk(path)) {
         severity = Validator.Severity.WARNING;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
-      else if (isExistingSdk(path)) {
+      else if (SdkComponentsStepUtils.isExistingSdk(path)) {
         severity = Validator.Severity.WARNING;
         message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
       }
@@ -125,7 +121,7 @@ public abstract class SdkComponentsStepController {
 
   public long getComponentsSize() {
     long size = 0;
-    for (InstallableComponent component : myRootNode.getChildrenToInstall()) {
+    for (InstallableSdkComponentTreeNode component : myRootNode.getChildrenToInstall()) {
       size += component.getDownloadSize();
     }
     return size;
@@ -155,7 +151,7 @@ public abstract class SdkComponentsStepController {
   }
 
   public void warnIfRequiredComponentsUnavailable() {
-    if (ComponentTreeNode.someRequiredComponentsUnavailable(myRootNode)) {
+    if (!SdkComponentTreeNode.areAllRequiredComponentsAvailable(myRootNode)) {
       Messages.showWarningDialog(
         "Some required components are not available.\n" +
         "You can continue, but some functionality may not work correctly until they are installed.",
