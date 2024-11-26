@@ -52,15 +52,15 @@ import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidDslElement extends GradleDslBlockElement {
+public class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
-  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_APP =
-    new PropertiesElementDescription<>("androidApp", AndroidDslElement.class, AndroidDslElement::new);
+  public static final PropertiesElementDescription<DeclarativeAndroidDslElement> ANDROID_APP =
+    new PropertiesElementDescription<>("androidApp", DeclarativeAndroidDslElement.class, DeclarativeAndroidDslElement::new);
 
-  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_LIBRARY =
-    new PropertiesElementDescription<>("androidLibrary", AndroidDslElement.class, AndroidDslElement::new);
+  public static final PropertiesElementDescription<DeclarativeAndroidDslElement> ANDROID_LIBRARY =
+    new PropertiesElementDescription<>("androidLibrary", DeclarativeAndroidDslElement.class, DeclarativeAndroidDslElement::new);
 
   public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},

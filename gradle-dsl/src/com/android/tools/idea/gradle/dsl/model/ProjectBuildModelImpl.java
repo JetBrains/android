@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 
 import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
@@ -83,6 +85,30 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   public GradleBuildModel getModuleBuildModel(@NotNull File modulePath) {
     VirtualFile file = myBuildModelContext.getGradleBuildFile(modulePath);
     return file == null ? null : getModuleBuildModel(file);
+  }
+
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull Module module) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(module);
+    return file == null ? null : getDeclarativeModuleBuildModel(file);
+  }
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull  File modulePath) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(modulePath);
+    return file == null ? null : getDeclarativeModuleBuildModel(file);
+  }
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull VirtualFile file) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    if(!file.getName().equals(FN_BUILD_GRADLE_DECLARATIVE)) return null;
+
+    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
+    return new GradleDeclarativeBuildModelImpl(dslFile);
   }
 
   /**

@@ -172,7 +172,11 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
        }
      }
     """.trimIndent()
-    doTest(file, "") {
+    val expected = """
+      androidApp {
+      }
+    """.trimIndent()
+    doTest(file, expected) {
       val android = (elements.first().value as AndroidDslElement)
       val dependencies = (android.elements.first().value as DependenciesDslElement)
       val compile =  (dependencies.elements.first().value as GradleDslMethodCall)

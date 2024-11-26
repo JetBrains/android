@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
@@ -130,6 +131,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     // only from build file
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertNotNull(android)
+  }
+
+  @Test
+  fun testCreatingAndroidBlock() {
+    isIrrelevantForKotlinScript("Only one android block")
+    isIrrelevantForGroovy("Only one android block")
+    writeToBuildFile(TestFile.EMPTY_FILE)
+    val buildModel = gradleDeclarativeBuildModel
+    assertThat(buildModel.existingAndroidElement()).isNull()
+    buildModel.createAndroidElement(AndroidDeclarativeType.APPLICATION)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile,
+                       """
+                         //
+                         androidApp{
+                         }
+                       """.trimIndent())
   }
 
   @Test
@@ -1262,7 +1280,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     applyChanges(buildModel)
-    verifyFileContents(myBuildFile, "")
+    verifyFileContents(myBuildFile, if(isGradleDeclarative) "androidApp{\n}" else "")
 
     assertMissingProperty(android.defaultConfig().applicationId())
     checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
@@ -2387,6 +2405,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
+    EMPTY_FILE("emptyFile"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
