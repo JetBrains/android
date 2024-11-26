@@ -1072,6 +1072,28 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals(".five", buildTypes[4].applicationIdSuffix())
   }
 
+  @Test
+  fun testParseVariedConfiguratorBuildTypeStatements() {
+    isIrrelevantForGroovy("Configurator methods not yet supported")
+    writeToBuildFile(TestFile.PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_STATEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val buildTypes = android.buildTypes()
+    assertSize(5, buildTypes)
+    assertEquals("release", buildTypes[0].name())
+    assertEquals(".one", buildTypes[0].applicationIdSuffix())
+    assertEquals("debug", buildTypes[1].name())
+    assertEquals(".two", buildTypes[1].applicationIdSuffix())
+    assertEquals("one", buildTypes[2].name())
+    assertEquals(".three", buildTypes[2].applicationIdSuffix())
+    assertEquals("two", buildTypes[3].name())
+    assertEquals(".four", buildTypes[3].applicationIdSuffix())
+    assertEquals("three", buildTypes[4].name())
+    assertEquals(".five", buildTypes[4].applicationIdSuffix())
+  }
+
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
@@ -2361,6 +2383,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED("addAndApplyDefaultConfigBlockExpected"),
     PARSE_VARIED_SYNTAX_BUILD_TYPE_BLOCKS("parseVariedSyntaxBuildTypeBlocks"),
     PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_BLOCKS("parseVariedConfiguratorBuildTypeBlocks"),
+    PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_STATEMENTS("parseVariedConfiguratorBuildTypeStatements"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK("addAndApplyBuildTypeBlock"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyBuildTypeBlockExpected"),
     ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDerefBuildTypeBlockExpected"),
