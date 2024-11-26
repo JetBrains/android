@@ -19,6 +19,8 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiModifierListOwner
+import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.utils.ifEmpty
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -112,10 +114,10 @@ class AnnotationsGraph<S, T>(
   /**
    * DFS to traverse the annotations graph using the given [sourceElements] as starting points.
    *
-   * @param annotationFilter: function used to decide which edges of the graph to use during the
+   * @param annotationFilter function used to decide which edges of the graph to use during the
    *   traversal. It should return true for the edges ([UElement] --annotated_with--> [UAnnotation])
    *   that should be traversed.
-   * @param isLeafAnnotation: function used to identify "leaf" annotations during the traversal. It
+   * @param isLeafAnnotation function used to identify "leaf" annotations during the traversal. It
    *   should return true for the [UAnnotation]s that are considered "leaf" annotations. Such
    *   annotations could be visited multiple times, but the DFS won't traverse through them.
    */
@@ -124,76 +126,95 @@ class AnnotationsGraph<S, T>(
     annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
     isLeafAnnotation: (UAnnotation) -> Boolean = { false },
   ): Sequence<T> {
-    val visitedAnnotationClasses: MutableMap<String?, NodeInfo<S>> = mutableMapOf()
+    val visitedAnnotationClasses: MutableMap<String, NodeInfo<S>> = mutableMapOf()
 
-    return sequence {
-        yield(
-          sourceElements.asSequence().flatMap {
-            it.traverse(visitedAnnotationClasses, annotationFilter, isLeafAnnotation, parent = null)
-          }
-        )
-      }
-      .flatten()
+    return sourceElements.asSequence().flatMap {
+      iterativeDfs(it, visitedAnnotationClasses, annotationFilter, isLeafAnnotation)
+    }
   }
 
-  private fun UElement.traverse(
-    visitedAnnotationClasses: MutableMap<String?, NodeInfo<S>>,
+  /** Iterative DFS implementation, to avoid stack overflow related problems for big graphs. */
+  private fun iterativeDfs(
+    rootElement: UElement,
+    visitedAnnotationClasses: MutableMap<String, NodeInfo<S>>,
     annotationFilter: (UElement, UAnnotation) -> Boolean,
     isLeafAnnotation: (UAnnotation) -> Boolean,
-    parent: NodeInfo<S>?,
-  ): Sequence<T> {
-    val curNode = nodeInfoFactory.create(parent, this)
-    parent?.onBeforeChildTraversal(curNode)
-    // If `this` is an annotation, then mark it as visited by adding its fqcn to the map.
-    // Note that the annotation class corresponding to leaf annotations could be visited
-    // multiple times, and in such cases the value for the given annotation class will be
-    // overwritten every time.
-    if (this is UAnnotation) {
-      runReadAction { this.qualifiedName }
-        .let {
-          visitedAnnotationClasses[it] = curNode
-          // Log any unexpected null name. This could make the traversal to filter out some
-          // annotations later if another null name happens
-          if (it == null) logger.warn("Failed to resolve annotation qualified name")
+  ): Sequence<T> = sequence {
+    val stack = mutableListOf(DfsNode(parentInfo = null, rootElement))
+    while (stack.isNotEmpty()) {
+      val node = stack.pop()
+      if (node.status == DfsNodeStatus.PROCESSED) {
+        yieldAll(
+          resultFactory.create(node.nodeInfo).also {
+            node.parentInfo?.onAfterChildTraversal(node.nodeInfo)
+          }
+        )
+        continue
+      }
+
+      val annotationName =
+        (node.element as? UAnnotation)?.let {
+          // Log any unexpected null name as this could cause problems in the DFS.
+          runReadAction { it.qualifiedName }
+            .also { if (it == null) logger.warn("Failed to resolve annotation qualified name") }
+        }
+
+      // Skip already visited annotations
+      if (annotationName != null && visitedAnnotationClasses.containsKey(annotationName)) {
+        node.parentInfo?.onSkippedChildTraversal(visitedAnnotationClasses[annotationName]!!)
+        continue
+      }
+
+      // Process the node and schedule its UP for after its children
+      node.process()
+      stack.push(node)
+
+      // Leaf annotations don't have children and could be visited multiple times, so they should
+      // not even be marked as visited.
+      if ((node.element as? UAnnotation)?.let { isLeafAnnotation(it) } == true) {
+        continue
+      }
+
+      // Mark current annotation as visited
+      annotationName?.let { visitedAnnotationClasses[it] = node.nodeInfo }
+
+      // Non-leaf annotations go down to its children annotations
+      val annotations = node.element.getUAnnotations()
+      annotations
+        .filter { annotationFilter(node.element, it) }
+        .reversed() // reversed to keep correct order in the stack
+        .forEach { annotation ->
+          stack.push(DfsNode(parentInfo = node.nodeInfo, element = annotation))
         }
     }
+  }
 
-    val result: Sequence<T>
-    if ((this is UAnnotation) && isLeafAnnotation(this)) {
-      result = resultFactory.create(curNode).also { parent?.onAfterChildTraversal(curNode) }
-    } else {
-      val annotations = this.getUAnnotations()
-      result =
-        sequence {
-            yield(
-              annotations
-                .asSequence()
-                .filter { annotationFilter(this@traverse, it) }
-                .map { it to runReadAction { it.qualifiedName } }
-                .flatMap { (annotation, name) ->
-                  if (
-                    (isLeafAnnotation(annotation) || !visitedAnnotationClasses.containsKey(name))
-                  ) {
-                    annotation.traverse(
-                      visitedAnnotationClasses,
-                      annotationFilter,
-                      isLeafAnnotation,
-                      curNode,
-                    )
-                  } else {
-                    emptySequence<T>().also { _ ->
-                      curNode.onSkippedChildTraversal(visitedAnnotationClasses[name]!!)
-                    }
-                  }
-                }
-            )
+  /** Helper class used for iterative DFS implementation. */
+  private inner class DfsNode(val parentInfo: NodeInfo<S>?, val element: UElement) {
+    var status: DfsNodeStatus = DfsNodeStatus.TO_PROCESS
+      private set
 
-            yield(resultFactory.create(curNode).also { parent?.onAfterChildTraversal(curNode) })
-          }
-          .flatten()
+    lateinit var nodeInfo: NodeInfo<S>
+
+    fun process() {
+      assert(status == DfsNodeStatus.TO_PROCESS)
+      nodeInfo = nodeInfoFactory.create(parentInfo, element)
+      parentInfo?.onBeforeChildTraversal(nodeInfo)
+      status = DfsNodeStatus.PROCESSED
     }
+  }
 
-    return result
+  private enum class DfsNodeStatus {
+    /**
+     * Indicates that a node hasn't been processed yet, and still needs to traverse its children.
+     */
+    TO_PROCESS,
+
+    /**
+     * Indicates that a node has been processed, and should go up once all its children are
+     * processed.
+     */
+    PROCESSED,
   }
 }
 

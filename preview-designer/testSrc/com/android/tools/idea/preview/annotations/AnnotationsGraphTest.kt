@@ -18,7 +18,10 @@ package com.android.tools.idea.preview.annotations
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
+import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -360,6 +363,132 @@ class AnnotationsGraphTest {
       assertEquals(4, edgesResult.treeEdgesCount)
       assertEquals(1, edgesResult.backEdgesCount)
       assertEquals(1, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
+    }
+
+  // Stress test intended to catch any significant performance regression.
+  @Test
+  fun testPerformanceDeepTree() =
+    runBlocking<Unit> {
+      // Graph illustration:
+      // rootMethod --> 1 --> 2 --> 3 --> ... --> 10.000
+      val nodesCount = 1e4.toInt()
+      val fileContent = buildString {
+        repeat(nodesCount) {
+          if (it == 0) {
+            appendLine("@node1")
+            appendLine("fun rootMethod(){}")
+          } else {
+            appendLine("")
+            if (it + 1 < nodesCount) appendLine("@node${it+1}")
+            appendLine("annotation class node$it")
+          }
+        }
+      }
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node1").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult =
+        withTimeout(15.seconds) { annotationsGraph.traverse(listOf(rootMethod)).toList() }
+      // Results are computed in post-order
+      assertEquals(
+        List(nodesCount - 1) { "${(nodesCount - it - 1)}" },
+        traverseResult.filterIsInstance<String>(),
+      )
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(nodesCount - 1, edgesResult.treeEdgesCount)
+      assertEquals(0, edgesResult.backEdgesCount)
+      assertEquals(0, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
+    }
+
+  // Stress test intended to catch any significant performance regression.
+  @Test
+  fun testPerformanceStarTree() =
+    runBlocking<Unit> {
+      // Graph illustration:
+      // rootMethod --> 1
+      //           '--> 2
+      //           '--> 3
+      //           ...
+      //           '--> 10.000
+      val nodesCount = 1e4.toInt()
+      val fileContent = buildString {
+        repeat(nodesCount) { i ->
+          if (i == 0) {
+            repeat(nodesCount - 1) { j -> appendLine("@node${j + 1}") }
+            appendLine("fun rootMethod(){}")
+          } else {
+            appendLine("")
+            appendLine("annotation class node$i")
+          }
+        }
+      }
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node1").single().let {
+          it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+        }!!
+      }
+      val traverseResult =
+        withTimeout(15.seconds) { annotationsGraph.traverse(listOf(rootMethod)).toList() }
+      // Results are computed in post-order
+      assertEquals(
+        List(nodesCount - 1) { "${(it + 1)}" },
+        traverseResult.filterIsInstance<String>(),
+      )
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(nodesCount - 1, edgesResult.treeEdgesCount)
+      assertEquals(0, edgesResult.backEdgesCount)
+      assertEquals(0, edgesResult.forwardEdgesCount)
+      assertEquals(0, edgesResult.crossEdgesCount)
+    }
+
+  // Stress test intended to catch any significant performance regression.
+  //
+  // Dfs tree of the traversal will look like the DeepTree test above, but shorter, and the rest of
+  // the edges will be back and forward edges, half each.
+  @Test
+  fun testPerformanceCompleteGraph() =
+    runBlocking<Unit> {
+      // Graph illustration: https://en.wikipedia.org/wiki/Complete_graph
+      // Number of edges will be O(nodesCount^2), that's why square root is used here
+      val nodesCount = sqrt(1e4).toInt()
+      // # edges = all pairs of annotation classes in both directions + fun to every annotation
+      // class
+      val totalEdges = (nodesCount - 1) * (nodesCount - 2) + nodesCount - 1
+      val fileContent = buildString {
+        repeat(nodesCount) { i ->
+          appendLine("")
+          repeat(nodesCount) { j -> if (j > 0 && i != j) appendLine("@node$j") }
+          if (i == 0) {
+            appendLine("fun rootMethod(){}")
+          } else {
+            appendLine("annotation class node$i")
+          }
+        }
+      }
+      val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+      val rootMethod = runReadAction {
+        findAnnotations(project, psiFile.virtualFile, "node1")
+          .mapNotNull { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }
+          .single()
+      }
+      val traverseResult =
+        withTimeout(15.seconds) { annotationsGraph.traverse(listOf(rootMethod)).toList() }
+      // Results are computed in post-order
+      assertEquals(
+        List(nodesCount - 1) { "${(nodesCount - it - 1)}" },
+        traverseResult.filterIsInstance<String>(),
+      )
+      val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
+      assertEquals(nodesCount - 1, edgesResult.treeEdgesCount)
+      val nonTreeEdges = totalEdges - edgesResult.treeEdgesCount
+      assertEquals(nonTreeEdges / 2, edgesResult.backEdgesCount)
+      assertEquals(nonTreeEdges / 2, edgesResult.forwardEdgesCount)
       assertEquals(0, edgesResult.crossEdgesCount)
     }
 }
