@@ -39,7 +39,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
     ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
 
   override fun isConfigurationFromContext(configuration: T, context: ConfigurationContext): Boolean {
-    val serviceName = context.psiLocation.getPsiClass()?.qualifiedName
+    val serviceName = context.psiLocation.getClassQualifiedName()
     return configuration.componentLaunchOptions.componentName == serviceName
   }
 
@@ -50,7 +50,7 @@ abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>
     if (psiClass == null || !isValidService(psiClass)) {
       return false
     }
-    val serviceName = psiClass.qualifiedName ?: return false
+    val serviceName = context.psiLocation.getClassQualifiedName() ?: return false
     val module = context.module?.getModuleSystem()?.getHolderModule() ?: return false
 
     configuration.name = JavaExecutionUtil.getPresentableClassName(serviceName)!!

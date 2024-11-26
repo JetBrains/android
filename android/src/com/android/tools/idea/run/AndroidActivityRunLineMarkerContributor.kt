@@ -16,6 +16,7 @@
 package com.android.tools.idea.run
 
 import com.android.SdkConstants
+import com.android.tools.idea.run.configuration.getClassQualifiedName
 import com.android.tools.idea.run.configuration.getPsiClass
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.JavaExecutionUtil
@@ -43,7 +44,7 @@ class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
 
     val psiClass = e.getPsiClass() ?: return null
     if (psiClass.isAndroidActivitySubclass()) {
-      val activityName = psiClass.name ?: return null
+      val activityName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
         AndroidBundle.message(
           "android.run.configuration.run",
