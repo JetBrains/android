@@ -18,13 +18,11 @@ package com.android.tools.idea.wear.preview
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.buildParameterName
-import com.android.tools.idea.preview.buildPreviewName
-import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -215,25 +213,13 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
     annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
   }
   val methodName = readAction { uMethod.name }
-  val parentDirectPreviewChildrenCount =
-    (parent?.element as? UAnnotation)?.directPreviewChildrenCount(
-      UElement?::isWearTilePreviewAnnotation
-    ) ?: 0
+  val nameHelper =
+    AnnotationPreviewNameHelper.create(this, methodName, UElement?::isWearTilePreviewAnnotation)
   val displaySettings =
     PreviewDisplaySettings(
-      buildPreviewName(
-        methodName = methodName,
-        nameParameter = name,
-        isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
-        parentDirectPreviewChildrenCount = parentDirectPreviewChildrenCount,
-      ),
+      name = nameHelper.buildPreviewName(name),
       baseName = methodName,
-      parameterName =
-        buildParameterName(
-          nameParameter = name,
-          isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
-          parentDirectPreviewChildrenCount = parentDirectPreviewChildrenCount,
-        ),
+      parameterName = nameHelper.buildParameterName(name),
       group = group,
       showDecoration = false,
       showBackground = true,

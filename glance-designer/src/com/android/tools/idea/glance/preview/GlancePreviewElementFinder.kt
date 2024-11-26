@@ -18,15 +18,13 @@ package com.android.tools.idea.glance.preview
 import com.android.annotations.concurrency.Slow
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
+import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
-import com.android.tools.idea.preview.buildParameterName
-import com.android.tools.idea.preview.buildPreviewName
-import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
@@ -72,24 +70,13 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
 
   val uClass = uMethod.uastParent as UClass
   val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
-  val parentDirectPreviewChildrenCount =
-    (parent?.element as? UAnnotation)?.directPreviewChildrenCount(
-      UElement?::isGlancePreviewAnnotation
-    ) ?: 0
+  val nameHelper =
+    AnnotationPreviewNameHelper.create(this, uMethod.name, UElement?::isGlancePreviewAnnotation)
   val displaySettings =
     PreviewDisplaySettings(
-      buildPreviewName(
-        uMethod.name,
-        nameParameter = null,
-        UElement?::isGlancePreviewAnnotation,
-        parentDirectPreviewChildrenCount,
-      ),
+      nameHelper.buildPreviewName(),
       uMethod.name,
-      buildParameterName(
-        null,
-        UElement?::isGlancePreviewAnnotation,
-        parentDirectPreviewChildrenCount,
-      ),
+      nameHelper.buildParameterName(),
       null,
       false,
       false,

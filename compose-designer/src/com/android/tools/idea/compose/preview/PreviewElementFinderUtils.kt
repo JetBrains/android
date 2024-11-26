@@ -22,14 +22,13 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
+import com.android.tools.idea.preview.AnnotationPreviewNameHelper
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.annotations.getUAnnotations
 import com.android.tools.idea.preview.annotations.isAnnotatedWith
-import com.android.tools.idea.preview.buildParameterName
-import com.android.tools.idea.preview.buildPreviewName
 import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
@@ -209,9 +208,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod = UastAnnotatedMethod(composableMethod)
-  val parentDirectPreviewChildrenCount =
-    (parent?.element as? UAnnotation)?.directPreviewChildrenCount(UElement?::isPreviewAnnotation)
-      ?: 0
+  val nameHelper =
+    AnnotationPreviewNameHelper.create(this, annotatedMethod.name, UElement?::isPreviewAnnotation)
   // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
   // read lock
   return readAction {
@@ -221,21 +219,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
       previewElementDefinitionPsi,
       ::StudioParametrizedComposePreviewElementTemplate,
       overrideGroupName,
-      buildPreviewName = { nameParameter ->
-        this.buildPreviewName(
-          annotatedMethod.name,
-          nameParameter,
-          UElement?::isPreviewAnnotation,
-          parentDirectPreviewChildrenCount,
-        )
-      },
-      buildParameterName = { nameParameter ->
-        this.buildParameterName(
-          nameParameter,
-          UElement?::isPreviewAnnotation,
-          parentDirectPreviewChildrenCount,
-        )
-      },
+      buildPreviewName = nameHelper::buildPreviewName,
+      buildParameterName = nameHelper::buildParameterName,
     )
   }
 }
