@@ -74,7 +74,7 @@ class AdditionalSettingsPanelTest {
 
     // Act
     rule.onNodeWithTag("DeviceSkinDropdown").performClick()
-    rule.onNodeWithText("No Skin").performClick()
+    rule.onNodeWithText("[None]").performClick()
 
     // Assert
     assertThat(state.device).isEqualTo(device.copy(skin = NoSkin.INSTANCE))
