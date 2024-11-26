@@ -20,7 +20,13 @@ import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.InheritanceUtil
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 
 object WearBaseClasses {
@@ -32,11 +38,30 @@ object WearBaseClasses {
 internal val Executor.isDebug: Boolean
   get() = DefaultDebugExecutor.EXECUTOR_ID == this.id
 
-internal fun PsiElement?.getPsiClass(): PsiClass? {
-  return when (val parent = this?.parent) {
-    is KtClass -> parent.toLightClass()
-    is PsiClass -> parent
-    else -> null
+@OptIn(KaAllowAnalysisOnEdt::class)
+internal fun PsiElement?.isSubtypeOf(baseClassName: String): Boolean {
+  return when (this) {
+    is KtClass -> {
+      val ktClass = this
+      if (KotlinPluginModeProvider.isK2Mode()) {
+        allowAnalysisOnEdt {
+          analyze(ktClass) {
+            val symbol = ktClass.classSymbol ?: return false
+            val type = buildClassType(symbol)
+            // android.app.Activity -> android/app/Activity
+            val classId = ClassId.fromString(baseClassName.replace(".", "/"), isLocal = false)
+            val superType = buildClassType(classId)
+            type.isSubtypeOf(superType)
+          }
+        }
+      } else {
+        ktClass.toLightClass()?.let { ulc ->
+          InheritanceUtil.isInheritor(ulc, baseClassName)
+        } == true
+      }
+    }
+    is PsiClass -> InheritanceUtil.isInheritor(this, baseClassName)
+    else -> false
   }
 }
 

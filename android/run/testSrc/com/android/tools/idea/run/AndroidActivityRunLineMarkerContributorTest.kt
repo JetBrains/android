@@ -35,11 +35,11 @@ class AndroidActivityRunLineMarkerContributorTest {
   fun setUp() {
     // Simulate the existence of android.app.Activity
     projectRule.fixture.addFileToProject(
-      "src/android/app/Activity.java",
+      "src/android/app/Activity.kt",
       """
       package android.app
 
-      class Activity {}
+      open class Activity {}
       """
         .trimIndent()
     )
