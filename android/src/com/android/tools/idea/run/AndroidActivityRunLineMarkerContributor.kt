@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.SdkConstants
 import com.android.tools.idea.run.configuration.getPsiClass
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
@@ -37,6 +38,8 @@ class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
     if (!e.isClassToken()) {
       return null
     }
+
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(e.project)) return null
 
     val psiClass = e.getPsiClass() ?: return null
     if (psiClass.isAndroidActivitySubclass()) {
