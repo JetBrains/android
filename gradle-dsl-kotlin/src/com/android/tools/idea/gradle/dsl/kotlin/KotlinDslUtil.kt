@@ -106,8 +106,8 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 
 internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
-  val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isDomainObjectConfiguratorMethodName(this.name()) } ?: false
+  val argumentsList = valueArgumentList?.arguments
+  val namedDomainBlockReference = parent is GradleDslNamedDomainContainer && argumentsList?.let { it.size == 1 && isDomainObjectConfiguratorMethodName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
