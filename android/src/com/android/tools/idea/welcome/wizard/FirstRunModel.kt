@@ -29,13 +29,14 @@ import com.android.tools.idea.welcome.install.AndroidSdk
 import com.android.tools.idea.welcome.install.AndroidVirtualDevice
 import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.welcome.install.FirstRunWizardDefaults.getInitialSdkLocation
 import com.android.tools.idea.welcome.install.Platform
 import com.android.tools.idea.welcome.install.Aehd
-import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.model.WizardModel
 import java.io.File
+import java.nio.file.Path
 
 // Contains all the data which Studio should collect in the First Run Wizard
 class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
@@ -58,7 +59,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     false
   }
 
-  var localHandler: AndroidSdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
+  val localHandlerProperty: ObjectValueProperty<AndroidSdkHandler> = ObjectValueProperty(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath()))
+  val localHandler get() = localHandlerProperty.get()
+  val sdkInstallLocation: Path? get() = localHandler.location
 
   // FIXME (why always true?)
   /**
@@ -75,7 +78,6 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     componentTree.init(mockProgressStep)
     componentTree.updateState(localHandler)
   }
-
 
   private fun createComponentTree(createAvd: Boolean): ComponentTreeNode {
     val installUpdates = true // FIXME

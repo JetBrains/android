@@ -87,6 +87,10 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     myInstallRequests = installRequests;
   }
 
+  public void reload() {
+    setChanges(createChangesList());
+  }
+
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     createUI();
