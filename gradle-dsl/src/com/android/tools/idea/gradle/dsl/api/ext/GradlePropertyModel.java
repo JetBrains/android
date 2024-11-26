@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * This class represents a property or variable declared or referenced by the ExtraPropertiesExtension
@@ -297,6 +298,7 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
    * @return the value of the property as a List or null if no value exists or is of an incorrect type.
    */
   @Nullable
+  @Unmodifiable
   List<GradlePropertyModel> toList();
 
   /**

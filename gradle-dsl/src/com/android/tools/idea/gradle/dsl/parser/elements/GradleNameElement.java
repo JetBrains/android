@@ -24,13 +24,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class GradleNameElement {
   /**
@@ -138,6 +138,7 @@ public class GradleNameElement {
   }
 
   @NotNull
+  @Unmodifiable
   public List<String> fullNameParts() {
     String name = findName();
     if (name == null) {
@@ -147,11 +148,12 @@ public class GradleNameElement {
     return ContainerUtil.map(nameSegments, GradleNameElement::convertNameToKey);
   }
 
-  public static String createNameFromParts(@NotNull List<String> parts) {
+  public static String createNameFromParts(@NotNull @Unmodifiable List<String> parts) {
     return join(parts);
   }
 
   @NotNull
+  @Unmodifiable
   public List<String> qualifyingParts() {
     List<String> parts = fullNameParts();
     if (parts.isEmpty()) {
