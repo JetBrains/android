@@ -32,9 +32,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.adtui.compose.catchAndShowErrors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBUI
+import java.awt.Component
 import java.awt.Dimension
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -70,7 +72,10 @@ class ComposeWizard(
     get() = pageStack.last()
 
   private val wizardDialogScope =
-    object : WizardDialogScope {
+    object : InternalWizardDialogScope {
+      override val component: Component
+        get() = window
+
       override fun pushPage(page: @Composable WizardPageScope.() -> Unit) {
         pageStack.add(page)
       }
@@ -133,7 +138,7 @@ class ComposeWizard(
 
 @Composable
 internal fun WizardPageScope.WizardPageScaffold(
-  wizardDialogScope: WizardDialogScope,
+  wizardDialogScope: InternalWizardDialogScope,
   content: @Composable WizardPageScope.() -> Unit,
 ) {
   Column {
@@ -148,24 +153,21 @@ internal fun WizardPageScope.WizardPageScaffold(
 
 @Composable
 internal fun WizardPageScope.WizardButtonBar(
-  wizardDialogScope: WizardDialogScope,
+  wizardDialogScope: InternalWizardDialogScope,
   modifier: Modifier = Modifier,
 ) {
   with(wizardDialogScope) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
       for (button in leftSideButtons) {
-        OutlinedButton(onClick = { button.action.action?.let { it() } }) { Text(button.name) }
+        OutlinedButton(onClick = { with(button.action) { invoke() } }) { Text(button.name) }
       }
       Spacer(Modifier.weight(1f))
       OutlinedButton(onClick = { cancel() }) { Text("Cancel") }
       OutlinedButton(onClick = { popPage() }, enabled = pageStackSize() > 1) { Text("Previous") }
-      OutlinedButton(onClick = { nextAction.action?.let { it() } }, enabled = nextAction.enabled) {
+      OutlinedButton(onClick = { with(nextAction) { invoke() } }, enabled = nextAction.enabled) {
         Text("Next")
       }
-      DefaultButton(
-        onClick = { finishAction.action?.let { it() } },
-        enabled = finishAction.enabled,
-      ) {
+      DefaultButton(onClick = { with(finishAction) { invoke() } }, enabled = finishAction.enabled) {
         Text("Finish")
       }
     }
@@ -190,6 +192,11 @@ interface WizardDialogScope {
   fun cancel()
 }
 
+internal interface InternalWizardDialogScope : WizardDialogScope {
+  /** A component to use as the parent for showing modal dialogs. */
+  val component: Component
+}
+
 class WizardButton(name: String, action: WizardAction = WizardAction.Disabled) {
   var name by mutableStateOf(name)
   var action by mutableStateOf(action)
@@ -199,6 +206,10 @@ class WizardButton(name: String, action: WizardAction = WizardAction.Disabled) {
 class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
   val enabled: Boolean
     get() = action != null
+
+  internal fun InternalWizardDialogScope.invoke() {
+    catchAndShowErrors<ComposeWizard>(parent = component) { action?.invoke(this) }
+  }
 
   companion object {
     val Disabled = WizardAction(null)

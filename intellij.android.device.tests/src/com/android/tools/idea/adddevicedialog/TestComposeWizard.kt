@@ -20,14 +20,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import java.awt.Component
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
-  WizardDialogScope, WizardPageScope() {
+  InternalWizardDialogScope, WizardPageScope() {
 
   private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
 
@@ -37,6 +39,8 @@ class TestComposeWizard(initialPage: @Composable WizardPageScope.() -> Unit) :
       if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
     WizardPageScaffold(this, pageStack.last())
   }
+
+  override val component: Component = JPanel()
 
   override fun pushPage(page: @Composable WizardPageScope.() -> Unit) {
     pageStack.add(page)

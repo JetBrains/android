@@ -26,11 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.DeviceSystemImageMatcher
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.adtui.compose.catchAndShowErrors
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
@@ -40,12 +42,15 @@ import com.android.tools.idea.adddevicedialog.WizardDialogScope
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.MessageDialogBuilder
-import com.intellij.openapi.ui.Messages
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import java.awt.Component
 import java.nio.file.FileSystem
 import java.nio.file.Files
@@ -56,6 +61,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
@@ -81,7 +87,7 @@ internal fun WizardPageScope.ConfigurationPage(
   skins: ImmutableCollection<Skin>,
   deviceNameValidator: DeviceNameValidator,
   sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
-  finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+  finish: @UiThread suspend (VirtualDevice, ISystemImage) -> Boolean,
 ) {
   val systemImageState by systemImageStateFlow.collectAsState()
 
@@ -142,6 +148,7 @@ internal fun WizardPageScope.ConfigurationPage(
   @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
   val coroutineScope = rememberCoroutineScope()
+  val component = LocalComponent.current
 
   Column {
     if (!state.validity.isPreferredAbiValid) {
@@ -168,16 +175,22 @@ internal fun WizardPageScope.ConfigurationPage(
   finishAction =
     if (state.isValid) {
       WizardAction {
-        coroutineScope.launch {
+        runWithModalProgressBlocking(
+          ModalTaskOwner.component(component),
+          "Creating AVD",
+          TaskCancellation.nonCancellable(),
+        ) {
           state.resetPlayStoreFields(resolveDefaultSkin(state.device, sdkHandler, fileSystem))
 
-          finish(
-            state.device,
-            state.systemImageTableSelectionState.selection!!,
-            parent,
-            finish,
-            sdkHandler,
-          )
+          withContext(AndroidDispatchers.uiThread) {
+            finish(
+              state.device,
+              state.systemImageTableSelectionState.selection!!,
+              parent,
+              finish,
+              sdkHandler,
+            )
+          }
         }
       }
     } else {
@@ -220,21 +233,18 @@ private suspend fun WizardDialogScope.finish(
   device: VirtualDevice,
   image: ISystemImage,
   parent: Component,
-  finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+  finish: @UiThread suspend (VirtualDevice, ISystemImage) -> Boolean,
   sdkHandler: AndroidSdkHandler,
 ) {
   if (ensureSystemImageIsPresent(image, parent)) {
-    try {
+    catchAndShowErrors<AvdConfigurationPage>(
+      parent,
+      message = "An error occurred while creating the AVD. See idea.log for details.",
+      title = "Error Creating AVD",
+    ) {
       if (finish(device, sdkHandler.toLocalImage(image))) {
         close()
       }
-    } catch (e: Exception) {
-      logger<LocalVirtualDeviceSource>().error(e)
-      Messages.showErrorDialog(
-        parent,
-        "An error occurred while creating the AVD. See idea.log for details.",
-        "Error Creating AVD",
-      )
     }
   }
 }
@@ -245,6 +255,7 @@ private suspend fun WizardDialogScope.finish(
  * @return true if the system image is present (either because it was already there or it was
  *   downloaded successfully).
  */
+@UiThread
 private fun ensureSystemImageIsPresent(image: ISystemImage, parent: Component): Boolean {
   if (image is RemoteSystemImage) {
     val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
@@ -275,15 +286,22 @@ private fun AndroidSdkHandler.toLocalImage(image: ISystemImage): ISystemImage {
   return images.first()
 }
 
+@UiThread
 private fun downloadSystemImage(parent: Component, path: String): Boolean {
-  val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
+  catchAndShowErrors<AvdConfigurationPage>(
+    parent = parent,
+    message = "An unexpected error occurred downloading the system image. See idea.log for details.",
+  ) {
+    val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
 
-  if (dialog == null) {
-    logger<AvdConfigurationPage>().warn("Could not create the SDK Quickfix Installation dialog")
-    return false
+    if (dialog == null) {
+      logger<AvdConfigurationPage>().warn("Could not create the SDK Quickfix Installation dialog")
+      return false
+    }
+
+    return dialog.showAndGet()
   }
-
-  return dialog.showAndGet()
+  return false
 }
 
 object AvdConfigurationPage
