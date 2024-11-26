@@ -22,10 +22,10 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.GradleProjectSystemBundle
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -340,28 +340,8 @@ class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErro
   override val description: String = GradleProjectSystemBundle.message("studiobot.ask.text")
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val geminiPluginApi = GeminiPluginApi.getInstance()
-    geminiPluginApi.sendChatQueryIfContextAllowed(project, gradleErrorContext, gradleErrorContext.toGeminiApiRequestSource())
+    val studioBotQuickFixProvider = StudioBotQuickFixProvider.getInstance()
+    studioBotQuickFixProvider.askGemini(gradleErrorContext, project)
     return CompletableFuture.completedFuture(null)
-  }
-}
-
-fun GradleErrorContext.toGeminiApiRequestSource(): GeminiPluginApi.RequestSource =
-  when (source) {
-    GradleErrorContext.Source.BUILD -> GeminiPluginApi.RequestSource.BUILD
-    GradleErrorContext.Source.SYNC -> GeminiPluginApi.RequestSource.SYNC
-    null -> GeminiPluginApi.RequestSource.OTHER
-  }
-
-/** Sends chat query if context is allowed, otherwise stages it. */
-fun GeminiPluginApi.sendChatQueryIfContextAllowed(
-  project: Project,
-  gradleErrorContext: GradleErrorContext,
-  requestSource: GeminiPluginApi.RequestSource,
-) {
-  if (isContextAllowed(project)) {
-    sendChatQuery(project, gradleErrorContext.toPrompt(project), null, requestSource)
-  } else {
-    stageChatQuery(project, gradleErrorContext.toQuery(), requestSource)
   }
 }

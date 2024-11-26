@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -111,16 +111,12 @@ class BuildOutputParsersIntegrationTest {
     buildViewTestFixture = BuildViewTestFixture(projectRule.project)
     buildViewTestFixture.setUp()
 
-    val geminiPluginApi = object : GeminiPluginApi {
-      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
       override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
-      }
-
-      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
-      }
+      override fun askGemini(context: GradleErrorContext, project: Project) {}
     }
-    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
+    ApplicationManager.getApplication()
+      .registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
   }
 
   @After

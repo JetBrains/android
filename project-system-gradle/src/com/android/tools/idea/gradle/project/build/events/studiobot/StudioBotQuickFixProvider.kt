@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.build.events.studiobot
 
-import com.android.tools.idea.gemini.LlmPrompt
-import com.android.tools.idea.gemini.buildLlmPrompt
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
-/** Represents a Gradle error context.
- *  The following details are stored in the context:
- *  @param gradleTask The Gradle command that was executed.
- *  @param errorMessage The error message.
- *  @param fullErrorDetails The full error details/stack trace to include.
- *  @param source Whether it is a Build / Sync error
- */
-data class GradleErrorContext(
-  val gradleTask: String?,
-  val errorMessage: String?,
-  val fullErrorDetails: String?,
-  val source: Source?) {
-  enum class Source(private val source: String) {
-    BUILD("build"),
-    SYNC("sync");
-    override fun toString(): String = source
+interface StudioBotQuickFixProvider {
+  fun isAvailable(): Boolean = false
+  fun askGemini(context: GradleErrorContext, project: Project)
+
+  companion object {
+    val EP_NAME =
+      ExtensionPointName.create<StudioBotQuickFixProvider>(
+        "com.android.tools.idea.gradle.studioBotQuickFixProvider"
+      )
+
+    private val studioBotQuickFixProviderUnavailable =
+      object : StudioBotQuickFixProvider {
+        override fun askGemini(context: GradleErrorContext, project: Project) {}
+      }
+
+    fun getInstance(): StudioBotQuickFixProvider {
+      return EP_NAME.extensionList.firstOrNull() ?: studioBotQuickFixProviderUnavailable
+    }
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.build.BuildProgressListener
@@ -33,7 +33,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerExtension
-import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
@@ -75,16 +74,11 @@ abstract class BuildOutputParserTest {
       parsers.addAll(it.getBuildOutputParsers(taskId))
     }
 
-    val geminiPluginApi = object : GeminiPluginApi {
-      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
       override fun isAvailable(): Boolean = isGeminiAvailable!!
-      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
-      }
-
-      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
-      }
+      override fun askGemini(context: GradleErrorContext, project: Project) {}
     }
-    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
   }
 
   private fun parseOutput(parentEventId: String, gradleOutput: String, expectedEvents: String) {

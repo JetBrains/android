@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
@@ -100,7 +100,7 @@ class TomlErrorParserTest {
 
   @Test
   fun testWrapper_parsesTomlErrorWithFile() {
-    registerGeminiPluginApi()
+    registerStudioBotQuickFixProvider()
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
@@ -392,17 +392,12 @@ class TomlErrorParserTest {
     return gradleDir to file
   }
 
-  private fun registerGeminiPluginApi() {
-    val geminiPluginApi = object : GeminiPluginApi {
-      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+  private fun registerStudioBotQuickFixProvider() {
+    val studioBotQuickFixProvider = object : StudioBotQuickFixProvider {
       override fun isAvailable(): Boolean = true
-      override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
-      }
-
-      override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
-      }
+      override fun askGemini(context: GradleErrorContext, project: Project) {}
     }
-    ApplicationManager.getApplication().registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(StudioBotQuickFixProvider.EP_NAME, studioBotQuickFixProvider, projectRule.testRootDisposable)
   }
 
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)

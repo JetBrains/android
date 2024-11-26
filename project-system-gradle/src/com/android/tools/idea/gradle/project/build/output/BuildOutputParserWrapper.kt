@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
 import com.android.tools.idea.gradle.project.build.events.copyWithQuickFix
 import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
+import com.android.tools.idea.gradle.project.build.events.studiobot.StudioBotQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.extractTaskNameFromId
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -44,7 +44,7 @@ import java.util.function.Consumer
 class BuildOutputParserWrapper(val parser: BuildOutputParser, val taskId: ExternalSystemTaskId) : BuildOutputParser {
 
   private val explainerAvailable
-    get() = GeminiPluginApi.getInstance().isAvailable()
+    get() = StudioBotQuickFixProvider.getInstance().isAvailable()
 
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     if(!explainerAvailable) {
