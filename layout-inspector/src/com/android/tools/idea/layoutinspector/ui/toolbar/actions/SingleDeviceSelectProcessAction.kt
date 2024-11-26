@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.SearchableDropDownAction
 import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
@@ -40,7 +41,7 @@ class SingleDeviceSelectProcessAction(
   private val deviceModel: DeviceModel,
   private val targetDeviceSerialNumber: String,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
-) : DropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
+) : SearchableDropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
 
   override fun displayTextInToolbar() = true
 
