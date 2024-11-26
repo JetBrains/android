@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.findLastPsiElementIn;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.getNextValidParent;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isDomainObjectConfiguratorMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.removePsiIfInvalid;
+import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
@@ -480,6 +482,23 @@ public final class GroovyDslUtil {
     else return false;
   }
 
+  static @Nullable String methodCallBlockName(@NotNull GrMethodCallExpression methodCallExpression) {
+    GrReferenceExpression referenceExpression = findChildOfType(methodCallExpression, GrReferenceExpression.class);
+    if (referenceExpression == null) return null;
+    String callName = referenceExpression.getReferenceName();
+    if (callName == null) return null;
+    if (!isDomainObjectConfiguratorMethodName(callName)) return null;
+    GrExpression[] arguments = methodCallExpression.getExpressionArguments();
+    if (arguments.length != 1) return null;
+    GrExpression argument = arguments[0];
+    if (isStringLiteral(argument)) {
+      StringBuilder sb = new StringBuilder();
+      boolean result = decodeStringLiteral(argument, sb);
+      if (result) return sb.toString();
+    }
+    return null;
+  }
+
   public static String gradleNameFor(GrExpression expression) {
     final boolean[] allValid = {true};
     StringBuilder result = new StringBuilder();
@@ -509,7 +528,18 @@ public final class GroovyDslUtil {
           result.append(e.getText().replaceAll("\\s", "").replace("\"", "'"));
         }
         else {
-          allValid[0] = false;
+          String name = methodCallBlockName(e);
+          if (name == null) {
+            allValid[0] = false;
+          }
+          else {
+            GrReferenceExpression referenceExpression = findChildOfType(e, GrReferenceExpression.class); // known not-null
+            if (referenceExpression.isQualified()) {
+              referenceExpression.getQualifierExpression().accept(this);
+              result.append(".");
+            }
+            result.append(GradleNameElement.escape(name));
+          }
         }
       }
 
