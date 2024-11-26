@@ -190,7 +190,6 @@ maven_repository(
         "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
-        "@maven//:commons-codec.commons-codec_1.9",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:javax.annotation.javax.annotation-api_1.2",

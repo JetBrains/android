@@ -342,7 +342,6 @@ maven_repository(
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
-        "@maven//:commons-codec.commons-codec_1.9",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:javax.annotation.javax.annotation-api_1.2",
