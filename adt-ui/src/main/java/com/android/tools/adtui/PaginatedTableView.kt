@@ -26,10 +26,12 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.DefaultRowSorter
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.RowSorter
 import javax.swing.event.RowSorterEvent
 import javax.swing.table.TableRowSorter
 
@@ -72,8 +74,10 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeVa
         addRowSorterListener { event ->
           if (event.type == RowSorterEvent.Type.SORT_ORDER_CHANGED) {
             clearSelection()
+            // Set/update each column's comparator so that it does not default to string comparisons.
+            updateColumnComparators(event.source.sortKeys, this)
+            // Sort the model data, which will be read and adapted to in the table view.
             tableModel.sortData(event.source.sortKeys)
-            allRowsChanged()
           }
         }
       }
@@ -84,6 +88,21 @@ class PaginatedTableView(val tableModel: AbstractPaginatedTableModel, pageSizeVa
       add(JBScrollPane(table), BorderLayout.CENTER)
     }
   }
+
+  private fun updateColumnComparators(sortKeys: List<RowSorter.SortKey>, rowSorter: DefaultRowSorter<*, *>) =
+    sortKeys.forEach {
+      rowSorter.setComparator(it.column) { o1, o2 ->
+        when (tableModel.getColumnClass(it.column)) {
+          Long::class.java -> (o1 as Long).compareTo(o2 as Long)
+          Integer::class.java -> (o1 as Int).compareTo(o2 as Int)
+          Double::class.java -> (o1 as Double).compareTo(o2 as Double)
+          Float::class.java -> (o1 as Float).compareTo(o2 as Float)
+          Boolean::class.java -> (o1 as Boolean).compareTo(o2 as Boolean)
+          String::class.java -> (o1 as String).compareTo(o2 as String)
+          else -> o1.toString().compareTo(o2.toString())
+        }
+      }
+    }
 
   private fun updateToolbar() {
     // Labels
