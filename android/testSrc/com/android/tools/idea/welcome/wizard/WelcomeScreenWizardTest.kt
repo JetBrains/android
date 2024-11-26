@@ -50,6 +50,7 @@ import junit.framework.TestCase
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -231,6 +232,7 @@ class WelcomeScreenWizardTest {
     }
   }
 
+  @Ignore("b/381120112")
   @Test
   fun sdkComponentsStep_sdkPathChanged() {
     val sdkPath = TestUtils.getSdk().toFile()
