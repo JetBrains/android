@@ -163,6 +163,26 @@ open class ProfilersTestBase {
     }
   }
 
+  protected fun setupProjectWithoutEmulator(testFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)) {
+    // Enabling verbose logs behind the flag.
+    system.installation.addVmOption("-Dprofiler.testing.mode=true")
+
+    // Open android project, and set a fixed distribution
+    val project = AndroidProject(testProjectMinAppPath)
+
+    // Create a maven repo and set it up in the installation and environment
+    system.installRepo(MavenRepo(testMinAppRepoManifest))
+
+    system.runStudio(project, watcher.dashboardName) { studio ->
+      studio.waitForSync()
+      studio.waitForIndex()
+      getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+      Thread.sleep(2000)
+      // Test Function or test steps to be executed.
+      testFunction.invoke(studio, project)
+    }
+  }
+
   protected fun verifyIdeaLog(regexText: String, timeOut: Long) {
     system.installation.ideaLog.waitForMatchingLine(
       regexText,
@@ -297,6 +317,22 @@ open class ProfilersTestBase {
 
   protected fun setProfilingStartingPointToProcessStart(studio: AndroidStudio) {
     studio.executeAction("Android.SetProfilingStartingPointToProcessStart")
+  }
+
+  protected fun selectLastRecordingFromRecordingList(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectLastRecordingFromRecordingList")
+  }
+
+  protected fun setHideNewTaskPromptToTrue(studio: AndroidStudio) {
+    studio.executeAction("Android.SetHideNewTaskPromptToTrue")
+  }
+
+  /**
+   * This action sets HIDE_NEW_TASK_PROMPT dialog prompt to true, which prevents the dialog prompt from appearing when
+   * starting/importing new tasks, allowing the test to proceed without closing the task tab.
+   */
+  protected fun openPastRecordingsTab(studio: AndroidStudio) {
+    studio.executeAction("Android.OpenProfilersPastRecordingsTab")
   }
 
   protected fun profileAction(studio: AndroidStudio) {

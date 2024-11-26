@@ -313,6 +313,20 @@ iml_test(
     test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
 )
 
+iml_test(
+    name = "ImportTraceFileTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.ImportTraceFileTest",
+)
+
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
