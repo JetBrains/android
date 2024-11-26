@@ -131,6 +131,13 @@ debugger_test(
     test_include_filter = ["org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinSteppingTestGenerated.StepOver.Coroutines.testSequenceNested2"],
 )
 
+debugger_test(
+    name = "test-android-dexer",
+    test_include_filter = [
+        "org.jetbrains.kotlin.idea.debugger.test.K1IdeK2CodeKotlinEvaluateExpressionTestGenerated.SingleBreakpoint.CompilingEvaluator\\$",
+    ],
+)
+
 maven_repository(
     name = "test_repo",
     # keep sorted: for buildifier
@@ -148,6 +155,7 @@ kotlin_library(
     lint_enabled = False,
     deps = [
         ":kotlin.jvm-debugger.test_lib_import",
+        "//tools/adt/idea/android-kotlin:android-dexer",
         "@maven//:junit.junit",
     ],
 )

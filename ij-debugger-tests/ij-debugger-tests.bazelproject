@@ -6,6 +6,7 @@ directories:
   prebuilts/r8
   tools/idea/bazel
   tools/idea/plugins/kotlin/jvm-debugger
+  tools/adt/idea/android-kotlin
 
 targets:
   tools/adt/idea/ij-debugger-tests:attacher

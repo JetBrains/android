@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -202,5 +203,18 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/.idea/libraries:opentest4j[test]",
+    ],
+)
+
+kotlin_library(
+    name = "android-dexer",
+    srcs = ["idea-android/common/src/org/jetbrains/kotlin/android/debugger/AndroidDexerImpl.kt"],
+    coverage_baseline_enabled = False,
+    lint_enabled = False,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//prebuilts/r8",
+        "@intellij//:intellij-sdk",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )

@@ -28,7 +28,10 @@ import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
-import java.io.FileOutputStream
+import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
+import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
+import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
+import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.reflect.Method
 import java.net.URL
@@ -37,9 +40,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import kotlin.LazyThreadSafetyMode.NONE
-import kotlin.io.path.*
-import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
-import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.pathString
 
 private const val STUDIO_ROOT_ENV = "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT"
 private const val STUDIO_ROOT_PROPERTY = "intellij.debugger.tests.studio.root"
@@ -62,6 +67,7 @@ private val ROOT by lazy(NONE) { getStudioRoot() }
 private val D8_COMPILER by lazy(NONE) { loadD8Compiler() }
 
 /** Attaches to an ART VM */
+@Suppress("unused")
 internal class ArtAttacher : VmAttacher {
   private lateinit var steppingFilters: Array<ClassFilter>
 
@@ -85,6 +91,10 @@ internal class ArtAttacher : VmAttacher {
     javaParameters: JavaParameters,
     environment: ExecutionEnvironment
   ): DebuggerSession {
+    // Register extensions
+    AndroidDexer.registerExtensionPoint(testCase.project)
+    AndroidDexer.registerExtension(testCase.project, AndroidDexerImpl(testCase.project))
+
     val remoteConnection = getRemoteConnection(testCase, javaParameters)
     val remoteState = RemoteStateState(testCase.project, remoteConnection)
     return testCase.attachVirtualMachine(remoteState, environment, remoteConnection, false)
@@ -99,6 +109,7 @@ internal class ArtAttacher : VmAttacher {
     val mainClass = javaParameters.mainClass
     val dexFiles = buildDexFiles(javaParameters.classPath.pathList)
     if (DEX_CACHE == null) {
+      @Suppress("UnstableApiUsage")
       testCase.testRootDisposable.whenDisposed {
         dexFiles.forEach { it.delete() }
       }
@@ -196,7 +207,6 @@ internal class ArtAttacher : VmAttacher {
       mainClass,
     )
   }
-
 }
 
 private fun getConfig(property: String, env: String): String? {
@@ -232,16 +242,4 @@ private fun loadD8Compiler(): Method {
   val classLoader = URLClassLoader(arrayOf(URL("file://${ROOT.resolve(DEX_COMPILER).pathString}")))
   val d8 = classLoader.loadClass("com.android.tools.r8.D8")
   return d8.getDeclaredMethod("main", Array<String>::class.java)
-}
-
-private fun <T> Path?.withLock(block: () -> T): T {
-  if (this == null) {
-    return block()
-  }
-  val lock = resolve("lockfile")
-  FileOutputStream(lock.pathString).use {
-    it.channel.lock()
-    // Lock is released when use block completes.
-    return block()
-  }
 }
