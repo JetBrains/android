@@ -534,7 +534,7 @@ MODULE                        : project
                                 file                          : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar
+                                file                          : <M2>/commons-io/commons-io/2.16.1/commons-io-2.16.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
                                 source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
