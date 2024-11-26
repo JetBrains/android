@@ -18,6 +18,7 @@ package com.android.tools.idea.wear.preview
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -45,6 +46,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -870,6 +872,90 @@ class WearTilePreviewElementFinderTest {
       // to prevent flakiness.
       verify(mockFindMethods, atMost(4)).invoke(previewFile)
     }
+
+  @Test
+  fun testPreviewNameAndOrder(): Unit = runBlocking {
+    val testFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/Test.kt",
+        // language=kotlin
+        """
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @Annot3
+        @Preview
+        annotation class Annot1(){}
+
+        @Preview
+        annotation class Annot2(){}
+
+        @Annot1
+        @Preview
+        fun c() = TilePreviewData()
+
+        @Annot1
+        @Preview
+        annotation class Annot3(){}
+
+        @Annot2
+        @Preview
+        @Annot3
+        fun a() = TilePreviewData()
+
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview // 10 previews, for testing lexicographic order with double-digit numbers in the names
+        annotation class Many() {}
+
+        @Many
+        fun f() = TilePreviewData()
+      """
+          .trimIndent(),
+      )
+
+    elementFinder
+      .findPreviewElements(project, testFile.virtualFile)
+      .toMutableList()
+      .apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .sortByDisplayAndSourcePosition()
+      .map { it.displaySettings.name }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(
+          arrayOf(
+            "c - Annot1 1",
+            "c - Annot3 1",
+            "c", // Previews of 'C'
+            "a - Annot2 1",
+            "a",
+            "a - Annot1 1",
+            "a - Annot3 1", // Previews of 'a'
+            "f - Many 01",
+            "f - Many 02",
+            "f - Many 03",
+            "f - Many 04",
+            "f - Many 05",
+            "f - Many 06",
+            "f - Many 07",
+            "f - Many 08",
+            "f - Many 09",
+            "f - Many 10", // Previews of 'f'
+          ),
+          it,
+        )
+      }
+  }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {

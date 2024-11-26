@@ -26,6 +26,7 @@ import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.buildParameterName
 import com.android.tools.idea.preview.buildPreviewName
+import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
@@ -33,7 +34,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -63,7 +64,7 @@ private fun UElement?.isGlancePreviewAnnotation() =
   (this as? UAnnotation)?.let { isGlancePreview(it) } == true
 
 @Slow
-private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
+private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
   uMethod: UMethod
 ): PsiGlancePreviewElement? {
   val annotation = element as UAnnotation
@@ -71,17 +72,30 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
 
   val uClass = uMethod.uastParent as UClass
   val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
+  val parentDirectPreviewChildrenCount =
+    (parent?.element as? UAnnotation)?.directPreviewChildrenCount(
+      UElement?::isGlancePreviewAnnotation
+    ) ?: 0
   val displaySettings =
     PreviewDisplaySettings(
-      buildPreviewName(uMethod.name, nameParameter = null, UElement?::isGlancePreviewAnnotation),
+      buildPreviewName(
+        uMethod.name,
+        nameParameter = null,
+        UElement?::isGlancePreviewAnnotation,
+        parentDirectPreviewChildrenCount,
+      ),
       uMethod.name,
-      buildParameterName(null, UElement?::isGlancePreviewAnnotation),
+      buildParameterName(
+        null,
+        UElement?::isGlancePreviewAnnotation,
+        parentDirectPreviewChildrenCount,
+      ),
       null,
       false,
       false,
       null,
     )
-  val defaultValues = runReadAction { annotation.findPreviewDefaultValues() }
+  val defaultValues = readAction { annotation.findPreviewDefaultValues() }
   val widthDp =
     annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int
       ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()

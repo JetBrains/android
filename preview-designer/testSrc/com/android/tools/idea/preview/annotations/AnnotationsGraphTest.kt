@@ -21,6 +21,8 @@ import com.intellij.psi.PsiClass
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -56,14 +58,14 @@ private class TestNodeInfo(
   // Flag used to distinguish back edges
   private var traversing = false
 
-  override fun onSkippedChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
+  override suspend fun onSkippedChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
     // Skipped edges are back, forward or cross
     if ((child as TestNodeInfo).traversing) subtreeInfo.backEdgesCount++
     else if (child.inTime > inTime) subtreeInfo.forwardEdgesCount++
     else subtreeInfo.crossEdgesCount++
   }
 
-  override fun onAfterChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
+  override suspend fun onAfterChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
     assertTrue(traversing)
     traversing = false
     curTime = (child as TestNodeInfo).curTime + 1
@@ -73,7 +75,7 @@ private class TestNodeInfo(
     subtreeInfo.crossEdgesCount += child.subtreeInfo.crossEdgesCount
   }
 
-  override fun onBeforeChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
+  override suspend fun onBeforeChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
     assertFalse(traversing)
     traversing = true
     // Traversed edges are tree edges
@@ -82,7 +84,7 @@ private class TestNodeInfo(
 }
 
 private object TestNodeInfoFactory : NodeInfoFactory<DfsSubtreeEdges> {
-  override fun create(
+  override suspend fun create(
     parent: NodeInfo<DfsSubtreeEdges>?,
     curElement: UElement,
   ): NodeInfo<DfsSubtreeEdges> {
@@ -95,9 +97,8 @@ private object TestNodeInfoFactory : NodeInfoFactory<DfsSubtreeEdges> {
  * removing the prefix "node" from it. And also, for the root method, it returns its subtreeInfo.
  */
 private object TestResultFactory : ResultFactory<DfsSubtreeEdges, Any> {
-  override fun create(node: NodeInfo<DfsSubtreeEdges>): Sequence<Any> =
-    if (node.element is UAnnotation) sequenceOf(node.element.name)
-    else sequenceOf(node.subtreeInfo!!)
+  override fun create(node: NodeInfo<DfsSubtreeEdges>): Flow<Any> =
+    if (node.element is UAnnotation) flowOf(node.element.name) else flowOf(node.subtreeInfo!!)
 
   private val UElement.name: String
     get() = runReadAction {

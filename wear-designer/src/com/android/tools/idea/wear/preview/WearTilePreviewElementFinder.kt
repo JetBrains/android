@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.buildParameterName
 import com.android.tools.idea.preview.buildPreviewName
+import com.android.tools.idea.preview.directPreviewChildrenCount
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -214,18 +215,24 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
     annotation.findAttributeValue(PARAMETER_GROUP)?.evaluateString()?.nullize()
   }
   val methodName = readAction { uMethod.name }
+  val parentDirectPreviewChildrenCount =
+    (parent?.element as? UAnnotation)?.directPreviewChildrenCount(
+      UElement?::isWearTilePreviewAnnotation
+    ) ?: 0
   val displaySettings =
     PreviewDisplaySettings(
       buildPreviewName(
         methodName = methodName,
         nameParameter = name,
         isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
+        parentDirectPreviewChildrenCount = parentDirectPreviewChildrenCount,
       ),
       baseName = methodName,
       parameterName =
         buildParameterName(
           nameParameter = name,
           isPreviewAnnotation = UElement?::isWearTilePreviewAnnotation,
+          parentDirectPreviewChildrenCount = parentDirectPreviewChildrenCount,
         ),
       group = group,
       showDecoration = false,

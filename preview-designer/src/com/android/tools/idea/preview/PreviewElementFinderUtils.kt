@@ -62,20 +62,20 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
  * Returns the number of preview annotations attached to this element. This method does not count
  * preview annotations that are indirectly referenced through the annotation graph.
  */
-fun UElement.directPreviewChildrenCount(isPreviewAnnotation: UElement?.() -> Boolean) =
+suspend fun UElement.directPreviewChildrenCount(isPreviewAnnotation: UElement?.() -> Boolean) =
   getUAnnotations().count { it.isPreviewAnnotation() }
 
 private fun buildParentAnnotationInfo(
   parent: NodeInfo<UAnnotationSubtreeInfo>?,
   isPreviewAnnotation: UElement?.() -> Boolean,
+  parentDirectPreviewChildrenCount: Int,
 ): String? {
   val parentAnnotation = parent?.element as? UAnnotation ?: return null
-  val name = runReadAction { (parent.element.tryResolve() as PsiClass).name }
+  val name = runReadAction { (parentAnnotation.tryResolve() as PsiClass).name }
   val traversedPreviewChildrenCount =
     parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0
-  val parentPreviewChildrenCount = parentAnnotation.directPreviewChildrenCount(isPreviewAnnotation)
 
-  return "$name ${traversedPreviewChildrenCount.toString().padStart(parentPreviewChildrenCount.toString().length, '0')}"
+  return "$name ${traversedPreviewChildrenCount.toString().padStart(parentDirectPreviewChildrenCount.toString().length, '0')}"
 }
 
 /**
@@ -86,11 +86,13 @@ fun NodeInfo<UAnnotationSubtreeInfo>.buildPreviewName(
   methodName: String,
   nameParameter: String?,
   isPreviewAnnotation: UElement?.() -> Boolean,
+  parentDirectPreviewChildrenCount: Int,
 ) =
   if (nameParameter != null) "$methodName - $nameParameter"
   else
-    buildParentAnnotationInfo(parent, isPreviewAnnotation)?.let { "$methodName - $it" }
-      ?: methodName
+    buildParentAnnotationInfo(parent, isPreviewAnnotation, parentDirectPreviewChildrenCount)?.let {
+      "$methodName - $it"
+    } ?: methodName
 
 /**
  * Create the name to be displayed for a Preview by using the [nameParameter] when available, or
@@ -99,4 +101,7 @@ fun NodeInfo<UAnnotationSubtreeInfo>.buildPreviewName(
 fun NodeInfo<UAnnotationSubtreeInfo>.buildParameterName(
   nameParameter: String?,
   isPreviewAnnotation: UElement?.() -> Boolean,
-) = nameParameter ?: buildParentAnnotationInfo(parent, isPreviewAnnotation)
+  parentDirectPreviewChildrenCount: Int,
+) =
+  nameParameter
+    ?: buildParentAnnotationInfo(parent, isPreviewAnnotation, parentDirectPreviewChildrenCount)
