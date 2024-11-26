@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.ide.common.gradle.Version
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -211,6 +212,8 @@ class AppInspectionInspectorClient(
         // wait until we start receiving updates
         viewUpdateDeferred.await()
         model.removeModificationListener(updateListener)
+
+        checkIfComposeSupportsXrInspection()
       }
       .recover { t ->
         val error = getOriginalError(t)
@@ -221,6 +224,25 @@ class AppInspectionInspectorClient(
         }
         throw t
       }
+  }
+
+  /**
+   * A function to notify the user if the version of compose does not support xr inspection. This
+   * function must be called after the model is loaded.
+   */
+  // TODO: unify with compose checks in ComposeLayoutInspectorClient#checkComposeVersion
+  private fun checkIfComposeSupportsXrInspection() {
+    // The minimum version of compose required to support XR
+    val minComposeVersion = "1.8.0-alpha07"
+    val version = composeInspector?.composeVersion?.let { Version.parse(it) }
+    if (model.isXr && version != null && version < Version.parse(minComposeVersion)) {
+      val notificationId = "compose.inspection.does.not.support.xr"
+      notificationModel.addNotification(
+        notificationId,
+        LayoutInspectorBundle.message(notificationId, minComposeVersion),
+        Status.Warning,
+      )
+    }
   }
 
   private suspend fun enableBitmapScreenshots() {

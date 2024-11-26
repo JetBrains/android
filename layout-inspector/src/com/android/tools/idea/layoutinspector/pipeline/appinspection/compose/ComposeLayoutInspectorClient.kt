@@ -135,6 +135,7 @@ class ComposeLayoutInspectorClient(
   private val messenger: AppInspectorMessenger,
   private val capabilities: EnumSet<Capability>,
   private val launchMonitor: InspectorClientLaunchMonitor,
+  val composeVersion: String?,
 ) {
 
   companion object {
@@ -249,6 +250,7 @@ class ComposeLayoutInspectorClient(
       val project = model.project
       var requiredCompatibility: LibraryCompatibility? = null
 
+      var composeVersion: String? = null
       val jar =
         if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
           // This dev jar is used for:
@@ -280,7 +282,7 @@ class ComposeLayoutInspectorClient(
               listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY),
             )
 
-          val version =
+          composeVersion =
             when (token) {
               null ->
                 handleCompatibilityAndComputeVersion(
@@ -303,7 +305,7 @@ class ComposeLayoutInspectorClient(
               null ->
                 getAppInspectorJar(
                   project,
-                  version,
+                  composeVersion,
                   notificationModel,
                   logErrorToMetrics,
                   isRunningFromSourcesInTests,
@@ -311,7 +313,7 @@ class ComposeLayoutInspectorClient(
               else ->
                 token.getAppInspectorJar(
                   projectSystem,
-                  version,
+                  composeVersion,
                   notificationModel,
                   logErrorToMetrics,
                   isRunningFromSourcesInTests,
@@ -339,7 +341,14 @@ class ComposeLayoutInspectorClient(
       return try {
         val messenger = apiServices.launchInspector(params)
         val client =
-          ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor)
+          ComposeLayoutInspectorClient(
+              model,
+              treeSettings,
+              messenger,
+              capabilities,
+              launchMonitor,
+              composeVersion,
+            )
             .apply { updateSettings() }
         logDiagnostics(
           ComposeLayoutInspectorClient::class.java,
