@@ -1052,7 +1052,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseVariedConfiguratorBuildTypeBlocks() {
-    isIrrelevantForGroovy("Configurator methods not yet supported")
     writeToBuildFile(TestFile.PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_BLOCKS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
