@@ -35,7 +35,6 @@ class LastInIdeaTestSuite {
       LeakCheckerRule.checkForLeaks()
     }
     catch (e: AssertionError) {
-      Assume.assumeFalse(e.message.orEmpty().startsWith("Accessing disposed message bus")) // TODO(b/376571043)
       val header = """
         The IntelliJ test framework appears to have detected a memory leak
         in this test target (see below). Read the error message carefully to discern
