@@ -149,10 +149,12 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `panel renders correctly first time`() = runBlocking {
-    val output = fakeUi.render()
-    delayUntilCondition(100, 2.seconds) {
+    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    delayUntilCondition(100, 5.seconds) {
       fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 5
     }
+
+    val output = fakeUi.render()
 
     assertEquals(
       """
@@ -290,7 +292,8 @@ class ComposePreviewRepresentationGradleTest {
 
       projectRule.validate()
 
-      delayUntilCondition(100, 2.seconds) {
+      withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+      delayUntilCondition(100, 5.seconds) {
         fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 6
       }
 
@@ -323,6 +326,11 @@ class ComposePreviewRepresentationGradleTest {
       }
 
       projectRule.validate()
+      withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+      delayUntilCondition(100, 5.seconds) {
+        "DefaultPreview - newName" ==
+          fakeUi.findAllComponents<SceneViewPeerPanel>().first().displayName
+      }
 
       assertEquals(
         """
