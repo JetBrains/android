@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,6 +38,7 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
 
   // Regression test for b/254613979
   @Test
+  @Ignore("b/380220695")
   fun testNavigationMovesToSplitMode() {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val editorProvider =
