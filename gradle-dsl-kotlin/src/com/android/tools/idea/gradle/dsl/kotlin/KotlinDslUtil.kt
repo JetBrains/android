@@ -102,7 +102,7 @@ import kotlin.reflect.KClass
 
 private val LOG = Logger.getInstance("KotlinDslUtil")
 
-internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
+internal fun String.addQuotes() = "\"$this\""
 
 internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
@@ -426,10 +426,10 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       var valueText : String?
       if (StringUtil.isQuotedString(value)) {
         val unquoted = StringUtil.unquoteString(value)
-        valueText = StringUtil.escapeCharCharacters(unquoted).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(unquoted).addQuotes()
       }
       else {
-        valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(value).addQuotes()
       }
       return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
     }
@@ -451,7 +451,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
           builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
         }
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes())
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
     else -> {
@@ -790,10 +790,10 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val expressionRightValue =
     if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
-    else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
+    else StringUtil.unquoteString(expressionValue.text).addQuotes()
   val argumentStringExpression = when {
     parent.asNamedArgs -> "${expression.name}=$expressionRightValue"
-    else -> "${expression.name.addQuotes(true)} to $expressionRightValue"
+    else -> "${expression.name.addQuotes()} to $expressionRightValue"
   }
 
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
@@ -930,7 +930,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
         STRING_TEMPLATE -> when {
           element.parent is DependenciesDslElement && KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
             factory.createExpressionIfPossible(newName)
-          else -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+          else -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes())
         }
         ARRAY_ACCESS_EXPRESSION -> when {
           newName.startsWith("ext.") -> {
@@ -943,7 +943,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
         }
         else -> when {
           element.parent is DependenciesDslElement && !KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
-            factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+            factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes())
           else -> factory.createExpressionIfPossible(newName)
         }
       } ?: return
