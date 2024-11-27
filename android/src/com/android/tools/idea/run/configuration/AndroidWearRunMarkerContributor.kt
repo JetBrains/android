@@ -33,7 +33,9 @@ import org.jetbrains.kotlin.lexer.KtTokens
  * The icon can be used to create new [AndroidWearConfiguration] or run an existing configuration.
  */
 class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
-  override fun getInfo(e: PsiElement): Info? {
+  override fun getInfo(element: PsiElement): Info? = null
+
+  override fun getSlowInfo(e: PsiElement): Info? {
     val elementType = e.node.elementType
     if (!(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
         && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {

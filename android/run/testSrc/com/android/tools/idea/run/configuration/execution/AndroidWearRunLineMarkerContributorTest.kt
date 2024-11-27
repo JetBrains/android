@@ -55,8 +55,8 @@ class AndroidWearRunLineMarkerContributorTest {
       """.trimIndent())
 
     val contributor = AndroidWearRunMarkerContributor()
-    assertNotNull(contributor.getInfo(watchFaceFile.findElementByText("class")))
-    assertNull(contributor.getInfo(watchFaceFile.findElementByText("package com.example.myapplication")))
+    assertNotNull(contributor.getSlowInfo(watchFaceFile.findElementByText("class")))
+    assertNull(contributor.getSlowInfo(watchFaceFile.findElementByText("package com.example.myapplication")))
   }
 
   @Test
@@ -74,8 +74,8 @@ class AndroidWearRunLineMarkerContributorTest {
       """.trimIndent())
 
     val contributor = AndroidWearRunMarkerContributor()
-    assertNotNull(contributor.getInfo(tileFile.findElementByText("class")))
-    assertNull(contributor.getInfo(tileFile.findElementByText("package com.example.myapplication")))
+    assertNotNull(contributor.getSlowInfo(tileFile.findElementByText("class")))
+    assertNull(contributor.getSlowInfo(tileFile.findElementByText("package com.example.myapplication")))
   }
 
   @Test
@@ -93,8 +93,8 @@ class AndroidWearRunLineMarkerContributorTest {
       """.trimIndent())
 
     val contributor = AndroidWearRunMarkerContributor()
-    assertNotNull(contributor.getInfo(complicationFile.findElementByText("class")))
-    assertNull(contributor.getInfo(complicationFile.findElementByText("package com.example.myapplication")))
+    assertNotNull(contributor.getSlowInfo(complicationFile.findElementByText("class")))
+    assertNull(contributor.getSlowInfo(complicationFile.findElementByText("package com.example.myapplication")))
   }
 
   @Test
@@ -112,7 +112,7 @@ class AndroidWearRunLineMarkerContributorTest {
       """.trimIndent())
 
     val contributor = AndroidWearRunMarkerContributor()
-    assertNotNull(contributor.getInfo(complicationFile.findElementByText("class")))
-    assertNull(contributor.getInfo(complicationFile.findElementByText("package com.example.myapplication;")))
+    assertNotNull(contributor.getSlowInfo(complicationFile.findElementByText("class")))
+    assertNull(contributor.getSlowInfo(complicationFile.findElementByText("package com.example.myapplication;")))
   }
 }
