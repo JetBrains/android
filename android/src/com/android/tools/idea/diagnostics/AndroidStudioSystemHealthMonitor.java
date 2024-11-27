@@ -41,7 +41,6 @@ import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.diagnostics.typing.TypingEventWatcher;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
-import com.android.tools.idea.stats.AndroidStudioEventLogger;
 import com.android.tools.idea.stats.StudioStatsLocalFileDumper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
@@ -511,6 +510,8 @@ public final class AndroidStudioSystemHealthMonitor {
         LOG.debug(ex);
       }
     }
+
+    new VirtualizationDetector(new LoggingVirtualizationHandler()).detectVirtualization();
   }
 
   private void initDataCollection() {
