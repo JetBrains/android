@@ -51,6 +51,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param selectionListener is called when new [Key] is selected. [GalleryView] insures
  *   [selectionListener] is not called twice if same [Key] set twice.
  */
+@Deprecated("b/344884593")
 internal class GalleryView<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,

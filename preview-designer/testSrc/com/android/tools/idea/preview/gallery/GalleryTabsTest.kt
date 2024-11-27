@@ -41,7 +41,6 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Deprecated("b/344884593")
 @RunsInEdt
 class GalleryTabsTest {
   @get:Rule val rule = RuleChain(AndroidProjectRule.inMemory(), EdtRule())
