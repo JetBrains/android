@@ -24,10 +24,11 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,7 +39,6 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
 
   // Regression test for b/254613979
   @Test
-  @Ignore("b/380220695")
   fun testNavigationMovesToSplitMode() {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val editorProvider =
@@ -53,6 +53,9 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
           }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
+
+    // Wait for representations to be fully initialized
+    runBlocking { waitUntil { editor.preview.representationNames.isNotEmpty() } }
 
     // ChangeEditorSplitActions in IntelliJ 2024.1 uses the data provider to find about the editor.
     // Here, we inject the "open" editor so it finds it during testing.
