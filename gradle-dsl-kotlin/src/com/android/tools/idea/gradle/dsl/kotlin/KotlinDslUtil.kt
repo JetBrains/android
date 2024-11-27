@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
+import com.android.tools.idea.gradle.dsl.parser.isDomainObjectConfiguratorMethodName
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.intellij.openapi.diagnostic.Logger
@@ -106,7 +107,7 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
   val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
-  val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
+  val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isDomainObjectConfiguratorMethodName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
@@ -308,8 +309,6 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   }
 }
 
-internal fun isValidBlockName(blockName : String?) =
-  blockName != null && blockName in listOf("configure", "create", "maybeCreate", "register", "getByName")
 /**
  * Check if the caller psiElement is a transitive parent for the given psiElement.
  */
@@ -465,7 +464,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
 // Check if this is a block with a methodCall as name, and get the name... e.g. getByName("release") -> "release"
 internal fun methodCallBlockName(expression: KtCallExpression): String? {
   val callName = expression.name()
-  if (!isValidBlockName(callName)) return null
+  if (!isDomainObjectConfiguratorMethodName(callName)) return null
   val arguments = expression.valueArgumentList?.arguments ?: return null
   if (arguments.size != 1) return null
   // TODO(xof): we should handle injections / resolving here:
@@ -616,7 +615,7 @@ internal fun findInjections(
       else -> noInjections
     }
     is KtCallExpression -> return when {
-      isValidBlockName(psiElement.name()) -> {
+      isDomainObjectConfiguratorMethodName(psiElement.name()) -> {
         val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
         val element = context.resolveInternalSyntaxReference(name, true)
         mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
