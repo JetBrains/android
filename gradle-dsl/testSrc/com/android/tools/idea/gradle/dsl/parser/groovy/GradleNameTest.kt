@@ -54,6 +54,15 @@ class GradleNameTest : HeavyPlatformTestCase() {
     // indexing tests
     assertThat(gradleNameFromString("abc.def[0]")).isEqualTo("abc.def[0]")
     assertThat(gradleNameFromString("abc.'def.'[0]")).isEqualTo("abc.def\\.[0]")
+
+    // NamedDomainObjectContainer tests
+    assertThat(gradleNameFromString("abc.def.named(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.create(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.maybeCreate(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.register(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.getByName(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.create(\"foo\").ghi")).isEqualTo("abc.def.foo.ghi")
+    assertThat(gradleNameFromString("abc.def.create(\"foo\").ext.bar")).isEqualTo("abc.def.foo.ext.bar")
   }
 
   fun testNullGradleName() {
@@ -64,7 +73,9 @@ class GradleNameTest : HeavyPlatformTestCase() {
     assertThat(gradleNameFromString("{ it -> it + 2 }")).isNull()
     assertThat(gradleNameFromString("foo()")).isNull()
     assertThat(gradleNameFromString("bar(\"foo\", \"baz\")")).isNull()
-    assertThat(gradleNameFromString("abc.def.create(\"foo\")")).isNull()
+    assertThat(gradleNameFromString("abc.def.crate(\"foo\")")).isNull()
+    assertThat(gradleNameFromString("abc.def.create(1)")).isNull()
+    assertThat(gradleNameFromString("abc.def.create(foo)")).isNull()
     assertThat(gradleNameFromString("abc.def[0,1]")).isNull()
   }
 }
