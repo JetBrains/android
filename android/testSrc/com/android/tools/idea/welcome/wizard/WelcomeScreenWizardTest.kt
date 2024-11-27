@@ -17,9 +17,9 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -42,7 +42,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.table.JBTable
 import junit.framework.Assert.assertFalse
@@ -50,7 +49,6 @@ import junit.framework.TestCase
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,7 +58,6 @@ import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.`when`
 import java.io.File
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -232,7 +229,6 @@ class WelcomeScreenWizardTest {
     }
   }
 
-  @Ignore("b/381120112")
   @Test
   fun sdkComponentsStep_sdkPathChanged() {
     val sdkPath = TestUtils.getSdk().toFile()
@@ -252,30 +248,16 @@ class WelcomeScreenWizardTest {
 
       // Add listener to the loading panel to allow us to wait for loading to complete
       val loadingPanel = checkNotNull(fakeUi.findComponent<JBLoadingPanel>())
-      val loadingFinished = CompletableFuture<Boolean>()
-      loadingPanel.addListener(object : JBLoadingPanelListener {
-        override fun onLoadingStart() {}
-
-        override fun onLoadingFinish() {
-          loadingFinished.complete(true)
-        }
-      })
-
       val nextButton = checkNotNull(fakeUi.findComponent<JButton>{it.text.contains("Next") })
 
       // Change path
       val newSdkPath = FileUtil.createTempDirectory("sdk", null)
       sdkPathLabel.text = newSdkPath.absolutePath
 
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      assertTrue(loadingPanel.isLoading)
+      waitForCondition(2, TimeUnit.SECONDS) { loadingPanel.isLoading }
       assertFalse(nextButton.isEnabled)
 
-      // Wait for loading to finish
-      pumpEventsAndWaitForFuture(loadingFinished, 10, TimeUnit.SECONDS)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-      assertFalse(loadingPanel.isLoading)
+      waitForCondition(10, TimeUnit.SECONDS) { !loadingPanel.isLoading }
       assertTrue(nextButton.isEnabled)
     }
   }
