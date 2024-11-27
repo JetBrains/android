@@ -30,5 +30,8 @@
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="android.sdktools.kexter" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="android.sdktools.zipflinger" />
   </component>
 </module>
