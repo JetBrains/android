@@ -158,6 +158,9 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
 
   @Test
+  fun testKotlinMultiplatformModuleOnly() = testProject(TestProject.KOTLIN_MULTIPLATFORM_MODULE_ONLY)
+
+  @Test
   fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
 
   @Test

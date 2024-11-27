@@ -16,6 +16,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
   public static final String KOTLIN_MULTIPLATFORM = "projects/kotlinMultiplatform";
+  public static final String KOTLIN_MULTIPLATFORM_MODULE_ONLY = "projects/kotlinMultiplatformModuleOnly";
   public static final String LIGHT_SYNC_REFERENCE = "projects/lightSyncReference";
   public static final String NON_TRANSITIVE_R_CLASS_SYMBOL = "projects/nonTransitiveRClassSymbol";
   public static final String MIGRATE_TO_NON_TRANSITIVE_R_CLASSES = "projects/migrateToNonTransitiveRClasses";
