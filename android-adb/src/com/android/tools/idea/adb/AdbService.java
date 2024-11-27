@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
@@ -25,6 +26,7 @@ import com.android.adblib.CoroutineScopeCache;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.ddmlib.AdbDelegateUsageTracker;
 import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -385,6 +387,9 @@ public final class AdbService implements Disposable {
     options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
                                    getIDeviceUsageTracker() :
                                    null);
+    if (ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER.get()) {
+      options.setAdbDelegateUsageTracker(getAdbDelegateUsageTracker());
+    }
     return options.build();
   }
 
@@ -418,6 +423,19 @@ public final class AdbService implements Disposable {
     return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()
                                                                         ? IDeviceUsageTrackerImpl.Companion.forAdblibIDeviceWrapper(session)
                                                                         : IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
+  }
+
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<AdbDelegateUsageTracker> ADB_DELEGATE_USAGE_TRACKER_KEY =
+    new CoroutineScopeCache.Key<>("AdbDelegateUsageTracker for AndroidDebugBridge migration to adblib");
+
+  @NotNull
+  private static AdbDelegateUsageTracker getAdbDelegateUsageTracker() {
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(ADB_DELEGATE_USAGE_TRACKER_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
+                                                                        ? AdbDelegateUsageTrackerImpl.Companion.forAdbLibAndroidDebugBridge(session)
+                                                                        : AdbDelegateUsageTrackerImpl.Companion.forAndroidDebugBridgeImpl(session));
   }
 
   /**
