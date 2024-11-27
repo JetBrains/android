@@ -45,6 +45,6 @@ public final class NoSkin implements Skin {
   @NotNull
   @Override
   public String toString() {
-    return "No Skin";
+    return "[None]";
   }
 }
