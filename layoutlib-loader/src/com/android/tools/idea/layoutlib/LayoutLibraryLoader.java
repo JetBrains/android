@@ -22,18 +22,20 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.environment.Logger;
 import com.android.utils.ComputerArchUtilsKt;
 import com.android.utils.CpuArchitecture;
-import com.android.utils.ILogger;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
@@ -66,14 +68,20 @@ public class LayoutLibraryLoader {
         LayoutlibBundle.message("android.directory.cannot.be.found.error", platformFolderPath));
     }
 
-    final File buildProp = new File(platformFolder, SdkConstants.FN_BUILD_PROP);
-    if (!buildProp.isFile()) {
+    final File buildPropFile = new File(platformFolder, SdkConstants.FN_BUILD_PROP);
+    final Properties buildProp = new Properties();
+    try (InputStream buildPropStream = new FileInputStream(buildPropFile)) {
+      buildProp.load(buildPropStream);
+    }
+    catch (IOException e) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.file.not.exist.error", buildProp.getPath()));
+        LayoutlibBundle.message("android.file.not.exist.error", buildPropFile.getPath()));
+    }
+    final Map<String, String> buildPropMap = new HashMap<>(buildProp.size());
+    for (String key : buildProp.stringPropertyNames()) {
+      buildPropMap.put(key, buildProp.getProperty(key));
     }
 
-    final ILogger logger = new LogWrapper(LOG);
-    final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
     final Path dataPath = target.getPath(IAndroidTarget.DATA);
@@ -89,7 +97,7 @@ public class LayoutLibraryLoader {
 
     LayoutLibrary library = LayoutLibraryLoader.getLayoutLibraryProvider().map(LayoutLibraryProvider::getLibrary).orElse(null);
     if (library == null ||
-        !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(),
+        !library.init(buildPropMap,
                       fontFolderPath.toFile(),
                       getNativeLibraryPath(dataPath),
                       pathToString(icuDataPath),

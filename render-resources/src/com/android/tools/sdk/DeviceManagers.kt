@@ -18,7 +18,7 @@ package com.android.tools.sdk
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.environment.Logger
-import com.android.tools.idea.layoutlib.LogWrapper
+import com.android.tools.log.LogWrapper
 import com.android.utils.ILogger
 
 class DeviceManagerCache(val logger: ILogger) {

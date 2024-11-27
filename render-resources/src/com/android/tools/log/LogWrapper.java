@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutlib;
+package com.android.tools.log;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
