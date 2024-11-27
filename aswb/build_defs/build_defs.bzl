@@ -1,6 +1,7 @@
 """Custom build macros for IntelliJ plugin handling.
 """
 
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load(
     ":intellij_plugin.bzl",
     _intellij_plugin = "intellij_plugin",
@@ -12,6 +13,14 @@ load(
 intellij_plugin = _intellij_plugin
 intellij_plugin_library = _intellij_plugin_library
 optional_plugin_xml = _optional_plugin_xml
+
+def aswb_library(name, **kwargs):
+    """A regular ASwB target."""
+    kotlin_library(
+        name = name,
+        jvm_target = "17",
+        **kwargs
+    )
 
 def merged_plugin_xml(name, srcs, **kwargs):
     """Merges N plugin.xml files together."""

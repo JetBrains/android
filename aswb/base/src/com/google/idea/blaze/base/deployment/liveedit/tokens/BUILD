@@ -1,6 +1,6 @@
-load("//tools/base/bazel:kotlin.bzl", "kt_jvm_library")
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 
-kt_jvm_library(
+aswb_library(
     name = "tokens",
     srcs = glob([
         "*.kt",
