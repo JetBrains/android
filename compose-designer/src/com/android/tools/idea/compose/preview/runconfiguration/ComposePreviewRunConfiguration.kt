@@ -25,8 +25,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jdom.Element
@@ -157,6 +160,25 @@ open class ComposePreviewRunConfiguration(
    * `@Preview`.
    */
   private fun isValidComposableSet(): Boolean {
+    if (ApplicationManager.getApplication().isDispatchThread) {
+      // When executing a configuration, ExecutionManagerImpl#executeConfiguration is called. This
+      // first validates the run configuration on the background thread and then runs the
+      // configuration on the EDT.
+      // However, when executing the configuration on the EDT, the validate method is called again.
+      // We need to run the validation logic, which can be slow, on the background.
+      // The following will run the validation logic on the background while displaying a popup.
+      // The popup has a "cancel" button allowing the user to cancel the operation.
+      // The popup will only display if the validation logic takes more than a certain timeout.
+      // In the majority of cases we expect the validation logic to run fast enough for the user
+      // not to see the popup.
+      return runWithModalProgressBlocking(project, message("run.configuration.validating")) {
+        readAction { computeValidComposableSet() }
+      }
+    }
+    return computeValidComposableSet()
+  }
+
+  private fun computeValidComposableSet(): Boolean {
     val composableFqn = composableMethodFqn ?: return false
 
     JavaPsiFacade.getInstance(project)
@@ -164,7 +186,7 @@ open class ComposePreviewRunConfiguration(
       ?.findMethodsByName(composableFqn.substringAfterLast("."), true)
       ?.forEach { method ->
         if (method.toUElementOfType<UMethod>()?.hasPreviewElements() == true)
-          return@isValidComposableSet true
+          return@computeValidComposableSet true
       }
 
     return false

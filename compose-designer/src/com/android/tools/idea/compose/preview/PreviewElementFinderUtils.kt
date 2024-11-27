@@ -40,8 +40,6 @@ import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
@@ -62,9 +60,7 @@ private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewA
  * indirect annotations with MultiPreview.
  */
 internal fun UMethod?.hasPreviewElements() =
-  SlowOperations.allowSlowOperations(
-    ThrowableComputable { this?.let { getPreviewElements(it).firstOrNull() } != null }
-  )
+  this?.let { getPreviewElements(it).firstOrNull() } != null
 
 /**
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
