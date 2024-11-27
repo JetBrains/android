@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.bazel;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.info.BlazeInfoException;
@@ -52,7 +53,7 @@ public class FakeBlazeCommandRunner implements BlazeCommandRunner {
         buildResultHelper -> {
           try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
             return BlazeBuildOutputs.fromParsedBepOutput(
-              BuildResult.SUCCESS, buildResultHelper.getBuildOutput(bepStream, Interners.STRING));
+              BuildResult.SUCCESS, BuildResultParser.getBuildOutput(bepStream, Interners.STRING));
           }
         });
   }

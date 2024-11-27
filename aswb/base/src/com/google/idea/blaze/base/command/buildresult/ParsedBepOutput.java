@@ -47,7 +47,6 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.IntExperiment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;

@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
@@ -213,7 +214,7 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         } else {
                           try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
                             testResultsHolder.setTestResults(
-                              buildResultHelper.getTestResults(bepStream));
+                              BuildResultParser.getTestResults(bepStream));
                           }
                         }
                         ListenableFuture<Void> unusedFuture =
