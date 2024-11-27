@@ -297,6 +297,14 @@ public final class StudioFlags {
     "Shows the Motion Editor deprecation warning.",
     true
   );
+
+  public static final Flag<Boolean> MOTION_EDITOR = new BooleanFlag(
+    DESIGN_TOOLS,
+    "motion.editor.enabled",
+    "Motion Editor enabled",
+    "When true, the Motion Editor will be enabled.",
+    true
+  );
   //endregion
 
   //region Layout Editor
