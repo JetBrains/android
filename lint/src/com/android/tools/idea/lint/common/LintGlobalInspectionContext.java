@@ -383,5 +383,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       myEnabledIssue.setEnabledByDefault(false);
       myEnabledIssue = null;
     }
+    myResults = null;
+    myBaseline = null;
   }
 }
