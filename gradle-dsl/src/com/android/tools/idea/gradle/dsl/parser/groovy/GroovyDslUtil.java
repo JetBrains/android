@@ -19,6 +19,8 @@ import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.findL
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.getNextValidParent;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.isDomainObjectConfiguratorMethodName;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.removePsiIfInvalid;
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
@@ -30,8 +32,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
+import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -39,9 +43,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
@@ -104,6 +110,29 @@ import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 public final class GroovyDslUtil {
   private static final Logger LOG = Logger.getInstance(GroovyDslUtil.class);
+
+  static boolean isBlockElement(
+    @NotNull GrMethodCallExpression methodCall,
+    @NotNull GradleDslNameConverter converter,
+    @NotNull GradlePropertiesDslElement parent
+  ) {
+    GrReferenceExpression referenceExpression = findChildOfType(methodCall, GrReferenceExpression.class);
+    if (referenceExpression == null) return false;
+    String name = referenceExpression.getReferenceName();
+    if (name == null) return false;
+    boolean zeroOrOneClosures = methodCall.getClosureArguments().length < 2;
+    GrExpression[] expressions = methodCall.getExpressionArguments();
+    boolean namedDomainBlockReference = parent instanceof GradleDslNamedDomainContainer &&
+                                        ((expressions.length == 0) ||
+                                         (expressions.length == 1 && isDomainObjectConfiguratorMethodName(name)));
+    List<String> specialCases = Arrays.asList("allprojects", APPLY_BLOCK_NAME, EXT.name);
+    boolean knownBlockForParent = expressions.length == 0 &&
+                                  (specialCases.contains(name) ||
+                                   parent instanceof ConfigurationDslElement ||
+                                   parent.getChildPropertiesElementDescription(converter, name) != null);
+    return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent);
+  }
+
   @Nullable
   static GroovyPsiElement ensureGroovyPsi(@Nullable PsiElement element) {
     if (element == null) {

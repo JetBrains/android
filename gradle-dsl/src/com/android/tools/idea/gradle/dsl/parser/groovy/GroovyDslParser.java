@@ -27,6 +27,7 @@ import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APP
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isBlockElement;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
@@ -370,12 +371,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     // a call with no closure argument will not do anything, but some (e.g. bare method calls to google() under repositories { ... })
     // will have an effect and must be parsed as their respective block.
 
-    // We will check for whether a call should be interpreted as a block by interrogating the parent Dsl for whether a child with that
-    // name would be recognized.  There remain a few special cases which are not handled using the Dsl tables, which must always be
-    // considered as blocks.
-    List<String> specialCases = Arrays.asList("allprojects", APPLY_BLOCK_NAME, EXT.name);
-
-    if (nArgs > 0 || (!specialCases.contains(name.name()) && dslElement.getChildPropertiesElementDescription(this, name.name()) == null)) {
+    if (!isBlockElement(expression, this, dslElement)) {
       // This element is a method call with arguments and an optional closure associated with it.  Handle as a regular method call.
       // ex: compile("dependency") {}, reset()
       GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName(), false);
