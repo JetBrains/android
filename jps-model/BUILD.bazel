@@ -1,15 +1,13 @@
 ### auto-generated section `build intellij.android.jps.model` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "jps-model",
   module_name = "intellij.android.jps.model",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:jetbrains-annotations",
     "//platform/util",

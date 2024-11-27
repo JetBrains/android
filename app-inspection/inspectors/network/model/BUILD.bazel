@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.model` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "android-app-inspection-inspectors-network-model",
   module_name = "intellij.android.app-inspection.inspectors.network.model",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:fastutil-min",
     "@lib//:kotlin-stdlib",
@@ -38,14 +35,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "android-app-inspection-inspectors-network-model_test",
+jvm_library(
+  name = "android-app-inspection-inspectors-network-model_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":android-app-inspection-inspectors-network-model"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:guava",
     "@lib//:fastutil-min",
@@ -56,12 +52,18 @@ kt_jvm_test(
     "@lib//:mockito",
     "@lib//:truth",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/app-inspection/api:android-app-inspection-api",
+    "//android/app-inspection/api:android-app-inspection-api_test_lib",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
     "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
     "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util/concurrency",
     "//platform/core-api:core",
@@ -74,8 +76,13 @@ kt_jvm_test(
     "//platform/util-ex",
     "//platform/util/jdom",
     "//platform/util:util-ui",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "@lib//:android_app-inspection_inspectors_network_model_brotli-dec",
   ]
+)
+
+jvm_test(
+  name = "android-app-inspection-inspectors-network-model_test",
+  runtime_deps = [":android-app-inspection-inspectors-network-model_test_lib"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.model` end

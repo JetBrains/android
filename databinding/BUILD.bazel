@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.databinding` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "databinding_resources",
-  files = glob(["src/META-INF/databinding.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,17 +11,15 @@ jvm_library(
   name = "databinding",
   module_name = "intellij.android.databinding",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jcip",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/analytics",
     "//android/android-common:common",
     "//android/android:core",
@@ -66,20 +63,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.databinding.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "databinding-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "databinding-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
@@ -93,7 +83,7 @@ kt_jvm_test(
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:mockito",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
     "//android/databinding",
@@ -103,8 +93,8 @@ kt_jvm_test(
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/render-resources",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-impl-refactorings:impl-refactorings",
     "//java/java-indexing-api:indexing",
@@ -117,16 +107,15 @@ kt_jvm_test(
     "//platform/core-impl",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/usageView",
     "//platform/util",
@@ -134,11 +123,11 @@ kt_jvm_test(
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test_lib",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//android/databinding/gradle:android-databinding-gradle",
   ]
 )

@@ -1,41 +1,34 @@
 ### auto-generated section `build intellij.android.sync-perf-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "sync-perf-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "sync-perf-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:protobuf",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/android:core-tests_test",
+    "//android/android:core-tests_test_lib",
     "//android/project-system-gradle:projectSystem-gradle",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//plugins/gradle:gradle-common",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/external-system-api:externalSystem",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.sync-perf-tests` end

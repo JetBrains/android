@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.observable.ui` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "observable-ui",
   module_name = "intellij.android.observable.ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//android/adt-ui",
@@ -25,14 +22,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "observable-ui_test",
+jvm_library(
+  name = "observable-ui_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":observable-ui"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -40,17 +36,25 @@ kt_jvm_test(
     "@lib//:junit4",
     "@lib//:truth",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/observable",
+    "//android/observable:observable_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
   ]
+)
+
+jvm_test(
+  name = "observable-ui_test",
+  runtime_deps = [":observable-ui_test_lib"]
 )
 ### auto-generated section `build intellij.android.observable.ui` end

@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.glance-designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "glance-designer_resources",
@@ -12,17 +11,15 @@ jvm_library(
   name = "glance-designer",
   module_name = "intellij.android.glance-designer",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/adt-ui",
     "//android/android-common:common",
     "//android/android:core",
@@ -47,7 +44,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/rendering",
     "//android/intellij.android.compose-common:compose-common",
-    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_analysis-api-provided",
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
   ],
   runtime_deps = [":glance-designer_resources"]
@@ -56,48 +53,40 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.glance-designer.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "glance-designer-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "glance-designer-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/glance-designer"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:mockito",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/android-common:common",
     "//android/android:core",
     "//android/designer",
-    "//android/designer:designer_test",
-    "//android/glance-designer",
+    "//android/designer:designer_test_lib",
     "//android/layout-ui",
-    "//android/layout-ui:layout-ui_test",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/preview-designer",
     "//android/preview-elements",
     "//android/project-system:projectSystem",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-api:ide",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//android/intellij.android.compose-common:compose-common",
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",

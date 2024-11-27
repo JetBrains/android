@@ -1,19 +1,17 @@
 ### auto-generated section `build intellij.android.compose-common` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "compose-common",
   module_name = "intellij.android.compose-common",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
     "//android/android-common:common",
     "//android/project-system:projectSystem",
     "//platform/analysis-api:analysis",
@@ -38,34 +36,29 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.compose-common.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "compose-common-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "compose-common-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
     "@lib//:junit4",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/android-test-framework:testFramework",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/intellij.android.compose-common:compose-common",
     "//android/android:core",
-    "//android/android-plugin:plugin_test",
+    "//android/android-plugin:plugin_test_lib",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
   ]
 )

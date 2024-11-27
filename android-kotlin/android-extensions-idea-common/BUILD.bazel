@@ -1,10 +1,19 @@
 ### auto-generated section `build intellij.android.kotlin.extensions.common` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  opt_in = [
+    "org.jetbrains.kotlin.analysis.api.KaIdeApi",
+    "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
+  ]
+)
 
 jvm_resources(
   name = "android-kotlin-extensions-common_resources",
-  files = glob(["src/META-INF/android-kotlin-extensions-common.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,17 +21,16 @@ jvm_library(
   name = "android-kotlin-extensions-common",
   module_name = "intellij.android.kotlin.extensions.common",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:gradle",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_android-extensions-compiler-plugin.provided",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
-    "@lib//:kotlinc_kotlin-jps-common.provided",
+    "@lib//:kotlinc_android-extensions-compiler-plugin-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc_kotlin-jps-common-provided",
     "//android/android-kotlin/android-extensions-toolingExtension:android-kotlin-extensions-tooling",
     "//plugins/gradle:gradle-common",
     "//platform/analysis-api:analysis",

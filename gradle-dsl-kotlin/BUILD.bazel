@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "gradle-dsl-kotlin_resources",
@@ -12,15 +11,13 @@ jvm_library(
   name = "gradle-dsl-kotlin",
   module_name = "intellij.android.gradle.dsl.kotlin",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/gradle-dsl",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",

@@ -13,7 +13,6 @@ java_library(
   visibility = ["//visibility:public"],
   runtime_deps = [
     ":android-nav-safeargs_resources",
-    "@lib//:kotlin-stdlib",
     "//android/nav/safeargs/common:android-nav-safeargs-common",
     "//android/nav/safeargs/k1:android-nav-safeargs-k1",
     "//android/nav/safeargs/k2:android-nav-safeargs-k2",

@@ -1,11 +1,9 @@
 ### auto-generated section `build intellij.android.motion-editor` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "motion-editor_resources",
-  files = glob(["src/META-INF/motion-editor.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -13,11 +11,9 @@ jvm_library(
   name = "motion-editor",
   module_name = "intellij.android.motion-editor",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//android/designer",
     "//android/adt-ui",
@@ -47,29 +43,32 @@ jvm_library(
   runtime_deps = [":motion-editor_resources"]
 )
 
-kt_jvm_test(
-  name = "motion-editor_test",
+jvm_library(
+  name = "motion-editor_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":motion-editor"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/designer",
+    "//android/designer:designer_test_lib",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/android-common:common",
     "//android/android:core",
     "//android/render-resources",
     "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/artwork",
     "//android/rendering",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "@lib//:layoutlib",
     "//android/artwork-compose",
-    "//android/designer:designer-tests_test",
+    "//android/designer:designer-tests_test_lib",
     "@lib//:truth",
     "@lib//:mockito",
     "@lib//:mockito-kotlin",
@@ -84,13 +83,19 @@ kt_jvm_test(
     "//platform/core-impl",
     "//platform/lang-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "@lib//:commons-lang3",
     "//java/java-psi-api:psi",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "@lib//:junit4",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
   ],
   runtime_deps = [":motion-editor_resources"]
+)
+
+jvm_test(
+  name = "motion-editor_test",
+  runtime_deps = [":motion-editor_test_lib"]
 )
 ### auto-generated section `build intellij.android.motion-editor` end

@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.room` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "room_resources",
-  files = glob(["src/META-INF/android-room.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,16 +11,14 @@ jvm_library(
   name = "room",
   module_name = "intellij.android.room",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/android-lang:lang",
     "//android/project-system:projectSystem",
     "//java/openapi:java",
@@ -50,20 +47,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.room.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "room-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "room-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
@@ -71,10 +61,12 @@ kt_jvm_test(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:mockito",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/android-lang:lang",
     "//android/room",
     "//android/android-test-framework:testFramework",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//platform/core-api:core",
@@ -82,7 +74,7 @@ kt_jvm_test(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
   ]
 )

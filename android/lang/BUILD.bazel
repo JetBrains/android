@@ -1,19 +1,13 @@
 ### auto-generated section `build intellij.android.core.lang` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "core-lang",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-lang_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/android:core"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
@@ -21,9 +15,8 @@ kt_jvm_test(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:truth",
     "@lib//:kotlinc_kotlin-compiler-common",
-    "//android/android:core",
-    "//android/android:core-tests_test",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//java/java-analysis-api:analysis",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-impl:impl",
@@ -35,10 +28,10 @@ kt_jvm_test(
     "//platform/ide-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.lang` end

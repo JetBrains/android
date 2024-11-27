@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.debuggers` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "debuggers_resources",
-  files = glob(["src/META-INF/android-debuggers.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,11 +11,9 @@ jvm_library(
   name = "debuggers",
   module_name = "intellij.android.debuggers",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
@@ -67,20 +64,14 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.debuggers.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "debuggers-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "debuggers-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/debuggers"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:fastutil-min",
     "@lib//:kotlin-stdlib",
@@ -91,15 +82,15 @@ kt_jvm_test(
     "@lib//:mockito",
     "@lib//:truth",
     "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
     "//platform/util/nanoxml",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/debuggers",
     "//android/deploy",
-    "//android/deploy:deploy_test",
+    "//android/deploy:deploy_test_lib",
     "//android/execution/common:android-execution-common",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/debugger/openapi:java-debugger",
     "//java/debugger/impl:java-debugger-impl",
@@ -116,10 +107,10 @@ kt_jvm_test(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//images",
-    "//images:images_test",
+    "//images:images_test_lib",
     "//platform/indexing-impl",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/util",
     "//platform/util/base",

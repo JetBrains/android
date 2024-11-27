@@ -1,7 +1,5 @@
 ### auto-generated section `build intellij.android.nav.editor` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "android-nav-editor_resources",
@@ -13,17 +11,15 @@ jvm_library(
   name = "android-nav-editor",
   module_name = "intellij.android.nav.editor",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:android_nav_editor_eclipse-layout-kernel",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/artwork",
@@ -67,35 +63,41 @@ jvm_library(
   runtime_deps = [":android-nav-editor_resources"]
 )
 
-kt_jvm_test(
-  name = "android-nav-editor_test",
+jvm_library(
+  name = "android-nav-editor_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":android-nav-editor"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:android_nav_editor_eclipse-layout-kernel",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "@lib//:truth",
     "@lib//:mockito",
     "@lib//:kotlin-test",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/assistant",
     "//android/android-common:common",
     "//android/android:core",
     "//android/designer",
+    "//android/designer:designer_test_lib",
     "//android/jps-model",
     "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/android-npw:newProjectWizard",
     "//android/observable",
+    "//android/observable:observable_test_lib",
     "//android/observable-ui",
+    "//android/observable-ui:observable-ui_test_lib",
     "//android/project-system:projectSystem",
     "//android/render-resources",
     "//android/rendering",
@@ -112,6 +114,7 @@ kt_jvm_test(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/indexing-api:indexing",
     "//platform/lang-api:lang",
     "//platform/lang-core",
@@ -122,17 +125,24 @@ kt_jvm_test(
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test_lib",
     "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
-    "//android/android-test-framework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//java/testFramework",
-    "//android/intellij.android.testutils:testutils_test",
-    "//android/designer:designer-tests_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/designer:designer-tests_test_lib",
     "//xml/dom-impl",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
   ],
   runtime_deps = [":android-nav-editor_resources"]
+)
+
+jvm_test(
+  name = "android-nav-editor_test",
+  runtime_deps = [":android-nav-editor_test_lib"]
 )
 ### auto-generated section `build intellij.android.nav.editor` end
 

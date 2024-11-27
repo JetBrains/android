@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.device` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 create_kotlinc_options(
   name = "custom",
@@ -12,11 +12,10 @@ jvm_library(
   name = "device",
   module_name = "intellij.android.device",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
     "@lib//:kotlinx-coroutines-core",
@@ -36,7 +35,9 @@ jvm_library(
     "//android/artwork",
     "//android/artwork-compose",
     "//android/android-adb:adb",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
-  ]
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jewel-ide-laf-bridge",
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.device` end

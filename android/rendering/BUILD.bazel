@@ -1,6 +1,7 @@
 ### auto-generated section `build intellij.android.core.rendering` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -9,18 +10,12 @@ kt_javac_options(
   add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"]
 )
 
-java_library(
-  name = "core-rendering",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-rendering_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = "@rules_jvm//:k17",
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
@@ -36,17 +31,17 @@ kt_jvm_test(
     "@lib//:layoutlib",
     "@lib//:mockito",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/android:core-tests_test",
+    "//android/android:core-tests_test_lib",
     "//android/jps-model",
     "//android/layoutlib-loader",
     "//android/project-system:projectSystem",
     "//android/render-resources",
     "//android/rendering",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
@@ -55,20 +50,19 @@ kt_jvm_test(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/ide-core",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/core",
     "//platform/util",
     "//platform/util/base",
     "//platform/util-class-loader:util-classLoader",
     "//platform/util-ex",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util/trove",
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",

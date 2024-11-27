@@ -1,6 +1,6 @@
 ### auto-generated section `build intellij.android.adt.swingp` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -16,11 +16,10 @@ jvm_library(
   name = "adt-swingp",
   module_name = "intellij.android.adt.swingp",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = "@rules_jvm//:k17",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:asm",
     "@lib//:guava",
     "@lib//:gson",
@@ -31,14 +30,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
+jvm_test(
   name = "adt-swingp_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = "@rules_jvm//:k17",
   associates = [":adt-swingp"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:asm",
     "@lib//:guava",

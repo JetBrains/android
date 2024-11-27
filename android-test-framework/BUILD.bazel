@@ -1,6 +1,7 @@
 ### auto-generated section `build intellij.android.testFramework` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -14,13 +15,13 @@ java_library(
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "testFramework_test",
+jvm_library(
+  name = "testFramework_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
-  kotlinc_opts = "@rules_jvm//:k17",
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
@@ -31,8 +32,10 @@ kt_jvm_test(
     "@lib//:kotlin-reflect",
     "@lib//:mockito",
     "@lib//:truth",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "@lib//:android_tools_analytics_library_testing",
     "//android/adt-testutils",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android-navigator:navigator",
     "//android/project-system:projectSystem",
@@ -40,7 +43,7 @@ kt_jvm_test(
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/render-resources",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/android:core",
     "//android/execution/common:android-execution-common",
     "//android/jps-model",
@@ -48,7 +51,7 @@ kt_jvm_test(
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/rendering",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
     "//plugins/gradle/tooling-extension-api:toolingExtension",
@@ -72,7 +75,6 @@ kt_jvm_test(
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/external-system-api:externalSystem",
     "//platform/external-system-impl:externalSystem-impl",
     "//platform/external-system-rt:externalSystem-rt",
@@ -80,7 +82,7 @@ kt_jvm_test(
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/lang-impl",
@@ -88,33 +90,38 @@ kt_jvm_test(
     "//platform/projectModel-impl",
     "//platform/refactoring",
     "//platform/service-container:serviceContainer",
-    "//platform/service-container:serviceContainer_test",
+    "//platform/service-container:serviceContainer_test_lib",
     "//platform/smRunner",
-    "//platform/smRunner:smRunner_test",
+    "//platform/smRunner:smRunner_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/testFramework/core",
     "//platform/testRunner",
-    "//platform/testRunner:testRunner_test",
+    "//platform/testRunner:testRunner_test_lib",
     "//platform/util",
     "//platform/util/base",
     "//platform/util-ex",
     "//platform/util/jdom",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//platform/workspace/storage",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/external-build-system:kotlin-base-external-build-system",
     "//plugins/kotlin/base/scripting:kotlin-base-scripting",
-    "//plugins/kotlin/base/scripting:kotlin-base-scripting_test",
+    "//plugins/kotlin/base/scripting:kotlin-base-scripting_test_lib",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2",
-    "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2_test",
+    "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2_test_lib",
   ]
+)
+
+jvm_test(
+  name = "testFramework_test",
+  runtime_deps = [":testFramework_test_lib"]
 )
 ### auto-generated section `build intellij.android.testFramework` end

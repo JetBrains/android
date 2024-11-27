@@ -1,28 +1,22 @@
 ### auto-generated section `build intellij.android.ide-perf-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "ide-perf-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "ide-perf-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core",
-    "//android/android-plugin:plugin_test",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-plugin:plugin_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//java/java-psi-api:psi",
     "//platform/analysis-api:analysis",
@@ -31,19 +25,19 @@ kt_jvm_test(
     "//platform/core-impl",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/indexing-api:indexing",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/util",
     "//platform/util:util-ui",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//plugins/toml/core",
   ]
 )

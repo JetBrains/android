@@ -1,7 +1,6 @@
 ### auto-generated section `build intellij.android.projectSystem.gradle` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
@@ -19,11 +18,10 @@ jvm_library(
   name = "projectSystem-gradle",
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:stream_ex",
     "@lib//:classgraph",
@@ -32,19 +30,19 @@ jvm_library(
     "@lib//:grpc-core",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-gradle-plugin-idea.provided",
+    "@lib//:kotlin-gradle-plugin-idea-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlin-tooling-core.provided",
+    "@lib//:kotlin-tooling-core-provided",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kotlin-reflect",
     "@lib//:protobuf",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-jps-common.provided",
-    "@lib//:kotlinc_kotlin-scripting-compiler-impl.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-jps-common-provided",
+    "@lib//:kotlinc_kotlin-scripting-compiler-impl-provided",
     "@lib//:gradle",
-    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
     "//android/adt-ui",
     "//android/analytics",
     "//android/apkanalyzer",
@@ -157,8 +155,8 @@ jvm_library(
     "//xml/dom-impl",
     "//android/ml-api",
     "//android/android-lang:lang",
-    "@lib//:kotlinc_analysis-api-k2.provided",
-    "@lib//:kotlinc_analysis-api-fe10.provided",
+    "@lib//:kotlinc_analysis-api-k2-provided",
+    "@lib//:kotlinc_analysis-api-fe10-provided",
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
     "//android/gradle-dsl-flags",
   ],
@@ -168,20 +166,19 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "projectSystem-gradle-tests",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "projectSystem-gradle-tests_test",
+jvm_library(
+  name = "projectSystem-gradle-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
@@ -196,20 +193,22 @@ kt_jvm_test(
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/build-attribution",
     "//android/build-common:buildCommon",
     "//android/android-common:common",
     "//android/android:core",
     "//android/deploy",
-    "//android/deploy:deploy_test",
+    "//android/deploy:deploy_test_lib",
     "//android/execution/common:android-execution-common",
     "//android/gradle-dsl",
     "//android/jps-model",
     "//android/android-lint:lint",
-    "//android/android-navigator:navigator-testutils_test",
+    "//android/android-navigator:navigator-testutils_test_lib",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
@@ -219,14 +218,14 @@ kt_jvm_test(
     "//android/project-system-gradle-sync-test-utils:projectSystem-gradle-sync-testUtils",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/render-resources",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
     "//plugins/gradle/java",
     "//plugins/gradle/tooling-extension-api:toolingExtension",
     "//plugins/groovy",
-    "//plugins/groovy:groovy_test",
+    "//plugins/groovy:groovy_test_lib",
     "//plugins/groovy/groovy-psi:psi",
     "//java/openapi:java",
     "//java/compiler/impl:java-compiler-impl",
@@ -247,7 +246,6 @@ kt_jvm_test(
     "//platform/execution",
     "//platform/execution-impl",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/external-system-api:externalSystem",
     "//platform/external-system-impl:externalSystem-impl",
     "//platform/external-system-rt:externalSystem-rt",
@@ -255,7 +253,7 @@ kt_jvm_test(
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/indexing-api:indexing",
     "//jps/model-serialization",
     "//platform/lang-api:lang",
@@ -265,7 +263,7 @@ kt_jvm_test(
     "//platform/projectModel-impl",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/usageView",
     "//platform/usageView-impl",
@@ -273,7 +271,7 @@ kt_jvm_test(
     "//platform/util/base",
     "//platform/util/jdom",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//platform/workspace/storage",
     "//plugins/toml/core",
@@ -281,25 +279,39 @@ kt_jvm_test(
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-code-insight-common",
     "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl",
-    "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl_test",
+    "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl_test_lib",
     "//plugins/kotlin/base/scripting:kotlin-base-scripting",
-    "//plugins/kotlin/base/scripting:kotlin-base-scripting_test",
-    "//android/gradle-dsl:gradle-dsl-testutils_test",
+    "//plugins/kotlin/base/scripting:kotlin-base-scripting_test_lib",
+    "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "//plugins/kotlin/project-configuration",
     "//android/gradle-dsl-declarative",
     "//plugins/properties/properties-psi-api:psi",
     "//plugins/properties/properties-psi-impl:psi-impl",
     "//android/ml-api",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//spellchecker",
-    "//spellchecker:spellchecker_test",
+    "//spellchecker:spellchecker_test_lib",
     "//android/gradle-declarative-lang",
     "//android/gradle-declarative-lang-ide",
     "//android/gradle-dsl-flags",
+  ],
+  runtime_deps = [
+    "//android/gradle-dsl-groovy",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-declarative",
+    "//android/android-kotlin/android-extensions-idea:android-kotlin-extensions",
+    "//android/android-kotlin/idea-android:android-kotlin-idea",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
   ]
+)
+
+jvm_test(
+  name = "projectSystem-gradle-tests_test",
+  runtime_deps = [":projectSystem-gradle-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end

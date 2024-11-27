@@ -1,29 +1,22 @@
 ### auto-generated section `build intellij.android.core.editing.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "core-editing-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-editing-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core",
-    "//android/android-plugin:plugin_test",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-plugin:plugin_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/openapi:java",
     "//java/java-impl:impl",
     "//java/java-impl-refactorings:impl-refactorings",
@@ -34,7 +27,7 @@ kt_jvm_test(
     "//platform/lang-impl",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",

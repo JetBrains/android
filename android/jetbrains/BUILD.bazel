@@ -1,7 +1,8 @@
 ### auto-generated section `build intellij.android.core.jetbrains` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
 
 create_kotlinc_options(
   name = "custom",
@@ -16,18 +17,14 @@ kt_javac_options(
   add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"]
 )
 
-java_library(
-  name = "core-jetbrains",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-jetbrains_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
   kotlinc_opts = ":custom",
+  associates = ["//android/android:core"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
@@ -44,12 +41,11 @@ kt_jvm_test(
     "@lib//:kotlinc_kotlin-compiler-common",
     "@lib//:kotlinc_analysis-api",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/android-common:common",
-    "//android/android:core",
-    "//android/android:core-tests_test",
+    "//android/android:core-tests_test_lib",
     "//android/jps-model",
     "//android/layoutlib-loader",
     "//android/android-navigator:navigator",
@@ -58,7 +54,7 @@ kt_jvm_test(
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/render-resources",
     "//android/rendering",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//plugins/gradle:gradle-common",
     "//java/compiler/impl:java-compiler-impl",
@@ -71,22 +67,21 @@ kt_jvm_test(
     "//java/java-psi-impl:psi-impl",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/analysis-impl",
     "//platform/code-style-api:codeStyle",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
     "//platform/credential-store-impl:credentialStore-impl",
-    "//platform/credential-store-impl:credentialStore-impl_test",
+    "//platform/credential-store-impl:credentialStore-impl_test_lib",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/external-system-api:externalSystem",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-core",
@@ -95,7 +90,7 @@ kt_jvm_test(
     "//platform/refactoring",
     "//platform/remote-core",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/usageView",
     "//platform/usageView-impl",
@@ -103,10 +98,10 @@ kt_jvm_test(
     "//platform/util/base",
     "//platform/util/jdom",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//spellchecker",
-    "//spellchecker:spellchecker_test",
+    "//spellchecker:spellchecker_test_lib",
     "//xml/xml-analysis-impl:analysis-impl",
     "//xml/dom-openapi:dom",
     "//xml/dom-impl",
@@ -116,11 +111,11 @@ kt_jvm_test(
     "//xml/xml-psi-impl:psi-impl",
     "//xml/xml-structure-view-api:structureView",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark",
-    "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark_test",
+    "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark_test_lib",
     "//android/android/editing/documentation:android-core-editing-documentation",
-    "//android/android/editing/documentation:android-core-editing-documentation_test",
+    "//android/android/editing/documentation:android-core-editing-documentation_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.jetbrains` end

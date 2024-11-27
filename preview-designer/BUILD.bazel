@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.preview-designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "preview-designer_resources",
@@ -12,19 +11,17 @@ jvm_library(
   name = "preview-designer",
   module_name = "intellij.android.preview-designer",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:commons-lang3",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-compiler-ir.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-ir-provided",
     "//android/adt-ui",
     "//android/artwork",
     "//platform/ide-core-impl",
@@ -66,7 +63,7 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-minimal:kotlin-highlighting-minimal",
     "//android/preview-fast-compile",
     "//android/completion",
-    "@lib//:kotlinc_analysis-api.provided",
+    "@lib//:kotlinc_analysis-api-provided",
     "//platform/util-ex",
     "//java/java-analysis-impl:analysis-impl",
     "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
@@ -78,20 +75,20 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.preview-designer.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "preview-designer-tests",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "preview-designer-tests_test",
+jvm_library(
+  name = "preview-designer-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/preview-designer"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
@@ -103,41 +100,45 @@ kt_jvm_test(
     "@lib//:protobuf",
     "@lib//:kotlinc_kotlin-compiler-common",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/android-common:common",
     "//android/render-resources",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android:core",
     "//android/designer",
-    "//android/designer:designer_test",
+    "//android/designer:designer_test_lib",
     "//android/layout-ui",
-    "//android/layout-ui:layout-ui_test",
-    "//android/preview-designer",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/preview-elements",
     "//android/rendering",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//uast/uast-common:uast",
-    "//android/android:core-tests_test",
+    "//android/android:core-tests_test_lib",
     "//plugins/kotlin/idea",
     "//android/project-system:projectSystem",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//android/preview-fast-compile",
-    "//android/rendering:rendering-tests_test",
-    "//android/designer:designer-tests_test",
+    "//android/rendering:rendering-tests_test_lib",
+    "@lib//:kotlinc_analysis-api-provided",
+    "//android/designer:designer-tests_test_lib",
     "@lib//:kotlinx-collections-immutable",
   ]
+)
+
+jvm_test(
+  name = "preview-designer-tests_test",
+  runtime_deps = [":preview-designer-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.preview-designer.tests` end

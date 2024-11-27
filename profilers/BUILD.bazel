@@ -1,16 +1,18 @@
 ### auto-generated section `build intellij.android.profilers` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_test")
+
+jvm_provided_library(
+  name = "artifactResolver-m31_provided",
+  lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
+)
 
 jvm_library(
   name = "profilers",
   module_name = "intellij.android.profilers",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:asm",
     "@lib//:asm-tools",
     "@lib//:fastutil-min",
@@ -26,7 +28,6 @@ jvm_library(
     "//android/inspectors-common/api:android-inspectors-common-api",
     "//android/profilers-atrace",
     "//android/android-transport:transport",
-    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
     "//plugins/maven/maven-event-listener:server-eventListener",
     "//platform/core-api:core",
     "//platform/extensions",
@@ -37,17 +38,17 @@ jvm_library(
     "//platform/ide-core",
     "//platform/editor-ui-api:editor",
     "//platform/core-ui",
+    ":artifactResolver-m31_provided",
   ]
 )
 
-kt_jvm_test(
-  name = "profilers_test",
+jvm_library(
+  name = "profilers_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":profilers"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:asm",
     "@lib//:junit4",
@@ -62,29 +63,42 @@ kt_jvm_test(
     "@lib//:truth",
     "@lib//:guava",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
     "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//android/profilers-atrace",
+    "//android/profilers-atrace:profilers-atrace_test_lib",
     "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
+    "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
     "//plugins/maven/maven-event-listener:server-eventListener",
+    "//plugins/maven/maven-event-listener:server-eventListener_test_lib",
     "//platform/core-api:core",
     "//platform/extensions",
     "//platform/util",
     "//platform/util/base",
     "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util/trove",
-    "//android/adt-testutils:adt-testutils_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//android/transport-database:transportDatabase",
-    "//android/transport-database:transportDatabase_test",
+    "//android/transport-database:transportDatabase_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
-    "//android/android-test-framework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//platform/ide-core",
     "//platform/editor-ui-api:editor",
     "//platform/core-ui",
   ]
+)
+
+jvm_test(
+  name = "profilers_test",
+  runtime_deps = [":profilers_test_lib"]
 )
 ### auto-generated section `build intellij.android.profilers` end

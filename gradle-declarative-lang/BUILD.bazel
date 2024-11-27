@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.gradle.declarative.lang` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "gradle-declarative-lang_resources",
@@ -12,11 +11,9 @@ jvm_library(
   name = "gradle-declarative-lang",
   module_name = "intellij.android.gradle.declarative.lang",
   visibility = ["//visibility:public"],
-  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//plugins/gradle",
     "//platform/analysis-api:analysis",
@@ -28,7 +25,7 @@ jvm_library(
     "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "@lib//:commons-lang3",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//platform/code-style-impl:codeStyle-impl",
   ],
   runtime_deps = [":gradle-declarative-lang_resources"]
@@ -37,23 +34,16 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "gradle-declarative-lang-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "gradle-declarative-lang-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:truth",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/gradle-declarative-lang",
     "//android/lint:lint-common",
     "@lib//:junit4",
@@ -62,10 +52,11 @@ kt_jvm_test(
     "//platform/core-api:core",
     "//platform/analysis-api:analysis",
     "//uast/uast-common:uast",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",
-  ]
+  ],
+  runtime_deps = ["//android/gradle-declarative-lang-ide"]
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` end

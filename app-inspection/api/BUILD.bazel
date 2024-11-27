@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.app-inspection.api` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "android-app-inspection-api",
   module_name = "intellij.android.app-inspection.api",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:grpc-core",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -24,14 +21,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "android-app-inspection-api_test",
+jvm_library(
+  name = "android-app-inspection-api_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":android-app-inspection-api"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:grpc-core",
     "@lib//:jetbrains-annotations",
@@ -44,12 +40,19 @@ kt_jvm_test(
     "@lib//:guava",
     "//android/android-common:common",
     "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
     "//platform/util",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test",
-    "//android/android-test-framework:testFramework_test",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
   ]
+)
+
+jvm_test(
+  name = "android-app-inspection-api_test",
+  runtime_deps = [":android-app-inspection-api_test_lib"]
 )
 ### auto-generated section `build intellij.android.app-inspection.api` end

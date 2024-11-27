@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.inspectors-common.ui` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "android-inspectors-common-ui",
   module_name = "intellij.android.inspectors-common.ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//android/adt-ui-model",
@@ -32,14 +29,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "android-inspectors-common-ui_test",
+jvm_library(
+  name = "android-inspectors-common-ui_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":android-inspectors-common-ui"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -47,8 +43,11 @@ kt_jvm_test(
     "@lib//:kotlin-test",
     "@lib//:truth",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
     "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
@@ -57,16 +56,23 @@ kt_jvm_test(
     "//platform/extensions",
     "//platform/platform-api:ide",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-impl",
     "//platform/util",
     "//platform/util:util-ui",
     "//android/adt-ui",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//json",
     "//platform/core-ui",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//android/android-common:common",
   ]
+)
+
+jvm_test(
+  name = "android-inspectors-common-ui_test",
+  runtime_deps = [":android-inspectors-common-ui_test_lib"]
 )
 ### auto-generated section `build intellij.android.inspectors-common.ui` end

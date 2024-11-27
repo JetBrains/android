@@ -1,19 +1,18 @@
 ### auto-generated section `build intellij.android.adt.testutils` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "adt-testutils",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "adt-testutils_test",
+jvm_library(
+  name = "adt-testutils_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
@@ -23,27 +22,36 @@ kt_jvm_test(
     "@lib//:jna",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:truth",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/indexing-api:indexing",
     "//platform/indexing-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+  ],
+  runtime_deps = [
+    "//android/design-plugin/descriptor:android-design-plugin-descriptor",
+    "//android/android-plugin/descriptor:android-plugin-descriptor",
+    "@lib//:opentest4j",
   ]
+)
+
+jvm_test(
+  name = "adt-testutils_test",
+  runtime_deps = [":adt-testutils_test_lib"]
 )
 ### auto-generated section `build intellij.android.adt.testutils` end

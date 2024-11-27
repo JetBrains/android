@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.nav.safeargs.k2` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "android-nav-safeargs-k2_resources",
-  files = glob(["src/META-INF/safeargs.k2.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,13 +11,11 @@ jvm_library(
   name = "android-nav-safeargs-k2",
   module_name = "intellij.android.nav.safeargs.k2",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
     "//xml/impl",
@@ -26,8 +23,8 @@ jvm_library(
     "//android/nav/safeargs/common:android-nav-safeargs-common",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/base/analysis:kotlin-base-analysis",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_analysis-api-platform-interface.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_analysis-api-platform-interface-provided",
   ],
   runtime_deps = [":android-nav-safeargs-k2_resources"]
 )

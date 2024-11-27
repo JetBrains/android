@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.transportDatabase` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "transportDatabase",
   module_name = "intellij.android.transportDatabase",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -21,14 +18,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "transportDatabase_test",
+jvm_library(
+  name = "transportDatabase_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":transportDatabase"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -41,8 +37,14 @@ kt_jvm_test(
     "@lib//:guava",
     "@lib//:android_tools_sdklib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/android-common:common",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "transportDatabase_test",
+  runtime_deps = [":transportDatabase_test_lib"]
 )
 ### auto-generated section `build intellij.android.transportDatabase` end

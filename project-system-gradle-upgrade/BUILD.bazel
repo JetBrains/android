@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "projectSystem-gradle-upgrade_resources",
-  files = glob(["src/META-INF/project-system-gradle-upgrade.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,18 +11,16 @@ jvm_library(
   name = "projectSystem-gradle-upgrade",
   module_name = "intellij.android.projectSystem.gradle.upgrade",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:gradle",
     "@lib//:guava",
     "@lib//:fastutil-min",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/analytics",
@@ -78,20 +75,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "projectSystem-gradle-upgrade-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "projectSystem-gradle-upgrade-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
@@ -102,21 +92,24 @@ kt_jvm_test(
     "@lib//:mockito",
     "@lib//:protobuf",
     "//android/gradle-dsl:gradle-dsl-testutils",
+    "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//android/project-system-gradle:projectSystem-gradle-tests",
+    "//android/project-system-gradle:projectSystem-gradle-tests_test_lib",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//android/android-test-framework:testFramework",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/build-common:buildCommon",
     "//android/android-common:common",
     "//android/android:core",
     "//android/gradle-dsl",
     "//android/observable",
-    "//android/observable:observable_test",
+    "//android/observable:observable_test_lib",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
@@ -130,24 +123,24 @@ kt_jvm_test(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/usageView",
     "//platform/usageView-impl",
     "//platform/util",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
-  ]
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+  ],
+  runtime_deps = ["//android/gradle-dsl-kotlin"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` end

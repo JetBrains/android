@@ -1,7 +1,5 @@
 ### auto-generated section `build intellij.android.wear-whs` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "wear-whs_resources",
@@ -13,11 +11,9 @@ jvm_library(
   name = "wear-whs",
   module_name = "intellij.android.wear-whs",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -43,14 +39,13 @@ jvm_library(
   runtime_deps = [":wear-whs_resources"]
 )
 
-kt_jvm_test(
-  name = "wear-whs_test",
+jvm_library(
+  name = "wear-whs_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":wear-whs"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -60,6 +55,7 @@ kt_jvm_test(
     "@lib//:kotlinx-coroutines-test",
     "//android/android-common:common",
     "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
@@ -68,24 +64,32 @@ kt_jvm_test(
     "//platform/ide-core",
     "//platform/util",
     "//platform/util:util-ui",
-    "//android/adt-testutils:adt-testutils_test",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//android/streaming",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/android-adb:adb",
     "//android/android:core",
     "//platform/collaboration-tools:collaborationTools",
-    "//platform/collaboration-tools:collaborationTools_test",
+    "//platform/collaboration-tools:collaborationTools_test_lib",
     "@lib//:kotlin-reflect",
     "@lib//:mockito",
     "@lib//:mockito-kotlin",
   ],
   runtime_deps = [":wear-whs_resources"]
+)
+
+jvm_test(
+  name = "wear-whs_test",
+  runtime_deps = [":wear-whs_test_lib"]
 )
 ### auto-generated section `build intellij.android.wear-whs` end

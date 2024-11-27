@@ -1,8 +1,6 @@
 ### auto-generated section `build intellij.android.templates` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
@@ -20,15 +18,16 @@ jvm_library(
   name = "templates",
   module_name = "intellij.android.templates",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "//platform/ide-core-impl",
     "//android/android-common:common",
     "//android/android:core",
     "//android/gradle-dsl",
@@ -61,29 +60,32 @@ jvm_library(
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_analysis-api-platform-interface.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
   runtime_deps = [":templates_resources"]
 )
 
-kt_jvm_test(
-  name = "templates_test",
+jvm_library(
+  name = "templates_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   associates = [":templates"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
     "@lib//:junit4",
     "@lib//:kotlin-test-junit",
     "@lib//:kotlin-test",
     "@lib//:mockito",
+    "//platform/ide-core-impl",
     "@lib//:truth",
     "@lib//:org_codehaus_groovy_groovy-json",
     "//android/android-common:common",
@@ -108,6 +110,7 @@ kt_jvm_test(
     "//platform/util",
     "//platform/util/diff",
     "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//xml/xml-frontback:frontback",
     "//xml/impl",
@@ -115,28 +118,44 @@ kt_jvm_test(
     "//plugins/kotlin/base/facet:kotlin-base-facet",
     "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test_lib",
     "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/android-npw:newProjectWizard",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//android/lint:lint-common",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/testFramework",
     "//android/observable",
-    "//android/observable:observable_test",
+    "//android/observable:observable_test_lib",
     "//android/wizard-model",
-    "//android/wizard-model:wizard-model_test",
-    "//android/gradle-dsl:gradle-dsl-testutils_test",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/wizard-model:wizard-model_test_lib",
+    "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
   ],
   runtime_deps = [":templates_resources"]
+)
+
+jvm_test(
+  name = "templates_test",
+  runtime_deps = [":templates_test_lib"]
 )
 ### auto-generated section `build intellij.android.templates` end
 
 ### auto-generated section `build intellij.android.templates.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+  name = "templates-tests",
+  visibility = ["//visibility:public"],
+  runtime_deps = ["//platform/ide-core-impl"]
+)
 ### auto-generated section `build intellij.android.templates.tests` end

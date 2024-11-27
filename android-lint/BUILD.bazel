@@ -1,7 +1,6 @@
 ### auto-generated section `build intellij.android.lint` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 create_kotlinc_options(
   name = "custom",
@@ -19,19 +18,18 @@ jvm_library(
   name = "lint",
   module_name = "intellij.android.lint",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kxml2",
     "@lib//:protobuf",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-jps-common.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-jps-common-provided",
     "//android/analytics",
     "//android/assistant",
     "//android/android-common:common",
@@ -93,20 +91,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.lint.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "lint-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "lint-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:gradle",
@@ -117,7 +108,7 @@ kt_jvm_test(
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
     "//android/gradle-dsl",
@@ -130,8 +121,8 @@ kt_jvm_test(
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-psi-api:psi",
     "//java/testFramework",
@@ -143,25 +134,24 @@ kt_jvm_test(
     "//platform/editor-ui-api:editor",
     "//platform/editor-ui-ex:editor-ex",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/ide-core",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util/base",
     "//platform/util/diff",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//xml/dom-openapi:dom",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
     "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2",
-    "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2_test",
+    "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2_test_lib",
     "//jvm/jvm-analysis-impl:analysis-impl",
     "//android/gradle-dsl-flags",
   ]

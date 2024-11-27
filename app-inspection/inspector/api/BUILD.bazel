@@ -1,16 +1,13 @@
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "android-app-inspection-inspector-api",
   module_name = "intellij.android.app-inspection.inspector.api",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:protobuf",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:jetbrains-annotations",
@@ -19,14 +16,13 @@ jvm_library(
   ]
 )
 
-kt_jvm_test(
-  name = "android-app-inspection-inspector-api_test",
+jvm_library(
+  name = "android-app-inspection-inspector-api_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = [":android-app-inspection-inspector-api"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:protobuf",
     "@lib//:kotlinx-coroutines-core",
@@ -38,5 +34,10 @@ kt_jvm_test(
     "//android/android-common:common",
     "//platform/util",
   ]
+)
+
+jvm_test(
+  name = "android-app-inspection-inspector-api_test",
+  runtime_deps = [":android-app-inspection-inspector-api_test_lib"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` end

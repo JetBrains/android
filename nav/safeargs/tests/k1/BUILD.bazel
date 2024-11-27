@@ -1,36 +1,45 @@
 ### auto-generated section `build intellij.android.nav.safeargs.tests.k1` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "android-nav-safeargs-tests-k1",
-  visibility = ["//visibility:public"]
+create_kotlinc_options(
+  name = "custom",
+  jvm_target = "17",
+  opt_in = [
+    "org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction",
+    "org.jetbrains.kotlin.analysis.api.KaIdeApi",
+    "org.jetbrains.kotlin.analysis.api.KaNonPublicApi",
+    "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
+  ]
 )
 
-kt_jvm_test(
+jvm_test(
   name = "android-nav-safeargs-tests-k1_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:mockito",
     "@lib//:truth",
-    "//android/adt-testutils:adt-testutils_test",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc_kotlin-compiler-ir-provided",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
     "//android/nav/safeargs:android-nav-safeargs",
     "//android/nav/safeargs/common:android-nav-safeargs-common",
     "//android/nav/safeargs/k1:android-nav-safeargs-k1",
-    "//android/nav/safeargs/tests/common:android-nav-safeargs-tests-common_test",
+    "//android/nav/safeargs/tests/common:android-nav-safeargs-tests-common_test_lib",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/render-resources",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-psi-api:psi",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
@@ -39,16 +48,16 @@ kt_jvm_test(
     "//platform/editor-ui-api:editor",
     "//platform/platform-api:ide",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//uast/uast-common:uast",
     "//platform/usageView",
     "//platform/util",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
     "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test_lib",
     "//plugins/kotlin/base/resources:kotlin-base-resources",
     "//plugins/kotlin/core",
     "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-uast-kotlin-base",

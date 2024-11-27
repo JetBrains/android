@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "projectSystem-gradle-sync-testUtils_resources",
-  files = glob(["src/META-INF/services/org.jetbrains.plugins.gradle.tooling.ModelBuilderService"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,11 +11,9 @@ jvm_library(
   name = "projectSystem-gradle-sync-testUtils",
   module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:gradle",
     "@lib//:kotlin-stdlib",
     "//plugins/gradle/tooling-extension-api:toolingExtension",

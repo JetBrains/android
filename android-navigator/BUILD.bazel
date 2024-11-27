@@ -1,10 +1,9 @@
 ### auto-generated section `build intellij.android.navigator` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "navigator_resources",
-  files = glob(["src/META-INF/android-navigator.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -12,17 +11,15 @@ jvm_library(
   name = "navigator",
   module_name = "intellij.android.navigator",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:commons-io",
     "@lib//:google-dexlib2",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "@lib//:kotlinc_kotlin-jps-common.provided",
+    "@lib//:kotlinc_kotlin-jps-common-provided",
     "@lib//:protobuf",
     "//android/analytics",
     "//android/apkanalyzer",
@@ -65,20 +62,19 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.navigator.testutils` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "navigator-testutils",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "navigator-testutils_test",
+jvm_library(
+  name = "navigator-testutils_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testUtils/**/*.kt", "testUtils/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testUtils/**/*.kt", "testUtils/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
@@ -86,16 +82,21 @@ kt_jvm_test(
     "//android/android:core",
     "//android/android-navigator:navigator",
     "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
     "//platform/util",
   ]
+)
+
+jvm_test(
+  name = "navigator-testutils_test",
+  runtime_deps = [":navigator-testutils_test_lib"]
 )
 ### auto-generated section `build intellij.android.navigator.testutils` end

@@ -1,19 +1,12 @@
 ### auto-generated section `build intellij.android.core.editors.fast` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "core-editors-fast",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-editors-fast_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
@@ -22,23 +15,22 @@ kt_jvm_test(
     "@lib//:kotlinc_kotlin-compiler-common",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/android:core-tests_test",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//java/java-psi-api:psi",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util/base",
     "//platform/util-ex",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//java/testFramework",
     "//android/preview-fast-compile",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.fast` end

@@ -1,19 +1,12 @@
 ### auto-generated section `build intellij.android.avdmanager.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "avdmanager-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "avdmanager-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jimfs",
     "@lib//:kotlin-stdlib",
@@ -24,23 +17,29 @@ kt_jvm_test(
     "@lib//:jetbrains-annotations",
     "@lib//:protobuf",
     "//android/adt-testutils",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/android-common:common",
     "//android/android-common:common-tests",
+    "//android/android-common:common-tests_test_lib",
     "//android/android:core",
     "//android/observable",
+    "//android/observable:observable_test_lib",
     "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
     "//android/android-adb:adb",
     "//android/artwork",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/platform-api:ide",
     "//platform/platform-util-io:ide-util-io",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
   ]
 )

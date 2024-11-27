@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.backup` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "backup_resources",
@@ -12,11 +11,9 @@ jvm_library(
   name = "backup",
   module_name = "intellij.android.backup",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/artwork",
@@ -45,17 +42,15 @@ jvm_library(
 ### auto-generated section `build intellij.android.backup` end
 
 ### auto-generated section `build intellij.android.backup.api` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "backup-api",
   module_name = "intellij.android.backup.api",
   visibility = ["//visibility:public"],
-  srcs = glob(["api/src/**/*.kt", "api/src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["api/src/**/*.kt", "api/src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
@@ -65,39 +60,32 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.backup.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "backup-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "backup-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/backup"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-test",
     "@lib//:mockito",
     "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlin-stdlib",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
-    "//android/backup",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/backup:backup-api",
     "//android/android:core",
     "//android/android-common:common",
     "//android/project-system:projectSystem",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "@lib//:junit4",
     "//platform/editor-ui-api:editor",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "@lib//:protobuf",
   ]
 )

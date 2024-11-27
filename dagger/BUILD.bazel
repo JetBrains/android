@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.dagger` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "dagger_resources",
@@ -12,19 +11,17 @@ jvm_library(
   name = "dagger",
   module_name = "intellij.android.dagger",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "@lib//:kotlinc_analysis-api.provided",
-    "@lib//:kotlinc_analysis-api-impl-base.provided",
-    "@lib//:kotlinc_kotlin-compiler-cli.provided",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
-    "@lib//:kotlinc_kotlin-compiler-fe10.provided",
+    "@lib//:kotlinc_analysis-api-provided",
+    "@lib//:kotlinc_analysis-api-impl-base-provided",
+    "@lib//:kotlinc_kotlin-compiler-cli-provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_kotlin-compiler-fe10-provided",
     "//android/artwork",
     "//android/android-common:common",
     "//android/project-system:projectSystem",
@@ -62,32 +59,29 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.dagger.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "dagger-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "dagger-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/dagger"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
+    "@lib//:kotlinc_analysis-api-provided",
     "//android/adt-testutils",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/artwork",
     "//android/android-common:common",
-    "//android/dagger",
     "//android/project-system:projectSystem",
     "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//java/java-psi-api:psi",
@@ -98,19 +92,18 @@ kt_jvm_test(
     "//platform/editor-ui-api:editor",
     "//platform/execution",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/usageView",
     "//platform/usageView-impl",
     "//platform/util",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/base/psi:kotlin-base-psi",
   ]
 )

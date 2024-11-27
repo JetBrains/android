@@ -1,8 +1,6 @@
 ### auto-generated section `build intellij.android.profilers.ui` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
@@ -20,11 +18,10 @@ jvm_library(
   name = "profilers-ui",
   module_name = "intellij.android.profilers.ui",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:java_compatibility",
     "@lib//:fastutil-min",
@@ -53,19 +50,21 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//android/artwork-compose",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":profilers-ui_resources"]
+  runtime_deps = [":profilers-ui_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
-kt_jvm_test(
-  name = "profilers-ui_test",
+jvm_library(
+  name = "profilers-ui_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   associates = [":profilers-ui"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:android_profilers_ui_traceprocessor-protos",
     "@lib//:guava",
@@ -80,14 +79,21 @@ kt_jvm_test(
     "@lib//:protobuf",
     "@lib//:truth",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
     "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
     "//android/profilers",
+    "//android/profilers:profilers_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/core-api:core",
     "//platform/core-ui",
@@ -95,18 +101,28 @@ kt_jvm_test(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/projectModel-api:projectModel",
     "//platform/util",
     "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
-    "//android/adt-testutils:adt-testutils_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//android/android-transport:transport",
-    "//android/android-transport:transport_test",
+    "//android/android-transport:transport_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//android/artwork-compose",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":profilers-ui_resources"]
+  runtime_deps = [":profilers-ui_resources"],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_test(
+  name = "profilers-ui_test",
+  runtime_deps = [":profilers-ui_test_lib"]
 )
 ### auto-generated section `build intellij.android.profilers.ui` end

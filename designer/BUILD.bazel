@@ -1,7 +1,5 @@
 ### auto-generated section `build intellij.android.designer` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "designer_resources",
@@ -13,11 +11,9 @@ jvm_library(
   name = "designer",
   module_name = "intellij.android.designer",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:commons-lang3",
     "@lib//:jaxb-api",
     "@lib//:jcip",
@@ -26,7 +22,7 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:layoutlib",
     "@lib//:protobuf",
-    "@lib//:kotlinc_kotlin-compiler-common.provided",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "@lib//:guava",
     "//android/adt-ui",
     "//android/adt-ui-model",
@@ -92,20 +88,21 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/ml-api",
     "@lib//:kotlinx-collections-immutable",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
     "//platform/platform-impl/designer:ide-designer",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"]
+  runtime_deps = [":designer_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
-kt_jvm_test(
-  name = "designer_test",
+jvm_library(
+  name = "designer_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testFramework/**/*.kt", "testFramework/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testFramework/**/*.kt", "testFramework/**/*.java"], allow_empty = True),
   associates = [":designer"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:commons-lang3",
     "@lib//:jaxb-api",
@@ -117,10 +114,13 @@ kt_jvm_test(
     "@lib//:protobuf",
     "@lib//:mockito",
     "@lib//:truth",
+    "@lib//:kotlinc_kotlin-compiler-common-provided",
     "@lib//:guava",
     "@lib//:junit4",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/assistant",
     "//android/android-common:common",
@@ -128,6 +128,7 @@ kt_jvm_test(
     "//android/android:core",
     "//android/jps-model",
     "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/layoutlib-loader",
     "//android/lint:lint-common",
     "//android/android-npw:newProjectWizard",
@@ -137,6 +138,7 @@ kt_jvm_test(
     "//android/rendering",
     "//android/wizard",
     "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-frontback-psi-api:frontback-psi",
@@ -158,7 +160,9 @@ kt_jvm_test(
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//images",
+    "//images:images_test_lib",
     "//platform/indexing-api:indexing",
     "//platform/lang-api:lang",
     "//platform/lang-core",
@@ -166,75 +170,84 @@ kt_jvm_test(
     "//platform/projectModel-api:projectModel",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/platform-tests:tests",
+    "//platform/platform-tests:tests_test_lib",
     "//uast/uast-common:uast",
     "//platform/util",
     "//platform/util/base",
     "//platform/util/jdom",
     "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//spellchecker",
+    "//spellchecker:spellchecker_test_lib",
     "//plugins/ui-designer-core:uiDesigner",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/base/indices:kotlin-base-indices",
     "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/jvm-debugger/core:kotlin-jvm-debugger-core",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//java/testFramework",
     "//platform/testFramework/common",
     "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
     "@lib//:kotlinx-collections-immutable",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
     "@lib//:mockito-kotlin",
     "//platform/platform-impl/designer:ide-designer",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":designer_resources"]
+  runtime_deps = [":designer_resources"],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_test(
+  name = "designer_test",
+  runtime_deps = [":designer_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer` end
 
 ### auto-generated section `build intellij.android.designer.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "designer-integration",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "designer-integration_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "//android/as-driver/utils:android-as-driver-utils_test",
+    "//android/as-driver/utils:android-as-driver-utils_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.designer.integration` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "designer-tests",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "designer-tests_test",
+jvm_library(
+  name = "designer-tests_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+  ],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
@@ -252,22 +265,20 @@ kt_jvm_test(
     "@lib//:kotlinc_kotlin-compiler-fe10",
     "@lib//:kotlinx-coroutines-test",
     "//android/assistant",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/android:core-tests_test",
-    "//android/designer",
-    "//android/designer:designer_test",
+    "//android/android:core-tests_test_lib",
     "//android/jps-model",
     "//android/android-kotlin/idea-android:android-kotlin-idea",
     "//android/android-kotlin/idea-android/idea-android-output-parser:android-kotlin-output-parser",
     "//android/layout-ui",
-    "//android/layout-ui:layout-ui_test",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/layoutlib",
     "//android/android-lint:lint",
     "//android/lint:lint-common",
@@ -277,8 +288,8 @@ kt_jvm_test(
     "//android/render-resources",
     "//android/rendering",
     "//android/sdk-updates:sdkUpdates",
-    "//android/android-test-framework:testFramework_test",
-    "//android/intellij.android.testutils:testutils_test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/openapi:java",
     "//java/java-psi-api:psi",
@@ -291,18 +302,17 @@ kt_jvm_test(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/refactoring",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//uast/uast-common:uast",
     "//platform/util",
@@ -310,7 +320,7 @@ kt_jvm_test(
     "//platform/util-class-loader:util-classLoader",
     "//platform/util/jdom",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util/trove",
     "//platform/util:util-ui",
     "//plugins/ui-designer-core:uiDesigner",
@@ -318,16 +328,24 @@ kt_jvm_test(
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
     "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
-    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core_test",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core_test_lib",
     "//android/intellij.android.compose-common:compose-common",
     "//android/adt-ui-compose",
-    "//android/adt-ui-compose:adt-ui-compose_test",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/ml-api",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
     "@lib//:mockito-kotlin",
     "@lib//:jsoup",
     "@lib//:kotlinx-collections-immutable",
-  ]
+    "@lib//:jewel-ide-laf-bridge",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_test(
+  name = "designer-tests_test",
+  runtime_deps = [":designer-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer.tests` end

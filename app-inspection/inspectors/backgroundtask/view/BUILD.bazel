@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "android-app-inspection-inspectors-backgroundtask-view_resources",
@@ -12,11 +11,9 @@ jvm_library(
   name = "android-app-inspection-inspectors-backgroundtask-view",
   module_name = "intellij.android.app-inspection.inspectors.backgroundtask.view",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "@lib//:guava",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
@@ -51,20 +48,13 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "android-app-inspection-inspectors-backgroundtask-view-tests",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "android-app-inspection-inspectors-backgroundtask-view-tests_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:android_app-inspection_inspectors_backgroundtask_view_tests_workmanager-inspector-proto",
     "@lib//:kotlin-stdlib",
@@ -76,35 +66,35 @@ kt_jvm_test(
     "@lib//:truth",
     "@lib//:android_app-inspection_inspectors_backgroundtask_view_tests_background-inspector-proto",
     "@lib//:kotlin-test",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
     "//android/app-inspection/inspectors/backgroundtask/ide:android-app-inspection-inspectors-backgroundtask-ide",
     "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model",
-    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model_test",
+    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model_test_lib",
     "//android/app-inspection/inspectors/backgroundtask/view:android-app-inspection-inspectors-backgroundtask-view",
     "//android/artwork",
     "//android/codenavigation",
-    "//android/codenavigation:codenavigation_test",
+    "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
     "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/api:android-inspectors-common-api_test",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//android/inspectors-common/ui:android-inspectors-common-ui",
-    "//android/inspectors-common/ui:android-inspectors-common-ui_test",
-    "//android/android-test-framework:testFramework_test",
+    "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util/concurrency",
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor",
     "//platform/platform-api:ide",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
   ]

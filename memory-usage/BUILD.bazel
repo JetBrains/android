@@ -1,27 +1,32 @@
 ### auto-generated section `build intellij.android.memory-usage` start
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
   name = "memory-usage",
   module_name = "intellij.android.memory-usage",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j8",
-  kotlinc_opts = "@rules_jvm//:k8",
-  deps = ["@lib//:studio-platform.provided"]
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  javac_opts = "@community//:j8",
+  kotlinc_opts = "@community//:k8",
+  deps = ["@lib//:studio-platform-provided"]
 )
 
-kt_jvm_test(
-  name = "memory-usage_test",
+jvm_library(
+  name = "memory-usage_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j8",
-  kotlinc_opts = "@rules_jvm//:k8",
+  srcs = glob(["src/test/java/**/*.kt", "src/test/java/**/*.java"], allow_empty = True),
+  javac_opts = "@community//:j8",
+  kotlinc_opts = "@community//:k8",
   associates = [":memory-usage"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
   ]
+)
+
+jvm_test(
+  name = "memory-usage_test",
+  runtime_deps = [":memory-usage_test_lib"]
 )
 ### auto-generated section `build intellij.android.memory-usage` end

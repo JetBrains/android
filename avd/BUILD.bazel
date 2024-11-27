@@ -1,8 +1,6 @@
 ### auto-generated section `build intellij.android.avd` start
-load("@rules_jvm//:compiler-options.bzl", "create_kotlinc_options")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
   name = "custom",
@@ -12,7 +10,7 @@ create_kotlinc_options(
 
 jvm_resources(
   name = "avd_resources",
-  files = glob(["src/META-INF/android-avd.xml"]),
+  files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
@@ -20,11 +18,10 @@ jvm_library(
   name = "avd",
   module_name = "intellij.android.avd",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
-    "@lib//:studio-platform.provided",
+    "@lib//:studio-platform-provided",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/adt-ui-compose",
@@ -42,34 +39,39 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:guava",
-    "@lib//:jetbrains_kotlin_compose_compiler_plugin.provided",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
     "//android/render-resources",
     "@lib//:protobuf",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"]
+  runtime_deps = [":avd_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 
-kt_jvm_test(
-  name = "avd_test",
+jvm_library(
+  name = "avd_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   associates = [":avd"],
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "//android/android-adb:adb",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/artwork",
     "//android/artwork-compose",
     "//android/android-common:common",
     "//android/android:core",
     "//android/intellij.android.device:device",
-    "//android/android-test-framework:testFramework_test",
+    "//android/android-test-framework:testFramework_test_lib",
     "//android/wizard",
     "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
     "@lib//:truth",
     "@lib//:mockito",
     "@lib//:mockito-kotlin",
@@ -78,15 +80,24 @@ kt_jvm_test(
     "@lib//:kotlinx-collections-immutable",
     "//platform/icons",
     "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
     "@lib//:kotlinx-coroutines-guava",
     "@lib//:guava",
     "@lib//:junit4",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
+    "@lib//:jetbrains_kotlin_compose_compiler_plugin-provided",
     "//android/render-resources",
-    "//android/intellij.android.device.tests:device-tests_test",
+    "//android/intellij.android.device.tests:device-tests_test_lib",
     "@lib//:protobuf",
+    "@lib//:jewel-ide-laf-bridge",
   ],
-  runtime_deps = [":avd_resources"]
+  runtime_deps = [":avd_resources"],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_test(
+  name = "avd_test",
+  runtime_deps = [":avd_test_lib"]
 )
 ### auto-generated section `build intellij.android.avd` end

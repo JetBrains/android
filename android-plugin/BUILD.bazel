@@ -1,18 +1,16 @@
 ### auto-generated section `build intellij.android.plugin` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
   name = "plugin",
   visibility = ["//visibility:public"]
 )
 
-kt_jvm_test(
-  name = "plugin_test",
+jvm_library(
+  name = "plugin_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
@@ -35,6 +33,7 @@ kt_jvm_test(
     "//android/android-lang:lang",
     "//android/android-lang-databinding:lang-databinding",
     "//android/layout-inspector",
+    "//android/layout-inspector:layout-inspector_test_lib",
     "//android/lint:lint-common",
     "//android/logcat",
     "//android/backup",
@@ -42,6 +41,7 @@ kt_jvm_test(
     "//android/nav/safeargs:android-nav-safeargs",
     "//android/android-npw:newProjectWizard",
     "//android/profilers-android:profilersAndroid",
+    "//android/profilers-android:profilersAndroid_test_lib",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",
@@ -51,16 +51,46 @@ kt_jvm_test(
     "//android/sdk-updates:sdkUpdates",
     "//android/streaming",
     "//android/android-templates:templates",
+    "//android/android-templates:templates_test_lib",
     "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
     "//android/whats-new-assistant",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
+  ],
+  runtime_deps = [
+    "//android/device-manager-v2",
+    "//android/android-kotlin/android-extensions-idea:android-kotlin-extensions",
+    "//android/android-kotlin/idea-android:android-kotlin-idea",
+    "//android/android-lint:lint",
+    "//android/wear-pairing",
+    "//android/wear-whs",
+    "//android/app-inspection/ide/gradle:android-app-inspection-ide-gradle",
+    "//android/layout-inspector/gradle:android-layout-inspector-gradle",
+    "//android/native-symbolizer",
+    "//android/native-symbolizer/gradle:android-native-symbolizer-gradle",
+    "//android/nav/safeargs/common/gradle:android-nav-safeargs-common-gradle",
+    "//android/gradle-dsl-groovy",
+    "//android/gradle-dsl-toml",
+    "//android/gradle-dsl-kotlin",
+    "//android/gradle-dsl-declarative",
+    "//android/gradle-dsl-flags",
+    "//android/avd",
+    "//android/databinding/gradle:android-databinding-gradle",
+    "//android/android/editing/documentation:android-core-editing-documentation",
+    "//android/android/editing/metrics:android-core-editing-metrics",
+    "//android/android-plugin/descriptor:android-plugin-descriptor",
+    "//android/profilers-android/gradle:android-profilersAndroid-gradle",
   ]
+)
+
+jvm_test(
+  name = "plugin_test",
+  runtime_deps = [":plugin_test_lib"]
 )
 ### auto-generated section `build intellij.android.plugin` end

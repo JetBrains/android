@@ -1,19 +1,12 @@
 ### auto-generated section `build intellij.android.core.gradle` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
 
-java_library(
-  name = "core-gradle",
-  visibility = ["//visibility:public"]
-)
-
-kt_jvm_test(
+jvm_test(
   name = "core-gradle_test",
-  visibility = ["//visibility:public"],
-  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
+    "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:android_core_gradle_libandroid-core-proto",
     "@lib//:kotlin-stdlib",
@@ -28,13 +21,13 @@ kt_jvm_test(
     "@lib//:truth",
     "@lib//:kotlinc_analysis-api-impl-base",
     "@lib//:kotlinc_kotlin-compiler-common",
-    "//android/adt-testutils:adt-testutils_test",
+    "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test",
+    "//android/adt-ui:adt-ui_test_lib",
     "//android/build-common:buildCommon",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/android:core-tests_test",
+    "//android/android:core-tests_test_lib",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
     "//android/gradle-dsl",
     "//android/jps-model",
@@ -46,8 +39,8 @@ kt_jvm_test(
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
     "//android/render-resources",
     "//android/server-flags",
-    "//android/server-flags:server-flags_test",
-    "//android/android-test-framework:testFramework_test",
+    "//android/server-flags:server-flags_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
     "//plugins/gradle:gradle-common",
     "//java/openapi:java",
     "//java/testFramework",
@@ -59,26 +52,25 @@ kt_jvm_test(
     "//platform/editor-ui-api:editor",
     "//platform/execution",
     "//platform/extensions",
-    "//platform/extensions:extensions_test",
     "//platform/external-system-api:externalSystem",
     "//platform/external-system-impl:externalSystem-impl",
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test",
+    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/object-serializer:objectSerializer",
-    "//platform/object-serializer:objectSerializer_test",
+    "//platform/object-serializer:objectSerializer_test_lib",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/testFramework",
-    "//platform/testFramework:testFramework_test",
+    "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util-rt",
-    "//platform/util-rt:util-rt_test",
+    "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
     "//plugins/kotlin/base/facet:kotlin-base-facet",
