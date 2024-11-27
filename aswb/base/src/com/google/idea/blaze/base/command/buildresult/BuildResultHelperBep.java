@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
+import static com.google.idea.blaze.base.command.buildresult.ParsedBepOutput.parseBepArtifacts;
+
 import com.google.common.collect.Interner;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
@@ -65,39 +67,9 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public ParsedBepOutput getBuildOutput(BuildEventStreamProvider bepStream, Interner<String> stringInterner)
-      throws GetArtifactsException {
-    try {
-      return ParsedBepOutput.parseBepArtifacts(bepStream, stringInterner);
-    } catch (BuildEventStreamException e) {
-      logger.error(e);
-      throw new GetArtifactsException(e.getMessage());
-    }
-  }
-
-  @Override
-  public BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) {
-    try  {
-      return BuildEventProtocolOutputReader.parseTestResults(bepStream);
-    } catch (BuildEventStreamException e) {
-      logger.warn(e);
-      return BlazeTestResults.NO_RESULTS;
-    }
-  }
-
-  @Override
   public void deleteTemporaryOutputFiles() {
     if (!outputFile.delete()) {
       logger.warn("Could not delete BEP output file: " + outputFile);
-    }
-  }
-
-  @Override
-  public BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws GetFlagsException {
-    try {
-      return BuildFlags.parseBep(bepStream);
-    } catch (BuildEventStreamException e) {
-      throw new GetFlagsException(e);
     }
   }
 

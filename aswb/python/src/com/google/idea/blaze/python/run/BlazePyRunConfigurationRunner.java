@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider;
@@ -342,7 +343,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
       try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         candidateFiles =
             LocalFileArtifact.getLocalFiles(
-                buildResultHelper.getBuildOutput(bepStream, Interners.STRING)
+                BuildResultParser.getBuildOutput(bepStream, Interners.STRING)
                   .getDirectArtifactsForTarget(target, file -> true).asList())
                 .stream()
                 .filter(File::canExecute)

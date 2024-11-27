@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.async.process.PrintOutputLineProcessor;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException.ThrowOption;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.ParsedBepOutput;
@@ -86,7 +87,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
               .orElse(null);
       ParsedBepOutput buildOutput;
       try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-        buildOutput = buildResultHelper.getBuildOutput(bepStream, stringInterner);
+        buildOutput = BuildResultParser.getBuildOutput(bepStream, stringInterner);
       }
       context.output(PrintOutput.log("BEP outputs retrieved (%s).", StringUtilRt.formatFileSize(buildOutput.getBepBytesConsumed())));
       return BlazeBuildOutputs.fromParsedBepOutput(buildResult, buildOutput);
@@ -116,7 +117,7 @@ public class CommandLineBlazeCommandRunner implements BlazeCommandRunner {
     }
     context.output(PrintOutput.log("Build command finished. Retrieving BEP outputs..."));
     try(final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-      return buildResultHelper.getTestResults(bepStream);
+      return BuildResultParser.getTestResults(bepStream);
     } catch (GetArtifactsException e) {
       context.output(PrintOutput.log("Failed to get build outputs: " + e.getMessage()));
       context.setHasError();

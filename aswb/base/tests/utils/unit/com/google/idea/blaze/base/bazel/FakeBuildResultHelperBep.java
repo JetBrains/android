@@ -15,9 +15,14 @@
  */
 package com.google.idea.blaze.base.bazel;
 
+import static com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.*;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
+import com.google.common.collect.UnmodifiableIterator;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
+import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.BuildFinishedId;
+import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos.BuildEventId.BuildStartedId;
 import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.buildresult.BuildFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
@@ -28,24 +33,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 public final class FakeBuildResultHelperBep implements BuildResultHelper {
-  private static final ImmutableList.Builder<String> startupOptions = ImmutableList.builder();
-  private static final ImmutableList.Builder<String> cmdlineOptions = ImmutableList.builder();
-  @Nullable private final ParsedBepOutput parsedBepOutput;
-
-  public FakeBuildResultHelperBep(
-      ImmutableList<String> startupOptions, ImmutableList<String> cmdlineOptions) {
-    this(startupOptions, cmdlineOptions, null);
-  }
-
-  public FakeBuildResultHelperBep(
-      ImmutableList<String> startupOptions,
-      ImmutableList<String> cmdlineOptions,
-      @Nullable ParsedBepOutput output) {
-    FakeBuildResultHelperBep.startupOptions.addAll(startupOptions);
-    FakeBuildResultHelperBep.cmdlineOptions.addAll(cmdlineOptions);
-    parsedBepOutput = output;
-  }
-
   @Override
   public List<String> getBuildFlags() {
     return ImmutableList.of();
@@ -56,6 +43,16 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
   public BuildEventStreamProvider getBepStream(Optional<String> completionBuildId)
     throws GetArtifactsException {
     return new BuildEventStreamProvider() {
+      private UnmodifiableIterator<BuildEvent> messages =
+        ImmutableList.of(
+          BuildEvent.newBuilder()
+            .setId(BuildEventId.newBuilder().setStarted(BuildStartedId.getDefaultInstance()))
+            .setStarted(BuildStarted.newBuilder().setUuid("buildId"))
+            .build(),
+          BuildEvent.newBuilder()
+            .setId(BuildEventId.newBuilder().setBuildFinished(BuildFinishedId.getDefaultInstance()))
+            .setFinished(BuildFinished.newBuilder()).build()
+        ).iterator();
       @Override
       public Object getId() {
         return Optional.empty();
@@ -63,7 +60,10 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
 
       @Nullable
       @Override
-      public BuildEventStreamProtos.BuildEvent getNext() throws BuildEventStreamException {
+      public BuildEventStreamProtos.BuildEvent getNext() {
+        if (messages.hasNext()) {
+          return messages.next();
+        }
         return null;
       }
 
@@ -77,26 +77,6 @@ public final class FakeBuildResultHelperBep implements BuildResultHelper {
 
       }
     };
-  }
-
-  @Override
-  public ParsedBepOutput getBuildOutput(BuildEventStreamProvider bepStream, Interner<String> stringInterner)
-      throws GetArtifactsException {
-    if (parsedBepOutput == null) {
-      throw new GetArtifactsException("Could not get artifacts from null bep");
-    }
-
-    return parsedBepOutput;
-  }
-
-  @Override
-  public BlazeTestResults getTestResults(BuildEventStreamProvider bepStream) {
-    return BlazeTestResults.NO_RESULTS;
-  }
-
-  @Override
-  public BuildFlags getBlazeFlags(BuildEventStreamProvider bepStream) throws GetFlagsException {
-    return new BuildFlags(startupOptions.build(), cmdlineOptions.build());
   }
 
   @Override

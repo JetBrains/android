@@ -21,6 +21,7 @@ import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoO
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.manifest.ParsedManifestService;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
@@ -45,12 +46,12 @@ import java.util.stream.Stream;
  */
 public class BlazeApkDeployInfoProtoHelper {
   public AndroidDeployInfo readDeployInfoProtoForTarget(
-      Label target, BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
+    Label target, BuildResultHelper buildResultHelper, Predicate<String> pathFilter)
       throws GetDeployInfoException {
     ImmutableList<OutputArtifact> outputArtifacts;
     ParsedBepOutput bepOutput;
     try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-      bepOutput = buildResultHelper.getBuildOutput(bepStream, Interners.STRING);
+      bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
       outputArtifacts = bepOutput.getDirectArtifactsForTarget(target, pathFilter).asList();
     } catch (GetArtifactsException e) {
       throw new GetDeployInfoException(e.getMessage());

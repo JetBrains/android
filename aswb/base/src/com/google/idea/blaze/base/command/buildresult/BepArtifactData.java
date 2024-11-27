@@ -25,7 +25,6 @@ import com.google.idea.blaze.common.artifact.OutputArtifact;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /** All the relevant output data for a single {@link OutputArtifact}. */
