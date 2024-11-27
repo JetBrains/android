@@ -7,9 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.nav.safeargs.common" />
-    <orderEntry type="module" module-name="intellij.android.nav.safeargs.k1" />
-    <orderEntry type="module" module-name="intellij.android.nav.safeargs.k2" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.common" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.k1" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.k2" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common.gradle" scope="RUNTIME" />
   </component>
 </module>
