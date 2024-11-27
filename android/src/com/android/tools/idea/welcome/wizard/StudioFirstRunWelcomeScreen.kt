@@ -25,6 +25,7 @@ import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.idea.util.application.isHeadlessEnvironment
 import java.awt.Window
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
+import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -48,46 +50,59 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
   private lateinit var modelWizard: ModelWizard
   private var mainPanel: JComponent? = null
   private var frame: JFrame? = null
+  companion object {
+    fun buildWizard(model: FirstRunWizardModel, mode: FirstRunWizardMode, cancelInterceptor: BooleanSupplier, parent: Disposable): ModelWizard {
+      val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
+      val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, parent)
+
+      // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
+      val modelWizard = ModelWizard.Builder().apply {
+        if (mode == FirstRunWizardMode.NEW_INSTALL) {
+          addStep(FirstRunWelcomeStep(model))
+
+          if (model.isStandardInstallSupported) {
+            addStep(InstallationTypeWizardStep(model))
+          }
+        }
+
+        if (mode == FirstRunWizardMode.MISSING_SDK) {
+          addStep(MissingSdkAlertStep())
+        }
+
+        val supplier = model.getPackagesToInstallSupplier()
+        val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
+
+        addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,parent))
+
+        if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+          addStep(InstallSummaryStep(model, supplier))
+          addStep(licenseAgreementStep)
+        }
+
+        if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
+          addStep(LinuxKvmInfoStep())
+        }
+
+        addStep(progressStep)
+      }.build()
+
+      modelWizard.setCancelInterceptor {
+        if (progressStep.isRunning()) {
+          progressStep.getProgressIndicator().cancel()
+          true
+        } else {
+          cancelInterceptor.asBoolean
+        }
+      }
+
+      return modelWizard
+    }
+  }
 
   private fun setupWizard() {
     val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
     val model = FirstRunWizardModel(mode, initialSdkLocation.toPath(), componentInstallerProvider)
-
-    val licenseAgreementModel = LicenseAgreementModel(model.sdkInstallLocationProperty)
-    val progressStep = InstallComponentsProgressStep(model, licenseAgreementModel, this@StudioFirstRunWelcomeScreen)
-
-    // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
-    modelWizard = ModelWizard.Builder().apply {
-      if (mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(FirstRunWelcomeStep(model))
-
-        if (model.isStandardInstallSupported) {
-          addStep(InstallationTypeWizardStep(model))
-        }
-      }
-
-      if (mode == FirstRunWizardMode.MISSING_SDK) {
-        addStep(MissingSdkAlertStep())
-      }
-
-      val supplier = model.getPackagesToInstallSupplier()
-      val licenseAgreementStep = LicenseAgreementStep(licenseAgreementModel, supplier)
-
-      addStep(SdkComponentsStep(model, null, mode, licenseAgreementStep,this@StudioFirstRunWelcomeScreen))
-
-      if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        addStep(InstallSummaryStep(model, supplier))
-        addStep(licenseAgreementStep)
-      }
-
-      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(LinuxKvmInfoStep())
-      }
-
-      addStep(progressStep)
-    }.build()
-
-    modelWizard.setCancelInterceptor { shouldPreventWizardCancel(progressStep) }
+    modelWizard = buildWizard(model, mode, this::shouldPreventWizardCancel, this)
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog
@@ -148,26 +163,21 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode, private 
     }
   }
 
-  private fun shouldPreventWizardCancel(progressStep: ProgressStep): Boolean {
-    if (progressStep.isRunning()) {
-      progressStep.getProgressIndicator().cancel()
-      return true
-    } else {
-      return when (ConfirmFirstRunWizardCloseDialog.show()) {
-        ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
-          AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
-          closeDialog()
-          false
-        }
-        ConfirmFirstRunWizardCloseDialog.Result.Rerun -> {
-          closeDialog()
-          false
-        }
-        ConfirmFirstRunWizardCloseDialog.Result.DoNotClose -> {
-          true
-        }
-        else -> throw RuntimeException("Invalid Close result") // Unknown option
+  private fun shouldPreventWizardCancel(): Boolean {
+    return when (ConfirmFirstRunWizardCloseDialog.show()) {
+      ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
+        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
+        closeDialog()
+        false
       }
+      ConfirmFirstRunWizardCloseDialog.Result.Rerun -> {
+        closeDialog()
+        false
+      }
+      ConfirmFirstRunWizardCloseDialog.Result.DoNotClose -> {
+        true
+      }
+      else -> throw RuntimeException("Invalid Close result") // Unknown option
     }
   }
 

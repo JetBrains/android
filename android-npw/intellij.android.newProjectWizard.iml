@@ -36,5 +36,6 @@
     <orderEntry type="module" module-name="intellij.android.templates" />
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
+    <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
   </component>
 </module>
