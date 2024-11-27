@@ -133,17 +133,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
 
-  private static File createTempDir() throws WizardException {
-    File tempDirectory;
-    try {
-      tempDirectory = FileUtil.createTempDirectory("AndroidStudio", "FirstRun", true);
-    }
-    catch (IOException e) {
-      throw new WizardException("Unable to create temporary folder: " + e.getMessage(), e);
-    }
-    return tempDirectory;
-  }
-
   @Override
   protected void init() {
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
@@ -201,34 +190,20 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   public void runLongOperation() throws WizardException {
-    final double INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0;
-
-    final InstallContext installContext = new InstallContext(createTempDir(), myProgressStep);
-    final File destination = getDestination();
-    final Collection<? extends InstallableComponent> selectedComponents = myComponentTree.getChildrenToInstall();
-    CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
-    AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
-    ComponentInstaller componentInstaller = myComponentInstallerProvider.getComponentInstaller(localHandler);
-    InstallComponentsOperation install =
-      new InstallComponentsOperation(installContext, selectedComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
-
     if (myLicenseAgreementStep != null) {
       myLicenseAgreementStep.performFinishingActions();
     }
 
-    SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
-                                                    ModalityState.stateForComponent(myWizard.getContentPane()));
-    if (selectedComponents.isEmpty()) {
-      myProgressStep.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
-    }
-    try {
-      install.then(setPreference)
-        .then(new ConfigureComponents(installContext, selectedComponents, localHandler)).then(checkSdk).execute(destination);
-    }
-    catch (InstallationCancelledException e) {
-      installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-      myProgressStep.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-    }
+    AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
+    installComponents(
+      myComponentTree.getChildrenToInstall(),
+      new InstallContext(createTempDir(), myProgressStep),
+      myComponentInstallerProvider.getComponentInstaller(localHandler),
+      myMode.getInstallerTimestamp(),
+      ModalityState.stateForComponent(myWizard.getContentPane()),
+      localHandler,
+      getDestination()
+    );
   }
 
   /**
@@ -296,6 +271,59 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert path != null;
 
     return SdkLocationUtils.isWritable(Paths.get(path));
+  }
+
+  /**
+   * Installs all components in the `componentTree` that are configured to be installed.
+   * Once the components have been installed, the SDK path and installer timestamp are
+   * stored in preferences.
+   *
+   * @param installableSdkComponents The SDK components to install
+   * @param installContext Used to track installation progress
+   * @param componentInstaller Used to install the SDK components
+   * @param installerTimestamp Stored in preferences when installation is complete
+   * @param modalityState Used when updating preferences
+   * @param localHandler Used when running the `configure` step after components are installed
+   * @param destination The directory to save the SDK components in
+   */
+  public static void installComponents(
+    Collection<? extends InstallableComponent> installableSdkComponents,
+    InstallContext installContext,
+    ComponentInstaller componentInstaller,
+    @Nullable String installerTimestamp,
+    ModalityState modalityState,
+    AndroidSdkHandler localHandler,
+    File destination
+  ) throws WizardException {
+    if (installableSdkComponents.isEmpty()) {
+      installContext.print("Nothing to do!", ConsoleViewContentType.NORMAL_OUTPUT);
+    }
+
+    final double INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE = 1.0;
+    InstallComponentsOperation install =
+      new InstallComponentsOperation(installContext, installableSdkComponents, componentInstaller, INSTALL_COMPONENTS_OPERATION_PROGRESS_SHARE);
+
+    try {
+      install
+        .then(new SetPreference(installerTimestamp, modalityState))
+        .then(new ConfigureComponents(installContext, installableSdkComponents, localHandler))
+        .then(new CheckSdkOperation(installContext))
+        .execute(destination);
+    }
+    catch (InstallationCancelledException e) {
+      installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+    }
+  }
+
+  private static File createTempDir() throws WizardException {
+    File tempDirectory;
+    try {
+      tempDirectory = FileUtil.createTempDirectory("AndroidStudio", "FirstRun", true);
+    }
+    catch (IOException e) {
+      throw new WizardException("Unable to create temporary folder: " + e.getMessage(), e);
+    }
+    return tempDirectory;
   }
 
   private static class SetPreference implements Function<File, File> {
