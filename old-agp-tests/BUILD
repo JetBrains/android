@@ -142,7 +142,6 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-java_3.19.3",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
-        "@maven//:commons-codec.commons-codec_1.9",
         "@maven//:commons-io.commons-io_2.4",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:it.unimi.dsi.fastutil_7.2.0",
