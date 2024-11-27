@@ -54,6 +54,26 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
         assertThat(kotlinVersionInUse).isNotNull()
         assertThat(kotlinVersionInUse).isEqualTo("1.6.21")
       }
+  }
 
+  @Test
+  fun testNotKotlinProject() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject
+      .open { project ->
+        val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
+        assertThat(kotlinVersionInUse).isNull()
+      }
+  }
+
+  @Test
+  fun testProjectWithKMPOnly() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_MULTIPLATFORM_MODULE_ONLY)
+    preparedProject
+      .open { project ->
+        val kotlinVersionInUse = KotlinGradleProjectSystemUtil.getKotlinVersionsInUse(project, project.basePath!!)?.firstOrNull()?.toString()
+        assertThat(kotlinVersionInUse).isNotNull()
+        assertThat(kotlinVersionInUse).isEqualTo(KOTLIN_VERSION_FOR_TESTS)
+      }
   }
 }

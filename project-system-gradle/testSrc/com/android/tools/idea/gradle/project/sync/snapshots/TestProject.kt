@@ -231,6 +231,10 @@ enum class TestProject(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
   ),
+  KOTLIN_MULTIPLATFORM_MODULE_ONLY(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM_MODULE_ONLY,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
+  ),
   KOTLIN_MULTIPLATFORM_WITHJS(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "withjs",
