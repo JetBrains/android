@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -31,6 +32,7 @@ import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.writeText
@@ -135,6 +137,8 @@ class RenderingBuildStatusManagerTest {
     newStatusManager.statusFlow.awaitStatus("NeedsBuild state expected", 5.seconds) {
       it == RenderingBuildStatus.NeedsBuild
     }
+    // We need this wait, or we're going to have leaked project via RootsChangedDumbModeTask
+    delayUntilCondition(200) { DumbService.isDumb(project).not() }
   }
 
   @Test

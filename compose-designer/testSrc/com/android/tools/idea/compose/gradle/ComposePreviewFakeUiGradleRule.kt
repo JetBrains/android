@@ -67,10 +67,9 @@ class ComposePreviewFakeUiGradleRule(
   projectPath: String,
   private val previewFilePath: String,
   testDataPath: String = TEST_DATA_PATH,
-  kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
   enableRenderQuality: Boolean = StudioFlags.PREVIEW_RENDER_QUALITY.get(),
-) : ComposeGradleProjectRule(projectPath, testDataPath, kotlinVersion, projectRule) {
+) : ComposeGradleProjectRule(projectPath, testDataPath, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
   lateinit var logger: Logger

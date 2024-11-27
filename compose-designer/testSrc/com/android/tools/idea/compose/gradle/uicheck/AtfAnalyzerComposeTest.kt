@@ -40,7 +40,6 @@ class AtfAnalyzerComposeTest {
 
   @Test
   fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOn() {
-
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview"

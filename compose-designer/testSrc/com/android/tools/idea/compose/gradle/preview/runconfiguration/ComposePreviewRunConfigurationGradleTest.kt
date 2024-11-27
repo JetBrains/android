@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.compose.gradle.preview.runconfiguration
 
-import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.withKotlin
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
@@ -39,7 +35,6 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,12 +43,7 @@ class ComposePreviewRunConfigurationGradleTest {
   private val noValidComposableErrorMessage =
     message("run.configuration.no.valid.composable.set", "")
 
-  @get:Rule val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
-
-  @Before
-  fun setUp() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
-  }
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @Test
   fun testValidatePreview_app_main() {

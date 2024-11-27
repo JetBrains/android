@@ -92,12 +92,14 @@ class ViewInfoParserTest {
           }
 
         var expectedLineNumber = previewStartLine + 1
-        assertEquals(5, previewViewInfos.size)
+        assertEquals(6, previewViewInfos.size)
         assertEquals(expectedLineNumber++, previewViewInfos[0].sourceLocation.lineNumber)
         assertEquals(expectedLineNumber++, previewViewInfos[1].sourceLocation.lineNumber)
         assertEquals(expectedLineNumber++, previewViewInfos[2].sourceLocation.lineNumber)
-        assertEquals(expectedLineNumber++, previewViewInfos[3].sourceLocation.lineNumber)
-        assertEquals(expectedLineNumber, previewViewInfos[4].sourceLocation.lineNumber)
+        // 3 and 4 are on the same line
+        assertEquals(expectedLineNumber, previewViewInfos[3].sourceLocation.lineNumber)
+        assertEquals(expectedLineNumber++, previewViewInfos[4].sourceLocation.lineNumber)
+        assertEquals(expectedLineNumber, previewViewInfos[5].sourceLocation.lineNumber)
       }
       .join()
   }

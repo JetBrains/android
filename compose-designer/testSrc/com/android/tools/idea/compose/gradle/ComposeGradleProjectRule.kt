@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.withCompileSdk
-import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -47,16 +46,12 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-/** Default Kotlin version used for Compose projects using this rule. */
-internal const val DEFAULT_KOTLIN_VERSION = "1.9.23"
-
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
  */
 private class ComposeGradleProjectRuleImpl(
   private val projectPath: String,
   private val testDataPath: String,
-  private val kotlinVersion: String,
   private val projectRule: AndroidGradleProjectRule,
 ) : NamedExternalResource() {
   override fun before(description: Description) {
@@ -64,7 +59,7 @@ private class ComposeGradleProjectRuleImpl(
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
-    projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion).withCompileSdk("35"))
+    projectRule.load(projectPath, AGP_CURRENT.withCompileSdk("35"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
@@ -87,7 +82,6 @@ private class ComposeGradleProjectRuleImpl(
 open class ComposeGradleProjectRule(
   projectPath: String,
   testDataPath: String = TEST_DATA_PATH,
-  kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
 ) : TestRule {
   val project: Project
@@ -99,7 +93,7 @@ open class ComposeGradleProjectRule(
   protected open val delegate: RuleChain =
     RuleChain.outerRule(TestLoggerRule())
       .around(projectRule)
-      .around(ComposeGradleProjectRuleImpl(projectPath, testDataPath, kotlinVersion, projectRule))
+      .around(ComposeGradleProjectRuleImpl(projectPath, testDataPath, projectRule))
       .around(EdtRule())
       .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))
 

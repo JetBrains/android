@@ -557,7 +557,7 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun testPreviewRenderQuality_zoom() =
+  fun testPreviewRenderQuality_zoom() {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
@@ -625,9 +625,10 @@ class ComposePreviewRepresentationGradleTest {
           .lastRenderQuality,
       )
     }
+  }
 
   @Test
-  fun testPreviewRenderQuality_lifecycle() =
+  fun testPreviewRenderQuality_lifecycle() {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
@@ -691,4 +692,5 @@ class ComposePreviewRepresentationGradleTest {
           .lastRenderQuality,
       )
     }
+  }
 }
