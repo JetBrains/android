@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.content
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.test.assertEquals
@@ -606,6 +607,7 @@ class GridLayoutManagerTest {
 
   @Test
   fun testFitIntoScaleWithNoContentOrOnlyHeaders() {
+    val actualScale = 1.0 / JBUIScale.sysScale()
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("2", "2")
     val group3 = OrganizationGroup("3", "3")
@@ -626,21 +628,21 @@ class GridLayoutManagerTest {
     // We start with no content to show
     var scale = manager.getFitIntoScale(emptyList(), 300, 100)
 
-    // The fit scale should be 1.0 (100%)
-    assertEquals(1.0, scale, tolerance)
+    // The fit scale should be 1.0 (100%) / JBUIScale.sysScale()
+    assertEquals(actualScale, scale, tolerance)
 
     // We now have no content other than Headers
     scale = manager.getFitIntoScale(contents, 300, 100)
 
-    // The fit scale should be 1.0 (100%)
-    assertEquals(1.0, scale, tolerance)
+    // The fit scale should be 1.0 (100%) / JBUIScale.sysScale()
+    assertEquals(actualScale, scale, tolerance)
 
     // We now expand the last header so we have now content to show
     contents.add(TestPositionableContent(group4, Dimension(400, 500)))
     scale = manager.getFitIntoScale(contents, 300, 100)
 
-    // The fit scale should not be 1.0 (100%) anymore
-    assertNotEquals(1.0, scale, tolerance)
+    // The fit scale should not be 1.0 (100%) / JBUIScale.sysScale() anymore
+    assertNotEquals(actualScale, scale, tolerance)
   }
 
   @Test

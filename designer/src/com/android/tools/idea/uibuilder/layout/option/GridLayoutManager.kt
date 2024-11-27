@@ -169,8 +169,9 @@ open class GridLayoutManager(
     @SwingCoordinate availableHeight: Int,
   ): Double {
     if (content.none { it !is HeaderPositionableContent }) {
-      // No content or only Headers are showing. Use 100% as zoom level
-      return 1.0
+      // No content or only Headers are showing.
+      // Use 100% as zoom level with JBUIScale.sysScale() taken into account.
+      return 1.0 / JBUIScale.sysScale()
     }
 
     // Use binary search to find the proper zoom-to-fit value, we use lowerBound and upperBound as
