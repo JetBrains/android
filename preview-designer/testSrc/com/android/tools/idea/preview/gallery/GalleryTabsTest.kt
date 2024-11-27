@@ -234,7 +234,7 @@ class GalleryTabsTest {
   }
 
   @Test
-  fun `selected tab is always visible`() {
+  fun `clicked tab is always visible`() {
     var selected = TestKey("First Tab")
     val tabs =
       GalleryTabs(
@@ -273,6 +273,45 @@ class GalleryTabsTest {
     assertTrue(scrollPane.bounds.contains(buttons[0].relativeBounds()))
     assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
     assertFalse(scrollPane.bounds.contains(buttons[2].relativeBounds()))
+  }
+
+  @Test
+  fun `selected tab is always visible`() {
+    val selected = TestKey("Sixth Tab")
+    val tabs =
+      GalleryTabs(
+        rootComponent,
+        { selected },
+        {
+          setOf(
+            TestKey("First Tab"),
+            TestKey("Second Tab"),
+            TestKey("Third Tab"),
+            TestKey("Fourth Tab"),
+            TestKey("Fifth Tab"),
+            selected,
+          )
+        },
+      ) { _, _ ->
+      }
+
+    // Width is 320 so only four tabs out of six are visible.
+    val root = JPanel(BorderLayout()).apply { size = Dimension(320, 40) }
+    root.add(tabs, BorderLayout.NORTH)
+
+    val fakeUi = FakeUi(root)
+    fakeUi.updateNestedActions()
+
+    val buttons = findAllActionButtons(root)
+    val scrollPane = findScrollPane(root).apply { size = Dimension(320, 40) }
+
+    assertEquals(tabs.selectedKey!!.title, "Sixth Tab")
+    assertFalse(scrollPane.bounds.contains(buttons[0].relativeBounds()))
+    assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
+    assertTrue(scrollPane.bounds.contains(buttons[2].relativeBounds()))
+    assertTrue(scrollPane.bounds.contains(buttons[3].relativeBounds()))
+    assertTrue(scrollPane.bounds.contains(buttons[4].relativeBounds()))
+    assertTrue(scrollPane.bounds.contains(buttons[5].relativeBounds()))
   }
 
   @Test

@@ -116,11 +116,26 @@ internal class GalleryTabs<Key : TitledKey>(
       updateSelectedKey(e, key)
       // If popup was opened - close it.
       allTabDropdown.popup?.cancel()
+      updateFocus()
+    }
+
+    /**
+     * Request the focus of this label even if it hasn't been clicked. Clicks are already giving
+     * focus on the tab. Use this function when it is needed to focus on this tab without clicking
+     * on it.
+     *
+     * @return true if the focus is correctly applied in the selected button, false otherwise
+     */
+    fun updateFocus(): Boolean {
       val sameTabInToolbar =
         previousToolbar?.components?.filterIsInstance<ActionButtonWithText>()?.firstOrNull {
-          (it.action as? GalleryTabs<*>.TabLabelAction)?.key == this.key
+          (it.action as? GalleryTabs<*>.TabLabelAction)?.key == key
         }
-      sameTabInToolbar?.let { focusOnComponent(it) }
+      sameTabInToolbar?.let {
+        focusOnComponent(it)
+        return true
+      }
+      return false
     }
 
     private fun focusOnComponent(button: ActionButtonWithText) {
@@ -278,9 +293,18 @@ internal class GalleryTabs<Key : TitledKey>(
   }
 
   private inner class GalleryActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
+
+    private var setFocusFirstTime = false
+
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.dataContext.let { updateKeys(keysProvider(it), selectedProvider(it)) }
+      if (!setFocusFirstTime) {
+        // If we are opening GalleryTabs for the first time we want to make sure
+        // that the focus of the group is on the selected button and the button
+        // is visible.
+        setFocusFirstTime = labelActions[selectedKey]?.updateFocus() ?: false
+      }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
