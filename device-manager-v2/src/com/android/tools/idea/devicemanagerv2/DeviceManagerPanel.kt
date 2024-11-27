@@ -55,9 +55,10 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.Service
@@ -71,8 +72,6 @@ import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import java.awt.BorderLayout
-import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -80,7 +79,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -88,6 +86,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
+import java.awt.BorderLayout
+import javax.swing.JPanel
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
 internal class DeviceManagerPanel
@@ -102,7 +102,7 @@ constructor(
   createTemplateActions: List<CreateDeviceTemplateAction>,
   pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
   private val deviceFilter: (DeviceProperties) -> Boolean,
-) : JPanel(), DataProvider {
+) : JPanel(), UiDataProvider {
 
   constructor(
     project: Project,
@@ -418,12 +418,10 @@ constructor(
         )
     }.apply { addCloseActionListener { deviceDetailsPanelRow = null } }
 
-  override fun getData(dataId: String): Any? =
-    when {
-      DEVICE_MANAGER_PANEL_KEY.`is`(dataId) -> this
-      DEVICE_MANAGER_COROUTINE_SCOPE_KEY.`is`(dataId) -> panelScope
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DEVICE_MANAGER_PANEL_KEY] = this
+    sink[DEVICE_MANAGER_COROUTINE_SCOPE_KEY] = panelScope
+  }
 }
 
 @UiThread

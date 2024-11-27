@@ -61,7 +61,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.DataSink.Companion.uiDataSnapshot
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.IdeActions
@@ -79,6 +78,8 @@ import com.intellij.util.ui.tree.TreeUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Rectangle
@@ -88,8 +89,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.tree.TreeCellRenderer
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
-import org.jetbrains.android.facet.AndroidFacet
 
 /** The delay used to minimize updates */
 private const val UPDATE_DELAY_MILLISECONDS = 250
@@ -315,7 +314,7 @@ private class ComponentTreePanel(
       // Provide a way to delete a reference from a helper
       sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = referenceDeleteProvider
     }
-    uiDataSnapshot(sink, surface)
+    DataSink.uiDataSnapshot(sink, surface)
   }
 
   /** The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface. */

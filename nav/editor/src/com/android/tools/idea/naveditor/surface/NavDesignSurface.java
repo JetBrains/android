@@ -212,7 +212,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     super.dispose();
   }
 
-
   @Override
   public void uiDataSnapshot(@NotNull DataSink sink) {
     super.uiDataSnapshot(sink);

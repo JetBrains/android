@@ -61,11 +61,11 @@ class SetColorBlindModeActionTest {
   fun testColorBlindModeChange() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-          AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
-          projectRule.fixture,
-          SdkConstants.FD_RES_LAYOUT,
-          "model.xml",
-          ComponentDescriptor("LinearLayout"),
+        AndroidBuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
+        projectRule.fixture,
+        SdkConstants.FD_RES_LAYOUT,
+        "model.xml",
+        ComponentDescriptor("LinearLayout"),
         )
         .build()
     }
@@ -76,9 +76,7 @@ class SetColorBlindModeActionTest {
     surface.setScreenViewProvider(myScreenViewProvider, false)
 
     val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val event = createTestEvent(dataContext)
+    val event = createTestEvent(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface))
 
     // Two things are tested here:
     // 1. That the color-blind filter is modified according to the setColorBlindModeAction

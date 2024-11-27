@@ -19,11 +19,13 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.stdui.CommonTextBorder
 import com.android.tools.adtui.stdui.HIDE_RIGHT_BORDER
 import com.android.tools.property.panel.api.EditorContext
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.ui.ClientProperty
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -43,7 +45,7 @@ open class PropertyTextFieldWithLeftButton(
   private val editorModel: TextFieldWithLeftButtonEditorModel,
   context: EditorContext,
   component: JComponent? = null,
-) : AdtSecondaryPanel(BorderLayout()), DataProvider {
+) : AdtSecondaryPanel(BorderLayout()), UiDataProvider {
   protected open val buttonAction = editorModel.buttonAction
   protected val leftComponent = component ?: IconWithFocusBorder { buttonAction }
   protected val leftButton = leftComponent as? IconWithFocusBorder
@@ -118,7 +120,7 @@ open class PropertyTextFieldWithLeftButton(
     )
   }
 
-  override fun getData(dataId: String): Any? {
-    return editorModel.getData(dataId)
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[HelpSupport.PROPERTY_ITEM] = editorModel.property
   }
 }

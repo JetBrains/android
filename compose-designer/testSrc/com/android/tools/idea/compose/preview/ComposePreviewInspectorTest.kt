@@ -20,17 +20,17 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.DataSink
-import java.awt.Point
-import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
+import java.awt.Point
+import javax.swing.JPanel
 
 class ComposePreviewInspectorTest {
 
@@ -52,15 +52,12 @@ class ComposePreviewInspectorTest {
 
     val manager = TestComposePreviewManager()
     manager.isInspectionTooltipEnabled = true
-    whenever(surface.uiDataSnapshot(any()))
-      .thenAnswer(
-        object : Answer<Unit> {
-          override fun answer(invocation: InvocationOnMock) {
-            val sink = invocation.arguments[0] as DataSink
-            sink[COMPOSE_PREVIEW_MANAGER] = manager
-          }
-        }
-      )
+    whenever(surface.uiDataSnapshot(any())).thenAnswer(object : Answer<Unit> {
+      override fun answer(invocation: InvocationOnMock) {
+        val sink = invocation.arguments[0] as DataSink
+        sink[COMPOSE_PREVIEW_MANAGER] = manager
+      }
+    })
 
     val verifier = mock<(List<ComposeViewInfo>, Int, Int) -> Unit>()
 

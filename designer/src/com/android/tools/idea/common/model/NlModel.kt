@@ -40,13 +40,13 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Model for an XML file
@@ -73,6 +73,8 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
+  // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
+  //   A data-context must not be queried during another data-context creation.
   override var dataContext: DataContext,
 ) : ModificationTracker, DataContextHolder {
 

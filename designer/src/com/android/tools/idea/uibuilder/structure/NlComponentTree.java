@@ -55,7 +55,6 @@ import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.client.ClientSystemInfo;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
@@ -674,14 +673,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void uiDataSnapshot(@NotNull DataSink sink) {
     DataSink.uiDataSnapshot(sink, mySurface);
-    TreePath path = getSelectionPath();
-    if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
-      sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider());
-    }
+    TreePath[] paths = getSelectionPaths();
+    if (paths == null || paths.length == 0) return;
+    if (paths[0].getLastPathComponent() instanceof NlComponent) return;
+    sink.set(PlatformDataKeys.DELETE_ELEMENT_PROVIDER, createNonNlComponentDeleteProvider(paths));
   }
 
   @NotNull
-  private DeleteProvider createNonNlComponentDeleteProvider() {
+  private DeleteProvider createNonNlComponentDeleteProvider(TreePath[] paths) {
     return new DeleteProvider() {
       @NotNull
       @Override
@@ -691,7 +690,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       @Override
       public void deleteElement(@NotNull DataContext dataContext) {
-        deleteNonNlComponent(getSelectionPaths());
+        deleteNonNlComponent(paths);
       }
 
       @Override

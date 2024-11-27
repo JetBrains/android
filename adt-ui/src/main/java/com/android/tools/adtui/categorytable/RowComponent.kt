@@ -17,7 +17,8 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.util.preferredWidth
@@ -128,7 +129,7 @@ internal class ValueRowComponent<T>(
   columns: ColumnList<T>,
   initialValue: T,
   primaryKey: Any
-) : RowComponent<T>(), DataProvider {
+) : RowComponent<T>(), UiDataProvider {
   private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
 
   /** The components of this row, in model order. */
@@ -205,17 +206,21 @@ internal class ValueRowComponent<T>(
     }
   }
 
-  override fun getData(dataId: String): Any? = dataProvider(dataId, value)
+  override fun uiDataSnapshot(sink: DataSink) {
+    dataProvider(sink, value)
+  }
 }
 
-typealias ValueRowDataProvider<T> = (String, T) -> Any?
+typealias ValueRowDataProvider<T> = (DataSink, T) -> Any?
 
 object NullValueRowDataProvider : ValueRowDataProvider<Any?> {
-  override fun invoke(p1: String, p2: Any?): Any? = null
+  override fun invoke(p1: DataSink, p2: Any?): Any? = null
 }
 
-class DefaultValueRowDataProvider<T>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {
-  override fun invoke(dataId: String, value: T) = value.takeIf { dataKey.`is`(dataId) }
+class DefaultValueRowDataProvider<T: Any>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {
+  override fun invoke(sink: DataSink, value: T) {
+    sink[dataKey] = value
+  }
 }
 
 private class ValueRowLayout(val header: JTableHeader) : LayoutManager {

@@ -96,10 +96,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
         model.addListener(modelListener)
         update(model)
       }
-      DataManager.registerDataProvider(
-        componentTree,
-        EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, it) },
-      )
+      DataManager.registerDataProvider(componentTree, EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, it) })
     }
   }
 

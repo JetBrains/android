@@ -42,10 +42,9 @@ class ComposePreviewInspector(
    * the Swing coordinate.
    */
   fun inspect(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val inspectionEnabled =
-      COMPOSE_PREVIEW_MANAGER.getData(dataContext)?.isInspectionTooltipEnabled ?: false
+    val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
+    val inspectionEnabled = COMPOSE_PREVIEW_MANAGER.getData(dataContext)
+        ?.isInspectionTooltipEnabled ?: false
     if (!inspectionEnabled) {
       currentViewInfo = null
       currentTooltipPopup?.cancel()

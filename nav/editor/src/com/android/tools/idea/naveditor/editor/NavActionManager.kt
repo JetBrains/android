@@ -137,9 +137,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface)
-    orientationAction.updateActionsImmediately(dataContext)
+    orientationAction.updateActionsImmediately(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface))
 
     group.add(selectAllAction)
 
