@@ -51,16 +51,17 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
+import com.intellij.util.ui.components.BorderLayoutPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 
 class LayoutInspectorManagerTest {
 
@@ -84,14 +85,14 @@ class LayoutInspectorManagerTest {
     tab1 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab1"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         spy(displayViewRule.newEmulatorView()),
       )
     tab2 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab2"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         spy(displayViewRule.newEmulatorView()),
       )

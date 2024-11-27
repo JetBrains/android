@@ -42,7 +42,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
-import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +50,7 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import javax.swing.JPanel
 
 @RunsInEdt
 class ToggleLayoutInspectorActionTest {
@@ -75,7 +75,7 @@ class ToggleLayoutInspectorActionTest {
     tab1 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab1"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         displayViewRule.newEmulatorView(),
       )

@@ -23,10 +23,11 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import javax.swing.JPanel
+import com.intellij.util.ui.components.BorderLayoutPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 
 @RunsInEdt
 class RunningDevicesStateObserverTest {
@@ -45,14 +46,14 @@ class RunningDevicesStateObserverTest {
     tab1 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab1"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         displayViewRule.newEmulatorView(),
       )
     tab2 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab2"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         displayViewRule.newEmulatorView(),
       )

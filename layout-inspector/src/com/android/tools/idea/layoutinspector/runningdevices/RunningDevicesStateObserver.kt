@@ -20,8 +20,11 @@ import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
@@ -175,8 +178,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
   /** Returns [DeviceId] of the visible tabs in the Running Devices Tool Window. */
   private fun getRunningDevicesVisibleTabs(): List<DeviceId> {
     val selectedContent = getAllContents().filter { it.isSelected }
-    val selectedTabDataProvider = selectedContent.mapNotNull { it.component as? DataProvider }
-    return selectedTabDataProvider.mapNotNull { it.getData(DEVICE_ID_KEY.name) as? DeviceId }
+    return selectedContent.mapNotNull { it.deviceId }
   }
 
   /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
@@ -184,9 +186,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
     val contents = getAllContents()
     val tabIds =
       contents
-        .map { it.component }
-        .filterIsInstance<DataProvider>()
-        .mapNotNull { dataProvider -> dataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId }
+        .mapNotNull { it.deviceId }
 
     return tabIds
   }
@@ -207,5 +207,6 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
 private val Content.deviceId: DeviceId?
   get() {
-    return (component as? DataProvider)?.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
+    return IdeUiService.getInstance().createCustomizedDataContext(
+      DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, component) }).getData(DEVICE_ID_KEY)
   }

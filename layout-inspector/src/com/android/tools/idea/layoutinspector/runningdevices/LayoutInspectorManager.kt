@@ -21,19 +21,20 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
-import javax.swing.JComponent
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -222,16 +223,14 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
     val selectedTabContent =
       RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
-    val selectedTabDataProvider = selectedTabContent?.component as? DataProvider
+    val selectedDataContext =
+      IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedTabContent!!.component) })
 
-    val streamingContentPanel =
-      selectedTabDataProvider?.getData(STREAMING_CONTENT_PANEL_KEY.name) as? JComponent
-    val displayView =
-      selectedTabDataProvider?.getData(DISPLAY_VIEW_KEY.name) as? AbstractDisplayView
+    val streamingContentPanel = selectedDataContext.getData(STREAMING_CONTENT_PANEL_KEY)!!
+    val displayView = selectedDataContext.getData(DISPLAY_VIEW_KEY)!!
 
     checkNotNull(selectedTabContent)
     checkNotNull(streamingContentPanel)
-    checkNotNull(displayView)
 
     val tabComponents =
       TabComponents(
