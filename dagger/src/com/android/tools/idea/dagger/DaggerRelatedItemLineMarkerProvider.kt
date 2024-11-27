@@ -107,7 +107,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       fromElement: PsiElement,
       gotoItems: List<GotoItemWithAnalytics>,
     ): String {
-      val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(fromElement)
+      val fromElementString: String =
+        SymbolPresentationUtil.getSymbolPresentableText(fromElement) ?: fromElement.text
 
       if (gotoItems.size == 1) {
         val gotoItem = gotoItems[0]
