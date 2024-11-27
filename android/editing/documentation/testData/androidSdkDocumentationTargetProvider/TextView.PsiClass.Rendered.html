@@ -1,0 +1,60 @@
+<HTML>
+<code>
+  public
+  class
+  TextView
+</code>
+<br>
+<code class="api-signature" translate="no" dir="ltr">
+</code>
+<code class="api-signature" translate="no" dir="ltr">
+  extends <a href="http://developer.android.com/reference/android/view/View">View</a>
+</code>
+<code class="api-signature" translate="no" dir="ltr">
+  implements
+  <a href="http://developer.android.com/reference/android/view/ViewTreeObserver.OnPreDrawListener">ViewTreeObserver.OnPreDrawListener</a>
+</code>
+</code>
+<hr><div>
+  <p>A user interface element that displays text to the user.
+    To provide user-editable text, see <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/widget/EditText">EditText</a></code>.
+  <p>
+    The following code sample shows a typical use, with an XML layout
+    and code to modify the contents of the text view:
+  </p>
+  <pre translate="no" dir="ltr">
+&lt;LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"&gt;
+&lt;TextView
+android:id="@+id/text_view_id"
+android:layout_height="wrap_content"
+android:layout_width="wrap_content"
+android:text="@string/hello" /&gt;
+&lt;/LinearLayout&gt;
+</pre>
+  <p>
+    This code sample demonstrates how to modify the contents of the text view
+    defined in the previous XML layout:
+  </p>
+  <pre translate="no" dir="ltr">
+public class MainActivity extends Activity {
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_main);
+final TextView helloTextView = (TextView) findViewById(R.id.text_view_id);
+helloTextView.setText(R.string.user_greeting);
+}
+}
+</pre>
+  <p>
+    To customize the appearance of TextView, see <a href="https://developer.android.com/guide/topics/ui/themes.html">Styles and Themes</a>.
+  </p>
+  <p>
+    <b>XML attributes</b>
+  <p>
+    See <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/R.styleable#TextView">TextView Attributes</a></code>,
+    <code translate="no" dir="ltr"><a href="http://developer.android.com/reference/android/R.styleable#View">View Attributes</a></code></p>
+</div>
+</HTML>
