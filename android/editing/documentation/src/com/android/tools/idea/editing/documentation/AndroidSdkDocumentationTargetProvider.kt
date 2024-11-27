@@ -32,10 +32,13 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.createSmartPointer
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.runBlocking
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.days
 
@@ -119,19 +122,21 @@ private constructor(
   }
 
   override fun computeDocumentation(): DocumentationResult {
-    return DocumentationResult.asyncDocumentation {
-      DocumentationResult.documentation(getDocumentationHtml()).externalUrl(url)
+    val deferredPath =
+      UrlFileCache.getInstance(targetElement.project).get(url, maxFileAge = 1.days) { it.filter() }
+    return if (deferredPath.isCompleted) {
+      DocumentationResult.documentation(runBlocking { getDocumentationHtml(deferredPath) })
+        .externalUrl(url)
+    } else {
+      DocumentationResult.asyncDocumentation {
+        DocumentationResult.documentation(getDocumentationHtml(deferredPath)).externalUrl(url)
+      }
     }
   }
 
-  private suspend fun getDocumentationHtml(): String {
+  private suspend fun getDocumentationHtml(deferredPath: Deferred<Path>): String {
     try {
-      val path =
-        UrlFileCache.getInstance(targetElement.project).get(url, maxFileAge = 1.days) {
-          it.filter()
-        }
-      val html = path.await().readText()
-      if (html.isNotEmpty()) return html
+      deferredPath.await().readText().let { if (it.isNotEmpty()) return it }
     } catch (e: Exception) {
       thisLogger().warn("Failed to fetch documentation URL.", e)
     }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editing.documentation
 
-import com.android.mockito.kotlin.getTypedArgument
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils
 import com.android.tools.idea.downloads.UrlFileCache
@@ -31,17 +30,17 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.backend.documentation.AsyncDocumentation
 import com.intellij.platform.backend.documentation.DocumentationData
+import com.intellij.platform.backend.documentation.DocumentationResult.Documentation
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.psi.PsiClass
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
-import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.FileOutputStream
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -52,10 +51,11 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
@@ -72,26 +72,19 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
   private val fixture by lazy { projectRule.fixture }
   private val project by lazy { projectRule.project }
 
-  private val documentationContentFromServer by lazy {
-    Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.html"))
+  private val preFilteringPath by lazy {
+    TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.html")
   }
 
-  private val mockUrlFileCache: UrlFileCache = mock {
-    on { get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()) } doAnswer
-      { invocationOnMock ->
-        val fileToReturn = File(fixture.tempDirPath, "serverContent.tmp")
-        if (!fileToReturn.exists()) {
-          ByteArrayInputStream(documentationContentFromServer.toByteArray()).use {
-            serverContentStream ->
-            val filter: (InputStream) -> InputStream = invocationOnMock.getTypedArgument(3)
-            filter.invoke(serverContentStream).use { filteredStream ->
-              FileOutputStream(fileToReturn).use { it.write(filteredStream.readAllBytes()) }
-            }
-          }
-        }
-        CompletableDeferred(fileToReturn.toPath())
-      }
+  private val postFilteringPath by lazy {
+    TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.Rendered.html")
   }
+
+  private val documentationContentAfterFiltering by lazy { Files.readString(postFilteringPath) }
+
+  private val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
+
+  private val mockUrlFileCache: UrlFileCache = mock()
 
   @Before
   fun setUp() {
@@ -99,32 +92,79 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
   }
 
   @Test
-  fun checkDocumentation() {
-    val documentationContentAfterFiltering =
-      Files.readString(TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BitmapShader.Rendered.html"))
+  fun checkDocumentation_fast() {
+    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()))
+      .thenReturn(
+        // This one is already completed.
+        CompletableDeferred(postFilteringPath)
+      )
+
+    setUpCursorForActivity()
+    val doc = getDocsAtCursor().single()
+
+    val documentation = runReadAction { doc.computeDocumentation() }
+    assertThat(documentation).isInstanceOf(Documentation::class.java)
+
+    val documentationData = runBlocking { (documentation as Documentation) }
+    assertThat(documentationData).isInstanceOf(DocumentationData::class.java)
+    assertThat((documentationData as DocumentationData).html)
+      .isEqualTo(documentationContentAfterFiltering)
+
+    // Independently check that the passed-in filter is doing the right thing.
+    @Suppress("DeferredResultUnused")
+    verify(mockUrlFileCache).get(eq(ACTIVITY_DOC_URL), any(), isNull(), transformCaptor.capture())
+
+    val filterOutput =
+      FileInputStream(preFilteringPath.toFile()).use { inputStream ->
+        String(transformCaptor.firstValue.invoke(inputStream).readAllBytes())
+      }
+    assertThat(filterOutput).isEqualTo(documentationContentAfterFiltering)
+  }
+
+  @Test
+  fun checkDocumentation_slow() {
+    val completableDeferred = CompletableDeferred<Path>()
+    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()))
+      .thenReturn(completableDeferred)
 
     setUpCursorForActivity()
     val doc = getDocsAtCursor().single()
 
     val documentation = runReadAction { doc.computeDocumentation() }
     assertThat(documentation).isInstanceOf(AsyncDocumentation::class.java)
+
+    // Actually complete the Deferred so we can get the result.
+    completableDeferred.complete(postFilteringPath)
 
     val documentationData = runBlocking { (documentation as AsyncDocumentation).supplier() }
     assertThat(documentationData).isInstanceOf(DocumentationData::class.java)
     assertThat((documentationData as DocumentationData).html)
       .isEqualTo(documentationContentAfterFiltering)
+
+    // Independently check that the passed-in filter is doing the right thing.
+    @Suppress("DeferredResultUnused")
+    verify(mockUrlFileCache).get(eq(ACTIVITY_DOC_URL), any(), isNull(), transformCaptor.capture())
+
+    val filterOutput =
+      FileInputStream(preFilteringPath.toFile()).use { inputStream ->
+        String(transformCaptor.firstValue.invoke(inputStream).readAllBytes())
+      }
+    assertThat(filterOutput).isEqualTo(documentationContentAfterFiltering)
   }
 
   @Test
   fun checkDocumentationWhenServerUnavailable() {
+    val completableDeferred = CompletableDeferred<Nothing>()
     whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()))
-      .thenReturn(CompletableDeferred<Nothing>().apply { completeExceptionally(IOException()) })
+      .thenReturn(completableDeferred)
 
     setUpCursorForActivity()
     val doc = getDocsAtCursor().single()
 
     val documentation = runReadAction { doc.computeDocumentation() }
     assertThat(documentation).isInstanceOf(AsyncDocumentation::class.java)
+
+    completableDeferred.completeExceptionally(IOException())
 
     val documentationData = runBlocking { (documentation as AsyncDocumentation).supplier() }
     assertThat(documentationData).isInstanceOf(DocumentationData::class.java)
@@ -174,6 +214,9 @@ class AndroidSdkDocumentationTargetProviderTest(private val language: Language) 
 
   @Test
   fun noRemoteDocumentationWhenLocalSourcesArePresent() {
+    whenever(mockUrlFileCache.get(eq(ACTIVITY_DOC_URL), any(), isNull(), any()))
+      .thenReturn(CompletableDeferred(postFilteringPath))
+
     setUpCursorForActivity()
     val docWithNoSources = getDocsAtCursor().single()
 
