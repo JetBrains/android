@@ -1479,6 +1479,11 @@ public final class StudioFlags {
     "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
     "enabling or disabling (File -> Invalidate Caches...)", ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT = new BooleanFlag(
+    COMPOSE, "preview.uicheck.group.layout", "Enable organization of Compose Preview in UI Check",
+    "If enabled, multiple previews associated with composable will be grouped in UI Check. Please invalidates file caches after " +
+    "enabling or disabling (File -> Invalidate Caches...)", ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
