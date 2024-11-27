@@ -81,7 +81,7 @@ class InsightContentPanel(
 
   private val cardLayout = CardLayout()
 
-  private val insightTextPane = InsightTextPane()
+  private val insightTextPane = InsightTextPane(controller.project)
 
   private val insightBottomPanel = InsightBottomPanel(controller, scope, currentInsightFlow)
 
