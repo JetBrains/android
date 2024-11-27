@@ -35,8 +35,8 @@ import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.recordExistingFile
 import com.android.testutils.file.someRoot
-import com.android.tools.idea.adddevicedialog.LocalFileSystem
-import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.adtui.compose.LocalFileSystem
+import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.sdk.DeviceManagers
 import com.android.utils.CpuArchitecture
 import com.android.utils.StdLogger

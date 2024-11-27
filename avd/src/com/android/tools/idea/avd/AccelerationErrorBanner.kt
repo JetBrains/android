@@ -19,7 +19,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import org.jetbrains.jewel.ui.component.Link

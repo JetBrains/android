@@ -35,9 +35,12 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.adtui.compose.ComposeWizard
+import com.android.tools.adtui.compose.WizardAction
+import com.android.tools.adtui.compose.WizardButton
+import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.adtui.compose.initializeComposeMainDispatcherChecker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.adddevicedialog.ComposeWizard
 import com.android.tools.idea.adddevicedialog.DeviceFilterState
 import com.android.tools.idea.adddevicedialog.DeviceGridPage
 import com.android.tools.idea.adddevicedialog.DeviceLoadingPage
@@ -51,9 +54,6 @@ import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
-import com.android.tools.idea.adddevicedialog.WizardAction
-import com.android.tools.idea.adddevicedialog.WizardButton
-import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.adddevicedialog.uniqueValuesOf
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.checkAcceleration

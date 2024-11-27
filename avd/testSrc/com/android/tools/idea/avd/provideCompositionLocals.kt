@@ -17,7 +17,7 @@ package com.android.tools.idea.avd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.adtui.compose.LocalProject
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.mockito.kotlin.mock
