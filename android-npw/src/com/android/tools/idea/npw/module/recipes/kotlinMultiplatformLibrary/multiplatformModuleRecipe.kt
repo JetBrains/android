@@ -89,18 +89,16 @@ private fun RecipeExecutor.generateModule(
 
 fun RecipeExecutor.addCommonMainDependencies(kotlinVersion: String) {
   addDependency(
-    "org.jetbrains.kotlin:kotlin-stdlib:+",
+    "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
     "implementation",
-    minRev = kotlinVersion,
     sourceSetName = "commonMain",
   )
 }
 
 fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {
   addDependency(
-    "org.jetbrains.kotlin:kotlin-test:+",
+    "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
     "implementation",
-    minRev = kotlinVersion,
     sourceSetName = "commonTest",
   )
 }
