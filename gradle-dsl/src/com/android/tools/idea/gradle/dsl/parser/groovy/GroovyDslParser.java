@@ -386,6 +386,13 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     // Now this element is a block element, i.e a method call with no normal arguments and zero or one closure arguments.  Create the block
     // element, and process the closure if present within that block's context.
     // ex: android {}, jcenter()
+
+    // Recompute the name from the full expression to handle configuration methods ex: buildTypes.getByName('release') (the qualifying
+    // parts have already been dealt with
+    if (expression.getExpressionArguments().length == 1) {
+      name = GradleNameElement.from(expression, this);
+    }
+
     GrClosableBlock closableBlock = null;
     if (closureArguments.length > 0) {
       closableBlock = closureArguments[0];
