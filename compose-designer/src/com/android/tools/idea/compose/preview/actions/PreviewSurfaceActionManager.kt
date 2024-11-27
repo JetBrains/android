@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.sceneview.LabelPanel
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.zoomTargetProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
@@ -80,7 +81,7 @@ internal class PreviewSurfaceActionManager(
     val mousePosition = MouseInfo.getPointerInfo().location
     SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
-    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
+    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y, ::zoomTargetProvider))
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
     // View in Gallery mode
