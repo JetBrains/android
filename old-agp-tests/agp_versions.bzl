@@ -7,6 +7,7 @@ COMMON_DATA = [
     "//prebuilts/studio/layoutlib/data:framework_res.jar",
     "//prebuilts/studio/layoutlib/data:native_libs",
     "//prebuilts/studio/layoutlib/data/fonts",
+    "//prebuilts/studio/layoutlib/data/hyphen-data",
     "//prebuilts/studio/layoutlib/data/icu",
     "//prebuilts/studio/sdk:cmake",
     "//prebuilts/studio/sdk:docs",

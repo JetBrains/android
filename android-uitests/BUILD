@@ -393,6 +393,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
@@ -498,6 +499,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/Navigation/**"]),
@@ -519,6 +521,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleApplication/**"]),
@@ -540,6 +543,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/CodeGeneration/**"]),
@@ -560,6 +564,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleApplication/**"]),
@@ -581,6 +586,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/VisualLintApplication/**"]),
@@ -602,6 +608,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleApplication/**"]),
@@ -622,6 +629,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleComposeApplication/**"]),
@@ -643,6 +651,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleComposeApplication/**"]),
@@ -723,6 +732,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1174,6 +1184,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1269,6 +1280,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -1289,6 +1301,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -1310,6 +1323,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -1333,6 +1347,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleApplication/**"]),
@@ -1352,6 +1367,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -1375,6 +1391,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -1757,6 +1774,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/SimpleApplication/**"]),
@@ -1792,6 +1810,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1818,6 +1837,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1844,6 +1864,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1870,6 +1891,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1891,6 +1913,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1916,6 +1939,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -1941,6 +1965,7 @@ java_test(
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
@@ -2092,6 +2117,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ],
@@ -2112,6 +2138,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2134,6 +2161,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2156,6 +2184,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ],
@@ -2423,6 +2452,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob(["testData/Navigation/**"]),
@@ -2487,6 +2517,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2509,6 +2540,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2530,6 +2562,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2552,6 +2585,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2574,6 +2608,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ],
@@ -2714,6 +2749,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2735,6 +2771,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2757,6 +2794,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2778,6 +2816,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2801,6 +2840,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2822,6 +2862,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2843,6 +2884,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2864,6 +2906,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -2888,6 +2931,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([
@@ -3651,6 +3695,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/hyphen-data",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data/keyboards",
     ] + glob([

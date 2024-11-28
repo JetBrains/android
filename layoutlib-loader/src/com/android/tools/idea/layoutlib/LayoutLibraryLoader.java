@@ -86,6 +86,7 @@ public class LayoutLibraryLoader {
 
     final Path dataPath = target.getPath(IAndroidTarget.DATA);
     Path keyboardPath = dataPath.resolve("keyboards/Generic.kcm");
+    Path hyphenPath = dataPath.resolve("hyphen-data/");
     Path icuDataPath;
     try(Stream<Path> icuFiles = Files.list(dataPath.resolve("icu"))) {
       icuDataPath = icuFiles.filter(path -> path.toString().endsWith(".dat")).findFirst().orElseThrow();
@@ -101,6 +102,7 @@ public class LayoutLibraryLoader {
                       fontFolderPath.toFile(),
                       getNativeLibraryPath(dataPath),
                       pathToString(icuDataPath),
+                      pathToString(hyphenPath),
                       new String[] { pathToString(keyboardPath) },
                       enumMap,
                       layoutLog)) {
