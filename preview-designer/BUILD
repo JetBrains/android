@@ -37,8 +37,17 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.preview-designer.tests",
-    generate_k2_tests = False,  # Disabled because of b/380229333
+    generate_k2_tests = True,
     iml_files = ["intellij.android.preview-designer.tests.iml"],
+    split_test_targets = {
+        # this target does some performance tests and takes a long time to run
+        "AnnotationsGraphTest": {
+            "test_filter": "com.android.tools.idea.preview.annotations.AnnotationsGraphTest",
+        },
+        "other": {
+            "shard_count": 2,
+        },
+    },
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_data = [
