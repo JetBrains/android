@@ -68,7 +68,7 @@ class ProjectSystemService(val project: Project) {
     }
   }
 
-  private class ReadLockUnavailable: Exception()
+  private class ReadLockUnavailable : Exception()
 
   val projectSystem: AndroidProjectSystem
     get() = projectSystemForTests ?: try {
@@ -87,7 +87,7 @@ class ProjectSystemService(val project: Project) {
         }
       }
     }
-    catch(e: ReadLockUnavailable) {
+    catch (e: ReadLockUnavailable) {
       cachedDefaultProjectSystem
     }
 
@@ -107,16 +107,15 @@ class ProjectSystemService(val project: Project) {
     // write means that we can avoid the deadlock, at the cost of sometimes returning a DefaultProjectSystem when that
     // is wrong.  We maintain two separate caches in order to detect and correct for that.
     application.tryRunReadAction {
-      val provider = extensions.find { it.isApplicable(project) }
-                     ?: extensions.find { it.id == "" }
-                     ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
-      result = provider.projectSystemFactory(project)
+      result = extensions.find { it.isApplicable(project) }?.projectSystemFactory(project) ?: defaultProjectSystem(project, extensions)
     }
     return result ?: throw ReadLockUnavailable()
   }
 
-  private fun defaultProjectSystem(project: Project): AndroidProjectSystem {
-    val extensions = EP_NAME.extensionList
+  private fun defaultProjectSystem(
+    project: Project,
+    extensions: List<AndroidProjectSystemProvider> = EP_NAME.extensionList
+  ): AndroidProjectSystem {
     val provider = extensions.find { it.id == "" }
                    ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
     return provider.projectSystemFactory(project)
