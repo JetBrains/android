@@ -50,6 +50,7 @@
     <runConfigurationProducer
         implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
         order="first"/>
+    <projectOpenProcessor implementation="com.google.idea.blaze.android.project.AndroidBlazeProjectOpenProcessor"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android.actions">

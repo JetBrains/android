@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runWriteAction
@@ -22,6 +23,7 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ModuleRootListener
@@ -77,6 +79,16 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
     fun getInstance(project: Project): ProjectSystemService {
       return project.getService(ProjectSystemService::class.java)!!
     }
+    @JvmStatic
+    fun projectSystemOpenProjectTask(id: String, forceOpenInNewFrame: Boolean, projectToClose: Project?): OpenProjectTask =
+      OpenProjectTask {
+        this.forceOpenInNewFrame = forceOpenInNewFrame
+        this.projectToClose = projectToClose
+        beforeOpen = { project ->
+          project.service<ProjectSystemService>().setProviderId(id)
+          true
+        }
+      }
   }
 
   private class ReadLockUnavailable : Exception()
