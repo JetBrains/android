@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ModuleRootListener
@@ -26,6 +27,7 @@ import com.intellij.openapi.util.EmptyRunnable
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicInteger
 
+@Service(Service.Level.PROJECT)
 class ProjectSystemService(val project: Project) {
   /**
    * A state for the mini state machine around updating the view of the project system:
