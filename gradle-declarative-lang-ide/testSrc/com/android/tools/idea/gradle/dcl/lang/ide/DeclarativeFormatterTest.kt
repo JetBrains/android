@@ -139,6 +139,49 @@ false    )
   }
 
   @Test
+  fun testLongString() {
+    val quotes = "\"\"\""
+    doTest("""
+      f(
+      $quotes "myValue" $quotes)
+      f($quotes "" "myValue" "" $quotes)
+      f($quotes\"myValue\"$quotes)
+      f(
+      $quotes
+      myValue
+      $quotes
+      )
+      a= $quotes
+      long string
+      $quotes
+      ""","""
+      f($quotes "myValue" $quotes)
+      f($quotes "" "myValue" "" $quotes)
+      f($quotes\"myValue\"$quotes)
+      f($quotes
+      myValue
+      $quotes)
+      a = $quotes
+      long string
+      $quotes
+      """)
+  }
+
+  @Test
+  fun testEnum() {
+    doTest("""
+      androidApp{
+          someEnumProperty =
+            Enum
+          }
+      ""","""
+      androidApp {
+          someEnumProperty = Enum
+      }
+      """)
+  }
+
+  @Test
   fun testComplexFile() {
     val before = """
         plugins{ id("org.gradle.experimental.android-application")  }      
