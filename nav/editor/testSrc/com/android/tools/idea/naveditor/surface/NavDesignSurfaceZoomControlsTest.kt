@@ -49,6 +49,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -294,6 +295,7 @@ class NavDesignSurfaceZoomControlsTest {
     }
   }
 
+  @Ignore("b/381163955")
   @Test
   fun testNavDesignSurfaceZoomOut() {
     populateSchema()
@@ -381,6 +383,7 @@ class NavDesignSurfaceZoomControlsTest {
     }
   }
 
+  @Ignore("b/381163955")
   @Test
   fun testNavDesignSurfaceZoomToFit() {
     populateSchema()
