@@ -21,6 +21,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
+import kotlinx.coroutines.CoroutineDispatcher
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -37,10 +38,14 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.yield
+import org.jetbrains.annotations.TestOnly
 
 private val CONNECT_TIMEOUT = 5.seconds
 private val READ_TIMEOUT = 2.minutes
@@ -51,7 +56,10 @@ private fun Path.isFresh(age: Duration) =
 
 /** Read-through, on-disk cache of downloaded files. */
 @Service(Service.Level.PROJECT)
-class UrlFileCache(private val coroutineScope: CoroutineScope) : Disposable {
+class UrlFileCache
+@TestOnly constructor(private val coroutineScope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher) : Disposable {
+
+  constructor(coroutineScope: CoroutineScope): this(coroutineScope, Dispatchers.IO)
   private val files = mutableMapOf<String, Path>()
   private val lastModified = mutableMapOf<String, String>()
   private val eTags = mutableMapOf<String, String>()
@@ -76,20 +84,23 @@ class UrlFileCache(private val coroutineScope: CoroutineScope) : Disposable {
     indicator?.isIndeterminate = true
     indicator?.text = "Checking cached downloads"
 
-    return coroutineScope.async {
-      mutex.withLock { fetchAndFilterUrlLocked(url, maxFileAge, indicator, transform) }
+    return coroutineScope.async(ioDispatcher, CoroutineStart.UNDISPATCHED) {
+      mutex.withLock {
+        // Check the cache first.
+        val existing = files[url]?.also { if (it.isFresh(maxFileAge)) return@withLock it }
+        // Otherwise yield onto the ioDispatcher and suspend.
+        yield()
+        fetchAndFilterUrlLocked(existing, url, indicator, transform)
+      }
     }
   }
 
   private fun fetchAndFilterUrlLocked(
+    existing: Path?,
     url: String,
-    maxFileAge: Duration,
     indicator: ProgressIndicator?,
     transform: ((InputStream) -> InputStream)?,
   ): Path {
-    // Check the cache first
-    val existing = files[url]?.also { if (it.isFresh(maxFileAge)) return it }
-
     indicator?.text = "Downloading from ${URL(url).host}"
     val file: Path =
       HttpRequests.request(url)
@@ -126,8 +137,10 @@ class UrlFileCache(private val coroutineScope: CoroutineScope) : Disposable {
         }
         .transform(files[url], transform)
 
-    if (existing != file) existing?.deleteIfExists()
-    files[url] = file
+    if (existing != file) {
+      existing?.deleteIfExists()
+      files[url] = file
+    }
     return file
   }
 
