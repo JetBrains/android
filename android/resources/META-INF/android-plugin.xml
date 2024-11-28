@@ -398,7 +398,9 @@
              id="AndroidRequiresPermissionCompletionWeigher"
              order="first"/>
 
-    <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
+    <renamePsiElementProcessor id="ResourceReference"
+                               implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor"
+                               order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
     <java.languageFeatureProvider implementation="org.jetbrains.android.inspections.AndroidLanguageFeatureProvider"/>
