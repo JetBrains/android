@@ -144,7 +144,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     return false;
   }
 
-  private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
+  protected void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
     ActionPopupMenu popUpMenu = am.createActionPopupMenu(eve.getPlace(), this);
     popUpMenu.setDataContext(eve::getDataContext);
