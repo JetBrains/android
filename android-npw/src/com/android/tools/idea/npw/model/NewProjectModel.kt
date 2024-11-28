@@ -37,6 +37,8 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
@@ -132,6 +134,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
             GradleProjectImporter.getInstance()
               .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
 
+          // Arguably some of these things should be in the OpenProjectTask's beforeOpen
+          newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
           MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
 
           this@NewProjectModel.project = newProject
