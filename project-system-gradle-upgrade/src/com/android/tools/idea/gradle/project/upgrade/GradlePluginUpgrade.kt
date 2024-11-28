@@ -245,7 +245,8 @@ fun computeGradlePluginUpgradeState(
   latestKnown: AgpVersion,
   published: Set<AgpVersion>,
   supportFutureAgpVersions: Boolean = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
-): GradlePluginUpgradeState {
+  recommendAgpPatchReleases: Boolean = StudioFlags.RECOMMEND_AGP_PATCH_RELEASES.get(),
+  ): GradlePluginUpgradeState {
   // When supportFutureAgpVersions=true, neither offer to upgrade to future versions nor force downgrades from future versions.
   if (supportFutureAgpVersions && current > latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
@@ -278,9 +279,20 @@ fun computeGradlePluginUpgradeState(
     AFTER_MAXIMUM -> return GradlePluginUpgradeState(FORCE, latestKnown)
     COMPATIBLE, DEPRECATED -> Unit
   }
-  // Don't recommend upgrade for future point releases (e.g. don't suggest 9.0.1 where latestKnown=9.0.0)
-  // TODO(b/274115496): Do we want to revisit the point-release behavior?
+  val latestKnown = if (recommendAgpPatchReleases) {
+    // Discover future point releases of the same series as the latest known. (e.g. suggest 9.0.1 if published and latestKnown=9.0.0)
+    published
+      .filter { AgpVersion(it.major, it.minor) == AgpVersion(latestKnown.major, latestKnown.minor) }
+      .maxOrNull()
+      ?.takeIf { it > latestKnown } ?: latestKnown
+  }
+  else {
+    // Don't recommend upgrade for future point releases (e.g. don't suggest 9.0.1 where latestKnown=9.0.0)
+    latestKnown
+  }
+  // Don't propose a no-op upgrade
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
+
   val recommendationStrength = when (compatibility) {
     DEPRECATED -> STRONGLY_RECOMMEND
     COMPATIBLE -> RECOMMEND

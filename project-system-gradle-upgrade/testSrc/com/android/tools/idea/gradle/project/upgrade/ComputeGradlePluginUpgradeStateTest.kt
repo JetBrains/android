@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.FutureCompatible.FUTURE_COMPATIBLE
 import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.FutureCompatible.FUTURE_INCOMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.RecommendPatches.NO_FUTURE_PATCHES
+import com.android.tools.idea.gradle.project.upgrade.ComputeGradlePluginUpgradeStateTest.Companion.Flag.RecommendPatches.RECOMMEND_FUTURE_PATCHES
 import com.android.ide.common.repository.AgpVersion.Companion.parse as agpVersion
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,7 +35,8 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
   @Test
   fun testComputeGradlePluginUpgradeState() {
     val futureCompatible = when (flags.futureCompatible) { FUTURE_INCOMPATIBLE -> false; FUTURE_COMPATIBLE -> true }
-    val state = computeGradlePluginUpgradeState(case.current, case.latestKnown, case.published, futureCompatible)
+    val recommendPatches = when(flags.recommendPatches) { NO_FUTURE_PATCHES -> false; RECOMMEND_FUTURE_PATCHES -> true }
+    val state = computeGradlePluginUpgradeState(case.current, case.latestKnown, case.published, futureCompatible, recommendPatches)
     assertEquals(case.description, case.results.results[flags], state)
   }
 
@@ -43,11 +46,37 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       enum class FutureCompatible {
         FUTURE_INCOMPATIBLE, FUTURE_COMPATIBLE
       }
+      enum class RecommendPatches {
+        NO_FUTURE_PATCHES, RECOMMEND_FUTURE_PATCHES
+      }
     }
 
-    data class Flags(val futureCompatible: Flag.FutureCompatible)
+    data class Flags(
+      val futureCompatible: Flag.FutureCompatible,
+      val recommendPatches: Flag.RecommendPatches,
+    ) {
+      constructor(futureCompatible: Flag.FutureCompatible) : this(futureCompatible, NO_FUTURE_PATCHES)
+      constructor(recommendPatches: Flag.RecommendPatches) : this(FUTURE_INCOMPATIBLE, recommendPatches)
+    }
 
-    val allFlagCombinations: Set<Flags> = Flag.FutureCompatible.entries.map { Flags(it) }.toSet()
+    val allFlagCombinations: Set<Flags> = Flag.FutureCompatible.entries.flatMap { futureCompatible-> Flag.RecommendPatches.entries.map { Flags(futureCompatible, it) }}.toSet()
+
+    // Given expected test cases that possibly only cover some flag combinations, expand to cover all the combinations of flag states.
+    fun expandCombinations(vararg results: Pair<Flags, GradlePluginUpgradeState>): Map<Flags, GradlePluginUpgradeState> {
+      var results = mapOf<Flags, GradlePluginUpgradeState>(*results)
+      if (results.keys.all { it.futureCompatible == FUTURE_INCOMPATIBLE}) {
+        results = results.flatMap { (flags, state) -> listOf(flags to state, flags.copy(futureCompatible = FUTURE_COMPATIBLE) to state) }.toMap()
+      }
+      if (results.keys.all { it.recommendPatches == NO_FUTURE_PATCHES }) {
+        results = results.flatMap { (flags, state) -> listOf(flags to state, flags.copy(recommendPatches = RECOMMEND_FUTURE_PATCHES) to state) }.toMap()
+      }
+      return results
+    }
+
+    init {
+      val expandsToAll = expandCombinations(Flags(FUTURE_INCOMPATIBLE) to NO_UPGRADE.upgradeTo("0.0.0"))
+      check(expandsToAll.keys == allFlagCombinations) { "expect $expandsToAll to give all combinations $allFlagCombinations" }
+    }
 
     @Parameterized.Parameters(name = "{0} & {1}")
     @JvmStatic
@@ -55,7 +84,7 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
 
     data class Results(val results: Map<Flags, GradlePluginUpgradeState>) {
       constructor(result: GradlePluginUpgradeState): this(allFlagCombinations.associateWith { result })
-      constructor(vararg results: Pair<Flags, GradlePluginUpgradeState>): this (mapOf(*results))
+      constructor(vararg results: Pair<Flags, GradlePluginUpgradeState>): this (expandCombinations(*results))
       init {
         check(results.keys == allFlagCombinations) {
           "All flag combinations should be covered, expected $allFlagCombinations, but got ${results.keys}"
@@ -139,7 +168,12 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       NO_UPGRADE_RC("7.0.0-rc01", "7.0.0-rc01", agpVersions(), NO_UPGRADE.upgradeTo("7.0.0-rc01")),
       NO_UPGRADE_STABLE("7.0.0", "7.0.0", agpVersions(), NO_UPGRADE.upgradeTo("7.0.0")),
       // Even if the set of published versions contains later versions.
-      NO_UPGRADE_FUTURE_STABLE("7.0.0", "7.0.0", agpVersions("7.0.1"), NO_UPGRADE.upgradeTo("7.0.0")),
+      NO_UPGRADE_FUTURE_STABLE("7.0.0", "7.0.0", agpVersions("7.0.1"), Results(
+        Flags(NO_FUTURE_PATCHES) to GradlePluginUpgradeState(NO_UPGRADE, agpVersion("7.0.0")),
+        Flags(RECOMMEND_FUTURE_PATCHES) to GradlePluginUpgradeState(RECOMMEND, agpVersion("7.0.1")))),
+      NO_UPGRADE_FUTURE_STABLE_NEXT_SERIES("7.0.0", "7.0.0", agpVersions("7.0.1", "7.1.0"), Results(
+        Flags(NO_FUTURE_PATCHES) to GradlePluginUpgradeState(NO_UPGRADE, agpVersion("7.0.0")),
+        Flags(RECOMMEND_FUTURE_PATCHES) to GradlePluginUpgradeState(RECOMMEND, agpVersion("7.0.1")))),
       // If the latest known version is earlier than the current version, but they are in the same rc/stable series, there should be no
       // upgrade.
       NO_DOWNGRADE_PATCH("7.0.1", "7.0.0", agpVersions(), NO_UPGRADE.upgradeTo("7.0.1")),
@@ -222,11 +256,23 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_NEXT_SERIES("3.6.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.0.0")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES("3.6.1", "4.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.0.0")),
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_DEPRECATED_SERIES_EVEN_IN_NEWER_VERSION("3.5.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES("3.6.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.1.0")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_1("3.6.1", "4.1.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.1.0")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES("3.6.0", "4.1.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.1"),
+      )),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_1("3.6.1", "4.1.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.1"),
+      )),
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_2("3.5.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.0")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.1", "4.2.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.0")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.0", "4.2.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.2"),
+      )),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.1", "4.2.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.2"),
+      )),
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_3("3.5.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_ONE_MAJOR("3.6.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_ALL("3.6.1", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
@@ -235,18 +281,39 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_5("3.5.0", "8.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_ONE_MAJOR_3("3.6.0", "8.0.1", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
       UPDATE_INCREMENTALLY_WITHIN_SERIES("4.0.0", "7.0.0", publishedVersions, RECOMMEND.upgradeTo("4.2.2")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES("4.2.0", "7.0.0", publishedVersions, RECOMMEND.upgradeTo("7.0.0")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES("4.2.1", "7.0.0", publishedVersions, RECOMMEND.upgradeTo("7.0.0")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_LAST_PATCH_TO_NEXT_SERIES("4.2.2", "7.0.0", publishedVersions, RECOMMEND.upgradeTo("7.0.0")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH("4.2.0", "7.0.2", publishedVersions, RECOMMEND.upgradeTo("7.0.2")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES_PATCH("4.2.1", "7.0.2", publishedVersions, RECOMMEND.upgradeTo("7.0.2")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES_PATCH("4.2.2", "7.0.2", publishedVersions, RECOMMEND.upgradeTo("7.0.2")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES("4.2.0", "7.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES("4.2.1", "7.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_LAST_PATCH_TO_NEXT_SERIES("4.2.2", "7.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH("4.2.0", "7.0.2", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES_PATCH("4.2.1", "7.0.2", publishedVersions,Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES_PATCH("4.2.2", "7.0.2", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      )),
       UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES("4.2.0", "7.3.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
       UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES_EVEN_IN_NEWER_VERSION("4.2.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
       UPGRADE_INCREMENTALLY_FIRST_WITHIN_SERIES_TO_LATEST("7.0.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
       UPGRADE_INCREMENTALLY_SOMEWHERE_WITHIN_SERIES_TO_LATEST("7.1.2", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
       UPGRADE_INCREMENTALLY_SOMEWHERE_ELSE_WITHIN_SERIES_TO_LATEST("7.2.1", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_2("7.3.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("8.0.0")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_2("7.3.0", "8.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.1"),
+      )),
       UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH_2("7.3.0", "8.0.1", publishedVersions, RECOMMEND.upgradeTo("8.0.1")),
       ;
       constructor(current:String, latestKnown: String, published: Set<AgpVersion>, results: Results) : this(agpVersion(current), agpVersion(latestKnown), published, results)
