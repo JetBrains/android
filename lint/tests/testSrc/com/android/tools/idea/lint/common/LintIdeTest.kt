@@ -24,6 +24,9 @@ import com.google.common.base.Verify
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInspection.GlobalInspectionContext
+import com.intellij.codeInspection.InspectionManager
+import com.intellij.codeInspection.ProblemDescriptionsProcessor
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
@@ -300,6 +303,29 @@ class LintIdeTest : UsefulTestCase() {
     doGlobalInspectionTest(AndroidLintUseValueOfInspection())
   }
 
+  fun testNoMemoryLeakFromGlobalContext() {
+    myFixture.copyFileToProject("$globalTestDir/MyActivity.java", "src/p1/p2/MyActivity.java")
+    var globalInspectionContext: GlobalInspectionContext? = null
+    val contextCapturingInspection =
+      object : AndroidLintUseValueOfInspection() {
+        override fun runInspection(
+          scope: AnalysisScope,
+          manager: InspectionManager,
+          globalContext: GlobalInspectionContext,
+          problemDescriptionsProcessor: ProblemDescriptionsProcessor,
+        ) {
+          globalInspectionContext = globalContext
+          super.runInspection(scope, manager, globalContext, problemDescriptionsProcessor)
+        }
+      }
+
+    doGlobalInspectionTest(contextCapturingInspection)
+
+    val androidLintContext = globalInspectionContext?.getExtension(LintGlobalInspectionContext.ID)
+    assertThat(androidLintContext).isNotNull()
+    assertThat(androidLintContext?.results).isNull()
+  }
+
   fun testLintNonAndroid() {
     // Make sure that we include the lint implementation checks themselves outside of Android
     // contexts
@@ -352,12 +378,16 @@ class LintIdeTest : UsefulTestCase() {
     val globalContext =
       createGlobalContextForTool(scope, project, listOf<InspectionToolWrapper<*, *>>(wrapper))
     InspectionTestUtil.runTool(wrapper, scope, globalContext)
-    InspectionTestUtil.compareToolResults(
-      globalContext,
-      wrapper,
-      false,
-      testDataPath + globalTestDir,
-    )
+    try {
+      InspectionTestUtil.compareToolResults(
+        globalContext,
+        wrapper,
+        false,
+        testDataPath + globalTestDir,
+      )
+    } finally {
+      globalContext.cleanup()
+    }
     globalContext.getPresentation(wrapper)
   }
 
