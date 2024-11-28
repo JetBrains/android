@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
+import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
 
 import com.android.flags.BooleanFlag;
 import com.android.flags.EnumFlag;
@@ -888,6 +889,17 @@ public final class StudioFlags {
     "selected. If unset, the latest AGP version and the latest Gradle version will be used.",
     ""
   );
+
+  public static final Flag<Boolean> USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS = new BooleanFlag(
+    GRADLE_IDE, "use.stable.agp.version.for.new.projects",
+    "Use the stable AGP version for new projects",
+    "Default to using the stable version of the Android Gradle plugin in new projects, rather than the " +
+    "latest that this version of Android Studio knows about. " +
+    "This is enabled by default in nightly versions as the corresponding -dev version of AGP is not published, " +
+    "outside of snapshot builds. " +
+    "This does not affect the behavior when running from sources from the tools/adt/idea idea project.",
+    ChannelDefault.enabledUpTo(NIGHTLY));
+
 
   public static final Flag<Boolean> GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES = new BooleanFlag(
     GRADLE_IDE,

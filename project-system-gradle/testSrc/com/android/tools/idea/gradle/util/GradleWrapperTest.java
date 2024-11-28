@@ -42,6 +42,15 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleWrapperTest extends HeavyPlatformTestCase {
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.clearOverride();
+    StudioFlags.AGP_VERSION_TO_USE.clearOverride();
+    StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.clearOverride();
+  }
+
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -138,9 +147,17 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     GradleVersion gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable = GradleWrapper.getGradleVersionToUse();
     assertEquals(gradleVersionToUseWhenOverrideIsStable, gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable);
 
+    // Check if not overridden, uses the latest
     StudioFlags.AGP_VERSION_TO_USE.override("");
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.override(false);
     assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, AgpVersions.getNewProject().toString());
     assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse().getVersion());
+
+    // Check if not overridden, and the latest
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.override(true);
+    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, AgpVersions.getNewProject().toString());
+    assertEquals(gradleVersionToUseWhenOverrideIsStable, gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable);
+
   }
 
   public void testLocalDistributionUrl() {

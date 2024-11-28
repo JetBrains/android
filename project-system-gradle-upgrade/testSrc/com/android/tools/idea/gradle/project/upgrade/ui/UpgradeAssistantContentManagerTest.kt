@@ -1016,7 +1016,7 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersionsLatestExplicitlyKnown() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion)
     val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))

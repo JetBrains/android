@@ -90,6 +90,11 @@ object AgpVersions {
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION // No locally built AGP exists, use stable version
 
       }
+
+      if (StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.get()) {
+        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION;
+      }
+
       // In packaged studio and for tests, use the AGP that was built alongside Studio
       return ANDROID_GRADLE_PLUGIN_VERSION
     }
