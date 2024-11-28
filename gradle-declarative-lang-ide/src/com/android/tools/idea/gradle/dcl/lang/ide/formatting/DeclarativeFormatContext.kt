@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dcl.lang.ide.formatting
 
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
@@ -28,6 +30,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RPAREN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
@@ -61,7 +64,8 @@ data class DeclarativeFormatContext(
         .beforeInside(elements, BLOCK_GROUP).lineBreakInCode()
         .before(OP_RBRACE).lineBreakInCode()
         // .
-        .aroundInside(OP_DOT, TokenSet.create(PROPERTY)).spaceIf(false)
+        .aroundInside(OP_DOT, TokenSet.create(PROPERTY, ASSIGNABLE_QUALIFIED, QUALIFIED, RECEIVER_PREFIXED_FACTORY))
+           .spacing(0, 0, 0, false, 0)
 
       return DeclarativeFormatContext(commonSettings, builder)
     }

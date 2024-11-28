@@ -101,6 +101,29 @@ false    )
   }
 
   @Test
+  fun testElementsWithDot() {
+    doTest("""
+      rootProject  .
+      name
+      = 
+      "name"
+      rootProject
+      .name
+      =
+      "name"
+      id("")
+      .version("")
+      id("").
+      version("")
+      ""","""
+      rootProject.name = "name"
+      rootProject.name = "name"
+      id("").version("")
+      id("").version("")
+      """)
+  }
+
+  @Test
   fun testComplexFile() {
     val before = """
         plugins{ id("org.gradle.experimental.android-application")  }      
