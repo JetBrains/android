@@ -7,13 +7,8 @@ iml_module(
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/hyphen-data",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",

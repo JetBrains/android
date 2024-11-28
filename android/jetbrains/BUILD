@@ -9,14 +9,9 @@ iml_module(
     # keep sorted
     test_data = [
         "//prebuilts/studio/jdk/jdk11",
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:layoutlib_extensions",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/hyphen-data",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps",

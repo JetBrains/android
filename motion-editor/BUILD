@@ -11,13 +11,8 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.uibuilder.handlers.motion.MotionTestSuite",
     test_data = [
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/hyphen-data",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",  # Required by all SceneTest
         "//prebuilts/studio/sdk:platforms/latest",  # Required by all SceneTest
         "//tools/adt/idea/android/annotations",
