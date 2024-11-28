@@ -72,6 +72,7 @@ public class DiagnosticReportBuilder {
     myController = controller;
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
+      new LockStatusReportContributor(),
       new MemoryUseReportContributor(),
       new ActionsReportContributor(),
       new CPUUseReportContributor()
