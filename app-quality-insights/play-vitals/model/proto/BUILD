@@ -1,6 +1,6 @@
-load("//tools/base/bazel:proto.bzl", "android_java_proto_library")
+load("//tools/base/bazel:proto.bzl", "studio_java_proto_library")
 
-android_java_proto_library(
+studio_java_proto_library(
     name = "play_vitals_java_proto",
     srcs = glob(["**/*.proto"]),
     grpc_support = True,

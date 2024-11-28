@@ -16,8 +16,6 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.io.grpc.Status
-import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.json.GoogleJsonError
@@ -28,6 +26,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.Logger.Factory
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Before

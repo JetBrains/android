@@ -12,12 +12,10 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../bazel-bin/tools/adt/idea/app-quality-insights/play-vitals/model/proto/play_vitals_java_proto.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../bazel-bin/tools/adt/idea/app-quality-insights/play-vitals/model/proto/libplay_vitals_java_proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -37,11 +35,13 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../bazel-bin/tools/adt/idea/app-quality-insights/api/proto/gemini_java_proto.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../bazel-bin/tools/adt/idea/app-quality-insights/api/proto/libgemini_java_proto.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />
   </component>
 </module>

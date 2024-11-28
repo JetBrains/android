@@ -2059,7 +2059,6 @@ android-studio/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 android-studio/plugins/android/lib/build-analysis-results-proto.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/collection-jvm-1.4.0.jar
-android-studio/plugins/android/lib/common_proto.jar
 android-studio/plugins/android/lib/commonmark-0.24.0.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
@@ -2082,7 +2081,6 @@ android-studio/plugins/android/lib/foundation-desktop-1.7.1.jar
 android-studio/plugins/android/lib/foundation-layout-desktop-1.7.1.jar
 android-studio/plugins/android/lib/game-tools-protos.jar
 android-studio/plugins/android/lib/game-tools.jar
-android-studio/plugins/android/lib/gemini_java_proto.jar
 android-studio/plugins/android/lib/generator.jar
 android-studio/plugins/android/lib/google-analytics-library.jar
 android-studio/plugins/android/lib/google-api-client-2.2.0.jar
@@ -2127,13 +2125,17 @@ android-studio/plugins/android/lib/libadblib-tools-proto.jar
 android-studio/plugins/android/lib/libagp-version.jar
 android-studio/plugins/android/lib/libam-instrumentation-data-proto.jar
 android-studio/plugins/android/lib/libandroid-core-proto.jar
+android-studio/plugins/android/lib/libcommon_proto.jar
+android-studio/plugins/android/lib/libgemini_java_proto.jar
 android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
+android-studio/plugins/android/lib/libplay_vitals_java_proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 android-studio/plugins/android/lib/libstudio.proto.jar
+android-studio/plugins/android/lib/libtitan_java_proto.jar
 android-studio/plugins/android/lib/lifecycle-common-jvm-2.8.5.jar
 android-studio/plugins/android/lib/lifecycle-runtime-compose-desktop-2.8.3.jar
 android-studio/plugins/android/lib/lifecycle-runtime-desktop-2.8.5.jar
@@ -2152,7 +2154,6 @@ android-studio/plugins/android/lib/org.eclipse.emf.common-2.12.0.jar
 android-studio/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 android-studio/plugins/android/lib/perfetto-protos.jar
 android-studio/plugins/android/lib/pixelprobe.jar
-android-studio/plugins/android/lib/play_vitals_java_proto.jar
 android-studio/plugins/android/lib/proto.jar
 android-studio/plugins/android/lib/r8.jar
 android-studio/plugins/android/lib/repository.jar
@@ -2174,7 +2175,6 @@ android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
-android-studio/plugins/android/lib/titan_java_proto.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
@@ -2846,9 +2846,10 @@ android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1be
 android-studio/plugins/firebase-testing/lib/jsch-0.1.55.jar
 android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/firebase.so.jar
-android-studio/plugins/firebase/lib/firebase_java_proto.jar
-android-studio/plugins/firebase/lib/gemini_java_proto.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
+android-studio/plugins/firebase/lib/libfirebase_java_proto.jar
+android-studio/plugins/firebase/lib/libgemini_java_proto.jar
+android-studio/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar

@@ -2080,7 +2080,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector
 Android Studio Preview.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/collection-jvm-1.4.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/common_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commonmark-0.24.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
@@ -2103,7 +2102,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/foundation-desktop-1.7.1
 Android Studio Preview.app/Contents/plugins/android/lib/foundation-layout-desktop-1.7.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
-Android Studio Preview.app/Contents/plugins/android/lib/gemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-api-client-2.2.0.jar
@@ -2148,13 +2146,17 @@ Android Studio Preview.app/Contents/plugins/android/lib/libadblib-tools-proto.ja
 Android Studio Preview.app/Contents/plugins/android/lib/libagp-version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libcommon_proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libgemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libplay_vitals_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libtitan_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-common-jvm-2.8.5.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-compose-desktop-2.8.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-desktop-2.8.5.jar
@@ -2173,7 +2175,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.common-2
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
-Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/r8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/repository.jar
@@ -2195,7 +2196,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
-Android Studio Preview.app/Contents/plugins/android/lib/titan_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
 Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
@@ -2865,9 +2865,10 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-serv
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
-Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_java_proto.jar
-Android Studio Preview.app/Contents/plugins/firebase/lib/gemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/libfirebase_java_proto.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/libgemini_java_proto.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar

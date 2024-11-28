@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="gradle-shared-proto">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/build-system/gradle-core/common_proto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/build-system/gradle-core/libcommon_proto.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

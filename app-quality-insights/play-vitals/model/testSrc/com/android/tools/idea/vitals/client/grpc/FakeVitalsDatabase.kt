@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.IssueAnnotation
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.client.toProtoTimestamp
-import com.android.tools.idea.protobuf.Timestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.AppVersion
 import com.google.play.developer.reporting.DeviceId
@@ -31,6 +30,7 @@ import com.google.play.developer.reporting.ErrorIssue
 import com.google.play.developer.reporting.ErrorReport
 import com.google.play.developer.reporting.ErrorType
 import com.google.play.developer.reporting.OsVersion
+import com.google.protobuf.Timestamp
 import java.util.concurrent.ConcurrentHashMap
 
 private data class Cluster(val issue: ErrorIssue, val report: ErrorReport)

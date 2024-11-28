@@ -57,7 +57,6 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.zeroCounts
-import com.android.tools.idea.protobuf.Message
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
@@ -77,6 +76,7 @@ import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Message
 import com.google.type.DateTime
 import com.intellij.testFramework.ProjectRule
 import com.studiogrpc.testutils.ForwardingInterceptor

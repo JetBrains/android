@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.protobuf.Timestamp
+import com.google.protobuf.Timestamp
 import java.time.Instant
 
 // reference:

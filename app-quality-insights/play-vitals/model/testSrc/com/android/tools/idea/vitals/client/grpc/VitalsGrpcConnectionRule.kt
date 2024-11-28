@@ -16,11 +16,11 @@
 package com.android.tools.idea.vitals.client.grpc
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import com.google.protobuf.GeneratedMessageV3
 import com.studiogrpc.testutils.GrpcConnectionRule
+import io.grpc.ManagedChannel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch

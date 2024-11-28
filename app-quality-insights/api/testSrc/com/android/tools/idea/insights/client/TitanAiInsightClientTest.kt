@@ -16,17 +16,17 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.io.grpc.stub.StreamObserver
-import com.android.tools.idea.protobuf.Any
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionMessage
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionOutput
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionRequest
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionResponse
 import com.google.cloud.cloudaicompanion.v1main.TaskCompletionServiceGrpc
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Any
 import com.intellij.testFramework.DisposableRule
 import com.studiogrpc.testutils.ForwardingInterceptor
 import com.studiogrpc.testutils.GrpcConnectionRule
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test

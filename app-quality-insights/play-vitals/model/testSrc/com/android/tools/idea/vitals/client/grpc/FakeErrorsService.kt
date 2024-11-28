@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.io.grpc.stub.StreamObserver
-import com.android.tools.idea.protobuf.GeneratedMessageV3
-import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.AggregationPeriod
@@ -32,6 +29,9 @@ import com.google.play.developer.reporting.SearchErrorIssuesResponse
 import com.google.play.developer.reporting.SearchErrorReportsRequest
 import com.google.play.developer.reporting.SearchErrorReportsResponse
 import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
+import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.TextFormat
+import io.grpc.stub.StreamObserver
 import java.time.Clock
 import java.time.ZoneId
 import kotlinx.coroutines.channels.SendChannel

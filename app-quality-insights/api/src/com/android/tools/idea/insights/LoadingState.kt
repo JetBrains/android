@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.insights.LoadingState.Ready
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.rpc.Status
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance

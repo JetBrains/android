@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.com.google.rpc.Status
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
@@ -37,11 +36,12 @@ import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
-import com.android.tools.idea.protobuf.Any
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
+import com.google.protobuf.Any
+import com.google.protobuf.ByteString
+import com.google.rpc.Status
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil

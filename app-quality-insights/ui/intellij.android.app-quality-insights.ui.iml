@@ -24,8 +24,7 @@
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.log.impl" level="project" />
     <orderEntry type="library" name="studio-plugin-intellij.platform.vcs.dvcs.impl" level="project" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
   </component>
 </module>

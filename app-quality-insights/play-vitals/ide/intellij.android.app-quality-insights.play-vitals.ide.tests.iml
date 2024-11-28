@@ -23,10 +23,10 @@
     <orderEntry type="module" module-name="studio-grpc-testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.view" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
   </component>
 </module>

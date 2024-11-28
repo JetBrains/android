@@ -16,16 +16,16 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.io.grpc.Status
-import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.idea.io.grpc.netty.GrpcSslContexts
-import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
-import com.android.tools.idea.io.grpc.protobuf.StatusProto
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.net.ssl.CertificateManager
 import com.intellij.util.net.ssl.ConfirmingTrustManager
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.protobuf.StatusProto
 import java.io.IOException
 import java.net.SocketException
 import java.net.UnknownHostException

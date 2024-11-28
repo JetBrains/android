@@ -257,7 +257,7 @@ jvm_import(
 # managed by go/iml_to_build
 jvm_import(
     name = "gradle-shared-proto",
-    jars = ["//tools/base/build-system/gradle-core:common_proto.jar"],
+    jars = ["//tools/base/build-system/gradle-core:libcommon_proto.jar"],
     visibility = ["//visibility:public"],
 )
 

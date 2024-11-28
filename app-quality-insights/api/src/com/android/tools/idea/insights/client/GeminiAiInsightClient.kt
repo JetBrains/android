@@ -22,9 +22,9 @@ import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.protobuf.Message
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.protobuf.Message
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList

@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.protobuf.Message
+import com.google.protobuf.Message
 
 interface AiInsightClient {
 

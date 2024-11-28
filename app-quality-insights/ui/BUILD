@@ -25,9 +25,8 @@ iml_module(
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
-        "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
+        "@intellij//:intellij.libraries.grpc",
     ],
 )
 
@@ -65,8 +64,7 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "@intellij//:intellij.platform.vcs.impl[test]",
-        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
-        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module, test]",
+        "@intellij//:intellij.libraries.grpc",
     ],
 )

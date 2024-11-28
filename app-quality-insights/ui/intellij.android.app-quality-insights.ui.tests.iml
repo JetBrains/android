@@ -31,8 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.server-flags" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.platform.vcs.impl" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="google-login-as" scope="TEST" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
   </component>
 </module>

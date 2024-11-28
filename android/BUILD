@@ -4,25 +4,17 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/bazel:proto.bzl", "INTELLIJ_PLATFORM_PROTO_VERSION", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "studio_java_proto_library")
 
-java_proto_library(
+studio_java_proto_library(
     name = "android-core-proto",
     srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
-    proto_java_runtime_library = [
-        "@intellij//:intellij-sdk",
-    ],
-    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 
-java_proto_library(
+studio_java_proto_library(
     name = "android-core-proto-test",
     srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
-    proto_java_runtime_library = [
-        "@intellij//:intellij-sdk",
-    ],
-    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 
@@ -414,11 +406,11 @@ filegroup(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
-        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
-        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
         "//tools/adt/idea/debuggers:libjava_sites",
@@ -442,10 +434,10 @@ filegroup(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/vendor/google/asfp/base:studio-intellijext",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
-        "//tools/vendor/google/firebase/integration:titan_java_proto",
-        "//tools/vendor/google/firebase:firebase_java_proto",
-        "//tools/vendor/google/firebase:gemini_java_proto",
-        "//tools/vendor/google/firebase:titan_java_proto",
+        "//tools/vendor/google/firebase/integration:libtitan_java_proto",
+        "//tools/vendor/google/firebase:libfirebase_java_proto",
+        "//tools/vendor/google/firebase:libgemini_java_proto",
+        "//tools/vendor/google/firebase:libtitan_java_proto",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
         "//tools/vendor/google/game-tools/packaging:game-tools-protos",
         "//tools/vendor/google/ml/aiplugin/core:aida_grpc",

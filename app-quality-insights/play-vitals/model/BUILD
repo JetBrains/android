@@ -15,9 +15,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
@@ -29,20 +27,22 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
 )
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "play_vitals_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/play-vitals/model/proto:play_vitals_java_proto.jar"],
+    name = "libgemini_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:libgemini_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "gemini_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto.jar"],
+    name = "libplay_vitals_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/play-vitals/model/proto:libplay_vitals_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

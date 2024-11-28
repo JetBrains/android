@@ -27,13 +27,11 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
-        "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
@@ -41,14 +39,9 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.platform.vcs.impl[test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "titan_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto.jar"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
@@ -60,7 +53,14 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "gemini_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto.jar"],
+    name = "libtitan_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:libtitan_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libgemini_java_proto",
+    jars = ["//tools/adt/idea/app-quality-insights/api/proto:libgemini_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

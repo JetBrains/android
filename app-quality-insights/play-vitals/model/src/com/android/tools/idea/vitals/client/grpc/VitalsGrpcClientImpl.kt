@@ -26,8 +26,6 @@ import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.client.retryRpc
-import com.android.tools.idea.io.grpc.ClientInterceptor
-import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.vitals.datamodel.Dimension
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
@@ -55,6 +53,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
+import io.grpc.ClientInterceptor
+import io.grpc.ManagedChannel
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await

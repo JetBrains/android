@@ -23,8 +23,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
+        "@intellij//:intellij.libraries.grpc",
     ],
 )
 
@@ -53,10 +53,10 @@ iml_module(
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module, test]",
         "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view[module, test]",
-        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "@intellij//:intellij.libraries.grpc",
     ],
 )
