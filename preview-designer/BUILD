@@ -37,7 +37,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.preview-designer.tests",
-    generate_k2_tests = True,
+    generate_k2_tests = False,  # Disabled because of b/380229333
     iml_files = ["intellij.android.preview-designer.tests.iml"],
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
