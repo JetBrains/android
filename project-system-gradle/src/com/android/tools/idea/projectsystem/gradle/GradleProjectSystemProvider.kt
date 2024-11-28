@@ -29,7 +29,10 @@ import com.intellij.openapi.project.Project
  * which case we can't create the project system because it interacts with the project during instantiation.
  */
 class GradleProjectSystemProvider : AndroidProjectSystemProvider {
-  override val id = "com.android.tools.idea.GradleProjectSystem"
+  override val id = ID
   override fun isApplicable(project: Project) = Info.getInstance(project).isBuildWithGradle
   override fun projectSystemFactory(project: Project) = GradleProjectSystem(project)
+  companion object {
+    const val ID = "com.android.tools.idea.GradleProjectSystem"
+  }
 }

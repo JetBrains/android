@@ -64,6 +64,9 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
   private val cachedProjectSystem by cachedProjectSystemDelegate
   private var projectSystemForTests: AndroidProjectSystem? = null
 
+  fun setProviderId(id: String) {
+    state = State(id)
+  }
   private var state: State? = null
 
   companion object {
