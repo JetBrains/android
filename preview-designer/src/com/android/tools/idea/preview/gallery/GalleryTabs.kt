@@ -60,7 +60,6 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param tabChangeListener is called when new [Key] is selected. [GalleryTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
-@Deprecated("b/344884593")
 internal class GalleryTabs<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
