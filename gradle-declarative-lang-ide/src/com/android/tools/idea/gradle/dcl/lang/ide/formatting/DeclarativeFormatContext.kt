@@ -52,6 +52,7 @@ data class DeclarativeFormatContext(
         .after(OP_COMMA).spacing(1, 1, 0, false, 0)
         .before(OP_COMMA).spacing(0, 0, 0, false, 0)
         .after(OP_LPAREN).spacing(0, 0, 0, false, 0)
+        .before(OP_LPAREN).spacing(0, 0, 0, false, 0)
         .before(OP_RPAREN).spacing(0, 0, 0, false, 0)
         // ;
         .before(SEMI).spacing(0, 0, 0, false, 0)

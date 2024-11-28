@@ -124,6 +124,21 @@ false    )
   }
 
   @Test
+  fun testFactoryBlock() {
+    doTest("""
+        buildType
+        (   "debug")
+        {
+           prop
+           = "value" }
+        ""","""
+        buildType("debug") {
+            prop = "value"
+        }
+        """)
+  }
+
+  @Test
   fun testComplexFile() {
     val before = """
         plugins{ id("org.gradle.experimental.android-application")  }      
