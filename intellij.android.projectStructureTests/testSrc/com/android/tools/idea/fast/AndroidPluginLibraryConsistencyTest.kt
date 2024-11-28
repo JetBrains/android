@@ -7,6 +7,7 @@ import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
 import org.jdom.Attribute
 import org.jdom.IllegalAddException
+import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaDependencyScope
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
@@ -24,6 +25,7 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
 
   private val androidModuleLibrariesCatalog: Map<String, List<ModuleLibrary>> = androidProject
     .modules
+    .filter { it.sourceRoots.singleOrNull()?.rootType != JavaSourceRootType.TEST_SOURCE }
     .associateBy(keySelector = { it.name }) { module ->
       module.libraryDependencies.map { library ->
         val ref = library.libraryReference
@@ -32,20 +34,20 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
         val libraryName = ref.libraryName
         val libraryScope = JpsJavaExtensionService.getInstance().getDependencyExtension(library)!!.scope
 
-        ModuleLibrary(libraryName, libraryScope, moduleName, moduleImlFilePath)
+        ModuleLibrary(libraryName = libraryName, scope = libraryScope, moduleName = moduleName, moduleImlFilePath = moduleImlFilePath)
       }
     }
 
   @Test
   fun `'studio-platform' and 'studio-test-platform' libraries are defined with a proper scope`() {
-    androidModuleLibrariesCatalog.forEach { (moduleName, moduleLibraries) ->
+    for ((moduleName, moduleLibraries) in androidModuleLibrariesCatalog) {
       val studioPlatformLibraries = moduleLibraries
         .filter { it.libraryName == "studio-platform" || it.libraryName == "studio-test-platform" }
         .distinctBy { it.libraryName }
 
       val moduleLibraryDiffReport = ModuleLibraryDiffReport.NO_DIFF
 
-      studioPlatformLibraries.forEach { library ->
+      for (library in studioPlatformLibraries) {
         val expectedLibraryScope = when (library.libraryName) {
           "studio-platform" -> JpsJavaDependencyScope.PROVIDED
           "studio-test-platform" -> JpsJavaDependencyScope.TEST
