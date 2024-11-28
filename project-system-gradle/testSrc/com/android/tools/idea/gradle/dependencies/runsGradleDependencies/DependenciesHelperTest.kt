@@ -85,7 +85,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
-  fun testAddTwoKotlinPlugins() {
+  fun testAddSupportedKotlinPlugins() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel!!
@@ -95,20 +95,43 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
 
              val updates2 = helper.addPlugin("org.jetbrains.kotlin.plugin.compose", "1.9.20", false, projectModel, moduleModel)
              assertThat(updates2.size).isEqualTo(3)
+
+             val updates3 = helper.addPlugin("org.jetbrains.kotlin.multiplatform", "1.9.20", false, projectModel, moduleModel)
+             assertThat(updates3.size).isEqualTo(3)
            },
            {
              val catalog = project.getTextForFile("gradle/libs.versions.toml")
              assertThat(catalog).contains("kotlin = \"1.9.20\"")
              assertThat(catalog).contains("kotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }")
              assertThat(catalog).contains("kotlin-compose = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }")
+             assertThat(catalog).contains("kotlin-multiplatform = { id = \"org.jetbrains.kotlin.multiplatform\", version.ref = \"kotlin\" }")
 
              val projectBuildContent = project.getTextForFile("build.gradle")
              assertThat(projectBuildContent).contains("alias(libs.plugins.kotlin.android) apply false")
              assertThat(projectBuildContent).contains("alias(libs.plugins.kotlin.compose) apply false")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.kotlin.multiplatform) apply false")
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
              assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.android)")
              assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.compose)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.multiplatform)")
+           })
+  }
+
+  @Test
+  fun testAddAndroidKotlinMultiplatformPlugin() {
+    val env = BuildEnvironment.getInstance()
+    val version = env.gradlePluginVersion
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel!!
+             val updates = helper.addPlugin("com.android.kotlin.multiplatform.library", version, false, projectModel, moduleModel)
+             assertThat(updates.size).isEqualTo(3)
+           },
+           {
+             val catalog = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalog).contains("agp = \"${version}\"")
+             assertThat(catalog).contains("android-kotlin-multiplatform-library = { id = \"com.android.kotlin.multiplatform.library\", version.ref = \"agp\" }")
            })
   }
 
